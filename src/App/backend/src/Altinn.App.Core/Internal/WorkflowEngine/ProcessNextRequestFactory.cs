@@ -154,17 +154,21 @@ internal sealed class ProcessNextRequestFactory
             dependsOn: null,
             prefill,
             notification,
-            idempotencyKey
+            idempotencyKey,
+            action: null
         );
 
     /// <summary>
     /// Creates the acquire-only workflow for process/next.
+    /// <paramref name="action"/> rides in the acquire payload to the dependent transition, which hands it to a
+    /// service task the transition enters.
     /// </summary>
     public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
         Instance instance,
         ProcessStateChange processStateChange,
         string state,
         string idempotencyKey,
+        string? action,
         string? language
     )
     {
@@ -178,7 +182,10 @@ internal sealed class ProcessNextRequestFactory
                 OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
                 Steps =
                 [
-                    CreateCommand(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
+                    CreateCommand(
+                        ProcessingStatusAcquirer.Key,
+                        new AcquireProcessingStatusPayload(processStateChange, action)
+                    ),
                 ],
                 State = state,
             },
@@ -212,6 +219,7 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// Creates an engine-owned continuation that remains inside an already acquired transition chain.
+    /// <paramref name="action"/> is the transition's action, handed to a service task the transition enters.
     /// </summary>
     public Task<WorkflowEnqueueEnvelope> CreateDependent(
         Instance instance,
@@ -219,7 +227,8 @@ internal sealed class ProcessNextRequestFactory
         string state,
         Actor actor,
         IEnumerable<WorkflowRef> dependsOn,
-        string idempotencyKey
+        string idempotencyKey,
+        string? action
     ) =>
         Create(
             instance,
@@ -232,7 +241,8 @@ internal sealed class ProcessNextRequestFactory
             dependsOn,
             prefill: null,
             notification: null,
-            idempotencyKey
+            idempotencyKey,
+            action
         );
 
     private async Task<WorkflowEnqueueEnvelope> Create(
@@ -246,7 +256,8 @@ internal sealed class ProcessNextRequestFactory
         IEnumerable<WorkflowRef>? dependsOn,
         Dictionary<string, string>? prefill,
         InstantiationNotification? notification,
-        string idempotencyKey
+        string idempotencyKey,
+        string? action
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
@@ -256,7 +267,8 @@ internal sealed class ProcessNextRequestFactory
             acquireProcessingStatus,
             isInstantiation,
             prefill,
-            notification
+            notification,
+            action
         );
         string fromTaskId =
             processStateChange.OldProcessState?.CurrentTask?.ElementId
@@ -399,8 +411,9 @@ internal sealed class ProcessNextRequestFactory
         ProcessStateChange processStateChange,
         bool acquireProcessingStatus,
         bool isInstantiation,
-        Dictionary<string, string>? prefill = null,
-        InstantiationNotification? notification = null
+        Dictionary<string, string>? prefill,
+        InstantiationNotification? notification,
+        string? action
     )
     {
         var taskEndSteps = new List<StepRequest>();
@@ -432,7 +445,8 @@ internal sealed class ProcessNextRequestFactory
                 isInitialTaskStart,
                 isInstantiation,
                 prefill,
-                notification
+                notification,
+                action
             );
             if (workflowCommands != null)
             {
@@ -519,7 +533,8 @@ internal sealed class ProcessNextRequestFactory
         bool isInitialTaskStart,
         bool isInstantiation,
         Dictionary<string, string>? prefill,
-        InstantiationNotification? notification
+        InstantiationNotification? notification,
+        string? action
     )
     {
         switch (eventType)
@@ -533,6 +548,7 @@ internal sealed class ProcessNextRequestFactory
                     {
                         TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
+                        Action = action,
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,

@@ -33,6 +33,31 @@ public class ProcessingStatusAcquirerTests
     private static readonly DateTimeOffset _executionReferenceTime = new(2026, 7, 21, 9, 30, 0, TimeSpan.Zero);
 
     [Theory]
+    [InlineData("confirm")]
+    [InlineData("reject")]
+    [InlineData(null)]
+    public async Task Acquire_HandsTheRequestsActionToTheDependentTransition(string? action)
+    {
+        // A service task the transition enters reads the action, so the acquire must pass it on.
+        var setup = new Setup();
+        Instance returned = setup.CreateInstance(ProcessStatus.Processing);
+        setup.SetupCommit(
+            (_, _, _) =>
+                Task.FromResult(
+                    new InstanceMutationWithStorageMetadata(
+                        returned,
+                        new StorageVersionMetadata(InstanceVersion: 13, ProcessStateVersion: 9)
+                    )
+                )
+        );
+
+        ProcessingStatusAcquisition result = await setup.Acquire(setup.CreatePayload(action), Guid.NewGuid());
+
+        Assert.IsType<ProcessingStatusAcquisition.Acquired>(result);
+        Assert.Equal(action, Assert.Single(setup.EnqueuedActions));
+    }
+
+    [Theory]
     [InlineData(false, "captured-version")]
     [InlineData(true, "captured-version")]
     [InlineData(true, null)]
@@ -411,13 +436,25 @@ public class ProcessingStatusAcquirerTests
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<Actor>(),
+                        It.IsAny<string?>(),
                         null,
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
-                    (instance, transition, dependency, collectionKey, state, actor, _, cancellationToken) =>
+                .Callback<
+                    Instance,
+                    ProcessStateChange,
+                    Guid,
+                    string,
+                    string,
+                    Actor,
+                    string?,
+                    string?,
+                    CancellationToken
+                >(
+                    (instance, transition, dependency, collectionKey, state, actor, action, _, cancellationToken) =>
                     {
+                        EnqueuedActions.Add(action);
                         Assert.Equal(ProcessStatus.Processing, instance.Process?.Status);
                         Assert.Equal(WorkflowId, dependency);
                         Assert.Equal("process-chain", collectionKey);
@@ -450,6 +487,8 @@ public class ProcessingStatusAcquirerTests
         public List<ProcessStateChange> EnqueuedTransitions { get; } = [];
 
         public string? EnqueuedState { get; private set; }
+
+        public List<string?> EnqueuedActions { get; } = [];
 
         public string InstanceId => $"{PartyId}/{InstanceGuid}";
 
@@ -539,7 +578,7 @@ public class ProcessingStatusAcquirerTests
                 NewProcessState = destination,
                 Events = events,
             };
-            return CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(transition))
+            return CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(transition, Action: action))
                 ?? throw new InvalidOperationException("Prepared payload was not serialized.");
         }
 

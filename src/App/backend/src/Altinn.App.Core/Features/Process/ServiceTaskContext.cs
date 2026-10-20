@@ -53,6 +53,14 @@ public sealed record ServiceTaskContext
     public DateTimeOffset ExecutionReferenceTime { get; internal init; }
 
     /// <summary>
+    /// The action of the process transition that entered this service task, such as <c>confirm</c> or
+    /// <c>reject</c>, or null when the task was entered without one (for example at process start). A task
+    /// can forward it to the element after it by returning
+    /// <c>ServiceTaskResult.Success(action: context.Action)</c>.
+    /// </summary>
+    public string? Action { get; init; }
+
+    /// <summary>
     /// The clock bounding <em>this attempt</em> (<see cref="ProcessStepOptions.MaxExecutionTime"/>):
     /// how many consecutive errors preceded it, and when it is cut off.
     /// </summary>

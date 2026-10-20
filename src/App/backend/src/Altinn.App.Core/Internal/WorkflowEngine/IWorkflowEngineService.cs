@@ -27,12 +27,14 @@ internal interface IWorkflowEngineService
     /// <summary>
     /// Enqueues the acquire workflow and waits for its dependent transition to settle.
     /// Callbacks inherit <paramref name="language"/>; null uses the caller's profile language.
+    /// <paramref name="action"/> is the transition's action, handed to a service task the transition enters.
     /// </summary>
     Task<ProcessNextWorkflowResult> EnqueueAndWaitForProcessNext(
         Instance instance,
         StorageVersionMetadata instanceVersions,
         string state,
         ProcessStateChange processStateChange,
+        string? action,
         string? language,
         CancellationToken cancellationToken = default
     );
@@ -54,6 +56,7 @@ internal interface IWorkflowEngineService
     /// <summary>
     /// Enqueues a dependent transition, keyed by its parent workflow unless <paramref name="idempotencyKey"/>
     /// is supplied. Mailbox continuations use the concluding step's key.
+    /// <paramref name="action"/> is the transition's action, handed to a service task the transition enters.
     /// </summary>
     Task<Guid> EnqueueDependentProcessNext(
         Instance instance,
@@ -62,6 +65,7 @@ internal interface IWorkflowEngineService
         string collectionKey,
         string state,
         Actor actor,
+        string? action,
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default
     );

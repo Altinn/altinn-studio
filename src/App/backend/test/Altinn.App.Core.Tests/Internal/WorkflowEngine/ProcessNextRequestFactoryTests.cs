@@ -456,6 +456,7 @@ public class ProcessNextRequestFactoryTests
             CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
+            action: null,
             language: null
         );
         var dependent = await factory.CreateDependent(
@@ -464,7 +465,8 @@ public class ProcessNextRequestFactoryTests
             "saved-state",
             new Actor { SystemUserId = Guid.NewGuid(), Language = "nb" },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
+            "dependent-key",
+            action: null
         );
 
         AssertTokenBindsItsRequest(acquire);
@@ -515,7 +517,14 @@ public class ProcessNextRequestFactoryTests
         var factory = CreateFactory();
         var transition = toProcessEnd ? CreateTaskToEndTransition() : CreateTaskToTaskTransition();
         var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
-        var acquire = await factory.CreateAcquire(instance, transition, SignedTestState, "acquire-key", language: null);
+        var acquire = await factory.CreateAcquire(
+            instance,
+            transition,
+            SignedTestState,
+            "acquire-key",
+            action: "confirm",
+            language: null
+        );
         var workflow = Assert.Single(acquire.Request.Workflows);
         Assert.Equal("Process next: Mark instance as processing", workflow.OperationId);
         var step = Assert.Single(workflow.Steps);
@@ -525,6 +534,8 @@ public class ProcessNextRequestFactoryTests
             CommandPayloadSerializer.Deserialize<CommandRequestPayload>(command.Payload)
         );
         Assert.Equal(JsonSerializer.Serialize(transition), JsonSerializer.Serialize(payload.ProcessStateChange));
+        // The dependent transition hands the action to a service task it enters.
+        Assert.Equal("confirm", payload.Action);
         Assert.Equal(SignedTestState, workflow.State);
         Assert.Null(workflow.IsHead);
         Assert.Null(workflow.DependsOn);
@@ -541,7 +552,8 @@ public class ProcessNextRequestFactoryTests
             "saved-state",
             context.Actor,
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
+            "dependent-key",
+            action: null
         );
         Assert.Equal("Task_1", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
         Assert.Equal("0", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
@@ -578,6 +590,7 @@ public class ProcessNextRequestFactoryTests
             CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
+            action: null,
             requested
         );
 
@@ -611,6 +624,7 @@ public class ProcessNextRequestFactoryTests
             CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
+            action: null,
             requested
         );
 
@@ -631,6 +645,7 @@ public class ProcessNextRequestFactoryTests
             CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
+            action: null,
             "en"
         );
         var bokmal = await factory.CreateAcquire(
@@ -638,6 +653,7 @@ public class ProcessNextRequestFactoryTests
             CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
+            action: null,
             "nb"
         );
 
@@ -666,6 +682,7 @@ public class ProcessNextRequestFactoryTests
             CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
+            action: null,
             "en"
         );
 
@@ -676,7 +693,8 @@ public class ProcessNextRequestFactoryTests
             "saved-state",
             GetActor(acquire),
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "dependent-key"
+            "dependent-key",
+            action: null
         );
 
         Assert.Equal("en", GetActor(dependent).Language);
@@ -737,7 +755,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -785,7 +804,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -831,7 +851,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -866,7 +887,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert: ExecuteServiceTask runs for the entering task but stays unlabeled, because it sits
@@ -965,7 +987,8 @@ public class ProcessNextRequestFactoryTests
             "{}",
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -1013,7 +1036,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -1124,7 +1148,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert
@@ -1156,6 +1181,47 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
     }
 
+    /// <summary>
+    /// The transition's action reaches the service task it enters: a dependent workflow carries the action it
+    /// was computed for, null included, and instantiation, which has none, carries null.
+    /// </summary>
+    [Fact]
+    public async Task Create_ServiceTask_CarriesTheTransitionsActionOnTheServiceTaskStep()
+    {
+        var factory = CreateFactory(serviceTasks: new FakeServiceTask("pdf"));
+        var stateChange = CreateInitialTaskStart(altinnTaskType: "pdf");
+
+        var dependent = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key",
+            "confirm"
+        );
+        var dependentWithoutAction = await factory.CreateDependent(
+            TestInstance,
+            stateChange,
+            SignedTestState,
+            new Actor { UserId = 42 },
+            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
+            "test-process-next-idempotency-key-2",
+            action: null
+        );
+        var initiating = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "initiating-key",
+            SignedTestState,
+            isInstantiation: true
+        );
+
+        Assert.Equal("confirm", Assert.Single(ExtractExecuteServiceTaskPayloads(dependent)).Action);
+        Assert.Null(Assert.Single(ExtractExecuteServiceTaskPayloads(dependentWithoutAction)).Action);
+        Assert.Null(Assert.Single(ExtractExecuteServiceTaskPayloads(initiating)).Action);
+    }
+
     [Fact]
     public async Task Create_ServiceTask_AddsExecuteServiceTaskAfterCommitAndLeavesTheReleaseToItsContinuation()
     {
@@ -1170,7 +1236,8 @@ public class ProcessNextRequestFactoryTests
             SignedTestState,
             new Actor { UserId = 42 },
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
+            "test-process-next-idempotency-key",
+            action: null
         );
 
         // Assert - ExecuteServiceTask is critical: it stays in Main, after the commit boundary.
@@ -1527,8 +1594,8 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The assembled send stage's whole serialized payload, pinned exactly: the service task and the item it
-    /// runs, and nothing else. What follows the send — this pipeline's terminal, its exchange's only receiver
+    /// The assembled send stage's whole serialized payload, pinned exactly: the service task, the item it
+    /// runs and the action that entered the task (none at instantiation), and nothing else. What follows the send — this pipeline's terminal, its exchange's only receiver
     /// — is worked out by that step when it runs, from the pipeline it resolves then. Pinned on the whole
     /// string so that a field added to the payload fails here too, not only a field removed.
     /// </summary>
@@ -1548,7 +1615,7 @@ public class ProcessNextRequestFactoryTests
         var sendStep = Assert.Single(ExtractServiceTaskSteps(bundle));
         string payloadJson = JsonSerializer.Deserialize<AppCommandData>(sendStep.Step.Command.Data!.Value)!.Payload!;
         Assert.Equal(
-            "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":0}",
+            "{\"$type\":\"executeServiceTask\",\"serviceTaskType\":\"archiving\",\"itemIndex\":0,\"action\":null}",
             payloadJson
         );
     }
@@ -2022,7 +2089,8 @@ public class ProcessNextRequestFactoryTests
             "signed-state",
             new Actor { UserId = 1337 },
             [dependency],
-            "dependent-idempotency-key"
+            "dependent-idempotency-key",
+            action: null
         );
 
         var keys = ExtractCommandKeys(bundle);
@@ -2047,7 +2115,8 @@ public class ProcessNextRequestFactoryTests
                 "signed-state",
                 new Actor { UserId = 1337 },
                 [Guid.NewGuid()],
-                "dependent-key"
+                "dependent-key",
+                action: null
             ),
         ];
 

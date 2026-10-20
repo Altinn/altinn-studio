@@ -42,6 +42,7 @@ public class WorkflowEngineCommandRegistrationTests
                 {
                     TaskId = "Task_1",
                     ServiceTask = null,
+                    Action = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -54,6 +55,7 @@ public class WorkflowEngineCommandRegistrationTests
                 {
                     TaskId = "Task_1",
                     ServiceTask = null,
+                    Action = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     RegisterEvents = true,
@@ -67,6 +69,7 @@ public class WorkflowEngineCommandRegistrationTests
                 {
                     TaskId = "Task_1",
                     ServiceTask = null,
+                    Action = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     Notification = new InstantiationNotification(),
@@ -81,6 +84,7 @@ public class WorkflowEngineCommandRegistrationTests
                 {
                     TaskId = "Task_1",
                     ServiceTask = new ResolvedServiceTask("simple", CreatePipeline()),
+                    Action = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -94,6 +98,7 @@ public class WorkflowEngineCommandRegistrationTests
                 {
                     TaskId = "Task_1",
                     ServiceTask = new ResolvedServiceTask("mailbox", CreateMailboxPipeline()),
+                    Action = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }

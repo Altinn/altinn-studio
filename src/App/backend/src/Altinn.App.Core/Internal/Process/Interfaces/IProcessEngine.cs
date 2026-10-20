@@ -58,6 +58,7 @@ internal interface IProcessEngine
     /// makes from inside one callback keys off the same executing step.
     /// The callback's <c>executionReferenceTime</c> supplies event and process timestamps so retries
     /// reconstruct the same logical transition.
+    /// <c>action</c> decides the transition and is handed to a service task the transition enters.
     /// </remarks>
     Task EnqueueProcessNext(
         IInstanceDataAccessor dataAccessor,
@@ -66,7 +67,7 @@ internal interface IProcessEngine
         string collectionKey,
         string state,
         DateTimeOffset executionReferenceTime,
-        string? action = null,
+        string? action,
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default
     );

@@ -1000,6 +1000,7 @@ internal class ProcessEngine : IProcessEngine
             transitionData.StorageVersions,
             state,
             processStateChange,
+            action,
             language,
             cancellationToken: cancellationToken
         );
@@ -1013,7 +1014,7 @@ internal class ProcessEngine : IProcessEngine
         string collectionKey,
         string state,
         DateTimeOffset executionReferenceTime,
-        string? action = null,
+        string? action,
         string? idempotencyKey = null,
         CancellationToken cancellationToken = default
     )
@@ -1029,6 +1030,7 @@ internal class ProcessEngine : IProcessEngine
             collectionKey,
             state,
             actor,
+            action,
             idempotencyKey,
             cancellationToken: cancellationToken
         );

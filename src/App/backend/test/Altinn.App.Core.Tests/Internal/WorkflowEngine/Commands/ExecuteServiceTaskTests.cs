@@ -293,6 +293,46 @@ public class ExecuteServiceTaskTests
         Assert.Equal("delivery not confirmed", deferred.Reason);
     }
 
+    [Theory]
+    [InlineData("confirm")]
+    [InlineData(null)]
+    public async Task Execute_ForwardsTheStepsActionToServiceTaskContext(string? action)
+    {
+        // Arrange — the action of the transition that entered the task rides on the step's payload, so a task
+        // can hand it on to a gateway after it.
+        var serviceTask = Succeeding();
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        // Act
+        await command.Execute(context, new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0, Action: action));
+
+        // Assert
+        Assert.NotNull(serviceTask.Observed);
+        Assert.Equal(action, serviceTask.Observed.Action);
+    }
+
+    [Fact]
+    public async Task Execute_TaskEnteredWithAnAction_ReturningSuccessWithoutOne_ContinuesWithNoAction()
+    {
+        // Arrange — a task that does not forward the action it was entered with clears it: the transition out of
+        // the task routes on what the task returned, never on the action that led into it.
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        // Act
+        var result = await command.Execute(
+            context,
+            new ExecuteServiceTaskPayload("myServiceTask", ItemIndex: 0, Action: "reject")
+        );
+
+        // Assert
+        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.Null(success.ProcessNextContinuation.Action);
+    }
+
     [Fact]
     public async Task Execute_ForwardsRetryCountAndExecutionDeadlineToServiceTaskContext()
     {

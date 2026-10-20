@@ -126,6 +126,7 @@ public class WorkflowEngineServiceTests
                 versions,
                 "state",
                 CreateProcessStateChange(instance),
+                action: null,
                 language: null
             )
             .WaitAsync(TimeSpan.FromSeconds(10));
@@ -332,7 +333,8 @@ public class WorkflowEngineServiceTests
                 collectionKey,
                 "state",
                 new Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor(),
-                idempotencyKey: key
+                idempotencyKey: key,
+                action: null
             );
         if (scenario == "matching")
             Assert.Equal(accepted.DatabaseId, await Enqueue());
@@ -443,6 +445,7 @@ public class WorkflowEngineServiceTests
                     versions,
                     "state",
                     CreateProcessStateChange(instance),
+                    action: null,
                     language: null
                 )
                 : service.EnqueueAndWaitForInitialProcessState(instance, versions, CreateProcessStateChange(instance))

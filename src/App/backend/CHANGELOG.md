@@ -16,6 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
+- `ServiceTaskContext.Action` gives a service task the action the user took on the task before it, such as `confirm` or `reject`. Return `ServiceTaskResult.Success(action: context.Action)` to pass it on to a gateway after the task. ([#21180](https://github.com/Altinn/altinn-studio/pull/21180))
 
 ### Changed
 
@@ -51,6 +52,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
+- A gateway after a PDF service task that routes on `gatewayAction`, such as after the PDF tasks `studioctl app upgrade v9` inserts, now gets the action the user took on the task before, instead of matching no flow. On `reject`, the PDF task creates no PDF. ([#21180](https://github.com/Altinn/altinn-studio/pull/21180))
 
 ### Removed
 

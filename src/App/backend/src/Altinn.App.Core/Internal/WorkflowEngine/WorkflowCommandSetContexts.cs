@@ -28,6 +28,12 @@ internal sealed record TaskStartContext
     public required ResolvedServiceTask? ServiceTask { get; init; }
 
     /// <summary>
+    /// The action of the transition that enters the task, or null when it was entered without one. Copied
+    /// onto every step of a service task's pipeline.
+    /// </summary>
+    public required string? Action { get; init; }
+
+    /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.
     /// </summary>
     public required bool IsInitialTaskStart { get; init; }

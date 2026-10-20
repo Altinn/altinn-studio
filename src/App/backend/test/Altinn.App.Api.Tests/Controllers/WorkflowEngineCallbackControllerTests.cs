@@ -67,11 +67,12 @@ public class WorkflowEngineCallbackControllerTests
                     It.IsAny<string>(),
                     It.IsAny<Actor>(),
                     null,
+                    null,
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, CancellationToken>(
-                (instance, transition, dependency, _, state, actor, _, _) =>
+            .Callback<Instance, ProcessStateChange, Guid, string, string, Actor, string?, string?, CancellationToken>(
+                (instance, transition, dependency, _, state, actor, _, _, _) =>
                 {
                     Assert.Equal(setup!.WorkflowId, dependency);
                     Assert.Equal(42, actor.UserId);
@@ -1498,7 +1499,7 @@ public class WorkflowEngineCallbackControllerTests
                 ],
             };
 
-            return CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(change))
+            return CommandPayloadSerializer.Serialize(new AcquireProcessingStatusPayload(change, Action: null))
                 ?? throw new InvalidOperationException("Failed to serialize the acquire payload.");
         }
 

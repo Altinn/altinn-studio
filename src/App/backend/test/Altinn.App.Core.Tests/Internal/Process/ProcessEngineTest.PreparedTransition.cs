@@ -234,6 +234,7 @@ public sealed partial class ProcessEngineTest
                     "collection",
                     "state",
                     actor,
+                    null,
                     "continuation-key",
                     It.IsAny<CancellationToken>()
                 )
@@ -247,6 +248,7 @@ public sealed partial class ProcessEngineTest
             "collection",
             "state",
             _executionTime,
+            action: null,
             idempotencyKey: "continuation-key"
         );
 
@@ -264,6 +266,45 @@ public sealed partial class ProcessEngineTest
             }
         );
         Assert.Equal(originalProcess, JsonSerializer.Serialize(instance.Process));
+    }
+
+    [Fact]
+    public async Task EnqueueProcessNext_HandsTheActionToTheDependentWorkflow()
+    {
+        // The action decides the transition, and is also what a service task the transition enters reads, so it
+        // must reach the request that builds the task's steps.
+        await using var fixture = Fixture.Create();
+        Instance instance = CreateTask1Instance();
+        var dataAccessor = Mock.Of<IInstanceDataAccessor>(a => a.Instance == instance);
+        fixture
+            .Mock<IWorkflowEngineService>()
+            .Setup(s =>
+                s.EnqueueDependentProcessNext(
+                    instance,
+                    It.IsAny<ProcessStateChange>(),
+                    It.IsAny<Guid>(),
+                    "collection",
+                    "state",
+                    It.IsAny<Actor>(),
+                    "confirm",
+                    null,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(Guid.NewGuid());
+
+        await fixture.ProcessEngine.EnqueueProcessNext(
+            dataAccessor,
+            new Actor { UserId = 1337, AuthenticationLevel = 2 },
+            Guid.NewGuid(),
+            "collection",
+            "state",
+            _executionTime,
+            "confirm"
+        );
+
+        IInvocation enqueue = Assert.Single(fixture.Mock<IWorkflowEngineService>().Invocations);
+        Assert.Equal("confirm", enqueue.Arguments[6]);
     }
 
     private static async Task<ProcessStateChange> PrepareProcessNext(
@@ -289,6 +330,8 @@ public sealed partial class ProcessEngineTest
         Assert.Same(originalProcess, instance.Process);
         Assert.Equal(originalState, JsonSerializer.Serialize(instance.Process));
         IInvocation enqueue = Assert.Single(fixture.Mock<IWorkflowEngineService>().Invocations);
+        // The acquire carries the action to the dependent transition, for a service task it enters.
+        Assert.Equal(action, enqueue.Arguments[4]);
         return Assert.IsType<ProcessStateChange>(enqueue.Arguments[3]);
     }
 }
