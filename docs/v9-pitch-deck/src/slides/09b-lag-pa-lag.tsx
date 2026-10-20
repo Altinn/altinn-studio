@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import type { SlideProps } from '../deck';
 import { Slide } from '../components';
-import { ArrowDefs, Dot, Wire } from './_kit';
+import { ArrowDefs, Wire } from './_kit';
 
 /**
  * The BPMN process is the backbone, and every press adds to the lanes under
@@ -90,10 +90,10 @@ const ENGINE: Chip[] = [
 
 /** Not the engine: while Kari fills in the form, the app answers her requests itself. */
 const APP: Chip[] = [
-  { col: COLS.app, row: 1, from: FILL, label: 'Kari fyller ut', tones: FILLING },
-  { col: COLS.app, row: 2, from: FILL, label: 'Validering', tones: FILLING },
-  { col: COLS.app, row: 3, from: FILL, label: 'Beregninger', tones: FILLING },
-  { col: COLS.app, row: 4, from: FILL, label: 'Lagres underveis', tones: FILLING },
+  { col: COLS.app, row: 0, from: FILL, label: 'Kari fyller ut', tones: FILLING },
+  { col: COLS.app, row: 1, from: FILL, label: 'Validering', tones: FILLING },
+  { col: COLS.app, row: 2, from: FILL, label: 'Beregninger', tones: FILLING },
+  { col: COLS.app, row: 3, from: FILL, label: 'Lagres underveis', tones: FILLING },
 ];
 
 const BACKGROUND: Chip[] = [
@@ -103,7 +103,7 @@ const BACKGROUND: Chip[] = [
   { col: COLS.end, row: 0, from: EFFECTS, label: 'Hendelse: ferdig', tones: LATER },
 ];
 
-/** The chips are narrow, so a state is a mark; the subtitle says what it means. */
+/** The chips are narrow, so a state is a mark alone; the subtitle says what it means. */
 const STATE_MARK: Record<Tone, string> = {
   ok: '✓',
   run: '…',
@@ -159,7 +159,6 @@ function ChipView({
       }}
       {...fade(at >= chip.from, delay)}
     >
-      <Dot tone={tone} />
       <span className='s-layer__label'>{chip.label}</span>
       <span className={`s-layer__state is-${tone}`}>{STATE_MARK[tone]}</span>
     </motion.div>
@@ -325,19 +324,6 @@ export default function LagPaLagSlide({ step }: SlideProps) {
             transition={{ duration: 0.25, delay: at === 1 ? 0.1 : 0 }}
           >
             v9: et eget steg i prosessen
-          </motion.span>
-
-          <motion.span
-            className='s-layer__colhead'
-            style={{
-              left: COLS.app.centre - COLS.app.width / 2,
-              top: chipTop(ENGINE_Y, 0),
-              width: COLS.app.width,
-              height: CHIP_H,
-            }}
-            {...fade(at >= FILL, 0.15)}
-          >
-            I appen
           </motion.span>
 
           {ENGINE.map((chip, i) => (

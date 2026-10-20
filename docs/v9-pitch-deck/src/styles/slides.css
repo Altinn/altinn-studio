@@ -628,11 +628,6 @@
     color 0.3s;
 }
 
-.s-layer__chip .s-dot {
-  width: 10px;
-  height: 10px;
-}
-
 .s-layer__drop--app {
   stroke: var(--line-strong);
 }
@@ -641,17 +636,6 @@
 .s-layer__chip--app {
   border-color: var(--line-strong);
   background: var(--surface-2);
-}
-
-.s-layer__colhead {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  color: var(--text-300);
-  font-size: 17px;
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
 }
 
 .s-layer__chip--bg {
