@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+patches:
+  # Each worker renders one PDF at a time and scales on CPU, which a render waiting for the app's
+  # page hardly uses, so keep enough workers for all of the environment's service owners' bursts.
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: pdf3-worker
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 10
+  # The object ID of the Entra group DIS AKS Admin Prod STUDIO.
+  - target:
+      kind: Vault
+      name: pdf3
+    patch: |-
+      - op: add
+        path: /spec/groupObjectId
+        value: b56fb340-2ffb-4f09-bf87-80d4458a43fe
+  - target:
+      kind: ConfigMap
+      name: pdf3-environment
+    patch: |-
+      - op: replace
+        path: /data/environment
+        value: prod
+      - op: replace
+        path: /data/cluster
+        value: dis-core-prod-aks
+  - target:
+      kind: HTTPRoute
+      group: gateway.networking.k8s.io
+      name: pdf3-proxy
+    patch: |-
+      - op: replace
+        path: /spec/hostnames
+        value:
+          - pdf3.prod.dis-core.altinn.cloud

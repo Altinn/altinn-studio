@@ -38,6 +38,7 @@ import (
 	ihttp "altinn.studio/pdf3/internal/http"
 	iruntime "altinn.studio/pdf3/internal/runtime"
 	"altinn.studio/pdf3/internal/serviceowner"
+	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/telemetry/attr"
 	itesting "altinn.studio/pdf3/internal/testing"
 )
@@ -179,6 +180,12 @@ func recordMetrics(t *testing.T) *sdkmetric.ManualReader {
 // status that was sent and errorType.
 func requireRequestDuration(t *testing.T, reader *sdkmetric.ManualReader, errorType string) {
 	t.Helper()
+	requireRequestDurationWithStatus(t, reader, http.StatusOK, errorType)
+}
+
+// requireRequestDurationWithStatus is requireRequestDuration for a request answered with status.
+func requireRequestDurationWithStatus(t *testing.T, reader *sdkmetric.ManualReader, status int, errorType string) {
+	t.Helper()
 	var data metricdata.ResourceMetrics
 	if err := reader.Collect(t.Context(), &data); err != nil {
 		t.Fatalf("Collect() error = %v", err)
@@ -197,9 +204,32 @@ func requireRequestDuration(t *testing.T, reader *sdkmetric.ManualReader, errorT
 			}
 		}
 	}
-	if want := "200/" + errorType; len(got) != 1 || got[want] != 1 {
+	if want := fmt.Sprintf("%d/%s", status, errorType); len(got) != 1 || got[want] != 1 {
 		t.Fatalf("http.server.request.duration by status/error.type = %v, want {%s: 1}", got, want)
 	}
+}
+
+// retryCounts returns the counter name's value by error.type.
+func retryCounts(t *testing.T, reader *sdkmetric.ManualReader, name string) map[string]int64 {
+	t.Helper()
+	var data metricdata.ResourceMetrics
+	if err := reader.Collect(t.Context(), &data); err != nil {
+		t.Fatalf("Collect() error = %v", err)
+	}
+	got := map[string]int64{}
+	for _, scope := range data.ScopeMetrics {
+		for _, m := range scope.Metrics {
+			sum, ok := m.Data.(metricdata.Sum[int64])
+			if m.Name != name || !ok {
+				continue
+			}
+			for _, point := range sum.DataPoints {
+				errType, _ := point.Attributes.Value(attribute.Key(attr.ErrorType))
+				got[errType.AsString()] += point.Value
+			}
+		}
+	}
+	return got
 }
 
 // requireErrorSpan checks that the request's server span ended with an error of errorType and the
@@ -676,6 +706,7 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 			return dialer.DialContext(ctx, network, addr)
 		},
 	}
+	metrics := recordMetrics(t)
 	rec := post(t, rl.handler(), nil)
 
 	if rec.Code != http.StatusOK || rec.Body.String() != "%PDF-1.7 test" {
@@ -684,8 +715,119 @@ func TestRelayRetriesConnectFailures(t *testing.T) {
 	if dials.Load() != 2 {
 		t.Fatalf("dialed %d times, want 2", dials.Load())
 	}
+	if got := retryCounts(t, metrics, telemetry.RelayConnectRetriesMetric); got[""] != 1 || len(got) != 1 {
+		t.Fatalf("%s = %v, want one retry", telemetry.RelayConnectRetriesMetric, got)
+	}
 	if gotBody != requestBody {
 		t.Fatalf("upstream got body %q, want %q", gotBody, requestBody)
+	}
+}
+
+func TestRelayRetriesTLSHandshakeTimeouts(t *testing.T) {
+	const pdfBody = "%PDF-1.7 handshake test"
+	for _, failures := range []int32{1, maxAttempts} {
+		t.Run(fmt.Sprintf("%d stalled handshakes", failures), func(t *testing.T) {
+			var calls atomic.Int32
+			upstream := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				body, err := io.ReadAll(r.Body)
+				if err != nil || string(body) != requestBody {
+					t.Errorf("upstream body = %q, error = %v", body, err)
+				}
+				w.Header().Set("Content-Type", "application/pdf")
+				if _, err := io.WriteString(w, pdfBody); err != nil {
+					t.Errorf("WriteString() error = %v", err)
+				}
+			}))
+			defer upstream.Close()
+
+			rl := newTestRelay(t, upstream.URL)
+			transport, ok := upstream.Client().Transport.(*http.Transport)
+			if !ok {
+				t.Fatal("upstream client must use http.Transport")
+			}
+			transport = transport.Clone()
+			transport.TLSHandshakeTimeout = 100 * time.Millisecond
+			defer transport.CloseIdleConnections()
+			var dials atomic.Int32
+			var dialer net.Dialer
+			transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+				if dials.Add(1) <= failures {
+					// A connection that never answers the ClientHello exercises net/http's real
+					// TLS handshake timeout, whose error type is not exported.
+					client, server := net.Pipe()
+					t.Cleanup(func() {
+						if err := server.Close(); err != nil {
+							t.Errorf("Close() error = %v", err)
+						}
+					})
+					return client, nil
+				}
+				return dialer.DialContext(ctx, network, addr)
+			}
+			rl.client.Transport = transport
+			rec := post(t, rl.handler(), nil)
+
+			wantDials, wantCalls, wantStatus := failures+1, int32(1), http.StatusOK
+			if failures == maxAttempts {
+				wantDials, wantCalls, wantStatus = maxAttempts, 0, http.StatusBadGateway
+			}
+			if rec.Code != wantStatus || dials.Load() != wantDials || calls.Load() != wantCalls {
+				t.Fatalf("status = %d, dials = %d, calls = %d; want %d, %d, %d",
+					rec.Code, dials.Load(), calls.Load(), wantStatus, wantDials, wantCalls)
+			}
+			if wantStatus == http.StatusOK && rec.Body.String() != pdfBody {
+				t.Fatalf("body = %q, want the upstream PDF", rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestRelayDoesNotRetryResponseHeaderTimeout(t *testing.T) {
+	var calls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		if _, err := io.Copy(io.Discard, r.Body); err != nil {
+			t.Errorf("Copy() error = %v", err)
+		}
+		<-r.Context().Done()
+	}))
+	defer upstream.Close()
+
+	rl := newTestRelay(t, upstream.URL)
+	transport := &http.Transport{ResponseHeaderTimeout: 100 * time.Millisecond}
+	defer transport.CloseIdleConnections()
+	rl.client.Transport = transport
+	rec := post(t, rl.handler(), nil)
+
+	if rec.Code != http.StatusBadGateway || calls.Load() != 1 {
+		t.Fatalf("status = %d, upstream calls = %d; want 502, 1", rec.Code, calls.Load())
+	}
+}
+
+func TestRelayDoesNotRetryTLSHandshakeAfterDeadline(t *testing.T) {
+	rl := newTestRelay(t, "https://upstream/pdf")
+	rl.timeout = 100 * time.Millisecond
+	var dials atomic.Int32
+	transport := &http.Transport{
+		TLSHandshakeTimeout: time.Second,
+		DialContext: func(context.Context, string, string) (net.Conn, error) {
+			dials.Add(1)
+			client, server := net.Pipe()
+			t.Cleanup(func() {
+				if err := server.Close(); err != nil {
+					t.Errorf("Close() error = %v", err)
+				}
+			})
+			return client, nil
+		},
+	}
+	defer transport.CloseIdleConnections()
+	rl.client.Transport = transport
+	rec := post(t, rl.handler(), nil)
+
+	if rec.Code != http.StatusGatewayTimeout || dials.Load() != 1 {
+		t.Fatalf("status = %d, dials = %d; want 504, 1", rec.Code, dials.Load())
 	}
 }
 
@@ -1151,6 +1293,93 @@ func TestReadUpstream(t *testing.T) {
 			if exited != tt.wantExit || (!tt.wantExit && err != nil) {
 				t.Fatalf("exited = %v (%v), want %v; output: %s", exited, err, tt.wantExit, output)
 			}
+		})
+	}
+}
+
+func TestRelayRecordsWhyItFailedBeforeTheUpstreamResponded(t *testing.T) {
+	rl := newTestRelay(t, "http://pdf3.invalid/generate")
+	rl.client.Transport = &http.Transport{
+		DialContext: func(_ context.Context, network, _ string) (net.Conn, error) {
+			return nil, &net.OpError{Op: "dial", Net: network, Err: errConnectionRefused}
+		},
+	}
+	metrics := recordMetrics(t)
+	spans := recordSpans(t)
+
+	rec := post(t, rl.handler(), nil)
+
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("status = %d, want 502", rec.Code)
+	}
+	requireRequestDurationWithStatus(t, metrics, http.StatusBadGateway, "upstream_response_failed")
+	if got := retryCounts(t, metrics, telemetry.RelayConnectRetriesMetric); got[""] != maxAttempts-1 || len(got) != 1 {
+		t.Fatalf("%s = %v, want %d retries", telemetry.RelayConnectRetriesMetric, got, maxAttempts-1)
+	}
+	var servers []sdktrace.ReadOnlySpan
+	for _, span := range spans.Ended() {
+		if span.SpanKind() == trace.SpanKindServer {
+			servers = append(servers, span)
+		}
+	}
+	if len(servers) != 1 {
+		t.Fatalf("ended %d server spans, want 1", len(servers))
+	}
+	spanAttrs := attribute.NewSet(servers[0].Attributes()...)
+	if got, _ := spanAttrs.Value(attr.ErrorType); got.AsString() != "upstream_response_failed" {
+		t.Fatalf("span %s = %q, want upstream_response_failed", attr.ErrorType, got.AsString())
+	}
+}
+
+func TestRelayRecordsWhyAnUpstreamResponseWasNotPassedOn(t *testing.T) {
+	tests := []struct {
+		name        string
+		contentType string
+		body        string
+		wantType    string
+		status      int
+		wantStatus  int
+	}{
+		{
+			"rejected API key", "text/plain", "no", "upstream_rejected_auth",
+			http.StatusUnauthorized, http.StatusBadGateway,
+		},
+		{
+			"forbidden", "text/plain", "no", "upstream_rejected_auth",
+			http.StatusForbidden, http.StatusBadGateway,
+		},
+		{
+			"unexpected status", "text/html", "<html/>", "upstream_unexpected_response",
+			http.StatusNotFound, http.StatusBadGateway,
+		},
+		{
+			"busy edge", "text/plain", "slow down", "upstream_unexpected_response",
+			http.StatusTooManyRequests, http.StatusTooManyRequests,
+		},
+		{
+			"broken edge", "text/plain", "down", "upstream_unexpected_response",
+			http.StatusServiceUnavailable, http.StatusServiceUnavailable,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", tt.contentType)
+				w.WriteHeader(tt.status)
+				if _, err := w.Write([]byte(tt.body)); err != nil {
+					t.Errorf("Write() error = %v", err)
+				}
+			}))
+			defer upstream.Close()
+			rl := newTestRelay(t, upstream.URL)
+			metrics := recordMetrics(t)
+
+			rec := post(t, rl.handler(), nil)
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("status = %d, want %d", rec.Code, tt.wantStatus)
+			}
+			requireRequestDurationWithStatus(t, metrics, tt.wantStatus, tt.wantType)
 		})
 	}
 }

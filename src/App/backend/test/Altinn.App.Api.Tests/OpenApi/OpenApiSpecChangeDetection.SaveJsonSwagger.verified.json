@@ -12335,8 +12335,7 @@
           "stepFailed",
           "dependencyFailed",
           "engineFault",
-          "timeout",
-          "acquireConflict"
+          "timeout"
         ],
         "type": "string"
       },

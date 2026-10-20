@@ -594,60 +594,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
-    public async Task PostNewInstance_Simplified_AcquireConflictRetainsInstanceWithoutResumeAction()
-    {
-        string org = "tdd";
-        string app = "permissive-app";
-        int instanceOwnerPartyId = 501337;
-        using HttpClient client = GetRootedClient(
-            org,
-            app,
-            configureServices: services =>
-            {
-                services.RemoveAll<IWorkflowEngineClient>();
-                services.AddSingleton<IWorkflowEngineClient>(
-                    new AcceptedFailingWorkflowEngineClient(acquireConflict: true)
-                );
-            }
-        );
-        string token = TestAuthentication.GetUserToken(userId: 1337, partyId: instanceOwnerPartyId);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
-
-        using var content = new StringContent(
-            $$"""
-            {
-              "instanceOwner": {
-                "partyId": "{{instanceOwnerPartyId}}"
-              }
-            }
-            """,
-            Encoding.UTF8,
-            "application/json"
-        );
-
-        using HttpResponseMessage createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
-        string createResponseContent = await createResponse.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine(createResponseContent);
-
-        createResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        using JsonDocument document = JsonDocument.Parse(createResponseContent);
-        JsonElement root = document.RootElement;
-        root.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status409Conflict);
-        root.GetProperty("initializationState").GetString().Should().Be("workflowFailed");
-        root.GetProperty("workflowAccepted").GetBoolean().Should().BeTrue();
-        root.GetProperty("recommendedAction").GetString().Should().Be("inspectInstance");
-        root.GetProperty("workflowFailure").GetProperty("kind").GetString().Should().Be("acquireConflict");
-        root.TryGetProperty("resumeEndpoint", out _).Should().BeFalse();
-
-        string instanceId = root.GetProperty("instanceId").GetString()!;
-        Guid instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
-        Instance storedInstance = await TestData.GetInstance(org, app, instanceOwnerPartyId, instanceGuid);
-        storedInstance.Status?.IsHardDeleted.Should().NotBe(true);
-
-        TestData.DeleteInstanceAndData(org, app, instanceId);
-    }
-
-    [Fact]
     public async Task PostNewInstance_Simplified_KeepsCreatedInstanceWhenAcceptedWorkflowFails()
     {
         string org = "tdd";
@@ -1606,6 +1552,88 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
     }
 
+    [Fact]
+    public async Task CopyInstance_SimplifiedEndpoint_UpdatesAttachmentIdsInFormData()
+    {
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(app => app.CopyInstanceSettings.IncludeAttachments = true)
+            );
+        };
+        HttpClient client = GetRootedClient(org, app);
+        string orgToken = TestAuthentication.GetServiceOwnerToken("405003309", org: "tdd");
+        string userToken = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+
+        // Create source instance
+        var (sourceInstance, _) = await InstancesControllerFixture.CreateInstanceSimplified(
+            org,
+            app,
+            instanceOwnerPartyId,
+            client,
+            userToken,
+            prefill: new() { ["melding.name"] = "Ola Olsen" }
+        );
+
+        // Add an attachment (customElement only allows the service owner as contributor)
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            AuthorizationSchemes.Bearer,
+            orgToken
+        );
+        using var attachmentContent = new ByteArrayContent(Encoding.UTF8.GetBytes("attachment"));
+        attachmentContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        attachmentContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+        {
+            FileName = "attachment.pdf",
+        };
+        using var attachmentResponse = await client.PostAsync(
+            $"{org}/{app}/instances/{sourceInstance.Id}/data?dataType=customElement",
+            attachmentContent
+        );
+        Assert.Equal(HttpStatusCode.Created, attachmentResponse.StatusCode);
+        var sourceAttachment = await attachmentResponse.Content.ReadFromJsonAsync<DataElement>(JsonSerializerOptions);
+        Assert.NotNull(sourceAttachment);
+
+        // Reference the attachment from a list row, like a FileUpload in a repeating group
+        string formDataGuid = sourceInstance.Data.Single(d => d.DataType == "default").Id;
+        var patch = new JsonPatch(
+            PatchOperation.Add(
+                JsonPointer.Create("melding", "nested_list"),
+                JsonNode.Parse($$"""[{"key": "{{sourceAttachment.Id}}"}]""")
+            )
+        );
+        await UpdateInstanceData(org, app, client, userToken, sourceInstance.Id, formDataGuid, patch);
+
+        await CompleteInstance(org, app, client, userToken, sourceInstance.Id);
+
+        // Copy instance
+        InstanceResponse copiedInstance = await CopyInstanceSimplified(org, app, client, userToken, sourceInstance.Id);
+        DataElement copiedAttachment = Assert.Single(copiedInstance.Data, d => d.DataType == "customElement");
+        DataElement copiedFormData = Assert.Single(copiedInstance.Data, d => d.DataType == "default");
+
+        using var copiedFormDataResponse = await client.GetAsync(
+            $"{org}/{app}/instances/{copiedInstance.Id}/data/{copiedFormData.Id}"
+        );
+        Assert.Equal(HttpStatusCode.OK, copiedFormDataResponse.StatusCode);
+        var copiedSkjema = await copiedFormDataResponse.Content.ReadFromJsonAsync<Skjema>(JsonSerializerOptions);
+        Assert.NotNull(copiedSkjema?.Melding?.NestedList);
+        Nested copiedRow = Assert.Single(copiedSkjema.Melding.NestedList);
+        Assert.Equal(copiedAttachment.Id, copiedRow.Key);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+        TestData.DeleteInstanceAndData(org, app, copiedInstance.Id);
+    }
+
     private async Task<InstanceResponse> CopyInstanceSimplified(
         string org,
         string app,
@@ -1957,9 +1985,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
@@ -1980,7 +2005,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         ) => throw new NotSupportedException();
     }
 
-    private sealed class AcceptedFailingWorkflowEngineClient(bool acquireConflict = false) : IWorkflowEngineClient
+    private sealed class AcceptedFailingWorkflowEngineClient : IWorkflowEngineClient
     {
         private readonly Guid _workflowId = Guid.NewGuid();
         private string? _collectionKey;
@@ -2056,7 +2081,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                         new StepStatusResponse
                         {
                             DatabaseId = Guid.NewGuid(),
-                            OperationId = acquireConflict ? AcquireProcessingStatus.Key : "StartTask",
+                            OperationId = "StartTask",
                             ProcessingOrder = 0,
                             Command = new StepStatusResponse.CommandDetails { Type = "app" },
                             Status = PersistentItemStatus.Failed,
@@ -2065,15 +2090,9 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
                             [
                                 new ErrorEntry(
                                     DateTimeOffset.UtcNow,
-                                    acquireConflict
-                                        ? "AppCommand failed with client error Conflict: "
-                                            + "{\"workflowFailureCode\":\"acquireConcurrencyConflict\","
-                                            + "\"detail\":\"Refresh and retry.\"}"
-                                        : "Simulated workflow callback failure.",
-                                    acquireConflict
-                                        ? StatusCodes.Status409Conflict
-                                        : StatusCodes.Status500InternalServerError,
-                                    WasRetryable: !acquireConflict
+                                    "Simulated workflow callback failure.",
+                                    StatusCodes.Status500InternalServerError,
+                                    WasRetryable: true
                                 ),
                             ],
                         },
@@ -2093,9 +2112,6 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
             bool cascade = false,
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
-
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            acquireConflict ? Task.FromResult(true) : throw new NotSupportedException();
 
         public Task<MailboxMintResult> MintMailbox(
             string ns,
