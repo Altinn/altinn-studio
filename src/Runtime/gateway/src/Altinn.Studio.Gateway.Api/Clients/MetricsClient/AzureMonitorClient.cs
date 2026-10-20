@@ -65,6 +65,13 @@ internal sealed class AzureMonitorClient(
         return $"{bucketSize}m";
     }
 
+    // Several operation names map to the same metric, so a metric can have more than one row per bucket.
+    // Sum them so that each bucket appears once in the series.
+    private static (long Timestamp, double Count)[] SumCountsPerBucket(IEnumerable<LogsTableRow> rows) =>
+        rows.GroupBy(row => row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0)
+            .Select(bucket => (bucket.Key, bucket.Sum(row => row.GetDouble("Count") ?? 0)))
+            .ToArray();
+
     private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
     {
         var gatewayContext = _gatewayContext.CurrentValue;
@@ -297,13 +304,15 @@ internal sealed class AzureMonitorClient(
 
         var metrics = response
             .Value.Table.Rows.GroupBy(row => _operationNameReverseMap[row.GetString("OperationName")])
-            .Select(group => new AppFailedRequest
+            .Select(group =>
             {
-                Name = group.Key,
-                Timestamps = group.Select(row =>
-                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
-                ),
-                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+                var buckets = SumCountsPerBucket(group);
+                return new AppFailedRequest
+                {
+                    Name = group.Key,
+                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
+                    Counts = buckets.Select(bucket => bucket.Count),
+                };
             });
 
         return _operationNames.Select(name =>
@@ -391,14 +400,16 @@ internal sealed class AzureMonitorClient(
                     OpName: _operationNameReverseMap[row.GetString("OperationName")]
                 )
             )
-            .Select(group => new AllAppsFailedRequest
+            .Select(group =>
             {
-                AppName = group.Key.AppName,
-                Name = group.Key.OpName,
-                Timestamps = group.Select(row =>
-                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
-                ),
-                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+                var buckets = SumCountsPerBucket(group);
+                return new AllAppsFailedRequest
+                {
+                    AppName = group.Key.AppName,
+                    Name = group.Key.OpName,
+                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
+                    Counts = buckets.Select(bucket => bucket.Count),
+                };
             });
     }
 
