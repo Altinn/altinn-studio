@@ -19,6 +19,11 @@ internal static class ServiceCollectionExtensions
                 {
                     options.ConnectTimeout = TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds));
                 }
+                var requestTimeoutSeconds = configuration["HostBridge:RequestTimeoutSeconds"];
+                if (int.TryParse(requestTimeoutSeconds, out var requestSeconds))
+                {
+                    options.RequestTimeout = TimeSpan.FromSeconds(Math.Max(1, requestSeconds));
+                }
             });
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<HostBridgeOptions>>().Value);
         services.AddSingleton<HostBridgeState>();
