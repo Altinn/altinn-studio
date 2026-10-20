@@ -293,6 +293,8 @@ jobs:
       - name: Cypress run
         id: cypress
         shell: bash
+        # Leave time for cleanup and log uploads before the 120-minute job timeout.
+        timeout-minutes: 90
         env:
           CYPRESS_PROJECT_ID: o7mikf
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
@@ -325,12 +327,14 @@ jobs:
 
       - name: Stop localtest
         if: always()
+        timeout-minutes: 10
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        if: ${{ always() && steps.cypress.outcome != 'success' }}
+        timeout-minutes: 5
         with:
           name: app-frontend-logs-${{ matrix.containers }}
           path: |
@@ -398,16 +402,20 @@ jobs:
       - name: Cypress run
         id: cypress
         shell: bash
+        # Leave time for cleanup and log uploads before the 120-minute job timeout.
+        timeout-minutes: 90
         run: npx cypress run --browser "${CHROME_PATH:-chrome}" --spec test/e2e/integration --env environment=localtest
 
       - name: Stop localtest
         if: always()
+        timeout-minutes: 10
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
+          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome == 'failure' }}
+        if: ${{ always() && steps.cypress.outcome != 'success' }}
+        timeout-minutes: 5
         with:
           name: app-frontend-external-logs
           path: |
