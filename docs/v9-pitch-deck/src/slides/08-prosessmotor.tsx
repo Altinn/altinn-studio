@@ -183,8 +183,13 @@ function AppBand({ view, wide }: { view: number; wide: boolean }) {
       animate={{ opacity: 1, y: 0, ...rect }}
       transition={{
         // The rectangle moves exactly like the camera, so the band stays locked to the process row.
-        // Shrinking back into the intro waits for the process to fade out of it first.
-        default: band ? CAMERA_MOVE : { ...CAMERA_MOVE, delay: 0.3 },
+        // Growing out of the intro waits for the other tiles to clear; shrinking back waits for
+        // the process to fade out of the band first.
+        default: !band
+          ? { ...CAMERA_MOVE, delay: 0.3 }
+          : view === 1
+            ? { ...CAMERA_MOVE, delay: 0.15 }
+            : CAMERA_MOVE,
         opacity: { duration: 0.4, delay: 0.12 },
         y: { duration: 0.4, delay: 0.12, ease: EASE },
       }}
@@ -347,17 +352,17 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
     >
       {/*
         The intro and the layered diagram share the body. On the first press the
-        app box grows into the process row's band, while the rest of the intro
-        sinks away towards where the engine lane appears later; the process
-        appears once the band has grown, and leaves before it shrinks back.
+        other tiles clear out quickly, then the app box, alone in motion, grows
+        into the process row's band; the process appears once the band has
+        grown, and leaves before it shrinks back.
       */}
       <div className='s-engine'>
         <AppBand view={view} wide={engine} />
         <motion.div
           className='s-layer__intro'
           initial={false}
-          animate={{ opacity: intro ? 1 : 0, y: intro ? 0 : 60 }}
-          transition={{ duration: intro ? 0.35 : 0.25, delay: intro ? 0.6 : 0 }}
+          animate={{ opacity: intro ? 1 : 0, scale: intro ? 1 : 0.98 }}
+          transition={{ duration: intro ? 0.35 : 0.15, delay: intro ? 0.6 : 0 }}
           aria-hidden={!intro}
         >
           <EngineIntro />
@@ -366,7 +371,7 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
           className='s-dag s-layer'
           initial={false}
           animate={{ opacity: intro ? 0 : 1 }}
-          transition={{ duration: 0.35, delay: intro ? 0 : 0.45 }}
+          transition={{ duration: 0.35, delay: intro ? 0 : 0.55 }}
           aria-hidden={intro}
         >
           <motion.div
