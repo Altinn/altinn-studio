@@ -5195,7 +5195,7 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "Error rate broken down by subsystem (workflow_processing / fetch_and_lock / db_maintenance / metrics_collector / throttle_sweep / mailbox_deadline_close / mailbox_deadline_sweep) plus stale-workflow reclaim rate.",
+      "description": "Error rate broken down by subsystem (workflow_processing / workflow_handling / fetch_and_lock / db_maintenance / metrics_collector / throttle_sweep / mailbox_deadline_close / mailbox_deadline_sweep) plus stale-workflow reclaim rate.",
       "fieldConfig": {
         "defaults": {
           "color": {

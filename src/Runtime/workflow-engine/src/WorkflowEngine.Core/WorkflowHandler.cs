@@ -40,6 +40,10 @@ internal sealed class WorkflowHandler(
     /// reflects the final outcome (Completed, Failed, Canceled, Requeued for retry, or
     /// Waiting for a deferred step).
     /// </summary>
+    /// <remarks>
+    /// Throws only its own cancellation. Anything else that ends the handling is reported in the workflow's trace, and
+    /// the workflow is left as the database last saw it, for the stale-workflow reclaim.
+    /// </remarks>
     public async Task Handle(Workflow workflow, CancellationToken ct)
     {
         StartProcessWorkflowActivity(workflow);
@@ -47,10 +51,18 @@ internal sealed class WorkflowHandler(
         {
             await ProcessWorkflow(workflow, ct);
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (LeaseLostException)
         {
             // Reclaimed by another host. Exit cleanly — no retry, no re-enqueue.
             HandleLeaseLost(workflow);
+        }
+        catch (Exception ex)
+        {
+            HandleEscapedException(workflow, ex);
         }
         finally
         {
@@ -64,6 +76,20 @@ internal sealed class WorkflowHandler(
         Metrics.WorkflowsLeaseLost.Add(1);
 
         MarkLeaseLost(workflow.EngineActivity);
+    }
+
+    /// <summary>
+    /// Must run while the entry span is the current activity, so the log lands in the workflow's trace.
+    /// </summary>
+    private void HandleEscapedException(Workflow workflow, Exception ex)
+    {
+        workflow.EngineActivity?.Errored(ex);
+        logger.WorkflowHandlingEndedByException(workflow, ex);
+
+        Metrics.Errors.Add(
+            1,
+            [(TelemetryAttributes.Operation, "workflow_handling"), (TelemetryAttributes.Namespace, workflow.Namespace)]
+        );
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken ct)
@@ -707,6 +733,13 @@ internal static partial class WorkflowHandlerLogs
         Workflow workflow,
         string message,
         Exception? ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "Handling of workflow {Workflow} was ended by an exception")]
+    internal static partial void WorkflowHandlingEndedByException(
+        this ILogger<WorkflowHandler> logger,
+        Workflow workflow,
+        Exception ex
     );
 
     [LoggerMessage(LogLevel.Debug, "Workflow {Workflow} is done")]

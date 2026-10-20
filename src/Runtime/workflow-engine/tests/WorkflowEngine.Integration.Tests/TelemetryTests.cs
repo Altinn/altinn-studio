@@ -4,8 +4,13 @@ using System.Diagnostics.Metrics;
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Npgsql;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
+using WorkflowEngine.Data.Services;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.TestKit;
@@ -670,6 +675,92 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
                 CancellationToken.None
             );
         }
+    }
+
+    [Fact]
+    public async Task FinalWriteBackFails_TheWorkflowSpanEndsInErrorAndTheExceptionIsLoggedInItsTrace()
+    {
+        // Arrange — the workflow stays Processing until the stale reclaim, so the test waits for its exported span
+        using var collector = new TelemetryCollector();
+        const string workflowRef = "refused-final-write-back";
+        var settings = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value;
+        var maintenance = fixture.Services.GetServices<IHostedService>().OfType<DbMaintenanceService>().Single();
+
+        await using (var context = fixture.GetDbContext())
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                $"""
+                CREATE FUNCTION public.refuse_final_write_back() RETURNS trigger LANGUAGE plpgsql AS $$
+                BEGIN
+                    RAISE EXCEPTION 'final write-back refused';
+                END
+                $$;
+                CREATE TRIGGER refuse_final_write_back BEFORE UPDATE ON engine.workflows FOR EACH ROW
+                    WHEN (NEW.operation_id = 'op-{workflowRef}' AND NEW.status = {(int)PersistentItemStatus.Completed})
+                    EXECUTE FUNCTION public.refuse_final_write_back();
+                """,
+                TestContext.Current.CancellationToken
+            );
+        }
+
+        Guid workflowId;
+        try
+        {
+            var request = _testHelpers.CreateEnqueueRequest([
+                _testHelpers.CreateWorkflow(workflowRef, [_testHelpers.CreateWebhookStep("/cmd")]),
+            ]);
+
+            // Act
+            var response = await _client.Enqueue(request);
+            workflowId = response.Workflows.Single().DatabaseId;
+
+            // Assert — the update buffer logs the same error too, in the flush's trace
+            var handle = await collector.WaitForActivity(
+                a =>
+                    a.OperationName == "WorkflowHandler.Handle"
+                    && a.GetTagItem("altinn.workflow_engine.workflow.id") is Guid id
+                    && id == workflowId,
+                TimeSpan.FromSeconds(15)
+            );
+
+            Assert.Equal(ActivityStatusCode.Error, handle.Status);
+            Assert.Equal("Npgsql.PostgresException", handle.GetTagItem("error.type"));
+            Assert.Empty(handle.Events);
+            var errorLog = Assert.Single(collector.Logs, l => l.TraceId == handle.TraceId && l.Level >= LogLevel.Error);
+            Assert.Equal(LogLevel.Error, errorLog.Level);
+            Assert.Equal(handle.SpanId, errorLog.SpanId);
+            var exception = Assert.IsType<PostgresException>(errorLog.Exception);
+            Assert.Equal("final write-back refused", exception.MessageText);
+
+            // Nothing more was written: the step's completion landed, the workflow's did not
+            await using var context = fixture.GetDbContext();
+            var row = await context
+                .Workflows.Include(w => w.Steps)
+                .AsNoTracking()
+                .SingleAsync(w => w.Id == workflowId, TestContext.Current.CancellationToken);
+            Assert.Equal(PersistentItemStatus.Processing, row.Status);
+            Assert.NotNull(row.LeaseToken);
+            Assert.Equal(PersistentItemStatus.Completed, Assert.Single(row.Steps).Status);
+        }
+        finally
+        {
+            // Reclaimed as if the threshold had passed, which also leaves the database idle for the next test's reset
+            await using var context = fixture.GetDbContext();
+            await context.Database.ExecuteSqlRawAsync(
+                """
+                DROP TRIGGER refuse_final_write_back ON engine.workflows;
+                DROP FUNCTION public.refuse_final_write_back();
+                """,
+                CancellationToken.None
+            );
+            await maintenance.ReclaimStaleWorkflows(
+                DateTimeOffset.UtcNow + settings.StaleWorkflowThreshold,
+                settings,
+                CancellationToken.None
+            );
+        }
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
     }
 
     // ─── Span hierarchy helpers ────────────────────────────────────

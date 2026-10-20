@@ -4,22 +4,35 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.TestKit;
 
 /// <summary>
-/// Collects OpenTelemetry activities and meter measurements in-process for test assertions.
+/// Collects OpenTelemetry activities, meter measurements and log records in-process for test assertions.
 /// Registers an <see cref="ActivityListener"/> on <see cref="Metrics.Source"/> (and on any further sources
 /// named at construction) and a <see cref="MeterListener"/> on <see cref="Metrics.Meter"/>.
 /// </summary>
 public sealed class TelemetryCollector : IDisposable
 {
+    private static readonly ConcurrentDictionary<TelemetryCollector, byte> _live = new();
+
     private readonly ActivityListener _activityListener;
     private readonly MeterListener _meterListener;
 
+    /// <summary>
+    /// Hands each log record to every live collector; <see cref="EngineWebApplicationFactory{TProgram}"/> registers it.
+    /// </summary>
+    public static ILoggerProvider LoggerProvider { get; } = new CollectingLoggerProvider();
+
     public ConcurrentBag<Activity> Activities { get; } = [];
     public ConcurrentBag<(string Name, object Value, KeyValuePair<string, object?>[] Tags)> Measurements { get; } = [];
+
+    /// <summary>
+    /// Log records written while this collector was live by any host that registered <see cref="LoggerProvider"/>.
+    /// </summary>
+    public ConcurrentBag<CollectedLog> Logs { get; } = [];
 
     /// <param name="additionalSources">
     /// Further activity sources to collect from, such as <c>Microsoft.AspNetCore</c> for the hosts' server spans.
@@ -50,6 +63,8 @@ public sealed class TelemetryCollector : IDisposable
         );
 
         _meterListener.Start();
+
+        _live.TryAdd(this, 0);
     }
 
     /// <summary>
@@ -151,7 +166,50 @@ public sealed class TelemetryCollector : IDisposable
 
     public void Dispose()
     {
+        _live.TryRemove(this, out _);
         _activityListener.Dispose();
         _meterListener.Dispose();
+    }
+
+    private sealed class CollectingLoggerProvider : ILoggerProvider
+    {
+        public ILogger CreateLogger(string categoryName) => new CollectingLogger(categoryName);
+
+        public void Dispose() { }
+    }
+
+    private sealed class CollectingLogger(string category) : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull => null;
+
+        public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None && !_live.IsEmpty;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter
+        )
+        {
+            if (!IsEnabled(logLevel))
+                return;
+
+            var current = Activity.Current;
+            var log = new CollectedLog(
+                category,
+                logLevel,
+                formatter(state, exception),
+                exception,
+                current?.TraceId ?? default,
+                current?.SpanId ?? default
+            );
+
+            foreach (var collector in _live.Keys)
+            {
+                collector.Logs.Add(log);
+            }
+        }
     }
 }
