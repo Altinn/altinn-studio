@@ -116,9 +116,7 @@ export const queriesMock: ServicesContextProps = {
   getAppUpgradeStatus: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeStatus>(appUpgradeStatus)),
-  getAppUpgradeRun: vi
-    .fn()
-    .mockImplementation(() => Promise.resolve<AppUpgradeRun>(appUpgradeRun)),
+  getAppUpgradeRun: vi.fn().mockImplementation(() => Promise.resolve<AppUpgradeRun>(appUpgradeRun)),
   getAvailableResourcesFromOrg: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
@@ -344,13 +342,8 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: vi.fn().mockImplementation(() => Promise.resolve()),
   startAppUpgrade: vi
-  prepareAppUpgrade: vi
-    .fn()
-    .mockImplementation(() => Promise.resolve<AppUpgradePreparation>(appUpgradePreparation)),
-  upgradeApp: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeStart>(appUpgradeStart)),
-    .mockImplementation(() => Promise.resolve<AppUpgradeResult>(appUpgradeResult)),
   mergeAppUpgrade: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppUpgradeMergeResult>(appUpgradeMergeResult)),
