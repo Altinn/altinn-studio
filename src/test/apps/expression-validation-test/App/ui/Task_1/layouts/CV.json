@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
       {
@@ -218,8 +218,7 @@
           "description": "CV.vedlegg-cv.description",
           "tagTitle": "CV.vedlegg-cv.tagTitle"
         },
-        "validFileEndings": ".pdf, .png, .jpg",
-        "required": false
+        "validFileEndings": ".pdf, .png, .jpg"
       },
       {
         "id": "arbeidserfaring",
@@ -365,8 +364,7 @@
           "description": "CV.Vedlegg.description",
           "tagTitle": "CV.Vedlegg.tagTitle"
         },
-        "validFileEndings": ".pdf, .png, .jpg",
-        "required": false
+        "validFileEndings": ".pdf, .png, .jpg"
       },
       {
         "id": "prosjekter",

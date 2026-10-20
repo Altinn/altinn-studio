@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { Messages, type MessagesProps } from './Messages';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -70,7 +71,7 @@ describe('Messages', () => {
 
   it('renders the permission prompt and forwards the user response with the request id', async () => {
     const user = userEvent.setup();
-    const onPermissionResponse = jest.fn();
+    const onPermissionResponse = vi.fn();
     renderMessages({
       messages: [],
       workflowStatus: {
@@ -94,7 +95,7 @@ describe('Messages', () => {
         isActive: false,
         permissionRequest: { requestId: 'req-1', message: 'write_file: App/ui/Side1.json' },
       },
-      onPermissionResponse: jest.fn(),
+      onPermissionResponse: vi.fn(),
     });
 
     expect(screen.queryByText('write_file: App/ui/Side1.json')).not.toBeInTheDocument();

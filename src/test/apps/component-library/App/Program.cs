@@ -14,6 +14,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IInstantiationProcessor, InstantiationProcessor>();
     services.AddTransient<IExternalApiClient, ExternalApi>();
     services.AddTransient<IDataWriteProcessor, DataProcessor>();
+    services.AddTransient<IFormDataValidator, LookupValidator>();
 }
 
 // ###########################################################################

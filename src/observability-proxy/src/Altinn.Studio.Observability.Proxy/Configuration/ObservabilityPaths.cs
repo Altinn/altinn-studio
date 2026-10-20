@@ -8,6 +8,8 @@ internal static class ObservabilityPaths
 
     public const string TracesRouteGroup = "traces";
 
+    public const string TracesLogsqlRouteGroup = "traces-logsql";
+
     public const string MetricsRouteGroup = "metrics";
 
     public const string LogsRouteGroup = "logs";
@@ -18,15 +20,8 @@ internal static class ObservabilityPaths
     /// </summary>
     public const string RouteGroupMetadataKey = "ObservabilityRouteGroup";
 
-    /// <summary>The route value holding a read request's path below its signal's public prefix.</summary>
+    /// <summary>The route value holding a read request's path below its read API's public prefix.</summary>
     public const string ReadPathRouteValue = "readPath";
-
-    public static readonly IReadOnlyList<string> ReadRouteGroups =
-    [
-        TracesRouteGroup,
-        MetricsRouteGroup,
-        LogsRouteGroup,
-    ];
 
     public static string NormalizePrefix(string? pathPrefix)
     {

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigServiceTask } from './ConfigServiceTask';
@@ -29,20 +30,18 @@ const tasks = [
   },
 ];
 
-jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getElementsByType: jest.fn().mockReturnValue(tasks),
-        getAllElementIds: jest.fn().mockReturnValue(tasks.map((task) => task.id)),
+        getElementsByType: vi.fn().mockReturnValue(tasks),
+        getAllElementIds: vi.fn().mockReturnValue(tasks.map((task) => task.id)),
       };
     }),
   };
 });
 
 describe('ConfigServiceTask', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('should render EditTaskId component', () => {
     renderConfigServiceTask();
 

@@ -25,7 +25,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -40,4 +40,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: c516da22014912d678f0cdec50051f818b4b6d8a210c00fd5bba64cc49024300
+// Source hash: 13817ff41eef12a8be49f1efb2b8311c09d1683b3af12addcf9b3ebd2cb6e0cf

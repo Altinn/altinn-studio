@@ -131,7 +131,9 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
   }
 
   const layoutCollection = FormStore.bootstrap.useLayoutCollection();
-  const dataSources = useExpressionDataSources(layoutCollection);
+  const dataSources = useExpressionDataSources(
+    pageKey === undefined ? undefined : layoutCollection[pageKey]?.data.hidden,
+  );
   const pageOrder = useRawPageOrder();
   const forcedVisible = useIsForcedVisibleByDevTools();
 
@@ -150,7 +152,8 @@ export function useIsHiddenPage(pageKey: string | undefined, options: Omit<IsHid
 export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> = {}): Set<string> {
   const stableOptions = useShallowMemo(options);
   const layoutCollection = FormStore.bootstrap.useLaxLayoutCollection();
-  const dataSources = useExpressionDataSources(layoutCollection);
+  const hiddenExpressions = useMemo(() => getPageHiddenExpressions(layoutCollection), [layoutCollection]);
+  const dataSources = useExpressionDataSources(hiddenExpressions);
   const pageOrder = useRawPageOrder();
 
   return useMemo(
@@ -163,6 +166,11 @@ export function useHiddenPages(options: Omit<IsHiddenOptions, 'includeReason'> =
       }),
     [dataSources, layoutCollection, stableOptions, pageOrder],
   );
+}
+
+/** Returns only expressions evaluated when checking page visibility. */
+export function getPageHiddenExpressions(layoutCollection: ILayoutCollection | undefined) {
+  return Object.values(layoutCollection ?? {}).map((page) => page.data.hidden);
 }
 
 export function getVisiblePageOrder({

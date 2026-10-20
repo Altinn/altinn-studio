@@ -1,3 +1,4 @@
+import { describe, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import { render, screen } from '@testing-library/react';
@@ -47,7 +48,7 @@ describe('StudioActionCloseButton', () => {
 });
 
 const defaultStudioActionCloseButtonProps: StudioActionCloseButtonProps = {
-  onClick: jest.fn(),
+  onClick: vi.fn(),
 };
 
 const renderStudioActionCloseButton = (

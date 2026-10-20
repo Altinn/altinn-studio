@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { Properties } from './Properties';
 import { screen } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
@@ -17,10 +18,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('Properties', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('Page config', () => {
     it('shows empty content message when selectedItem is undefined', () => {
       renderProperties({ selectedItem: undefined, selectedFormLayoutName: undefined });

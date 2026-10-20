@@ -12,7 +12,7 @@ export type StudioTextResourceActionTexts = {
   pickerLabel: string;
   valueEditorAriaLabel: string;
   valueEditorIdLabel: string;
-  noTextResourceOptionLabel: string;
+  noSearchResultsText: string;
   disabledSearchAlertText?: string;
   tabLabelType: string;
   tabLabelSearch: string;
@@ -99,7 +99,7 @@ export const StudioTextResourceAction = ({
     pickerLabel: texts.pickerLabel,
     valueEditorAriaLabel: texts.valueEditorAriaLabel,
     valueEditorIdLabel: texts.valueEditorIdLabel,
-    noTextResourceOptionLabel: texts.noTextResourceOptionLabel,
+    noSearchResultsText: texts.noSearchResultsText,
     disabledSearchAlertText: texts.disabledSearchAlertText,
     tabLabelType: texts.tabLabelType,
     tabLabelSearch: texts.tabLabelSearch,

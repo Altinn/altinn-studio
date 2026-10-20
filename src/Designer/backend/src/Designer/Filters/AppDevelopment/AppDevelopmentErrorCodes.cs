@@ -11,4 +11,5 @@ public class AppDevelopmentErrorCodes
     public const string SubformComponentMissingLayoutSet = nameof(SubformComponentMissingLayoutSet);
     public const string SubformMissingDefaultDataType = nameof(SubformMissingDefaultDataType);
     public const string LayoutSetIsNotSubformPdfTask = nameof(LayoutSetIsNotSubformPdfTask);
+    public const string UiFolderNameCaseConflict = nameof(UiFolderNameCaseConflict);
 }

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { useTableSorting } from './useTableSorting';
 import { act, renderHook } from '@testing-library/react';
 import type { Rows } from '../../../studio-components/src/components';
@@ -71,7 +72,7 @@ describe('useTableSorting', () => {
   });
 
   it('should persist sort preference when toggling sort direction with persistence enabled', () => {
-    const setItemSpy = jest.spyOn(typedLocalStorage, 'setItem');
+    const setItemSpy = vi.spyOn(typedLocalStorage, 'setItem');
     const { result } = renderHook(() =>
       useTableSorting(rows, { enable: true, shouldPersistSort: true }),
     );

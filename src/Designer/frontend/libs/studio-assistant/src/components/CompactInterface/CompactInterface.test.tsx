@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { CompactInterface } from './CompactInterface';
 import { render, screen } from '@testing-library/react';
 import type { CompactInterfaceProps } from './CompactInterface';
 import { mockTexts } from '../../mocks/mockTexts';
 
 // Test data
-const onSubmitMessage = jest.fn();
+const onSubmitMessage = vi.fn();
 
 describe('CompactInterface', () => {
   it('should render the heading', () => {

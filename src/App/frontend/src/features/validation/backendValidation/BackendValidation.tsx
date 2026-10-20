@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useBackendValidationQuery } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import {
+  mapBackendIssuesToComponentValidations,
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
@@ -16,9 +17,15 @@ export function BackendValidation() {
   useEffect(() => {
     if (queriedInitialValidations) {
       const initialTaskValidations = mapBackendIssuesToTaskValidations(queriedInitialValidations);
+      const initialComponentValidations = mapBackendIssuesToComponentValidations(queriedInitialValidations);
       const initialValidatorGroups = mapBackendValidationsToValidatorGroups(queriedInitialValidations);
       const backendValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups);
-      updateBackendValidations(backendValidations, { initial: queriedInitialValidations }, initialTaskValidations);
+      updateBackendValidations(
+        backendValidations,
+        { initial: queriedInitialValidations },
+        initialTaskValidations,
+        initialComponentValidations,
+      );
     }
   }, [queriedInitialValidations, updateBackendValidations]);
 

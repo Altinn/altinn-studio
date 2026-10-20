@@ -57,7 +57,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
             <span class="component-property-type" title="object">Type: <span class="component-property-value">object</span></span>
           </span>
         </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Videokilder for hvert språk appen støtter.</div></div>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Videokilder for hvert språk appen støtter. Andre egenskapsnavn er tillatt. Verditype: string.</div></div>
       </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="video.src.nb">

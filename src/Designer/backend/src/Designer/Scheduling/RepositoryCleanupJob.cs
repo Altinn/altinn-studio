@@ -27,16 +27,13 @@ public class RepositoryCleanupJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(RepositoryCleanupJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
+        var activity = RootSpan.OfJob();
         activity?.SetAlwaysSample();
 
         RepositoryCleanupSettings settings = _schedulingSettings.RepositoryCleanup;
-        activity?.SetTag("retention.days", settings.RetentionDays);
-        activity?.SetTag("batch.maximum", settings.MaxRepositoriesPerRun);
-        activity?.SetTag("timeout.minutes", settings.JobTimeoutMinutes);
+        activity?.SetTag(ServiceTelemetry.Attributes.RepositoryCleanup.RetentionDays, settings.RetentionDays);
+        activity?.SetTag(ServiceTelemetry.Attributes.RepositoryCleanup.BatchMaximum, settings.MaxRepositoriesPerRun);
+        activity?.SetTag(ServiceTelemetry.Attributes.RepositoryCleanup.TimeoutMinutes, settings.JobTimeoutMinutes);
 
         using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             context.CancellationToken
@@ -48,10 +45,10 @@ public class RepositoryCleanupJob : IJob
             RepositoryCleanupResult result = await _repositoryCleanupService.DeleteInactiveRepositoriesAsync(
                 timeoutCancellationTokenSource.Token
             );
-            activity?.SetTag("repositories.candidates", result.Candidates);
-            activity?.SetTag("repositories.deleted", result.Deleted);
-            activity?.SetTag("repositories.failed", result.Failed);
-            activity?.SetTag("repositories.skipped", result.Skipped);
+            activity?.SetTag(ServiceTelemetry.Attributes.RepositoryCleanup.Candidates, result.Candidates);
+            activity?.SetTag(ServiceTelemetry.Attributes.RepositoryCleanup.Deleted, result.Deleted);
+            activity?.SetTag(ServiceTelemetry.Attributes.RepositoryCleanup.Failed, result.Failed);
+            activity?.SetTag(ServiceTelemetry.Attributes.RepositoryCleanup.Skipped, result.Skipped);
         }
         catch (OperationCanceledException exception)
             when (timeoutCancellationTokenSource.IsCancellationRequested

@@ -216,6 +216,20 @@ public class AppDevelopmentService : IAppDevelopmentService
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
+        if (_appVersionService.IsV9App(altinnRepoEditingContext))
+        {
+            IEnumerable<string> uiFolders;
+            try
+            {
+                uiFolders = await altinnAppGitRepository.GetUiFolders(cancellationToken);
+            }
+            catch (LibGit2Sharp.NotFoundException)
+            {
+                return [];
+            }
+            return [.. uiFolders.SelectMany(altinnAppGitRepository.GetLayoutNames)];
+        }
+
         bool appUsesLayoutSets = altinnAppGitRepository.AppUsesLayoutSets();
         if (appUsesLayoutSets)
         {

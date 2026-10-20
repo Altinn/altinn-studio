@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import type { ConditionalRenderingConnection, RuleConnection } from 'app-shared/types/RuleConfig';
 import {
   addConditionalRenderingConnection,
@@ -81,13 +82,13 @@ describe('ruleConfigUtils', () => {
 
   describe('switchSelectedFieldId', () => {
     it('Does nothing if there is no selected field with the given id', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       switchSelectedFieldId(ruleConfig, 'nonExistingId', 'newId', callback);
       expect(callback).not.toHaveBeenCalled();
     });
 
     it('Calls the callback function with the updated rule config when a selected field id is changed', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       const newId = 'newId';
       switchSelectedFieldId(
         ruleConfig,

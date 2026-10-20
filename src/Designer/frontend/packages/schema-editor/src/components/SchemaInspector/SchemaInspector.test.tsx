@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../../mockData';
 import { screen, waitFor, within } from '@testing-library/react';
@@ -27,8 +28,8 @@ const model = SchemaModel.fromArray(mockUiSchema);
 const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
   model.getNodeBySchemaPointer(selectedId);
 
-const saveDataModel = jest.fn();
-const setSelectedTypePointer = jest.fn();
+const saveDataModel = vi.fn();
+const setSelectedTypePointer = vi.fn();
 
 const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
   const schemaModel = SchemaModel.fromArray(uiSchemaMap);
@@ -47,8 +48,6 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
 };
 
 describe('SchemaInspector', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Renders the no item selected message when the selected item no longer exists in the model', () => {
     const removedItem = {
       ...nodeMockBase,

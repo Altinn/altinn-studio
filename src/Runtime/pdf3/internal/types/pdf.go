@@ -174,9 +174,32 @@ func (e *PDFError) Error() string {
 		return fmt.Sprintf("%s: %s: %v", e.Type, e.Msg, e.Err)
 	}
 	if e.Msg == "" {
-		return fmt.Sprintf("%s: %v", e.Type, e.Err)
+		return e.Type.Error()
 	}
 	return fmt.Sprintf("%s: %s", e.Type, e.Msg)
+}
+
+// ErrorType is the error.type value for the failure: low-cardinality and stable, unlike the
+// error messages.
+func (e *PDFError) ErrorType() string {
+	switch {
+	case e.Is(ErrQueueFull):
+		return "queue_full"
+	case e.Is(ErrTimeout):
+		return "timeout"
+	case e.Is(ErrClientDropped):
+		return "client_dropped"
+	case e.Is(ErrSetCookieFail):
+		return "set_cookie_failed"
+	case e.Is(ErrElementNotReady):
+		return "element_not_ready"
+	case e.Is(ErrGenerationFail):
+		return "generation_failed"
+	case e.Is(ErrUnhandledBrowserError):
+		return "unhandled_browser_error"
+	default:
+		return "_OTHER"
+	}
 }
 
 func (e *PDFError) Unwrap() error        { return e.Err }
@@ -232,10 +255,6 @@ func RequestTimeout() time.Duration {
 func MaxWaitForTimeout() time.Duration {
 	return time.Duration(MaxTimeoutMs) * time.Millisecond
 }
-
-// SessionDrainTimeout is the maximum time to wait for an active request to complete
-// when draining a browser session during restart.
-const SessionDrainTimeout = 60 * time.Second
 
 // Validate validates the PdfRequest according to browserless schema rules.
 //

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StudioTableRemotePagination } from './StudioTableRemotePagination';
@@ -16,8 +17,8 @@ describe('StudioTableRemotePagination', () => {
     totalRows: rows.length,
     pageSize: 5,
     pageSizeOptions: [5, 10, 20, 50],
-    onPageChange: jest.fn(),
-    onPageSizeChange: jest.fn(),
+    onPageChange: vi.fn(),
+    onPageSizeChange: vi.fn(),
     paginationTexts,
   };
 
@@ -35,7 +36,7 @@ describe('StudioTableRemotePagination', () => {
   });
 
   it('renders sorting button only when specified in column prop', async () => {
-    const handleSorting = jest.fn();
+    const handleSorting = vi.fn();
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} onSortClick={handleSorting} />,
     );
@@ -48,7 +49,7 @@ describe('StudioTableRemotePagination', () => {
   });
 
   it('triggers the handleSorting function when a sortable column header is clicked', async () => {
-    const handleSorting = jest.fn();
+    const handleSorting = vi.fn();
     render(
       <StudioTableRemotePagination columns={columns} rows={rows} onSortClick={handleSorting} />,
     );
@@ -118,7 +119,7 @@ describe('StudioTableRemotePagination', () => {
   });
 
   it('calls onPageChange(1) when table is empty but totalRows > 0', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     render(
       <StudioTableRemotePagination
         columns={columns}
@@ -213,13 +214,13 @@ describe('StudioTableRemotePagination - StudioPagination defaults', () => {
     totalRows: rows.length,
     pageSize: 5,
     pageSizeOptions: [5, 10, 20, 50],
-    onPageChange: jest.fn(),
-    onPageSizeChange: jest.fn(),
+    onPageChange: vi.fn(),
+    onPageSizeChange: vi.fn(),
     paginationTexts,
   };
 
   it('uses default Previous/Next aria-labels when paginationTexts is undefined', async () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     render(
       <StudioTableRemotePagination
         columns={columns}
@@ -272,7 +273,7 @@ describe('StudioTableRemotePagination - StudioPagination defaults', () => {
   });
 
   it('triggers the onPageChange function when "Previous" is clicked', async () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     render(
       <StudioTableRemotePagination
         columns={columns}

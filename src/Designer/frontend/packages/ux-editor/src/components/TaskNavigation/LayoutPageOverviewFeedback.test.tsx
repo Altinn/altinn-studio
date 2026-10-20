@@ -1,19 +1,17 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LayoutPageOverviewFeedback } from './LayoutPageOverviewFeedback';
 import axios from 'axios';
 
-jest.mock('axios');
-var mockedAxios = axios as jest.Mocked<typeof axios>;
+vi.mock('axios');
+var mockedAxios = axios as Mocked<typeof axios>;
 
 describe('LayoutPageOverviewFeedback', () => {
   beforeEach(() => {
     mockedAxios.post.mockClear();
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('should render feedback form', () => {

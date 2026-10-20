@@ -1,6 +1,6 @@
 # Durable yield: a first-class "waiting" outcome for workflow-engine steps
 
-- Status: Approved
+- Status: Accepted
 - Deciders: Team Apps
 - Date: 23.07.2026
 

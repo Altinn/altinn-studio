@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -10,9 +11,9 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
-const mockedNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockedNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockedNavigate,
 }));
 
@@ -33,11 +34,9 @@ const defaultProps: AccessListDetailProps = {
   backUrl: '/listadmin',
 };
 
-const updateAccessListMock = jest.fn().mockImplementation(() => Promise.resolve({}));
+const updateAccessListMock = vi.fn().mockImplementation(() => Promise.resolve({}));
 
 describe('AccessListDetail', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should call service to update name', async () => {
     const user = userEvent.setup();
     renderAccessListDetail({}, { updateAccessList: updateAccessListMock });
@@ -54,7 +53,7 @@ describe('AccessListDetail', () => {
 
   it('should show error message if call to update name returns http status code 412', async () => {
     const user = userEvent.setup();
-    const updateMock = jest.fn().mockImplementation(() =>
+    const updateMock = vi.fn().mockImplementation(() =>
       Promise.reject({
         response: { status: ServerCodes.PreconditionFailed },
       }),
@@ -119,7 +118,7 @@ describe('AccessListDetail', () => {
 
   it('should show error message if call to delete list returns http status code 412', async () => {
     const user = userEvent.setup();
-    const deleteMock = jest.fn().mockImplementation(() =>
+    const deleteMock = vi.fn().mockImplementation(() =>
       Promise.reject({
         response: { status: ServerCodes.PreconditionFailed },
       }),

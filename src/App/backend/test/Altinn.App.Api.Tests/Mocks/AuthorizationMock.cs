@@ -11,7 +11,6 @@ namespace Altinn.App.Api.Tests.Mocks;
 public class AuthorizationMock : IAuthorizationClient
 {
     public Task<List<Party>?> GetPartyList(
-        int userId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
@@ -20,15 +19,12 @@ public class AuthorizationMock : IAuthorizationClient
     }
 
     public Task<bool?> ValidateSelectedParty(
-        int userId,
         int partyId,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
     {
-        bool? isvalid = userId != 1;
-
-        return Task.FromResult(isvalid);
+        return Task.FromResult<bool?>(true);
     }
 
     /// <summary>

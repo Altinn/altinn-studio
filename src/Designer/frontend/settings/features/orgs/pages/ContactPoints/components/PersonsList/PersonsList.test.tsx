@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -6,7 +7,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { PersonsList } from './PersonsList';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
-jest.mock('./PersonDialog/PersonDialog', () => ({
+vi.mock('./PersonDialog/PersonDialog', () => ({
   PersonDialog: ({ editingId, onClose }: { editingId: string | null; onClose: () => void }) => (
     <div>
       <div>{editingId ? 'EditDialog' : 'AddDialog'}</div>
@@ -22,6 +23,7 @@ const person1: ContactPoint = {
   name: 'Test 1',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [
     { id: 'm1', methodType: 'email', value: 'test@example.com' },
     { id: 'm2', methodType: 'sms', value: '12345678' },
@@ -33,6 +35,7 @@ const person2: ContactPoint = {
   name: 'Test 2',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'm3', methodType: 'email', value: 'bob@example.com' }],
 };
 
@@ -53,8 +56,6 @@ const getEditButton = () =>
   });
 
 describe('PersonsList', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('renders the persons heading', () => {
     renderPersonsList();
     expect(
@@ -79,6 +80,17 @@ describe('PersonsList', () => {
     renderPersonsList({ persons: [person1] });
     expect(screen.getByText('test@example.com')).toBeInTheDocument();
     expect(screen.getByText('12345678')).toBeInTheDocument();
+  });
+
+  it('renders the report frequency, or a placeholder when the person gets no reports', () => {
+    renderPersonsList({ persons: [{ ...person1, reportFrequency: 'weekly' }, person2] });
+    const getRow = (name: string) => screen.getByRole('row', { name: new RegExp(name) });
+    expect(
+      within(getRow('Test 1')).getByText(
+        textMock('settings.orgs.contact_points.report_frequency_weekly'),
+      ),
+    ).toBeInTheDocument();
+    expect(within(getRow('Test 2')).getByText('–')).toBeInTheDocument();
   });
 
   it('renders a switch for each person with their name as aria-label', () => {
@@ -110,7 +122,7 @@ describe('PersonsList', () => {
 
   it('calls deleteContactPoint when delete is confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderPersonsList({ persons: [person1] });
     const deleteButton = screen.getByRole('button', {
       name: textMock('settings.orgs.contact_points.delete', { name: person1.name }),

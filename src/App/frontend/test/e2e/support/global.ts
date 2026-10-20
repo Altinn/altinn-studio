@@ -198,12 +198,15 @@ declare global {
        */
       assertTextWithoutWhiteSpaces(expectedText: string): Chainable<null>;
       /**
-       * Input fields with number formatting have a problem with cypress, as the .clear() command does not always
-       * work. This command will forcibly clear the value of the input field, and should be used instead of .clear()
-       * for number formatted input fields. Changes can be reverted after this problem is fixed in react-number-format.
-       * @see https://github.com/s-yadav/react-number-format/issues/736
+       * Clear a number formatted input in one keyboard command. The backend may normalize an empty numeric
+       * value after saving. Use numberFormatReplace when entering a new value to avoid that normalization race.
        */
       numberFormatClear(): Chainable<null>;
+
+      /**
+       * Replace a number formatted input without first saving an empty value.
+       */
+      numberFormatReplace(value: string): Chainable<null>;
 
       /**
        * Snapshot the current visual state of the app. This does a few things:

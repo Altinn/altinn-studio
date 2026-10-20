@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { ROOT_POINTER } from '../constants';
 import { FieldType, type NodePosition, ObjectKind } from '../../types';
 import { SchemaModel } from './SchemaModel';

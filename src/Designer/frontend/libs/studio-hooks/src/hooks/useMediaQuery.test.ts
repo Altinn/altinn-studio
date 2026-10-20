@@ -1,12 +1,13 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock, MockedFunction } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useMediaQuery } from './useMediaQuery';
-import MockedFunction = jest.MockedFunction;
 
 // Test data:
 const query = '(min-width: 600px)';
 
 describe('useMediaQuery', () => {
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => vi.resetAllMocks());
 
   it.each([true, false])('Returns value from window.matchMedia.matches when it is %s', (value) => {
     const matchMedia = mockMatchMediaApi({ matches: value });
@@ -23,14 +24,14 @@ describe('useMediaQuery', () => {
   });
 
   it('Adds event listener', () => {
-    const addEventListener = jest.fn();
+    const addEventListener = vi.fn();
     mockMatchMediaApi({ matches: false, addEventListener });
     renderHook(() => useMediaQuery(query));
     expect(addEventListener).toHaveBeenCalledTimes(1);
   });
 
   it('Removes the event listener on unmount', () => {
-    const removeEventListener = jest.fn();
+    const removeEventListener = vi.fn();
     mockMatchMediaApi({ matches: false, removeEventListener });
     const { unmount } = renderHook(() => useMediaQuery(query));
     expect(removeEventListener).not.toHaveBeenCalled();
@@ -41,8 +42,8 @@ describe('useMediaQuery', () => {
 
 type MatchMediaMockOptions = {
   matches: boolean | undefined;
-  addEventListener?: jest.Mock;
-  removeEventListener?: jest.Mock;
+  addEventListener?: Mock;
+  removeEventListener?: Mock;
 };
 
 function mockMatchMediaApi(
@@ -55,15 +56,15 @@ function mockMatchMediaApi(
 
 function createMatchMediaMock({
   matches,
-  addEventListener = jest.fn(),
-  removeEventListener = jest.fn(),
+  addEventListener = vi.fn(),
+  removeEventListener = vi.fn(),
 }): MockedFunction<typeof window.matchMedia> {
-  return jest.fn().mockImplementation((query) => ({
+  return vi.fn().mockImplementation((query) => ({
     matches,
     media: query,
     onchange: null,
     addEventListener,
     removeEventListener,
-    dispatchEvent: jest.fn(),
+    dispatchEvent: vi.fn(),
   }));
 }

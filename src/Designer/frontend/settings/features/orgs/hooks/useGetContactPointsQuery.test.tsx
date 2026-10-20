@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { renderHookWithProviders } from '../../../testing/mocks';
 import { useGetContactPointsQuery } from './useGetContactPointsQuery';

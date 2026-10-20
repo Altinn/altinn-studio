@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { type PolicyRuleContextProps } from '../../src/contexts/PolicyRuleContext';
 import {
   mockPolicyRuleCard1,
@@ -16,7 +17,7 @@ export const mockPolicyRuleContextValue: PolicyRuleContextProps = {
   showAllErrors: false,
   uniqueId: 'id',
   policyError,
-  setPolicyError: jest.fn(),
+  setPolicyError: vi.fn(),
 };
 
 export const mockPolicyRuleContextValueWithSingleNarrowingPolicy: PolicyRuleContextProps = {
@@ -24,5 +25,5 @@ export const mockPolicyRuleContextValueWithSingleNarrowingPolicy: PolicyRuleCont
   showAllErrors: false,
   uniqueId: 'id',
   policyError,
-  setPolicyError: jest.fn(),
+  setPolicyError: vi.fn(),
 };

@@ -30,4 +30,11 @@ public class ProcessStartRequest
     /// The start event id, only needed if multiple start events in process
     /// </summary>
     public string? StartEventId { get; set; }
+
+    /// <summary>
+    /// The language the user has chosen in the app, if any. Expressions evaluated while the process starts, such as
+    /// the conditions of a gateway right after the start event, use it; without one, the caller's profile language
+    /// is used (nb for anyone but a user).
+    /// </summary>
+    public string? Language { get; set; }
 }

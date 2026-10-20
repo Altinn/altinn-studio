@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import {
   internalLayoutWithMultiPageGroup,
   component1Id,
@@ -6,7 +7,7 @@ import {
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { getComponentIdWithPageIndex, internalLayoutToExternal } from './internalLayoutToExternal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import type { ExternalComponent } from 'app-shared/types/api';
+import type { SerializedComponent } from '../../types/SerializedComponent';
 import { layoutMock } from '../../testing/layoutMock';
 
 describe('internalLayoutToExternal', () => {
@@ -17,10 +18,7 @@ describe('internalLayoutToExternal', () => {
   const containerIds = Object.keys(internalLayoutWithMultiPageGroup.containers);
   const relevantContainerIds = containerIds.filter((key) => key != BASE_CONTAINER_ID);
 
-  const findInternalComponent = (id) =>
-    internalLayoutWithMultiPageGroup.components[id] ||
-    internalLayoutWithMultiPageGroup.containers[id];
-  const findExternalComponent = (id): ExternalComponent =>
+  const findExternalComponent = (id): SerializedComponent =>
     layout.find((component) => component.id === id);
 
   it('Creates a list containing all components and containers', () => {
@@ -53,9 +51,8 @@ describe('internalLayoutToExternal', () => {
 
   it("Injects children's ids and page indices to their container's `children` array", () => {
     const expectedChildIdInList = (componentId: string) => {
-      const component = findInternalComponent(componentId);
-      const { pageIndex } = component;
-      return pageIndex === null ? componentId : `${pageIndex}:${componentId}`;
+      const pageIndex = internalLayoutWithMultiPageGroup.pageIndexes?.[componentId];
+      return pageIndex === undefined ? componentId : `${pageIndex}:${componentId}`;
     };
     relevantContainerIds.forEach((id) => {
       const childrenIds = internalLayoutWithMultiPageGroup.order[id];
@@ -68,6 +65,16 @@ describe('internalLayoutToExternal', () => {
   it('should return component id when component reference is invalid', () => {
     const result = getComponentIdWithPageIndex(layoutMock, 'unknownComponentId');
     expect(result).toBe('unknownComponentId');
+  });
+
+  it('Keeps the $schema of the layout', () => {
+    const v9SchemaUrl =
+      'https://altinn.studio/designer/app-dist/9.0.0/schemas/json/layout/layout.schema.v1.json';
+    const external = internalLayoutToExternal({
+      ...internalLayoutWithMultiPageGroup,
+      $schema: v9SchemaUrl,
+    });
+    expect(external.$schema).toBe(v9SchemaUrl);
   });
 
   it('Includes custom root properties', () => {

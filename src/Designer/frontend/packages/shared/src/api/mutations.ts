@@ -89,6 +89,7 @@ import {
   chatFeedbackPath,
   taskNavigationGroupPath,
   layoutSetsV4Path,
+  publishResourcePolicyPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddDataTypeToAppMetadataPayload } from 'app-shared/types/api/AddDataTypeToAppMetadataPayload';
@@ -120,6 +121,7 @@ import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import type { ExternalComponent } from 'app-shared/types/api/FormLayoutsResponse';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
@@ -178,7 +180,7 @@ export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(o
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
 export const saveDataModelPrefill = (org: string, app: string, modelPath: string, payload: PrefillConfig) => put<void, PrefillConfig>(dataModelPrefillPath(org, app, modelPath), payload);
-export const saveFormLayout = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
+export const saveFormLayout = <TComponent = ExternalComponent>(org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest<TComponent>) => post<void, FormLayoutRequest<TComponent>>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutV3 = (org: string, app: string, layoutName: string, layoutSetName: string, payload: FormLayoutRequest) => post<void, FormLayoutRequest>(formLayoutPath(org, app, layoutName, layoutSetName), payload);
 export const saveFormLayoutSettings = (org: string, app: string, layoutSetName: string, payload: ILayoutSettings) => post<ILayoutSettings>(layoutSettingsPath(org, app, layoutSetName), payload);
 export const saveRuleConfig = (org: string, app: string, layoutSetName: string, payload: RuleConfig) => post<RuleConfig>(ruleConfigPath(org, app, layoutSetName), payload);
@@ -227,6 +229,7 @@ export const removeAccessListMember = (org: string, listId: string, environment:
 export const addResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => post(resourceAccessListPath(org, resourceId, listId, environment));
 export const removeResourceAccessList = (org: string, resourceId: string, listId: string, environment: string) => del(resourceAccessListPath(org, resourceId, listId, environment));
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
+export const publishResourcePolicy = (org: string, repo: string, id: string, env: string, payload: Policy) => post(publishResourcePolicyPath(org, repo, id, env), payload);
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 
