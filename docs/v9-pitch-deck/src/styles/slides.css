@@ -483,24 +483,11 @@
 }
 
 /* =========================================================
-   From process to steps: one diagram, one layer per press
+   Layer on layer: the process row with a lane added per press
    ========================================================= */
 
-.s-flow {
-  height: 660px;
-}
-
-.s-dag__lane.s-flow__lane {
-  left: 1000px;
-}
-
-.s-flow__lane .s-dag__lane-sub {
-  width: auto;
-  white-space: nowrap;
-}
-
 /* BPMN start and end events; the end event has the thick ring. */
-.s-flow__event {
+.s-layer__event {
   position: absolute;
   display: grid;
   place-items: center;
@@ -515,17 +502,17 @@
     background-color 0.3s;
 }
 
-.s-flow__event--end {
+.s-layer__event--end {
   border-width: 7px;
   border-color: var(--text-100);
 }
 
-.s-flow__event.is-ok-box {
+.s-layer__event.is-ok-box {
   border-color: var(--success);
   background: var(--ok-soft);
 }
 
-.s-flow__note {
+.s-layer__note {
   position: absolute;
   translate: -50% 0;
   padding: 7px 16px;
@@ -536,64 +523,17 @@
   white-space: nowrap;
 }
 
-.s-flow__note.is-v8 {
+.s-layer__note.is-v8 {
   border-color: var(--v8-line);
   background: var(--v8-soft);
   color: var(--v8);
 }
 
-.s-flow__note.is-v9 {
+.s-layer__note.is-v9 {
   border-color: var(--v9-line);
   background: var(--v9-soft);
   color: var(--v9);
 }
-
-/* The arrow under the lens, and the two lines that open it into the panel. */
-.s-flow__window,
-.s-flow__funnel {
-  fill: none;
-  stroke: var(--v9);
-  stroke-width: 2;
-  stroke-dasharray: 7 6;
-}
-
-.s-flow__funnel {
-  opacity: 0.6;
-}
-
-.s-flow__panel {
-  border-color: var(--v9-line);
-  background: var(--v9-soft);
-}
-
-.s-flow__head {
-  margin: 0;
-  color: var(--v9);
-}
-
-.s-flow__rows {
-  display: flex;
-  flex-direction: column;
-}
-
-.s-flow__panel .s-steprow {
-  height: 46px;
-  padding: 0 14px;
-  background: #fff;
-  font-size: 22px;
-}
-
-.s-flow__panel .s-steprow__state {
-  font-size: 20px;
-}
-
-.s-flow__job .s-dag__title {
-  font-size: 28px;
-}
-
-/* =========================================================
-   Layer on layer: the process row with a lane added per press
-   ========================================================= */
 
 .s-layer {
   height: 660px;

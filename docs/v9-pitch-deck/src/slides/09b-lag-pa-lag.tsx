@@ -300,7 +300,7 @@ export default function LagPaLagSlide({ step }: SlideProps) {
           </svg>
 
           <div
-            className={`s-flow__event${engine ? ' is-ok-box' : ''}`}
+            className={`s-layer__event${engine ? ' is-ok-box' : ''}`}
             style={{
               left: START_CX - EVENT_R,
               top: MID_Y - EVENT_R,
@@ -325,7 +325,7 @@ export default function LagPaLagSlide({ step }: SlideProps) {
             <span className='s-dag__title'>Lag PDF</span>
           </motion.div>
           <div
-            className={`s-flow__event s-flow__event--end${ended ? ' is-ok-box' : ''}`}
+            className={`s-layer__event s-layer__event--end${ended ? ' is-ok-box' : ''}`}
             style={{
               left: END_CX - EVENT_R,
               top: MID_Y - EVENT_R,
@@ -337,7 +337,7 @@ export default function LagPaLagSlide({ step }: SlideProps) {
           </div>
 
           <motion.span
-            className='s-flow__note is-v8'
+            className='s-layer__note is-v8'
             style={{ left: COLS.pdf.centre, top: ROW_H + 24 }}
             initial={false}
             animate={{ opacity: at === 0 ? 1 : 0 }}
@@ -346,7 +346,7 @@ export default function LagPaLagSlide({ step }: SlideProps) {
             v8: PDF-en lages skjult i overgangen
           </motion.span>
           <motion.span
-            className='s-flow__note is-v9'
+            className='s-layer__note is-v9'
             style={{ left: COLS.pdf.centre, top: ROW_H + 24 }}
             initial={false}
             animate={{ opacity: at === 1 ? 1 : 0 }}
