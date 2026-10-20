@@ -56,6 +56,8 @@ interface Chip {
 
 const DONE: Chip['tones'] = ['ok', 'ok', 'ok', 'ok'];
 const LATER: Chip['tones'] = ['idle', 'idle', 'idle', 'ok'];
+/** The PDF step runs, fails and is retried, then succeeds; the task box follows it. */
+const PDF_TONES: Chip['tones'] = ['run', 'run', 'wait', 'ok'];
 
 const ENGINE: Chip[] = [
   { col: COLS.start, row: 0, label: 'Start Utfylling', tones: DONE },
@@ -65,9 +67,10 @@ const ENGINE: Chip[] = [
   { col: COLS.fill, row: 0, label: 'Avslutt Utfylling', tones: DONE },
   { col: COLS.fill, row: 1, label: 'Appens egen kode', tones: DONE },
   { col: COLS.fill, row: 2, label: 'Lås svarene', tones: DONE },
-  { col: COLS.fill, row: 3, label: 'Start Lag PDF', tones: DONE },
-  { col: COLS.fill, row: 4, label: 'Lagre', tones: DONE },
-  { col: COLS.pdf, row: 0, label: 'Lag PDF', tones: ['run', 'run', 'wait', 'ok'] },
+  { col: COLS.fill, row: 3, label: 'Lagre', tones: DONE },
+  { col: COLS.pdf, row: 0, label: 'Hent svarene', tones: DONE },
+  { col: COLS.pdf, row: 1, label: 'Lag PDF', tones: PDF_TONES },
+  { col: COLS.pdf, row: 2, label: 'Lagre PDF-en', tones: LATER },
   { col: COLS.end, row: 0, label: 'Avslutt Lag PDF', tones: LATER },
   { col: COLS.end, row: 1, label: 'Lagre', tones: LATER },
   { col: COLS.end, row: 2, label: 'Appens egen kode', tones: LATER },
@@ -148,7 +151,7 @@ export default function LagPaLagSlide({ step }: SlideProps) {
   const v9 = at >= 1;
   const engine = at >= 2;
   const background = at >= 3;
-  const pdfTone: Tone | 'plain' = at < 2 ? 'plain' : ENGINE[9].tones[at - 2];
+  const pdfTone: Tone | 'plain' = at < 2 ? 'plain' : PDF_TONES[at - 2];
   const fillDone = engine;
   const ended = at === LAST;
 
@@ -250,7 +253,7 @@ export default function LagPaLagSlide({ step }: SlideProps) {
           </svg>
 
           <div
-            className='s-flow__event'
+            className={`s-flow__event${engine ? ' is-ok-box' : ''}`}
             style={{
               left: START_CX - EVENT_R,
               top: MID_Y - EVENT_R,
