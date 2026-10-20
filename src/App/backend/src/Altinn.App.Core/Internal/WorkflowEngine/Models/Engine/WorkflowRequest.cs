@@ -72,6 +72,9 @@ internal sealed record WorkflowRequest
     ///   <item><c>false</c> — Force-exclude: never a head, and this workflow's dependency edges do not consume
     ///         existing heads.</item>
     /// </list>
+    /// This directive is the encoding of the workflow's role: <c>false</c> makes it an auxiliary workflow,
+    /// <c>true</c> or <c>null</c> a primary one. Status responses report the result as
+    /// <see cref="WorkflowStatusResponse.Role"/>.
     /// </summary>
     [JsonPropertyName("isHead")]
     public bool? IsHead { get; init; }

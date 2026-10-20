@@ -115,13 +115,13 @@ internal sealed record WorkflowStatusResponse
     public string? InitialState { get; init; }
 
     /// <summary>
-    /// The head-visibility directive the workflow was enqueued with. <c>false</c> identifies
-    /// workflows deliberately invisible to collection head tracking (the fire-and-forget
-    /// side-effects chains); <c>null</c> means natural leaf detection applied at enqueue.
+    /// Whether the process waits on this workflow. The engine derives it from the <c>isHead</c>
+    /// directive the workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>), which is the
+    /// encoding; this is the field the app reads.
     /// </summary>
-    [JsonPropertyName("isHead")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public bool? IsHead { get; init; }
+    [JsonPropertyName("role")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public required WorkflowRole Role { get; init; }
 
     /// <summary>
     /// Details about each step in the workflow.

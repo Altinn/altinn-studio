@@ -1120,7 +1120,7 @@
       {
         "Name": "role",
         "Kind": "enum<string>{Primary=0,Auxiliary=1}",
-        "Nullable": true
+        "Nullable": false
       },
       {
         "Name": "startAt",

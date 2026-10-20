@@ -356,7 +356,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 && workflow.CollectionKey == collectionKey
                 && workflow.IdempotencyKey == bundle.IdempotencyKey
                 && workflow.OverallStatus != PersistentItemStatus.Abandoned
-                && workflow.IsHead is not false
+                && !IsAuxiliaryWorkflow(workflow)
                 && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceTaskLabel)
                     == sourceTask
                 && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceFlowLabel)
@@ -585,8 +585,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
         Guid? sinceWorkflowId
     )
     {
-        IReadOnlyList<WorkflowStatusResponse> visibleWorkflows = workflows.Any(IsSideEffectsWorkflow)
-            ? workflows.Where(workflow => !IsSideEffectsWorkflow(workflow)).ToList()
+        IReadOnlyList<WorkflowStatusResponse> visibleWorkflows = workflows.Any(IsAuxiliaryWorkflow)
+            ? workflows.Where(workflow => !IsAuxiliaryWorkflow(workflow)).ToList()
             : workflows;
 
         if (sinceWorkflowId is null)
@@ -608,16 +608,14 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     /// <summary>
-    /// Identifies the fire-and-forget side-effects workflows a transition may schedule (one per
-    /// side effect), by the engine-persisted head-visibility directive: side-effects workflows are
-    /// enqueued with <c>IsHead = false</c> (invisible to the collection heads frontier), which the
-    /// engine now exposes on status responses. The
-    /// <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/> OperationId marker
-    /// remains purely a human-readable naming convention for ops queries and logs; it is no longer
-    /// load-bearing for identification. Requires an engine that persists/exposes <c>isHead</c> -
-    /// the same ship-together requirement the state-inheritance feature already imposes.
+    /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary command) by the
+    /// <see cref="WorkflowStatusResponse.Role"/> the engine reports. An auxiliary workflow runs beside the
+    /// process: it never blocks or moves it. The
+    /// <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/> OperationId marker is purely a
+    /// human-readable naming convention for ops queries and logs, not load-bearing for identification.
     /// </summary>
-    internal static bool IsSideEffectsWorkflow(WorkflowStatusResponse workflow) => workflow.IsHead == false;
+    internal static bool IsAuxiliaryWorkflow(WorkflowStatusResponse workflow) =>
+        workflow.Role == WorkflowRole.Auxiliary;
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
