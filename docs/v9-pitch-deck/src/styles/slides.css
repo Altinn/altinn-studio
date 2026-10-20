@@ -350,7 +350,7 @@
 }
 
 /* =========================================================
-   Work in the background: a job a later step waits for
+   Process diagrams: boxes, lanes and wires
    ========================================================= */
 
 .s-dag {
@@ -386,24 +386,6 @@
   line-height: 1.3;
   text-transform: none;
   color: var(--text-500);
-}
-
-/* Sits over «Send inn»: the user's part ends here. */
-.s-dag__done {
-  position: absolute;
-  top: -12px;
-  translate: -50% 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 18px;
-  border-radius: 999px;
-  border: 1px solid var(--ok-line);
-  background: var(--ok-soft);
-  color: var(--success);
-  font-size: 23px;
-  font-weight: var(--fw-bold);
-  white-space: nowrap;
 }
 
 .s-dag__box {
@@ -453,33 +435,6 @@
   font-size: 32px;
   font-weight: var(--fw-bold);
   color: var(--text-100);
-}
-
-.s-dag__state {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 23px;
-  font-weight: var(--fw-semibold);
-}
-
-.s-dag__caption {
-  position: absolute;
-  left: 230px;
-  top: 520px;
-  font-size: 34px;
-  font-weight: var(--fw-semibold);
-  color: var(--text-200);
-}
-
-/* Says out loud that the example is a direction, not today's behaviour. */
-.s-dag__footnote {
-  position: absolute;
-  left: 230px;
-  top: 590px;
-  font-size: 21px;
-  font-style: italic;
-  color: var(--text-500);
 }
 
 /* =========================================================
