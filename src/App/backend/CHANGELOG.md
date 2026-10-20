@@ -28,7 +28,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Grid shows all the text in its cells instead of cutting it off with an ellipsis after two lines. `textOverflow` on Grid cells is deprecated: it has no effect, and you can remove it from your layouts.
+- Grid shows all the text in its cells instead of cutting it off with an ellipsis after two lines. `textOverflow` on Grid cells is deprecated: it has no effect, and you can remove it from your layouts. ([#21379](https://github.com/Altinn/altinn-studio/pull/21379))
 - An app no longer starts when a `subformPdf` task in `config/process/process.bpmn` has no `<altinn:subformPdfConfig>`, lacks `subformComponentId` or `subformDataTypeId`, or names a `subformDataTypeId` that is not in `applicationmetadata.json`. ([#21022](https://github.com/Altinn/altinn-studio/pull/21022))
 
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
