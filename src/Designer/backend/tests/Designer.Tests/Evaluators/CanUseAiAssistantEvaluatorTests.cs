@@ -52,6 +52,14 @@ public class CanUseAiAssistantEvaluatorTests
     }
 
     [Fact]
+    public async Task CanUseFeatureAsync_DoesNotCallGitea_WhenOrgIsNotAnAllowedServiceOwner()
+    {
+        await CreateEvaluator().CanUseFeatureAsync("org-without-access", App);
+
+        _giteaClient.Verify(c => c.GetUserOrganizations(), Times.Never);
+    }
+
+    [Fact]
     public async Task CanUseFeatureAsync_ReturnsTrue_ForOwnRepository_WhenDeveloperHasAnEligibleCostOrg()
     {
         SetupMemberships(AllowedOrg);
@@ -113,7 +121,7 @@ public class CanUseAiAssistantEvaluatorTests
         SetupMemberships(AllowedOrg, OtherAllowedOrg);
 
         Assert.Equal(
-            CanUseAiAssistantEvaluator.UnattributedCostOrg,
+            ICanUseAiAssistantEvaluator.UnattributedCostOrg,
             await CreateEvaluator().ResolveCostOrg(Developer, App)
         );
     }

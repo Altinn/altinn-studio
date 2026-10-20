@@ -111,9 +111,10 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
 
-        await ValidateAssistantAccessAsync(org, app, developer);
-
         var context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        // Only the access check matters here. StartWorkflow resolves the cost organization again.
+        await ResolveCostOrgOrDenyAccessAsync(context);
+
         bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(parsedThreadId, context);
         if (!isOwner)
         {
@@ -180,7 +181,8 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         org.ValidPathSegment(nameof(org));
         app.ValidPathSegment(nameof(app));
 
-        string costOrg = await ResolveCostOrg(org, app, developer);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        string costOrg = await ResolveCostOrgOrDenyAccessAsync(editingContext);
 
         _logger.LogInformation(
             "Starting Assistant workflow for user: {Developer}, session: {SessionId}",
@@ -193,7 +195,6 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             throw new HubException("Invalid session_id format");
         }
 
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         bool isOwner = await _chatService.ThreadBelongsToDeveloperAsync(threadId, editingContext);
         if (!isOwner)
         {
@@ -208,8 +209,8 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         var (enrichedWithAttachments, attachmentIds) = ResolveAttachments(request);
         var agentResponse = await ForwardRequestToAssistantAsync(
             enrichedWithAttachments,
+            editingContext,
             costOrg,
-            developer,
             apiKey,
             sessionId
         );
@@ -303,21 +304,19 @@ public class AssistantProxyHub : Hub<IAssistantClient>
         return value;
     }
 
-    private async Task ValidateAssistantAccessAsync(string org, string app, string developer)
+    /// <summary>
+    /// Gets the organization that the assistant usage is recorded on, and denies access when there is none.
+    /// </summary>
+    private async Task<string> ResolveCostOrgOrDenyAccessAsync(AltinnRepoEditingContext editingContext)
     {
-        if (!await _canUseAiAssistantEvaluator.CanUseFeatureAsync(org, app))
-        {
-            _logger.LogWarning("User {Developer} was denied assistant access for org {Org}", developer, org);
-            throw new HubException("Access denied");
-        }
-    }
-
-    private async Task<string> ResolveCostOrg(string org, string app, string developer)
-    {
-        string? costOrg = await _canUseAiAssistantEvaluator.ResolveCostOrg(org, app);
+        string? costOrg = await _canUseAiAssistantEvaluator.ResolveCostOrg(editingContext.Org, editingContext.Repo);
         if (costOrg == null)
         {
-            _logger.LogWarning("User {Developer} was denied assistant access for org {Org}", developer, org);
+            _logger.LogWarning(
+                "User {Developer} was denied assistant access for org {Org}",
+                editingContext.Developer,
+                editingContext.Org
+            );
             throw new HubException("Access denied");
         }
 
@@ -349,14 +348,19 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 
     private async Task<JsonElement> ForwardRequestToAssistantAsync(
         JsonElement request,
+        AltinnRepoEditingContext editingContext,
         string costOrg,
-        string developer,
         string apiKey,
         string sessionId
     )
     {
-        var enrichedRequest = EnrichRequestWithRepoUrlAndCostOrg(request, costOrg);
-        using var httpRequest = CreateAssistantHttpRequest(enrichedRequest, developer, apiKey, sessionId);
+        var enrichedRequest = EnrichRequestWithRepoUrlAndCostOrg(request, editingContext, costOrg);
+        using var httpRequest = CreateAssistantHttpRequest(
+            enrichedRequest,
+            editingContext.Developer,
+            apiKey,
+            sessionId
+        );
         var response = await SendRequestToAssistantAsync(httpRequest);
 
         return response;
@@ -364,31 +368,23 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 
     /// <summary>
     /// Adds the repository URL and the cost organization to the workflow request.
-    /// The repository URL comes from the org and app identifiers.
     /// </summary>
     /// <param name="request">The original workflow request</param>
+    /// <param name="editingContext">The repository that the workflow works in</param>
     /// <param name="costOrg">The organization that the LLM usage of the workflow is recorded on</param>
     /// <returns>The request with the repo_url and cost_org fields</returns>
-    private JsonElement EnrichRequestWithRepoUrlAndCostOrg(JsonElement request, string costOrg)
+    private JsonElement EnrichRequestWithRepoUrlAndCostOrg(
+        JsonElement request,
+        AltinnRepoEditingContext editingContext,
+        string costOrg
+    )
     {
-        if (!request.TryGetProperty("org", out var orgElement) || !request.TryGetProperty("app", out var appElement))
-        {
-            return request;
-        }
+        string repoUrl =
+            $"{_serviceRepositorySettings.RepositoryBaseURL}/{editingContext.Org}/{editingContext.Repo}.git";
 
-        string? org = orgElement.GetString();
-        string? app = appElement.GetString();
-
-        org.ValidPathSegment(nameof(org));
-        app.ValidPathSegment(nameof(app));
-
-        string repoUrl = $"{_serviceRepositorySettings.RepositoryBaseURL}/{org}/{app}.git";
-
-        var requestDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText());
-        if (requestDict == null)
-        {
-            throw new HubException("Failed to parse workflow request");
-        }
+        var requestDict =
+            JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(request.GetRawText())
+            ?? throw new HubException("Failed to parse workflow request");
 
         requestDict["repo_url"] = JsonSerializer.SerializeToElement(repoUrl);
         requestDict["cost_org"] = JsonSerializer.SerializeToElement(costOrg);

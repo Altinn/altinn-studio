@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from typing import Any, TypedDict
 
 from shared.config import get_config
+from shared.utils.langfuse_utils import APP_NAME_METADATA_KEY, REPO_OWNER_METADATA_KEY
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -59,7 +60,8 @@ def aggregate_token_usage(
     loaded_at: str,
 ) -> list[DailyTokenUsageRow]:
     """Aggregate lists of traces and observations into token usage rows."""
-    buckets: dict[str, dict] = {}
+    # A tuple keeps the parts apart. Owner and app names can contain the separator of a joined string.
+    buckets: dict[tuple[str, str, str, str], dict] = {}
 
     for observation in observations:
         trace = traces_by_id.get(observation["trace_id"])
@@ -76,7 +78,7 @@ def aggregate_token_usage(
         app_name = _get_app_name(trace)
         service_resource_id = _get_service_resource_id(service_owner_code, repo_owner, app_name)
         observation_date = _to_date_string(observation["start_time"])
-        bucket_key = f"{service_owner_code}-{repo_owner}-{app_name}-{observation_date}"
+        bucket_key = (service_owner_code, repo_owner, app_name, observation_date)
 
         bucket = buckets.setdefault(
             bucket_key,
@@ -140,7 +142,7 @@ def _get_repo_owner(trace: Trace, service_owner_code: str) -> str:
     A trace from before Designer sent `repo_owner` does not have this value. Then the owner is the service owner.
     """
     metadata = trace["metadata"] or {}
-    return metadata.get("repo_owner") or service_owner_code
+    return metadata.get(REPO_OWNER_METADATA_KEY) or service_owner_code
 
 
 def _get_app_name(trace: Trace) -> str:
@@ -148,7 +150,7 @@ def _get_app_name(trace: Trace) -> str:
         return trace["environment"]
 
     metadata = trace["metadata"] or {}
-    app_name = metadata.get("app_name")
+    app_name = metadata.get(APP_NAME_METADATA_KEY)
     if not app_name:
         log.warning(
             "Missing metadata.app_name for trace %s — bucketing under '%s'",

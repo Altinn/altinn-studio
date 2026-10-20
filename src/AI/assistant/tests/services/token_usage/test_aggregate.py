@@ -168,6 +168,20 @@ class TestDevelopersOwnRepository:
 
         assert sorted(row["serviceresourcetitle"] for row in rows) == ["kari/my-app", "my-app"]
 
+    def test_does_not_merge_repositories_when_owner_and_app_names_contain_hyphens(self):
+        observations = [
+            make_observation(trace_id="trace-1"),
+            make_observation(trace_id="trace-2"),
+        ]
+        traces = {
+            "trace-1": make_trace(trace_id="trace-1", app_name="skjema", repo_owner="ola-dev"),
+            "trace-2": make_trace(trace_id="trace-2", app_name="dev-skjema", repo_owner="ola"),
+        }
+
+        rows = aggregate_token_usage(observations, traces, LOADED_AT)
+
+        assert sorted(row["serviceresourcetitle"] for row in rows) == ["ola-dev/skjema", "ola/dev-skjema"]
+
 
 class TestTokenSums:
     def test_sums_tokens_across_multiple_observations(self):

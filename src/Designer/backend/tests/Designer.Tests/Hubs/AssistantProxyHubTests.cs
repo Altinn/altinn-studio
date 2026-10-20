@@ -243,12 +243,7 @@ public class AssistantProxyHubTests
 
     private void SetupAssistantAccess(string org, bool hasAccess)
     {
-        _canUseAiAssistantEvaluatorMock
-            .Setup(e => e.CanUseFeatureAsync(org, It.IsAny<string>()))
-            .ReturnsAsync(hasAccess);
-        _canUseAiAssistantEvaluatorMock
-            .Setup(e => e.ResolveCostOrg(org, It.IsAny<string>()))
-            .ReturnsAsync(hasAccess ? org : null);
+        SetupCostOrg(org, resolvedCostOrg: hasAccess ? org : null);
     }
 
     private void SetupCostOrg(string org, string resolvedCostOrg)
@@ -275,7 +270,7 @@ public class AssistantProxyHubTests
     }
 
     [Fact]
-    public async Task StartWorkflow_ForwardsRepositoryOwnerAsCostOrg_ForOrgRepository()
+    public async Task StartWorkflow_ForwardsRepoUrlAndResolvedCostOrg()
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
@@ -304,7 +299,6 @@ public class AssistantProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestDeveloper, TestApp);
-        SetupAssistantAccess(TestDeveloper, hasAccess: true);
         SetupCostOrg(TestDeveloper, resolvedCostOrg: "nfk");
         SetupApiKey();
         var hub = CreateHub();
@@ -325,31 +319,6 @@ public class AssistantProxyHubTests
         JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
         Assert.Equal("nfk", forwarded.GetProperty("cost_org").GetString());
         Assert.Equal(TestDeveloper, forwarded.GetProperty("org").GetString());
-    }
-
-    [Fact]
-    public async Task StartWorkflow_ThrowsHubException_WhenNoCostOrgCanBeResolved()
-    {
-        var threadId = Guid.NewGuid();
-        SetupThreadOwnership(threadId, TestDeveloper, TestApp);
-        SetupAssistantAccess(TestDeveloper, hasAccess: true);
-        SetupCostOrg(TestDeveloper, resolvedCostOrg: null);
-        var hub = CreateHub();
-        await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
-
-        var request = JsonSerializer.SerializeToElement(
-            new
-            {
-                session_id = threadId.ToString(),
-                org = TestDeveloper,
-                app = TestApp,
-            }
-        );
-
-        var exception = await Assert.ThrowsAsync<HubException>(() => hub.StartWorkflow(request));
-
-        Assert.Contains("Access denied", exception.Message);
-        Assert.Empty(_agentHttpHandler.Requests);
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
