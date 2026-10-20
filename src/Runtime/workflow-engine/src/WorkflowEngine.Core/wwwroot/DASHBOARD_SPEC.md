@@ -174,7 +174,9 @@ Response:
 ### `GET /dashboard/relations`
 
 On-demand relations for cards whose source query does not eager-load them (the recent section and
-the query tab; active/scheduled cards get relations inline).
+the query tab; active/scheduled cards get relations inline). `isHead` is the workflow's directive,
+omitted when it is unset, like every null on the dashboard endpoints; the card keeps its own value
+then.
 
 | Parameter | Type   | Description          |
 | --------- | ------ | -------------------- |
@@ -350,10 +352,10 @@ Each workflow renders as a card with a header row and a pipeline of step nodes.
 Left to right:
 
 1. **Label segments** — Clickable spans for namespace, collectionKey, and labels. Clicking toggles a label filter. CSS class `seg key` for namespace/collectionKey (bold cyan), `seg` for label values.
-2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`. Note this parsing collapses distinct operationId prefixes into the same transition text (a head and its side-effects sibling display the same name) — the side-chain badge and card chrome carry the distinction; the full operationId is in the name's tooltip.
+2. **Workflow name** — `operationId` text. If the operationId contains a BPMN transition (e.g. `"Process next: Form → Verify"`), shows `from → to`. Note this parsing collapses distinct operationId prefixes into the same transition text (a primary workflow and its auxiliary sibling display the same name) — the auxiliary badge and card chrome carry the distinction; the full operationId is in the name's tooltip.
 3. **Spacer**
 4. **Retry badge** — Total retry count across all steps (if > 0). Shows `↻N`.
-5. **Side-chain badge** — Shown when the workflow was enqueued with `IsHead = false` (deliberately invisible to collection head tracking, e.g. the process-next side-effects workflows). Dashed violet "side chain" pill. The card itself also carries the side-chain identity: dashed violet border plus a violet inset left edge (`.workflow-card.side-chain`, toggled in `setCardFilterData` — and inline for scheduled cards — so it survives re-renders in every section).
+5. **Auxiliary badge** — Shown for an auxiliary workflow, one enqueued with `isHead: false` (`isAuxiliaryWorkflow` in `core/helpers.js`): it runs beside the process and is not part of the collection's head frontier, e.g. the post-commit work a process-next transition enqueues. Every other workflow is primary and has no badge. Dashed violet "auxiliary" pill. The card itself also carries the auxiliary identity: dashed violet border plus a violet inset left edge (`.workflow-card.auxiliary`, toggled in `setCardFilterData` — and inline for scheduled cards — so it survives re-renders in every section).
 6. **Status pill** — Workflow-level status with color-coded CSS class. Note the vocabulary split for workflow statuses vs step names: a workflow in status `Abandoned` had its failure written off by a caller, while `AbandonTask`/`OnTaskAbandonHook` are step operation IDs from the app's task-abandon (reject) command family — one domain act, two artifacts.
 7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
 8. **Copy idempotency key button**
@@ -530,35 +532,37 @@ Each block shows syntax-highlighted JSON (pre-processed with `expandJsonStrings(
 
 `modules/shared/chain.js` renders a set of workflows as a dependency-ordered vertical spine — the
 "story of the collection" — rather than a general graph layout (process-next graphs are a
-near-linear spine of heads with side-chain leaves). It is shared by the chain modal and the Recent
+near-linear spine of primary workflows with auxiliary leaves). It is shared by the chain modal and the Recent
 section's Chains view.
 
 **Spine layout — two builders:**
 
-1. `buildSpineFromEdges(nodes, edges)` — heads (`isHead !== false`) topologically sorted over
-   `dependency` edges (Kahn), `createdAt` as tiebreak; a cycle guard appends anything the sort
-   missed in creation order. Each `isHead === false` node attaches under the head it shares an
-   edge with, **preferring `link` edges** (side-effects workflows carry a link to their producer
-   Main) and falling back to any edge; unattached side nodes render at the bottom.
-2. `buildSpineByCreation(nodes)` — no edges needed: plain `createdAt` order with `isHead === false`
-   nodes marked as side rows. Correct for process-next collections because side chains are always
-   enqueued while their producer Main executes — after the Main's `createdAt` and before the next
-   head can exist (heads gate the following transition).
+1. `buildSpineFromEdges(nodes, edges)` — primary workflows topologically sorted over `dependency`
+   edges (Kahn), `createdAt` as tiebreak; a cycle guard appends anything the sort missed in
+   creation order. Each auxiliary workflow attaches under the primary workflow it shares an edge
+   with, **preferring `link` edges** (a process-next auxiliary workflow carries a link to the
+   primary workflow that enqueued it) and falling back to any edge; unattached auxiliary workflows
+   render at the bottom.
+2. `buildSpineByCreation(nodes)` — no edges needed: plain `createdAt` order with auxiliary workflows
+   marked as auxiliary rows. Correct for process-next collections because an auxiliary workflow is
+   always enqueued while the primary workflow that produced it executes — after its `createdAt` and
+   before the next primary workflow can exist (primary workflows gate the following transition).
 
 **Row anatomy:** parsed transition name (falls back to raw operationId; full operationId in the
-tooltip), side-chain badge where applicable, one status-colored dot per step (clickable — opens the
+tooltip), auxiliary badge where applicable, one status-colored dot per step (clickable — opens the
 step modal), duration, status pill. Terminal rows show their real duration; active rows tick via
-the shared `[data-timer]` loop while the live section still holds the workflow. Side rows indent under
-their head with the violet side-chain card chrome and an elbow connector to the spine line. The
+the shared `[data-timer]` loop while the live section still holds the workflow. Auxiliary rows indent under
+their primary workflow with the violet auxiliary card chrome and an elbow connector to the spine line. The
 root workflow (where a root id is given) gets a cyan spine marker and a brightened name.
 
 **Row expansion:** clicking a row (outside interactive elements) swaps it in place for the full
 pipeline card (`chainRowToggle`), fetching relations on first expand like compact-card expansion
 does; clicking the expanded card collapses it back. The expanded set survives re-renders.
 
-**Gap dividers:** wall-clock gaps > 1s between consecutive heads render as a dim `+ 4.2s` divider
-before the later head — that is where the time went between the engine's transitions (e.g. the
-user working in the task). Suppressed while the preceding head is still running.
+**Gap dividers:** wall-clock gaps > 1s between consecutive primary workflows render as a dim
+`+ 4.2s` divider before the later one — that is where the time went between the engine's
+transitions (e.g. the user working in the task). Suppressed while the preceding primary workflow is
+still running.
 
 ## Chain Modal
 
@@ -570,7 +574,7 @@ Same stale-guard pattern as the other modals (checks `_openWfId` before/after fe
 
 **Auto-refresh:** SSE-driven via `notifyChainChanged()` with 1s debounce. Triggers when a rendered
 workflow's fingerprint changes **or when a new live workflow joins the open root's collection** — a
-fresh transition's Main + side chains are new ids, so nothing already rendered changes when they
+fresh transition's primary and auxiliary workflows are new ids, so nothing already rendered changes when they
 land. **Keyboard:** Escape closes the modal.
 
 ## Chains View
@@ -581,7 +585,7 @@ source's own ordering), story inside oldest-first. Workflows without a collectio
 compact cards in their original position. Group chrome and the history control live in
 `shared/chain-groups.js`; the history cache is shared across surfaces.
 
-**Group anatomy:** a header row (label segments from the newest head member, workflow count,
+**Group anatomy:** a header row (label segments from the oldest primary member, workflow count,
 wall-clock span `first enqueue → last update`, aggregate status pill, collection filter funnel,
 history control) above the shared chain rows. Aggregate status: an in-flight member wins
 (Processing/Requeued/Waiting/Held/Enqueued), then the worst terminal outcome, then Completed.
@@ -789,7 +793,8 @@ interface Workflow {
     removedAt: string | null;
     startAt: string | null;
     hasState: boolean;
-    // isHead === false marks workflows deliberately invisible to collection head tracking.
+    // The isHead directive; false marks an auxiliary workflow, true or omitted a primary one.
+    // The endpoints omit nulls, so an unset directive arrives as undefined, never null.
     isHead: boolean | undefined;
     // Tri-state: undefined = not loaded by the source query (fetch via /dashboard/relations),
     // [] = loaded and none exist.
@@ -861,7 +866,7 @@ Consecutive steps that run for the same BPMN element are drawn under one bracket
 
 The Altinn app library stamps each process-next lifecycle step with a **`processNextElement`** label naming the element it runs for: the task being left on a task-end/abandon step, the task being entered on a task-start step, and the end event on a process-end step. When it is present the dashboard uses it verbatim, so a step is attributed by what the app said rather than by what the command is called, and a command this dashboard has never heard of is grouped correctly on its first run. A process end also gets its real end event id this way, where the fallback below can only say "End Event".
 
-Only the pre-commit lifecycle steps carry it. The transition's own steps (`AcquireProcessingStatus`, `MutateProcessState`, `CommitProcessState`, `EnqueueSideEffectsWorkflow`) belong to neither element, and the post-commit and side-effect steps are deliberately left unlabeled: labeling them would draw the entering element's name a second time, after the commit, around work the first bracket already named.
+Only the pre-commit lifecycle steps carry it. The transition's own steps (`AcquireProcessingStatus`, `MutateProcessState`, `CommitProcessState`, `EnqueueSideEffectsWorkflow`) belong to neither element, and the post-commit steps and the auxiliary workflows' steps are deliberately left unlabeled: labeling them would draw the entering element's name a second time, after the commit, around work the first bracket already named.
 
 ### `stepPhase(commandDetail)` is the fallback
 
