@@ -2,10 +2,12 @@ using System.Data;
 using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using OpenTelemetry;
 using OpenTelemetry.Instrumentation.EntityFrameworkCore;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -16,7 +18,8 @@ namespace WorkflowEngine.Core.Tests.Extensions;
 
 /// <summary>
 /// Tests the OpenTelemetry SDK configuration <c>AddTelemetry</c> registers: what a deployment can override
-/// through the standard <c>OTEL_*</c> variables, and the custom histogram buckets.
+/// through the standard <c>OTEL_*</c> variables, how a process identifies itself and reports its start, and the
+/// custom histogram buckets.
 /// </summary>
 /// <remarks>
 /// The <c>OTEL_*</c> values reach the SDK through <see cref="IConfiguration"/>, which a real host fills from the
@@ -117,16 +120,87 @@ public sealed class TelemetryConfigurationTests
         using var sp = BuildProvider();
 
         // Act
-        var meterResource = Attributes(sp.GetRequiredService<MeterProvider>().GetResource());
-        var tracerResource = Attributes(sp.GetRequiredService<TracerProvider>().GetResource());
+        var resources = SignalResources(sp);
 
         // Assert
-        foreach (var resource in new[] { meterResource, tracerResource })
+        foreach (var resource in resources)
         {
             Assert.Equal("WorkflowEngine", resource["service.name"]);
             Assert.Equal(Metrics.ServiceVersion, resource["service.version"]);
-            Assert.Equal(Environment.MachineName, resource["service.instance.id"]);
+            Assert.Equal(Metrics.ServiceInstanceId, resource["service.instance.id"]);
         }
+    }
+
+    [Fact]
+    public void AddTelemetry_NoResourceVariables_EverySignalOfEveryProviderCarriesOneProcessWideUuid()
+    {
+        // Arrange
+        using var first = BuildProvider();
+        using var second = BuildProvider();
+
+        // Act
+        var instanceIds = SignalResources(first)
+            .Concat(SignalResources(second))
+            .Select(resource => resource["service.instance.id"])
+            .ToList();
+
+        // Assert — a UUID rather than the host name, which every engine on a machine and every container
+        // restart in a pod would share, and generated once, not once per provider
+        Assert.Equal(6, instanceIds.Count);
+        var instanceId = Assert.IsType<string>(Assert.Single(instanceIds.Distinct()));
+        Assert.True(Guid.TryParseExact(instanceId, "D", out _), $"'{instanceId}' is not a UUID");
+    }
+
+    [Fact]
+    public void AddTelemetry_InstanceIdInResourceAttributes_TakesPrecedenceOverTheProcessUuid()
+    {
+        // Arrange
+        using var sp = BuildProvider(
+            new() { ["OTEL_RESOURCE_ATTRIBUTES"] = "service.instance.id=workflow-engine-app-7d4b9-x2x4z" }
+        );
+
+        // Act
+        var resources = SignalResources(sp);
+
+        // Assert
+        Assert.All(
+            resources,
+            resource => Assert.Equal("workflow-engine-app-7d4b9-x2x4z", resource["service.instance.id"])
+        );
+    }
+
+    [Fact]
+    public void AddTelemetry_NoEngineActivity_EveryCollectionExportsTheProcessStartTime()
+    {
+        // Arrange
+        using var process = Process.GetCurrentProcess();
+        var processStart = (process.StartTime.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds;
+
+        using var exporter = new MetricSnapshotExporter();
+        using var reader = new BaseExportingMetricReader(exporter);
+        using var sp = BuildProvider(configureServices: services =>
+            services.ConfigureOpenTelemetryMeterProvider(builder => builder.AddReader(reader))
+        );
+        _ = sp.GetRequiredService<MeterProvider>();
+
+        // Act
+        reader.Collect();
+        reader.Collect();
+
+        // Assert
+        Assert.Equal(2, exporter.Exports.Count);
+        Assert.All(
+            exporter.Exports,
+            export =>
+            {
+                var gauge = Assert.Single(export, metric => metric.Name == "altinn.workload.start_time");
+                Assert.Equal(MetricType.DoubleGauge, gauge.Type);
+                Assert.Equal("s", gauge.Unit);
+                var point = Assert.Single(gauge.Points);
+                Assert.Equal(processStart, point.Value, tolerance: 1);
+                Assert.Equal(0, point.TagCount);
+            }
+        );
     }
 
     [Fact]
@@ -142,11 +216,10 @@ public sealed class TelemetryConfigurationTests
         );
 
         // Act
-        var meterResource = Attributes(sp.GetRequiredService<MeterProvider>().GetResource());
-        var tracerResource = Attributes(sp.GetRequiredService<TracerProvider>().GetResource());
+        var resources = SignalResources(sp);
 
         // Assert
-        foreach (var resource in new[] { meterResource, tracerResource })
+        foreach (var resource in resources)
         {
             Assert.Equal("workflow-engine-app", resource["service.name"]);
             Assert.Equal("altinn", resource["service.namespace"]);
@@ -154,7 +227,7 @@ public sealed class TelemetryConfigurationTests
 
             // Still from code: the deployment sets neither
             Assert.Equal(Metrics.ServiceVersion, resource["service.version"]);
-            Assert.Equal(Environment.MachineName, resource["service.instance.id"]);
+            Assert.Equal(Metrics.ServiceInstanceId, resource["service.instance.id"]);
         }
     }
 
@@ -315,6 +388,18 @@ public sealed class TelemetryConfigurationTests
         resource.Attributes.ToDictionary(StringComparer.Ordinal);
 
     /// <summary>
+    /// The resource attributes of the tracer, meter and logger providers, in that order.
+    /// </summary>
+    private static Dictionary<string, object>[] SignalResources(ServiceProvider sp) =>
+        [
+            Attributes(sp.GetRequiredService<TracerProvider>().GetResource()),
+            Attributes(sp.GetRequiredService<MeterProvider>().GetResource()),
+            Attributes(
+                Assert.Single(sp.GetServices<ILoggerProvider>().OfType<OpenTelemetryLoggerProvider>()).GetResource()
+            ),
+        ];
+
+    /// <summary>
     /// The histograms declared on <see cref="Metrics"/>, found by reflection so a new one cannot be added
     /// without a decision about its buckets.
     /// </summary>
@@ -323,6 +408,38 @@ public sealed class TelemetryConfigurationTests
             .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .Select(field => field.GetValue(null))
             .OfType<System.Diagnostics.Metrics.Histogram<double>>();
+
+    /// <summary>
+    /// Keeps what each export held, metric by metric, with the value of every double gauge point. It copies them
+    /// during the export because the SDK reuses its metric objects across collections.
+    /// </summary>
+    private sealed class MetricSnapshotExporter : BaseExporter<Metric>
+    {
+        public List<List<ExportedMetric>> Exports { get; } = [];
+
+        public override ExportResult Export(in Batch<Metric> batch)
+        {
+            var export = new List<ExportedMetric>();
+            foreach (var metric in batch)
+            {
+                var points = new List<ExportedPoint>();
+                if (metric.MetricType == MetricType.DoubleGauge)
+                {
+                    foreach (ref readonly var point in metric.GetMetricPoints())
+                        points.Add(new ExportedPoint(point.GetGaugeLastValueDouble(), point.Tags.Count));
+                }
+
+                export.Add(new ExportedMetric(metric.Name, metric.Unit, metric.MetricType, points));
+            }
+
+            Exports.Add(export);
+            return ExportResult.Success;
+        }
+    }
+
+    private sealed record ExportedMetric(string Name, string Unit, MetricType Type, List<ExportedPoint> Points);
+
+    private sealed record ExportedPoint(double Value, int TagCount);
 
     /// <summary>
     /// Keeps the explicit bucket boundaries of every histogram it is handed, by instrument name.

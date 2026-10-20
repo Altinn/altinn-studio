@@ -38,7 +38,7 @@ public static class ServiceCollectionExtensions
                     r.AddService(
                             serviceName: Metrics.ServiceName,
                             serviceVersion: Metrics.ServiceVersion,
-                            serviceInstanceId: Environment.MachineName
+                            serviceInstanceId: Metrics.ServiceInstanceId
                         )
                         // Detected again after AddService, which would otherwise override them: a deployment's
                         // OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES take precedence over these defaults.

@@ -27,6 +27,13 @@ public static class Metrics
     public static readonly string ServiceVersion = ResolveServiceVersion();
 
     /// <summary>
+    /// The <c>service.instance.id</c> resource attribute when the deployment sets none in
+    /// <c>OTEL_RESOURCE_ATTRIBUTES</c>: a UUID generated once per process, so a restart gets a new one even inside
+    /// the same pod, and every trace, metric and log the process exports carries the same value.
+    /// </summary>
+    public static readonly string ServiceInstanceId = Guid.NewGuid().ToString();
+
+    /// <summary>
     /// Activity source for engine-emitted spans (workflow lifecycle, step lifecycle, DB IO).
     /// </summary>
     public static readonly ActivitySource Source = new(ServiceName);
@@ -35,6 +42,26 @@ public static class Metrics
     /// Meter that owns every engine-emitted counter, histogram, and observable gauge.
     /// </summary>
     public static readonly Meter Meter = new(ServiceName);
+
+    private static readonly double _processStartTime = ResolveProcessStartTime();
+
+    /// <summary>
+    /// Gauge of the time this process started, in seconds since the Unix epoch, reported at every collection
+    /// whether or not the engine is doing anything. With <see cref="ServiceInstanceId"/> it gives a dashboard the
+    /// processes reporting, a mark for each restart or scale-up, and, as the earliest start per
+    /// <c>service.version</c>, a mark for each deploy.
+    /// </summary>
+    /// <remarks>
+    /// The one engine metric outside <c>altinn.workflow_engine.</c>, on purpose: every Studio service reports its
+    /// start time under this same name, as item 18 of the proposed observability standard
+    /// (<see href="https://github.com/Altinn/altinn-studio/issues/21073">#21073</see>) decides.
+    /// </remarks>
+    public static readonly ObservableGauge<double> WorkloadStartTime = Meter.CreateObservableGauge(
+        "altinn.workload.start_time",
+        static () => _processStartTime,
+        unit: "s",
+        description: "Process start time in seconds since the Unix epoch."
+    );
 
     /// <summary>
     /// Counter of generic engine-side errors that don't have a more specific instrument.
@@ -912,5 +939,14 @@ public static class Metrics
             return fromAssembly;
 
         return "dev";
+    }
+
+    /// <summary>
+    /// Returns the time this process started, in seconds since the Unix epoch, to the millisecond.
+    /// </summary>
+    private static double ResolveProcessStartTime()
+    {
+        using var process = Process.GetCurrentProcess();
+        return new DateTimeOffset(process.StartTime.ToUniversalTime()).ToUnixTimeMilliseconds() / 1000d;
     }
 }

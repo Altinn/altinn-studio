@@ -12,6 +12,126 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "altinn-studio-metrics"
+        },
+        "enable": true,
+        "filter": {
+          "exclude": false,
+          "ids": [
+            59,
+            11,
+            12,
+            13,
+            81,
+            82,
+            83,
+            92,
+            93,
+            21,
+            22,
+            23,
+            53,
+            31,
+            32,
+            33,
+            34,
+            41,
+            42,
+            43,
+            65,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            51,
+            52,
+            61,
+            62,
+            63,
+            74,
+            75
+          ]
+        },
+        "hide": false,
+        "iconColor": "#5794F2",
+        "name": "Deploys (first start of version)",
+        "tagKeys": "deployment.environment.name,service.version",
+        "target": {
+          "expr": "((min by (\"deployment.environment.name\", \"service.version\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[90d] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "refId": "Anno"
+        },
+        "textFormat": "{{deployment.environment.name}}. Earliest retained process start for this version (90d history). Rollbacks to a retained version do not add a deploy dot.",
+        "titleFormat": "Version {{service.version}} first start",
+        "useValueForTime": true
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "altinn-studio-metrics"
+        },
+        "enable": false,
+        "filter": {
+          "exclude": false,
+          "ids": [
+            59,
+            11,
+            12,
+            13,
+            81,
+            82,
+            83,
+            92,
+            93,
+            21,
+            22,
+            23,
+            53,
+            31,
+            32,
+            33,
+            34,
+            41,
+            42,
+            43,
+            65,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            51,
+            52,
+            61,
+            62,
+            63,
+            74,
+            75
+          ]
+        },
+        "hide": false,
+        "iconColor": "#FF9830",
+        "name": "Process starts",
+        "tagKeys": "deployment.environment.name,service.version",
+        "target": {
+          "expr": "((min by (\"deployment.environment.name\", \"service.version\", \"service.name\", \"service.instance.id\", \"k8s.pod.uid\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[1m${__range_ms}ms] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "refId": "Anno"
+        },
+        "textFormat": "{{deployment.environment.name}} · {{service.version}} · {{service.instance.id}} · pod {{k8s.pod.uid}}. Includes rollout, restart and scale-up; telemetry cannot distinguish their cause.",
+        "titleFormat": "{{service.name}} instance started",
+        "useValueForTime": true
       }
     ]
   },
@@ -39,7 +159,7 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "Engine self-assessed health, the worst across the selected instances: 0=Healthy, 1=Degraded, 2=Unhealthy. No data means no engine instance is reporting; see Instances.",
+      "description": "Engine self-assessed health, the worst across the selected processes: 0=Healthy, 1=Degraded, 2=Unhealthy. No data means no engine process is reporting; see Processes reporting.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -130,28 +250,12 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "Engine processes reporting metrics, counted from altinn.workflow_engine.health.status, which every engine process exports. Zero means no engine in the selected services is reporting. A restarted process reports under a new service.instance.id, so the process it replaced can count for a short while after it stopped.",
+      "description": "Processes with at least one start-time sample in the preceding minute, evaluated at the dashboard range end. Counts processes exporting telemetry, not Kubernetes readiness or health. Replaced processes remain for up to one minute; missing telemetry stays No data.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "decimals": 0,
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
+          "min": 0,
+          "unit": "short"
         },
         "overrides": []
       },
@@ -163,9 +267,8 @@
       },
       "id": 110,
       "options": {
-        "colorMode": "background",
+        "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
@@ -174,9 +277,12 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "text": {
+          "titleSize": 14,
+          "valueSize": 32
+        },
+        "textMode": "value_and_name",
+        "wideLayout": false
       },
       "targets": [
         {
@@ -184,12 +290,14 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "count({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) or vector(0)",
-          "legendFormat": "Instances",
+          "expr": "count by (\"deployment.environment.name\", \"service.name\") (group by (\"deployment.environment.name\", \"service.name\", \"service.instance.id\") (present_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[1m])))",
+          "instant": true,
+          "legendFormat": "{{deployment.environment.name}} · {{service.name}}",
+          "range": false,
           "refId": "A"
         }
       ],
-      "title": "Instances",
+      "title": "Processes reporting",
       "type": "stat"
     },
     {

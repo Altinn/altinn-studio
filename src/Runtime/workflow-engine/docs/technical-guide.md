@@ -1153,9 +1153,17 @@ activity source and the meter are both named `WorkflowEngine`.
 The deployment owns two settings the code would otherwise default. The resource's `service.name` comes
 from `OTEL_SERVICE_NAME` or `OTEL_RESOURCE_ATTRIBUTES`, which take precedence over the code's
 `WorkflowEngine`: the App host runs as `workflow-engine-app` and the TestApp as `workflow-engine-testapp`.
-`service.version` (the build's informational version) and `service.instance.id` (the machine name) come
-from the code. The metric export interval is `OTEL_METRIC_EXPORT_INTERVAL`, which every deployment sets
-to `15000`; left unset, the SDK exports every 60 s.
+`service.version` (the build's informational version) and `service.instance.id` come from the code. The
+metric export interval is `OTEL_METRIC_EXPORT_INTERVAL`, which every deployment sets to `15000`; left
+unset, the SDK exports every 60 s.
+
+`service.instance.id` identifies the process: a UUID generated when it starts (`Metrics.ServiceInstanceId`),
+so a restart gets a new one even inside the same pod, and the same on its traces, metrics and logs. A value
+in `OTEL_RESOURCE_ATTRIBUTES` takes precedence, and must still be unique per process. As a resource
+attribute it is on every metric series, the one ID allowed there: it changes only when a process starts,
+so it adds series per restart, not per request. With the gauge `altinn.workload.start_time`, the process
+start time, it gives a dashboard the processes reporting, a mark for each restart or scale-up, and, as the
+earliest start per `service.version`, a mark for each deploy.
 
 Health probes are not traffic. The health endpoints are left out of the ASP.NET Core HTTP request
 metrics and out of the traces, and the dashboard's `/dashboard/*` requests are left out of the traces.
@@ -1169,6 +1177,8 @@ OpenTelemetry semantic conventions.
 - **A metric** is `altinn.workflow_engine.<object>.<name>`. The object is singular (`workflow`,
   `step`, `mailbox`, `slot`, `throttle`), and a segment of two words is snake_case (`main_loop`,
   `update_buffer`). A count carries an annotation unit such as `{workflow}` and never ends in `_total`.
+  One metric is outside the prefix on purpose: `altinn.workload.start_time`, which every Studio service
+  reports under the same name.
 - **A timing histogram** ends in `.duration` and records seconds. `<object>.duration` is the whole,
   split into `<object>.queue.duration`, the time before the work began, and
   `<object>.processing.duration`, the work itself. The main loop idles rather than queues, so its first
@@ -1255,6 +1265,16 @@ metrics, Npgsql's connection and command metrics, and, with database instrumenta
 `MetricsCollector` samples most gauges once per `MetricsCollectionInterval` (5 s);
 `maintenance.consecutive_failures` and `throttle.breaker.tripped` are set by the services they describe.
 The mailbox metrics are in [their own table](#mailbox-metrics).
+
+#### Process — `altinn.workload.`
+
+| Name         | Type  | Attributes                                          |
+| ------------ | ----- | --------------------------------------------------- |
+| `start_time` | Gauge | — (seconds since the Unix epoch, with the fraction) |
+
+The start time is read once and reported at every collection, whether or not the engine is doing
+anything. It is outside `altinn.workflow_engine.` on purpose: every Studio service reports it under the
+same name.
 
 ### Alerting on terminal failures
 
