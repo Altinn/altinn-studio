@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { act, render, screen } from '@testing-library/react';
 import { ComposedComponent } from './test-data/ComposedComponent';

@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
@@ -46,6 +47,17 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithCronSchedule(AppInactivityUndeployJobConstants.CronScheduleNightlyMidnight)
             );
 
+            configure.AddJob<AppActivityCollectionJob>(options =>
+                options.WithIdentity(AppActivityCollectionJobConstants.JobKey).StoreDurably()
+            );
+
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(AppActivityCollectionJobConstants.JobKey)
+                    .WithIdentity(AppActivityCollectionJobConstants.TriggerName)
+                    .WithCronSchedule(AppActivityCollectionJobConstants.CronScheduleNightly)
+            );
+
             configure.AddJob<ChatInactivityCleanupJob>(options =>
                 options.WithIdentity(ChatInactivityCleanupJobConstants.JobName)
             );
@@ -67,6 +79,24 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithIdentity(LangfuseTraceCleanupJobConstants.TriggerName)
                     .WithCronSchedule(LangfuseTraceCleanupJobConstants.CronScheduleNightly)
             );
+
+            configure.AddJob<PeriodicReportJob>(options => options.WithIdentity(PeriodicReportJobConstants.JobName));
+
+            TimeZoneInfo reportTimeZone = TimeZoneInfo.FindSystemTimeZoneById(PeriodicReportJobConstants.TimeZoneId);
+            foreach ((ReportFrequency frequency, string cronSchedule) in PeriodicReportJobConstants.CronSchedules)
+            {
+                configure.AddTrigger(options =>
+                    options
+                        .ForJob(PeriodicReportJobConstants.JobName)
+                        .WithIdentity(PeriodicReportJobConstants.TriggerName(frequency))
+                        .UsingJobData(PeriodicReportJobConstants.FrequencyKey, frequency.ToString())
+                        .WithCronSchedule(
+                            cronSchedule,
+                            schedule =>
+                                schedule.InTimeZone(reportTimeZone).WithMisfireHandlingInstructionFireAndProceed()
+                        )
+                );
+            }
 
             if (schedulingSettings.RepositoryCleanup.Enabled)
             {

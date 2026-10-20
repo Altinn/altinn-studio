@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { fileState, updateCodes, updateName } from './utils';
 import type { FileState } from './utils';
 import { colorsFile, fruitsFile } from '../test-data/codeLists';

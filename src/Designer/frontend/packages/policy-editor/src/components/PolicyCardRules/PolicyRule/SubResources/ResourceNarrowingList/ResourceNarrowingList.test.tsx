@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ResourceNarrowingListProps } from './ResourceNarrowingList';
@@ -24,8 +25,6 @@ const defaultProps: ResourceNarrowingListProps = {
 };
 
 describe('ResourceNarrowingList', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the list of resources', async () => {
     renderResourceNarrowingList();
 

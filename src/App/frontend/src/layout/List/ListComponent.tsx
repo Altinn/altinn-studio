@@ -4,6 +4,7 @@ import type { AriaAttributes } from 'react';
 import {
   Description,
   getLabelId,
+  OptionalIndicator,
   Pagination as CustomPagination,
   RequiredIndicator,
   useIsMobile,
@@ -69,6 +70,8 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     config.textResourceBindings?.description,
     Expressions.List.textResourceBindings.description,
   );
+
+  const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
 
   const [pageSize, setPageSize] = useState<number>(config.pagination?.default ?? 0);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -187,6 +190,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
               >
                 <Lang id={title} />
                 <RequiredIndicator required={required} />
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
               </Heading>
             </Fieldset.Legend>
             <div>
@@ -212,6 +220,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
               >
                 <Lang id={title} />
                 <RequiredIndicator required={required} />
+                <OptionalIndicator
+                  required={required}
+                  readOnly={readOnly}
+                  showOptionalMarking={labelSettings?.optionalIndicator !== false}
+                />
               </Heading>
             </Fieldset.Legend>
             {description && (
@@ -255,6 +268,11 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
             >
               <Lang id={title} />
               <RequiredIndicator required={required} />
+              <OptionalIndicator
+                required={required}
+                readOnly={readOnly}
+                showOptionalMarking={labelSettings?.optionalIndicator !== false}
+              />
             </Heading>
             {description && (
               <Description

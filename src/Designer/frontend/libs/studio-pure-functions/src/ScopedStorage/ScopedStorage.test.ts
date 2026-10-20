@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type ScopedStorage, ScopedStorageImpl } from './ScopedStorage';
 
 describe('ScopedStorage', () => {
@@ -49,11 +50,11 @@ describe('ScopedStorage', () => {
     });
 
     it('should not remove key if it does not exist', () => {
-      const removeItemMock = jest.fn();
+      const removeItemMock = vi.fn();
       const customStorage = {
-        getItem: jest.fn().mockImplementation(() => null),
+        getItem: vi.fn().mockImplementation(() => null),
         removeItem: removeItemMock,
-        setItem: jest.fn(),
+        setItem: vi.fn(),
       };
 
       const scopedStorage = new ScopedStorageImpl(customStorage, 'unit/test');
@@ -64,7 +65,7 @@ describe('ScopedStorage', () => {
   });
 
   describe('Storage parsing', () => {
-    const consoleErrorMock = jest.fn();
+    const consoleErrorMock = vi.fn();
     const originalConsoleError = console.error;
     beforeEach(() => {
       console.error = consoleErrorMock;
@@ -105,12 +106,12 @@ describe('ScopedStorage', () => {
 
   describe('when using a custom storage implementation', () => {
     it('should store and retrieve values using the provided custom storage', () => {
-      const setItemMock = jest.fn();
+      const setItemMock = vi.fn();
 
       const customStorage: ScopedStorage = {
         setItem: setItemMock,
-        getItem: jest.fn(),
-        removeItem: jest.fn(),
+        getItem: vi.fn(),
+        removeItem: vi.fn(),
       };
 
       const scopedStorage = new ScopedStorageImpl(customStorage, 'unit/test');

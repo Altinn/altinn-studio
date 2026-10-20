@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useGapValue } from './useGapValue';
 import { StudioDragAndDrop } from '../';
@@ -7,7 +8,7 @@ describe('useGapValue', () => {
     const gap = '1rem';
     const { result } = renderHook(useGapValue, {
       wrapper: ({ children }) => (
-        <StudioDragAndDrop.Provider rootId='root' onAdd={jest.fn()} onMove={jest.fn()} gap={gap}>
+        <StudioDragAndDrop.Provider rootId='root' onAdd={vi.fn()} onMove={vi.fn()} gap={gap}>
           {children}
         </StudioDragAndDrop.Provider>
       ),
@@ -16,7 +17,7 @@ describe('useGapValue', () => {
   });
 
   it('Returns an error when it is called outside of a provider', () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => renderHook(useGapValue)).toThrow(
       'useGapValue must be used within a DragAndDropProvider',
     );

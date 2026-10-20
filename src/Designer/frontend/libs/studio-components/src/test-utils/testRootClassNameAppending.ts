@@ -1,3 +1,4 @@
+import { expect } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { getRootElementFromContainer } from './selectors';
 

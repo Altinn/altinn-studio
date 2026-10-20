@@ -109,7 +109,7 @@ public sealed class DataAccessorFixture
                     [
                         new()
                         {
-                            Id = "backend.validation_errors.required",
+                            Id = "validation_errors.required",
                             Value = "{0} is required in component with id {1}.{2}.{3} for binding {4}",
                             Variables =
                             [

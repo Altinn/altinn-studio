@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"strconv"
 	"strings"
 	"text/tabwriter"
 
@@ -89,7 +88,7 @@ func PrintResults(w io.Writer, results []kubernetes.QueryResult) error {
 			hasDeploymentInfo = true
 			break
 		}
-		if result.Weight1 != nil {
+		if result.Backends != nil {
 			hasHTTPRouteInfo = true
 			break
 		}
@@ -320,94 +319,25 @@ func truncate(s string, maxLen int) string {
 }
 
 // printHTTPRouteResults prints HTTPRoute query results in a specialized table format.
-//
-//nolint:gocognit,funlen,nestif // HTTPRoute output has a separate, branch-heavy layout.
 func printHTTPRouteResults(tw *tabwriter.Writer, results []kubernetes.QueryResult) error {
-	if err := writeln(tw, "CLUSTER\tNAMESPACE/NAME\tWEIGHT1\tWEIGHT2\tRECONCILE\tANNOTATIONS\tSTATUS"); err != nil {
+	if err := writeln(tw, "CLUSTER\tNAMESPACE/NAME\tBACKENDS\tRECONCILE\tANNOTATIONS\tSTATUS"); err != nil {
 		return fmt.Errorf("write httproute header: %w", err)
 	}
-	if err := writeln(
-		tw,
-		strings.Repeat(
-			"-",
-			20,
-		)+"\t"+strings.Repeat(
-			"-",
-			20,
-		)+"\t"+strings.Repeat(
-			"-",
-			8,
-		)+"\t"+strings.Repeat(
-			"-",
-			8,
-		)+"\t"+strings.Repeat(
-			"-",
-			10,
-		)+"\t"+strings.Repeat(
-			"-",
-			40,
-		)+"\t"+strings.Repeat(
-			"-",
-			15,
-		),
-	); err != nil {
+	separator := strings.Join([]string{
+		strings.Repeat("-", 20),
+		strings.Repeat("-", 20),
+		strings.Repeat("-", 30),
+		strings.Repeat("-", 10),
+		strings.Repeat("-", 40),
+		strings.Repeat("-", 15),
+	}, "\t")
+	if err := writeln(tw, separator); err != nil {
 		return fmt.Errorf("write httproute separator: %w", err)
 	}
 
 	for _, result := range results {
-		cluster := result.ClusterName
-		namespacedName := result.Namespace + "/" + result.Name
-
-		if result.Error != nil {
-			errorMsg := truncate(result.Error.Error(), 100)
-			if err := writef(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-				cluster,
-				namespacedName,
-				"-",
-				"-",
-				"-",
-				"-",
-				"ERROR: "+errorMsg); err != nil {
-				return fmt.Errorf("write httproute error row: %w", err)
-			}
-		} else {
-			weight1 := "-"
-			if result.Weight1 != nil {
-				weight1 = strconv.Itoa(*result.Weight1)
-			}
-			weight2 := "-"
-			if result.Weight2 != nil {
-				weight2 = strconv.Itoa(*result.Weight2)
-			}
-
-			reconcile := "enabled"
-			if result.HasReconcileAnnotation != nil && *result.HasReconcileAnnotation {
-				reconcile = "disabled"
-			}
-
-			annotations := "-"
-			if len(result.Annotations) > 0 {
-				// Format annotations as key=value pairs, truncated
-				annotationList := make([]string, 0, len(result.Annotations))
-				for k, v := range result.Annotations {
-					annotationList = append(annotationList, fmt.Sprintf("%s=%s", k, v))
-				}
-				sort.Strings(annotationList)
-				annotations = truncate(strings.Join(annotationList, ", "), 80)
-			}
-
-			status := "✓"
-
-			if err := writef(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-				cluster,
-				namespacedName,
-				weight1,
-				weight2,
-				reconcile,
-				annotations,
-				status); err != nil {
-				return fmt.Errorf("write httproute row: %w", err)
-			}
+		if err := writeln(tw, strings.Join(httpRouteRow(result), "\t")); err != nil {
+			return fmt.Errorf("write httproute row: %w", err)
 		}
 	}
 
@@ -416,4 +346,65 @@ func printHTTPRouteResults(tw *tabwriter.Writer, results []kubernetes.QueryResul
 	}
 
 	return nil
+}
+
+func httpRouteRow(result kubernetes.QueryResult) []string {
+	namespacedName := result.Namespace + "/" + result.Name
+	if result.Error != nil {
+		return []string{
+			result.ClusterName,
+			namespacedName,
+			"-",
+			"-",
+			"-",
+			"ERROR: " + truncate(result.Error.Error(), 100),
+		}
+	}
+
+	backends := "-"
+	if len(result.Backends) > 0 {
+		backends = strings.Join(result.Backends, ", ")
+	}
+
+	reconcile := "enabled"
+	if result.HasReconcileAnnotation != nil && *result.HasReconcileAnnotation {
+		reconcile = "disabled"
+	}
+
+	annotations := "-"
+	if len(result.Annotations) > 0 {
+		annotationList := make([]string, 0, len(result.Annotations))
+		for k, v := range result.Annotations {
+			annotationList = append(annotationList, fmt.Sprintf("%s=%s", k, v))
+		}
+		sort.Strings(annotationList)
+		annotations = truncate(strings.Join(annotationList, ", "), 80)
+	}
+
+	return []string{
+		result.ClusterName,
+		namespacedName,
+		backends,
+		reconcile,
+		annotations,
+		routeStatus(result.Conditions),
+	}
+}
+
+// routeStatus summarizes a route's conditions, such as ResolvedRefs=False when a backend's
+// Service doesn't exist.
+func routeStatus(conditions []metav1.Condition) string {
+	if len(conditions) == 0 {
+		return "no status"
+	}
+	var failing []string
+	for _, condition := range conditions {
+		if condition.Status != metav1.ConditionTrue {
+			failing = append(failing, fmt.Sprintf("%s=%s (%s)", condition.Type, condition.Status, condition.Reason))
+		}
+	}
+	if len(failing) == 0 {
+		return "✓"
+	}
+	return strings.Join(failing, ", ")
 }

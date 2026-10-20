@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { NumberUtils } from './NumberUtils';
 import type { Interval } from '../types';
 

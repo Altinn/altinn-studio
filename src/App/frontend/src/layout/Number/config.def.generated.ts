@@ -1,7 +1,15 @@
+import type { JSX } from 'react';
+
 import { PresentationComponent } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class NumberDef extends PresentationComponent<'Number'> {
   protected readonly type = 'Number';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 }
 
-// Source hash: 3301aa2da758f52bc22b9147c6081e7ff31a305002e360a7de70d77c890202ee
+// Source hash: a7baeff73fc959a4814745519418c1e3d2cfb6fb30e2411d4e657a82469879e6

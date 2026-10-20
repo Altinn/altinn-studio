@@ -5,7 +5,7 @@
     Severity: Error,
     WarningLevel: 0,
     Location: /repo/App/config/applicationmetadata.json(3,18),
-    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v8/reference/analysis/rules/altinnapp0601,
+    HelpLink: https://docs.altinn.studio/nb/altinn-studio/v9/develop-a-service/reference/analysis/rules/altinnapp0601,
     MessageFormat: The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead.,
     Message: The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead.,
     Category: Deprecation

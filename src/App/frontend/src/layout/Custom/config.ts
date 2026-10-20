@@ -1,4 +1,4 @@
-import { CompCategory } from '@app/layout-contract';
+import { CompCategory, ExprVal } from '@app/layout-contract';
 
 import { CG } from 'src/codegen/CG';
 
@@ -19,6 +19,12 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
 })
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
+  .addProperty(CG.common('required'))
+  .addProperty(CG.common('readOnly'))
   .addDataModelBinding(
     new CG.obj().optional().additionalProperties(new CG.dataModelBinding()).exportAs('IDataModelBindingsForCustom'),
   )
@@ -40,3 +46,7 @@ export const Config = new CG.component({
         .setDescription('Web component tag name to use', 'Navnet på web component-taggen som skal brukes.'),
     ),
   );
+
+// Custom elements may define their own configuration and translated texts.
+Config.inner.additionalProperties(true);
+Config.inner.getProperty('textResourceBindings')?.type.additionalProperties(new CG.expr(ExprVal.String).optional());

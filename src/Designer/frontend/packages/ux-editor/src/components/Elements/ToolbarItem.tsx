@@ -1,12 +1,13 @@
 import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
-import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import type { ComponentPreset } from '@altinn/ux-editor/types/ComponentPreset';
 import { StudioDragAndDropTree } from '@studio/components';
 
 type ToolbarItemProps = {
   componentTitle: string;
   notDraggable?: boolean;
-  componentType: ComponentType | CustomComponentType;
+  componentType: ComponentType | ComponentPreset;
   icon?: React.ComponentType;
 };
 
@@ -17,7 +18,7 @@ export const ToolbarItem = ({
   icon,
 }: ToolbarItemProps) => {
   return (
-    <StudioDragAndDropTree.NewItem<ComponentType | CustomComponentType>
+    <StudioDragAndDropTree.NewItem<ComponentType | ComponentPreset>
       notDraggable={notDraggable}
       payload={componentType}
     >

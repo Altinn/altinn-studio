@@ -2,6 +2,10 @@ import { ActionComponent } from 'src/layout/LayoutComponent';
 
 export abstract class NavigationBarDef extends ActionComponent<'NavigationBar'> {
   protected readonly type = 'NavigationBar';
+
+  declare renderSummary?: never;
+
+  declare renderSummary2?: never;
 }
 
-// Source hash: 54b7413b9f4e2e603961c49809d09484370f57298eb88cc3fa9c38af35f2f195
+// Source hash: 522a33ac36ef7abe4f63988fc7e1690a3ef2832128aa49d142508de4c39e9cae

@@ -1,3 +1,4 @@
+import { expect, it, vi } from 'vitest';
 import { LangSelector } from './LangSelector';
 import type { ILangSelectorProps } from './LangSelector';
 import { render as rtlRender, screen } from '@testing-library/react';
@@ -15,7 +16,7 @@ const render = (props: Partial<ILangSelectorProps> = {}) => {
 };
 
 it('fires onAddLang when add button is clicked', async () => {
-  const handleAddLang = jest.fn();
+  const handleAddLang = vi.fn();
   render({
     onAddLang: handleAddLang,
     options: [

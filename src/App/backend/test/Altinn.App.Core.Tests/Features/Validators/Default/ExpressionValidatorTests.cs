@@ -139,6 +139,57 @@ public class ExpressionValidatorTests
 
         result.Should().BeEquivalentTo(expected);
     }
+
+    [Fact]
+    public async Task ValidateFormData_TaskWithoutLayouts_ValidatesAllFields()
+    {
+        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "org/app" };
+        var dataElement = new DataElement { DataType = "default" };
+        var dataType = new DataType() { Id = "default" };
+        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
+        var translationService = new TranslationService(
+            new AppIdentifier("org", "app"),
+            _appResources.Object,
+            FakeLoggerXunit.Get<TranslationService>(_output)
+        );
+        var dataModel = DynamicClassBuilder.DataObjectFromJsonDocument(
+            JsonDocument.Parse("""{ "form": { "name": "none" } }""").RootElement
+        );
+
+        var dataAccessor = new InstanceDataAccessorFake(
+            instance,
+            appMedatada,
+            translationService,
+            layout: null,
+            new FrontEndSettings(),
+            null,
+            null
+        )
+        {
+            { dataElement, dataModel },
+        };
+
+        var validationIssues = await _validator.ValidateFormData(
+            dataElement,
+            dataAccessor,
+            """
+            {
+              "validations": { "form.name": ["none-is-not-allowed"] },
+              "definitions": {
+                "none-is-not-allowed": {
+                  "message": "none is not allowed",
+                  "severity": "error",
+                  "condition": ["equals", ["dataModel", ["argv", 0]], "none"]
+                }
+              }
+            }
+            """
+        );
+
+        var issue = Assert.Single(validationIssues);
+        Assert.Equal("form.name", issue.Field);
+        Assert.Equal("none is not allowed", issue.CustomTextKey);
+    }
 }
 
 public class CommonExpressionValidationTestFilesAttribute()

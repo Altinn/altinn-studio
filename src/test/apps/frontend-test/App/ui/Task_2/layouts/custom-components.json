@@ -1,0 +1,149 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["not", ["commaContains", ["dataModel", "ChooseExtraPages"], "custom-components"]],
+    "layout": [
+      {
+        "id": "customNav",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "custom-mode",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Komponentmodus"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "CustomMode"
+        },
+        "options": [
+          {
+            "value": "editable",
+            "label": "Redigerbar"
+          },
+          {
+            "value": "readonly",
+            "label": "Skrivebeskyttet"
+          },
+          {
+            "value": "hidden",
+            "label": "Skjult"
+          }
+        ]
+      },
+      {
+        "id": "custom-simple",
+        "type": "Custom",
+        "tagName": "test-binding-component",
+        "dataModelBindings": {
+          "simpleBinding": "CustomSimple"
+        },
+        "textResourceBindings": {
+          "title": "customComponent.title",
+          "shortName": "customComponent.caption",
+          "galaxyCaption": [
+            "if",
+            ["equals", ["dataModel", "CustomMode"], "readonly"],
+            "customComponent.readOnlyCaption",
+            "else",
+            "customComponent.caption"
+          ]
+        },
+        "readOnly": ["equals", ["dataModel", "CustomMode"], "readonly"],
+        "hidden": ["equals", ["dataModel", "CustomMode"], "hidden"],
+        "required": true,
+        "grid": {
+          "xs": 12
+        },
+        "fixtureMetadata": {
+          "answer": 42,
+          "enabled": true,
+          "choices": ["red", "blue"],
+          "empty": null
+        },
+        "fixtureCount": 42,
+        "fixtureEnabled": true,
+        "fixtureChoices": ["red", "blue"],
+        "fixtureEmpty": null
+      },
+      {
+        "id": "custom-named",
+        "type": "Custom",
+        "tagName": "test-binding-component",
+        "dataModelBindings": {
+          "quokkaValue": "CustomNamed",
+          "nebulaValue": "CustomSecondary"
+        },
+        "textResourceBindings": {
+          "title": "customComponent.title",
+          "shortName": "customComponent.caption",
+          "galaxyCaption": [
+            "if",
+            ["equals", ["dataModel", "CustomMode"], "readonly"],
+            "customComponent.readOnlyCaption",
+            "else",
+            "customComponent.caption"
+          ]
+        },
+        "readOnly": ["equals", ["dataModel", "CustomMode"], "readonly"],
+        "hidden": ["equals", ["dataModel", "CustomMode"], "hidden"],
+        "required": true,
+        "grid": {
+          "xs": 12
+        },
+        "fixtureMetadata": {
+          "answer": 42,
+          "enabled": true,
+          "choices": ["red", "blue"],
+          "empty": null
+        },
+        "fixtureCount": 42,
+        "fixtureEnabled": true,
+        "fixtureChoices": ["red", "blue"],
+        "fixtureEmpty": null
+      },
+      {
+        "id": "custom-mirror-simple",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Modellverdi simple"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "CustomSimple"
+        }
+      },
+      {
+        "id": "custom-mirror-named",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Modellverdi named"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "CustomNamed"
+        }
+      },
+      {
+        "id": "custom-mirror-secondary",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Modellverdi secondary"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "CustomSecondary"
+        }
+      },
+      {
+        "id": "custom-legacy-summary",
+        "type": "Summary",
+        "componentRef": "custom-named"
+      },
+      {
+        "id": "custom-summary2",
+        "type": "Summary2",
+        "target": {
+          "id": "custom-named"
+        }
+      }
+    ]
+  }
+}

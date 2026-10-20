@@ -35,6 +35,7 @@ export const PolicyAccordion = ({
         <StudioButton
           fullWidth
           variant='tertiary'
+          className={classes.accordionButtonWrapper}
           aria-expanded={isExpanded ? 'true' : 'false'}
           aria-controls={contentId}
           onClick={handleToggleExpanded}

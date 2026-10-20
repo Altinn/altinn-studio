@@ -130,4 +130,87 @@ internal static class CSharpSemanticQueries
             SimpleNameSyntax simple => simple,
             _ => null,
         };
+
+    /// <summary>
+    /// Whether the token names an SDK symbol — a reference that binds to one, or the declaration of
+    /// a member that implements or overrides one. Both sides matter: an app's <c>GetAppOptionsAsync</c>
+    /// method on the SDK's <c>IAppOptionsProvider</c> is declared by the app, and a call through the app's own
+    /// concrete type binds to the app's method — either would be missed by a plain
+    /// declared-in-the-SDK check, and renaming a declaration while leaving its call sites (or the
+    /// reverse) would not compile.
+    /// </summary>
+    public static bool NamesSdkMember(SemanticModel semanticModel, SyntaxToken token, SyntaxNode parent)
+    {
+        var symbol = parent switch
+        {
+            SimpleNameSyntax name => Unreduce(BoundSymbol(semanticModel, name)),
+            MethodDeclarationSyntax or PropertyDeclarationSyntax => semanticModel.GetDeclaredSymbol(
+                (MemberDeclarationSyntax)parent
+            ),
+            _ => null,
+        };
+
+        return symbol is not null && RefersToSdkMember(symbol, token.ValueText);
+    }
+
+    private static ISymbol? BoundSymbol(SemanticModel semanticModel, SimpleNameSyntax name)
+    {
+        var info = semanticModel.GetSymbolInfo(name);
+        return info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
+    }
+
+    private static ISymbol? Unreduce(ISymbol? symbol) =>
+        symbol is IMethodSymbol method ? method.ReducedFrom ?? method : symbol;
+
+    /// <summary>
+    /// Whether <paramref name="symbol"/> is declared by the SDK, overrides an SDK member, or
+    /// implements an SDK interface member named <paramref name="name"/>.
+    /// </summary>
+    private static bool RefersToSdkMember(ISymbol symbol, string name)
+    {
+        if (IsAltinnAppSymbol(symbol))
+        {
+            return true;
+        }
+
+        for (var overridden = Overridden(symbol); overridden is not null; overridden = Overridden(overridden))
+        {
+            if (IsAltinnAppSymbol(overridden))
+            {
+                return true;
+            }
+        }
+
+        if (symbol.ContainingType is not { } containingType)
+        {
+            return false;
+        }
+
+        foreach (var contract in containingType.AllInterfaces)
+        {
+            if (!IsAltinnAppSymbol(contract))
+            {
+                continue;
+            }
+
+            foreach (var member in contract.GetMembers(name))
+            {
+                var implementation = containingType.FindImplementationForInterfaceMember(member);
+                if (SymbolEqualityComparer.Default.Equals(implementation, symbol))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static ISymbol? Overridden(ISymbol symbol) =>
+        symbol switch
+        {
+            IMethodSymbol method => method.OverriddenMethod,
+            IPropertySymbol property => property.OverriddenProperty,
+            _ => null,
+        };
 }

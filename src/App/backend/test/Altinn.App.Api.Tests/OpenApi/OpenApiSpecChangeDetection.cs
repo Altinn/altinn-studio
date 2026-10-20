@@ -114,13 +114,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         );
         AssertStringOrProblemConflictResponse(
             paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/start")
-                .GetProperty("post")
-                .GetProperty("responses")
-                .GetProperty("409")
-        );
-        AssertStringOrProblemConflictResponse(
-            paths
                 .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess")
                 .GetProperty("put")
                 .GetProperty("responses")
@@ -283,10 +276,32 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
 
         await using var stream = await response.Content.ReadAsStreamAsync();
         var result = await OpenApiDocument.LoadAsync(stream, format: OpenApiConstants.Json);
-        // Assert.Empty(result.Diagnostic?.Errors ?? []);
+        Assert.Empty(result.Diagnostic?.Errors ?? []);
         var document = result.Document ?? throw new InvalidOperationException("Failed to read OpenAPI document");
+        AssertPathParametersBelongToRoutes(document);
         document.Info.Version = "";
         await VerifyJson(await document.SerializeAsJsonAsync(OpenApiSpecVersion.OpenApi3_0), _verifySettings);
+    }
+
+    private static void AssertPathParametersBelongToRoutes(OpenApiDocument document)
+    {
+        foreach (var (path, pathItem) in document.Paths)
+        {
+            foreach (var (method, operation) in pathItem.Operations ?? [])
+            {
+                // Parameter references resolve to their component, so In and Name are those of the target
+                foreach (var parameter in (pathItem.Parameters ?? []).Concat(operation.Parameters ?? []))
+                {
+                    if (parameter.In == ParameterLocation.Path)
+                    {
+                        Assert.True(
+                            path.Contains($"{{{parameter.Name}}}", StringComparison.Ordinal),
+                            $"{method} {path} declares path parameter '{parameter.Name}' absent from the route"
+                        );
+                    }
+                }
+            }
+        }
     }
 
     private static VerifySettings _verifySettings
@@ -297,7 +312,9 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
             settings.UseStrictJson();
             settings.DontScrubGuids();
             settings.DontIgnoreEmptyCollections();
-            settings.AddExtraSettings(settings => settings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore);
+            settings.AddExtraSettings(extraSettings =>
+                extraSettings.MetadataPropertyHandling = MetadataPropertyHandling.Ignore
+            );
             return settings;
         }
     }

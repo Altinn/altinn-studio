@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { BpmnTypeEnum } from '../../enum/BpmnTypeEnum';
 import type { BpmnBusinessObjectViewer } from '../../types/BpmnBusinessObjectViewer';
 import type {
@@ -12,8 +13,6 @@ import {
 } from './bpmnObjectBuilders';
 
 describe('bpmnObjectBuilders', () => {
-  afterEach(jest.clearAllMocks);
-
   describe('getBpmnViewerDetailsFromBusinessObject', () => {
     const mockTypeTask: BpmnTypeEnum = BpmnTypeEnum.Task;
     const mockId: string = 'mockId';

@@ -93,6 +93,7 @@ internal sealed class ExecuteServiceTask(
                     DeferCount = context.Payload.DeferCount,
                     StartedAt = context.Payload.FirstDeferredAt,
                     Deadline = context.Payload.WaitDeadline,
+                    IsFinalCheck = context.Payload.IsFinalWaitCheck,
                 },
             };
 

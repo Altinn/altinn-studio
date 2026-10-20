@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { validateLayoutNameAndLayoutSetName } from './validateLayoutNameAndLayoutSetName';
 
 const validNames = ['validName', 'validname', 'validName1', 'valid-name'];

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -94,8 +95,6 @@ const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
 };
 
 describe('PolicyAccessPackages', () => {
-  afterEach(jest.clearAllMocks);
-
   it('checks access package and reflects selection state', async () => {
     const user = userEvent.setup();
     renderAccessPackages();

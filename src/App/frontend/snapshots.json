@@ -160,6 +160,10 @@
       "TestCustomButtonInput": null,
       "TestCustomButtonReadOnlyInput": null,
       "neverValidatedInput": null,
+      "CustomSimple": null,
+      "CustomNamed": null,
+      "CustomSecondary": null,
+      "CustomMode": null,
       "ChooseExtraPages": null,
       "Numeric": null,
       "MapData": {
@@ -252,7 +256,7 @@
       "spesifikasjonsnummer": 12392,
       "useBothRepGroups": false,
       "hideRowValue": 99999999,
-      "sumAll": 0,
+      "sumAll": 1,
       "sumAboveLimit": 0,
       "numAboveLimit": 0,
       "blankettnummer": "RF-1366",
@@ -276,6 +280,7 @@
         },
         "OversiktOverEndringene-grp-9788": [
           {
+            "CalculatedChange": 1,
             "gruppeid": 9788,
             "SkattemeldingEndringEtterFristPost-datadef-37130": null,
             "SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131": {

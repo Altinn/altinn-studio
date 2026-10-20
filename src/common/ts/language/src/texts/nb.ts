@@ -4,8 +4,6 @@ export function nb() {
   return {
     'dateTime.am': 'a.m.',
     'dateTime.pm': 'p.m.',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være.',
     'actions.sign': 'Signer',
     'actions.confirm': 'Bekreft',
     'actions.reject': 'Avslå',
@@ -70,6 +68,18 @@ export function nb() {
     'form_filler.alert_confirm': 'Bekreft',
     'form_filler.checkbox_alert': 'Er du sikker på at du vil fjerne avkrysningen?',
     'form_filler.multi_select_alert': 'Er du sikker på at du vil slette <b>{0}</b>?',
+    'form_filler.suggestion_added': 'La til',
+    'form_filler.suggestion_clear': 'Fjern tekst',
+    'form_filler.suggestion_empty': 'Ingen valgte',
+    'form_filler.suggestion_found': 'Naviger til venstre for å finne %d valgte',
+    'form_filler.suggestion_invalid': 'Ugyldig valg',
+    'form_filler.suggestion_items': 'Valgte',
+    'form_filler.suggestion_of': 'av',
+    'form_filler.suggestion_plural': '%d forslag',
+    'form_filler.suggestion_remove': 'Trykk for å fjerne',
+    'form_filler.suggestion_removed': 'Fjernet',
+    'form_filler.suggestion_singular': '%d forslag',
+    'form_filler.suggestion_toggle': 'Forslag',
     'form_filler.dropdown_alert': 'Er du sikker på at du vil endre til <b>{0}</b>?',
     'form_filler.error_report_header': 'Du må rette disse feilene før du kan gå videre',
     'form_filler.error_required': 'Du må fylle ut {0}',
@@ -95,6 +105,7 @@ export function nb() {
     'form_filler.file_uploader_list_header_delete_sr': 'Slett',
     'form_filler.file_uploader_max_size_mb': 'Maks filstørrelse {0} MB',
     'form_filler.file_uploader_upload': 'Last opp fil',
+    'form_filler.file_uploader_read_only': 'Vedleggene kan ikke endres.',
     'form_filler.file_uploader_number_of_files': 'Antall filer {0}.',
     'form_filler.file_uploader_show_more_errors': 'Vis {0} flere',
     'form_filler.file_uploader_show_fewer_errors': 'Vis færre',
@@ -120,8 +131,7 @@ export function nb() {
     'form_filler.placeholder_receipt_header': 'Skjemaet er nå fullført og sendt inn.',
     'form_filler.placeholder_user': 'OLA PRIVATPERSON',
     'form_filler.radiobutton_alert_label': 'Er du sikker på at du vil endre fra {0}?',
-    'form_filler.required_description': 'Obligatoriske felter er markert med *',
-    'form_filler.required_label': '*',
+    'form_filler.required_label': 'Må fylles ut',
     'form_filler.summary_item_change': 'Endre',
     'form_filler.summary_go_to_correct_page': 'Gå til riktig side i skjema',
     'form_filler.address': 'Gateadresse',
@@ -176,7 +186,7 @@ export function nb() {
     'general.customer_service_slack': 'https://digdir-samarbeid.slack.com',
     'general.customer_service_email': 'servicedesk@altinn.no',
     'general.customer_service_error_message':
-      'Hvis du har behov for assistanse kan du nå Altinn på<br/><br/><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
+      'Hvis du har behov for assistanse kan du nå Altinn på<br/><br/><ul><li>Telefon: <a href="tel:{0}">{0}</a></li><li>E-post: {1}</li><li>Slack: {2}</li></ul>',
     'general.delete': 'Slett',
     'general.download': 'Nedlasting {0}',
     'general.disabled': 'Deaktivert',
@@ -197,7 +207,7 @@ export function nb() {
     'general.log_out': 'Logg ut',
     'general.next': 'Neste',
     'general.no_options': 'Ingen alternativer tilgjengelig',
-    'general.optional': 'Valgfri',
+    'general.optional': 'Valgfritt',
     'general.page_number': 'Side {0}',
     'general.print_button_text': 'Print / Lagre PDF',
     'general.progress': 'Side {0} av {1}',
@@ -221,6 +231,9 @@ export function nb() {
     'general.part_of_form_completed':
       'Denne delen av skjemaet er ikke tilgjengelig. Du kan ikke gjøre endringer her nå.',
     'general.invalid_task_id': 'Denne delen av skjemaet finnes ikke.',
+    'general.unsupported_task_type': 'Denne delen av skjemaet kan ikke vises.',
+    'general.unsupported_task_type_details':
+      'Prosessteget {0} har typen {1}, som appen ikke kan vise.',
     'general.navigate_to_current_process': 'Gå til riktig prosessteg',
     'group.row_error':
       'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
@@ -279,9 +292,9 @@ export function nb() {
     'instantiate.authorization_error_ask':
       'Om du representerer en person, er det den du representerer som kan gi deg rettighet til å starte tjenesten. Representerer du en organisasjon er det de som har rollen tilgangsstyring innad i organisasjonen som kan gi deg rettighet.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
+      '<a href="{0}" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
     'instantiate.authorization_error_info_rights':
-      '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
+      '<a href="{0}" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
     'instantiate.authorization_error_info_customer_service':
       'Du kan også kontakte oss på brukerservice {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
@@ -323,7 +336,7 @@ export function nb() {
     'party_selection.show_sub_unit': 'Vis underenheter',
     'party_selection.why_seeing_this': 'Hvorfor ser jeg dette?',
     'party_selection.seeing_this_preference':
-      'Du kan endre [profilinnstillingene](https://af.{0}/profile/parties) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
+      'Du kan endre [profilinnstillingene]({0}) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
     'party_selection.seeing_this_override': 'Denne appen er satt opp til å alltid spørre om aktør.',
     'payment.pay': 'Betal',
     'payment.summary': 'Oppsummering',
@@ -474,6 +487,10 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
+    'process_error.instance_changed':
+      'Skjemaet ble endret mens du sendte det inn, så det ble ikke sendt. Se over skjemaet og prøv igjen.',
+    'process_error.concurrent_transition':
+      'Skjemaet ble sendt inn fra et annet sted samtidig, så innsendingen din ble ikke sendt. Se over skjemaet og prøv igjen.',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',
@@ -489,7 +506,7 @@ export function nb() {
     'process_workflow.failure_kind.timeout': 'Behandlingen tok for lang tid',
     'process_workflow.failure_kind.unknown': 'Ukjent årsak',
     'process_workflow.having_trouble':
-      'Vi får ikke behandlet skjemaet ditt akkurat nå, men vi prøver igjen automatisk. Opplysningene dine er lagret. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
+      'Vi kan ikke behandle skjemaet ditt akkurat nå, men vi prøver igjen automatisk. Opplysningene dine er lagret. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'process_workflow.still_working':
       'Dette tar uvanlig lang tid. Opplysningene dine er lagret, og arbeidet fortsetter automatisk. Du kan trygt lukke siden og komme tilbake senere. Du kan åpne skjemaer du allerede har startet på fra innboksen eller fra Utkast-mappen.',
     'pdfPreview.error': 'Kunne ikke forhåndsvise PDF',

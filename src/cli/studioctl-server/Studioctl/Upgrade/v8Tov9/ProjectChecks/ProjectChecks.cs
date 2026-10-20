@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using NuGet.Versioning;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.ProjectChecks;
@@ -11,6 +12,7 @@ internal sealed class ProjectChecks
     private static readonly NuGetVersion _nineZero = new(9, 0, 0);
 
     private readonly XDocument _doc;
+    private readonly XDocument? _directoryBuildProps;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProjectChecks"/> class.
@@ -20,6 +22,7 @@ internal sealed class ProjectChecks
     {
         var xmlString = File.ReadAllText(projectFilePath);
         _doc = XDocument.Parse(xmlString);
+        _directoryBuildProps = LoadDirectoryBuildProps(projectFilePath);
     }
 
     /// <summary>
@@ -75,9 +78,6 @@ internal sealed class ProjectChecks
     /// </summary>
     public bool IsTargetVersion()
     {
-        if (HasAltinnProjectReferences())
-            return false;
-
         var apiElements = GetAltinnAppApiElement();
         if (apiElements is null || apiElements.Count == 0)
             return false;
@@ -88,31 +88,100 @@ internal sealed class ProjectChecks
             .All(version => HasMajorVersion(version, 9));
     }
 
+    public bool HasPackageVersionsAtLeast(string minimumVersion)
+    {
+        var minimum = NuGetVersion.Parse(minimumVersion);
+        var packages = (GetAltinnAppApiElement() ?? []).Concat(GetAltinnAppCoreElement() ?? []).ToList();
+        return packages.Count > 0
+            && packages.All(package =>
+                PinnedPackageVersion.Parse(package.Attribute("Version")?.Value) is { } version && version >= minimum
+            );
+    }
+
+    public bool HasAmbiguousPackageVersions() =>
+        (GetAltinnAppApiElement() ?? [])
+            .Concat(GetAltinnAppCoreElement() ?? [])
+            .Any(package => IsAmbiguousVersion(package.Attribute("Version")?.Value));
+
+    public bool HasUnsupportedInheritedPackageVersions(string minimumVersion)
+    {
+        var minimum = NuGetVersion.Parse(minimumVersion);
+        return AltinnPackageReferences(_directoryBuildProps)
+            .Any(package =>
+                PinnedPackageVersion.Parse(package.Attribute("Version")?.Value) is not { } version
+                || version.Major != minimum.Major
+                || version < minimum
+            );
+    }
+
+    private static bool IsAmbiguousVersion(string? value)
+    {
+        return value is not null && VersionRange.TryParse(value, out _) && PinnedPackageVersion.Parse(value) is null;
+    }
+
+    /// <summary>A retained range or differing conditional pins cannot select one app-dist schema version.</summary>
+    public string? AppPackageVersion()
+    {
+        var versions = (GetAltinnAppApiElement() ?? [])
+            .Select(package => package.Attribute("Version")?.Value)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        return versions.Count == 1 ? PinnedPackageVersion.Parse(versions[0])?.ToNormalizedString() : null;
+    }
+
     /// <summary>
     /// Checks if the project uses ProjectReference for Altinn.App.Core or Altinn.App.Api
     /// instead of PackageReference (typical for local development setups).
     /// </summary>
-    private bool HasAltinnProjectReferences()
-    {
-        var projectReferences = _doc
-            .Root?.Elements("ItemGroup")
-            .Elements("ProjectReference")
-            .Select(x => x.Attribute("Include")?.Value)
-            .Where(x => x != null)
-            .ToList();
+    public bool HasAltinnProjectReferences() => AltinnProjectReferences().Any();
 
-        if (projectReferences is null || projectReferences.Count == 0)
-        {
-            return false;
-        }
+    public bool HasConditionalAltinnProjectReferences() =>
+        AltinnProjectReferences()
+            .Any(reference => reference.AncestorsAndSelf().Any(element => element.Attribute("Condition") is not null));
 
-        return projectReferences.Any(path =>
-            path != null
-            && (
-                path.Contains("Altinn.App.Core", StringComparison.OrdinalIgnoreCase)
-                || path.Contains("Altinn.App.Api", StringComparison.OrdinalIgnoreCase)
+    private IEnumerable<XElement> AltinnProjectReferences() =>
+        new[] { _doc, _directoryBuildProps }
+            .SelectMany(doc => doc?.Root?.Elements("ItemGroup").Elements("ProjectReference") ?? [])
+            .Where(reference =>
+                reference.Attribute("Include")?.Value is { } path
+                && (
+                    path.Contains("Altinn.App.Core", StringComparison.OrdinalIgnoreCase)
+                    || path.Contains("Altinn.App.Api", StringComparison.OrdinalIgnoreCase)
+                )
+            );
+
+    /// <summary>Mixed declarations may select packages or source conditionally; do not assume source compatibility.</summary>
+    public bool HasMixedAltinnReferences() => HasAltinnProjectReferences() && HasAltinnPackageReferences();
+
+    public bool HasInheritedAltinnPackageReferences() => AltinnPackageReferences(_directoryBuildProps).Any();
+
+    private bool HasAltinnPackageReferences() =>
+        AltinnPackageReferences(_doc).Any() || HasInheritedAltinnPackageReferences();
+
+    private static IEnumerable<XElement> AltinnPackageReferences(XDocument? document) =>
+        (document?.Root?.Elements("ItemGroup").Elements("PackageReference") ?? []).Where(reference =>
+            string.Equals(reference.Attribute("Include")?.Value, "Altinn.App.Api", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(
+                reference.Attribute("Include")?.Value,
+                "Altinn.App.Core",
+                StringComparison.OrdinalIgnoreCase
             )
         );
+
+    private static XDocument? LoadDirectoryBuildProps(string projectFilePath)
+    {
+        for (
+            var directory = Path.GetDirectoryName(Path.GetFullPath(projectFilePath));
+            directory is not null;
+            directory = Path.GetDirectoryName(directory)
+        )
+        {
+            var path = Path.Combine(directory, "Directory.Build.props");
+            if (File.Exists(path))
+                return XDocument.Load(path);
+        }
+
+        return null;
     }
 
     private List<XElement>? GetAltinnAppCoreElement()

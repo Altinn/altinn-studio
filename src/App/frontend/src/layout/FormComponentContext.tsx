@@ -18,7 +18,10 @@ export interface IFormComponentContext {
   grid?: IGrid;
   overrideDisplay?: GenericComponentOverrideDisplay;
   overrideItemProps?: PropsFromGenericComponent['overrideItemProps'] &
-    Partial<ExprResolved<FormComponentProps & LabeledComponentProps>>;
+    Partial<ExprResolved<FormComponentProps & LabeledComponentProps>> & {
+      required?: boolean;
+      readOnly?: boolean;
+    };
 }
 
 const { Provider, useCtx } = createContext<IFormComponentContext | undefined>({

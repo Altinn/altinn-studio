@@ -19,6 +19,7 @@ public class TextsService : ITextsService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IApplicationMetadataService _applicationMetadataService;
     private readonly IOptionsService _optionsService;
+    private readonly IAppVersionService _appVersionService;
 
     /// <summary>
     /// Constructor
@@ -26,15 +27,18 @@ public class TextsService : ITextsService
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="applicationMetadataService">IApplicationMetadataService</param>
     /// <param name="optionsService">IOptionsService</param>
+    /// <param name="appVersionService">IAppVersionService</param>
     public TextsService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IApplicationMetadataService applicationMetadataService,
-        IOptionsService optionsService
+        IOptionsService optionsService,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _applicationMetadataService = applicationMetadataService;
         _optionsService = optionsService;
+        _appVersionService = appVersionService;
     }
 
     public async Task CreateLanguageResources(string org, string repo, string developer)
@@ -196,12 +200,20 @@ public class TextsService : ITextsService
             app,
             developer
         );
-        string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
         List<string> updatedFiles = [];
 
-        if (altinnAppGitRepository.AppUsesLayoutSets())
+        if (_appVersionService.IsV9App(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)))
         {
-            foreach (string layoutSetName in layoutSetNames)
+            foreach (string uiFolderName in await GetUiFolderNames(altinnAppGitRepository))
+            {
+                updatedFiles.AddRange(
+                    await UpdateKeysInLayoutsInLayoutSet(org, app, developer, uiFolderName, keyMutations)
+                );
+            }
+        }
+        else if (altinnAppGitRepository.AppUsesLayoutSets())
+        {
+            foreach (string layoutSetName in altinnAppGitRepository.GetLayoutSetNames())
             {
                 updatedFiles.AddRange(
                     await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations)
@@ -215,6 +227,18 @@ public class TextsService : ITextsService
 
         updatedFiles.AddRange(await UpdateKeysInOptionLists(org, app, developer, keyMutations));
         return updatedFiles;
+    }
+
+    private static async Task<IEnumerable<string>> GetUiFolderNames(AltinnAppGitRepository altinnAppGitRepository)
+    {
+        try
+        {
+            return await altinnAppGitRepository.GetUiFolders();
+        }
+        catch (LibGit2Sharp.NotFoundException)
+        {
+            return [];
+        }
     }
 
     /// <summary>

@@ -63,15 +63,14 @@ public static class WorkflowExtensions
         public (string key, object? value)[] GetHistogramTags() => [("workflow.operation.id", workflow.OperationId)];
 
         /// <summary>
-        /// Low-cardinality metric tag value for the workflow's head-visibility directive. "false"
-        /// identifies deliberately invisible workflows (e.g. non-blocking side chains) whose terminal
-        /// failures surface nowhere else - alert on <c>is_head="false"</c> to catch them.
+        /// Low-cardinality metric tag value for the workflow's head directive. "false" identifies
+        /// auxiliary workflows, whose terminal failures gate nothing and surface nowhere else.
         /// </summary>
         public string IsHeadTagValue() => IsHeadTagValue(workflow.IsHead);
     }
 
     /// <summary>
-    /// The <c>is_head</c> metric tag value for a head-visibility directive, for callers holding the
+    /// The <c>is_head</c> metric tag value for a head directive, for callers holding the
     /// directive but not the workflow.
     /// </summary>
     public static string IsHeadTagValue(bool? isHead) =>

@@ -48,7 +48,7 @@ public class AuthorizationService(
     private const string ResourceId = "r";
 
     /// <inheritdoc/>>
-    public async Task<List<MessageBoxInstance>> AuthorizeMessageBoxInstances(List<Instance> instances, bool keyAccessMode)
+    public async Task<List<MessageBoxInstance>> AuthorizeMessageBoxInstances(List<Instance> instances, bool keyAccessMode, CancellationToken cancellationToken)
     {
         if (instances.Count <= 0)
         {
@@ -71,7 +71,7 @@ public class AuthorizationService(
         ClaimsPrincipal user = _claimsPrincipalProvider.GetUser();
         XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
 
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest, cancellationToken);
         foreach (XacmlJsonResult result in response.Response.Where(result => DecisionHelper.ValidateDecisionResult(result, user)))
         {
             string instanceId = string.Empty;
@@ -126,7 +126,7 @@ public class AuthorizationService(
     }
 
     /// <inheritdoc/>>
-    public async Task<bool> AuthorizeInstanceAction(Instance instance, string action, string task = null)
+    public async Task<bool> AuthorizeInstanceAction(Instance instance, string action, string task, CancellationToken cancellationToken)
     {
         string org = instance.Org;
         string app = instance.AppId.Split('/')[1];
@@ -144,7 +144,7 @@ public class AuthorizationService(
             request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid, task);
         }
 
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {
@@ -157,7 +157,7 @@ public class AuthorizationService(
     }
 
     /// <inheritdoc/>>
-    public async Task<bool> AuthorizeAnyOfInstanceActions(Instance instance, List<string> actions)
+    public async Task<bool> AuthorizeAnyOfInstanceActions(Instance instance, List<string> actions, CancellationToken cancellationToken)
     {
         if (actions.Count == 0)
         {
@@ -168,7 +168,7 @@ public class AuthorizationService(
         XacmlJsonRequestRoot request = CreateMultiDecisionRequest(user, new List<Instance>() { instance }, actions);
 
         _logger.LogDebug("// Authorization Helper // AuthorizeAnyOfInstanceActions // request: {Request}", JsonSerializer.Serialize(request));
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
         
         _logger.LogDebug("// Authorization Helper // AuthorizeAnyOfInstanceActions // response: {Response}", JsonSerializer.Serialize(response));
         if (response?.Response != null)
@@ -181,7 +181,7 @@ public class AuthorizationService(
     }
 
     /// <inheritdoc/>>
-    public async Task<List<Instance>> AuthorizeInstances(List<Instance> instances)
+    public async Task<List<Instance>> AuthorizeInstances(List<Instance> instances, CancellationToken cancellationToken)
     {
         if (instances.Count <= 0)
         {
@@ -193,7 +193,7 @@ public class AuthorizationService(
 
         ClaimsPrincipal user = _claimsPrincipalProvider.GetUser();
         XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest, cancellationToken);
 
         foreach (XacmlJsonResult result in response.Response.Where(result => DecisionHelper.ValidateDecisionResult(result, user)))
         {
@@ -242,9 +242,9 @@ public class AuthorizationService(
     }
 
     /// <inheritdoc/>>
-    public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
+    public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest, CancellationToken cancellationToken)
     {
-        return await _pdp.GetDecisionForRequest(xacmlJsonRequest);
+        return await _pdp.GetDecisionForRequest(xacmlJsonRequest, cancellationToken);
     }
 
     /// <summary>

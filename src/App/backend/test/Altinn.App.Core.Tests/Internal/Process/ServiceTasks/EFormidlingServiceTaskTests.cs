@@ -301,7 +301,9 @@ public class EFormidlingServiceTaskTests
                 x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("EFormidling is disabled for task taskId")),
+                    It.Is<It.IsAnyType>(
+                        (v, t) => v != null && v.ToString()!.Contains("EFormidling is disabled for task taskId")
+                    ),
                     It.IsAny<Exception>(),
                     It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)
                 ),
@@ -765,7 +767,12 @@ public class EFormidlingServiceTaskTests
         // classification, so the task ends it on its own terms instead.
         var context = CreateContext(
             unitOfWork,
-            new ServiceTaskWait { DeferCount = 40, Deadline = DateTimeOffset.UtcNow.AddSeconds(-1) }
+            new ServiceTaskWait
+            {
+                DeferCount = 40,
+                Deadline = DateTimeOffset.UtcNow.AddSeconds(-1),
+                IsFinalCheck = true,
+            }
         );
         var result = await AwaitDelivery(_serviceTask, context);
 

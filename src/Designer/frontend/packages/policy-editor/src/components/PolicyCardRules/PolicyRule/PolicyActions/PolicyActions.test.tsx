@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { PolicyActions } from './PolicyActions';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -18,8 +19,6 @@ const mockActionOption3: string = textMock(`policy_editor.action_${mockActionId3
 const mockActionOption4: string = mockActionId4;
 
 describe('PolicyActions', () => {
-  afterEach(jest.clearAllMocks);
-
   it('renders the action field with its description', () => {
     renderPolicyActions();
 

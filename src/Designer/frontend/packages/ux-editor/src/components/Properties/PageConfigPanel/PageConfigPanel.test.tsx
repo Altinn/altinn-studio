@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
@@ -39,10 +40,6 @@ const layouts: IFormLayouts = {
 };
 
 describe('PageConfigPanel', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('render heading with layout page name when layout is selected', async () => {
     const newSelectedPage = layout1NameMock;
     renderPageConfigPanel(newSelectedPage);
@@ -79,7 +76,7 @@ describe('PageConfigPanel', () => {
       const modal = screen.getByRole('dialog');
       expect(modal).toBeInTheDocument();
     });
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 });
 

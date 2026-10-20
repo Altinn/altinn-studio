@@ -1,49 +1,41 @@
-import 'jest';
-import 'whatwg-fetch';
-import '@testing-library/jest-dom/jest-globals';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 import '@oddbird/popover-polyfill';
-import failOnConsole from 'jest-fail-on-console';
-import { textMock } from './mocks/i18nMock';
-import { SignalR } from './mocks/signalr';
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { configure } from '@testing-library/dom';
 import { TextEncoder, TextDecoder } from 'util';
-import { createElement, type ComponentType } from 'react';
 import { webcrypto } from 'crypto';
+import failOnConsole from 'vitest-fail-on-console';
+import { vi } from 'vitest';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { ComponentType } from 'react';
 
-failOnConsole({
-  shouldFailOnWarn: true,
-  silenceMessage(message) {
-    if (
-      // TODO: remove when we no longer are using forwardRef from react (it was deprecated in React 19)
-      'Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release.' ===
-      message
-    ) {
-      return true;
-    }
+// DOM Testing Library currently detects fake timers through the Jest-compatible global name.
+// Point it at Vitest so waitFor advances vi.useFakeTimers() instead of waiting indefinitely.
+Object.assign(globalThis, { jest: vi });
 
-    return false;
-  },
-});
+// Browser APIs that jsdom lacks.
+// Newer jsdom versions hide [popover] elements but have no Popover API, so the polyfill's open state never shows them:
+// https://github.com/jsdom/jsdom/issues/3721
+const popoverStyle = document.createElement('style');
+popoverStyle.textContent = '[popover].\\:popover-open { display: block !important; }';
+document.head.appendChild(popoverStyle);
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query) => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // Deprecated
-    removeListener: jest.fn(), // Deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: vi.fn(), // Deprecated
+    removeListener: vi.fn(), // Deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   })),
 });
 
 Object.defineProperty(window, 'scrollTo', {
   writable: true,
-  value: jest.fn(),
+  value: vi.fn(),
 });
 
 // polyfill for jsdom (taken from https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest)
@@ -51,9 +43,9 @@ Object.assign(global, { TextDecoder, TextEncoder });
 
 // ResizeObserver must be mocked because it is used by the Popover component from the design system, but it is not supported by React Testing Library.
 class ResizeObserver {
-  observe = jest.fn();
-  unobserve = jest.fn();
-  disconnect = jest.fn();
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
 }
 
 window.ResizeObserver = ResizeObserver;
@@ -75,67 +67,83 @@ Object.defineProperty(document, 'elementFromPoint', {
   writable: true,
 });
 
-// Use Node's implementation of Web Crypto API, since Jest does not have access to browser's Web Crypto API
+// Use Node's implementation of Web Crypto API, since jsdom does not have access to browser's Web Crypto API
 Object.defineProperty(window, 'crypto', {
   value: webcrypto,
   writable: true,
 });
 
 // Workaround for the known issue. For more info, see this: https://github.com/jsdom/jsdom/issues/3294#issuecomment-1268330372
-HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogElement) {
+HTMLDialogElement.prototype.showModal = vi.fn(function mock(this: HTMLDialogElement) {
   this.open = true;
 });
-HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElement) {
+HTMLDialogElement.prototype.close = vi.fn(function mock(this: HTMLDialogElement) {
   if (this.open) {
     this.open = false;
     this.dispatchEvent(new Event('close'));
   }
 });
 
+const TESTING_LIBRARY_TIMEOUT_MILLISECONDS = 2000;
+
+configure({ asyncUtilTimeout: TESTING_LIBRARY_TIMEOUT_MILLISECONDS });
+
+failOnConsole({
+  shouldFailOnWarn: true,
+  silenceMessage(message) {
+    // TODO: remove when we no longer are using forwardRef from react (it was deprecated in React 19)
+    return (
+      'Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release.' ===
+      message
+    );
+  },
+});
+
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
-jest.mock('i18next', () => ({
-  use: () => ({ init: jest.fn() }),
-  t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
-}));
+vi.mock('i18next', async () => {
+  const { textMock } = await import('./mocks/i18nMock');
+  return {
+    use: () => ({ init: vi.fn() }),
+    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+  };
+});
 
 type ComponentWithTranslationProps = {
   t: (key: string, variables?: KeyValuePairs<string>) => string;
 };
-jest.mock('react-i18next', () => ({
-  Trans: ({ i18nKey }) => textMock(i18nKey),
-  useTranslation: () => ({
-    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
-    i18n: {
-      exists: () => true,
-      language: 'nb',
-    },
-  }),
-  withTranslation:
-    () =>
-    <P extends object>(Component: ComponentType<P & ComponentWithTranslationProps>) => {
-      const WithTranslationMock = (props: P) =>
-        createElement(Component, {
-          ...props,
-          t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
-        });
-      return WithTranslationMock;
-    },
+vi.mock('react-i18next', async () => {
+  const { textMock } = await import('./mocks/i18nMock');
+  const { createElement } = await import('react');
+  return {
+    Trans: ({ i18nKey }) => textMock(i18nKey),
+    useTranslation: () => ({
+      t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+      i18n: {
+        exists: () => true,
+        language: 'nb',
+      },
+    }),
+    withTranslation:
+      () =>
+      <P extends object>(Component: ComponentType<P & ComponentWithTranslationProps>) => {
+        const WithTranslationMock = (props: P) =>
+          createElement(Component, {
+            ...props,
+            t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+          });
+        return WithTranslationMock;
+      },
+  };
+});
+
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useBlocker: vi.fn().mockReturnValue({ state: 'idle' }),
+  useBeforeUnload: vi.fn(),
 }));
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useBlocker: jest.fn().mockReturnValue({ state: 'idle' }),
-  useBeforeUnload: jest.fn(),
+// SignalR is mocked, so that tests do not open a real connection.
+vi.mock('@microsoft/signalr', async () => ({
+  ...(await vi.importActual('@microsoft/signalr')),
+  ...(await import('./mocks/signalr')).SignalR,
 }));
-
-// Mocked SignalR to be able to test in within the tests.
-jest.mock('@microsoft/signalr', () => ({
-  ...jest.requireActual('@microsoft/signalr'),
-  ...SignalR,
-}));
-
-jest.setTimeout(3000000);
-
-const TESTING_LIBRARY_TIMEOUT_MILLISECONDS = 2000;
-
-configure({ asyncUtilTimeout: TESTING_LIBRARY_TIMEOUT_MILLISECONDS });

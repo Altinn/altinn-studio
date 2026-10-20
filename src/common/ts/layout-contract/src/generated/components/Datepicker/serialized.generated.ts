@@ -2,7 +2,6 @@ import {
   ComponentBase,
   FormComponentProps,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -13,6 +12,10 @@ import { IDataModelBindingsSimple } from '@app/layout-contract/generated/seriali
 export type CompDatepickerSerialized = {
   type: 'Datepicker';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings: IDataModelBindingsSimple;
   autocomplete?: 'bday';
@@ -34,7 +37,6 @@ export type CompDatepickerSerialized = {
   format?: string;
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 95d9689346f1f2ba17ed515de1db9184bd6ab1a81cbc46e350191a5327e5686f
+// Source hash: 284792b8fca622c6b402da38867b528de7effe543fa2e420eb50a86553b6952e
