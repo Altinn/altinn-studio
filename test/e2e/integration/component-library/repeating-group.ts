@@ -39,9 +39,50 @@ describe('Group summary test', () => {
     cy.get('@window.logError').should('not.be.calledWithMatch', 'Cannot lookup dataType undefined');
   });
 
-  it('Renders the different options for add buttons correctly', () => {
+  it('Renders the different options for add buttons and limits cell text without truncating headers', () => {
+    const tableTitle = 'A long column heading that must remain fully visible. '.repeat(8).trim();
+    cy.interceptLayout('ComponentLayouts', (component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.tableColumns = {
+          'RepeatingGroup-Input-Name': { width: '160px', textOverflow: { maxHeight: 4 } },
+        };
+      }
+      if (component.type === 'Input' && component.id === 'RepeatingGroup-Input-Name') {
+        component.textResourceBindings = { ...component.textResourceBindings, tableTitle };
+      }
+    });
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Repeterende gruppe');
+    const inputValue = 'Long cell content that should be truncated. '.repeat(12).trim();
+
+    cy.findAllByRole('button', { name: /Legg til ny/ })
+      .first()
+      .click();
+    cy.findByRole('textbox', { name: /Navn/ }).type(inputValue);
+    cy.findAllByRole('button', { name: /Lagre og lukk/ })
+      .first()
+      .click();
+
+    cy.get('[data-testid="group-RepeatingGroup"] > table').within(() => {
+      cy.findByRole('columnheader', { name: tableTitle })
+        .children('span')
+        .should(($header) => {
+          const header = $header[0];
+          const lineHeight = parseFloat(getComputedStyle(header).lineHeight);
+          expect(header.clientHeight, 'long header remains taller than four lines').to.be.greaterThan(4 * lineHeight);
+          expect(header.scrollHeight, 'header is not clipped').to.equal(header.clientHeight);
+        });
+      cy.findByRole('cell', { name: inputValue })
+        .children('span')
+        .first()
+        .should(($content) => {
+          const content = $content[0];
+          const lineHeight = parseFloat(getComputedStyle(content).lineHeight);
+          expect(content.clientHeight, 'cell is limited to four lines').to.be.closeTo(4 * lineHeight, 1);
+          expect(content.scrollHeight, 'content exceeds the visible lines').to.be.greaterThan(content.clientHeight);
+        });
+    });
+    cy.get('#add-button-RepeatingGroup').should('be.visible');
     cy.visualTesting('repeatingGroupAddButtons');
   });
 

@@ -275,7 +275,11 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
       className={tableClasses.dataCell}
     >
       <span
-        className={cn(repeatingGroupClasses.contentFormatting, tableClasses.cellValue)}
+        className={cn(
+          repeatingGroupClasses.contentFormatting,
+          repeatingGroupClasses.cellContentFormatting,
+          tableClasses.cellValue,
+        )}
         style={style}
       >
         {displayData}
