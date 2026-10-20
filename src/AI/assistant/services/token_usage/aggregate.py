@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from typing import Any, TypedDict
 
 from shared.config import get_config
-from shared.utils.langfuse_utils import APP_NAME_METADATA_KEY, REPO_OWNER_METADATA_KEY
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -142,7 +141,7 @@ def _get_repo_owner(trace: Trace, service_owner_code: str) -> str:
     A trace from before Designer sent `repo_owner` does not have this value. Then the owner is the service owner.
     """
     metadata = trace["metadata"] or {}
-    return metadata.get(REPO_OWNER_METADATA_KEY) or service_owner_code
+    return metadata.get("repo_owner") or service_owner_code
 
 
 def _get_app_name(trace: Trace) -> str:
@@ -150,7 +149,7 @@ def _get_app_name(trace: Trace) -> str:
         return trace["environment"]
 
     metadata = trace["metadata"] or {}
-    app_name = metadata.get(APP_NAME_METADATA_KEY)
+    app_name = metadata.get("app_name")
     if not app_name:
         log.warning(
             "Missing metadata.app_name for trace %s — bucketing under '%s'",

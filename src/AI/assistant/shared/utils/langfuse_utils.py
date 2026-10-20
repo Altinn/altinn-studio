@@ -10,10 +10,6 @@ from shared.utils.logging_utils import get_logger
 log = get_logger(__name__)
 config = get_config()
 
-# Keys in the metadata of the root span. The daily token usage export reads them.
-APP_NAME_METADATA_KEY = "app_name"
-REPO_OWNER_METADATA_KEY = "repo_owner"
-
 _client = None
 _initialized = False
 

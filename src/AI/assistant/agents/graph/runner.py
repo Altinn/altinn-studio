@@ -16,8 +16,6 @@ from agents.services.llm import (
     suggest_goal_correction,
 )
 from shared.utils.langfuse_utils import (
-    APP_NAME_METADATA_KEY,
-    REPO_OWNER_METADATA_KEY,
     flush_langfuse,
     get_current_trace_id,
     init_langfuse,
@@ -302,8 +300,8 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
                 "full_goal_length": len(str(state.user_goal)),
                 "session_id": str(state.session_id),
                 "developer": state.developer,
-                APP_NAME_METADATA_KEY: state.app_name,
-                REPO_OWNER_METADATA_KEY: state.org,
+                "app_name": state.app_name,
+                "repo_owner": state.org,
             },
         ) as root_span:
             state.trace_id = get_current_trace_id()
