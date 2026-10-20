@@ -273,11 +273,11 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(originalData.Payload, data.Payload);
         Assert.All(change.Events!, e => Assert.Equal(referenceTime.UtcDateTime, e.Created));
         Assert.Equal(referenceTime.UtcDateTime, change.NewProcessState?.CurrentTask?.Started);
-        var sideEffects = Assert.Single(workflow.Steps, step => step.OperationId == EnqueueSideEffectsWorkflow.Key);
-        var sideEffectsData = JsonSerializer.Deserialize<AppCommandData>(sideEffects.Command.Data!.Value)!;
+        var auxiliaryEnqueue = Assert.Single(workflow.Steps, step => step.OperationId == EnqueueAuxiliaryWorkflows.Key);
+        var auxiliaryEnqueueData = JsonSerializer.Deserialize<AppCommandData>(auxiliaryEnqueue.Command.Data!.Value)!;
         Assert.Null(
             CommandPayloadSerializer
-                .Deserialize<EnqueueSideEffectsWorkflowPayload>(sideEffectsData.Payload)!
+                .Deserialize<EnqueueAuxiliaryWorkflowsPayload>(auxiliaryEnqueueData.Payload)!
                 .EnqueueRequest.Context
         );
     }
@@ -452,7 +452,7 @@ public class WorkflowEngineCallbackControllerTests
                 )
             )
             .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
-            .ReturnsAsync(() => new MemoryStream("%PDF"u8.ToArray()));
+            .ReturnsAsync(() => "%PDF"u8.ToArray());
         var processReader = new Mock<IProcessReader>();
         processReader
             .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))

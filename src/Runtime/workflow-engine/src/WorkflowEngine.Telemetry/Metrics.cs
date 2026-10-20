@@ -121,8 +121,8 @@ public static class Metrics
     /// (<c>execution</c> / <c>dependency_failed</c> / <c>poisoned</c> / <c>wait_expired</c> / <c>manual</c>) and
     /// <c>is_head</c> (<c>true</c> / <c>false</c> / <c>unset</c>). Alert on <c>reason</c> in
     /// (<c>execution</c>, <c>poisoned</c>) across all <c>is_head</c> values; <c>is_head</c> is a
-    /// routing/severity dimension, not the filter - <c>"false"</c> marks deliberately invisible
-    /// workflows (non-blocking side chains) whose terminal failures surface nowhere else. Exclude
+    /// routing/severity dimension, not the filter - <c>"false"</c> marks auxiliary workflows,
+    /// whose terminal failures gate nothing and surface nowhere else. Exclude
     /// <c>dependency_failed</c>: such an increment just mirrors a dependency's failure, which
     /// fires the alert in its own right, and is expected noise. Exclude <c>wait_expired</c> from
     /// the default alert: a step's wait budget running out means the awaited external outcome

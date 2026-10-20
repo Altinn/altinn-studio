@@ -372,17 +372,17 @@ public static class JsonReader
     {
         int start = index;
         index++; // skip opening "
-        while (fullJson[index] != '"')
+        while (index < fullJson.Length && fullJson[index] != '"')
         {
             // naive skip escape to ensure that we don't end the string at \"
             // (we use a better algorithm in WriteStringToBuffer that actually translate escape sequences to the proper characters)
             if (fullJson[index] == '\\')
                 index++;
             index++;
-            if (index >= fullJson.Length)
-            {
-                throw new NanoJsonException("Unterminated string", fullJson, start, index);
-            }
+        }
+        if (index >= fullJson.Length)
+        {
+            throw new NanoJsonException("Unterminated string", fullJson, start, index);
         }
         return new JsonValue(JsonType.String, fullJson, start, index + 1);
     }

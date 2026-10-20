@@ -1,0 +1,112 @@
+name: Runtime - deploy pdf3 DIS Edge routing
+
+# DIS Edge's routes to pdf3 in DIS Core (src/Runtime/pdf3/infra/edge). They don't depend on
+# pdf3's build, so they are published on their own, outside deploy-runtime-pdf3.yaml.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/Runtime/pdf3/infra/edge/**
+      - .github/workflows/deploy-runtime-pdf3-edge.yaml
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: "DIS Edge environments to tag (at22, at23, yt01, tt02, prod). Comma-separated."
+        required: true
+        default: "at22"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  construct-environments:
+    uses: ./.github/workflows/template-dis-construct-environments.yaml
+    with:
+      mode: dis-edge
+      inputs: ${{ toJSON(github.event.inputs) }}
+
+  # Its own job, outside a GitHub environment: the DIS publishing identity trusts main and the
+  # dis_core_* and dis_edge_* environments only, and may only push under studio-pdf3/.
+  push-syncroot:
+    name: Push DIS Edge syncroot as OCI artifact
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Require write permission to Fetch an OIDC token.
+    outputs:
+      short-sha: ${{ steps.vars.outputs.short-sha }}
+    defaults:
+      run:
+        working-directory: src/Runtime/pdf3/infra/edge
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: set vars
+        id: vars
+        run: echo "short-sha=${GITHUB_SHA::10}" >> "$GITHUB_OUTPUT"
+
+      # DIS Edge's Flux applies ./<env> from the artifact tagged <env>.
+      - name: render every environment
+        run: |
+          set -e
+          for env in at22 at23 yt01 tt02 prod; do
+            kubectl kustomize "$env" > /dev/null
+          done
+
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.DIS_SYNCROOT_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.DIS_SYNCROOT_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.DIS_SYNCROOT_AZURE_SUBSCRIPTION_ID }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: push artifact
+        run: |
+          flux push artifact oci://altinncr.azurecr.io/studio-pdf3/edge-syncroot:${{ steps.vars.outputs.short-sha }} \
+            --provider=generic \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  # Each DIS Edge cluster's Flux reads the tag named after its environment. The job name carries
+  # the tag, which the deployer dashboard (src/tools/deployer) matches on.
+  tag-syncroot:
+    name: Tag syncroot (${{ matrix.tag }})
+    needs: [push-syncroot, construct-environments]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    permissions:
+      id-token: write # Require write permission to Fetch an OIDC token.
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.construct-environments.outputs.result) }}
+    steps:
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.DIS_SYNCROOT_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.DIS_SYNCROOT_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.DIS_SYNCROOT_AZURE_SUBSCRIPTION_ID }}
+
+      - name: az acr login
+        run: az acr login --name altinncr
+
+      - name: flux install
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: tag artifact
+        run: |
+          flux tag artifact oci://altinncr.azurecr.io/studio-pdf3/edge-syncroot:${{ needs.push-syncroot.outputs.short-sha }} \
+            --tag ${{ matrix.tag }}
