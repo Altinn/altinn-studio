@@ -41,6 +41,7 @@ import {
   repoStatusPath,
   resourceActionsPath,
   resourceListPath,
+  altinn2ResourcePoliciesPath,
   resourcePolicyPath,
   resourcePublishStatusPath,
   resourceSinglePath,
@@ -101,7 +102,7 @@ import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
-import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import type { ExternalComponent, FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets, ValidationOnNavigationByLevel } from 'app-shared/types/global';
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';
@@ -178,7 +179,7 @@ export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getValidationOnNavigationLayoutSettings = (owner: string, app: string) => get<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(owner, app));
 export const getValidationOnNavigationPageSettings = (owner: string, app: string) => get<IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(owner, app));
-export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
+export const getFormLayouts = <TComponent = ExternalComponent>(owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse<TComponent>>(formLayoutsPath(owner, app, layoutSetName));
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
@@ -232,6 +233,7 @@ export const getAccessPackages = (org: string, repo: string) => get<PolicyAccess
 export const getAccessPackageServices = (accessPackageUrn: string, env: string) => get<AccessPackageResource[]>(resourceAccessPackageServicesPath(accessPackageUrn, env));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getResourceList = (org: string, skipGiteaFields = false, skipParseJson = false) => get<ResourceListItem[]>(resourceListPath(org, skipGiteaFields, skipParseJson));
+export const getAltinn2ResourcePolicies = (org: string, env: string) => get<{ identifier: string; policy: Policy; resourceType: string }[]>(altinn2ResourcePoliciesPath(org, env));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));

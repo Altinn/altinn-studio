@@ -265,6 +265,53 @@ public sealed class MisspelledApiMigrationTests : IDisposable
     }
 
     [Fact]
+    public void InterfaceImplementation_CallSiteInAFileProcessedAfterTheImplementation_StillRenamed()
+    {
+        // Pin the order that used to lose the call: the implementation's file is rewritten first.
+        _app.Write("logic/First.cs", "");
+        _app.Write("logic/Second.cs", "");
+        var order = SyntaxScanner().Files.Select(file => file.Path).ToList();
+        var analyser = order[0];
+        var caller = order[1];
+        File.WriteAllText(
+            analyser,
+            """
+            using System.IO;
+            using System.Threading.Tasks;
+            using Altinn.App.Core.Features.FileAnalysis;
+
+            public class MyAnalyser : IFileAnalyser
+            {
+                public string Id => "my";
+
+                public Task<FileAnalysisResult> Analyse(Stream stream, string? filename = null) =>
+                    Task.FromResult(new FileAnalysisResult("my"));
+            }
+            """
+        );
+        File.WriteAllText(
+            caller,
+            """
+            using System.IO;
+            using System.Threading.Tasks;
+
+            public class Caller
+            {
+                public async Task<string> Run(MyAnalyser analyser, Stream stream)
+                {
+                    var result = await analyser.Analyse(stream);
+                    return result.AnalyserId;
+                }
+            }
+            """
+        );
+
+        new MisspelledApiMigration(SemanticScanner()).Migrate();
+
+        Assert.Contains("analyser.Analyze(stream)", File.ReadAllText(caller));
+    }
+
+    [Fact]
     public void NamedArguments_RenamedOnlyWhenBoundToSdkParameters()
     {
         var sdkCall = _app.Write(

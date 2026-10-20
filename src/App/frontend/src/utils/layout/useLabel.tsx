@@ -25,7 +25,7 @@ export function useLabel({
 
   const getRequiredComponent = () => (required ? <RequiredIndicator required={required} /> : undefined);
   const getOptionalComponent = () =>
-    !required ? (
+    required === false ? (
       <OptionalIndicator
         readOnly={readOnly}
         required={required}

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Models.Notifications.Future;
+using Altinn.App.Core.Models.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
@@ -24,6 +25,11 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 internal abstract record CommandRequestPayload;
 
 internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
+
+/// <summary>
+/// Process/next's prepared transition; instantiation carries no payload.
+/// </summary>
+internal sealed record AcquireProcessingStatusPayload(ProcessStateChange ProcessStateChange) : CommandRequestPayload;
 
 /// <summary>
 /// Source-generated JSON serialization context for command payloads.

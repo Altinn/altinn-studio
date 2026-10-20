@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHookWithProviders } from '../../mocks/renderHookWithProviders';
 import type {
   UpdateOrgTextResourcesMutationArgs,
@@ -34,7 +35,7 @@ const updatedData: ITextResourcesWithLanguage = {
 };
 type Request = ServicesContextProps['updateOrgTextResources'];
 const mockRequest: Request = () => Promise.resolve(updatedData);
-const updateOrgTextResources = jest.fn().mockImplementation(mockRequest);
+const updateOrgTextResources = vi.fn().mockImplementation(mockRequest);
 
 describe('useUpdateOrgTextResourcesMutation', () => {
   beforeEach(updateOrgTextResources.mockClear);
@@ -50,7 +51,7 @@ describe('useUpdateOrgTextResourcesMutation', () => {
     const client = createQueryClientWithData();
     const { result } = render(client);
     result.current.mutate(args);
-    await waitFor(expect(updateOrgTextResources).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgTextResources).toHaveBeenCalled());
     const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
     expect(client.getQueryData(key)).toEqual(updatedData);
   });
@@ -59,14 +60,14 @@ describe('useUpdateOrgTextResourcesMutation', () => {
     const client = createQueryClientMock();
     const { result } = render(client);
     result.current.mutate(args);
-    await waitFor(expect(updateOrgTextResources).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgTextResources).toHaveBeenCalled());
     const key: TanstackQueryKey = [QueryKey.OrgTextResources, orgName, language];
     expect(client.getQueryData(key)).toEqual(updatedData);
   });
 
   it('Invalidates the data on error', async () => {
     const client = createQueryClientWithData();
-    const invalidateSpy = jest.spyOn(client, 'invalidateQueries');
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     const { result } = render(client);
     updateOrgTextResources.mockRejectedValueOnce(new Error('Error'));
     result.current.mutate(args);

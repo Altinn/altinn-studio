@@ -21,7 +21,6 @@ import {
   getFormBootstrapUrlForStateless,
   getOrderDetailsUrl,
   getPaymentInformationForTaskUrl,
-  getPdfFormatUrl,
   getProcessNextUrl,
   getProcessResumeUrl,
   getUpdateFileTagsUrl,
@@ -34,7 +33,6 @@ import type { IDataList } from 'src/features/dataLists';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
-import type { IPdfFormat } from 'src/features/pdf/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
@@ -137,11 +135,15 @@ export const doAttachmentRemove = async (
 };
 
 export const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
-  const response = await httpPost<IData>(getDataModelTypeUrl(instanceId, dataType), undefined, data);
-  if (response.status >= 300) {
+  const response = await httpPost<DataPostResponse>(getDataModelTypeUrl(instanceId, dataType), undefined, data);
+  if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to add sub form');
   }
-  return response.data;
+  const newDataElement = response.data.instance.data.find((element) => element.id === response.data.newDataElementId);
+  if (!newDataElement) {
+    throw new Error('Created subform data element is missing from the instance');
+  }
+  return newDataElement;
 };
 
 export const doSubformEntryDelete = async (instanceId: string, dataElementId: string): Promise<void> => {
@@ -177,9 +179,6 @@ export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTo
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
-
-export const fetchPdfFormat = (instanceId: string, dataElementId: string): Promise<IPdfFormat> =>
-  httpGet(getPdfFormatUrl(instanceId, dataElementId));
 
 export const fetchPaymentInformationForTask = (
   instanceId: string,

@@ -1,3 +1,4 @@
+import { describe, expect, it, test, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import type { StudioTreeViewRootProps } from './';
 import { StudioTreeView } from './';
@@ -23,7 +24,7 @@ const subNodeLabel2_1 = 'Test 2.1';
 
 type TestComponentProps = Omit<StudioTreeViewRootProps, 'children'>;
 
-const onSelect = jest.fn();
+const onSelect = vi.fn();
 const defaultProps: TestComponentProps = { onSelect };
 
 const simpleComposition = (testProps: Partial<TestComponentProps> = {}): ReactElement => (
@@ -88,8 +89,6 @@ const createRenderFunction =
   };
 
 describe('StudioTreeView', () => {
-  afterEach(jest.clearAllMocks);
-
   describe.each(['simple', 'complex'])('%s composition', (simpleOrComplex: SimpleOrComplex) => {
     const renderTreeView = createRenderFunction(simpleOrComplex);
 

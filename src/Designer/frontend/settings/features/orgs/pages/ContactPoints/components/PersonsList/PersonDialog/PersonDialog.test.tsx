@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,13 +16,14 @@ const defaultPerson: Person = {
   phone: '',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 type RenderProps = {
   initialValue?: Person;
   availableEnvironments?: string[];
   editingId?: string | null;
-  onClose?: jest.Mock;
+  onClose?: Mock;
 };
 
 const renderPersonDialog = (
@@ -28,7 +31,7 @@ const renderPersonDialog = (
     initialValue = defaultPerson,
     availableEnvironments = ['tt02', 'production'],
     editingId = null,
-    onClose = jest.fn(),
+    onClose = vi.fn(),
   }: RenderProps = {},
   queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
 ) =>
@@ -48,16 +51,18 @@ const getSaveButton = () => screen.getByRole('button', { name: textMock('general
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 const getNameInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.orgs.contact_points.field_name')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_name')}${textMock('general.required')}`,
   });
 const getEmailInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_email') });
 const getPhoneInput = () =>
   screen.getByRole('textbox', { name: textMock('settings.orgs.contact_points.field_phone') });
+const getReportFrequencySelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('settings.orgs.contact_points.field_report_frequency'),
+  });
 
 describe('PersonDialog', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('renders the add title when not editing', () => {
     renderPersonDialog();
     expect(
@@ -103,6 +108,19 @@ describe('PersonDialog', () => {
     );
   });
 
+  it('saves the selected report frequency', async () => {
+    const user = userEvent.setup();
+    renderPersonDialog({
+      initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' },
+    });
+    await user.selectOptions(getReportFrequencySelect(), 'weekly');
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({ reportFrequency: 'weekly' }),
+    );
+  });
+
   it('calls updateContactPoint when saving an edited person', async () => {
     const user = userEvent.setup();
     renderPersonDialog({
@@ -112,6 +130,7 @@ describe('PersonDialog', () => {
         phone: '',
         isActive: true,
         environments: [],
+        reportFrequency: 'none',
       },
       editingId: 'person-1',
     });
@@ -168,7 +187,7 @@ describe('PersonDialog', () => {
   });
 
   it('calls onClose when cancel is clicked', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderPersonDialog({ onClose });
     await user.click(getCancelButton());
@@ -227,8 +246,8 @@ describe('PersonDialog', () => {
   });
 
   it('does not call onClose when cancel is clicked while saving', async () => {
-    const addContactPoint = jest.fn(() => new Promise<never>(() => {})); // never resolves
-    const onClose = jest.fn();
+    const addContactPoint = vi.fn(() => new Promise<never>(() => {})); // never resolves
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderPersonDialog(
       { initialValue: { ...defaultPerson, name: 'Test', email: 'test@example.com' }, onClose },
@@ -240,7 +259,7 @@ describe('PersonDialog', () => {
   });
 
   it('calls onClose when cancel is clicked while not saving', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderPersonDialog({ onClose });
     await user.click(getCancelButton());

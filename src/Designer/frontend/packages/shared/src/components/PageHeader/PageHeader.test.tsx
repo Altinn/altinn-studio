@@ -1,3 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -13,8 +15,8 @@ import {
 } from 'app-shared/constants';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 
-const mockOrgSelect = jest.fn();
-const mockUserSelect = jest.fn();
+const mockOrgSelect = vi.fn();
+const mockUserSelect = vi.fn();
 
 const organizationsMock = [
   { username: 'ttd', full_name: 'Testdepartementet', avatar_url: '', id: 1 },
@@ -30,13 +32,13 @@ const mockUser = {
   userType: 1,
 };
 
-jest.mock('@studio/hooks', () => ({
-  ...jest.requireActual('@studio/hooks'),
-  useMediaQuery: jest.fn(),
+vi.mock('@studio/hooks', async () => ({
+  ...(await vi.importActual('@studio/hooks')),
+  useMediaQuery: vi.fn(),
 }));
 
-jest.mock('app-shared/hooks/queries', () => ({
-  ...jest.requireActual('app-shared/hooks/queries'),
+vi.mock('app-shared/hooks/queries', async () => ({
+  ...(await vi.importActual('app-shared/hooks/queries')),
   useOrganizationsQuery: () => ({ data: organizationsMock }),
   useUserQuery: () => ({ data: mockUser }),
 }));
@@ -48,11 +50,11 @@ const triggerButtonName = textMock('shared.header_user_for_org', {
 
 describe('PageHeader', () => {
   beforeEach(() => {
-    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    (useMediaQuery as Mock).mockReturnValue(false);
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('renders the app title in the header', () => {
@@ -105,7 +107,7 @@ describe('PageHeader', () => {
   });
 
   it('hides the center navigation on mobile', () => {
-    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    (useMediaQuery as Mock).mockReturnValue(true);
     renderPageHeader();
     expect(
       screen.queryByRole('link', { name: textMock('dashboard.header_item_dashboard') }),

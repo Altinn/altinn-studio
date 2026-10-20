@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioLanguagePicker } from './StudioLanguagePicker';
@@ -36,7 +37,7 @@ describe('StudioLanguagePicker', () => {
 
   it('Calls onRemove with the selected language when the user clicks the delete button and accepts', async () => {
     const user = setupUser();
-    const onRemove = jest.fn();
+    const onRemove = vi.fn();
     renderLanguagePicker({ onRemove });
 
     await user.pickLanguage(twoLetterCodes[1]);
@@ -49,7 +50,7 @@ describe('StudioLanguagePicker', () => {
 
   it('Selects another language and calls onSelect with it when the user clicks the delete button and accepts', async () => {
     const user = setupUser();
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     renderLanguagePicker({ onSelect });
 
     await user.pickLanguage(twoLetterCodes[1]);
@@ -104,7 +105,7 @@ describe('StudioLanguagePicker', () => {
     'Calls the onAdd callback with the new code when a valid %s-letter language code is entered',
     async (_, languageCodes, newCode) => {
       const user = setupUser();
-      const onAdd = jest.fn();
+      const onAdd = vi.fn();
       renderLanguagePicker({ languageCodes, onAdd });
 
       await user.clickAdd();
@@ -118,7 +119,7 @@ describe('StudioLanguagePicker', () => {
 
   it('Does not call the onAdd callback when an already existing language code is entered', async () => {
     const user = setupUser();
-    const onAdd = jest.fn();
+    const onAdd = vi.fn();
     renderLanguagePicker({ onAdd });
 
     await user.clickAdd();
@@ -130,7 +131,7 @@ describe('StudioLanguagePicker', () => {
 
   it('Does not call the onAdd callback when nothing is entered', async () => {
     const user = setupUser();
-    const onAdd = jest.fn();
+    const onAdd = vi.fn();
     renderLanguagePicker({ onAdd });
 
     await user.clickAdd();
@@ -158,7 +159,7 @@ describe('StudioLanguagePicker', () => {
 
   it('Calls the onSelect callback when the user selects a language code', async () => {
     const user = setupUser();
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     renderLanguagePicker({ onSelect });
 
     await user.pickLanguage(twoLetterCodes[1]);

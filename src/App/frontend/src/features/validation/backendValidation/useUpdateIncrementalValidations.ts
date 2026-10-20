@@ -5,6 +5,7 @@ import deepEqual from 'fast-deep-equal';
 import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { FormStore } from 'src/features/form/FormContext';
 import {
+  mapBackendIssuesToComponentValidations,
   mapBackendIssuesToFieldValidations,
   mapBackendValidationsToValidatorGroups,
   mapValidatorGroupsToDataModelValidations,
@@ -43,12 +44,19 @@ export function updateIncrementalValidations(
     newValidatorGroups[group] = mapBackendIssuesToFieldValidations(validationIssues);
   }
 
+  // Validations linked to a component without a field are not part of the validator groups, so they are merged
+  // the same way here: issues from validators that ran on save replace those from the initial validation
+  const componentValidations = mapBackendIssuesToComponentValidations([
+    ...(cachedInitialValidations ?? []).filter((issue) => !(issue.source in lastSaveValidations)),
+    ...Object.values(lastSaveValidations).flat(),
+  ]);
+
   if (deepEqual(initialValidatorGroups, newValidatorGroups)) {
-    // Don't update any validations, only set last saved validations
-    updateBackendValidations(undefined, { incremental: lastSaveValidations });
+    // Don't update any field validations, only set last saved validations
+    updateBackendValidations(undefined, { incremental: lastSaveValidations }, undefined, componentValidations);
     return;
   }
 
   const backendValidations = mapValidatorGroupsToDataModelValidations(newValidatorGroups);
-  updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
+  updateBackendValidations(backendValidations, { incremental: lastSaveValidations }, undefined, componentValidations);
 }

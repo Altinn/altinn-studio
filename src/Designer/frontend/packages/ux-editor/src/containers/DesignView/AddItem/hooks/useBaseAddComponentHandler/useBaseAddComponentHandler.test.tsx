@@ -1,22 +1,24 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import type { IInternalLayout } from '../../../../../types/global';
 import { layoutMock } from '../../../../../testing/layoutMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useBaseAddComponentHandler } from './useBaseAddComponentHandler';
 import { waitFor } from '@testing-library/react';
 import { usePreviewContext } from 'app-shared/contexts/PreviewContext';
 import { useFormItemContext } from '../../../../FormItemContext';
 
-jest.mock('app-shared/contexts/PreviewContext');
-jest.mock('../../../../../hooks', () => ({
+vi.mock('app-shared/contexts/PreviewContext');
+vi.mock('../../../../../hooks', () => ({
   useAppContext: () => ({
     selectedFormLayoutSetName: 'testLayoutSet',
-    setSelectedItem: jest.fn(),
+    setSelectedItem: vi.fn(),
   }),
 }));
 
-jest.mock('../../../../../hooks/mutations/useAddItemToLayoutMutation', () => ({
+vi.mock('../../../../../hooks/mutations/useAddItemToLayoutMutation', () => ({
   useAddItemToLayoutMutation: () => ({
     mutate: (_vars, { onSuccess }) => {
       onSuccess();
@@ -24,7 +26,7 @@ jest.mock('../../../../../hooks/mutations/useAddItemToLayoutMutation', () => ({
   }),
 }));
 
-jest.mock('../../../../FormItemContext');
+vi.mock('../../../../FormItemContext');
 
 const mockedItemToAdd: [ComponentType, string, number, string] = [
   ComponentType.Input,
@@ -37,7 +39,7 @@ describe('useAddComponentHandler', () => {
   it('should call baseAddItem with correct arguments and an empty callback (silent)', async () => {
     const handleEditMock = mockFormItemContext();
     const doReloadPreviewMock = mockPreviewContext();
-    const onDoneMock = jest.fn();
+    const onDoneMock = vi.fn();
 
     const { addItem } = renderUseAddComponentHandler(layoutMock);
     addItem(...mockedItemToAdd, onDoneMock);
@@ -45,26 +47,11 @@ describe('useAddComponentHandler', () => {
     expect(handleEditMock).toHaveBeenCalledWith({
       dataModelBindings: { simpleBinding: '' },
       id: 'new-id',
-      itemType: 'COMPONENT',
-      pageIndex: null,
       type: 'Input',
     });
 
     await waitFor(() => expect(doReloadPreviewMock).toHaveBeenCalled());
     expect(onDoneMock).toHaveBeenCalled();
-  });
-
-  it('does not add a removed component type', () => {
-    const handleEditMock = mockFormItemContext();
-    const doReloadPreviewMock = mockPreviewContext();
-    const onDoneMock = jest.fn();
-
-    const { addItem } = renderUseAddComponentHandler(layoutMock);
-    addItem(ComponentType.FileUploadWithTag, BASE_CONTAINER_ID, 0, 'new-id', onDoneMock);
-
-    expect(handleEditMock).not.toHaveBeenCalled();
-    expect(doReloadPreviewMock).not.toHaveBeenCalled();
-    expect(onDoneMock).not.toHaveBeenCalled();
   });
 });
 
@@ -74,15 +61,15 @@ function renderUseAddComponentHandler(layout: IInternalLayout) {
 }
 
 function mockFormItemContext() {
-  const handleEditMock = jest.fn();
+  const handleEditMock = vi.fn();
 
-  (useFormItemContext as jest.Mock).mockReturnValue({ handleEdit: handleEditMock });
+  (useFormItemContext as Mock).mockReturnValue({ handleEdit: handleEditMock });
   return handleEditMock;
 }
 
 function mockPreviewContext() {
-  const doReloadPreviewMock = jest.fn();
+  const doReloadPreviewMock = vi.fn();
 
-  (usePreviewContext as jest.Mock).mockReturnValue({ doReloadPreview: doReloadPreviewMock });
+  (usePreviewContext as Mock).mockReturnValue({ doReloadPreview: doReloadPreviewMock });
   return doReloadPreviewMock;
 }

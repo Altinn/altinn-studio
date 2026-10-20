@@ -1634,6 +1634,7 @@ public class SigningControllerTests
             authenticationLevel: 2,
             authenticationMethod: "test",
             selectedPartyId: 2,
+            selectionWasUnusable: false,
             context: ref parseContext
         );
     }

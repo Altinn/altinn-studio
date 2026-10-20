@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import type { FeatureToggle } from './useFeatureToggle';
@@ -10,12 +11,10 @@ import { FeatureFlagMutationContextProvider } from './FeatureFlagMutationContext
 const enabledFlag = FeatureFlag.AiAssistant;
 const disabledFlag = FeatureFlag.NewCodeLists;
 const flags = [enabledFlag];
-const addFlag = jest.fn();
-const removeFlag = jest.fn();
+const addFlag = vi.fn();
+const removeFlag = vi.fn();
 
 describe('useFeatureToggle', () => {
-  beforeEach(jest.clearAllMocks);
-
   describe('isEnabled', () => {
     it('Returns true when the given feature is enabled', () => {
       const { result } = renderUseFeatureToggle(enabledFlag);

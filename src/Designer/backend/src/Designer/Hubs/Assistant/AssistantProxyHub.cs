@@ -446,7 +446,7 @@ public class AssistantProxyHub : Hub<IAssistantClient>
 
         _logger.LogInformation("CancelWorkflow called for session {SessionId} by {Developer}", sessionId, developer);
 
-        // The agents service rejects cancellation without the caller's identity —
+        // The assistant service rejects cancellation without the caller's identity —
         // it verifies the caller owns the session.
         using var httpRequest = new HttpRequestMessage(
             HttpMethod.Post,

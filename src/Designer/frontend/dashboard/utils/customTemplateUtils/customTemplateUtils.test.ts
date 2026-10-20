@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { CustomTemplate } from 'app-shared/types/CustomTemplate';
 import { groupTemplatesByOwner } from './customTemplateUtils';
 import type { Organization } from 'app-shared/types/Organization';

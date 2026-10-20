@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import {
   updateComponentWithSubform,
   filterOutTableColumn,
   getComponentsForSubformTable,
 } from './editSubformTableColumnsUtils';
 import type { FormItem } from '@altinn/ux-editor/types/FormItem';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { TableColumn } from '../types/TableColumn';
 import { componentMocks } from '../../../../testing/componentMocks';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';

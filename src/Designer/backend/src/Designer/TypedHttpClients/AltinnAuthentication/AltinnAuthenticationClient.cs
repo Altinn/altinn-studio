@@ -74,7 +74,10 @@ public class AltinnAuthenticationClient : IAltinnAuthenticationClient
 
         using HttpResponseMessage response = await _httpClient.SendAsync(message);
 
-        _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Response: {response}");
+        _logger.LogInformation(
+            "//AltinnAuthenticationClient // ConvertTokenAsync // Response status code: {StatusCode}",
+            response.StatusCode
+        );
         var outputToken = await response.Content.ReadAsAsync<string>();
         return outputToken;
     }

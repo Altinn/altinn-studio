@@ -17,9 +17,9 @@ public class SecretsLocalClientTests
     {
         var sut = new SecretsLocalClient(GetConfiguration(("test", "value"), ("d", "e")));
 
-        await sut.Invoking(s => s.GetCertificateAsync("certId")).Should().ThrowAsync<Exception>();
-        await sut.Invoking(s => s.GetKeyAsync("certId")).Should().ThrowAsync<Exception>();
-        await sut.Invoking(s => s.GetSecretAsync("certId")).Should().ThrowAsync<Exception>();
+        await sut.Invoking(s => s.GetCertificate("certId")).Should().ThrowAsync<Exception>();
+        await sut.Invoking(s => s.GetKey("certId")).Should().ThrowAsync<Exception>();
+        await sut.Invoking(s => s.GetSecret("certId")).Should().ThrowAsync<Exception>();
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class SecretsLocalClientTests
 
         var sut = new SecretsLocalClient(GetConfiguration(("certId", Convert.ToBase64String(certificate)), ("d", "e")));
 
-        var certResult = await sut.GetCertificateAsync("certId");
+        var certResult = await sut.GetCertificate("certId");
         certResult.Should().BeEquivalentTo(certificate);
     }
 
@@ -39,7 +39,7 @@ public class SecretsLocalClientTests
     {
         var sut = new SecretsLocalClient(GetConfiguration());
 
-        var secretResult = await sut.GetSecretAsync("secretId");
+        var secretResult = await sut.GetSecret("secretId");
         secretResult.Should().Be("local secret dummy data");
     }
 
@@ -50,7 +50,7 @@ public class SecretsLocalClientTests
         var jwkSerialized = JsonSerializer.Serialize(jwk);
         var sut = new SecretsLocalClient(GetConfiguration(("jwk", jwkSerialized)));
 
-        var keyResult = await sut.GetKeyAsync("jwk");
+        var keyResult = await sut.GetKey("jwk");
         keyResult.Should().BeEquivalentTo(jwk);
         keyResult.CurveName.Should().Be("sillyCurveForTest");
     }

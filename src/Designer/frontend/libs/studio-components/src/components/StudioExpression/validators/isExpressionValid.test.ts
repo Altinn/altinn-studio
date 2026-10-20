@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { DataLookupFunc, Expression } from '../types/Expression';
 import { isExpressionValid } from './isExpressionValid';
 import { GeneralRelationOperator } from '../enums/GeneralRelationOperator';

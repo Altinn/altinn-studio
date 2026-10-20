@@ -100,7 +100,7 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         // application-specific label (e.g. a target task) without a second per-workflow lookup.
         var repo = fixture.CreateRepository();
         var wf = CreateWorkflowRequest("a");
-        var labels = new Dictionary<string, string> { ["processNextTargetId"] = "Task_2:3" };
+        var labels = new Dictionary<string, string> { ["processNextTargetTask"] = "Task_2" };
 
         await EnqueueWithCollection(repo, "labeled-collection", [wf], labels: labels);
 
@@ -113,7 +113,7 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         Assert.NotNull(collection);
         var head = Assert.Single(collection.Heads);
         Assert.NotNull(head.Labels);
-        Assert.Equal("Task_2:3", head.Labels["processNextTargetId"]);
+        Assert.Equal("Task_2", head.Labels["processNextTargetTask"]);
     }
 
     [Fact]

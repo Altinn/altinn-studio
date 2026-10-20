@@ -16,6 +16,7 @@ export interface InstantiateHeaderProps {
 
 export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
   const party = profile?.party;
+  const allFormsUrl = returnUrlToAllForms(window.location.host);
 
   return (
     <div
@@ -45,14 +46,16 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
                 <Lang id='instantiate.inbox' />
               </a>
             </li>
-            <li className={classes.headerLink}>
-              <a
-                className='altinnLink'
-                href={returnUrlToAllForms(window.location.host)}
-              >
-                <Lang id='instantiate.all_forms' />
-              </a>
-            </li>
+            {allFormsUrl && (
+              <li className={classes.headerLink}>
+                <a
+                  className='altinnLink'
+                  href={allFormsUrl}
+                >
+                  <Lang id='instantiate.all_forms' />
+                </a>
+              </li>
+            )}
             <li className={classes.headerLink}>
               <a
                 className='altinnLink'

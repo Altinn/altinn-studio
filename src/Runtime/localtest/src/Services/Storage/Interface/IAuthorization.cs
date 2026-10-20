@@ -19,25 +19,38 @@ public interface IAuthorization
     /// </summary>
     public Task<List<MessageBoxInstance>> AuthorizeMessageBoxInstances(
         List<Instance> instances,
-        bool keyAccessMode
+        bool keyAccessMode,
+        CancellationToken cancellationToken
     );
 
     /// <summary>
     /// Authorizes a given action on an instance.
     /// </summary>
     /// <returns>true if the user is authorized.</returns>
-    public Task<bool> AuthorizeInstanceAction(Instance instance, string action, string task = null);
+    public Task<bool> AuthorizeInstanceAction(
+        Instance instance,
+        string action,
+        string task,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Authorizes that the user has one or more of the actions on an instance.
     /// </summary>
     /// <returns>true if the user is authorized.</returns>
-    public Task<bool> AuthorizeAnyOfInstanceActions(Instance instance, List<string> actions);
+    public Task<bool> AuthorizeAnyOfInstanceActions(
+        Instance instance,
+        List<string> actions,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Authorize instances, and returns a list of instances that the user has the right to read.
     /// </summary>
-    public Task<List<Instance>> AuthorizeInstances(List<Instance> instances);
+    public Task<List<Instance>> AuthorizeInstances(
+        List<Instance> instances,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Verifies that the user has at least one of the supplied scopes.
@@ -58,5 +71,8 @@ public interface IAuthorization
     /// </summary>
     /// <param name="xacmlJsonRequest">The Xacml Json Request</param>
     /// <returns>The Xacml Json response contains the result of the request</returns>
-    public Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest);
+    public Task<XacmlJsonResponse> GetDecisionForRequest(
+        XacmlJsonRequestRoot xacmlJsonRequest,
+        CancellationToken cancellationToken
+    );
 }

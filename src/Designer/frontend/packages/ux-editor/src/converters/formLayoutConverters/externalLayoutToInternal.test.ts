@@ -1,10 +1,11 @@
+import { describe, expect, it } from 'vitest';
 import { externalLayoutToInternal } from './externalLayoutToInternal';
 import {
   externalLayoutWithMultiPageGroup,
   internalLayoutWithMultiPageGroup,
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
-import type { ExternalFormLayout } from 'app-shared/types/api';
+import type { SerializedFormLayout } from '../../types/SerializedComponent';
 import type { IInternalLayout } from '../../types/global';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
@@ -15,7 +16,7 @@ describe('externalLayoutToInternal', () => {
   });
 
   it('Does not convert set properties as custom properties', () => {
-    const externalLayout: ExternalFormLayout = {
+    const externalLayout: SerializedFormLayout = {
       $schema: layoutSchemaUrl(),
       data: {
         layout: [],
@@ -35,7 +36,7 @@ describe('externalLayoutToInternal', () => {
   it('Returns an empty layout with custom properties when the "data" property is null', () => {
     const customProperty1 = 'test1';
     const customProperty2 = 'test2';
-    const externalLayout: ExternalFormLayout = {
+    const externalLayout: SerializedFormLayout = {
       $schema: layoutSchemaUrl(),
       data: null,
       customProperty1,
@@ -43,6 +44,7 @@ describe('externalLayoutToInternal', () => {
     };
     const expectedResult: IInternalLayout = {
       ...createEmptyLayout(),
+      $schema: layoutSchemaUrl(),
       customRootProperties: {
         customProperty1,
         customProperty2,
@@ -57,7 +59,7 @@ describe('externalLayoutToInternal', () => {
     const rootCustomProperty2 = 'test2';
     const dataCustomProperty1 = 'test3';
     const dataCustomProperty2 = 'test4';
-    const externalLayout: ExternalFormLayout = {
+    const externalLayout: SerializedFormLayout = {
       $schema: layoutSchemaUrl(),
       data: {
         layout: null,
@@ -69,6 +71,7 @@ describe('externalLayoutToInternal', () => {
     };
     const expectedResult: IInternalLayout = {
       ...createEmptyLayout(),
+      $schema: layoutSchemaUrl(),
       customRootProperties: {
         rootCustomProperty1,
         rootCustomProperty2,

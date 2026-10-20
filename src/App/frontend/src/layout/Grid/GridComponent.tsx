@@ -36,6 +36,7 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText, useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
 import { useLabel } from 'src/utils/layout/useLabel';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -454,15 +455,13 @@ function CellWithLabel({
 }: CellWithLabelProps) {
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const config = useComponentConfig(labelFrom);
-  const evaluatedRequired = useEvalExpression(
-    'required' in config ? config.required : undefined,
-    CommonExpressions.FormComponentProps.required,
-  );
+  const readOnly = useEvalExpression('readOnly' in config ? config.readOnly : undefined, CommonExpressions.readOnly);
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
   const help = useEvalOptionalTrb(config, 'help', CommonExpressions.TRBLabel);
   const description = useEvalOptionalTrb(config, 'description', CommonExpressions.TRBLabel);
 
-  const required = 'required' in config && evaluatedRequired;
+  const labelSettings = config.type !== 'Custom' && 'labelSettings' in config ? config.labelSettings : undefined;
+  const required = useComponentIsRequired(config);
   const colSpanValue = useEvalExpression(columnStyleOptions?.colSpan, CommonExpressions.IGridColumnProperties.colSpan);
   useWarnIfColSpanOverlapsHiddenColumns({
     colSpan: colSpanValue,
@@ -483,6 +482,8 @@ function CellWithLabel({
         id={useIndexedId(labelFrom)}
         label={title}
         required={required}
+        readOnly={readOnly}
+        labelSettings={labelSettings}
         help={help}
         description={description}
       />

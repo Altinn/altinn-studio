@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -8,13 +9,13 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 describe('StudioCallToActionBar', () => {
   it('Sets the given className on the action container', () => {
     testRootClassNameAppending((className) =>
-      renderComponent({ className, isVisible: true, title: 'CTA Title', onClick: jest.fn() }),
+      renderComponent({ className, isVisible: true, title: 'CTA Title', onClick: vi.fn() }),
     );
   });
 
   it('Appends custom attributes to the root element', () => {
     testCustomAttributes((props) =>
-      renderComponent({ ...props, isVisible: true, title: 'CTA Title', onClick: jest.fn() }),
+      renderComponent({ ...props, isVisible: true, title: 'CTA Title', onClick: vi.fn() }),
     );
   });
 
@@ -31,7 +32,7 @@ describe('StudioCallToActionBar', () => {
 
   it('Fires onClick when the button is clicked', async () => {
     const user = userEvent.setup();
-    const onActionButtonClickedMock = jest.fn();
+    const onActionButtonClickedMock = vi.fn();
     renderComponent({ onClick: onActionButtonClickedMock });
 
     const button = screen.getByRole('button', { name: title });

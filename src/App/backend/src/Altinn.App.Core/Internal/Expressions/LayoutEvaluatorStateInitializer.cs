@@ -115,9 +115,12 @@ internal sealed class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateIni
             throw new NotSupportedException("Legacy single data accessor does not implement GetPreviousDataAccessor");
         }
 
+        private LayoutEvaluatorState? _layoutEvaluatorStateCache;
+
         public LayoutEvaluatorState GetLayoutEvaluatorState()
         {
-            return new LayoutEvaluatorState(
+            // Reuse the state so that expressions evaluated from any component context share the cached component tree
+            return _layoutEvaluatorStateCache ??= new LayoutEvaluatorState(
                 this,
                 _layouts,
                 _translationService,
@@ -182,7 +185,7 @@ internal sealed class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateIni
             taskId: null,
             language: null
         );
-        return new LayoutEvaluatorState(dataAccessor, layouts, _translationService, _frontEndSettings, gatewayAction);
+        return dataAccessor.GetLayoutEvaluatorState();
     }
 
     /// <inheritdoc />

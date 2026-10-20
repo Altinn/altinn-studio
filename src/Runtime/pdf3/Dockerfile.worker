@@ -10,7 +10,11 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o main ./cmd/worker
+# The commit the image is built from, reported as service.version. "dev" in local builds.
+ARG SERVICE_VERSION=dev
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
+    -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=${SERVICE_VERSION}" \
+    -o main ./cmd/worker
 
 FROM docker.io/chromedp/headless-shell:stable@sha256:c65aef2b8fef5113cb97be8c99f7bf094320ca9b11e511041e6924e516bda0a1
 

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { render as renderRtl, screen } from '@testing-library/react';
 import { renderIcon } from './renderIcon';
 import type {

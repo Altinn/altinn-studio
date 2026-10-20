@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import {
   PolicyEditorContext,
@@ -78,7 +79,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
       ],
     },
   ],
-  setPolicyRules: jest.fn(),
+  setPolicyRules: vi.fn(),
   actions: [mockAction1, mockAction2],
   subjects: [],
   accessPackages: [mockAccessPackageAreaGroup],
@@ -86,7 +87,7 @@ const mockPolicyEditorContextValue: PolicyEditorContextProps = {
   resourceType: 'urn',
   resourceId: '[app]',
   showAllErrors: false,
-  savePolicy: jest.fn(),
+  savePolicy: vi.fn(),
 };
 describe('PolicyRuleAccessPackageSummary', () => {
   it('should render', () => {

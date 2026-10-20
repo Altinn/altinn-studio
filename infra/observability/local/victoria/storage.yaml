@@ -1,0 +1,22 @@
+- op: remove
+  path: /spec/nodeSelector
+- op: remove
+  path: /spec/tolerations
+- op: remove
+  path: /spec/affinity
+- op: remove
+  path: /spec/storage/storageClassName
+- op: replace
+  path: /spec/storage/resources/requests/storage
+  value: 1Gi
+- op: replace
+  path: /spec/retentionPeriod
+  value: 3d
+- op: replace
+  path: /spec/resources
+  value:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 512Mi

@@ -155,6 +155,19 @@
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
+      "description": "Move uv in the Studio Assistant CI and image, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
+      "matchFileNames": [
+        ".github/workflows/altinity-build-test.yaml",
+        ".github/workflows/assistant-evals.yaml",
+        ".github/workflows/assistant-prompts.yaml",
+        "src/AI/assistant/dockerfile",
+        "src/AI/assistant/.python-version"
+      ],
+      "matchPackageNames": ["astral-sh/uv", "ghcr.io/astral-sh/uv", "python"],
+      "groupName": "Studio Assistant uv and Python",
+      "groupSlug": "assistant-uv-python"
+    },
+    {
       "matchFileNames": ["src/Designer/**"],
       "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in Designer"
@@ -199,6 +212,13 @@
       "groupSlug": "app-template-nuget-v9",
       "addLabels": ["approve"],
       "automerge": true
+    },
+    {
+      "description": "Keep the v8 app template's .NET SDK on 8.x: it targets net8.0 and its Dockerfile builds with the 8.0 SDK image",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/v8/global.json"],
+      "matchPackageNames": ["dotnet-sdk"],
+      "allowedVersions": "<9"
     },
     {
       "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
@@ -293,17 +313,12 @@
       "commitMessageSuffix": ""
     },
     {
-      "description": "Manage experimental agent platform dependencies manually",
-      "matchFileNames": ["src/experimental/**"],
-      "enabled": false
-    },
-    {
       "description": "Manage all Rust dependencies manually",
       "matchManagers": ["cargo"],
       "enabled": false
     },
     {
-      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects. Comes after the manual-management rules so it also covers the experimental example images.",
+      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects.",
       "matchDatasources": ["rust-version"],
       "matchPackageNames": ["rust"],
       "groupName": "Rust toolchain",

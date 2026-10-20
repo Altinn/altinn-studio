@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
 import type { ConfigCustomFileEndingProps } from './ConfigCustomFileEnding';
@@ -8,11 +9,11 @@ import { getPropertyByRole } from './testConfigUtils';
 
 describe('ConfigCustomFileEnding', () => {
   it('should call handleComponentUpdate with updated component', async () => {
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigCustomFileEnding({
       props: {
         component: {
-          ...componentMocks.Input,
+          ...componentMocks.FileUpload,
           hasCustomFileEndings: false,
         },
         handleComponentUpdate: handleComponentUpdateMock,
@@ -30,11 +31,11 @@ describe('ConfigCustomFileEnding', () => {
   });
 
   it('should clear validFileEndings when hasCustomFileEndings is toggled to false', async () => {
-    const handleComponentUpdateMock = jest.fn();
+    const handleComponentUpdateMock = vi.fn();
     renderConfigCustomFileEnding({
       props: {
         component: {
-          ...componentMocks.Input,
+          ...componentMocks.FileUpload,
           hasCustomFileEndings: true,
           validFileEndings: ['.txt'],
         },
@@ -60,10 +61,10 @@ describe('ConfigCustomFileEnding', () => {
     props?: Partial<ConfigCustomFileEndingProps>;
     queries?: Partial<ServicesContextProps>;
   }) => {
-    const { Input: inputComponent } = componentMocks;
+    const { FileUpload: fileUploadComponent } = componentMocks;
     const defaultProps: ConfigCustomFileEndingProps = {
-      component: inputComponent,
-      handleComponentUpdate: jest.fn(),
+      component: fileUploadComponent,
+      handleComponentUpdate: vi.fn(),
     };
     return renderWithProviders(<ConfigCustomFileEnding {...defaultProps} {...props} />, {
       queries,

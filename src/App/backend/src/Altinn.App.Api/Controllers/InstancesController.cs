@@ -21,6 +21,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Files;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
@@ -43,6 +44,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using IProcessEngine = Altinn.App.Core.Internal.Process.IProcessEngine;
 
@@ -162,7 +164,8 @@ public class InstancesController : ControllerBase
             app,
             instanceOwnerPartyId,
             instanceGuid,
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -245,7 +248,8 @@ public class InstancesController : ControllerBase
             app,
             instanceOwnerPartyId,
             instanceGuid,
-            "read"
+            "read",
+            cancellationToken
         );
 
         if (!enforcementResult.Authorized)
@@ -314,6 +318,7 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="language">The currently active user language</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>the created instance</returns>
     [HttpPost]
     [DisableFormValueModelBinding]
@@ -327,7 +332,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromQuery] int? instanceOwnerPartyId,
-        [FromQuery] string? language = null
+        [FromQuery] string? language = null,
+        CancellationToken cancellationToken = default
     )
     {
         if (string.IsNullOrEmpty(org))
@@ -418,7 +424,9 @@ public class InstancesController : ControllerBase
         Party party;
         try
         {
-            party = await LookupParty(instanceTemplate.InstanceOwner) ?? throw new Exception("Unknown party");
+            party =
+                await LookupParty(instanceTemplate.InstanceOwner, cancellationToken)
+                ?? throw new Exception("Unknown party");
             instanceTemplate.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
                 party,
                 _authenticationContext
@@ -437,7 +445,14 @@ public class InstancesController : ControllerBase
             return NotFound($"Cannot lookup party: {partyLookupException.Message}");
         }
 
-        EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            party.PartyId,
+            null,
+            "instantiate",
+            cancellationToken
+        );
         if (!enforcementResult.Authorized)
         {
             return Forbidden(enforcementResult);
@@ -471,7 +486,12 @@ public class InstancesController : ControllerBase
         try
         {
             // start process and goto next task
-            ProcessStartRequest processStartRequest = new() { Instance = instanceTemplate, User = User };
+            ProcessStartRequest processStartRequest = new()
+            {
+                Instance = instanceTemplate,
+                User = User,
+                Language = language,
+            };
 
             ProcessChangeResult result = await _processEngine.CreateInitialProcessState(processStartRequest);
             if (!result.Success)
@@ -535,7 +555,9 @@ public class InstancesController : ControllerBase
                 versions,
                 processStateChange,
                 isInstantiation: true,
-                notification: notification
+                notification: notification,
+                language: language,
+                cancellationToken: CancellationToken.None
             );
         }
         catch (InstanceStateConflictException)
@@ -610,6 +632,7 @@ public class InstancesController : ControllerBase
     /// <param name="app">application identifier which is unique within an organization</param>
     /// <param name="instantiationInstance">instantiation information</param>
     /// <param name="language">The currently active user language</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>The new instance</returns>
     [HttpPost("create")]
     [DisableFormValueModelBinding]
@@ -623,7 +646,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string org,
         [FromRoute] string app,
         [FromBody] InstantiationInstance instantiationInstance,
-        [FromQuery] string? language = null
+        [FromQuery] string? language = null,
+        CancellationToken cancellationToken = default
     )
     {
         if (string.IsNullOrEmpty(org))
@@ -672,7 +696,9 @@ public class InstancesController : ControllerBase
         Party party;
         try
         {
-            party = await LookupParty(instantiationInstance.InstanceOwner) ?? throw new Exception("Unknown party");
+            party =
+                await LookupParty(instantiationInstance.InstanceOwner, cancellationToken)
+                ?? throw new Exception("Unknown party");
 
             instantiationInstance.InstanceOwner = await InstantiationHelper.PartyToInstanceOwner(
                 party,
@@ -705,7 +731,14 @@ public class InstancesController : ControllerBase
             return BadRequest("It is not possible to copy instances between instance owners.");
         }
 
-        EnforcementResult enforcementResult = await AuthorizeAction(org, app, party.PartyId, null, "instantiate");
+        EnforcementResult enforcementResult = await AuthorizeAction(
+            org,
+            app,
+            party.PartyId,
+            null,
+            "instantiate",
+            cancellationToken
+        );
 
         _logger.LogInformation(
             "Authorization details for party {PartyId}: Authorized={Authorized}, FailedObligations={FailedObligations}",
@@ -742,12 +775,53 @@ public class InstancesController : ControllerBase
             );
         }
 
+        InstanceWithStorageMetadata? fetchedSource = null;
+        Instance? source = null;
+
+        if (isCopyRequest)
+        {
+            string[] sourceSplit =
+                instantiationInstance.SourceInstanceId?.Split("/")
+                ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
+            Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+
+            try
+            {
+                fetchedSource = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                    app,
+                    org,
+                    party.PartyId,
+                    sourceInstanceGuid,
+                    authenticationMethod: null,
+                    CancellationToken.None
+                );
+                source = fetchedSource.Instance;
+            }
+            catch (PlatformHttpException exception)
+            {
+                return StatusCode(
+                    500,
+                    $"Retrieving source instance failed with status code {exception.Response.StatusCode}"
+                );
+            }
+
+            if (source.Status?.IsArchived is not true)
+            {
+                return BadRequest("It is not possible to copy an instance that isn't archived.");
+            }
+        }
+
         Instance instanceTemplate = new()
         {
             InstanceOwner = instantiationInstance.InstanceOwner,
             VisibleAfter = instantiationInstance.VisibleAfter,
-            DueBefore = instantiationInstance.DueBefore,
+            DueBefore = instantiationInstance.DueBefore ?? GetDueBeforeFromSource(application, source),
             Org = application.Org,
+            DataValues = source is null ? null : SelectCopiedDataValues(application, source),
+            PresentationTexts = SelectIncludedValues(
+                application.CopyInstanceSettings?.IncludedPresentationTexts,
+                source?.PresentationTexts
+            ),
         };
 
         ConditionallySetReadStatus(instanceTemplate);
@@ -773,41 +847,8 @@ public class InstancesController : ControllerBase
         {
             instanceTemplate.Process = null;
 
-            Instance? source = null;
-
-            if (isCopyRequest)
+            if (fetchedSource is not null)
             {
-                string[] sourceSplit =
-                    instantiationInstance.SourceInstanceId?.Split("/")
-                    ?? throw new ArgumentException("SourceInstanceId is null or not in the correct format");
-                Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
-                InstanceWithStorageMetadata fetchedSource;
-
-                try
-                {
-                    fetchedSource = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
-                        app,
-                        org,
-                        party.PartyId,
-                        sourceInstanceGuid,
-                        authenticationMethod: null,
-                        CancellationToken.None
-                    );
-                    source = fetchedSource.Instance;
-                }
-                catch (PlatformHttpException exception)
-                {
-                    return StatusCode(
-                        500,
-                        $"Retrieving source instance failed with status code {exception.Response.StatusCode}"
-                    );
-                }
-
-                if (source.Status?.IsArchived is not true)
-                {
-                    return BadRequest("It is not possible to copy an instance that isn't archived.");
-                }
-
                 var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
                 if (copyInstanceValidator is not null)
                 {
@@ -837,6 +878,7 @@ public class InstancesController : ControllerBase
                 Instance = instanceTemplate,
                 User = User,
                 Prefill = instantiationInstance.Prefill,
+                Language = language,
             };
 
             ProcessChangeResult processResult = await _processEngine.CreateInitialProcessState(startRequest);
@@ -855,12 +897,15 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
 
-            if (isCopyRequest && source is not null)
+            if (source is not null)
             {
                 await CopyDataFromSourceInstance(application, instance, source);
             }
 
-            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(instance);
+            var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                instance,
+                cancellationToken: CancellationToken.None
+            );
             instance = fetchedInstance.Instance;
 
             // An instance must never exist without a process to enqueue in the workflow engine.
@@ -878,7 +923,9 @@ public class InstancesController : ControllerBase
                 processStateChange,
                 isInstantiation: true,
                 prefill: instantiationInstance.Prefill,
-                notification: instantiationInstance.Notification
+                notification: instantiationInstance.Notification,
+                language: language,
+                cancellationToken: CancellationToken.None
             );
         }
         catch (InstanceStateConflictException)
@@ -932,6 +979,7 @@ public class InstancesController : ControllerBase
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">Unique id to identify the instance</param>
     /// <param name="language">The currently active user language</param>
+    /// <param name="cancellationToken">Cancellation token, populated by the framework</param>
     /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
     /// <remarks>
     /// The endpoint will return a redirect to the new instance if the copy operation was successful.
@@ -953,7 +1001,8 @@ public class InstancesController : ControllerBase
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        [FromQuery] string? language = null
+        [FromQuery] string? language = null,
+        CancellationToken cancellationToken = default
     )
     {
         // This endpoint should be used exclusively by end users. Ideally from a browser as a request after clicking
@@ -973,7 +1022,14 @@ public class InstancesController : ControllerBase
             );
         }
 
-        EnforcementResult readAccess = await AuthorizeAction(org, app, instanceOwnerPartyId, instanceGuid, "read");
+        EnforcementResult readAccess = await AuthorizeAction(
+            org,
+            app,
+            instanceOwnerPartyId,
+            instanceGuid,
+            "read",
+            cancellationToken
+        );
 
         if (!readAccess.Authorized)
         {
@@ -1000,7 +1056,8 @@ public class InstancesController : ControllerBase
             app,
             instanceOwnerPartyId,
             null,
-            "instantiate"
+            "instantiate",
+            cancellationToken
         );
 
         if (!instantiateAccess.Authorized)
@@ -1013,6 +1070,12 @@ public class InstancesController : ControllerBase
         {
             InstanceOwner = sourceInstance.InstanceOwner,
             VisibleAfter = sourceInstance.VisibleAfter,
+            DueBefore = GetDueBeforeFromSource(application, sourceInstance),
+            DataValues = SelectCopiedDataValues(application, sourceInstance),
+            PresentationTexts = SelectIncludedValues(
+                application.CopyInstanceSettings?.IncludedPresentationTexts,
+                sourceInstance.PresentationTexts
+            ),
             Status = new() { ReadStatus = ReadStatus.Read },
         };
 
@@ -1026,7 +1089,7 @@ public class InstancesController : ControllerBase
                 validationResult
             );
             await TranslateValidationResult(validationResult, language);
-            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+            return ValidationFailedResult(validationResult, application, language);
         }
 
         var copyInstanceValidator = _appImplementationFactory.Get<ICopyInstanceValidator>();
@@ -1047,12 +1110,17 @@ public class InstancesController : ControllerBase
                     validationResult
                 );
                 await TranslateValidationResult(validationResult, language);
-                return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+                return ValidationFailedResult(validationResult, application, language);
             }
         }
 
         // Calculate initial process state in memory before creating the instance with process state
-        ProcessStartRequest processStartRequest = new() { Instance = targetInstance, User = User };
+        ProcessStartRequest processStartRequest = new()
+        {
+            Instance = targetInstance,
+            User = User,
+            Language = language,
+        };
         ProcessChangeResult startResult = await _processEngine.CreateInitialProcessState(processStartRequest);
         if (!startResult.Success)
         {
@@ -1086,7 +1154,9 @@ public class InstancesController : ControllerBase
                     targetInstance,
                     fetchedTargetInstance.Metadata,
                     startResult.ProcessStateChange,
-                    isInstantiation: true
+                    isInstantiation: true,
+                    language: language,
+                    cancellationToken: CancellationToken.None
                 );
             }
 
@@ -1478,8 +1548,13 @@ public class InstancesController : ControllerBase
     {
         int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
-        string[] sourceSplit = sourceInstance.Id.Split("/");
-        Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+        // Attachments are copied first, so references to them in the form data can be updated to the new ids
+        Dictionary<string, string> copiedAttachmentIds = await CopyAttachmentsFromSourceInstance(
+            application,
+            targetInstance,
+            sourceInstance,
+            instanceOwnerPartyId
+        );
 
         List<DataType> dts = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef != null)
@@ -1513,6 +1588,12 @@ public class InstancesController : ControllerBase
                     DataHelper.ResetDataFields(application.CopyInstanceSettings.ExcludedDataFields, data);
                 }
 
+                // Ensure that any reference to attachments in the data models gets updated on the copy
+                if (copiedAttachmentIds.Count > 0)
+                {
+                    ObjectUtils.ReplaceStringValues(data, copiedAttachmentIds);
+                }
+
                 await _prefillService.PrefillDataModel(
                     instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture),
                     dt.Id,
@@ -1536,15 +1617,29 @@ public class InstancesController : ControllerBase
                 await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
             }
         }
+    }
 
+    /// <summary>
+    /// Copies the attachments of <paramref name="sourceInstance"/> when enabled in the copy instance settings.
+    /// Returns a map from the id of each copied attachment to the id of its copy.
+    /// </summary>
+    private async Task<Dictionary<string, string>> CopyAttachmentsFromSourceInstance(
+        ApplicationMetadata application,
+        Instance targetInstance,
+        Instance sourceInstance,
+        int instanceOwnerPartyId
+    )
+    {
+        Dictionary<string, string> copiedAttachmentIds = [];
         if (application.CopyInstanceSettings?.IncludeAttachments != true)
         {
-            return;
+            return copiedAttachmentIds;
         }
 
-        // Copy binary data elements (files/attachments)
-        // Error handling strategy: Continue processing other attachments even if individual ones fail
-        // This ensures partial success rather than complete failure when some attachments cannot be copied
+        string[] sourceSplit = sourceInstance.Id.Split("/");
+        Guid sourceInstanceGuid = Guid.Parse(sourceSplit[1]);
+        List<string> excludedDataTypes = application.CopyInstanceSettings.ExcludedDataTypes;
+
         List<DataType> binaryDataTypes = application
             .DataTypes.Where(dt => dt.AppLogic?.ClassRef == null)
             .Where(dt =>
@@ -1570,7 +1665,7 @@ public class InstancesController : ControllerBase
                     CancellationToken.None
                 );
 
-                await _dataClient.InsertBinaryData(
+                DataElement newDataElement = await _dataClient.InsertBinaryData(
                     targetInstance.Id,
                     de.DataType,
                     de.ContentType,
@@ -1580,8 +1675,83 @@ public class InstancesController : ControllerBase
                     authenticationMethod: null,
                     CancellationToken.None
                 );
+
+                // Tags (e.g. the file type chosen in FileUploadWithTag) can't be set on insert
+                if (de.Tags is { Count: > 0 })
+                {
+                    newDataElement.Tags = [.. de.Tags];
+                    await _dataClient.Update(
+                        targetInstance,
+                        newDataElement,
+                        authenticationMethod: null,
+                        CancellationToken.None
+                    );
+                }
+
+                copiedAttachmentIds[de.Id] = newDataElement.Id;
             }
         }
+
+        return copiedAttachmentIds;
+    }
+
+    private static DateTime? GetDueBeforeFromSource(ApplicationMetadata application, Instance? sourceInstance)
+    {
+        if (sourceInstance is null || application.CopyInstanceSettings?.IncludeDueBefore is not true)
+        {
+            return null;
+        }
+
+        return sourceInstance.DueBefore;
+    }
+
+    /// <summary>
+    /// Selects the data values to copy from <paramref name="sourceInstance"/> and adds
+    /// <see cref="DataValueKeys.CopySourceInstanceId"/>. If that key is included and set on the source, the copied
+    /// value is kept so that a copy of a copy references the first instance in the chain.
+    /// </summary>
+    private static Dictionary<string, string> SelectCopiedDataValues(
+        ApplicationMetadata application,
+        Instance sourceInstance
+    )
+    {
+        Dictionary<string, string> dataValues =
+            SelectIncludedValues(application.CopyInstanceSettings?.IncludedDataValues, sourceInstance.DataValues)
+            ?? new Dictionary<string, string>(1);
+
+        // Order matters: the included values are selected first, and TryAdd only sets the key when they do not
+        // already contain it. If the app lists the key in IncludedDataValues and the source already has it, the
+        // source is itself a copy, and the value copied from it points to the first instance in the chain. Setting
+        // the id of the source here would make the value point one step back in the chain instead.
+        dataValues.TryAdd(DataValueKeys.CopySourceInstanceId, sourceInstance.Id);
+        return dataValues;
+    }
+
+    /// <summary>
+    /// Picks the entries from <paramref name="sourceValues"/> whose keys are listed in <paramref name="includedKeys"/>.
+    /// Returns null when there is nothing to copy.
+    /// </summary>
+    private static Dictionary<string, string>? SelectIncludedValues(
+        List<string>? includedKeys,
+        Dictionary<string, string>? sourceValues
+    )
+    {
+        if (includedKeys is null || includedKeys.Count == 0 || sourceValues is null || sourceValues.Count == 0)
+        {
+            return null;
+        }
+
+        Dictionary<string, string>? selected = null;
+        foreach (string key in includedKeys)
+        {
+            if (sourceValues.TryGetValue(key, out string? value) && value is not null)
+            {
+                selected ??= new Dictionary<string, string>(includedKeys.Count);
+                selected[key] = value;
+            }
+        }
+
+        return selected;
     }
 
     private ActionResult ExceptionResponse(Exception exception, string message)
@@ -1649,7 +1819,6 @@ public class InstancesController : ControllerBase
 
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state,
@@ -1670,26 +1839,8 @@ public class InstancesController : ControllerBase
         string app
     )
     {
-        if (exception.WorkflowFailure.Kind == WorkflowFailureKind.AcquireConflict)
-        {
-            return WorkflowInitializationProblem.Create(
-                _logger,
-                WorkflowInitializationFlow.Instantiation,
-                exception,
-                message,
-                state: WorkflowInitializationState.WorkflowFailed,
-                instance: exception.Instance,
-                recommendedAction: WorkflowRecommendedAction.InspectInstance,
-                workflowFailure: exception.WorkflowFailure,
-                workflowAccepted: true,
-                processStateChanged: false,
-                statusCode: StatusCodes.Status409Conflict
-            );
-        }
-
         return WorkflowInitializationProblem.Create(
             _logger,
-            WorkflowInitializationFlow.Instantiation,
             exception,
             message,
             state: WorkflowInitializationState.WorkflowFailed,
@@ -1733,7 +1884,8 @@ public class InstancesController : ControllerBase
         string app,
         int partyId,
         Guid? instanceGuid,
-        string action
+        string action,
+        CancellationToken cancellationToken
     )
     {
         EnforcementResult enforcementResult = new EnforcementResult();
@@ -1745,7 +1897,7 @@ public class InstancesController : ControllerBase
             partyId,
             instanceGuid
         );
-        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request, cancellationToken);
 
         if (response?.Response == null)
         {
@@ -1764,10 +1916,10 @@ public class InstancesController : ControllerBase
 
     /// <summary>
     /// Resolves the instance owner party before an instance is created. These lookups are tied to the request
-    /// through <see cref="HttpContext.RequestAborted"/>; the creation writes that follow deliberately are not,
+    /// through the request's cancellation token; the creation writes that follow deliberately are not,
     /// so a client that disconnects mid-way cannot leave a half-created instance behind.
     /// </summary>
-    private async Task<Party?> LookupParty(InstanceOwner instanceOwner)
+    private async Task<Party?> LookupParty(InstanceOwner instanceOwner, CancellationToken cancellationToken)
     {
         if (instanceOwner.PartyId != null)
         {
@@ -1775,10 +1927,10 @@ public class InstancesController : ControllerBase
             {
                 return await _registerClient.GetPartyUnchecked(
                     int.Parse(instanceOwner.PartyId, CultureInfo.InvariantCulture),
-                    cancellationToken: this.HttpContext.RequestAborted
+                    cancellationToken: cancellationToken
                 );
             }
-            catch (OperationCanceledException) when (this.HttpContext.RequestAborted.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
@@ -1802,7 +1954,7 @@ public class InstancesController : ControllerBase
                 {
                     var partyId = await _altinnPartyClient.GetPartyIdByUrn(
                         instanceOwner.ExternalIdentifier,
-                        this.HttpContext.RequestAborted
+                        cancellationToken
                     );
                     if (partyId == null)
                     {
@@ -1811,17 +1963,14 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by external identifier: {instanceOwner.ExternalIdentifier}. No partyId found for the provided external identifier."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(
-                        partyId.Value,
-                        cancellationToken: this.HttpContext.RequestAborted
-                    );
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, cancellationToken: cancellationToken);
                 }
                 if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                 {
                     lookupNumber = "personNumber";
                     return await _altinnPartyClient.LookupParty(
                         new PartyLookup { Ssn = instanceOwner.PersonNumber },
-                        cancellationToken: this.HttpContext.RequestAborted
+                        cancellationToken: cancellationToken
                     );
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
@@ -1829,7 +1978,7 @@ public class InstancesController : ControllerBase
                     lookupNumber = "organisationNumber";
                     return await _altinnPartyClient.LookupParty(
                         new PartyLookup { OrgNo = instanceOwner.OrganisationNumber },
-                        cancellationToken: this.HttpContext.RequestAborted
+                        cancellationToken: cancellationToken
                     );
                 }
                 else if (!string.IsNullOrEmpty(instanceOwner.Username))
@@ -1838,7 +1987,7 @@ public class InstancesController : ControllerBase
                         ? instanceOwner.Username[6..]
                         : instanceOwner.Username;
                     var urn = $"{AltinnUrns.SelfIdentifiedEmail}:{UrlEncoder.Default.Encode(email)}";
-                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(urn, this.HttpContext.RequestAborted);
+                    var partyId = await _altinnPartyClient.GetPartyIdByUrn(urn, cancellationToken);
                     if (partyId == null)
                     {
                         throw new ServiceException(
@@ -1846,10 +1995,7 @@ public class InstancesController : ControllerBase
                             $"Failed to lookup party by username: {instanceOwner.Username}. No partyId found for the provided idporten self identified email address."
                         );
                     }
-                    return await _registerClient.GetPartyUnchecked(
-                        partyId.Value,
-                        cancellationToken: this.HttpContext.RequestAborted
-                    );
+                    return await _registerClient.GetPartyUnchecked(partyId.Value, cancellationToken: cancellationToken);
                 }
                 else
                 {
@@ -1859,7 +2005,7 @@ public class InstancesController : ControllerBase
                     );
                 }
             }
-            catch (OperationCanceledException) when (this.HttpContext.RequestAborted.IsCancellationRequested)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
@@ -1955,7 +2101,8 @@ public class InstancesController : ControllerBase
                 var fileValidationIssues = await _fileService.RunFileAnalysisAndValidation(
                     dataType,
                     part.Bytes,
-                    part.FileName
+                    part.FileName,
+                    language
                 );
 
                 if (fileValidationIssues is not null)
@@ -2126,6 +2273,101 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
         }
+    }
+
+    /// <summary>
+    /// The copy endpoint is navigated to directly from the browser, so a JSON body is not useful for end users.
+    /// Returns a minimal HTML page when the client prefers html over json, otherwise the usual JSON response.
+    /// </summary>
+    private ActionResult ValidationFailedResult(
+        InstantiationValidationResult validationResult,
+        ApplicationMetadata application,
+        string? language
+    )
+    {
+        if (!RequestPrefersHtml())
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, validationResult);
+        }
+
+        language ??= LanguageConst.Nb;
+        string title =
+            application.Title?.GetValueOrDefault(language)
+            ?? application.Title?.GetValueOrDefault(LanguageConst.Nb)
+            ?? application.Id;
+        string encodedTitle = HtmlEncoder.Default.Encode(title);
+        string encodedMessage = HtmlEncoder.Default.Encode(validationResult.Message ?? string.Empty);
+
+        string html = $$"""
+            <!DOCTYPE html>
+            <html lang="{{HtmlEncoder.Default.Encode(language)}}">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>{{encodedTitle}}</title>
+                <style>
+                    body { font-family: system-ui, sans-serif; margin: 0; padding: 2rem 1rem; background: #f4f5f6; color: #1e2b3c; }
+                    main { max-width: 40rem; margin: 0 auto; background: #fff; padding: 2rem; border-radius: 0.5rem; }
+                    h1 { font-size: 1.5rem; margin-top: 0; }
+                </style>
+            </head>
+            <body>
+                <main>
+                    <h1>{{encodedTitle}}</h1>
+                    <p>{{encodedMessage}}</p>
+                </main>
+            </body>
+            </html>
+            """;
+
+        return new ContentResult
+        {
+            StatusCode = StatusCodes.Status403Forbidden,
+            ContentType = "text/html; charset=utf-8",
+            Content = html,
+        };
+    }
+
+    private static readonly MediaTypeHeaderValue _htmlMediaType = MediaTypeHeaderValue.Parse("text/html");
+    private static readonly MediaTypeHeaderValue _jsonMediaType = MediaTypeHeaderValue.Parse("application/json");
+
+    private bool RequestPrefersHtml()
+    {
+        if (!MediaTypeHeaderValue.TryParseList(Request.Headers.Accept, out var accept))
+        {
+            return false;
+        }
+
+        return AcceptQuality(accept, _htmlMediaType) > AcceptQuality(accept, _jsonMediaType);
+    }
+
+    /// <summary>
+    /// Finds the quality the Accept header assigns to <paramref name="mediaType"/>, using the most specific
+    /// matching media range (exact type, then type wildcard, then */*) as described in RFC 7231 section 5.3.2.
+    /// </summary>
+    private static double AcceptQuality(IList<MediaTypeHeaderValue> accept, MediaTypeHeaderValue mediaType)
+    {
+        double quality = 0;
+        int bestSpecificity = -1;
+        foreach (var range in accept)
+        {
+            if (!mediaType.IsSubsetOf(range))
+            {
+                continue;
+            }
+
+            int specificity =
+                range.MatchesAllTypes ? 0
+                : range.MatchesAllSubTypes ? 1
+                : 2;
+            if (specificity > bestSpecificity)
+            {
+                bestSpecificity = specificity;
+                quality = range.Quality ?? 1;
+            }
+        }
+
+        return quality;
     }
 
     private async Task TranslateValidationResult(InstantiationValidationResult validationResult, string? language)

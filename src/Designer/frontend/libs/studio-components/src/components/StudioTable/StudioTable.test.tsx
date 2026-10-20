@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { StudioTableProps } from './';

@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrgContentLibraryPage } from './OrgContentLibraryPage';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitFor, act } from '@testing-library/react';
@@ -59,17 +60,17 @@ const publishedCodeListsQueryKey: string[] = [
 ];
 
 // Mocks:
-jest.mock('@studio/content-library', () => ({
-  ...jest.requireActual('@studio/content-library'),
+vi.mock('@studio/content-library', async () => ({
+  ...(await vi.importActual('@studio/content-library')),
   ContentLibrary: (props) => MockContentLibrary(props),
 }));
 
-const MockContentLibrary = jest
+const MockContentLibrary = vi
   .fn()
   .mockImplementation(() => <div data-testid={resourceLibraryTestId} />);
 const resourceLibraryTestId = 'resource-library';
 
-jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
+vi.mock('react-router-dom', async () => await vi.importActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 describe('OrgContentLibraryPage', () => {
   beforeEach(MockContentLibrary.mockClear);
@@ -104,7 +105,9 @@ describe('OrgContentLibraryPage', () => {
   it('Renders an error message when the code lists query fails', async () => {
     const getOrgCodeLists = () => Promise.reject(new Error('Test error'));
     renderOrgContentLibrary({ queries: { getOrgCodeLists } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+    );
 
     const errorMessage = await screen.findByText(textMock('dashboard.org_library.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
@@ -143,7 +146,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('calls updateOrgCodeList with correct data when onUpdateCodeList is triggered', async () => {
-    const updateOrgCodeList = jest.fn();
+    const updateOrgCodeList = vi.fn();
     renderOrgContentLibraryWithData({ queries: { updateOrgCodeList } });
     const { title, data } = codeList1Data;
 
@@ -151,27 +154,27 @@ describe('OrgContentLibraryPage', () => {
       title,
       codeList: data,
     });
-    await waitFor(expect(updateOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgCodeList).toHaveBeenCalled());
 
     expect(updateOrgCodeList).toHaveBeenCalledTimes(1);
     expect(updateOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
   });
 
   it('calls updateOrgCodeListId with correct data when onUpdateCodeListId is triggered', async () => {
-    const updateOrgCodeListId = jest.fn();
+    const updateOrgCodeListId = vi.fn();
     renderOrgContentLibraryWithData({ queries: { updateOrgCodeListId } });
     const codeListId: string = codeList1Data.title;
     const newCodeListId: string = 'new-id';
 
     retrievePagesConfig().codeListsWithTextResources.onUpdateCodeListId(codeListId, newCodeListId);
-    await waitFor(expect(updateOrgCodeListId).toHaveBeenCalled);
+    await waitFor(() => expect(updateOrgCodeListId).toHaveBeenCalled());
 
     expect(updateOrgCodeListId).toHaveBeenCalledTimes(1);
     expect(updateOrgCodeListId).toHaveBeenCalledWith(orgName, codeListId, newCodeListId);
   });
 
   it('calls createOrgCodeList with correct data when onCreateCodeList is triggered', async () => {
-    const createOrgCodeList = jest.fn();
+    const createOrgCodeList = vi.fn();
     renderOrgContentLibraryWithData({ queries: { createOrgCodeList } });
     const { title, data } = codeList1Data;
 
@@ -179,19 +182,19 @@ describe('OrgContentLibraryPage', () => {
       title,
       codeList: data,
     });
-    await waitFor(expect(createOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(createOrgCodeList).toHaveBeenCalled());
 
     expect(createOrgCodeList).toHaveBeenCalledTimes(1);
     expect(createOrgCodeList).toHaveBeenCalledWith(orgName, title, data);
   });
 
   it('calls uploadOrgCodeList with correct data when onUploadCodeList is triggered', async () => {
-    const uploadOrgCodeList = jest.fn();
+    const uploadOrgCodeList = vi.fn();
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOrgCodeList).toHaveBeenCalled());
 
     expect(uploadOrgCodeList).toHaveBeenCalledTimes(1);
     expect(uploadOrgCodeList).toHaveBeenCalledWith(orgName, expect.any(FormData));
@@ -200,35 +203,35 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('renders success toast when uploadOrgCodeList is run successfully', async () => {
-    const uploadOrgCodeList = jest.fn();
+    const uploadOrgCodeList = vi.fn();
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOrgCodeList).toHaveBeenCalled());
 
     const successMessage = textMock('dashboard.org_library.code_list_upload_success');
     expect(screen.getByText(successMessage)).toBeInTheDocument();
   });
 
   it('renders error toast when onUploadCodeList is rejected with unknown error code', async () => {
-    const uploadOrgCodeList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
+    const uploadOrgCodeList = vi.fn().mockImplementation(() => Promise.reject({ response: {} }));
     const file = new File([''], 'list.json');
     renderOrgContentLibraryWithData({ queries: { uploadOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onUploadCodeList(file);
-    await waitFor(expect(uploadOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(uploadOrgCodeList).toHaveBeenCalled());
 
     const errorMessage = textMock('dashboard.org_library.code_list_upload_generic_error');
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
   });
 
   it('calls deleteOrgCodeList with correct data when onDeleteCodeList is triggered', async () => {
-    const deleteOrgCodeList = jest.fn();
+    const deleteOrgCodeList = vi.fn();
     renderOrgContentLibraryWithData({ queries: { deleteOrgCodeList } });
 
     retrievePagesConfig().codeListsWithTextResources.onDeleteCodeList(codeList1Data.title);
-    await waitFor(expect(deleteOrgCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(deleteOrgCodeList).toHaveBeenCalled());
 
     expect(deleteOrgCodeList).toHaveBeenCalledTimes(1);
     expect(deleteOrgCodeList).toHaveBeenCalledWith(orgName, codeList1Data.title);
@@ -241,7 +244,7 @@ describe('OrgContentLibraryPage', () => {
     renderOrgContentLibraryWithData();
 
     retrievePagesConfig().codeListsWithTextResources.onUpdateTextResource(textResourceWithLanguage);
-    await waitFor(expect(queriesMock.updateOrgTextResources).toHaveBeenCalled);
+    await waitFor(() => expect(queriesMock.updateOrgTextResources).toHaveBeenCalled());
 
     expect(queriesMock.updateOrgTextResources).toHaveBeenCalledTimes(1);
     const expectedPayload: KeyValuePairs<string> = { [textResource.id]: textResource.value };
@@ -253,12 +256,14 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('renders merge conflict warning when there is a merge conflict', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: true }));
 
     renderOrgContentLibrary({ queries: { getRepoStatus } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+    );
 
     const mergeConflictWarning = screen.getByRole('heading', {
       name: textMock('merge_conflict.headline'),
@@ -268,12 +273,14 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('does not render merge conflict warning when there is no merge conflict', async () => {
-    const getRepoStatus = jest
+    const getRepoStatus = vi
       .fn()
       .mockImplementation(() => Promise.resolve({ ...repoStatus, hasMergeConflict: false }));
 
     renderOrgContentLibrary({ queries: { getRepoStatus } });
-    await waitFor(expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument);
+    await waitFor(() =>
+      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
+    );
 
     const mergeConflictWarning = screen.queryByRole('heading', {
       name: textMock('merge_conflict.headline'),
@@ -323,7 +330,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('Calls updateSharedResources with correct data when code list saving is triggered on the new code list page', async () => {
-    const updateSharedResources = jest.fn();
+    const updateSharedResources = vi.fn();
     renderOrgContentLibraryWithData({
       featureFlags: [FeatureFlag.NewCodeLists],
       queries: { updateSharedResources },
@@ -334,7 +341,7 @@ describe('OrgContentLibraryPage', () => {
       { name: 'list-2.json', content: `[{ "value": "9", "label": { "en": "Nine" } }]` },
     ];
     retrievePagesConfig().codeLists.onSave(newCodeLists);
-    await waitFor(expect(updateSharedResources).toHaveBeenCalled);
+    await waitFor(() => expect(updateSharedResources).toHaveBeenCalled());
 
     expect(updateSharedResources).toHaveBeenCalledTimes(1);
     expect(updateSharedResources).toHaveBeenCalledWith(orgName, {
@@ -362,7 +369,7 @@ describe('OrgContentLibraryPage', () => {
   });
 
   it('Publishes a code list when publish is triggered on the new code list page', async () => {
-    const publishCodeList = jest.fn();
+    const publishCodeList = vi.fn();
     renderOrgContentLibraryWithData({
       featureFlags: [FeatureFlag.NewCodeLists],
       queries: { publishCodeList },
@@ -379,7 +386,7 @@ describe('OrgContentLibraryPage', () => {
 
     act(() => retrievePagesConfig().codeLists.onPublish(libraryCodeListData));
 
-    await waitFor(expect(publishCodeList).toHaveBeenCalled);
+    await waitFor(() => expect(publishCodeList).toHaveBeenCalled());
     expect(publishCodeList).toHaveBeenCalledTimes(1);
     expect(publishCodeList).toHaveBeenCalledWith(
       orgName,

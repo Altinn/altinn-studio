@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ContentLibraryProps } from './ContentLibrary';
 import { ContentLibrary } from './ContentLibrary';
 import { screen } from '@testing-library/react';
@@ -9,7 +10,7 @@ import { renderWithProviders } from '../../test-utils/renderWithProviders';
 import { getPage } from '../pages';
 import type { PagesConfig } from '../types/PagesProps';
 
-const navigateMock = jest.fn();
+const navigateMock = vi.fn();
 
 // Test data:
 const heading = 'The test library';

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import type { ForwardedRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
@@ -73,7 +74,7 @@ describe('StudioSearch', () => {
   it('should call onSearchClick when the search button is clicked', async () => {
     const user = userEvent.setup();
     const searchButtonLabel = 'Search';
-    const onSearchClick = jest.fn();
+    const onSearchClick = vi.fn();
     renderStudioSearch({ searchButtonLabel, onSearchClick });
     await user.click(screen.getByRole('button', { name: searchButtonLabel }));
     expect(onSearchClick).toHaveBeenCalledTimes(1);

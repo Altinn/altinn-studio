@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -13,6 +15,7 @@ const defaultChannel: SlackChannel = {
   webhookUrl: '',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 const validChannel: SlackChannel = {
@@ -20,13 +23,14 @@ const validChannel: SlackChannel = {
   webhookUrl: 'https://hooks.slack.com/services/T00/B00/abc123',
   isActive: true,
   environments: [],
+  reportFrequency: 'none',
 };
 
 type RenderProps = {
   initialValue?: SlackChannel;
   availableEnvironments?: string[];
   editingId?: string | null;
-  onClose?: jest.Mock;
+  onClose?: Mock;
 };
 
 const renderSlackChannelDialog = (
@@ -34,7 +38,7 @@ const renderSlackChannelDialog = (
     initialValue = defaultChannel,
     availableEnvironments = ['tt02', 'production'],
     editingId = null,
-    onClose = jest.fn(),
+    onClose = vi.fn(),
   }: RenderProps = {},
   queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
 ) =>
@@ -54,16 +58,18 @@ const getSaveButton = () => screen.getByRole('button', { name: textMock('general
 const getCancelButton = () => screen.getByRole('button', { name: textMock('general.cancel') });
 const getChannelNameInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.orgs.contact_points.field_channel_name')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_channel_name')}${textMock('general.required')}`,
   });
 const getWebhookUrlInput = () =>
   screen.getByRole('textbox', {
-    name: `${textMock('settings.orgs.contact_points.field_webhook_url')} ${textMock('general.required')}`,
+    name: `${textMock('settings.orgs.contact_points.field_webhook_url')}${textMock('general.required')}`,
+  });
+const getReportFrequencySelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('settings.orgs.contact_points.field_report_frequency'),
   });
 
 describe('SlackChannelDialog', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('renders the add title when not editing', () => {
     renderSlackChannelDialog();
     expect(
@@ -105,6 +111,17 @@ describe('SlackChannelDialog', () => {
     expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
       org,
       expect.objectContaining({ name: '#general' }),
+    );
+  });
+
+  it('saves the selected report frequency', async () => {
+    const user = userEvent.setup();
+    renderSlackChannelDialog({ initialValue: validChannel });
+    await user.selectOptions(getReportFrequencySelect(), 'daily');
+    await user.click(getAddButton());
+    expect(queriesMock.addContactPoint).toHaveBeenCalledWith(
+      org,
+      expect.objectContaining({ reportFrequency: 'daily' }),
     );
   });
 
@@ -167,7 +184,7 @@ describe('SlackChannelDialog', () => {
   });
 
   it('calls onClose when cancel is clicked', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderSlackChannelDialog({ onClose });
     await user.click(getCancelButton());
@@ -203,8 +220,8 @@ describe('SlackChannelDialog', () => {
   });
 
   it('does not call onClose when cancel is clicked while saving', async () => {
-    const addContactPoint = jest.fn(() => new Promise<never>(() => {})); // never resolves
-    const onClose = jest.fn();
+    const addContactPoint = vi.fn(() => new Promise<never>(() => {})); // never resolves
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderSlackChannelDialog({ initialValue: validChannel, onClose }, { addContactPoint });
     await user.click(getAddButton());
@@ -213,7 +230,7 @@ describe('SlackChannelDialog', () => {
   });
 
   it('calls onClose when cancel is clicked while not saving', async () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const user = userEvent.setup();
     renderSlackChannelDialog({ onClose });
     await user.click(getCancelButton());

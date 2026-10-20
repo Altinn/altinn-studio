@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryResponseMock';
@@ -21,9 +22,9 @@ const renderWithMockServices = (
     isServerSort: false,
     totalRows: repos.length,
     pageNumber: 1,
-    onPageChange: jest.fn(),
-    onPageSizeChange: jest.fn(),
-    onSortClick: jest.fn(),
+    onPageChange: vi.fn(),
+    onPageSizeChange: vi.fn(),
+    onSortClick: vi.fn(),
     ...componentProps,
   };
 
@@ -76,7 +77,7 @@ describe('RepoList', () => {
 
   it('should not call handleSorting when clicking sort button and isServerSort is false', async () => {
     const user = userEvent.setup();
-    const mockHandleSorting = jest.fn();
+    const mockHandleSorting = vi.fn();
     renderWithMockServices({
       isServerSort: false,
       onSortClick: mockHandleSorting,
@@ -89,7 +90,7 @@ describe('RepoList', () => {
 
   it('should call handleSorting when clicking sort button and isServerSort is true', async () => {
     const user = userEvent.setup();
-    const handleSorting = jest.fn();
+    const handleSorting = vi.fn();
     renderWithMockServices({
       isServerSort: true,
       onSortClick: handleSorting,
@@ -102,7 +103,7 @@ describe('RepoList', () => {
 
   it('should call onPageChange with an incrementing number when navigating to the next page', async () => {
     const user = userEvent.setup();
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     renderWithMockServices({
       pageNumber: 1,
       isServerSort: true,
@@ -116,7 +117,7 @@ describe('RepoList', () => {
 
   it('should call onPageChange with a decrementing number when navigating to the previous page', async () => {
     const user = userEvent.setup();
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     renderWithMockServices({
       pageNumber: 2,
       isServerSort: true,
@@ -131,7 +132,7 @@ describe('RepoList', () => {
   it('should call onPageSizeChange when selecting a new page size', async () => {
     const user = userEvent.setup();
     const pageSizeOption = '10';
-    const onPageSizeChange = jest.fn();
+    const onPageSizeChange = vi.fn();
     renderWithMockServices({
       isServerSort: true,
       onPageSizeChange,
