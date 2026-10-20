@@ -3,3 +3,7 @@
   align-items: center;
   overflow-wrap: anywhere;
 }
+
+.paragraphText {
+  max-width: var(--running-text-max-width);
+}
