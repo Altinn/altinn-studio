@@ -866,7 +866,7 @@ Consecutive steps that run for the same BPMN element are drawn under one bracket
 
 The Altinn app library stamps each process-next lifecycle step with a **`processNextElement`** label naming the element it runs for: the task being left on a task-end/abandon step, the task being entered on a task-start step, and the end event on a process-end step. When it is present the dashboard uses it verbatim, so a step is attributed by what the app said rather than by what the command is called, and a command this dashboard has never heard of is grouped correctly on its first run. A process end also gets its real end event id this way, where the fallback below can only say "End Event".
 
-Only the pre-commit lifecycle steps carry it. The transition's own steps (`AcquireProcessingStatus`, `MutateProcessState`, `CommitProcessState`, `EnqueueSideEffectsWorkflow`) belong to neither element, and the post-commit steps and the auxiliary workflows' steps are deliberately left unlabeled: labeling them would draw the entering element's name a second time, after the commit, around work the first bracket already named.
+Only the pre-commit lifecycle steps carry it. The transition's own steps (`AcquireProcessingStatus`, `MutateProcessState`, `CommitProcessState`, `EnqueueAuxiliaryWorkflows`) belong to neither element, and the post-commit steps and the auxiliary workflows' steps are deliberately left unlabeled: labeling them would draw the entering element's name a second time, after the commit, around work the first bracket already named.
 
 ### `stepPhase(commandDetail)` is the fallback
 

@@ -40,12 +40,12 @@ const appFrontend = new AppFrontend();
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
  *     engine surfaces `processing` (delay / transient retries) or `failed` (endState failure) on Task_1.
  *   - postCommit: an IPipelineServiceTask ("scenario") runs it POST-commit inside ExecuteServiceTask — a
- *     critical post-commit step of the committed Task_1 -> Task_Service transition — so
+ *     primary post-commit step of the committed Task_1 -> Task_Service transition — so
  *     `processing` is observable on the committed Task_Service and an endState "failure" is a real
  *     permanent failure (terminal Failed -> frontend `failed`). On success the service task
- *     advances the process to Task_2. Non-gating side effects (the Altinn event registrations) are
- *     deliberately NOT lever-controlled: they run in fire-and-forget side-effects workflows that
- *     are invisible to the frontend by design (see the noncritical-side-effects ADR).
+ *     advances the process to Task_2. The Altinn event registrations are deliberately NOT
+ *     lever-controlled: they run in auxiliary workflows, which the process never waits on and the
+ *     frontend never sees.
  *
  * UI states:
  *   processing  = the standard form loader, followed by a safe-to-leave message after eight seconds
