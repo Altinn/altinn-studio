@@ -156,11 +156,11 @@ export const localtestAppProcessRoute = (fallback) => async (req, res) => {
 
 const orgTokens = new Map();
 
-/** A localtest service-owner token for `org`, with the instance read scope localtest defaults to. */
+/** Use the service-owner token endpoint so Storage recognizes the standard scope claim. */
 async function orgToken(org) {
   if (!orgTokens.has(org)) {
     const response = await axios.get(
-      `${localtestUrl()}/Home/GetTestOrgToken/${encodeURIComponent(org)}`,
+      `${localtestUrl()}/Home/auth/serviceowner?org=${encodeURIComponent(org)}&scope=altinn%3Aserviceowner%2Finstances.read`,
       { ...passThrough, headers: { Host: platformHost() }, responseType: 'text' },
     );
     if (response.status !== 200) {
