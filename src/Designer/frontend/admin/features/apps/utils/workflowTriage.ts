@@ -167,7 +167,7 @@ export function groupElapsed(group: WorkflowGroup): number | undefined {
 
 /**
  * The separator the app runtime puts between the transition and the command in an auxiliary
- * workflow's operation id: `Process next side-effects: Form -> Verify · MovedToAltinnEvent`.
+ * workflow's operation id: `Process next auxiliary: Form -> Verify · MovedToAltinnEvent`.
  */
 const AUXILIARY_WORKFLOW_SEPARATOR = ' · ';
 
