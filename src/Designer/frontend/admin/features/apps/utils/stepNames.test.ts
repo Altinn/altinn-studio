@@ -21,7 +21,7 @@ const workflowOf = (operationId: string, labels?: Record<string, string>): Workf
   idempotencyKey: 'key',
   namespace: 'ttd/app',
   createdAt: '2026-10-13T10:00:00Z',
-  role: 'primary',
+  role: 'Primary',
   overallStatus: 'Completed',
   steps: [],
   labels,

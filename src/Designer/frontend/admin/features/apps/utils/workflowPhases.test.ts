@@ -38,7 +38,7 @@ const named = (operationId: string): WorkflowStatus => ({
   idempotencyKey: 'key',
   namespace: 'ttd/app',
   createdAt: '2026-09-21T13:29:56Z',
-  role: 'primary',
+  role: 'Primary',
   overallStatus: 'Completed',
   steps: [],
 });

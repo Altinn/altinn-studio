@@ -16,13 +16,13 @@ describe('workflowCollectionsPath', () => {
 
   it('builds a cursor-paginated discovery request', () => {
     expect(
-      workflowCollectionsPath(org, env, app, { failures: 'any', cursor: 'abc', pageSize: 25 }),
-    ).toBe(`${basePath}/collections?failures=any&cursor=abc&pageSize=25`);
+      workflowCollectionsPath(org, env, app, { failures: 'Any', cursor: 'abc', pageSize: 25 }),
+    ).toBe(`${basePath}/collections?failures=Any&cursor=abc&pageSize=25`);
   });
 
   it('omits parameters that are not set', () => {
-    expect(workflowCollectionsPath(org, env, app, { failures: 'primary' })).toBe(
-      `${basePath}/collections?failures=primary`,
+    expect(workflowCollectionsPath(org, env, app, { failures: 'Primary' })).toBe(
+      `${basePath}/collections?failures=Primary`,
     );
     expect(workflowCollectionsPath(org, env, app)).toBe(`${basePath}/collections`);
   });
@@ -37,8 +37,8 @@ describe('workflowsListPath', () => {
 
   it('repeats the status parameter and passes the role', () => {
     expect(
-      workflowsListPath(org, env, app, { statuses: ['Failed', 'Canceled'], role: 'auxiliary' }),
-    ).toBe(`${basePath}/workflows?status=Failed&status=Canceled&role=auxiliary`);
+      workflowsListPath(org, env, app, { statuses: ['Failed', 'Canceled'], role: 'Auxiliary' }),
+    ).toBe(`${basePath}/workflows?status=Failed&status=Canceled&role=Auxiliary`);
   });
 });
 

@@ -143,7 +143,7 @@ public class WorkflowsControllerTests
             .ReturnsAsync(JsonResponse(HttpStatusCode.OK, upstreamBody));
 
         using var response = await HttpClient.GetAsync(
-            $"{BasePath()}/collections?key=k%2F1&key=k2&failures=any&cursor=cur%20sor&pageSize=7"
+            $"{BasePath()}/collections?key=k%2F1&key=k2&failures=Any&cursor=cur%20sor&pageSize=7"
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -151,7 +151,7 @@ public class WorkflowsControllerTests
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
         Assert.Equal((Org, App, Env), capturedTarget);
         Assert.Equal(["k/1", "k2"], capturedKeys);
-        Assert.Equal(("any", "cur sor", 7), capturedQuery);
+        Assert.Equal(("Any", "cur sor", 7), capturedQuery);
     }
 
     [Fact]
@@ -225,14 +225,14 @@ public class WorkflowsControllerTests
             .ReturnsAsync(JsonResponse(HttpStatusCode.OK, upstreamBody));
 
         using var response = await HttpClient.GetAsync(
-            $"{BasePath()}/workflows?collectionKey=col1&status=Failed&status=AwaitingRetry&label=step%3Apdf&role=auxiliary&cursor=c1&pageSize=3"
+            $"{BasePath()}/workflows?collectionKey=col1&status=Failed&status=AwaitingRetry&label=step%3Apdf&role=Auxiliary&cursor=c1&pageSize=3"
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(upstreamBody, await response.Content.ReadAsStringAsync());
         Assert.Equal(["Failed", "AwaitingRetry"], capturedStatuses);
         Assert.Equal(["step:pdf"], capturedLabels);
-        Assert.Equal(("col1", "auxiliary", "c1", 3), capturedQuery);
+        Assert.Equal(("col1", "Auxiliary", "c1", 3), capturedQuery);
     }
 
     [Fact]
