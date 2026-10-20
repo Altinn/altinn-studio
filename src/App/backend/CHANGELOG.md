@@ -19,6 +19,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- An app no longer starts when a `subformPdf` task in `config/process/process.bpmn` has no `<altinn:subformPdfConfig>`, lacks `subformComponentId` or `subformDataTypeId`, or names a `subformDataTypeId` that is not in `applicationmetadata.json`. ([#21022](https://github.com/Altinn/altinn-studio/pull/21022))
+
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - An app no longer starts when more than one `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandonHandler` runs for the same task, or more than one `IOnProcessEndedHandler` is registered. Combine them into one. ([#21069](https://github.com/Altinn/altinn-studio/pull/21069))
@@ -29,14 +31,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
-  - the obsolete `POST .../data?dataType=` returns a list of validation issues
-  - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+    - the obsolete `POST .../data?dataType=` returns a list of validation issues
+    - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
 - `PUT .../process/next` with concurrent changes to the instance: ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
     - answers `409 Conflict` and does nothing if the instance changed after the call read it (`processNextState: "instanceChanged"`) or another call chose differently on the same version (`"concurrentTransition"`); try again
     - waits for an earlier call that has not started yet, or that made the same choice on the same version
 - Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `Filter` gets instead, which reads as the app.
 - Breaking: `PUT .../process/next` now records the `Process.GenerateChangeEvent` and `Process.End` spans in its own trace, not the workflow callback's, even if the transition is not carried out. Update dashboards, alerts and queries that use them or count `Process.End` as ended processes. ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
-
 
 ### Fixed
 
@@ -44,8 +45,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - An app that exports telemetry directly to Application Insights sends every trace and all logs instead of a sample of 5 traces per second. ([Altinn/app-lib-dotnet#1889](https://github.com/Altinn/app-lib-dotnet/pull/1889))
 - Submitting no longer fails when a hidden Map component has drawn geometries and `RemoveHiddenData` is enabled. ([Altinn/app-lib-dotnet#1862](https://github.com/Altinn/app-lib-dotnet/issues/1862))
 - Copying an instance with `copyInstanceSettings.includeAttachments`:
-  - keeps the tags on its attachments ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
-  - shows the attachments of a `FileUpload` in a repeating group in the copy ([Altinn/app-lib-dotnet#1894](https://github.com/Altinn/app-lib-dotnet/pull/1894))
+    - keeps the tags on its attachments ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
+    - shows the attachments of a `FileUpload` in a repeating group in the copy ([Altinn/app-lib-dotnet#1894](https://github.com/Altinn/app-lib-dotnet/pull/1894))
 - The OpenAPI document no longer lists a `dataGuid` path parameter on endpoints that create data. ([Altinn/app-lib-dotnet#1871](https://github.com/Altinn/app-lib-dotnet/pull/1871))
 - Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
