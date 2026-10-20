@@ -26,6 +26,27 @@ export const SmallHeaderMenuItem = ({ menuItem }: SmallHeaderMenuItemProps): Rea
     );
   }
 
+  if (menuItem.action.isOutsideRouter) {
+    const { href, openInNewTab } = menuItem.action;
+    return (
+      <StudioDropdown.Item>
+        <StudioDropdown.Button asChild>
+          <a
+            href={href}
+            target={openInNewTab ? '_blank' : undefined}
+            rel={openInNewTab ? 'noopener noreferrer' : undefined}
+            role='menuitem'
+          >
+            {menuItem.name}
+          </a>
+        </StudioDropdown.Button>
+      </StudioDropdown.Item>
+    );
+  }
+
+  const linkTarget: string = menuItem.action.openInNewTab ? '_blank' : '';
+  const linkRel: string = menuItem.action.openInNewTab ? 'noopener noreferrer' : '';
+
   const linkItemClassName: string =
     UrlUtils.extractLastRouterParam(menuItem.action.href) === currentRoutePath
       ? classes.active
@@ -38,8 +59,8 @@ export const SmallHeaderMenuItem = ({ menuItem }: SmallHeaderMenuItemProps): Rea
           className={`${linkItemClassName} ${menuItem.isBeta ? studioBetaTagClasses.isBeta : ''}`}
           to={menuItem.action.href}
           role='menuitem'
-          target={menuItem.action.openInNewTab ? '_blank' : ''}
-          rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
+          target={linkTarget}
+          rel={linkRel}
         >
           {t(menuItem.name)}
         </NavLink>

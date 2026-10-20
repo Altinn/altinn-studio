@@ -88,6 +88,24 @@ describe('SmallHeaderMenuItem', () => {
     expect(linkElement).toHaveAttribute('target', '_blank');
     expect(linkElement).toHaveAttribute('rel', 'noopener noreferrer');
   });
+
+  it('should not prefix the router basename when the link is outside the router', async () => {
+    await renderSmallHeaderMenuItem({
+      componentProps: {
+        menuItem: {
+          ...mockMenuItem,
+          action: { type: 'link', href: menuItemLink, isOutsideRouter: true },
+        },
+      },
+      routerBasename: '/editor',
+      routerInitialEntries: ['/editor'],
+    });
+
+    expect(screen.getByRole('menuitem', { name: menuItemName })).toHaveAttribute(
+      'href',
+      menuItemLink,
+    );
+  });
 });
 
 const getMenuItem = (): HTMLElement =>
@@ -96,16 +114,18 @@ const getMenuItem = (): HTMLElement =>
 type Props = {
   componentProps: Partial<SmallHeaderMenuItemProps>;
   routerInitialEntries?: string[];
+  routerBasename?: string;
   user: UserEvent;
 };
 
 const renderSmallHeaderMenuItem = async ({
   componentProps,
   routerInitialEntries = ['/'],
+  routerBasename,
   user = userEvent.setup(),
 }: Partial<Props> = {}): Promise<void> => {
   render(
-    <MemoryRouter initialEntries={routerInitialEntries}>
+    <MemoryRouter initialEntries={routerInitialEntries} basename={routerBasename}>
       <PageHeaderContext.Provider value={{ variant: 'regular' }}>
         <StudioDropdown triggerButtonText={triggerButtonText}>
           <StudioDropdown.List>
