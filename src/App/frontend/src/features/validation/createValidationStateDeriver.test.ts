@@ -157,6 +157,42 @@ function descendantFixture(hidden = false) {
   };
 }
 
+describe('PDF exclusion validation visibility', () => {
+  it('suppresses errors for an excluded field while keeping errors for included fields', () => {
+    const { state, inputs } = descendantFixture();
+    const derive = createValidationStateDeriver();
+    const ordinary = derive(state, inputs);
+    expect(getValidationsForNode(ordinary, 'child-0', 'visible')).toHaveLength(1);
+
+    const pdf = derive(state, { ...inputs, pdfExcludedComponents: ['child'] });
+    expect(getValidationsForNode(pdf, 'child-0', 'visible')).toEqual([]);
+    expect(getValidationsForNode(pdf, 'child-1', 'visible')).toEqual([]);
+    expect(getValidationsForNode(pdf, 'nested-child-0-0', 'visible')).toHaveLength(1);
+    expect(getValidationsForNode(pdf, 'unrelated', 'visible')).toHaveLength(1);
+    // Exclusion changes presentation, not the underlying validation results.
+    expect(getValidationsForNode(pdf, 'child-0', 'visible', undefined, true)).toHaveLength(1);
+
+    const restored = derive(state, inputs);
+    expect(getValidationsForNode(restored, 'child-0', 'visible')).toHaveLength(1);
+  });
+
+  it('suppresses descendant errors when the excluded ancestor is outside the requested scope', () => {
+    const { state, inputs } = descendantFixture();
+    const derive = createValidationStateDeriver();
+    const scoped = {
+      ...inputs,
+      descendantScope: { nodeId: 'nested-0', includeSelf: false },
+    };
+    const ordinary = derive(state, scoped);
+    expect(ordinary.nodes.flatMap((node) => getNodeRefValidations(ordinary, node.id, 'visible'))).toHaveLength(2);
+
+    const pdf = derive(state, { ...scoped, pdfExcludedComponents: ['nested'] });
+    expect(pdf.nodes).toHaveLength(2);
+    expect(pdf.nodes.every((node) => node.hidden)).toBe(true);
+    expect(pdf.nodes.flatMap((node) => getNodeRefValidations(pdf, node.id, 'visible'))).toEqual([]);
+  });
+});
+
 describe('descendant validation scope', () => {
   it.each([
     { nodeId: 'group', includeSelf: false, restriction: 0 },
