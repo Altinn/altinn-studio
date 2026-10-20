@@ -452,7 +452,7 @@ public class WorkflowEngineCallbackControllerTests
                 )
             )
             .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
-            .ReturnsAsync(() => new MemoryStream("%PDF"u8.ToArray()));
+            .ReturnsAsync(() => "%PDF"u8.ToArray());
         var processReader = new Mock<IProcessReader>();
         processReader
             .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))
