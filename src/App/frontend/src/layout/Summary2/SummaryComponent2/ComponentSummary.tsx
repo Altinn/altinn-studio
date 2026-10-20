@@ -87,7 +87,7 @@ function useIsHiddenBecauseEmpty<T extends CompTypes>(baseComponentId: string, t
   const config = useComponentConfig(baseComponentId, type);
   const forceShowInSummary = useEvalExpression(
     'forceShowInSummary' in config ? config.forceShowInSummary : undefined,
-    CommonExpressions.SummarizableComponentProps.forceShowInSummary,
+    CommonExpressions.forceShowInSummary,
   );
 
   const isRequired = useComponentIsRequired(config);

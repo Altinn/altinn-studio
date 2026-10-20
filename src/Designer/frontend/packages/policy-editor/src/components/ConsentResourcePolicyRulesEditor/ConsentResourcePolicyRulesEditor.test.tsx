@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -62,8 +62,6 @@ const acceptConsentRule: PolicyRuleCard = {
 };
 
 describe('ConsentResourcePolicyRulesEditor', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should display rule for consenting', () => {
     renderConsentResourcePolicyRulesEditor();
 

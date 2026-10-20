@@ -31,7 +31,6 @@ class SkillTool(Tool[SkillArgs]):
 
     name = "skill"
     is_concurrency_safe = True
-    is_read_only = True
     input_schema = SkillArgs
 
     def __init__(self, skills: list[Skill]) -> None:

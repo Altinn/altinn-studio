@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import { AppPreviewSubMenu } from './AppPreviewSubMenu';
@@ -9,8 +9,6 @@ import { renderWithProviders } from '../../../test/mocks';
 vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
 describe('AppPreviewSubMenu', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render the back-to-editing link with text on large screens', () => {
     (useMediaQuery as Mock).mockReturnValue(false);
 

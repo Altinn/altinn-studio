@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor-v8/types/OnProcessTask';
 import { OnProcessTaskRemoveHandler } from './OnProcessTaskRemoveHandler';
@@ -94,10 +94,6 @@ const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) =>
 };
 
 describe('OnProcessTaskRemoveHandler', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should remove layoutSet when data-task is deleted', () => {
     const layoutSets: LayoutSets = [
       { id: 'testLayoutSetId', dataType: 'data', taskId: 'testElementId' },

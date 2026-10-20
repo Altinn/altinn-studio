@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeployDropdownProps } from './DeployDropdown';
@@ -62,8 +62,6 @@ const imageOptions: ImageOption[] = [
 ];
 
 describe('DeployDropdown', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders a spinner while loading data', () => {
     renderDeployDropdown();
 

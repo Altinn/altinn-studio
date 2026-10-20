@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render as renderRtl, screen } from '@testing-library/react';
 import type { ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
@@ -25,8 +25,6 @@ const defaultProps: ISchemaSelectProps = {
 };
 
 describe('SchemaSelect', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders empty select when there are no provided options', () => {
     render({ dataModels: [] });
     expect(screen.getByRole('combobox')).toBeEmptyDOMElement();

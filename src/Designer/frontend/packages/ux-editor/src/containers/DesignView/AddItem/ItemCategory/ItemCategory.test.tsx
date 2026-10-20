@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { IToolbarElement } from '../../../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ItemCategory, type ItemCategoryProps } from './ItemCategory';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { screen } from '@testing-library/react';
@@ -21,9 +21,6 @@ const MockInputIcon = () => <div data-testid='input-icon'>Input Icon</div>;
 const MockButtonIcon = () => <div data-testid='button-icon'>Button Icon</div>;
 
 describe('ItemCategory', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   const mockSetAddedItem = vi.fn();
   const mockGenerateComponentId = vi.fn().mockReturnValue('generated-id');
   const mockItems: IToolbarElement[] = [

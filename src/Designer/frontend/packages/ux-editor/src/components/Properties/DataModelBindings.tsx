@@ -1,18 +1,33 @@
 import React, { useState } from 'react';
 import { EditDataModelBinding } from '../config/editModal/EditDataModelBinding/EditDataModelBinding';
 import { StudioProperty, StudioSwitch, StudioAlert } from '@studio/components';
-import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useText, useSelectedFormLayout } from '../../hooks';
 import classes from './DataModelBindings.module.css';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
+import type { PropertyDefinition, PropertyValueDefinition } from '@app/layout-contract';
+import { getComponentDefinition } from '../../data/componentCatalog';
+
+type ObjectDefinition = Extract<PropertyValueDefinition, { type: 'object' }>;
+
+function selectDataModelBindings(
+  definition: PropertyDefinition,
+  multipleAttachments: boolean,
+): ObjectDefinition | undefined {
+  if (definition.type === 'object') return definition;
+  if (definition.type !== 'union') return undefined;
+  const requiredBinding = multipleAttachments ? 'list' : 'simpleBinding';
+  return definition.variants.find(
+    (variant): variant is ObjectDefinition =>
+      variant.type === 'object' && variant.properties[requiredBinding]?.required,
+  );
+}
 
 export const DataModelBindings = (): React.JSX.Element => {
   const layout = useSelectedFormLayout();
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
-  const { data: schema } = useComponentSchemaQuery(formItem.type);
   const [multipleAttachments, setMultipleAttachments] = useState<boolean>(false);
 
   const t = useText();
@@ -23,22 +38,17 @@ export const DataModelBindings = (): React.JSX.Element => {
     }
   }, [formItem.dataModelBindings?.list]);
 
-  const { dataModelBindings } = schema.properties;
-  let dataModelBindingsProperties = dataModelBindings?.properties;
-
-  if (dataModelBindings?.anyOf) {
-    const { properties } = Object.values(dataModelBindings.anyOf).find((dataModelProp: any) =>
-      (dataModelProp.required as string[]).includes(multipleAttachments ? 'list' : 'simpleBinding'),
-    ) as any;
-    dataModelBindingsProperties = properties;
-  }
+  const dataModelBindings = getComponentDefinition(formItem.type)?.properties.dataModelBindings;
+  const selectedBindings = dataModelBindings
+    ? selectDataModelBindings(dataModelBindings, multipleAttachments)
+    : undefined;
+  const dataModelBindingsProperties = selectedBindings?.properties ?? {};
 
   const handleMultipleAttachmentsSwitch = () => {
     const updatedValue = !multipleAttachments;
     setMultipleAttachments(updatedValue);
     const updatedComponent = {
       ...formItem,
-      itemType: 'COMPONENT',
       dataModelBindings: {
         simpleBinding: updatedValue ? undefined : { field: '', dataType: '' },
         list: updatedValue ? { field: '', dataType: '' } : undefined,
@@ -56,7 +66,7 @@ export const DataModelBindings = (): React.JSX.Element => {
             {t('ux_editor.modal_properties_data_model_restrictions_attachment_components')}
           </StudioAlert>
         )}
-      {dataModelBindings.anyOf && (
+      {dataModelBindings?.type === 'union' && (
         <StudioSwitch
           checked={multipleAttachments}
           onChange={handleMultipleAttachmentsSwitch}

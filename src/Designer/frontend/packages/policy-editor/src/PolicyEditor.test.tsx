@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PolicyEditor, type PolicyEditorProps } from './PolicyEditor';
@@ -34,8 +34,6 @@ const defaultProps: PolicyEditorProps = {
 };
 
 describe('PolicyEditor', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders tabs view when usage type is app', () => {
     renderPolicyEditor();
     expect(screen.getByText(textMock('policy_editor.rules_summary'))).toBeInTheDocument();

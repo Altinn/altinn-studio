@@ -17,7 +17,6 @@ vi.mock('react-router-dom', async () => ({
 
 describe('useNavigateFrom', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     typedLocalStorage.removeItem(LocalStorageKey.PreviousRouteBeforeSettings);
   });
 

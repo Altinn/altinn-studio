@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { AltinnConfirmDialogProps } from './AltinnConfirmDialog';
@@ -14,8 +14,6 @@ const onConfirmMock = vi.fn();
 const onCloseMock = vi.fn();
 
 describe('AltinnConfirmDialog', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should not show the dialog when closed', async () => {
     await render({ open: false });
 

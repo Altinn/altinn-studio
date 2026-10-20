@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../testing/mocks';
 import { EditNameAction, type EditNameActionProps } from './EditNameAction';
 import { screen } from '@testing-library/react';
@@ -31,8 +31,6 @@ const textResources: ITextResources = {
 };
 
 describe('EditNameAction', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the task type in the text area if no name is set', async () => {
     const taskWithoutName: TaskNavigationGroup = {
       taskType: 'data',

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AddNewTask } from './AddNewTask';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -14,9 +14,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('AddNewTask', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   it('Should render the card with the correct title', () => {
     renderAddNewTask();
     expect(screen.getByText(textMock('ux_editor.task_card_add_new_task'))).toBeInTheDocument();

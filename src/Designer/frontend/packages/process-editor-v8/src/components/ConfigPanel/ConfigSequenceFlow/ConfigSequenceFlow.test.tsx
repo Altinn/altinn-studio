@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -14,8 +14,6 @@ import type { Element } from 'bpmn-js/lib/model/Types';
 vi.mock('../../../utils/bpmnModeler/BpmnExpressionModeler');
 
 describe('ConfigSequenceFlow', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render title for sequence flow configuration', () => {
     renderConfigSequenceFlow({
       bpmnDetails: { ...mockBpmnDetails, element: {} as unknown as Element },

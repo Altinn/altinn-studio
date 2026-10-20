@@ -1,12 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BPMNViewerErrorAlert } from './BPMNViewerErrorAlert';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('Viewer', () => {
-  afterEach(vi.clearAllMocks);
-
   it('displays correct error message when bpmnViewerError is "noDiagram"', async () => {
     const user = userEvent.setup();
     render(<BPMNViewerErrorAlert bpmnViewerError='noDiagram' />);

@@ -1,10 +1,18 @@
+import type { JSX } from 'react';
+
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class DatepickerDef extends FormComponent<'Datepicker'> implements DisplayData {
   protected readonly type = 'Datepicker';
+
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -17,4 +25,4 @@ export abstract class DatepickerDef extends FormComponent<'Datepicker'> implemen
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 78f412b46b8f6d1f7b76093f7739b9f5c5bea60f143c9d1716db1672adec2899
+// Source hash: 875079e95010cf5ba8188efb7175ceceacf63401f77ca8438e49ca2833dcdb8a

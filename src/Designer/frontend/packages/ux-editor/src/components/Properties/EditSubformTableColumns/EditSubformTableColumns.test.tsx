@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { subformLayoutMock } from '../../../testing/subformLayoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -15,6 +15,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { getTextResourceId } from '@altinn/ux-editor/utils/textResourceUtils';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
 
@@ -32,10 +33,6 @@ const defaultProps: EditSubformTableColumnsProps = {
 };
 
 describe('EditSubformTableColumns', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should call handleComponentChange when a new column is added when tableColumns initially are empty ', async () => {
     const handleComponentChangeMock = vi.fn();
     const user = userEvent.setup();
@@ -93,7 +90,9 @@ describe('EditSubformTableColumns', () => {
 
     const columnTitleKey = getUpdatedTableColumns(handleComponentChangeMock)[0].headerContent;
     expect(columnTitleKey).toEqual(
-      expect.stringContaining(subformLayoutMock.component1.textResourceBindings.title),
+      expect.stringContaining(
+        getTextResourceId(subformLayoutMock.component1.textResourceBindings.title),
+      ),
     );
   });
 

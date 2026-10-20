@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, screen } from '@testing-library/react';
 import { renderWithMockStore } from '../../../testing/mocks';
 import { appDataMock, textResourcesMock } from '../../../testing/stateMocks';
@@ -86,8 +86,6 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = vi.fn() 
 };
 
 describe('EditDataModelBindings', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show select with no selected option by default', async () => {
     const user = userEvent.setup();
     await render();

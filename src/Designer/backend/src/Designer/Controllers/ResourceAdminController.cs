@@ -592,13 +592,7 @@ public class ResourceAdminController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
-        if (resource == null)
-        {
-            return StatusCode(404);
-        }
-
-        ServiceResourceStatus resourceStatus = new() { ResourceVersion = resource.Version, PublishedVersions = [] };
+        ServiceResourceStatus resourceStatus = new() { PublishedVersions = [] };
 
         IEnumerable<string> environments = GetEnvironmentsForOrg(org);
         foreach (string envir in environments)

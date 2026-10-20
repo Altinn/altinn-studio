@@ -560,7 +560,29 @@
           "type": "boolean",
           "title": "Include attachments",
           "description": "Gets or sets a boolean indicating if copying of attachments is enabled."
+        },
+        "includeDueBefore": {
+          "type": "boolean",
+          "title": "Include due before",
+          "description": "A value indicating if the due date (dueBefore) should be copied from the source instance. Requires app backend v8.13 or newer."
+        },
+        "includedDataValues": {
+          "type": "array",
+          "title": "Included data values",
+          "description": "The keys of the data values (dataValues) that should be copied from the source instance. Keys that also are derived from dataFields get the value recalculated from the copied form data. Requires app backend v8.13 or newer.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includedPresentationTexts": {
+          "type": "array",
+          "title": "Included presentation texts",
+          "description": "The keys of the presentation texts (presentationTexts) that should be copied from the source instance. Keys that also are derived from presentationFields get the value recalculated from the copied form data. Requires app backend v8.13 or newer.",
+          "items": {
+            "type": "string"
+          }
         }
+
       }
     },
     "Text": {

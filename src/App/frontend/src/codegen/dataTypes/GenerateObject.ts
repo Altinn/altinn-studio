@@ -179,6 +179,14 @@ export class GenerateObject<P extends Props>
     return this._additionalProperties;
   }
 
+  protected getChildren(): readonly CodeGenerator<unknown>[] {
+    return [
+      ...this._extends,
+      ...this.properties,
+      ...(typeof this._additionalProperties === 'boolean' ? [] : [this._additionalProperties]),
+    ];
+  }
+
   expressionDescriptors(): ExpressionDescriptorEntry[] {
     const properties = this.getAllProperties().flatMap((property) =>
       prefixExpressionDescriptors(property.name, property.type.expressionDescriptors()),

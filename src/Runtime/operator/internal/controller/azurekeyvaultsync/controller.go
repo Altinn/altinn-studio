@@ -97,6 +97,16 @@ func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
 				return secrets["Observability--Ingest--Token"]
 			},
 		},
+		{
+			Name:      "pdf3-upstream-api-key",
+			Namespace: "runtime-pdf3",
+			FileName:  "key",
+			Secrets:   []string{"Pdf3--Upstream--ApiKey"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["Pdf3--Upstream--ApiKey"]
+			},
+		},
 	}
 }
 

@@ -8,6 +8,13 @@ on:
       - '.github/actions/codeql-config/**'
       - '.github/codeql/**'
       - '.github/workflows/app-frontend-codeql.yml'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
@@ -16,6 +23,12 @@ on:
       - '.github/codeql/**'
       - '.github/workflows/app-frontend-codeql.yml'
       - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
   workflow_dispatch:
   schedule:
     - cron: '35 1 * * 0'

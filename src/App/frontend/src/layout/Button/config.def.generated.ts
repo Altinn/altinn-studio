@@ -2,6 +2,10 @@ import { ActionComponent } from 'src/layout/LayoutComponent';
 
 export abstract class ButtonDef extends ActionComponent<'Button'> {
   protected readonly type = 'Button';
+
+  declare renderSummary?: never;
+
+  declare renderSummary2?: never;
 }
 
-// Source hash: 2906c3df0c1414434d98319197f69ceec562913737e9882ad80dedc062ff2683
+// Source hash: 45d138bc63a0ba57fe322880422870012a7e113e12a03866c7bfa3015de7bc10

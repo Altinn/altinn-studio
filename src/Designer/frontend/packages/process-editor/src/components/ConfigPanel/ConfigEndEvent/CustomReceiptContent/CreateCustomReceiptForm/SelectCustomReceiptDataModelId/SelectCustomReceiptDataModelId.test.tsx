@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   SelectCustomReceiptDataModelId,
   type SelectCustomReceiptDataModelIdProps,
@@ -27,8 +27,6 @@ const defaultProps: SelectCustomReceiptDataModelIdProps = {
 };
 
 describe('SelectCustomReceiptDataModelId', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('calls onChange function when an option is selected', async () => {
     const user = userEvent.setup();
     renderSelectCustomReceiptDataModelId({

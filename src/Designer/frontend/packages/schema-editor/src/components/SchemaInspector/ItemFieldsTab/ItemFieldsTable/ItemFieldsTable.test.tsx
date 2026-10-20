@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ItemFieldsTableProps } from './ItemFieldsTable';
 import { ItemFieldsTable } from './ItemFieldsTable';
@@ -62,8 +62,6 @@ describe('ItemFieldsTable', () => {
   beforeAll(() => {
     validateTestUiSchema(uiSchema);
   });
-
-  afterEach(vi.clearAllMocks);
 
   it('render inputs and delete buttons correctly for all fields', async () => {
     const user = userEvent.setup();

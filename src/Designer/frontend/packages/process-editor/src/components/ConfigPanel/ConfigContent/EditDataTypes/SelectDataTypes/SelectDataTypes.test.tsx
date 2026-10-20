@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -24,8 +24,6 @@ const defaultSelectDataTypeProps: SelectDataTypesProps = {
 };
 
 describe('SelectDataTypes', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should call updateDataTypes with new data type when new option is clicked', async () => {
     const user = userEvent.setup();
     const mutateDataTypesMock = vi.fn();

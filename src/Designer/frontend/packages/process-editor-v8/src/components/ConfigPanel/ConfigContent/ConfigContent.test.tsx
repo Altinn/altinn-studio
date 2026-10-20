@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { ConfigContent } from './ConfigContent';
 import { render } from '@testing-library/react';
@@ -61,9 +61,6 @@ vi.mock(
 );
 
 describe('ConfigContent', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
   it('should render heading for selected task', () => {
     renderConfigContent();
     expect(

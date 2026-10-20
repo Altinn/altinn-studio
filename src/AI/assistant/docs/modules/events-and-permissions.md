@@ -1,6 +1,6 @@
 # Events and permissions
 
-Code: `agents/services/events/jobs.py`, `agents/services/events/permissions.py`, `agents/services/events/events.py`
+Code: `src/AI/assistant/agents/services/events/jobs.py`, `src/AI/assistant/agents/services/events/permissions.py`, `src/AI/assistant/agents/services/events/events.py`
 
 ## Event sink
 

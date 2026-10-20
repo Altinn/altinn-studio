@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../testing/componentMocks';
 import {
   convertDataBindingToInternalFormat,

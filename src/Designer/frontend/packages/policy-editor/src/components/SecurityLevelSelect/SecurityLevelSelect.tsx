@@ -1,32 +1,63 @@
 import type { ReactNode } from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { StudioSelect, StudioLink, StudioHeading, StudioParagraph } from '@studio/components';
+import {
+  StudioSelect,
+  StudioLink,
+  StudioHeading,
+  StudioParagraph,
+  StudioAlert,
+  StudioCheckbox,
+} from '@studio/components';
 import { ExternalLinkIcon } from '@studio/icons';
+import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import type { RemovedAuthLevel, RequiredAuthLevel } from '../../types';
 
 const URL_TO_SECURITY_LEVEL_PAGE: string =
   'https://info.altinn.no/hjelp/innlogging/diverse-om-innlogging/hva-er-sikkerhetsniva/';
 
+const SYSTEM_USER_AUTH_LEVEL_VALUE: string = 'system-user-auth-level';
+
+const AUTH_LEVEL_3: RequiredAuthLevel = '3';
+const AUTH_LEVEL_4: RequiredAuthLevel = '4';
+
 export const authlevelOptions = [
   { value: '0', label: 'policy_editor.auth_level_option_0' },
-  { value: '3', label: 'policy_editor.auth_level_option_3' },
-  { value: '4', label: 'policy_editor.auth_level_option_4' },
+  { value: AUTH_LEVEL_3, label: 'policy_editor.auth_level_option_3' },
+  { value: AUTH_LEVEL_4, label: 'policy_editor.auth_level_option_4' },
 ];
 
 export type SecurityLevelSelectProps = {
   requiredAuthenticationLevelEndUser: RequiredAuthLevel | RemovedAuthLevel;
-  onSave: (authLevel: RequiredAuthLevel) => void;
+  requiredAuthenticationLevelSystemUser?: RequiredAuthLevel;
+  onSave: (
+    authLevel: RequiredAuthLevel,
+    systemUserAuthLevel: RequiredAuthLevel | undefined,
+  ) => void;
 };
 
 export const SecurityLevelSelect = ({
   requiredAuthenticationLevelEndUser,
+  requiredAuthenticationLevelSystemUser,
   onSave,
 }: SecurityLevelSelectProps): ReactNode => {
   const { t } = useTranslation();
   const hasRemovedAuthLevel: boolean = !authlevelOptions.some(
     (option) => option.value === requiredAuthenticationLevelEndUser,
   );
+
+  const isSystemUserAllowed: boolean = requiredAuthenticationLevelSystemUser === AUTH_LEVEL_3;
+
+  const handleEndUserAuthLevelChange = (authLevel: RequiredAuthLevel): void => {
+    // The system user exception lets more users in, so it is always removed when the security
+    // level changes. The user must then actively allow it again.
+    onSave(authLevel, undefined);
+  };
+
+  const handleSystemUserAllowedChange = (allowSystemUser: boolean): void => {
+    // The system user checkbox is only shown when the security level is 4.
+    onSave(AUTH_LEVEL_4, allowSystemUser ? AUTH_LEVEL_3 : undefined);
+  };
 
   return (
     <div>
@@ -46,12 +77,10 @@ export const SecurityLevelSelect = ({
         </StudioLink>
       </StudioParagraph>
       <StudioSelect
-        className={classes.select}
+        className={cn(classes.select, classes.bottomSpacing)}
         label={t('policy_editor.select_auth_level_label')}
         error={hasRemovedAuthLevel && t('policy_editor.auth_level_removed_error')}
-        onChange={(event) => {
-          onSave(event.target.value as RequiredAuthLevel);
-        }}
+        onChange={(event) => handleEndUserAuthLevelChange(event.target.value as RequiredAuthLevel)}
         value={requiredAuthenticationLevelEndUser}
       >
         {hasRemovedAuthLevel && (
@@ -67,6 +96,22 @@ export const SecurityLevelSelect = ({
           </StudioSelect.Option>
         ))}
       </StudioSelect>
+      {requiredAuthenticationLevelEndUser === AUTH_LEVEL_4 && (
+        <StudioAlert data-color='info'>
+          <StudioHeading level={5} data-size='xs'>
+            {t('policy_editor.system_user_auth_level_heading')}
+          </StudioHeading>
+          <StudioParagraph className={classes.description}>
+            {t('policy_editor.system_user_auth_level_description')}
+          </StudioParagraph>
+          <StudioCheckbox
+            label={t('policy_editor.system_user_auth_level_checkbox_label')}
+            value={SYSTEM_USER_AUTH_LEVEL_VALUE}
+            checked={isSystemUserAllowed}
+            onChange={(event) => handleSystemUserAllowedChange(event.target.checked)}
+          />
+        </StudioAlert>
+      )}
     </div>
   );
 };

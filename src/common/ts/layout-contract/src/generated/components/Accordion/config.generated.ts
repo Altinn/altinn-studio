@@ -2,12 +2,13 @@ import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contra
 import {
   ComponentBase,
   HeadingLevel,
-  SummarizableComponentProps,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
-export interface CompAccordionExternal extends ComponentBase, SummarizableComponentProps {
+export interface CompAccordionExternal extends ComponentBase {
   type: 'Accordion';
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   textResourceBindings?: { title?: ExprValToActualOrExpr<ExprVal.String> } & TRBSummarizable;
   children: string[];
   openByDefault?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -43,4 +44,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: undefined;
 };
 
-// Source hash: 4e609156be3e18c07283d2c6643d13585f29313d8137d0113d2c7350769c1c90
+// Source hash: 0a1f7709cb6d67ddb3f89e60e1d20389da0bae189978617ecc5dd8108cb90922

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UncommittedChangesDialogProps } from './UncommittedChangesDialog';
@@ -32,10 +32,6 @@ const error: UncommittedChangesError = {
 };
 
 describe('UncommittedChangesDialog', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render dialog', () => {
     renderUncommittedChangesDialog();
     const dialog = getDialog();

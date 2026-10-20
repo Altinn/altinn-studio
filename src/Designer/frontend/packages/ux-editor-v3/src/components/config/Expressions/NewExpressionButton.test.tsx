@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { NewExpressionButtonProps } from './NewExpressionButton';
 import { NewExpressionButton } from './NewExpressionButton';
@@ -11,8 +11,6 @@ import { ExpressionPropertyBase } from '../../../types/Expressions';
 const user = userEvent.setup();
 
 describe('NewExpressionButton', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders add expression button by default', () => {
     render({});
 

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { App } from './App';
@@ -37,8 +37,6 @@ const queries: Partial<ServicesContextProps> = {
 };
 
 describe('App', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('should display spinner while loading', () => {
     renderApp();
     expect(screen.getByLabelText(textMock('dashboard.loading'))).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useWebSocket } from './useWebSocket';
@@ -16,10 +16,6 @@ vi.mock('app-shared/websockets/WSConnector', () => ({
 }));
 
 describe('useWebSocket', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should create web socket connection with provided webSocketUrl', () => {
     renderUseWebSocket();
 

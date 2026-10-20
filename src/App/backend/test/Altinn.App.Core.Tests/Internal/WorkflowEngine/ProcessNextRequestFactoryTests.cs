@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
@@ -452,7 +453,7 @@ public class ProcessNextRequestFactoryTests
 
         var acquire = await factory.CreateAcquire(
             instance,
-            action: null,
+            CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
             language: null
@@ -507,23 +508,23 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Theory]
-    [InlineData(null)]
-    [InlineData("reject")]
-    public async Task CreateAcquire_ProducesOneStepWithActionPayloadAndLabels(string? action)
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CreateAcquire_ProducesOneStepWithThePreparedTransitionAndLabels(bool toProcessEnd)
     {
         var factory = CreateFactory();
-        var transition = CreateTaskToTaskTransition();
+        var transition = toProcessEnd ? CreateTaskToEndTransition() : CreateTaskToTaskTransition();
         var instance = new Instance { Id = TestInstance.Id, Process = transition.OldProcessState };
-        var acquire = await factory.CreateAcquire(instance, action, SignedTestState, "acquire-key", language: null);
+        var acquire = await factory.CreateAcquire(instance, transition, SignedTestState, "acquire-key", language: null);
         var workflow = Assert.Single(acquire.Request.Workflows);
         Assert.Equal("Process next: Mark instance as processing", workflow.OperationId);
         var step = Assert.Single(workflow.Steps);
         var command = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
-        Assert.Equal(AcquireProcessingStatus.Key, command.CommandKey);
+        Assert.Equal(ProcessingStatusAcquirer.Key, command.CommandKey);
         var payload = Assert.IsType<AcquireProcessingStatusPayload>(
             CommandPayloadSerializer.Deserialize<CommandRequestPayload>(command.Payload)
         );
-        Assert.Equal(action, payload.Action);
+        Assert.Equal(JsonSerializer.Serialize(transition), JsonSerializer.Serialize(payload.ProcessStateChange));
         Assert.Equal(SignedTestState, workflow.State);
         Assert.Null(workflow.IsHead);
         Assert.Null(workflow.DependsOn);
@@ -542,10 +543,18 @@ public class ProcessNextRequestFactoryTests
             [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
             "dependent-key"
         );
-        Assert.Equal("Task_1:0", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetIdLabel));
-        Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
-        Assert.DoesNotContain(AcquireProcessingStatus.Key, ExtractCommandKeys(dependent));
+        Assert.Equal("Task_1", acquire.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("0", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        if (toProcessEnd)
+        {
+            Assert.False(acquire.Request.Labels.ContainsKey(ProcessNextRequestFactory.ProcessNextTargetTaskLabel));
+        }
+        else
+        {
+            // The same target as the workflow that enters the task, so status reads name it from the start.
+            Assert.Equal("Task_2", acquire.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        }
+        Assert.DoesNotContain(ProcessingStatusAcquirer.Key, ExtractCommandKeys(dependent));
     }
 
     [Theory]
@@ -566,7 +575,7 @@ public class ProcessNextRequestFactoryTests
 
         var acquire = await factory.CreateAcquire(
             CreateTask1Instance(),
-            action: null,
+            CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
             requested
@@ -599,7 +608,7 @@ public class ProcessNextRequestFactoryTests
 
         var acquire = await factory.CreateAcquire(
             CreateTask1Instance(),
-            action: null,
+            CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
             requested
@@ -617,8 +626,20 @@ public class ProcessNextRequestFactoryTests
         var factory = CreateFactory(callbackTokenGenerator: CreateSigningTokenGenerator());
         Instance instance = CreateTask1Instance();
 
-        var english = await factory.CreateAcquire(instance, "confirm", SignedTestState, "acquire-key", "en");
-        var bokmal = await factory.CreateAcquire(instance, "confirm", SignedTestState, "acquire-key", "nb");
+        var english = await factory.CreateAcquire(
+            instance,
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            "en"
+        );
+        var bokmal = await factory.CreateAcquire(
+            instance,
+            CreateTaskToTaskTransition(),
+            SignedTestState,
+            "acquire-key",
+            "nb"
+        );
 
         Assert.Equal("en", GetActor(english).Language);
         Assert.Equal("nb", GetActor(bokmal).Language);
@@ -642,7 +663,7 @@ public class ProcessNextRequestFactoryTests
         );
         var acquire = await factory.CreateAcquire(
             CreateTask1Instance(),
-            action: null,
+            CreateTaskToTaskTransition(),
             SignedTestState,
             "acquire-key",
             "en"
@@ -740,6 +761,8 @@ public class ProcessNextRequestFactoryTests
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
             EnqueueSideEffectsWorkflow.Key,
+            // Releases the instance as the workflow's last step
+            ReleaseProcessingStatus.Key,
         };
         Assert.Equal(expected, keys);
 
@@ -783,6 +806,7 @@ public class ProcessNextRequestFactoryTests
             (StartTask.Key, "Task_2"),
             (CommitProcessState.Key, null),
             (EnqueueSideEffectsWorkflow.Key, null),
+            (ReleaseProcessingStatus.Key, null),
         ];
         Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
 
@@ -819,9 +843,10 @@ public class ProcessNextRequestFactoryTests
             (LockTaskData.Key, "Task_1"),
             (MutateProcessState.Key, null),
             // A process end has no current task, so the end event is the element these steps run for.
-            (OnProcessEndingHook.Key, "EndEvent_1"),
-            (EndProcessLegacyHook.Key, "EndEvent_1"),
             (CommitProcessState.Key, null),
+            (OnProcessEndedHook.Key, null),
+            (DeleteDataOnProcessEnd.Key, null),
+            (ReleaseProcessingStatus.Key, null),
             (EnqueueSideEffectsWorkflow.Key, null),
         ];
         Assert.Equal(expected, ExtractCommandElements(bundle.Request.Workflows[0]));
@@ -961,16 +986,17 @@ public class ProcessNextRequestFactoryTests
             EnqueueSideEffectsWorkflow.Key,
             ExecuteServiceTask.Key,
         };
+        // The service task's continuation releases, so this workflow has no ReleaseProcessingStatus.
         Assert.Equal(expected, keys);
-        Assert.True(ExtractCommitProcessStatePayload(bundle).ServiceTaskFollows);
 
         // The non-critical MovedToAltinnEvent runs in the separate side-effects workflow.
         Assert.Equal([MovedToAltinnEvent.Key], ExtractSideEffectsCommandKeys(bundle));
 
         var workflow = bundle.Request.Workflows.Single();
         Assert.Equal("Process next: Task_SubformPdf -> Task_SubformPdf", workflow.OperationId);
-        Assert.Equal("Task_SubformPdf:4", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.Equal("Task_SubformPdf:5", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.Equal("Task_SubformPdf", bundle.Request.Labels![ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("4", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        Assert.Equal("Task_SubformPdf", bundle.Request.Labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
     }
 
     [Fact]
@@ -1001,12 +1027,14 @@ public class ProcessNextRequestFactoryTests
             LockTaskData.Key,
             // MutateProcessState
             MutateProcessState.Key,
-            // Process end commands (pre-commit)
-            OnProcessEndingHook.Key,
-            EndProcessLegacyHook.Key,
-            // CommitProcessState
+            // CommitProcessState saves the ended state and keeps processing
             CommitProcessState.Key,
-            // Enqueues the side-effects workflow at the commit boundary
+            // Process end commands (post-commit)
+            OnProcessEndedHook.Key,
+            DeleteDataOnProcessEnd.Key,
+            // The release is the workflow's last save
+            ReleaseProcessingStatus.Key,
+            // Enqueues the side-effects workflow once the end is released
             EnqueueSideEffectsWorkflow.Key,
         };
         Assert.Equal(expected, keys);
@@ -1040,7 +1068,7 @@ public class ProcessNextRequestFactoryTests
 
         var expected = new List<string>
         {
-            AcquireProcessingStatus.Key,
+            ProcessingStatusAcquirer.Key,
             // Task start commands only
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
@@ -1051,6 +1079,8 @@ public class ProcessNextRequestFactoryTests
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
             EnqueueSideEffectsWorkflow.Key,
+            // Releases the instance as the workflow's last step
+            ReleaseProcessingStatus.Key,
         };
         Assert.Equal(expected, keys);
 
@@ -1116,6 +1146,8 @@ public class ProcessNextRequestFactoryTests
             CommitProcessState.Key,
             // Enqueues the side-effects workflow at the commit boundary
             EnqueueSideEffectsWorkflow.Key,
+            // Releases the instance as the workflow's last step
+            ReleaseProcessingStatus.Key,
         };
         Assert.Equal(expected, keys);
 
@@ -1125,7 +1157,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_ServiceTask_AddsExecuteServiceTaskAfterCommitAndMarksCommitPayload()
+    public async Task Create_ServiceTask_AddsExecuteServiceTaskAfterCommitAndLeavesTheReleaseToItsContinuation()
     {
         // Arrange
         var factory = CreateFactory(serviceTasks: new FakeServiceTask("signing"));
@@ -1155,7 +1187,8 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
         Assert.Single(bundle.Request.Workflows);
         Assert.Contains(MovedToAltinnEvent.Key, ExtractSideEffectsCommandKeys(bundle));
-        Assert.True(ExtractCommitProcessStatePayload(bundle).ServiceTaskFollows);
+        // The service task's continuation releases, so this workflow has none.
+        Assert.DoesNotContain(ReleaseProcessingStatus.Key, keys);
 
         var payload = Assert.Single(ExtractExecuteServiceTaskPayloads(bundle));
         Assert.Equal("signing", payload.ServiceTaskType);
@@ -1680,52 +1713,68 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToTask_LabelsSourceAndTarget()
+    public void CreateProcessNextLabels_TaskToTask_LabelsSourceTargetAndInstance()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_2", Flow = 3 },
-            },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            "Task_2"
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Equal(3, labels.Count);
-        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
-        Assert.Equal("Task_2:3", labels[ProcessNextRequestFactory.ProcessNextTargetIdLabel]);
+        Assert.Equal(4, labels.Count);
+        Assert.Equal("Task_1", labels[ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("2", labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
         Assert.Equal("Task_2", labels[ProcessNextRequestFactory.ProcessNextTargetTaskLabel]);
+        Assert.Equal(
+            new InstanceIdentifier(TestInstance).InstanceGuid.ToString("N"),
+            labels[ProcessNextRequestFactory.ProcessNextInstanceGuidLabel]
+        );
     }
 
     [Fact]
-    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceOnly()
+    public void CreateProcessNextLabels_TaskToEnd_LabelsSourceAndInstanceOnly()
     {
-        // Arrange
-        var stateChange = new ProcessStateChange
-        {
-            OldProcessState = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
-            },
-            NewProcessState = new ProcessState { CurrentTask = null, EndEvent = "EndEvent_1" },
-        };
-
         // Act
-        Dictionary<string, string>? labels = ProcessNextRequestFactory.CreateProcessNextLabels(stateChange);
+        Dictionary<string, string> labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+            new InstanceIdentifier(TestInstance),
+            new ProcessElementInfo { ElementId = "Task_1", Flow = 2 },
+            targetTaskId: null
+        );
 
         // Assert
-        Assert.NotNull(labels);
-        Assert.Single(labels);
-        Assert.Equal("Task_1:2", labels[ProcessNextRequestFactory.ProcessNextSourceIdLabel]);
+        Assert.Equal(3, labels.Count);
+        Assert.Equal("Task_1", labels[ProcessNextRequestFactory.ProcessNextSourceTaskLabel]);
+        Assert.Equal("2", labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        Assert.True(labels.ContainsKey(ProcessNextRequestFactory.ProcessNextInstanceGuidLabel));
+    }
+
+    [Theory]
+    [InlineData(null, "0")]
+    [InlineData(0, "0")]
+    [InlineData(12, "12")]
+    [InlineData(-12, "-12")]
+    public void CreateProcessNextLabels_SourceFlow_IsInvariantAndDefaultsToZero(int? flow, string expected)
+    {
+        CultureInfo originalCulture = CultureInfo.CurrentCulture;
+        var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+        culture.NumberFormat.NegativeSign = "minus";
+        try
+        {
+            CultureInfo.CurrentCulture = culture;
+            var labels = ProcessNextRequestFactory.CreateProcessNextLabels(
+                new InstanceIdentifier(TestInstance),
+                new ProcessElementInfo { ElementId = "Task_1", Flow = flow },
+                targetTaskId: null
+            );
+
+            Assert.Equal(expected, labels[ProcessNextRequestFactory.ProcessNextSourceFlowLabel]);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
     }
 
     [Fact]
@@ -1886,10 +1935,11 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
-        // The legacy hook must see the ended process and pre-cleanup data before the terminal commit.
-        Assert.Contains(EndProcessLegacyHook.Key, keys);
-        Assert.Equal(EndProcessLegacyHook.Key, keys[^2]);
-        Assert.Equal(CommitProcessState.Key, keys[^1]);
+        // The release is the last step: nothing is enqueued after it without side effects.
+        Assert.Equal(
+            [CommitProcessState.Key, OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key, ReleaseProcessingStatus.Key],
+            keys[^4..]
+        );
     }
 
     [Fact]
@@ -1955,12 +2005,8 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain("DeleteDataElementsIfConfigured", keys);
         Assert.DoesNotContain("DeleteInstanceIfConfigured", keys);
-        // Other process end commands should still be present
-        Assert.Contains(EndProcessLegacyHook.Key, keys);
-        Assert.Equal(AcquireProcessingStatus.Key, keys[0]);
-        Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(CommitProcessState.Key));
-        Assert.True(keys.IndexOf(OnProcessEndingHook.Key) < keys.IndexOf(EndProcessLegacyHook.Key));
-        Assert.True(keys.IndexOf(EndProcessLegacyHook.Key) < keys.IndexOf(CommitProcessState.Key));
+        Assert.Equal(ProcessingStatusAcquirer.Key, keys[0]);
+        Assert.Contains(CommitProcessState.Key, keys);
     }
 
     [Fact]
@@ -1980,7 +2026,7 @@ public class ProcessNextRequestFactoryTests
         );
 
         var keys = ExtractCommandKeys(bundle);
-        Assert.DoesNotContain(AcquireProcessingStatus.Key, keys);
+        Assert.DoesNotContain(ProcessingStatusAcquirer.Key, keys);
         Assert.Equal(EndTask.Key, keys[0]);
         Assert.Equal("dependent-idempotency-key", bundle.IdempotencyKey);
         Assert.Equal("signed-state", bundle.Request.Workflows.Single().State);

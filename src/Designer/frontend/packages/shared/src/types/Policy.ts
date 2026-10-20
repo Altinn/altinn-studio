@@ -18,4 +18,5 @@ export type Policy = {
   rules: PolicyRule[];
   requiredAuthenticationLevelEndUser: RequiredAuthLevel | RemovedAuthLevel;
   requiredAuthenticationLevelOrg: string;
+  requiredAuthenticationLevelSystemUser?: RequiredAuthLevel;
 };

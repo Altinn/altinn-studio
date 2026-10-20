@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { FormItemContext, FormItemContextProvider } from './FormItemContext';
@@ -49,8 +49,6 @@ const render = (ChildComponent: React.ElementType) => {
 };
 
 describe('FormItemContext', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should update the form item when calling handleUpdate', async () => {
     render(() => {
       const { formItem, handleUpdate } = React.useContext(FormItemContext);

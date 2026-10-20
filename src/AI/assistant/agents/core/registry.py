@@ -104,9 +104,8 @@ class ToolRegistry:
 def _validate_tool(tool: Tool) -> None:
     """Fail loud when a tool is missing the structural contract.
 
-    The class attribute defaults on `Tool` make `is_concurrency_safe`
-    and `is_read_only` always present, so this check primarily catches
-    subclasses that:
+    The class attribute default on `Tool` makes `is_concurrency_safe`
+    always present, so this check primarily catches subclasses that:
       - forget to set `name`, `description`, or `input_schema`,
       - shadow a predicate method with a non-callable.
 
@@ -128,8 +127,6 @@ def _validate_tool(tool: Tool) -> None:
         raise ValueError(f"Tool {tool.name!r} is missing required attribute 'input_schema'")
     if not isinstance(tool.is_concurrency_safe, bool):
         raise TypeError(f"Tool {tool.name!r}: is_concurrency_safe must be bool")
-    if not isinstance(tool.is_read_only, bool):
-        raise TypeError(f"Tool {tool.name!r}: is_read_only must be bool")
-    for method in ("concurrency_safe_for", "read_only_for", "check_permission", "run"):
+    for method in ("concurrency_safe_for", "check_permission", "run"):
         if not callable(getattr(tool, method, None)):
             raise TypeError(f"Tool {tool.name!r}: {method} must be callable")

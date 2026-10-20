@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -14,8 +14,6 @@ const errorMessage = textMock(
 );
 
 describe('EnvIntegerConfigField', () => {
-  afterEach(vi.clearAllMocks);
-
   it('shows an error without saving an invalid integer', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

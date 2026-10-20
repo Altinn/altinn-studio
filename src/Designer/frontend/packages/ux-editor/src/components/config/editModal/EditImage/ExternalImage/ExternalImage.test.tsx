@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ExternalImageProps } from './ExternalImage';
@@ -18,8 +18,6 @@ const onUrlDeleteMock = vi.fn();
 const imageOriginsFromLibrary = false;
 
 describe('ExternalImage', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('shows button to add url, with label as text content, by default when no url exists', () => {
     renderExternalImage();
     const urlButton = getUrlButton();

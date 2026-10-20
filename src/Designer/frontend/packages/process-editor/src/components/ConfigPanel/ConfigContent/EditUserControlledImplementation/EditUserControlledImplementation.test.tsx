@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -19,8 +19,6 @@ const mockUseGetDefault = useGetDefaultUserControlledSigningInterfaceId as Mock;
 const mockUseUpdate = useUpdateUserControlledImplementation as Mock;
 
 describe('EditUserControlledImplementation', (): void => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render as button with content', (): void => {
     renderEditUserControlledImplementation();
     expect(getToggleableTextFieldButton()).toBeEnabled();

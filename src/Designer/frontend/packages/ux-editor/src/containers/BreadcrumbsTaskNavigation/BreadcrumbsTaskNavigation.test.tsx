@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { BreadcrumbsTaskNavigation } from './BreadcrumbsTaskNavigation';
 import { screen, within } from '@testing-library/react';
@@ -38,10 +38,6 @@ describe('BreadcrumbsTaskNavigation', () => {
     (useStudioEnvironmentParams as Mock).mockReturnValue({ org: 'test-org', app: 'test-app' });
     (useAppConfigQuery as Mock).mockReturnValue({ data: {} });
     vi.mocked(useNavigate).mockReturnValue(mockNavigate);
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   const renderBreadcrumbsTaskNavigation = () => {

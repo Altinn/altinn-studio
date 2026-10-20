@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
@@ -53,10 +53,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('ResourcePage', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('fetches validate policy on mount', () => {
     renderResourcePage();
     expect(queriesMock.getValidatePolicy).toHaveBeenCalledTimes(1);

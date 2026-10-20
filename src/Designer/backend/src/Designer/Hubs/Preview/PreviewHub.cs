@@ -4,19 +4,16 @@ using Altinn.Studio.Designer.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Hubs.Preview;
 
 [Authorize]
 public class PreviewHub : Hub<IPreviewClient>
 {
-    private readonly ILogger _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public PreviewHub(ILogger<PreviewHub> logger, IHttpContextAccessor httpContextAccessor)
+    public PreviewHub(IHttpContextAccessor httpContextAccessor)
     {
-        _logger = logger;
         _httpContextAccessor = httpContextAccessor;
     }
 
@@ -31,7 +28,6 @@ public class PreviewHub : Hub<IPreviewClient>
     public async Task SendMessage(string message)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-        _logger.LogInformation("Message received from client: {MessageFromClient}", message);
         await Clients.Group(developer).ReceiveMessage(message);
     }
 }

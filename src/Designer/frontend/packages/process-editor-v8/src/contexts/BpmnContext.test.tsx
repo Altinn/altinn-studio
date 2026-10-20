@@ -1,11 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, renderHook, screen } from '@testing-library/react';
 import { BpmnContextProvider, useBpmnContext } from './BpmnContext';
 
 describe('BpmnContext', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   it('should render children', () => {
     render(
       <BpmnContextProvider appVersion={{ backendVersion: '8.0.0', frontendVersion: '4.0.0' }}>

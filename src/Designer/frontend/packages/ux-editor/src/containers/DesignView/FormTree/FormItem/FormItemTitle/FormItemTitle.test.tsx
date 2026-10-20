@@ -1,11 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { FormItemTitle } from './FormItemTitle';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '../../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type FormContainer } from '../../../../../types/FormContainer';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../../../FormItemContext';
@@ -18,8 +18,6 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 const mockHandleDiscard = vi.fn();
 
 describe('FormItemTitle', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Renders children', () => {
     const component = componentMocks[ComponentType.Input];
     const label = 'Test label';

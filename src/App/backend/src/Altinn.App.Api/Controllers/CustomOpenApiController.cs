@@ -502,11 +502,23 @@ public class CustomOpenApiController : Controller
                         Tags = instanceTags,
                         Summary = "Delete data element",
                         Description = "Delete data for a specific data element",
-                        Responses = new()
-                        {
-                            ["204"] = new OpenApiResponse() { Description = "Data deleted" },
-                            ["404"] = new OpenApiResponse() { Description = "Data not found" },
-                        },
+                        Responses = Snippets.AddCommonErrorResponses(
+                            HttpStatusCode.OK,
+                            new OpenApiResponse()
+                            {
+                                Description = "Data deleted",
+                                Content = new Dictionary<string, OpenApiMediaType>
+                                {
+                                    ["application/json"] = new OpenApiMediaType()
+                                    {
+                                        Schema = _schemaGenerator.GenerateSchema(
+                                            typeof(DataPostResponse),
+                                            _schemaRepository
+                                        ),
+                                    },
+                                },
+                            }
+                        ),
                     },
                 },
                 Parameters =
@@ -1142,51 +1154,20 @@ public class CustomOpenApiController : Controller
                                 ["application/xml"] = xmlType,
                             },
                         },
-                        Responses = new()
-                        {
-                            ["201"] = new OpenApiResponse()
-                            {
-                                Description = "Data created",
-                                Content = new Dictionary<string, OpenApiMediaType>
-                                {
-                                    ["text/json"] = new OpenApiMediaType()
-                                    {
-                                        Schema = _schemaGenerator.GenerateSchema(
-                                            typeof(DataPostResponse),
-                                            _schemaRepository
-                                        ),
-                                    },
-                                },
-                            },
-                            ["400"] = new OpenApiResponse()
-                            {
-                                Description = "Failed to add data element",
-                                Content = new Dictionary<string, OpenApiMediaType>
-                                {
-                                    ["application/json"] = new OpenApiMediaType()
-                                    {
-                                        Schema = _schemaGenerator.GenerateSchema(
-                                            typeof(DataPostErrorResponse),
-                                            _schemaRepository
-                                        ),
-                                    },
-                                },
-                            },
-                        },
+                        Responses = DataPostResponses("Data created"),
                     },
                 },
                 Parameters =
                 [
                     Snippets.InstanceOwnerPartyIdParameterReference,
                     Snippets.InstanceGuidParameterReference,
-                    Snippets.DataGuidParameterReference,
                     Snippets.LanguageParameterReference,
                 ],
             }
         );
     }
 
-    private static void AddRoutesForAttachmentDataType(
+    private void AddRoutesForAttachmentDataType(
         OpenApiDocument doc,
         HashSet<OpenApiTagReference> tags,
         DataType dataType,
@@ -1212,9 +1193,9 @@ public class CustomOpenApiController : Controller
                         Tags = tags,
                         Summary = "Get attachment",
                         Description = "Get attachment for a specific data element",
-                        Responses = new()
-                        {
-                            ["200"] = new OpenApiResponse()
+                        Responses = Snippets.AddCommonErrorResponses(
+                            HttpStatusCode.OK,
+                            new OpenApiResponse()
                             {
                                 Description = "Attachment found",
                                 Content = new Dictionary<string, OpenApiMediaType>
@@ -1228,9 +1209,8 @@ public class CustomOpenApiController : Controller
                                         },
                                     },
                                 },
-                            },
-                            ["404"] = new OpenApiResponse() { Description = "Attachment not found" },
-                        },
+                            }
+                        ),
                     },
                 },
                 Parameters =
@@ -1263,18 +1243,42 @@ public class CustomOpenApiController : Controller
                                     .ToDictionary(contentType => contentType, contentType => new OpenApiMediaType())
                                 ?? new Dictionary<string, OpenApiMediaType>() { ["application/octet-stream"] = new() },
                         },
-                        Responses = new() { ["201"] = new OpenApiResponse() { Description = "Attachment created" } },
+                        Responses = DataPostResponses("Attachment created"),
                     },
                 },
-                Parameters =
-                [
-                    Snippets.InstanceOwnerPartyIdParameterReference,
-                    Snippets.InstanceGuidParameterReference,
-                    Snippets.DataGuidParameterReference,
-                ],
+                Parameters = [Snippets.InstanceOwnerPartyIdParameterReference, Snippets.InstanceGuidParameterReference],
             }
         );
     }
+
+    private OpenApiResponses DataPostResponses(string createdDescription) =>
+        Snippets.AddCommonErrorResponses(
+            new OpenApiResponses()
+            {
+                ["200"] = new OpenApiResponse()
+                {
+                    Description = createdDescription,
+                    Content = new Dictionary<string, OpenApiMediaType>
+                    {
+                        ["application/json"] = new OpenApiMediaType()
+                        {
+                            Schema = _schemaGenerator.GenerateSchema(typeof(DataPostResponse), _schemaRepository),
+                        },
+                    },
+                },
+                ["400"] = new OpenApiResponse()
+                {
+                    Description = "Failed to add data element",
+                    Content = new Dictionary<string, OpenApiMediaType>
+                    {
+                        ["application/json"] = new OpenApiMediaType()
+                        {
+                            Schema = _schemaGenerator.GenerateSchema(typeof(DataPostErrorResponse), _schemaRepository),
+                        },
+                    },
+                },
+            }
+        );
 
     private IOpenApiSchema? GetSchemaForDataType(DataType dataType)
     {

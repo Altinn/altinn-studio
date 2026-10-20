@@ -541,7 +541,7 @@ public class AccessManagementClientTests
                 x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Delegating rights to")),
+                    It.Is<It.IsAnyType>((v, t) => v != null && v.ToString()!.Contains("Delegating rights to")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),
@@ -583,7 +583,7 @@ public class AccessManagementClientTests
                 x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Revoking rights from")),
+                    It.Is<It.IsAnyType>((v, t) => v != null && v.ToString()!.Contains("Revoking rights from")),
                     It.IsAny<Exception>(),
                     It.IsAny<Func<It.IsAnyType, Exception?, string>>()
                 ),

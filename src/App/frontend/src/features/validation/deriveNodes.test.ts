@@ -69,6 +69,38 @@ describe('deriveNodes', () => {
     });
 
     expect(nodes.map((node) => node.id)).toEqual(['input-1']);
+
+    const unordered = deriveNodes(state, {
+      pageOrder: ['Form'],
+      includedNodeIds: ['input-1', 'missing', 'input-0', 'input-1'],
+      pdfLayoutName: undefined,
+      hiddenDataSources: {} as ExpressionDataSources,
+    });
+    expect(unordered.map((node) => node.id)).toEqual(['input-0', 'input-1']);
+    expect(unordered.map((node) => node.rowIds)).toEqual([['row-0'], ['row-1']]);
+    const scopedInputs = {
+      pageOrder: ['Form'],
+      descendantScope: { nodeId: 'group', restriction: 1, includeSelf: false },
+      pdfLayoutName: undefined,
+      hiddenDataSources: {} as ExpressionDataSources,
+    };
+    expect(deriveNodes(state, scopedInputs).map((node) => node.id)).toEqual(['input-1']);
+    expect(deriveNodes(state, { ...scopedInputs, includedNodeIds: ['input-0', 'unrelated'] })).toEqual([]);
+    expect(
+      deriveNodes(state, {
+        ...scopedInputs,
+        descendantScope: { ...scopedInputs.descendantScope, includeSelf: true },
+      }).map((node) => node.id),
+    ).toEqual(['group', 'input-1']);
+    expect(
+      deriveNodes(state, {
+        pageOrder: ['Form'],
+        includedPageKeys: ['AnotherPage'],
+        includedNodeIds: ['input-0'],
+        pdfLayoutName: undefined,
+        hiddenDataSources: {} as ExpressionDataSources,
+      }),
+    ).toEqual([]);
   });
 
   it('throws when a repeating row is missing its row ID', () => {

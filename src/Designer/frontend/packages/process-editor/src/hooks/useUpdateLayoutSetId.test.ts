@@ -14,7 +14,6 @@ const mutateLayoutSetId = vi.fn();
 
 describe('useUpdateLayoutSetId', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     (useBpmnApiContext as Mock).mockReturnValue({ mutateLayoutSetId });
   });
 

@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { IFormLayouts } from '../../../../types/global';
@@ -34,10 +34,6 @@ const studioRender = async (props: Partial<EditComponentIdRowProps> = {}) => {
 };
 
 describe('EditComponentIdRow', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render button ', async () => {
     await studioRender();
     const testIdButton = screen.getByRole('button', {
@@ -136,13 +132,37 @@ describe('EditComponentIdRow', () => {
       component: {
         type: ComponentType.FileUpload,
         id: '',
-        itemType: 'COMPONENT',
-        description: 'test',
-        displayMode: 'test',
+        displayMode: 'list',
         hasCustomFileEndings: false,
         maxFileSizeInMB: 100,
         maxNumberOfAttachments: 2,
         minNumberOfAttachments: 1,
+      },
+    });
+    const testIdButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await user.click(testIdButton);
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await user.clear(textField);
+    await user.type(textField, 'newTestId');
+    await user.click(document.body);
+    expect(
+      screen.getByText(textMock('ux_editor.error_component_id_exists_as_data_type')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show error message when id of an ImageUpload component has duplicate id', async () => {
+    const user = userEvent.setup();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'newTestId' }],
+    });
+    await studioRender({
+      component: {
+        type: ComponentType.ImageUpload,
+        id: '',
       },
     });
     const testIdButton = screen.getByRole('button', {

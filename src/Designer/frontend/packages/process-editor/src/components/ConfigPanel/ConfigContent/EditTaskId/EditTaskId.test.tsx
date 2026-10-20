@@ -45,7 +45,6 @@ vi.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
 
 describe('EditTaskId', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     mockLayoutSets = [];
   });
   it('should render task id as view mode by default', () => {

@@ -37,6 +37,11 @@ internal class PlatformFrontendSettings
     public string? UpgradeAuthenticationLevelUrl { get; set; }
 
     /// <summary>
+    /// URL of the Altinn overview of all forms. Null hides the link to it.
+    /// </summary>
+    public string? AllFormsUrl { get; set; }
+
+    /// <summary>
     /// URL of the Altinn 3 "arbeidsflate" inbox. Null in environments where the arbeidsflate is not
     /// deployed, which hides every link to it.
     /// </summary>
@@ -64,4 +69,19 @@ internal class PlatformFrontendSettings
     /// switching party.
     /// </summary>
     public string? AccessManagementChangeAndRedirectUrl { get; set; }
+
+    /// <summary>
+    /// URL of the access management front page, where users can see who can delegate rights. Null hides the link to it.
+    /// </summary>
+    public string? AccessManagementUrl { get; set; }
+
+    /// <summary>
+    /// URL of the Altinn help page about roles and rights. Null hides the link to it.
+    /// </summary>
+    public string? RolesAndRightsHelpUrl { get; set; }
+
+    /// <summary>
+    /// URL of the arbeidsflate profile settings for parties. Null hides the link to it.
+    /// </summary>
+    public string? ArbeidsflatePartiesUrl { get; set; }
 }

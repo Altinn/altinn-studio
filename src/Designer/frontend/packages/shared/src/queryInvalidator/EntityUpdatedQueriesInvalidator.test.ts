@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
 import { EntityUpdatedQueriesInvalidator } from './EntityUpdatedQueriesInvalidator';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -14,10 +14,6 @@ describe('EntityUpdatedQueriesInvalidator', () => {
     EntityUpdatedQueriesInvalidator.resetInstance();
     queryClientMock = new QueryClient();
     queryClientMock.invalidateQueries = vi.fn();
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   it('should invalidate query cache only once when invalidateQueriesByResourceName is called for a resource', async () => {

@@ -38,7 +38,6 @@ vi.mock('../../../../../utils/bpmnModeler/StudioModeler', () => ({
 
 describe('PdfAutomaticTaskSelection', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     mockTasks = [...defaultMockTasks];
   });
 

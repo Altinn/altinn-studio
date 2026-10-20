@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import type { ReceiptContentProps } from './ReceiptContent';
 import { ReceiptContent } from './ReceiptContent';
@@ -60,8 +60,6 @@ const defaultProps: ReceiptContentProps = {
 };
 
 describe('ReceiptContent', () => {
-  afterEach(vi.clearAllMocks);
-
   it('displays button when receiptName is undefined', async () => {
     await render({ receiptName: undefined });
 
