@@ -16,10 +16,7 @@ import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { chaiExtensions } from 'test/e2e/support/chai-extensions';
-import { installCypressDiagnostics } from 'test/e2e/support/diagnostics';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
-
-installCypressDiagnostics();
 
 const appFrontend = new AppFrontend();
 

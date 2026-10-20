@@ -17,7 +17,6 @@ on:
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
-      - 'src/App/frontend/cypress.config.js'
       - 'src/test/apps/**'
       - 'src/common/ts/layout-contract/**'
       - 'src/common/ts/form-component/src/**'
@@ -27,7 +26,6 @@ on:
       - 'src/common/ts/language/src/**'
       - 'src/common/ts/language/package.json'
       - '.github/actions/**'
-      - '.github/scripts/*cypress*'
       - '.yarn/patches/@percy-cli-exec-*.patch'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
@@ -250,13 +248,6 @@ jobs:
       matrix:
         containers: [1, 2, 3, 4, 5, 6]
     steps:
-      # Bound the test budget from job startup, including environment setup,
-      # and reserve 25 minutes before the hard timeout for uploads and cleanup.
-      - name: Set test deadline
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "CYPRESS_JOB_DEADLINE_MS=$(( ($(date +%s) + 95 * 60) * 1000 ))" >> "$GITHUB_ENV"
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -277,12 +268,6 @@ jobs:
         with:
           cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
           require-cache-hit: true
-
-      - name: Prepare native Cypress diagnostics
-        shell: bash
-        timeout-minutes: 3
-        working-directory: ${{ github.workspace }}
-        run: .github/scripts/prepare-cypress-diagnostics.sh "${GITHUB_WORKSPACE}/src/App/frontend/test/logs/cypress-diagnostics"
 
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
@@ -308,8 +293,6 @@ jobs:
       - name: Cypress run
         id: cypress
         shell: bash
-        # The wrapper normally stops first. This is its fallback timeout.
-        timeout-minutes: 90
         env:
           CYPRESS_PROJECT_ID: o7mikf
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }} # CYPRESS_RECORD_KEY comes from "org secrets"
@@ -335,34 +318,19 @@ jobs:
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            node "${GITHUB_WORKSPACE}/.github/scripts/run-cypress-with-diagnostics.mjs" \
-              npx percy exec --parallel -- \
-              npx cypress "${cypress_args[@]}"
+            npx percy exec --parallel -- npx cypress "${cypress_args[@]}"
           else
-            node "${GITHUB_WORKSPACE}/.github/scripts/run-cypress-with-diagnostics.mjs" \
-              npx cypress "${cypress_args[@]}"
+            npx cypress "${cypress_args[@]}"
           fi
-
-      - name: Upload Cypress diagnostics
-        if: ${{ always() && steps.cypress.outcome != 'skipped' }}
-        timeout-minutes: 5
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: cypress-diagnostics-${{ matrix.containers }}
-          path: src/App/frontend/test/logs/cypress-diagnostics
-          if-no-files-found: warn
-          retention-days: 7
 
       - name: Stop localtest
         if: always()
-        timeout-minutes: 10
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
+          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome != 'success' }}
-        timeout-minutes: 5
+        if: ${{ always() && steps.cypress.outcome == 'failure' }}
         with:
           name: app-frontend-logs-${{ matrix.containers }}
           path: |
@@ -396,11 +364,6 @@ jobs:
         working-directory: src/App/frontend/
 
     steps:
-      - name: Set test deadline
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: echo "CYPRESS_JOB_DEADLINE_MS=$(( ($(date +%s) + 95 * 60) * 1000 ))" >> "$GITHUB_ENV"
-
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -422,12 +385,6 @@ jobs:
           cache-key: ${{ needs.prepare-app-frontend-dependencies.outputs.cache-key }}
           require-cache-hit: true
 
-      - name: Prepare native Cypress diagnostics
-        shell: bash
-        timeout-minutes: 3
-        working-directory: ${{ github.workspace }}
-        run: .github/scripts/prepare-cypress-diagnostics.sh "${GITHUB_WORKSPACE}/src/App/frontend/test/logs/cypress-diagnostics"
-
       - name: Run Local Environment
         uses: ./.github/actions/app-run-local-env
         with:
@@ -443,31 +400,16 @@ jobs:
       - name: Cypress run
         id: cypress
         shell: bash
-        timeout-minutes: 90
-        run: |
-          node "${GITHUB_WORKSPACE}/.github/scripts/run-cypress-with-diagnostics.mjs" \
-            npx cypress run --browser "${CHROME_PATH:-chrome}" --spec test/e2e/integration --env environment=localtest
-
-      - name: Upload Cypress diagnostics
-        if: ${{ always() && steps.cypress.outcome != 'skipped' }}
-        timeout-minutes: 5
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: cypress-diagnostics-external
-          path: src/App/frontend/test/logs/cypress-diagnostics
-          if-no-files-found: warn
-          retention-days: 7
+        run: npx cypress run --browser "${CHROME_PATH:-chrome}" --spec test/e2e/integration --env environment=localtest
 
       - name: Stop localtest
         if: always()
-        timeout-minutes: 10
         uses: ./.github/actions/app-stop-local-env
         with:
-          collect-diagnostics: ${{ steps.cypress.outcome != 'success' }}
+          collect-diagnostics: ${{ steps.cypress.outcome == 'failure' }}
 
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        if: ${{ always() && steps.cypress.outcome != 'success' }}
-        timeout-minutes: 5
+        if: ${{ always() && steps.cypress.outcome == 'failure' }}
         with:
           name: app-frontend-external-logs
           path: |
