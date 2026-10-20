@@ -742,6 +742,7 @@ public class WorkflowEngineClientTests
             Namespace = "ttd/app",
             CreatedAt = DateTimeOffset.UtcNow,
             OverallStatus = PersistentItemStatus.Processing,
+            Role = WorkflowRole.Primary,
             Steps =
             [
                 new StepStatusResponse

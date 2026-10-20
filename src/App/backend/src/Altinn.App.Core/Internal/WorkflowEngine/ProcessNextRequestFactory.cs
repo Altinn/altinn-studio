@@ -83,9 +83,8 @@ internal sealed class ProcessNextRequestFactory
     /// per side effect, enqueued as an atomic batch at the commit boundary by
     /// <see cref="EnqueueSideEffectsWorkflow"/>; each OperationId carries the command key as a
     /// suffix). A human-readable naming convention for ops queries and logs only - identification
-    /// (wait/settle scoping, failure classification) is by the engine-persisted
-    /// <c>IsHead == false</c> directive (see <see cref="WorkflowEngineService.IsSideEffectsWorkflow"/>),
-    /// not by this string.
+    /// (wait/settle scoping, failure classification) is by the workflow role the engine reports
+    /// (see <see cref="WorkflowEngineService.IsAuxiliaryWorkflow"/>), not by this string.
     /// </summary>
     internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
 

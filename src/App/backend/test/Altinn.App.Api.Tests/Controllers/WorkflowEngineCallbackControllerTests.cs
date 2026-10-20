@@ -205,6 +205,7 @@ public class WorkflowEngineCallbackControllerTests
             OperationId = requests[0].Workflows[0].OperationId,
             CreatedAt = referenceTime,
             OverallStatus = PersistentItemStatus.Enqueued,
+            Role = WorkflowRole.Primary,
             Dependencies = new Dictionary<Guid, PersistentItemStatus>
             {
                 [setup.WorkflowId] = PersistentItemStatus.Processing,
