@@ -28,7 +28,7 @@ class FatalSyncError extends Error {
 // --- Service & environment definitions ---
 
 function envDisplayName(name) {
-  return name.replace(/^(runtime_|studio_|adminservices_|dis_core_)/, '');
+  return name.replace(/^(runtime_|studio_|adminservices_|dis_core_|dis_edge_)/, '');
 }
 
 function createEnv(name, aliases = [], ungated = false) {
@@ -75,9 +75,16 @@ const DIS_CORE_ENVS = Object.freeze(
     createEnv(`dis_core_${name}`, [name], name.startsWith('at')),
   ),
 );
+// DIS Edge workflows name their tag jobs the same way, with the same approvals.
+const DIS_EDGE_ENVS = Object.freeze(
+  ['at22', 'at23', 'yt01', 'tt02', 'prod'].map((name) =>
+    createEnv(`dis_edge_${name}`, [name], name.startsWith('at')),
+  ),
+);
 const PLANE_DEFINITIONS = Object.freeze([
   { name: 'runtime', envs: RUNTIME_ENVS },
   { name: 'dis-core', envs: DIS_CORE_ENVS },
+  { name: 'dis-edge', envs: DIS_EDGE_ENVS },
   { name: 'studio', envs: STUDIO_ENVS },
   { name: 'admin', envs: ADMIN_ENVS },
 ]);
@@ -137,6 +144,7 @@ const SERVICES = [
     ['runtime', RUNTIME_ENVS],
     ['dis-core', DIS_CORE_ENVS],
   ]),
+  service('deploy-runtime-pdf3-edge.yaml', [['dis-edge', DIS_EDGE_ENVS]]),
   ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
   ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),
