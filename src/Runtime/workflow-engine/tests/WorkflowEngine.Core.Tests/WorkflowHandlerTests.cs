@@ -1607,7 +1607,7 @@ public class WorkflowHandlerTests
 
         await handler.Handle(workflow, TestContext.Current.CancellationToken);
 
-        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Processing, workflow.Status);
         var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
         Assert.Equal("System.InvalidOperationException", workflowSpan.GetTagItem("error.type"));
         Assert.Empty(workflowSpan.Events);
@@ -1617,10 +1617,9 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
-    public async Task Handle_StepWriteBackThrows_StepSpanEndsInErrorWithTheException()
+    public async Task Handle_StepWriteBackThrows_StepSpanEndsInError_ReportedOnceInWorkflowTrace()
     {
-        // A span that is never stopped is never exported, and the trace would show the workflow without the step.
-        // The exception's details are in the handler's one ERROR log, in the same trace
+        // A span that is never stopped is never exported, and the trace would show the workflow without the step
         using var listener = ListenToEngineSpans();
         var spans = new CapturedSpans();
         using var logs = new TraceCapturingLoggerProvider();
@@ -1639,7 +1638,18 @@ public class WorkflowHandlerTests
 
         await handler.Handle(workflow, TestContext.Current.CancellationToken);
 
-        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Processing, workflow.Status);
+        buffer.Verify(
+            b =>
+                b.Submit(
+                    It.IsAny<Workflow>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<IReadOnlyList<Step>?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Activity?>()
+                ),
+            Times.Once()
+        );
         var stepSpan = Assert.IsType<Activity>(spans.Step);
         Assert.True(stepSpan.IsStopped);
         Assert.Null(step.EngineActivity);
@@ -1647,9 +1657,9 @@ public class WorkflowHandlerTests
         Assert.Equal("write-back failed", stepSpan.StatusDescription);
         Assert.Equal("System.InvalidOperationException", stepSpan.GetTagItem("error.type"));
         Assert.Empty(stepSpan.Events);
-        var errorLog = Assert.Single(logs.Entries, e => e.Level == LogLevel.Error);
-        Assert.Same(writeBackFailure, errorLog.Exception);
-        Assert.Equal(stepSpan.TraceId, errorLog.TraceId);
+        AssertReportedInTheWorkflowTrace(logs, spans.Workflow, writeBackFailure);
+        Assert.Equal(spans.Workflow?.TraceId, stepSpan.TraceId);
+        Assert.Single(logs.Entries, e => e.Level >= LogLevel.Error);
     }
 
     [Fact]
@@ -1668,50 +1678,15 @@ public class WorkflowHandlerTests
 
         await handler.Handle(workflow, TestContext.Current.CancellationToken);
 
-        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Processing, workflow.Status);
         var stepSpan = Assert.IsType<Activity>(spans.Step);
         Assert.True(stepSpan.IsStopped);
         Assert.Null(step.EngineActivity);
         Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
         Assert.Equal("System.Diagnostics.UnreachableException", stepSpan.GetTagItem("error.type"));
-    }
-
-    [Fact]
-    public async Task Handle_FailureWriteBackAlsoThrows_LogsEachOnce_LastOneEndsWorkflowSpan()
-    {
-        using var listener = ListenToEngineSpans();
-        var spans = new CapturedSpans();
-        using var logs = new TraceCapturingLoggerProvider();
-        var stepWriteBackFailure = new InvalidOperationException("step write-back failed");
-        var failureWriteBackFailure = new TimeoutException("failure write-back failed");
-        var buffer = MockBuffer(
-            (w, _) =>
-                Task.FromException(
-                    w.Status == PersistentItemStatus.Processing ? stepWriteBackFailure : failureWriteBackFailure
-                )
-        );
-        var handler = CreateHandler(
-            MockExecutorCapturingSpans(spans, ExecutionResult.Success()).Object,
-            buffer: buffer.Object,
-            logger: logs.CreateLogger<WorkflowHandler>()
-        );
-        var step = CreateStep();
-        var workflow = CreateWorkflow(step);
-
-        await handler.Handle(workflow, TestContext.Current.CancellationToken);
-
-        var stepSpan = Assert.IsType<Activity>(spans.Step);
-        Assert.True(stepSpan.IsStopped);
-        Assert.Null(step.EngineActivity);
-        Assert.Equal(ActivityStatusCode.Error, stepSpan.Status);
-        Assert.Equal("step write-back failed", stepSpan.StatusDescription);
-        Assert.Equal("System.InvalidOperationException", stepSpan.GetTagItem("error.type"));
-        Assert.Null(workflow.EngineActivity);
-        AssertReportedInTheWorkflowTrace(logs, spans.Workflow, failureWriteBackFailure);
-        var stepFailureLog = Assert.Single(logs.Entries, e => ReferenceEquals(e.Exception, stepWriteBackFailure));
-        Assert.Equal(LogLevel.Error, stepFailureLog.Level);
-        Assert.Equal(stepSpan.TraceId, stepFailureLog.TraceId);
-        Assert.Equal(2, logs.Entries.Count(e => e.Level >= LogLevel.Error));
+        var workflowSpan = Assert.IsType<Activity>(spans.Workflow);
+        Assert.Equal(ActivityStatusCode.Error, workflowSpan.Status);
+        Assert.Equal("System.Diagnostics.UnreachableException", workflowSpan.GetTagItem("error.type"));
     }
 
     [Theory]

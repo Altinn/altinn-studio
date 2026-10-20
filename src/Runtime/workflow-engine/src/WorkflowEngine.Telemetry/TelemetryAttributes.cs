@@ -43,7 +43,7 @@ public static class TelemetryAttributes
 
     /// <summary>
     /// The engine-internal operation an error happened in, such as <c>fetch_and_lock</c>,
-    /// <c>db_maintenance</c> or <c>workflow_processing</c>.
+    /// <c>db_maintenance</c> or <c>workflow_handling</c>.
     /// </summary>
     public const string Operation = "altinn.workflow_engine.operation";
 

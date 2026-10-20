@@ -620,6 +620,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // update buffer the way an outage's would. Only an ended span is exported, and so collected
         using var collector = new TelemetryCollector();
         const string operationId = "/refused-write-back";
+        var settings = fixture.Services.GetRequiredService<IOptions<EngineSettings>>().Value;
+        var maintenance = fixture.Services.GetServices<IHostedService>().OfType<DbMaintenanceService>().Single();
 
         await using (var context = fixture.GetDbContext())
         {
@@ -638,6 +640,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
             );
         }
 
+        Guid workflowId;
         try
         {
             var request = _testHelpers.CreateEnqueueRequest([
@@ -646,14 +649,15 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
 
             // Act
             var response = await _client.Enqueue(request);
-            var workflowId = response.Workflows.Single().DatabaseId;
-            await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+            workflowId = response.Workflows.Single().DatabaseId;
 
             // Assert
-            var handle = await collector.WaitForActivity(a =>
-                a.OperationName == "WorkflowHandler.Handle"
-                && a.GetTagItem("altinn.workflow_engine.workflow.id") is Guid id
-                && id == workflowId
+            var handle = await collector.WaitForActivity(
+                a =>
+                    a.OperationName == "WorkflowHandler.Handle"
+                    && a.GetTagItem("altinn.workflow_engine.workflow.id") is Guid id
+                    && id == workflowId,
+                TimeSpan.FromSeconds(15)
             );
             var processStep = await collector.WaitForActivity(a =>
                 a.OperationName == "WorkflowHandler.ProcessStep" && a.TraceId == handle.TraceId
@@ -663,9 +667,27 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
             Assert.Equal(ActivityStatusCode.Error, processStep.Status);
             Assert.Equal("Npgsql.PostgresException", processStep.GetTagItem("error.type"));
             Assert.Empty(processStep.Events);
+            Assert.Equal(ActivityStatusCode.Error, handle.Status);
+            Assert.Equal("Npgsql.PostgresException", handle.GetTagItem("error.type"));
+            Assert.Empty(handle.Events);
+            var errorLog = Assert.Single(collector.Logs, l => l.TraceId == handle.TraceId && l.Level >= LogLevel.Error);
+            Assert.Equal(LogLevel.Error, errorLog.Level);
+            Assert.Equal(handle.SpanId, errorLog.SpanId);
+            var exception = Assert.IsType<PostgresException>(errorLog.Exception);
+            Assert.Equal("step write-back refused", exception.MessageText);
+
+            await using var context = fixture.GetDbContext();
+            var row = await context
+                .Workflows.Include(w => w.Steps)
+                .AsNoTracking()
+                .SingleAsync(w => w.Id == workflowId, TestContext.Current.CancellationToken);
+            Assert.Equal(PersistentItemStatus.Processing, row.Status);
+            Assert.NotNull(row.LeaseToken);
+            Assert.NotEqual(PersistentItemStatus.Completed, Assert.Single(row.Steps).Status);
         }
         finally
         {
+            // Reclaimed as if the threshold had passed, which also leaves the database idle for the next test's reset
             await using var context = fixture.GetDbContext();
             await context.Database.ExecuteSqlRawAsync(
                 """
@@ -674,7 +696,14 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
                 """,
                 CancellationToken.None
             );
+            await maintenance.ReclaimStaleWorkflows(
+                DateTimeOffset.UtcNow + settings.StaleWorkflowThreshold,
+                settings,
+                CancellationToken.None
+            );
         }
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
     }
 
     [Fact]

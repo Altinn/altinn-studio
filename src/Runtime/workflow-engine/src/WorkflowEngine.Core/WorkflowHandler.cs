@@ -58,38 +58,29 @@ internal sealed class WorkflowHandler(
         catch (LeaseLostException)
         {
             // Reclaimed by another host. Exit cleanly — no retry, no re-enqueue.
-            HandleLeaseLost(workflow);
+            logger.WorkflowLeaseLost(workflow);
+            Metrics.WorkflowsLeaseLost.Add(1);
+
+            MarkLeaseLost(workflow.EngineActivity);
         }
         catch (Exception ex)
         {
-            HandleEscapedException(workflow, ex);
+            // Ahead of the finally: the span must still be current for the log to land in the workflow's trace.
+            workflow.EngineActivity?.Errored(ex);
+            logger.WorkflowHandlingEndedByException(workflow, ex);
+
+            Metrics.Errors.Add(
+                1,
+                [
+                    (TelemetryAttributes.Operation, "workflow_handling"),
+                    (TelemetryAttributes.Namespace, workflow.Namespace),
+                ]
+            );
         }
         finally
         {
             StopActivity(workflow);
         }
-    }
-
-    private void HandleLeaseLost(Workflow workflow)
-    {
-        logger.WorkflowLeaseLost(workflow);
-        Metrics.WorkflowsLeaseLost.Add(1);
-
-        MarkLeaseLost(workflow.EngineActivity);
-    }
-
-    /// <summary>
-    /// Must run while the entry span is the current activity, so the log lands in the workflow's trace.
-    /// </summary>
-    private void HandleEscapedException(Workflow workflow, Exception ex)
-    {
-        workflow.EngineActivity?.Errored(ex);
-        logger.WorkflowHandlingEndedByException(workflow, ex);
-
-        Metrics.Errors.Add(
-            1,
-            [(TelemetryAttributes.Operation, "workflow_handling"), (TelemetryAttributes.Namespace, workflow.Namespace)]
-        );
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken ct)
@@ -171,29 +162,6 @@ internal sealed class WorkflowHandler(
             await statusWriteBuffer.Submit(workflow, CancellationToken.None, dirtySteps: workflow.Steps);
 
             throw;
-        }
-        catch (LeaseLostException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            workflow.Status = PersistentItemStatus.Failed;
-            workflow.EngineActivity?.Errored(ex);
-
-            logger.WorkflowProcessingFailed(workflow, ex.Message, ex);
-
-            Metrics.Errors.Add(
-                1,
-                [
-                    (TelemetryAttributes.Operation, "workflow_processing"),
-                    (TelemetryAttributes.Namespace, workflow.Namespace),
-                ]
-            );
-
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
-
-            return;
         }
 
         workflow.Status = workflow.OverallStatus();
@@ -280,7 +248,7 @@ internal sealed class WorkflowHandler(
     /// however the attempt ends: a span left open is never exported, so the trace would lose the step. When an exception
     /// ends the attempt, the span is left without a status if it is the handler's own cancellation, marked
     /// <c>lease_lost</c> if the lease was lost, and otherwise marked with the exception, which
-    /// <see cref="ProcessWorkflow"/> then logs at ERROR in the same trace.
+    /// <see cref="Handle"/> then logs at ERROR in the same trace.
     /// </summary>
     private async Task ProcessStep(
         Workflow workflow,
@@ -726,14 +694,6 @@ internal static partial class WorkflowHandlerLogs
 {
     [LoggerMessage(LogLevel.Debug, "Processing workflow: {Workflow}")]
     internal static partial void ProcessingWorkflow(this ILogger<WorkflowHandler> logger, Workflow workflow);
-
-    [LoggerMessage(LogLevel.Error, "Processing of workflow {Workflow} resulted in an error: {Message}.")]
-    internal static partial void WorkflowProcessingFailed(
-        this ILogger<WorkflowHandler> logger,
-        Workflow workflow,
-        string message,
-        Exception? ex
-    );
 
     [LoggerMessage(LogLevel.Error, "Handling of workflow {Workflow} was ended by an exception")]
     internal static partial void WorkflowHandlingEndedByException(
