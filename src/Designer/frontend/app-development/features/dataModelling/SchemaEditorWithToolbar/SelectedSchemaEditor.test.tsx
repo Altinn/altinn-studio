@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../test/mocks';
 import type { SelectedSchemaEditorProps } from './SelectedSchemaEditor';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
@@ -50,7 +51,7 @@ const modelTitleTestId = 'model-title';
 const mockFirstEdit = { ...dataMock, title: 'first edit' };
 const mockSecondEdit = { ...dataMock, title: 'second edit' };
 const prefillConfigMock: PrefillConfig = { ER: { OrgNumber: 'someField' } };
-jest.mock('@altinn/schema-editor/SchemaEditorApp', () => ({
+vi.mock('@altinn/schema-editor/SchemaEditorApp', () => ({
   SchemaEditorApp: ({ jsonSchema, save, savePrefillConfig }: SchemaEditorAppProps) => (
     <div data-testid={schemaEditorTestId}>
       <span data-testid='model-title'>{jsonSchema.title ?? 'untitled'}</span>
@@ -64,7 +65,7 @@ jest.mock('@altinn/schema-editor/SchemaEditorApp', () => ({
     </div>
   ),
 }));
-jest.useFakeTimers({ advanceTimers: true });
+vi.useFakeTimers({ shouldAdvanceTime: true });
 
 describe('SelectedSchemaEditor', () => {
   it('Displays loading spinner while loading', () => {
@@ -74,7 +75,7 @@ describe('SelectedSchemaEditor', () => {
 
   it('Displays error message if loading fails', async () => {
     const message = 'Lorem ipsum dolor sit amet';
-    const getDataModel = jest.fn().mockImplementation(() => Promise.reject(new Error(message)));
+    const getDataModel = vi.fn().mockImplementation(() => Promise.reject(new Error(message)));
     render({ getDataModel });
     await waitForElementToBeRemoved(() =>
       screen.queryByLabelText(textMock('schema_editor.loading_page')),
@@ -85,7 +86,7 @@ describe('SelectedSchemaEditor', () => {
   it('Displays custom error message if it exists when invalid xml response', async () => {
     const customMessage =
       "The 'xsd:schema' start tag on line 2 position 2 does not match the end tag of 'xs:schema'. Line 86, position 3";
-    const getDataModel = jest
+    const getDataModel = vi
       .fn()
       .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'DM_05', [customMessage])));
     render({ getDataModel });
@@ -104,8 +105,8 @@ describe('SelectedSchemaEditor', () => {
   });
 
   it('Debounces the save function', async () => {
-    const saveDataModel = jest.fn();
-    const getDataModel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
+    const saveDataModel = vi.fn();
+    const getDataModel = vi.fn().mockImplementation(() => Promise.resolve(dataMock));
 
     render({ getDataModel, saveDataModel });
 
@@ -117,14 +118,14 @@ describe('SelectedSchemaEditor', () => {
     await user.click(button);
     expect(saveDataModel).not.toHaveBeenCalled();
 
-    await waitFor(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
+    await waitFor(() => vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, model1Path, dataMock);
   });
 
   it('Keeps an edit made while the previous save is being written to the cache', async () => {
-    const saveDataModel = jest.fn();
-    const getDataModel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
+    const saveDataModel = vi.fn();
+    const getDataModel = vi.fn().mockImplementation(() => Promise.resolve(dataMock));
 
     render({ getDataModel, saveDataModel });
 
@@ -135,23 +136,23 @@ describe('SelectedSchemaEditor', () => {
     await user.click(screen.getByTestId(saveFirstEditButtonTestId));
     const saveSecondEditButton = screen.getByTestId(saveSecondEditButtonTestId);
     await act(async () => {
-      jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+      vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
       saveSecondEditButton.click();
     });
-    await act(async () => jest.advanceTimersByTime(1));
+    await act(async () => vi.advanceTimersByTime(1));
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     expect(saveDataModel).toHaveBeenCalledWith(org, app, model1Path, mockFirstEdit);
 
     expect(screen.getByTestId(modelTitleTestId)).toHaveTextContent('second edit');
 
-    await act(async () => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
+    await act(async () => vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     expect(saveDataModel).toHaveBeenCalledTimes(2);
     expect(saveDataModel).toHaveBeenLastCalledWith(org, app, model1Path, mockSecondEdit);
   });
 
   it('Saves the prefill config for the current model', async () => {
-    const saveDataModelPrefill = jest.fn();
-    const getDataModel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
+    const saveDataModelPrefill = vi.fn();
+    const getDataModel = vi.fn().mockImplementation(() => Promise.resolve(dataMock));
 
     render({ getDataModel, saveDataModelPrefill });
 
@@ -166,8 +167,8 @@ describe('SelectedSchemaEditor', () => {
   });
 
   it('Auto saves when changing between models that are not present in the cache', async () => {
-    const saveDataModel = jest.fn();
-    const getDataModel = jest.fn().mockImplementation(() => Promise.resolve(dataMock));
+    const saveDataModel = vi.fn();
+    const getDataModel = vi.fn().mockImplementation(() => Promise.resolve(dataMock));
     const {
       renderResult: { rerender },
     } = render({ getDataModel, saveDataModel });
@@ -178,13 +179,13 @@ describe('SelectedSchemaEditor', () => {
 
     const updatedProps = { ...defaultProps, modelPath: model2Path };
     rerender(<SelectedSchemaEditor {...updatedProps} />);
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, model1Path, dataMock);
   });
 
   it('Auto saves when changing between models that are already present in the cache', async () => {
-    const saveDataModel = jest.fn();
+    const saveDataModel = vi.fn();
     const queryClient = createQueryClientMock();
     const newModelPath = 'newModel';
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, model1Path], dataMock);
@@ -199,13 +200,13 @@ describe('SelectedSchemaEditor', () => {
       modelPath: newModelPath,
     };
     rerender(<SelectedSchemaEditor {...updatedProps} />);
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await waitFor(() => expect(saveDataModel).toHaveBeenCalledTimes(1));
     expect(saveDataModel).toHaveBeenCalledWith(org, app, model1Path, dataMock);
   });
 
   it('Does not save when model is deleted', async () => {
-    const saveDataModel = jest.fn();
+    const saveDataModel = vi.fn();
     const queryClient = createQueryClientMock();
 
     queryClient.setQueryData([QueryKey.JsonSchema, org, app, model1Path], dataMock);
@@ -222,7 +223,7 @@ describe('SelectedSchemaEditor', () => {
     queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [model2MetadataJson]);
     queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [model2MetadataXsd]);
     rerender(<SelectedSchemaEditor {...updatedProps} />);
-    jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
+    vi.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS);
     await verifyNeverOccurs(() => expect(saveDataModel).toHaveBeenCalled());
   });
 });

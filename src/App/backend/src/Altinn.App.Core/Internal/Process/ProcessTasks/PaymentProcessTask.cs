@@ -5,13 +5,13 @@ using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Services;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
@@ -25,8 +25,6 @@ internal sealed class PaymentProcessTask : IProcessTask
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
     private readonly AppImplementationFactory _appImplementationFactory;
-    private readonly IAppMetadata _appMetadata;
-    private readonly IHostEnvironment _hostEnvironment;
 
     private const string PdfContentType = "application/pdf";
     private const string ReceiptFileName = "Betalingskvittering.pdf";
@@ -38,20 +36,37 @@ internal sealed class PaymentProcessTask : IProcessTask
         IPdfService pdfService,
         IProcessReader processReader,
         IPaymentService paymentService,
-        AppImplementationFactory appImplementationFactory,
-        IAppMetadata appMetadata,
-        IHostEnvironment hostEnvironment
+        AppImplementationFactory appImplementationFactory
     )
     {
         _pdfService = pdfService;
         _processReader = processReader;
         _appImplementationFactory = appImplementationFactory;
-        _appMetadata = appMetadata;
-        _hostEnvironment = hostEnvironment;
     }
 
     /// <inheritdoc/>
     public string Type => AltinnTaskTypes.Payment;
+
+    /// <inheritdoc/>
+    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
+    {
+        try
+        {
+            ValidAltinnPaymentConfiguration configuration = GetAltinnPaymentConfiguration(context.TaskId).Validate();
+            if (context.Environment == HostingEnvironment.Development)
+            {
+                AllowedContributorsHelper.EnsureDataTypeIsAppOwned(
+                    context.ApplicationMetadata,
+                    configuration.PaymentDataType
+                );
+            }
+            return [];
+        }
+        catch (ApplicationConfigException e)
+        {
+            return [e.Message];
+        }
+    }
 
     /// <inheritdoc/>
     public async Task Start(ProcessTaskContext context)
@@ -60,12 +75,6 @@ internal sealed class PaymentProcessTask : IProcessTask
         Instance instance = dataMutator.Instance;
         string taskId = GetTaskId(dataMutator);
         ValidAltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId).Validate();
-
-        if (_hostEnvironment.IsDevelopment())
-        {
-            ApplicationMetadata appMetadata = _appMetadata.ApplicationMetadata;
-            AllowedContributorsHelper.EnsureDataTypeIsAppOwned(appMetadata, paymentConfiguration.PaymentDataType);
-        }
 
         await CleanupAnyExistingPayment(dataMutator, paymentConfiguration, context.CancellationToken);
     }
@@ -86,21 +95,20 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(
-            dataMutator,
+        // The actor's language, the one the user chose for the transition, or nb if it has none
+        byte[] pdf = await _pdfService.GeneratePdf(
+            dataMutator.Instance,
             taskId,
-            false,
+            language: dataMutator.Language ?? LanguageConst.Nb,
             cancellationToken: cancellationToken
         );
-        using var memoryStream = new MemoryStream();
-        await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
         dataMutator.AddBinaryDataElement(
             validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
-            memoryStream.ToArray(),
+            pdf,
             generatedFromTask: taskId
         );
     }

@@ -52,6 +52,22 @@
       "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
       "datasourceTemplate": "npm",
       "depNameTemplate": "@playwright/cli"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Rust toolchain copies that cannot read rust-toolchain.toml: image build ARGs, the workspace rust-version and the cargo-deny container",
+      "managerFilePatterns": [
+        "/^Cargo\\.toml$/",
+        "/(^|/)Dockerfile$/",
+        "/^\\.github/workflows/rust-dependency-checks\\.yaml$/"
+      ],
+      "matchStrings": [
+        "ARG RUST_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)",
+        "rust-version = \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "rust-version: '(?<currentValue>\\d+\\.\\d+\\.\\d+)'"
+      ],
+      "datasourceTemplate": "rust-version",
+      "depNameTemplate": "rust"
     }
   ],
   "separateMultipleMajor": true,
@@ -139,8 +155,17 @@
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
-      "matchFileNames": ["frontend/testing/cypress/**"],
-      "ignoreDeps": ["yarn"]
+      "description": "Move uv in the Studio Assistant CI and image, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
+      "matchFileNames": [
+        ".github/workflows/altinity-build-test.yaml",
+        ".github/workflows/assistant-evals.yaml",
+        ".github/workflows/assistant-prompts.yaml",
+        "src/AI/assistant/dockerfile",
+        "src/AI/assistant/.python-version"
+      ],
+      "matchPackageNames": ["astral-sh/uv", "ghcr.io/astral-sh/uv", "python"],
+      "groupName": "Studio Assistant uv and Python",
+      "groupSlug": "assistant-uv-python"
     },
     {
       "matchFileNames": ["src/Designer/**"],
@@ -187,6 +212,13 @@
       "groupSlug": "app-template-nuget-v9",
       "addLabels": ["approve"],
       "automerge": true
+    },
+    {
+      "description": "Keep the v8 app template's .NET SDK on 8.x: it targets net8.0 and its Dockerfile builds with the 8.0 SDK image",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/v8/global.json"],
+      "matchPackageNames": ["dotnet-sdk"],
+      "allowedVersions": "<9"
     },
     {
       "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
@@ -281,14 +313,17 @@
       "commitMessageSuffix": ""
     },
     {
-      "description": "Manage experimental agent platform dependencies manually",
-      "matchFileNames": ["src/experimental/**"],
-      "enabled": false
-    },
-    {
       "description": "Manage all Rust dependencies manually",
       "matchManagers": ["cargo"],
       "enabled": false
+    },
+    {
+      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects.",
+      "matchDatasources": ["rust-version"],
+      "matchPackageNames": ["rust"],
+      "groupName": "Rust toolchain",
+      "groupSlug": "rust-toolchain",
+      "enabled": true
     }
   ],
   "schedule": ["* 7-15 * * 1-5"],

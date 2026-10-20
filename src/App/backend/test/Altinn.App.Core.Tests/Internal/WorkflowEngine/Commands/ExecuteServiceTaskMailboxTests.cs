@@ -299,7 +299,7 @@ public class ExecuteServiceTaskMailboxTests
     /// The reply terminal reached with nothing to answer — a step naming an item that answers messages,
     /// handed no target. One general rule, whichever route produced it: an engine that omitted the
     /// target, or a redeploy that turned a <c>Finally</c> into a reply terminal while this workflow was
-    /// in flight, so its Main's concluding step now names a handler.
+    /// in flight, so its primary workflow's concluding step now names a handler.
     /// </summary>
     [Fact]
     public async Task ReplyHandlerOfAnExchangePipeline_WithoutARendezvous_FailsPermanentlyAndNeverRuns()

@@ -87,6 +87,26 @@ func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
 				return secrets["AzureMonitor--DataPlane--ConnectionString"]
 			},
 		},
+		{
+			Name:      "observability-ingest-token",
+			Namespace: "runtime-obs",
+			FileName:  "token",
+			Secrets:   []string{"Observability--Ingest--Token"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["Observability--Ingest--Token"]
+			},
+		},
+		{
+			Name:      "pdf3-upstream-api-key",
+			Namespace: "runtime-pdf3",
+			FileName:  "key",
+			Secrets:   []string{"Pdf3--Upstream--ApiKey"},
+			Raw:       true,
+			BuildOutput: func(secrets map[string]string) any {
+				return secrets["Pdf3--Upstream--ApiKey"]
+			},
+		},
 	}
 }
 

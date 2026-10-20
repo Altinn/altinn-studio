@@ -358,8 +358,8 @@ public static class StudioOidcAuthenticationExtensions
         }
 
         using var activity = ServiceTelemetry.Source.StartActivity("oidc.token_refresh");
-        activity?.SetTag("auth.authority", oidcSettings.Authority);
-        activity?.SetTag("auth.previous_expires_at", expiresAtValue);
+        activity?.SetTag(ServiceTelemetry.Attributes.Oidc.Authority, oidcSettings.Authority);
+        activity?.SetTag(ServiceTelemetry.Attributes.Oidc.PreviousExpiresAt, expiresAtValue);
         activity.SetAlwaysSample();
 
         try
@@ -376,7 +376,7 @@ public static class StudioOidcAuthenticationExtensions
             using var discoveryDoc = JsonDocument.Parse(discoveryJson);
             string tokenUrl = discoveryDoc.RootElement.GetProperty("token_endpoint").GetString()!;
 
-            activity?.SetTag("auth.token_endpoint", tokenUrl);
+            activity?.SetTag(ServiceTelemetry.Attributes.Oidc.TokenEndpoint, tokenUrl);
 
             var requestContent = new FormUrlEncodedContent(
                 new Dictionary<string, string> { ["grant_type"] = "refresh_token", ["refresh_token"] = refreshToken }
@@ -384,7 +384,7 @@ public static class StudioOidcAuthenticationExtensions
 
             var response = await httpClient.PostAsync(tokenUrl, requestContent);
 
-            activity?.SetTag("auth.refresh_status_code", (int)response.StatusCode);
+            activity?.SetTag(ServiceTelemetry.Attributes.Oidc.RefreshStatusCode, (int)response.StatusCode);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -425,8 +425,8 @@ public static class StudioOidcAuthenticationExtensions
 
             context.ShouldRenew = true;
 
-            activity?.SetTag("auth.new_expires_at", newExpiresAt);
-            activity?.SetTag("auth.new_refresh_token_issued", newRefreshTokenIssued);
+            activity?.SetTag(ServiceTelemetry.Attributes.Oidc.NewExpiresAt, newExpiresAt);
+            activity?.SetTag(ServiceTelemetry.Attributes.Oidc.NewRefreshTokenIssued, newRefreshTokenIssued);
             activity?.SetStatus(ActivityStatusCode.Ok);
         }
         catch (Exception ex)

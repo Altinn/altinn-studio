@@ -1,5 +1,4 @@
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.EFormidling;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
@@ -21,7 +20,6 @@ using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
-using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Features.Signing.Services;
@@ -288,9 +286,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpClient<IPdfGeneratorClient, PdfGeneratorClient>();
         services.TryAddTransient<IPdfService, PdfService>();
-#pragma warning disable CS0618 // Type or member is obsolete
-        services.TryAddTransient<IPdfFormatter, NullPdfFormatter>();
-#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     private static void AddPaymentServices(
@@ -378,9 +373,13 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
 
-        // Registered here rather than in AddEFormidling(), so that an app whose BPMN has an
-        // eFormidling task but never called it is told at startup instead of mid-process.
-        services.AddHostedService<EFormidlingConfigValidationService>();
+        // The validation reads the hook registrations themselves, which the service provider does not expose.
+        services.AddHostedService(provider =>
+            ActivatorUtilities.CreateInstance<Internal.Process.ProcessTaskConfigurationValidationService>(
+                provider,
+                services
+            )
+        );
     }
 
     private static void AddActionServices(IServiceCollection services)

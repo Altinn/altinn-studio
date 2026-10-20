@@ -1,37 +1,49 @@
-import type { IFormatting, PatternFormatProps } from '@app/layout-contract/generated/common.generated';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
+import type { IFormatting } from '@app/layout-contract/generated/common.generated';
 
-import type { ExprResolved, ExprVal } from 'src/features/expressions/types';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
+import type { ExprResolved } from 'src/features/expressions/types';
 
-export function evalFormatting(props: ExprResolver<'Input' | 'Number'>) {
-  if (!props.item.formatting) {
+/** Resolves the formatting properties consumed by Input and Number at their current data model location. */
+export function useResolvedFormatting(formatting: IFormatting | undefined): ExprResolved<IFormatting> | undefined {
+  const number = formatting?.number;
+  const pattern = number && 'format' in number ? number : undefined;
+  const numeric = number && !('format' in number) ? number : undefined;
+  const {
+    thousandSeparator: _separator,
+    decimalSeparator: _decimal,
+    suffix: _suffix,
+    prefix: _prefix,
+    ...numericOptions
+  } = numeric ?? {};
+  const format = useEvalExpression(pattern?.format, CommonExpressions.PatternFormatProps.format);
+  const separator = useEvalExpression(
+    numeric?.thousandSeparator,
+    CommonExpressions.NumberFormatProps.thousandSeparator,
+  );
+  const decimalSeparator = useEvalExpression(
+    numeric?.decimalSeparator,
+    CommonExpressions.NumberFormatProps.decimalSeparator,
+  );
+  const suffix = useEvalExpression(numeric?.suffix, CommonExpressions.NumberFormatProps.suffix);
+  const prefix = useEvalExpression(numeric?.prefix, CommonExpressions.NumberFormatProps.prefix);
+  const thousandSeparator = typeof separator === 'string' || typeof separator === 'boolean' ? separator : false;
+
+  if (!formatting) {
     return undefined;
   }
-
-  const { evalStr, evalAny } = props;
-  const out = { ...props.item.formatting } as ExprResolved<IFormatting>;
-  if (out.number && 'format' in out.number) {
-    out.number = {
-      ...(out.number as PatternFormatProps),
-      format: evalStr(out.number.format, ''),
-    };
-  } else if (out.number) {
-    out.number = { ...out.number };
-
-    if (out.number!.thousandSeparator) {
-      out.number.thousandSeparator = evalAny(out.number.thousandSeparator as ExprVal.Any, false) as
-        string | boolean | undefined;
-    }
-    if (out.number.decimalSeparator) {
-      out.number.decimalSeparator = evalStr(out.number.decimalSeparator, '.');
-    }
-    if (out.number.suffix) {
-      out.number.suffix = evalStr(out.number.suffix, '');
-    }
-    if (out.number.prefix) {
-      out.number.prefix = evalStr(out.number.prefix, '');
-    }
-  }
-
-  return out;
+  return {
+    ...formatting,
+    number: pattern
+      ? { ...pattern, format }
+      : numeric
+        ? {
+            ...numericOptions,
+            ...(numeric.thousandSeparator !== undefined ? { thousandSeparator } : {}),
+            ...(numeric.decimalSeparator !== undefined ? { decimalSeparator } : {}),
+            ...(numeric.suffix !== undefined ? { suffix } : {}),
+            ...(numeric.prefix !== undefined ? { prefix } : {}),
+          }
+        : undefined,
+  };
 }

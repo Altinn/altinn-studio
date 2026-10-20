@@ -3,19 +3,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.WorkflowEngine;
+using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -27,6 +32,8 @@ namespace Altinn.App.Api.Tests;
 /// directly per command while keeping an in-memory workflow store for polling and failure handling.
 /// </summary>
 /// <remarks>
+/// Each callback runs as a request of its own, as the engine sends it (see <see cref="WorkflowCallbackHttpContextAccessor"/>):
+/// it sees neither the query string nor the user of the request that enqueued its workflow.
 /// Time is compressed rather than simulated: a deferring step re-executes immediately with the
 /// requested delay added to a virtual elapsed wait, so a test of a long wait finishes in milliseconds.
 /// The consequence worth knowing is that a workflow never actually rests in
@@ -109,7 +116,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             bool isCollectionRoot = workflow.DependsOn is null || workflow.DependsOn.All(dependency => dependency.IsId);
             List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
             // Mirrors the engine: only roots that opted in via DependsOnHeads pick up the current
-            // collection heads as dependencies. A DependsOnHeads=false root (e.g. the side-effects
+            // collection heads as dependencies. A DependsOnHeads=false root (e.g. an auxiliary
             // workflow enqueued at the commit boundary) starts independently.
             if (isCollectionRoot && workflow.DependsOnHeads)
             {
@@ -315,54 +322,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         return new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []);
-    }
-
-    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default)
-    {
-        bool abandoned = false;
-        lock (_gate)
-        {
-            if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns)
-            {
-                if (workflow.Status == PersistentItemStatus.Abandoned)
-                {
-                    // Idempotent replay, mirroring the real engine.
-                    abandoned = true;
-                }
-                else if (
-                    workflow.Status
-                    is PersistentItemStatus.Failed
-                        or PersistentItemStatus.Canceled
-                        or PersistentItemStatus.DependencyFailed
-                )
-                {
-                    workflow.Status = PersistentItemStatus.Abandoned;
-                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
-
-                    // The engine releases an abandoned workflow's idempotency key, so a subsequent
-                    // enqueue with the same fingerprint is accepted as a fresh workflow instead of
-                    // deduplicating onto the abandoned one.
-                    string batchKey = CreateBatchKey(ns, workflow.IdempotencyKey);
-                    if (
-                        _workflowsByIdempotencyKey.TryGetValue(batchKey, out Guid[]? batchWorkflowIds)
-                        && batchWorkflowIds.Contains(workflowId)
-                    )
-                    {
-                        _workflowsByIdempotencyKey.TryRemove(batchKey, out _);
-                    }
-
-                    abandoned = true;
-                }
-            }
-        }
-
-        if (abandoned)
-        {
-            // A workflow gated only by the abandoned one may have become runnable.
-            await ProcessAvailableWorkflows(cancellationToken);
-        }
-
-        return abandoned;
     }
 
     /// <summary>
@@ -580,11 +539,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             _serviceProvider.GetRequiredService<ILogger<WorkflowEngineCallbackController>>(),
             _serviceProvider.GetService<Telemetry>()
         );
-        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
-        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
-        {
-            controller.HttpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
-        }
 
         foreach (StoredStep step in workflow.Steps)
         {
@@ -617,6 +571,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                 step.UpdatedAt = DateTimeOffset.UtcNow;
 
                 DateTimeOffset attemptStartedAt = DateTimeOffset.UtcNow;
+                TimeSpan waitBudget = step.WaitBudget ?? DefaultStepWaitBudget;
                 AppCallbackPayload payload = new()
                 {
                     CommandKey = appCommandData.CommandKey,
@@ -633,27 +588,73 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                     DeferCount = step.DeferCount,
                     FirstDeferredAt = step.FirstDeferredAt,
                     // Projected from the compressed wait: what is left of the budget after the
-                    // delays the handler has already asked for. Once that is spent the deadline
-                    // falls in the past, which is what the handler reads as its final check.
+                    // delays the handler has already asked for. Once that is spent the attempt
+                    // starts at or past the deadline, which is what the engine calls a final check.
                     WaitDeadline = step.FirstDeferredAt is null
                         ? null
-                        : attemptStartedAt + ((step.WaitBudget ?? DefaultStepWaitBudget) - step.WaitElapsed),
+                        : attemptStartedAt + (waitBudget - step.WaitElapsed),
+                    IsFinalWaitCheck = step.FirstDeferredAt is not null && step.WaitElapsed >= waitBudget,
                 };
 
-                IActionResult result = await controller.ExecuteCommand(
-                    workflow.Context.Org,
-                    workflow.Context.App,
-                    workflow.Context.InstanceOwnerPartyId,
-                    workflow.Context.InstanceGuid,
-                    appCommandData.CommandKey,
-                    payload,
-                    cancellationToken
+                if (await AuthenticateCallback(workflow.Context, appCommandData.CommandKey) is not { } principal)
+                {
+                    // What the engine does with a 401: a client error, so the step fails without retrying.
+                    step.ErrorHistory.Add(
+                        new ErrorEntry(
+                            DateTimeOffset.UtcNow,
+                            $"The app rejected the callback token for command '{appCommandData.CommandKey}'.",
+                            (int)HttpStatusCode.Unauthorized,
+                            WasRetryable: false
+                        )
+                    );
+                    step.Status = PersistentItemStatus.Failed;
+                    step.UpdatedAt = DateTimeOffset.UtcNow;
+                    workflow.Status = PersistentItemStatus.Failed;
+                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                    return;
+                }
+                controller.ControllerContext = new ControllerContext
+                {
+                    HttpContext = CreateCallbackRequest(workflow, appCommandData.CommandKey, principal),
+                };
+                IActionResult result = await WorkflowCallbackHttpContextAccessor.RunCallback(
+                    controller.HttpContext,
+                    () =>
+                        controller.ExecuteCommand(
+                            workflow.Context.Org,
+                            workflow.Context.App,
+                            workflow.Context.InstanceOwnerPartyId,
+                            workflow.Context.InstanceGuid,
+                            appCommandData.CommandKey,
+                            payload,
+                            cancellationToken
+                        )
                 );
 
                 if (result is OkObjectResult { Value: AppCallbackResponse response })
                 {
                     if (response.Defer is { } defer)
                     {
+                        if (payload.IsFinalWaitCheck)
+                        {
+                            // What the engine does with a deferral from the final check: the wait has
+                            // expired, so the step fails without retrying.
+                            step.ErrorHistory.Add(
+                                new ErrorEntry(
+                                    DateTimeOffset.UtcNow,
+                                    $"Wait budget of {waitBudget} exhausted after {step.DeferCount} deferral(s): "
+                                        + (defer.Reason ?? "the awaited outcome never became available"),
+                                    (int)HttpStatusCode.OK,
+                                    WasRetryable: false
+                                )
+                            );
+                            step.Status = PersistentItemStatus.Failed;
+                            step.UpdatedAt = DateTimeOffset.UtcNow;
+                            workflow.Status = PersistentItemStatus.Failed;
+                            workflow.UpdatedAt = DateTimeOffset.UtcNow;
+                            return;
+                        }
+
                         // Not a completion: no error recorded, retry counter reset, and the next
                         // attempt starts from the state this one received (the app echoes it back
                         // unchanged, so currentState stays put).
@@ -671,9 +672,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
                             throw new InvalidOperationException(
                                 $"Step '{step.OperationId}' deferred {step.DeferCount} times without concluding. "
                                     + "This fake compresses the wait rather than sleeping, so a handler that keeps "
-                                    + "deferring loops here instead of parking. Give the step a wait budget its "
-                                    + "handler observes (ProcessStepOptions.WaitBudget, read back as "
-                                    + "ServiceTaskContext.Wait), or make the handler conclude."
+                                    + "deferring loops here instead of parking. Give the step a smaller wait "
+                                    + "budget (ProcessStepOptions.WaitBudget), or make the handler conclude."
                             );
                         }
 
@@ -798,20 +798,20 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         IReadOnlyList<StoredWorkflow> createdWorkflows
     )
     {
-        // Mirrors the engine's IsHead semantics: IsHead == false workflows are invisible to head
-        // tracking - excluded from the heads set, and their dependency edges neither consume
+        // Mirrors the engine's IsHead semantics: IsHead == false (auxiliary) workflows take no part
+        // in head tracking - excluded from the heads set, and their dependency edges neither consume
         // existing heads nor remove leaf status from batch workflows they depend on.
         HashSet<Guid> previousHeadSet = [.. previousHeads];
-        List<StoredWorkflow> visibleWorkflows = createdWorkflows.Where(workflow => workflow.IsHead != false).ToList();
+        List<StoredWorkflow> primaryWorkflows = createdWorkflows.Where(workflow => workflow.IsHead != false).ToList();
         HashSet<Guid> consumedHeads =
         [
-            .. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
+            .. primaryWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
         ];
-        HashSet<Guid> dependedOnByVisibleBatch = [.. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds)];
+        HashSet<Guid> dependedOnByPrimaryBatch = [.. primaryWorkflows.SelectMany(workflow => workflow.DependencyIds)];
         List<Guid> newHeads = createdWorkflows
             .Where(workflow =>
                 workflow.IsHead == true
-                || (workflow.IsHead is null && !dependedOnByVisibleBatch.Contains(workflow.DatabaseId))
+                || (workflow.IsHead is null && !dependedOnByPrimaryBatch.Contains(workflow.DatabaseId))
             )
             .Select(workflow => workflow.DatabaseId)
             .ToList();
@@ -901,6 +901,60 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             step.Status = PersistentItemStatus.Enqueued;
             step.UpdatedAt = DateTimeOffset.UtcNow;
         }
+    }
+
+    /// <summary>
+    /// Authenticates a callback with the app's own validator, as the callback scheme does for a real request,
+    /// so the controller sees the principal the engine's replayed token would give it. <c>null</c> when the app
+    /// would answer 401.
+    /// </summary>
+    private async Task<ClaimsPrincipal?> AuthenticateCallback(AppWorkflowContext context, string commandKey)
+    {
+        ValidatedWorkflowCallbackToken? validated = await _serviceProvider
+            .GetRequiredService<IWorkflowCallbackTokenValidator>()
+            .ValidateToken(context.CallbackToken, context.InstanceGuid, commandKey);
+        if (validated is null)
+            return null;
+        return new ClaimsPrincipal(
+            new ClaimsIdentity(
+                [
+                    new Claim(JwtClaimTypes.JwtId, context.InstanceGuid.ToString()),
+                    new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
+                ],
+                WorkflowEngineCallbackDefaults.AuthenticationScheme
+            )
+        );
+    }
+
+    /// <summary>
+    /// The request a callback is: one of its own, as the engine sends it. It has no query string, is routed to the
+    /// callback endpoint and carries the callback token, so the app authenticates it as itself.
+    /// </summary>
+    private static DefaultHttpContext CreateCallbackRequest(
+        StoredWorkflow workflow,
+        string commandKey,
+        ClaimsPrincipal principal
+    )
+    {
+        AppWorkflowContext context = workflow.Context;
+        var httpContext = new DefaultHttpContext { User = principal };
+        httpContext.Request.Method = HttpMethods.Post;
+        httpContext.Request.Path =
+            $"/{context.Org}/{context.App}/instances/{context.InstanceOwnerPartyId}/{context.InstanceGuid}/workflow-engine-callbacks/{commandKey}";
+        httpContext.Request.RouteValues = new RouteValueDictionary
+        {
+            ["org"] = context.Org,
+            ["app"] = context.App,
+            ["instanceOwnerPartyId"] = context.InstanceOwnerPartyId,
+            ["instanceGuid"] = context.InstanceGuid,
+            ["commandKey"] = commandKey,
+        };
+        httpContext.Request.Headers.Authorization = $"Bearer {context.CallbackToken}";
+        if (!string.IsNullOrWhiteSpace(workflow.CollectionKey))
+        {
+            httpContext.Request.Headers["Collection-Key"] = workflow.CollectionKey;
+        }
+        return httpContext;
     }
 
     private static bool IsAltinnEventCommand(string commandKey) =>

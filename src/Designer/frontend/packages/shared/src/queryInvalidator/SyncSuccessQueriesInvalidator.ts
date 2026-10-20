@@ -35,18 +35,23 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     'process.bpmn': [
       [QueryKey.FetchBpmn, '[org]', '[app]'],
       [QueryKey.AppValidation, '[org]', '[app]'],
+      [QueryKey.SubformComponents, '[org]', '[app]'],
     ],
     'Settings.json': [
       [QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]'],
       [QueryKey.AppValidation, '[org]', '[app]'],
+      [QueryKey.SubformComponents, '[org]', '[app]'],
     ],
   };
 
   // Maps folder names to their cache keys for invalidation upon sync success - can be extended to include more folders
+  // A v9 UI folder is named by its task id, so a notification for a renamed UI folder matches nothing here.
+  // A mutation that renames one must invalidate LayoutSets and LayoutSetsExtended itself.
   private readonly folderNameCacheKeysMap: Record<string, Array<Array<QueryKey | string>>> = {
     layouts: [
       [QueryKey.FormLayouts, '[org]', '[app]'],
       [QueryKey.Pages, '[org]', '[app]', '[layoutSetName]'],
+      [QueryKey.SubformComponents, '[org]', '[app]'],
     ],
   };
 

@@ -1,31 +1,18 @@
-import type {
-  ComponentBase,
-  FormComponentProps,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
+import type { JSX } from 'react';
 
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DisplayData } from 'src/features/displayData/index';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export abstract class RadioButtonsDef extends FormComponent<'RadioButtons'> implements DisplayData {
   protected readonly type = 'RadioButtons';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'RadioButtons'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  abstract renderSummary(props: SummaryRendererProps): JSX.Element | null;
+
+  abstract renderSummary2(props: Summary2Props): JSX.Element | null;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -38,4 +25,4 @@ export abstract class RadioButtonsDef extends FormComponent<'RadioButtons'> impl
   abstract useDisplayData(baseComponentId: string): string;
 }
 
-// Source hash: 42f9e2edd8e24f6518d7d1faf03e38f89363609fb8508b1125f7668bb0c5ef9f
+// Source hash: 6523d95638f7a364cf6600f19b1eb7c86f8c63fe27e741a0f21cea3169f7b537

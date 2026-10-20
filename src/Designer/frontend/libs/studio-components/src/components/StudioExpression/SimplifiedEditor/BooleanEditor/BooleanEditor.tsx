@@ -21,7 +21,7 @@ export const BooleanEditor = ({ expression, onChange }: BooleanEditorProps): Rea
     <div className={classes.booleanEditor}>
       <StudioBooleanToggleGroup
         className={classes.toggle}
-        aria-label=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
+        aria-label={texts.expression}
         falseLabel={texts.false}
         onChange={onChange}
         trueLabel={texts.true}

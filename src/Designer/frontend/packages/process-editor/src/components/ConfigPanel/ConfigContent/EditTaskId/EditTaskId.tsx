@@ -9,7 +9,7 @@ import type { CommandStack } from 'bpmn-js/lib/features/modeling/Modeling';
 
 export const EditTaskId = (): React.ReactElement => {
   const { t } = useTranslation();
-  const { bpmnDetails, modelerRef, setBpmnDetails } = useBpmnContext();
+  const { bpmnDetails, modelerRef } = useBpmnContext();
   const { metadataFormRef } = useBpmnConfigPanelFormContext();
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
 
@@ -18,11 +18,6 @@ export const EditTaskId = (): React.ReactElement => {
     commandStack.execute('updateTaskId', {
       element: bpmnDetails.element,
       newId: value,
-    });
-
-    setBpmnDetails({
-      ...bpmnDetails,
-      id: value,
     });
   };
 

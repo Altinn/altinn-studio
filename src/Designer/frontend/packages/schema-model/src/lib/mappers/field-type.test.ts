@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import type { UiSchemaNode } from '../../types';
 import { CombinationKind, FieldType, ObjectKind } from '../../types';
 import { findEnumFieldType, findJsonFieldType, findUiFieldType } from './field-type';

@@ -35,13 +35,12 @@ public class ServiceTaskContextTests
     }
 
     [Fact]
-    public void DeadlinePassed_ReportsZeroRemainingWaitAndFinalCheck()
+    public void DeadlinePassed_ReportsZeroRemainingWait()
     {
         // The engine schedules the final re-check at the deadline itself, so a task that runs at or
         // past it must read "spent", never a negative remainder.
         var context = CreateContext(DateTimeOffset.UtcNow.AddMinutes(-5));
 
         Assert.Equal(TimeSpan.Zero, context.Wait.Remaining);
-        Assert.True(context.Wait.IsFinalCheck);
     }
 }

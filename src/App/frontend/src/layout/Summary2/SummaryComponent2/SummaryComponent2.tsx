@@ -12,7 +12,8 @@ import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSu
 import { Summary2StoreProvider, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import printStyles from 'src/styles/print.module.css';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useResolvedPageBreak } from 'src/utils/layout/useResolvedPageBreak';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -60,13 +61,14 @@ function Summary2PrintBoundary({ children, pageBreak }: PropsWithChildren<{ page
 }
 
 function SummaryComponent2Inner({ baseComponentId }: Pick<PropsFromGenericComponent<'Summary2'>, 'baseComponentId'>) {
-  const { pageBreak, target } = useItemWhenType(baseComponentId, 'Summary2');
+  const config = useComponentConfig(baseComponentId, 'Summary2');
+  const pageBreak = useResolvedPageBreak(config.pageBreak);
   return (
     <Summary2StoreProvider baseComponentId={baseComponentId}>
       <EmptyChildrenBoundary reportSelf={false}>
         <Summary2PrintBoundary pageBreak={pageBreak}>
-          <TaskSummaryWrapper taskId={target?.taskId}>
-            <SummaryBody target={target} />
+          <TaskSummaryWrapper taskId={config.target?.taskId}>
+            <SummaryBody target={config.target} />
           </TaskSummaryWrapper>
         </Summary2PrintBoundary>
       </EmptyChildrenBoundary>

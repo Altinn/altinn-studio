@@ -1,31 +1,36 @@
 import React from 'react';
 
 import { Checkboxes } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useSaveValueToGroup } from 'src/features/saveToGroup/useSaveToGroup';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const CheckboxContainerComponent = ({
   baseComponentId,
   overrideDisplay,
 }: PropsFromGenericComponent<'Checkboxes'>) => {
-  const item = useItemWhenType(baseComponentId, 'Checkboxes');
-  const {
-    layout,
-    readOnly,
-    textResourceBindings,
-    required,
-    labelSettings,
-    alertOnChange,
-    showLabelsInTable,
-    dataModelBindings,
-  } = item;
+  const config = useComponentConfig(baseComponentId, 'Checkboxes');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Checkboxes');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Checkboxes.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Checkboxes.required);
+  const alertOnChange = useEvalExpression(config.alertOnChange, Expressions.Checkboxes.alertOnChange);
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Checkboxes.textResourceBindings.title,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Checkboxes.textResourceBindings.help);
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.Checkboxes.textResourceBindings.description,
+  );
 
   const {
     options,
@@ -64,12 +69,12 @@ export const CheckboxContainerComponent = ({
       required={required}
       isValid={isValid}
       alertOnChange={alertOnChange}
-      layout={layout}
-      title={textResourceBindings?.title}
-      help={textResourceBindings?.help}
-      description={textResourceBindings?.description}
-      showOptionalMarking={!!labelSettings?.optionalIndicator}
-      showLabelsInTable={showLabelsInTable}
+      layout={config.layout}
+      title={title}
+      help={help}
+      description={description}
+      showOptionalMarking={config.labelSettings?.optionalIndicator !== false}
+      showLabelsInTable={config.showLabelsInTable}
       renderedInTable={overrideDisplay?.renderedInTable}
       renderLegend={overrideDisplay?.renderLegend}
       renderLabel={overrideDisplay?.renderLabel}

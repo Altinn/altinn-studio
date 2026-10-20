@@ -1,0 +1,7 @@
+.container {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  flex-direction: row;
+  height: calc(100vh - var(--header-height));
+}

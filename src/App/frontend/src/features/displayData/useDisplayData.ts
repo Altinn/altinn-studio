@@ -1,10 +1,10 @@
 import { FormStore } from 'src/features/form/FormContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 
 export function useDisplayData(baseComponentId: string): string {
-  const component = useExternalItem(baseComponentId);
+  const component = useComponentConfig(baseComponentId);
   if (!component) {
     return '';
   }

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <PackageTags>Altinn;Studio;App;Core</PackageTags>
     <Description>
       This class library holds all the core features used by a standard Altinn 3 App.
@@ -26,7 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP"/>
     <PackageReference Include="Altinn.Platform.Models"/>
-    <PackageReference Include="Altinn.Platform.Storage.Interface.Experimental"/>
+    <PackageReference Include="Altinn.Platform.Storage.Interface"/>
     <PackageReference Include="JmesPath.Net"/>
     <PackageReference Include="JsonPatch.Net"/>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore"/>

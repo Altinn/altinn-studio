@@ -20,6 +20,12 @@ export type AllowedValidationMasks = (
 export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Address' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Alert' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'AttachmentList' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Audio' } & ISummaryOverridesCommon)
   | CheckboxesSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Date' } & ISummaryOverridesCommon)
@@ -35,11 +41,19 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Heading' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'IFrame' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Image' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'ImageUpload' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Input' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'InstanceInformation' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Likert' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'LikertItem' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'List' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
@@ -52,9 +66,13 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'OrganizationLookup' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Panel' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Paragraph' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Payment' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'PaymentDetails' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'PersonLookup' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
@@ -68,7 +86,9 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'TextArea' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TimePicker' } & ISummaryOverridesCommon);
+  | ({ componentType: 'TimePicker' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Video' } & ISummaryOverridesCommon);
 
 export type ButtonPosition = 'left' | 'center' | 'right';
 
@@ -84,8 +104,6 @@ export interface ComponentBase {
 }
 
 export interface FormComponentProps {
-  readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
-  required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   showValidations?: AllowedValidationMasks;
 }
 
@@ -621,11 +639,6 @@ export interface PatternFormatProps {
  */
 export type SaveWhileTyping = number;
 
-export interface SummarizableComponentProps {
-  renderAsSummary?: boolean;
-  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
-}
-
 export interface TRBFormComp {
   tableTitle?: ExprValToActualOrExpr<ExprVal.String>;
   shortName?: ExprValToActualOrExpr<ExprVal.String>;
@@ -643,4 +656,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 4aec611f1e51c53bdb6ad5ac33e3fb4f944419ac2552ed336ee10a10e04296ac
+// Source hash: 11d787113e78ee8f761e8924db5702b89c932d510ed052f1e6038f920d34e59d

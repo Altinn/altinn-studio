@@ -156,4 +156,58 @@ describe('ErrorReport', () => {
 
     expect(errorNode.parentElement?.parentElement?.tagName).toEqual('LI');
   });
+  function mockProcessNextValidationIssues(validationIssues: BackendValidationIssue[]) {
+    vi.mocked(doProcessNext).mockImplementationOnce(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = new Error('Request failed with status code 409') as any;
+      error.name = 'AxiosError';
+      error.response = { status: 409, data: { validationIssues } };
+      throw error;
+    });
+  }
+
+  function issue(overrides: Partial<BackendValidationIssue>): BackendValidationIssue {
+    return {
+      dataElementId: defaultMockDataElementId,
+      severity: BackendValidationSeverity.Error,
+      source: 'custom',
+      ...overrides,
+    };
+  }
+
+  it('should list an error linked to an existing component as clickable, once', async () => {
+    await render([issue({ customTextKey: 'component error', componentId: 'input' })]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await screen.findByTestId('ErrorReport');
+    const errorNodes = await screen.findAllByText('component error');
+    expect(errorNodes).toHaveLength(1);
+    expect(errorNodes[0].parentElement?.tagName).toEqual('BUTTON');
+  });
+
+  it('should list an error linked to a missing component as unclickable', async () => {
+    mockProcessNextValidationIssues([issue({ customTextKey: 'missing component error', componentId: 'missing' })]);
+    await render();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await screen.findByTestId('ErrorReport');
+    const errorNode = await screen.findByText('missing component error');
+    expect(errorNode.parentElement?.tagName).toEqual('LI');
+  });
+
+  it('should not show a field error linked to another component on the component bound to the field', async () => {
+    mockProcessNextValidationIssues([
+      issue({ customTextKey: 'linked field error', field: 'boundField', componentId: 'missing' }),
+    ]);
+    await render();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    await screen.findByTestId('ErrorReport');
+    const errorNodes = await screen.findAllByText('linked field error');
+    expect(errorNodes).toHaveLength(1);
+    expect(errorNodes[0].parentElement?.tagName).toEqual('LI');
+  });
 });

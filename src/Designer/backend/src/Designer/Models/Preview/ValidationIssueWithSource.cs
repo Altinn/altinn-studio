@@ -24,7 +24,11 @@ public class ValidationIssueWithSource
             Source = source,
             NoIncrementalUpdates = noIncrementalUpdates,
             CustomTextKey = issue.CustomTextKey,
+            // The preview frontend still requires customTextParams, although Altinn.App.Core marks it as
+            // obsolete.
+#pragma warning disable CS0618 // Type or member is obsolete
             CustomTextParams = issue.CustomTextParams,
+#pragma warning restore CS0618
         };
     }
 

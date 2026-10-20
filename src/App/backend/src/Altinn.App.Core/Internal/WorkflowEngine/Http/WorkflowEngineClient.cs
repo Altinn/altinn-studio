@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -201,24 +200,6 @@ internal sealed class WorkflowEngineClient : IWorkflowEngineClient
             ?? throw new InvalidOperationException(
                 "The expected resume workflow response was not found in the response content."
             );
-    }
-
-    /// <inheritdoc />
-    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default)
-    {
-        var url = $"{GetWorkflowEngineEndpoint()}/{Uri.EscapeDataString(ns)}/workflows/{workflowId}/abandon";
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-
-        using HttpResponseMessage response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        if (response.StatusCode == HttpStatusCode.Conflict)
-        {
-            // Compare-and-set lost: the workflow is not in an abandonable state (e.g. a concurrent
-            // resume revived it). The caller must re-read engine state and re-decide.
-            return false;
-        }
-
-        response.EnsureSuccessStatusCode();
-        return true;
     }
 
     /// <inheritdoc />

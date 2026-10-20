@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StringRestrictions } from './StringRestrictions';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
@@ -7,8 +8,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data
 const path = '#/properties/testpath';
-const onChangeRestrictionValue = jest.fn();
-const onChangeRestrictions = jest.fn();
+const onChangeRestrictionValue = vi.fn();
+const onChangeRestrictions = vi.fn();
 const defaultProps: RestrictionItemProps = {
   onChangeRestrictionValue,
   onChangeRestrictions,
@@ -23,8 +24,6 @@ const renderStringRestrictions = (props?: Partial<RestrictionItemProps>) =>
   render(<StringRestrictions {...defaultProps} {...props} />);
 
 describe('StringRestrictions', () => {
-  afterEach(jest.clearAllMocks);
-
   test.each([
     [StrRestrictionKey.format, 'combobox'],
     [StrRestrictionKey.minLength, 'spinbutton'],

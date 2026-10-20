@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -6,7 +7,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { SlackChannelsList } from './SlackChannelsList';
 import type { ContactPoint } from 'app-shared/types/ContactPoint';
 
-jest.mock('./SlackChannelDialog/SlackChannelDialog', () => ({
+vi.mock('./SlackChannelDialog/SlackChannelDialog', () => ({
   SlackChannelDialog: ({
     editingId,
     onClose,
@@ -28,6 +29,7 @@ const channel1: ContactPoint = {
   name: '#general',
   isActive: true,
   environments: ['tt02'],
+  reportFrequency: 'none',
   methods: [{ id: 'm1', methodType: 'slack', value: 'https://hooks.slack.com/general' }],
 };
 
@@ -36,6 +38,7 @@ const channel2: ContactPoint = {
   name: '#dev',
   isActive: false,
   environments: [],
+  reportFrequency: 'none',
   methods: [{ id: 'm2', methodType: 'slack', value: 'https://hooks.slack.com/dev' }],
 };
 
@@ -56,8 +59,6 @@ const getEditButton = () =>
   });
 
 describe('SlackChannelsList', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('renders the slack heading', () => {
     renderSlackChannelsList();
     expect(
@@ -81,6 +82,17 @@ describe('SlackChannelsList', () => {
   it('renders webhook URL values for channels', () => {
     renderSlackChannelsList({ channels: [channel1] });
     expect(screen.getByText('https://hooks.slack.com/general')).toBeInTheDocument();
+  });
+
+  it('renders the report frequency, or a placeholder when the channel gets no reports', () => {
+    renderSlackChannelsList({ channels: [{ ...channel1, reportFrequency: 'monthly' }, channel2] });
+    const getRow = (name: string) => screen.getByRole('row', { name: new RegExp(name) });
+    expect(
+      within(getRow('#general')).getByText(
+        textMock('settings.orgs.contact_points.report_frequency_monthly'),
+      ),
+    ).toBeInTheDocument();
+    expect(within(getRow('#dev')).getByText('–')).toBeInTheDocument();
   });
 
   it('renders a switch for each channel with the channel name as aria-label', () => {
@@ -112,7 +124,7 @@ describe('SlackChannelsList', () => {
 
   it('calls deleteContactPoint when delete is confirmed', async () => {
     const user = userEvent.setup();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
     renderSlackChannelsList({ channels: [channel1] });
     const deleteButton = screen.getByRole('button', {
       name: textMock('settings.orgs.contact_points.delete', { name: channel1.name }),

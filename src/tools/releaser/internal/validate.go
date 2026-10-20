@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"unicode"
 
 	"altinn.studio/releaser/internal/changelog"
 )
@@ -20,7 +22,20 @@ var (
 	// ErrBaseChangelogOutdated indicates that the base branch changelog changed
 	// after the PR branch diverged.
 	ErrBaseChangelogOutdated = errors.New("base branch contains newer changelog changes")
+	// ErrEntryTooLong indicates a new or changed [Unreleased] entry has more than MaxEntryWords words.
+	ErrEntryTooLong = errors.New("changelog entry is too long")
 )
+
+// MaxEntryWords is the most words a new or changed [Unreleased] entry may have.
+// Entries are release notes; detail beyond this belongs in the documentation.
+const MaxEntryWords = 60
+
+// entryExcerptWords is how many words of a too-long entry the error quotes.
+const entryExcerptWords = 8
+
+// linkPattern matches a Markdown link with its text, such as [#1234](https://...)
+// or [the migration guide](https://...).
+var linkPattern = regexp.MustCompile(`\[[^\[\]\n]*\]\([^)\s]*\)`)
 
 // ValidationRequest describes inputs for changelog validation.
 type ValidationRequest struct {
@@ -106,9 +121,12 @@ var vendoredChangelogFragments = []string{
 // changed CHANGELOG.md between base and head (or, when base/head are empty,
 // every tracked CHANGELOG.md). It is component-agnostic: any project's
 // changelog is covered automatically, with no registry or workflow wiring.
-// Vendored and generated changelogs are skipped. Only structural errors
-// (category order, invalid categories, version ordering, duplicates) fail;
-// release-policy semantics are intentionally not enforced here.
+// Vendored and generated changelogs are skipped. Structural errors
+// (category order, invalid categories, version ordering, duplicates) fail, as
+// do [Unreleased] entries longer than MaxEntryWords that are new or changed
+// since head diverged from base. Without a range there is nothing to compare,
+// so entry length is not checked. Release-policy semantics are intentionally
+// not enforced here.
 func RunStructureValidation(ctx context.Context, base, head string, log Logger) error {
 	if log == nil {
 		log = NopLogger{}
@@ -147,7 +165,7 @@ func RunStructureValidationWithDeps(ctx context.Context, base, head string, git 
 	var errs []error
 	for _, clPath := range paths {
 		log.Info("validating changelog structure: %s", clPath)
-		if perr := validateChangelogStructure(root, clPath); perr != nil {
+		if perr := validateChangelogStructure(ctx, git, root, clPath, base, head); perr != nil {
 			errs = append(errs, fmt.Errorf("%s: %w", clPath, perr))
 		}
 	}
@@ -194,8 +212,11 @@ func isVendoredChangelog(path string) bool {
 }
 
 // validateChangelogStructure reads and parses a single changelog on disk,
-// surfacing only structural (format) errors.
-func validateChangelogStructure(root, clPath string) error {
+// surfacing structural (format) errors and, given a range, too-long new entries.
+// The length check reads the changelog at head rather than on disk: on a pull
+// request the checkout is head merged into base, which also holds entries that
+// reached base after head diverged.
+func validateChangelogStructure(ctx context.Context, git *GitCLI, root, clPath, base, head string) error {
 	changelogFile := clPath
 	if !filepath.IsAbs(changelogFile) {
 		changelogFile = filepath.Join(root, changelogFile)
@@ -207,10 +228,83 @@ func validateChangelogStructure(root, clPath string) error {
 		return fmt.Errorf("read changelog: %w", err)
 	}
 
-	if _, err := changelog.Parse(string(content)); err != nil {
+	if _, err = changelog.Parse(string(content)); err != nil {
 		return fmt.Errorf("parse changelog: %w", err)
 	}
-	return nil
+
+	if base == "" || head == "" {
+		return nil
+	}
+	previous, err := loadChangelogAtMergeBase(ctx, git, base, head, clPath)
+	if err != nil {
+		return err
+	}
+	current, err := loadChangelogAt(ctx, git, head, clPath)
+	if err != nil {
+		return err
+	}
+	return validateEntryLengths(previous, current)
+}
+
+// loadChangelogAtMergeBase returns the changelog as it was where head diverged
+// from base, or an empty changelog when the file did not exist there.
+func loadChangelogAtMergeBase(
+	ctx context.Context,
+	git *GitCLI,
+	base, head, changelogPath string,
+) (*changelog.Changelog, error) {
+	mergeBase, err := git.Run(ctx, "merge-base", base, head)
+	if err != nil {
+		return nil, fmt.Errorf("git merge-base: %w", err)
+	}
+	return loadChangelogAt(ctx, git, mergeBase, changelogPath)
+}
+
+// loadChangelogAt returns the changelog at a revision, or an empty changelog
+// when the file does not exist there.
+func loadChangelogAt(ctx context.Context, git *GitCLI, revision, changelogPath string) (*changelog.Changelog, error) {
+	code, err := git.runExitCode(ctx, "cat-file", "-e", revision+":"+changelogPath)
+	if err != nil {
+		return nil, fmt.Errorf("git cat-file: %w", err)
+	}
+	if code != 0 {
+		return &changelog.Changelog{Preamble: "", Unreleased: nil, Versions: nil}, nil
+	}
+	return loadBaseChangelog(ctx, git, revision, changelogPath)
+}
+
+// entryWords returns the words of an entry as a reader counts them: links, list
+// markers and punctuation on their own are left out.
+func entryWords(text string) []string {
+	text = linkPattern.ReplaceAllString(text, "")
+	var words []string
+	for field := range strings.FieldsSeq(text) {
+		if strings.IndexFunc(field, func(r rune) bool { return unicode.IsLetter(r) || unicode.IsDigit(r) }) >= 0 {
+			words = append(words, field)
+		}
+	}
+	return words
+}
+
+// validateEntryLengths fails on every [Unreleased] entry in cl that is not in
+// previous's [Unreleased] and has more than MaxEntryWords words.
+func validateEntryLengths(previous, cl *changelog.Changelog) error {
+	var errs []error
+	for _, entry := range changelog.NewEntries(previous.Unreleased.Entries(), cl.Unreleased.Entries()) {
+		words := entryWords(entry.Text)
+		if len(words) <= MaxEntryWords {
+			continue
+		}
+		errs = append(errs, fmt.Errorf(
+			"%w: %s entry %q has %d words, the limit is %d",
+			ErrEntryTooLong,
+			entry.Category,
+			strings.Join(words[:entryExcerptWords], " ")+" ...",
+			len(words),
+			MaxEntryWords,
+		))
+	}
+	return errors.Join(errs...)
 }
 
 // parseAndValidateChangelog reads, parses and validates a single component
@@ -336,14 +430,10 @@ func loadBaseChangelog(
 }
 
 func validateHasNewUnreleasedEntries(baseChangelog, headChangelog *changelog.Changelog) error {
-	baseUnreleasedEntries := sectionEntrySet(baseChangelog.Unreleased)
-	headUnreleasedEntries := sectionEntrySet(headChangelog.Unreleased)
-	for entry := range headUnreleasedEntries {
-		if _, exists := baseUnreleasedEntries[entry]; !exists {
-			return nil
-		}
+	if len(changelog.NewEntries(baseChangelog.Unreleased.Entries(), headChangelog.Unreleased.Entries())) == 0 {
+		return ErrNoNewUnreleasedEntries
 	}
-	return ErrNoNewUnreleasedEntries
+	return nil
 }
 
 func isReleasePromotionDiff(baseChangelog, headChangelog *changelog.Changelog) (bool, error) {

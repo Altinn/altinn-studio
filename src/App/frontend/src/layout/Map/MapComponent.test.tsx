@@ -44,6 +44,14 @@ async function clickMap(container: HTMLElement, clientX = 0, clientY = 0) {
 }
 
 describe('MapComponent', () => {
+  it('renders drawing tools inside the map context', async () => {
+    const { container } = await render({ component: { toolbar: { polygon: true, polyline: true } } });
+
+    expect(container.querySelector('.leaflet-draw-draw-polygon')).toBeInTheDocument();
+    expect(container.querySelector('.leaflet-draw-draw-polyline')).toBeInTheDocument();
+    expect(container.querySelector('.leaflet-draw-draw-marker')).not.toBeInTheDocument();
+  });
+
   it('should show correct footer text when no location is selected', async () => {
     await render();
 
@@ -181,7 +189,10 @@ describe('MapComponent', () => {
 
     const tiles = container.querySelectorAll<HTMLImageElement>('img.leaflet-tile');
     expect(tiles.length).toBeGreaterThan(0);
-    tiles.forEach((tile) => expect(tile.getAttribute('alt')).toBe(''));
+    tiles.forEach((tile) => {
+      expect(tile.getAttribute('alt')).toBe('');
+      expect(tile.referrerPolicy).toBe('strict-origin-when-cross-origin');
+    });
   });
 
   it('should have expression support for latitude and longitude in centerLocation', async () => {

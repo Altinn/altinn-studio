@@ -1,3 +1,4 @@
+import { describe, expect, it, test } from 'vitest';
 import { buildUiSchema } from './build-ui-schema';
 import {
   getNodeByPointer,
@@ -5,7 +6,6 @@ import {
   getReferredNodes,
   getRootNode,
 } from './selectors';
-import { expect } from '@jest/globals';
 import { getGeneralJsonSchemaForTest } from '../../test/testUtils';
 import { ROOT_POINTER } from './constants';
 import { dataMock } from '@altinn/schema-editor/mockData';

@@ -19,13 +19,12 @@ export const Config = new CG.component({
     renderInCards: true,
     renderInCardsMedia: false,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
   .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .extendTextResources(CG.common('TRBLabel'))
-  .addProperty(new CG.prop('value', new CG.expr(ExprVal.String)))
+  .addProperty(new CG.prop('value', new CG.expr(ExprVal.String).setFallback('')))
   .addProperty(new CG.prop('direction', new CG.enum('horizontal', 'vertical').optional({ default: 'horizontal' })))
   .addProperty(new CG.prop('icon', new CG.str().optional().addExample('https://example.com/icon.svg')))
   .addSummaryOverrides();

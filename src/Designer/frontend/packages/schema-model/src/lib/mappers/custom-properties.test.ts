@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { findCustomAttributes } from './custom-properties';
 import { Keyword } from '../../types';
 

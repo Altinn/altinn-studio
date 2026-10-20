@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { Flex, LoadingEmpty } from '@app/form-component';
+import { Flex } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
@@ -11,28 +12,27 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePageSettings, usePdfLayoutName } from 'src/features/form/layoutSettings/processLayoutSettings';
+import {
+  usePageSettings,
+  usePdfExclusions,
+  usePdfLayoutName,
+} from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
-import { usePdfFormatQuery } from 'src/features/pdf/usePdfFormatQuery';
-import { getFeature } from 'src/features/toggles';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { InstanceInformation } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
-import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import { useItemIfType } from 'src/utils/layout/useNodeItem';
-import type { IPdfFormat } from 'src/features/pdf/types';
+import type { PdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 
 export function PdfFromLayout() {
   const pdfLayoutName = usePdfLayoutName();
@@ -59,12 +59,6 @@ function AutoGeneratePdfFromLayout() {
     );
   }
 
-  const { data: pdfSettings, isFetching: pdfFormatIsLoading } = usePdfFormatQuery(true);
-
-  if (pdfFormatIsLoading) {
-    return <LoadingEmpty />;
-  }
-
   return (
     <DummyPresentation>
       <PdfWrapping>
@@ -78,7 +72,7 @@ function AutoGeneratePdfFromLayout() {
             }}
           />
         </div>
-        <AllPages pdfSettings={pdfSettings} />
+        <AllPages />
         <AllSubformSummaryComponent2 />
       </PdfWrapping>
     </DummyPresentation>
@@ -117,9 +111,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             taskId={taskId}
           >
             {idx > 0 && <div className={classes.pageBreak} />}
-            {/* Settings intentionally omitted, as this is new functionality
-            and PDF settings are deprecated at this point. */}
-            <AllPages pdfSettings={undefined} />
+            <AllPages />
             <AllSubformSummaryComponent2 />
           </TaskSummaryWrapper>
         ))}
@@ -135,11 +127,7 @@ function PdfWrapping({ children }: PropsWithChildren) {
   const { langAsString } = useLanguage();
   const isPayment = useIsPayment();
   const { hideAppNameInPdf: hideAppNameInPdfExpr } = usePageSettings();
-  const hideAppNameInPdf = useEvalExpression(hideAppNameInPdfExpr, {
-    returnType: ExprVal.Boolean,
-    defaultValue: false,
-    errorIntroText: 'Invalid expression for hideAppNameInPdf in Settings.json',
-  });
+  const hideAppNameInPdf = useEvalExpression(hideAppNameInPdfExpr, CommonExpressions.IPagesSettings.hideAppNameInPdf);
 
   return (
     <div
@@ -198,9 +186,10 @@ function PlainPage({ pageKey }: { pageKey: string }) {
   );
 }
 
-function AllPages({ pdfSettings }: { pdfSettings: IPdfFormat | undefined }) {
+function AllPages() {
   const order = usePageOrder();
-  const visiblePages = getPdfVisiblePages(order, pdfSettings);
+  const pdfExclusions = usePdfExclusions();
+  const visiblePages = order.filter((pageKey) => !pdfExclusions.pages.includes(pageKey));
 
   return (
     <>
@@ -208,22 +197,15 @@ function AllPages({ pdfSettings }: { pdfSettings: IPdfFormat | undefined }) {
         <PdfForPage
           key={pageKey}
           pageKey={pageKey}
-          pdfSettings={pdfSettings}
+          pdfExclusions={pdfExclusions}
         />
       ))}
     </>
   );
 }
 
-function getPdfVisiblePages(pages: string[], pdfSettings: IPdfFormat | undefined): string[] {
-  if (!pdfSettings?.excludedPages) {
-    return pages;
-  }
-  return pages.filter((pageKey) => !pdfSettings.excludedPages.includes(pageKey));
-}
-
-function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IPdfFormat | undefined }) {
-  const children = useTopLevelComponentsToAutoRender(pageKey, pdfSettings);
+function PdfForPage({ pageKey, pdfExclusions }: { pageKey: string; pdfExclusions: PdfExclusions }) {
+  const children = useTopLevelComponentsToAutoRender(pageKey, pdfExclusions);
   const hidden = useIsHiddenMulti(children);
 
   return (
@@ -250,7 +232,7 @@ function PdfForPage({ pageKey, pdfSettings }: { pageKey: string; pdfSettings: IP
   );
 }
 
-function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFormat | undefined): string[] {
+function useTopLevelComponentsToAutoRender(pageKey: string, pdfExclusions: PdfExclusions): string[] {
   const lookups = FormStore.bootstrap.useLayoutLookups();
   return useMemo(() => {
     const topLevel = lookups.topLevelComponents[pageKey] ?? [];
@@ -259,36 +241,20 @@ function useTopLevelComponentsToAutoRender(pageKey: string, pdfSettings: IPdfFor
       const def = getComponentDef(component.type);
       return (
         component.type !== 'Subform' &&
-        !pdfSettings?.excludedComponents.includes(baseId) &&
+        !pdfExclusions.components.includes(baseId) &&
         def.shouldRenderInAutomaticPDF(component as never)
       );
     });
-  }, [lookups, pageKey, pdfSettings?.excludedComponents]);
+  }, [lookups, pageKey, pdfExclusions.components]);
 }
 
 function PdfForNode({ baseComponentId }: { baseComponentId: string }) {
-  const component = useExternalItem(baseComponentId);
-  const item = useItemIfType(baseComponentId, 'Summary2');
+  const component = useComponentConfig(baseComponentId);
+  const item = component.type === 'Summary2' ? component : undefined;
 
   if (item?.target?.taskId) {
     return <SummaryComponent2 baseComponentId={baseComponentId} />;
   }
 
-  const betaEnabled = getFeature('betaPDFenabled');
-  if (betaEnabled.value) {
-    return <ComponentSummary targetBaseComponentId={baseComponentId} />;
-  }
-
-  return (
-    <SummaryComponentFor
-      targetBaseComponentId={baseComponentId}
-      overrides={{
-        largeGroup: component.type === 'Group',
-        display: {
-          hideChangeButton: true,
-          hideValidationMessages: true,
-        },
-      }}
-    />
-  );
+  return <ComponentSummary targetBaseComponentId={baseComponentId} />;
 }

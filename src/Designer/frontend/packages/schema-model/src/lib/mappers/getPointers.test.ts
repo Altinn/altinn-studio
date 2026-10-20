@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { UiSchemaNodes } from '../../types';
 import { nodeMockBase } from '../../../test/uiSchemaMock';
 import { getPointers } from './getPointers';

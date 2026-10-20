@@ -1,0 +1,152 @@
+---
+name: changelog
+description: Write and edit CHANGELOG.md entries in this repository as release notes for the people who use the product. Use when adding or changing a changelog entry, when a pull request needs one, or when preparing a release's changelog.
+---
+
+# Changelog entries
+
+A changelog is release notes for the people who use the product. Pull request titles and descriptions are for the
+people who review the code. Do not copy one into the other: a reviewer needs to know how and why, a reader of the
+changelog needs to know what changed for them and whether they must act.
+
+## Rules
+
+- **One entry per change a reader notices**, however many pull requests it took. Do not join unrelated changes in one
+  sentence, even when one pull request made them: make them separate entries, or sub-bullets under what they change.
+  If `[Unreleased]` already has an entry for the same feature, extend or rewrite that entry instead of adding another.
+  No entry for refactors, tests or CI, or for a change an `[Unreleased]` entry already describes with its issue
+  linked: apply the `skip-changelog` label.
+- **Short.** One or two sentences, 40 words or fewer as a rule. `releaser validate-changelogs` fails a new or changed
+  `[Unreleased]` entry over 60 words.
+- **Lead with what changed for the reader**, then say what they can do now or what they must do.
+- **Use the names readers know**, written exactly as they appear in the product, so the entry can be searched. Give a
+  few examples rather than a complete list.
+- **Leave out** how it is implemented, why it was designed that way, internal components, and what used to happen,
+  unless the reader must act on it.
+- **Fixed** entries describe the symptom the reader saw, not the cause.
+- **Breaking changes, deprecations and removals** say what to do instead, and breaking changes start with `Breaking:`.
+  Step-by-step migration belongs in the documentation (`altinn-studio-docs`); link to it. Say so when a tool, such as
+  `studioctl app upgrade`, makes the change for the reader.
+- **End with the references in parentheses**: the documentation link first, when there is one, then every issue whose
+  problem or request the entry describes, or the pull request when there is no issue:
+  `([v9 migration guide](https://docs.altinn.studio/...), [#1234](https://github.com/Altinn/altinn-studio/issues/1234))`.
+  Links do not count toward the word limit.
+- **Link the issue, not its pull requests.** An issue says what readers asked for or ran into and leads to the pull
+  requests for it, so link it once, however many pull requests it took. When the issue is part of a larger one about the
+  same change, such as a feature, link the larger one, but not an issue that gathers unrelated work, such as an epic or
+  a list of findings. Do not link an issue the change is only related to. Write an issue or pull request in another
+  repository as `[Altinn/app-frontend-react#123](https://github.com/Altinn/app-frontend-react/issues/123)`.
+- **Without an issue, link the pull request.** Do not open an issue afterwards to have one to link.
+- **Sub-bullets group changes by what readers know them by**, such as a command, an endpoint or a component: the top
+  line names it, and each sub-bullet is one change to it. Use one level, at most five short sub-bullets, and put each
+  reference on the line it belongs to, or on the top line when it covers every sub-bullet. The word limit counts the
+  whole entry, sub-bullets included. Changes in different categories are separate entries.
+- **Do not wrap lines.** Only sub-bullets start a new line within an entry.
+
+Before you finish, read the entry as someone who has only the changelog: can they tell what changed for them and
+whether they need to do anything? Delete every clause that does not help with that.
+
+## Writing the entry for a pull request
+
+You know the implementation too well to see it from the reader's side. Write the entry from what the reader will
+notice after upgrading, not from what you did:
+
+1. Decide whether the change is visible to the changelog's readers at all, and whether an `[Unreleased]` entry already
+   describes it with its issue linked. In either case, use the `skip-changelog` label.
+2. If your harness can start a subagent, give a fresh one only this skill, the pull request title and description, and
+   the diff of what the reader sees or uses, and have it draft the entry. Otherwise, write the entry before rereading
+   the implementation.
+3. Merge it with any related `[Unreleased]` entry, keeping that entry's references. Link the issue for this pull
+   request, as the rules above describe, and reference it in the pull request description (`Closes #1234`, or
+   `Part of #1234`) so readers can get from the issue to the change. Without an issue, add this pull request's link
+   once it is open.
+4. Commit, then check every changelog you changed with
+   `go run . validate-changelogs -base origin/main -head HEAD` in `src/tools/releaser`.
+
+## Preparing a release
+
+Read the entries being released together. If they follow the rules above, promote them as they are. Otherwise, fix
+them in the promotion pull request:
+
+- Merge entries about the same feature, keeping all their references. Drop a pull request link when the merged entry
+  links the issue for that pull request.
+- Replace a pull request link with the issue the rules above point to, when there is one.
+- Drop entries for something added and fixed within the same release: readers never saw the problem.
+- Cut entries to the rules above, and move migration detail to the documentation.
+
+For a new stable `X.Y.0`, `releaser prepare` folds every `X.Y.0-preview.N` section into the release, so read those
+entries as well.
+
+## Examples
+
+Each block shows entries exactly as they are written in the changelog. Long entries are cut short with `...`.
+
+Too long, with implementation detail (221 words):
+
+```markdown
+- `studioctl app maskinporten set|show|remove` stores the Maskinporten client an app uses when it runs locally - for testing a real integration, such as a Fiks Arkiv shipment against the Fiks test environment, with a real client. studioctl provisions the stored client to the app the way Studio does when the app is deployed, so the app never reads Maskinporten credentials from its own configuration and there is no configuration section to get right. ...
+```
+
+Better:
+
+```markdown
+- `studioctl app maskinporten set|show|remove` stores a Maskinporten client for local runs, so you can test real integrations such as Fiks Arkiv locally. The app receives it the same way a deployed app does. ([#20048](https://github.com/Altinn/altinn-studio/issues/20048))
+```
+
+Explains the mechanism instead of the effect:
+
+```markdown
+- The app's resource files under `config/`, `models/`, `options/` and `ui/` are now read into memory once when the app starts. If `config/applicationmetadata.json` is missing, or any of these JSON files does not parse, the app refuses to start and lists every file with a problem, where it previously failed the first request that needed the file. ...
+```
+
+Better:
+
+```markdown
+- App files in `config/`, `models/`, `options/` and `ui/`: ([#20645](https://github.com/Altinn/altinn-studio/pull/20645))
+  - are checked at startup: the app does not start if one is invalid JSON or `config/applicationmetadata.json` is missing
+  - have case-sensitive names on every operating system
+  - are reloaded without a restart in `Development`
+```
+
+Several entries for one feature:
+
+```markdown
+- `studioctl app upgrade v9` enables implicit usings in the project file and adds `Altinn.App.Core.Features` as a global using, ...
+- `studioctl app upgrade v9` renames the model argument of the `IAppResources` methods ...
+- `studioctl app upgrade v9` rewrites awaited `IAppMetadata` reads to the v9 properties: ...
+```
+
+Better, as one entry with sub-bullets:
+
+```markdown
+- `studioctl app upgrade v9` rewrites more app code to the v9 API:
+  - enables implicit usings and removes the `using` directives this makes redundant ([#20690](https://github.com/Altinn/altinn-studio/pull/20690))
+  - rewrites awaited `IAppMetadata` reads to the new properties ([#20645](https://github.com/Altinn/altinn-studio/pull/20645))
+  - renames `IAppResources` arguments passed by their old name ([#20745](https://github.com/Altinn/altinn-studio/pull/20745))
+```
+
+Two changes in one entry, each described by its mechanism:
+
+```markdown
+- `studioctl app upgrade v9` converts primitive calculation rules without the previous shared-function parameter limit, preserves arithmetic grouping, missing-input guards, early returns and JavaScript rounding, and writes their results through the v9 data-model API. Package removal also recognizes package names regardless of letter case.
+```
+
+Better, grouped under the command they change:
+
+```markdown
+- `studioctl app upgrade v9` converts more app code correctly: ([#20527](https://github.com/Altinn/altinn-studio/pull/20527))
+  - legacy calculation rules become code that compiles and gives the same results as before
+  - obsolete package references are removed even when their names are written in lowercase
+```
+
+A fix described by its cause:
+
+```markdown
+- The app port discovery no longer relies on `netstat`, which stopped listing TCP sockets in macOS 27.
+```
+
+Better, by its symptom:
+
+```markdown
+- `studioctl app run` no longer times out with "no matching app metadata endpoint was discovered" on macOS 27. ([#20453](https://github.com/Altinn/altinn-studio/issues/20453))
+```

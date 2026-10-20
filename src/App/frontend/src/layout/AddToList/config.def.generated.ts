@@ -1,35 +1,13 @@
-import type {
-  ComponentBase,
-  FormComponentProps,
-  SummarizableComponentProps,
-} from '@app/layout-contract/generated/common.generated';
-
 import { FormComponent } from 'src/layout/LayoutComponent';
 import type { DataModelBindingValidationContext } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
-import type { ExprResolver } from 'src/layout/LayoutComponent';
 
 export abstract class AddToListDef extends FormComponent<'AddToList'> {
   protected readonly type = 'AddToList';
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalDefaultExpressions(props: ExprResolver<'AddToList'>) {
-    return {
-      ...(props.item as Omit<
-        typeof props.item,
-        keyof ComponentBase | keyof FormComponentProps | keyof SummarizableComponentProps | 'hidden'
-      >),
-      ...props.evalBase(),
-      ...props.evalFormProps(),
-      ...props.evalSummarizable(),
-      ...props.evalTrb(),
-    };
-  }
+  declare renderSummary?: never;
 
-  // Do not override this one, set functionality.customExpressions to true instead
-  evalExpressions(props: ExprResolver<'AddToList'>) {
-    return this.evalDefaultExpressions(props);
-  }
+  declare renderSummary2?: never;
 
   // You must implement this because the component has data model bindings defined
   abstract validateDataModelBindings(
@@ -39,4 +17,4 @@ export abstract class AddToListDef extends FormComponent<'AddToList'> {
   ): string[];
 }
 
-// Source hash: caccb312ea9d8f6dbe457ddfe6655e4a295109e804c01afb6b77853c04a34477
+// Source hash: 49904c6df3219723c7c4781777867e44533ae396148ccde29a99e9f7dc53afdd

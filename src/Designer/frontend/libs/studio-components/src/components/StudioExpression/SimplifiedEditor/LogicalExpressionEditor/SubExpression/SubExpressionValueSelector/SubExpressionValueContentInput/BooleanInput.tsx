@@ -14,7 +14,7 @@ export const BooleanInput = ({
 
   return (
     <StudioBooleanToggleGroup
-      aria-label=' ' // Todo: Give this element a name: https://github.com/Altinn/altinn-studio/issues/18503
+      aria-label={texts.value}
       falseLabel={texts.false}
       onChange={handleChange}
       trueLabel={texts.true}

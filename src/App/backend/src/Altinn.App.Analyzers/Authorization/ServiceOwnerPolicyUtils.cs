@@ -1,4 +1,3 @@
-using System.Xml;
 using Altinn.App.Analyzers.Utils;
 using NanoJsonReader;
 
@@ -11,18 +10,13 @@ namespace Altinn.App.Analyzers.Authorization;
 internal static class ServiceOwnerPolicyUtils
 {
     private const string PolicyPath = "config/authorization/policy.xml";
-    private const string ProcessPath = "config/process/process.bpmn";
 
     private const string InconclusiveRule =
         "the policy grants it only through a rule this analysis cannot decide statically (a condition, "
         + "a grant scoped to a single task, or an attribute or match function it does not model)";
 
-    internal static bool IsPolicyFile(AdditionalText text) => HasPath(text, PolicyPath);
-
-    internal static bool IsProcessFile(AdditionalText text) => HasPath(text, ProcessPath);
-
-    private static bool HasPath(AdditionalText text, string suffix) =>
-        text.Path.Replace('\\', '/').EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
+    internal static bool IsPolicyFile(AdditionalText text) =>
+        text.Path.Replace('\\', '/').EndsWith(PolicyPath, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Appends a diagnostic for every action the app owner needs but the policy does not grant
@@ -45,8 +39,8 @@ internal static class ServiceOwnerPolicyUtils
     {
         var (metadataOrg, metadataApp, autoDeleteOnProcessEnd) = ReadMetadata(metadataFile, token);
 
-        // Without a process there is nothing to derive task-specific requirements from, but the
-        // baseline still applies - every app reads and writes instance data.
+        // Without a process there is no way to tell whether a task marks the instance complete, but
+        // the baseline still applies - every app reads and writes instance data.
         var processContent = processFile?.GetText(token)?.ToString();
         var process = processContent is null ? null : ProcessInfo.TryParse(processContent);
         var requirements = BuildRequirements(process, autoDeleteOnProcessEnd);
@@ -112,7 +106,7 @@ internal static class ServiceOwnerPolicyUtils
         var endEventIds = process?.EndEventIds;
         foreach (var requirement in requirements)
         {
-            var result = policy.Evaluate(org, app, requirement.AnyOfActions, requirement.TaskScope, endEventIds);
+            var result = policy.Evaluate(org, app, requirement.AnyOfActions, endEventIds);
             switch (result)
             {
                 case GrantResult.Missing:
@@ -154,41 +148,15 @@ internal static class ServiceOwnerPolicyUtils
     {
         var requirements = new List<Requirement>
         {
-            new(ServiceOwnerActions.Read, TaskScope: null, "reads instance data"),
-            new(ServiceOwnerActions.Write, TaskScope: null, "writes instance data and persists process transitions"),
+            new(ServiceOwnerActions.Read, "reads instance data"),
+            new(ServiceOwnerActions.Write, "writes instance data"),
         };
 
-        var needsComplete = false;
-        foreach (var task in process?.Tasks ?? [])
-        {
-            var scope = task.Id is null ? null : new HashSet<string>(StringComparer.Ordinal) { task.Id };
-            var taskLabel = task.Id is null ? $"a '{task.TaskType}' task" : $"the '{task.TaskType}' task '{task.Id}'";
-
-            if (!ServiceOwnerActions.IsCoveredByWrite(task.TaskType))
-            {
-                requirements.Add(
-                    new Requirement(
-                        ServiceOwnerActions.ProcessNextActionsForTaskType(task.TaskType),
-                        scope,
-                        $"advances {taskLabel}"
-                    )
-                );
-            }
-
-            if (task.AllowsReject)
-            {
-                requirements.Add(new Requirement(ServiceOwnerActions.Reject, scope, $"abandons {taskLabel} on reject"));
-            }
-
-            needsComplete |= ServiceOwnerActions.MarksInstanceComplete(task.TaskType);
-        }
-
-        if (needsComplete)
+        if (process?.TaskTypes.Any(ServiceOwnerActions.MarksInstanceComplete) == true)
         {
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Complete,
-                    TaskScope: null,
                     "can mark the instance complete after shipping it to eFormidling or fiks arkiv"
                 )
             );
@@ -199,33 +167,12 @@ internal static class ServiceOwnerPolicyUtils
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Delete,
-                    TaskScope: null,
                     "deletes the instance at process end (autoDeleteOnProcessEnd)"
                 )
             );
         }
 
-        return Deduplicate(requirements);
-    }
-
-    /// <summary>
-    /// Collapses requirements that ask the same question - several tasks of the same type, or a
-    /// process with repeated confirmation tasks - keeping the first one's wording.
-    /// </summary>
-    private static List<Requirement> Deduplicate(List<Requirement> requirements)
-    {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var result = new List<Requirement>(requirements.Count);
-        foreach (var requirement in requirements)
-        {
-            var scope = requirement.TaskScope is null ? "" : string.Join(",", requirement.TaskScope.OrderBy(t => t));
-            if (seen.Add($"{string.Join(",", requirement.AnyOfActions)}|{scope}"))
-            {
-                result.Add(requirement);
-            }
-        }
-
-        return result;
+        return requirements;
     }
 
     private static string AllActions(List<Requirement> requirements) =>
@@ -287,54 +234,10 @@ internal static class ServiceOwnerPolicyUtils
     /// Anchors the diagnostics on the policy's root element. The problem is an absent rule, so
     /// there is nothing narrower to point at, and the document element is where a reader starts.
     /// </summary>
-    private static Location PolicyLocation(AdditionalText policyFile, string content, XacmlPolicy policy)
-    {
-        var lineInfo = policy.RootLineInfo;
-        if (!lineInfo.HasLineInfo())
-        {
-            return FileLocationHelper.GetLocation(policyFile, 0, null);
-        }
-
-        var offset = OffsetOf(content, lineInfo.LineNumber, lineInfo.LinePosition);
-        if (offset < 0)
-        {
-            return FileLocationHelper.GetLocation(policyFile, 0, null);
-        }
-
-        // The reported position is the element name, one character past the '<' that opens the tag.
-        var start = Math.Max(0, offset - 1);
-        var end = start;
-        while (end < content.Length && content[end] != '>' && !char.IsWhiteSpace(content[end]))
-        {
-            end++;
-        }
-
-        return FileLocationHelper.GetLocation(policyFile, start, end);
-    }
-
-    /// <summary>Translates a 1-based <see cref="IXmlLineInfo"/> position into a character offset.</summary>
-    private static int OffsetOf(string content, int lineNumber, int linePosition)
-    {
-        var line = 1;
-        var index = 0;
-        while (line < lineNumber && index < content.Length)
-        {
-            if (content[index] == '\n')
-            {
-                line++;
-            }
-
-            index++;
-        }
-
-        return line == lineNumber ? Math.Min(content.Length, index + linePosition - 1) : -1;
-    }
+    private static Location PolicyLocation(AdditionalText policyFile, string content, XacmlPolicy policy) =>
+        FileLocationHelper.GetXmlElementLocation(policyFile, content, policy.RootLineInfo);
 
     /// <param name="AnyOfActions">The app owner needs at least one of these.</param>
-    /// <param name="TaskScope">
-    /// The task(s) a grant may be scoped to and still cover this requirement, or null when the app
-    /// needs the action in any process state.
-    /// </param>
     /// <param name="Reason">What the app does as the service owner, phrased to follow "the app ...".</param>
-    private sealed record Requirement(IReadOnlyList<string> AnyOfActions, HashSet<string>? TaskScope, string Reason);
+    private sealed record Requirement(IReadOnlyList<string> AnyOfActions, string Reason);
 }

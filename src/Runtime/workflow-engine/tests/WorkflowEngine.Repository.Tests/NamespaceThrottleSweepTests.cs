@@ -9,7 +9,6 @@ using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Repository.Tests;
 

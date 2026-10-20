@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import { ConfigContent } from './ConfigContent';
 import { render } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -21,7 +23,7 @@ const tasks = [
     id: 'task_1',
     businessObject: {
       extensionElements: {
-        values: [{ taskType: 'signing' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'signing' }],
       },
     },
   },
@@ -29,39 +31,37 @@ const tasks = [
     id: 'task_2',
     businessObject: {
       extensionElements: {
-        values: [{ taskType: 'signing' }],
+        values: [{ $type: 'altinn:TaskExtension', taskType: 'signing' }],
       },
     },
   },
 ];
 
-jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(tasks),
+        getElementsByType: vi.fn().mockReturnValue(tasks),
+        getAllElementIds: vi.fn().mockReturnValue(tasks.map((task) => task.id)),
       };
     }),
   };
 });
 
-(useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
-  removeAction: jest.fn(),
-  addAction: jest.fn(),
-  shouldDisplayAction: jest.fn(),
+(useStudioRecommendedNextActionContext as Mock).mockReturnValue({
+  removeAction: vi.fn(),
+  addAction: vi.fn(),
+  shouldDisplayAction: vi.fn(),
 });
 
-jest.mock(
+vi.mock(
   '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
   () => ({
-    useStudioRecommendedNextActionContext: jest.fn(),
+    useStudioRecommendedNextActionContext: vi.fn(),
   }),
 );
 
 describe('ConfigContent', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render heading for selected task', () => {
     renderConfigContent();
     expect(
@@ -173,6 +173,57 @@ describe('ConfigContent', () => {
     expect(designDetails).toBeInTheDocument();
   });
 
+  describe('Default signature validator', () => {
+    const runDefaultValidatorLabel = textMock(
+      'process_editor.configuration_panel_run_default_validator_label',
+    );
+
+    const createSigningElement = (signatureConfig: object) => ({
+      ...mockBpmnDetails.element,
+      businessObject: {
+        extensionElements: {
+          values: [{ $type: 'altinn:TaskExtension', taskType: 'signing', signatureConfig }],
+        },
+      },
+    });
+
+    it('shows the validator switch on a signing task', () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            taskType: 'signing',
+            element: createSigningElement({ dataTypesToSign: [] }),
+          },
+        },
+      );
+
+      expect(screen.getByLabelText(runDefaultValidatorLabel)).toBeInTheDocument();
+    });
+
+    it('shows the validator switch on a user controlled signing task', () => {
+      renderConfigContent(
+        {},
+        {
+          bpmnDetails: {
+            ...mockBpmnDetails,
+            taskType: 'signing',
+            element: createSigningElement({ signeeProviderId: 'my-provider' }),
+          },
+        },
+      );
+
+      expect(screen.getByLabelText(runDefaultValidatorLabel)).toBeInTheDocument();
+    });
+
+    it('does not show the validator switch on a task that is not signing', () => {
+      renderConfigContent();
+
+      expect(screen.queryByLabelText(runDefaultValidatorLabel)).not.toBeInTheDocument();
+    });
+  });
+
   describe('Unique signature', () => {
     const element = getMockBpmnElementForTask('signing');
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
@@ -223,10 +274,10 @@ describe('ConfigContent', () => {
     });
 
     it('should show recommended action when task is data and is in recommended action queue', async () => {
-      const shouldDisplayAction = jest.fn().mockReturnValue(true);
-      (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
-        removeAction: jest.fn(),
-        addAction: jest.fn(),
+      const shouldDisplayAction = vi.fn().mockReturnValue(true);
+      (useStudioRecommendedNextActionContext as Mock).mockReturnValue({
+        removeAction: vi.fn(),
+        addAction: vi.fn(),
         shouldDisplayAction,
       });
       renderConfigContent();

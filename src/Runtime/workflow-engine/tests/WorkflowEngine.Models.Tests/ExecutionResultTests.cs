@@ -59,4 +59,24 @@ public class ExecutionResultTests
         Assert.Equal("fatal error", result.Message);
         Assert.Null(result.Exception);
     }
+
+    [Fact]
+    public void Success_WithState_CarriesState()
+    {
+        var result = ExecutionResult.Success("produced");
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Equal("produced", result.StateOut);
+    }
+
+    [Fact]
+    public void Defer_WithState_CarriesDelayReasonAndState()
+    {
+        var result = ExecutionResult.Defer(TimeSpan.FromSeconds(30), "waiting", "carried");
+
+        Assert.Equal(ExecutionStatus.Deferred, result.Status);
+        Assert.Equal(TimeSpan.FromSeconds(30), result.DeferDelay);
+        Assert.Equal("waiting", result.Message);
+        Assert.Equal("carried", result.StateOut);
+    }
 }

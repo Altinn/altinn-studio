@@ -35,11 +35,11 @@
     materializedType: Altinn.App.Core.Internal.LocaltestValidation
   },
   {
-    isImplementationFactory: false,
-    isImplementationType: true,
+    isImplementationFactory: true,
+    isImplementationType: false,
     isImplementationInstance: false,
     lifetime: 0,
-    materializedType: Altinn.App.Core.EFormidling.EFormidlingConfigValidationService
+    materializedType: Altinn.App.Core.Internal.Process.ProcessTaskConfigurationValidationService
   },
   {
     isImplementationFactory: false,

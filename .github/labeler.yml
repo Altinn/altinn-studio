@@ -42,7 +42,7 @@ area/overview:
 
 area/process:
 - changed-files:
-  - any-glob-to-any-file: ['src/Designer/frontend/app-development/features/processEditor/**/*', 'src/Designer/frontend/packages/process-editor/**/*', 'src/Designer/backend/src/Designer/**/*ProcessesModeling*.cs']
+  - any-glob-to-any-file: ['src/Designer/frontend/app-development/features/processEditor/**/*', 'src/Designer/frontend/packages/process-editor/**/*', 'src/Designer/frontend/packages/process-editor-v8/**/*', 'src/Designer/backend/src/Designer/**/*ProcessesModeling*.cs']
 
 area/resource-registry:
 - changed-files:

@@ -1,10 +1,11 @@
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { StudioDeleteButton } from '../../StudioDeleteButton';
 import { StudioParagraph } from '../../StudioParagraph';
 import classes from './StudioConfigCardHeader.module.css';
 
 export type StudioConfigCardHeaderProps = {
-  cardLabel: string;
+  cardLabel: ReactNode;
+  cardLabelId?: string;
   isDeleteDisabled?: boolean;
   deleteAriaLabel: string;
   confirmDeleteMessage?: string;
@@ -13,6 +14,7 @@ export type StudioConfigCardHeaderProps = {
 
 export function StudioConfigCardHeader({
   cardLabel,
+  cardLabelId,
   isDeleteDisabled,
   deleteAriaLabel,
   confirmDeleteMessage,
@@ -20,7 +22,9 @@ export function StudioConfigCardHeader({
 }: StudioConfigCardHeaderProps): ReactElement {
   return (
     <div className={classes.cardHeading}>
-      <StudioParagraph className={classes.cardTitle}>{cardLabel}</StudioParagraph>
+      <StudioParagraph id={cardLabelId} className={classes.cardTitle}>
+        {cardLabel}
+      </StudioParagraph>
       <StudioDeleteButton
         disabled={isDeleteDisabled}
         confirmMessage={confirmDeleteMessage}

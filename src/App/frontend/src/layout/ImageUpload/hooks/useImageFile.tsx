@@ -5,7 +5,7 @@ import { AttachmentUpload } from 'src/features/attachments/hooks/attachmentUploa
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { getDataElementUrl } from 'src/utils/urls/appUrlHelper';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 
@@ -17,7 +17,7 @@ type UseImageFileResult = {
 };
 
 export const useImageFile = (baseComponentId: string): UseImageFileResult => {
-  const { dataModelBindings } = useItemWhenType(baseComponentId, 'ImageUpload');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'ImageUpload');
   const indexedId = useIndexedId(baseComponentId);
   const uploadImage = AttachmentUpload.useAttachmentsUploader();
   const removeImage = AttachmentRemoval.useAttachmentsRemover();

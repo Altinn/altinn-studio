@@ -3,7 +3,6 @@ import SupportedPaletteProvider from '../../bpmnProviders/SupportedPaletteProvid
 import SupportedContextPadProvider from '../../bpmnProviders/SupportedContextPadProvider';
 import { altinnCustomTasks } from '../../extensions/altinnCustomTasks';
 import UpdateTaskIdCommandHandler from '@altinn/process-editor/commandHandlers/UpdateTaskIdCommandHandler';
-import type { AppVersion } from 'app-shared/types/AppVersion';
 
 export class BpmnModelerInstance {
   private static instance: BpmnModeler | null = null;
@@ -17,10 +16,7 @@ export class BpmnModelerInstance {
   }
 
   // Singleton pattern to ensure only one instance of the StudioBpmnModeler is created
-  public static getInstance(
-    canvasContainer?: HTMLDivElement,
-    appVersion?: AppVersion,
-  ): BpmnModeler {
+  public static getInstance(canvasContainer?: HTMLDivElement): BpmnModeler {
     const shouldCreateNewInstance =
       !BpmnModelerInstance.instance && BpmnModelerInstance.currentRefContainer !== canvasContainer;
 
@@ -28,7 +24,6 @@ export class BpmnModelerInstance {
       BpmnModelerInstance.instance = new BpmnModeler({
         container: canvasContainer,
         additionalModules: [
-          { appVersion: ['value', appVersion] },
           SupportedPaletteProvider,
           SupportedContextPadProvider,
           UpdateTaskIdCommandHandler,

@@ -2,6 +2,7 @@ import React from 'react';
 import type { JSX } from 'react';
 
 import { ConditionalWrapper, Fieldset, FullWidthWrapper, HelpTextContainer, Panel } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { HeadingLevel } from '@app/layout-contract/generated/common.generated';
@@ -12,7 +13,8 @@ import classes from 'src/layout/Group/GroupComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { getLayoutDepth } from 'src/utils/layout/hierarchy';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 
 export interface IGroupComponent {
   baseComponentId: string;
@@ -37,8 +39,18 @@ export function GroupComponent({
   isSummary,
   renderLayoutComponent,
 }: IGroupComponent) {
-  const container = useItemWhenType(baseComponentId, 'Group');
-  const { title, summaryTitle, description, help } = container.textResourceBindings ?? {};
+  const config = useComponentConfig(baseComponentId, 'Group');
+  const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Group.textResourceBindings.title);
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Group.textResourceBindings.summaryTitle,
+  );
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.Group.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Group.textResourceBindings.help);
+
   const isHidden = useIsHidden(baseComponentId);
 
   const indexedId = useIndexedId(baseComponentId);
@@ -51,9 +63,9 @@ export function GroupComponent({
 
   const parent = layoutLookups.componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
-  const isPanel = container.groupingIndicator === 'panel';
-  const isIndented = container.groupingIndicator === 'indented';
-  const headingLevel = container.headingLevel ?? (Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel);
+  const isPanel = config.groupingIndicator === 'panel';
+  const isIndented = config.groupingIndicator === 'indented';
+  const headingLevel = config.headingLevel ?? (Math.min(Math.max(depth + 1, 2), 6) as HeadingLevel);
   const headingSize = headingSizes[headingLevel];
   const legend = isSummary ? (summaryTitle ?? title) : title;
 
@@ -106,7 +118,7 @@ export function GroupComponent({
               [classes.indented]: isIndented && !isNested,
             })}
           >
-            {container.children.map((id) => renderLayoutComponent(id))}
+            {config.children.map((id) => renderLayoutComponent(id))}
           </div>
         </Fieldset>
       </ConditionalWrapper>

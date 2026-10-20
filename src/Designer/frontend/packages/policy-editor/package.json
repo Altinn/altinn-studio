@@ -7,11 +7,10 @@
   "private": true,
   "packageManager": "yarn@4.18.0",
   "scripts": {
-    "test": "jest"
+    "test": "yarn workspace studio-designer-frontend vitest run packages/policy-editor/"
   },
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
-    "jest": "29.7.0"
+    "@studio/ui-test": "workspace:^"
   },
   "peerDependencies": {
     "react": "18.3.1",

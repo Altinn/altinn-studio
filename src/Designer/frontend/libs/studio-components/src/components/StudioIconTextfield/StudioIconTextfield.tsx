@@ -29,6 +29,7 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
       onBlur,
       error,
       description,
+      autoFocus,
     }: StudioIconTextfieldProps,
     ref,
   ): React.ReactElement => {
@@ -49,6 +50,7 @@ export const StudioIconTextfield = forwardRef<HTMLDivElement, StudioIconTextfiel
           onBlur={onBlur}
           error={error}
           description={description}
+          autoFocus={autoFocus}
         />
       </div>
     );

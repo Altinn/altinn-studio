@@ -6,7 +6,6 @@ using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;

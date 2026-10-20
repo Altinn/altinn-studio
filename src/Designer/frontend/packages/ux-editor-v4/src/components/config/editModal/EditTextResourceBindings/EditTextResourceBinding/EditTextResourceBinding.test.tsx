@@ -1,3 +1,4 @@
+import { describe, expect, test, vi } from 'vitest';
 import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
 import { screen, waitFor } from '@testing-library/react';
@@ -47,7 +48,7 @@ describe('EditTextResourceBindings component', () => {
   });
 
   test('that handleComponentChange is called when adding a new text', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
       textKey: 'does-not-exist',
@@ -59,7 +60,7 @@ describe('EditTextResourceBindings component', () => {
   });
 
   test('that handleComponentChange is called when choosing existing text', async () => {
-    const handleComponentChange = jest.fn();
+    const handleComponentChange = vi.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
     });
@@ -68,8 +69,9 @@ describe('EditTextResourceBindings component', () => {
     const searchTabLabel = textMock('ux_editor.text_resource_binding_search');
     const searchTab = screen.getByRole('tab', { name: searchTabLabel });
     await user.click(searchTab);
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, textResources[1].id);
+    await user.click(screen.getByRole('combobox'));
+    await user.clear(screen.getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: RegExp(textResources[1].value) }));
     await user.click(getSaveButton());
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith({
@@ -82,9 +84,9 @@ describe('EditTextResourceBindings component', () => {
   });
 
   test('That handleComponentChange and removeTextResourceBinding are called when confirm delete textResourceBinding button is clicked', async () => {
-    jest.spyOn(window, 'confirm').mockReturnValue(true);
-    const handleComponentChange = jest.fn();
-    const removeTextResourceBinding = jest.fn();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const handleComponentChange = vi.fn();
+    const removeTextResourceBinding = vi.fn();
     await renderEditTextResourceBindingsComponent({
       handleComponentChange,
       removeTextResourceBinding,
@@ -102,7 +104,7 @@ describe('EditTextResourceBindings component', () => {
       textResourceBindings: {},
     });
     expect(removeTextResourceBinding).toHaveBeenCalledTimes(1);
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const getSaveButton = () => screen.getByRole('button', { name: textMock('general.save') });

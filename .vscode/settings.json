@@ -7,6 +7,7 @@
     "filstørrelsen"
   ],
   "json.schemaDownload.trustedDomains": {
-    "https://altinncdn.no/": true
+    "https://altinncdn.no/": true,
+    "https://altinn.studio/": true
   }
 }

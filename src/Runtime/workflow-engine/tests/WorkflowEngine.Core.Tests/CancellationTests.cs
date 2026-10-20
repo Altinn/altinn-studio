@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
 

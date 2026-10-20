@@ -75,7 +75,6 @@ export interface DataTypeElement {
   enabledFileAnalysers?: string[];
   enabledFileValidators?: string[];
   enableFileScan?: boolean;
-  enablePdfCreation?: boolean;
   grouping?: string;
   id: string;
   maxCount?: number;

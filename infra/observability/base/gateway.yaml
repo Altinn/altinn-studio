@@ -24,7 +24,30 @@ spec:
       labelSelector:
         matchLabels:
           altinn.studio/otel-collector: otel-gateway
+  # On deletion the pod first leaves the Service and the gateway's headless DNS and keeps
+  # working, retries included, while its queues drain; then the Collector shuts down and
+  # flushes, with one attempt per remaining batch. Telemetry can wait, so both are generous.
+  # Native sleep: the image has no shell.
+  lifecycle:
+    preStop:
+      sleep:
+        seconds: 60 # beyond the gateway's 40s tail sampling wait and 5s batch timeout
+  terminationGracePeriodSeconds: 120 # 60s above, 30s to shut down, a sidecar's drain, margin
+  livenessProbe:
+    terminationGracePeriodSeconds: 10 # a failed liveness probe restarts without the 60s drain
+  # The pod's UID, which the Collector's own metrics carry (service.telemetry below). Overlays
+  # append to this list rather than replace it.
+  env:
+    - name: POD_UID
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.uid
   config:
+    extensions:
+      # The operator derives the readiness and liveness probes from this extension, so a pod counts
+      # as ready only once the Collector is running, and a rollout keeps the old pod until then.
+      health_check:
+        endpoint: 0.0.0.0:13133 # the kubelet probes the pod IP; the default binds localhost
     receivers:
       otlp:
         protocols:
@@ -83,7 +106,13 @@ spec:
           include:
             match_type: regexp
             metric_names:
-              - '^(altinn|http)([._].*)?$'
+              - '^(altinn|http|signalr\.server)([._].*)?$'
+              # The router's and the gateway's own metrics (service.telemetry): each exporter's
+              # queue, in its sizer's unit, and the items it sent, failed to send after its
+              # retries, or could not queue; and how many gateways the router's ring holds. A
+              # few dozen series per cluster, out of the about 160 the Collectors produce.
+              - '^otelcol_exporter_(queue_size|queue_capacity|(sent|send_failed|enqueue_failed)_(spans|metric_points|log_records))$'
+              - '^otelcol_loadbalancer_num_backends$'
       tail_sampling:
         decision_wait: 40s
         num_traces: 50000
@@ -134,3 +163,28 @@ spec:
       batch:
         send_batch_size: 1024
         timeout: 5s
+    service:
+      extensions: [health_check]
+      # The Collector's own metrics, as in router.yaml, but sent to the router, which gives
+      # them its attributes and sends them back through load_balancing/metrics like any
+      # other metrics. With two gateways, as in Studio prod, one gateway's metrics may reach
+      # Victoria through the other. With one they leave through the otlp_http/victoria
+      # exporter they describe, so while it is stuck they wait in its queue with everything
+      # else and arrive late, with their original timestamps.
+      telemetry:
+        resource:
+          service.name: otel-gateway
+          k8s.pod.uid: $${env:POD_UID}
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: localhost
+                    port: 8888
+            - periodic:
+                interval: 30000
+                exporter:
+                  otlp:
+                    protocol: http/protobuf
+                    endpoint: http://otel-router:4318

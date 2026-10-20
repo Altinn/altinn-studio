@@ -1,5 +1,8 @@
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import { ComponentBase } from '@app/layout-contract/generated/common.generated';
+import {
+  ComponentBase,
+  ISummaryOverridesCommon,
+} from '@app/layout-contract/generated/common.generated';
 
 export interface AudioSrc {
   nb?: string;
@@ -7,6 +10,10 @@ export interface AudioSrc {
   en?: string;
   [key: string]: string | undefined;
 }
+
+export type AudioSummaryOverridesWithRef =
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Audio' } & ISummaryOverridesCommon);
 
 export interface CompAudioExternal extends ComponentBase {
   type: 'Audio';
@@ -32,7 +39,7 @@ export const componentConfig = {
     renderInTabs: true,
   },
   behaviors: {
-    isSummarizable: false,
+    isSummarizable: true,
     canHaveLabel: false,
     canHaveOptions: false,
     canHaveAttachments: false,
@@ -43,8 +50,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompAudioExternal;
-  summaryOverrides: undefined;
-  summaryOverridesWithRef: undefined;
+  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverridesWithRef: AudioSummaryOverridesWithRef;
 };
 
-// Source hash: 420be583a88ab78a5871e811cbace6a381c1ebb99f5384e69146339ef9a2add4
+// Source hash: 92dbc2622b19fa100e3c234475aa33ac27f100814d45f8a6bb92fbebc552a6b2

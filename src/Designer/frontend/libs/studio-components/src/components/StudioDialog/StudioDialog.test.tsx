@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { useRef } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
@@ -40,8 +41,6 @@ describe('StudioDialog', () => {
   const testCases: TestCase[] = ['built-in trigger', 'ref and external button'];
 
   describe.each(testCases)('When rendered with %s', (testCase) => {
-    beforeEach(jest.clearAllMocks);
-
     it('Displays a dialog when the button is clicked', async () => {
       const user = userEvent.setup();
       renderStudioDialog();

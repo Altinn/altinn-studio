@@ -64,7 +64,7 @@ public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase, IClassFi
         using var client = GetRootedClient(Org, App);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [ForbiddenCommand.Key])
         );
 
         var instance = new Instance

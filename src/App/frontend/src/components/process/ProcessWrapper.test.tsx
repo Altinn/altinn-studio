@@ -370,12 +370,85 @@ describe('ProcessWrapper workflow state machine', () => {
     }
   });
 
+  it('PDF mode renders a non-current PDF service task instead of the wrong-task error', async () => {
+    // Previewing a later PDF service task: the URL task (Task_Pdf) differs from process.currentTask
+    // (Task_1, the data task the app developer is currently editing). PDF mode must render the PDF
+    // service task's snapshot instead of the "part of form completed" wrong-task error, and must not
+    // fall back to the default ServiceTaskWaiting view either - PdfWrapper renders the PDF component.
+    const instance = getInstanceWithProcessMock();
+    instance.process.processTasks = [
+      { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
+      { elementId: 'Task_Pdf', elementType: 'ServiceTask', altinnTaskType: 'pdf' },
+    ];
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      taskId: 'Task_Pdf',
+      query: 'pdf=1&task=Task_1',
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    await waitFor(() => expect(document.getElementById('pdfView')).not.toBeNull());
+    expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/denne delen av skjemaet er ikke tilgjengelig/i)).not.toBeInTheDocument();
+  });
+
+  it('outside PDF mode a non-current task still shows the wrong-task error', async () => {
+    // Guards against a regression where the PDF-mode carve-out in useIsWrongTask leaks outside PDF
+    // mode: a stale/foreign task id in the URL must still be treated as the wrong task.
+    // useIsNavigating() also compares against window.location (not just router state), so it must
+    // be pointed at the same URL the memory router starts on for the wrong-task state to ever settle.
+    const originalUrl = `${window.location.pathname}${window.location.search}`;
+    window.history.pushState(
+      {},
+      '',
+      '/ttd/test/instance/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/Task_Pdf/FormLayout',
+    );
+
+    try {
+      const instance = getInstanceWithProcessMock();
+      instance.process.processTasks = [
+        { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
+        { elementId: 'Task_Pdf', elementType: 'ServiceTask', altinnTaskType: 'pdf' },
+      ];
+
+      await renderWithInstanceAndLayout({
+        renderer: () => (
+          <ProcessWrapper>
+            <div data-testid='task-content'>Task content</div>
+          </ProcessWrapper>
+        ),
+        taskId: 'Task_Pdf',
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => instance,
+          },
+        },
+      });
+
+      expect(await screen.findByText(/denne delen av skjemaet er ikke tilgjengelig/i)).toBeInTheDocument();
+      expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    } finally {
+      window.history.pushState({}, '', originalUrl);
+    }
+  });
+
   it('converges from a service task url after the process moved on to a signing task', async () => {
     // Parked on a service task without a layout (a mailbox wait) while the process advances two
     // tasks on, to signing. The service task's url must keep resolving the service task's own type
-    // until the navigation lands; resolving the *current* task's raw type instead throws
-    // "Unknown task type: signing" and takes the whole app down.
+    // until the navigation lands; resolving the *current* task's raw type instead classifies the
+    // service task's url as a signing task without a layout, and shows the unsupported-task error.
     vi.useFakeTimers();
+    const logErrorOnce = vi.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
     try {
       window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
         ui.folders.Sign = getLayoutSettingsMock({ defaultDataType: defaultDataTypeMock });
@@ -442,8 +515,64 @@ describe('ProcessWrapper workflow state machine', () => {
 
       expect(routerRef.current!.state.location.pathname).toContain('/Sign');
       expect(screen.queryByText(/ukjent feil/i)).not.toBeInTheDocument();
+      // The error view is transient here (navigation still converges), so assert it never mounted.
+      expect(logErrorOnce).not.toHaveBeenCalled();
     } finally {
+      logErrorOnce.mockRestore();
       vi.useRealTimers();
+    }
+  });
+
+  it.each([
+    { altinnTaskType: 'fetchMedicalNote', description: 'a custom task type on a bpmn:task element' },
+    { altinnTaskType: 'signing', description: 'a signing task without a layout' },
+  ])('renders an in-page error for $description, keeping the app shell', async ({ altinnTaskType }) => {
+    const logErrorOnce = vi.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
+    try {
+      await renderWithInstanceAndLayout({
+        renderer: () => (
+          <ProcessWrapper>
+            <div data-testid='task-content'>Task content</div>
+          </ProcessWrapper>
+        ),
+        waitUntilLoaded: false,
+        taskId: 'Task_Unsupported',
+        apis: {
+          instanceApi: {
+            getInstance: async () => {
+              const instance = getInstanceWithProcessMock();
+              instance.process.currentTask = {
+                ...instance.process.currentTask!,
+                elementId: 'Task_Unsupported',
+                name: 'Task_Unsupported',
+                altinnTaskType,
+                elementType: 'Task',
+              };
+              instance.process.processTasks = [{ elementId: 'Task_Unsupported', altinnTaskType, elementType: 'Task' }];
+              return instance;
+            },
+          },
+        },
+      });
+
+      expect(await screen.findByText('Denne delen av skjemaet kan ikke vises.')).toBeInTheDocument();
+      expect(
+        screen.getByText(`Prosessteget Task_Unsupported har typen ${altinnTaskType}, som appen ikke kan vise.`),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/hvis du har behov for assistanse kan du nå altinn/i)).toBeInTheDocument();
+      const phoneLink = screen.getByRole('link', { name: '+47 75 00 60 00' });
+      expect(phoneLink.closest('li')?.parentElement?.tagName).toBe('UL');
+      expect(screen.getByTestId('presentation')).toBeInTheDocument();
+      expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+      expect(screen.queryByText(/ukjent feil/i)).not.toBeInTheDocument();
+      // The log is written from an effect, which can run after the text is first found.
+      await waitFor(() =>
+        expect(logErrorOnce).toHaveBeenCalledWith(
+          expect.stringContaining(`'Task_Unsupported' has task type '${altinnTaskType}'`),
+        ),
+      );
+    } finally {
+      logErrorOnce.mockRestore();
     }
   });
 

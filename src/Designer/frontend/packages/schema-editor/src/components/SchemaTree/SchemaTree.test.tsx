@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { extractNameFromPointer, ROOT_POINTER, SchemaModel } from '@altinn/schema-model';
 import {
   childOfDefinitionNodeMock,
@@ -9,13 +10,11 @@ import { SchemaTree } from './SchemaTree';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { screen } from '@testing-library/react';
 
-const onAdd = jest.fn();
-const onMove = jest.fn();
+const onAdd = vi.fn();
+const onMove = vi.fn();
 const schemaModel = SchemaModel.fromArray(uiSchemaNodesMock);
 
 describe('SchemaTree', () => {
-  afterEach(jest.clearAllMocks);
-
   it('Renders the top level nodes by default', () => {
     render();
     const topLevelNodes = schemaModel.getRootProperties();

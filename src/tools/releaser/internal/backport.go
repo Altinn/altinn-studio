@@ -304,28 +304,25 @@ func extractEntriesFromCommit(
 	git *GitCLI,
 	commitSHA, clPath string,
 ) ([]changelog.Entry, string, error) {
-	output, err := git.Run(ctx, "show", "--format=%s", commitSHA, "--", clPath)
+	commitMsg, err := git.Run(ctx, "show", "-s", "--format=%s", commitSHA)
 	if err != nil {
 		return nil, "", fmt.Errorf("git show: %w", err)
 	}
 
-	lines := strings.SplitN(output, "\n", 2)
-	commitMsg := strings.TrimSpace(lines[0])
-
-	if len(lines) < 2 || strings.TrimSpace(lines[1]) == "" {
-		return nil, commitMsg, errBackportNoEntries
-	}
-
-	cl, err := changelog.ParseWithDiff("", lines[1], clPath)
+	after, err := loadChangelogAt(ctx, git, commitSHA, clPath)
 	if err != nil {
-		return nil, commitMsg, fmt.Errorf("parse diff: %w", err)
+		return nil, commitMsg, err
+	}
+	before, err := loadChangelogAt(ctx, git, commitSHA+"^", clPath)
+	if err != nil {
+		return nil, commitMsg, err
 	}
 
-	if len(cl.AddedEntries) == 0 {
+	entries := changelog.NewEntries(before.Entries(), after.Entries())
+	if len(entries) == 0 {
 		return nil, commitMsg, errBackportNoEntries
 	}
-
-	return cl.AddedEntries, commitMsg, nil
+	return entries, commitMsg, nil
 }
 
 func executeBackport(

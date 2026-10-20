@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using WorkflowEngine.Data.Repository;
+using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
 // S3871: Exceptions should be public.

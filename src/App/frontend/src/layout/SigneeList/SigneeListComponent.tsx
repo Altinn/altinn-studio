@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router';
 
 import { AppTable, Description, HelpTextContainer } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
 import captionClasses from 'src/components/form/caption/Caption.module.css';
@@ -12,7 +13,8 @@ import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
 import { SigneeStateTag } from 'src/layout/SigneeList/SigneeStateTag';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function SigneeListComponent({ baseComponentId }: PropsFromGenericComponent<'SigneeList'>) {
@@ -20,7 +22,16 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
   const { langAsString } = useLanguage();
   const componentId = useIndexedId(baseComponentId);
 
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigneeList');
+  const config = useComponentConfig(baseComponentId, 'SigneeList');
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.SigneeList.textResourceBindings.title,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.SigneeList.textResourceBindings.help);
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.SigneeList.textResourceBindings.description,
+  );
 
   const { data, isLoading, error } = useSigneeList(instanceOwnerPartyId, instanceGuid, taskId);
 
@@ -30,27 +41,27 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
 
   return (
     <>
-      {textResourceBindings?.title && (
+      {title && (
         <div className={captionClasses.tableCaption}>
           <div className={captionClasses.titleAndHelpWrapper}>
             <Heading
               level={3}
               data-size='sm'
             >
-              <Lang id={textResourceBindings.title} />
+              <Lang id={title} />
             </Heading>
-            {textResourceBindings.help && (
+            {help && (
               <HelpTextContainer
                 id={componentId}
-                helpText={<Lang id={textResourceBindings.help} />}
+                helpText={<Lang id={help} />}
               />
             )}
           </div>
-          {textResourceBindings.description && (
+          {description && (
             <Description
               className={captionClasses.description}
               componentId={componentId}
-              description={<Lang id={textResourceBindings.description} />}
+              description={<Lang id={description} />}
             />
           )}
         </div>
@@ -63,7 +74,7 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
         headerClassName={classes.header}
         tableClassName={classes.table}
         tableTestId={baseComponentId}
-        ariaLabel={textResourceBindings?.title ? langAsString(textResourceBindings.title) : undefined}
+        ariaLabel={title ? langAsString(title) : undefined}
         columns={[
           {
             header: langAsString('signee_list.header_name'),

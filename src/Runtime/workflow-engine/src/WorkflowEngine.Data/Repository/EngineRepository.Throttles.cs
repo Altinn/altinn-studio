@@ -360,7 +360,7 @@ internal sealed partial class EngineRepository
 
             var retryStrategy = retryStrategyJson is null
                 ? null
-                : JsonSerializer.Deserialize<Resilience.Models.RetryStrategy>(retryStrategyJson, JsonOptions.Default);
+                : JsonSerializer.Deserialize<RetryStrategy>(retryStrategyJson, JsonOptions.Default);
 
             candidates.Add(
                 new ThrottleParkCandidate(

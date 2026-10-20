@@ -12,6 +12,11 @@ targets = [
 
 [advisories]
 yanked = "deny"
+ignore = [
+  # bincode 2 is unmaintained and has no maintained successor release. Microsandbox and its
+  # libkrun crates use it to serialize their own data; the advisory reports no vulnerability.
+  { id = "RUSTSEC-2025-0141", reason = "unmaintained bincode 2 used by Microsandbox; no known vulnerability or safe upgrade" },
+]
 
 [sources]
 # crates.io is allowed by default. Additional registries fail until deliberately configured.

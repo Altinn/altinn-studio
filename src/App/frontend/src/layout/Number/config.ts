@@ -19,17 +19,17 @@ export const Config = new CG.component({
     renderInCards: true,
     renderInCardsMedia: false,
   },
-  functionality: {
-    customExpressions: true,
-  },
 })
   .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(new CG.prop('formatting', CG.common('IFormatting').optional()))
   .addProperty(
     new CG.prop(
       'value',
       new CG.expr(ExprVal.Number)
+        .setFallback(NaN)
         .setTitle('Number value', 'Tallverdi')
         .setDescription('The number to display.', 'Tallet som skal vises.'),
     ),

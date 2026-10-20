@@ -3,6 +3,7 @@ import type { Element } from 'bpmn-js/lib/model/Types';
 import type { CommandHandler } from 'diagram-js/lib/command/CommandStack';
 import type CommandStack from 'diagram-js/lib/command/CommandStack';
 import type ElementRegistry from 'diagram-js/lib/core/ElementRegistry';
+import { TaskUtils } from '../utils/taskUtils';
 
 export type UpdateTaskIdContext = {
   element: Element;
@@ -35,12 +36,12 @@ class UpdateTaskIdCommandHandler implements CommandHandler {
     const pdfTasks = this.elementRegistry.filter(
       (element) =>
         element.type === 'bpmn:ServiceTask' &&
-        element.businessObject.extensionElements?.values[0]?.taskType === 'pdf',
+        TaskUtils.getTaskExtension(element as Element)?.taskType === 'pdf',
     ) as Element[];
 
     pdfTasks.forEach((pdfTask) => {
       const taskIds: { value: string }[] =
-        pdfTask.businessObject.extensionElements?.values?.[0]?.pdfConfig?.autoPdfTaskIds?.taskIds;
+        TaskUtils.getTaskExtension(pdfTask)?.pdfConfig?.autoPdfTaskIds?.taskIds;
 
       if (!taskIds) {
         return;

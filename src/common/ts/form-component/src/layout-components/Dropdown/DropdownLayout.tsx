@@ -95,7 +95,6 @@ export function Dropdown({
   const { lang, langAsString } = useTranslation();
 
   const isPatchingFocus = useRef(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = options.find((option) => option.value === value);
   const selectedLabels = value
@@ -116,31 +115,13 @@ export function Dropdown({
     return lang('form_filler.dropdown_alert', [label]);
   };
 
-  const shouldAlertOnChange = (newValue: string) => newValue !== value && !!value;
-
   const { alertOpen, setAlertOpen, handleChange, confirmChange, cancelChange, alertMessage } =
     useAlertOnChange<(newValue: string) => void>(
       Boolean(alertOnChange),
       onChange,
-      shouldAlertOnChange,
+      (newValue) => newValue !== value && !!value,
       changeMessageGenerator,
     );
-
-  function handleSelectedChange(option?: SuggestionItem | null) {
-    const newValue = option?.value ?? '';
-
-    if (alertOnChange && shouldAlertOnChange(newValue) && inputRef.current) {
-      // Remove this workaround when https://github.com/digdir/designsystemet/pull/5260 is released.
-      // Suggestion updates its internal match before proposing a controlled value. When the proposal
-      // is suspended, restore the accepted value synchronously so a subsequent blur does not propose
-      // the rejected match a second time and reopen the confirmation popover.
-      inputRef.current.value = selectedItem?.label ?? '';
-      // A plain input event refreshes u-combobox's match without selecting it again.
-      inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-
-    handleChange(newValue);
-  }
 
   const showVisibleLabel = !renderedInTable && renderLabel !== false;
 
@@ -175,11 +156,23 @@ export function Dropdown({
           />
         )}
         <Suggestion
+          data-sr-added={langAsString('form_filler.suggestion_added')}
+          data-sr-clear={langAsString('form_filler.suggestion_clear')}
+          data-sr-empty={langAsString('form_filler.suggestion_empty')}
+          data-sr-found={langAsString('form_filler.suggestion_found')}
+          data-sr-invalid={langAsString('form_filler.suggestion_invalid')}
+          data-sr-items={langAsString('form_filler.suggestion_items')}
+          data-sr-of={langAsString('form_filler.suggestion_of')}
+          data-sr-plural={langAsString('form_filler.suggestion_plural')}
+          data-sr-remove={langAsString('form_filler.suggestion_remove')}
+          data-sr-removed={langAsString('form_filler.suggestion_removed')}
+          data-sr-singular={langAsString('form_filler.suggestion_singular')}
+          data-sr-toggle={langAsString('form_filler.suggestion_toggle')}
           multiple={false}
           filter={(args) => optionFilter(args, selectedLabels)}
           data-size='sm'
           selected={selectedItem}
-          onSelectedChange={handleSelectedChange}
+          onSelectedChange={(option) => handleChange(option?.value ?? '')}
           onBlur={() => onBlur?.()}
           className={cn(comboboxClasses.container, classes.showCaretsWithoutClear, {
             [classes.readOnly]: readOnly,
@@ -187,7 +180,6 @@ export function Dropdown({
           style={{ width: '100%' }}
         >
           <Suggestion.Input
-            ref={inputRef}
             id={componentId}
             aria-invalid={!isValid}
             onFocus={async (e) => {

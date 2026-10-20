@@ -65,6 +65,7 @@ export const useExpressionTexts = (): ExpressionTexts => {
     dataModelPath: t('expression.dataModelPath'),
     delete: t('general.delete'),
     disabledLogicalOperator: t('expression.disabledLogicalOperator'),
+    discard: t('expression.discard'),
     edit: t('general.edit'),
     errorListFooter: t('expression.errorListFooter'),
     errorListHeader: t('expression.errorListHeader'),

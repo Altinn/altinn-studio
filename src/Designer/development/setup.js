@@ -3,7 +3,6 @@ const waitFor = require('./utils/wait-for.js');
 const runCommand = require('./utils/run-command.js');
 const ensureDotEnv = require('./utils/ensure-dot-env.js');
 const dnsIsOk = require('./utils/check-if-dns-is-correct.js');
-const createCypressEnvFile = require('./utils/create-cypress-env-file.js');
 const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
 const waitForHealthy = require('./utils/wait-for-healthy.js');
@@ -238,8 +237,6 @@ const setupEnvironment = async (env) => {
   const envWithRunnerToken = await setupRunnersToken(env);
   const envWithOidcClient = await createOidcClientIfNotExists(envWithRunnerToken);
   const newEnv = await createPersonalAccessToken(envWithOidcClient);
-
-  await createCypressEnvFile(env);
 
   return newEnv;
 };

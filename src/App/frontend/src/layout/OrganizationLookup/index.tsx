@@ -7,7 +7,7 @@ import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeVa
 import { OrganizationLookupDef } from 'src/layout/OrganizationLookup/config.def.generated';
 import { OrganizationLookupComponent } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
 import { OrganizationLookupSummary } from 'src/layout/OrganizationLookup/OrganizationLookupSummary';
-import { useNodeFormDataWhenType } from 'src/utils/layout/useNodeItem';
+import { useNodeFormDataWhenType } from 'src/utils/layout/useFormData';
 import { validateDataModelBindingsAny } from 'src/utils/layout/validation/utils';
 import type { ComponentValidation } from 'src/features/validation';
 import type { DataModelBindingValidationContext } from 'src/layout';

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -41,7 +42,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 1',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType1' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType1' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -50,7 +57,13 @@ const signingTasks = [
     businessObject: {
       name: 'Name 2',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType2' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType2' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
@@ -59,25 +72,29 @@ const signingTasks = [
     businessObject: {
       name: 'Name 3',
       extensionElements: {
-        values: [{ signatureConfig: { signatureDataType: 'dataType3' }, taskType: 'signing' }],
+        values: [
+          {
+            $type: 'altinn:TaskExtension',
+            signatureConfig: { signatureDataType: 'dataType3' },
+            taskType: 'signing',
+          },
+        ],
       },
     },
   },
 ];
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn().mockReturnValue(signingTasks),
+        getElementsByType: vi.fn().mockReturnValue(signingTasks),
       };
     }),
   };
 });
 
 describe('EditUniqueFromSignaturesInDataTypes', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should display a button to add unique signature when task has no data types', async () => {
     const user = userEvent.setup();
 

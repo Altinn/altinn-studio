@@ -63,7 +63,8 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
 
         string token = header.Parameter;
 
-        // The token is bound to the instance via its jti claim; verify against the route's instanceGuid.
+        // The token is bound to the instance via its jti claim and to the commands it may call; verify both
+        // against the route. The actor it binds is checked against the body by the controller.
         if (
             Request.RouteValues.TryGetValue("instanceGuid", out object? routeValue) is false
             || Guid.TryParse(routeValue?.ToString(), out Guid instanceGuid) is false
@@ -72,12 +73,24 @@ internal sealed class WorkflowEngineCallbackAuthenticationHandler : Authenticati
             return AuthenticateResult.Fail("Could not resolve instanceGuid from the request route.");
         }
 
-        if (await _validator.ValidateToken(token, instanceGuid) is false)
+        if (
+            Request.RouteValues.TryGetValue("commandKey", out object? commandKeyValue) is false
+            || commandKeyValue?.ToString() is not { Length: > 0 } commandKey
+        )
+        {
+            return AuthenticateResult.Fail("Could not resolve commandKey from the request route.");
+        }
+
+        if (await _validator.ValidateToken(token, instanceGuid, commandKey) is not { } validated)
         {
             return AuthenticateResult.Fail("Invalid workflow engine callback token.");
         }
 
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, instanceGuid.ToString()) };
+        var claims = new[]
+        {
+            new Claim(JwtClaimTypes.JwtId, instanceGuid.ToString()),
+            new Claim(JwtClaimTypes.WorkflowCallback.ActorHash, validated.ActorHash),
+        };
         var identity = new ClaimsIdentity(claims, WorkflowEngineCallbackDefaults.AuthenticationScheme);
         var ticket = new AuthenticationTicket(
             new ClaimsPrincipal(identity),

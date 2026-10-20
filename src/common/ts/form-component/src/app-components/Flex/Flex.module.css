@@ -1,4 +1,4 @@
-@value mediaSmUp, mediaMdUp, mediaLgUp from './breakpoints.module.css';
+@value mediaSmUp, mediaMdUp, mediaLgUp from '../breakpoints/breakpoints.module.css';
 
 .container {
   width: 100%;

@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using Altinn.App.Api.Infrastructure.Authentication;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -12,16 +13,20 @@ namespace Altinn.App.Api.Tests.Infrastructure.Authentication;
 
 public class WorkflowEngineCallbackAuthenticationHandlerTests
 {
+    private const string CommandKey = "some-command";
+
     private readonly Mock<IWorkflowCallbackTokenValidator> _validatorMock = new(MockBehavior.Strict);
 
     private Task<(AuthenticateResult Result, HttpContext Context)> Authenticate(
         string? token,
-        object? instanceGuidRouteValue
-    ) => AuthenticateWithHeader(token is null ? null : $"Bearer {token}", instanceGuidRouteValue);
+        object? instanceGuidRouteValue,
+        string? commandKeyRouteValue = CommandKey
+    ) => AuthenticateWithHeader(token is null ? null : $"Bearer {token}", instanceGuidRouteValue, commandKeyRouteValue);
 
     private async Task<(AuthenticateResult Result, HttpContext Context)> AuthenticateWithHeader(
         string? authorizationHeader,
-        object? instanceGuidRouteValue
+        object? instanceGuidRouteValue,
+        string? commandKeyRouteValue = CommandKey
     )
     {
         var optionsMonitor = new Mock<IOptionsMonitor<AuthenticationSchemeOptions>>();
@@ -39,6 +44,8 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
             context.Request.Headers.Authorization = authorizationHeader;
         if (instanceGuidRouteValue is not null)
             context.Request.RouteValues["instanceGuid"] = instanceGuidRouteValue;
+        if (commandKeyRouteValue is not null)
+            context.Request.RouteValues["commandKey"] = commandKeyRouteValue;
 
         var scheme = new AuthenticationScheme(
             WorkflowEngineCallbackDefaults.AuthenticationScheme,
@@ -108,25 +115,36 @@ public class WorkflowEngineCallbackAuthenticationHandlerTests
     }
 
     [Fact]
-    public async Task ValidToken_Succeeds()
+    public async Task MissingCommandKeyRouteValue_Fails()
+    {
+        var (result, _) = await Authenticate("some-token", Guid.NewGuid(), commandKeyRouteValue: null);
+
+        Assert.False(result.Succeeded);
+        Assert.NotNull(result.Failure);
+    }
+
+    [Fact]
+    public async Task ValidToken_Succeeds_AndCarriesTheBoundActorForTheController()
     {
         var instanceGuid = Guid.NewGuid();
-        _validatorMock.Setup(x => x.ValidateToken("good-token", instanceGuid)).ReturnsAsync(true);
+        _validatorMock
+            .Setup(x => x.ValidateToken("good-token", instanceGuid, CommandKey))
+            .ReturnsAsync(new ValidatedWorkflowCallbackToken("actor-hash"));
 
         var (result, _) = await Authenticate("good-token", instanceGuid);
 
         Assert.True(result.Succeeded);
-        Assert.Equal(
-            instanceGuid.ToString(),
-            result.Principal!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value
-        );
+        Assert.Equal(instanceGuid.ToString(), result.Principal!.FindFirst(JwtClaimTypes.JwtId)!.Value);
+        Assert.Equal("actor-hash", result.Principal.FindFirst(JwtClaimTypes.WorkflowCallback.ActorHash)!.Value);
     }
 
     [Fact]
     public async Task InvalidToken_Fails()
     {
         var instanceGuid = Guid.NewGuid();
-        _validatorMock.Setup(x => x.ValidateToken("bad-token", instanceGuid)).ReturnsAsync(false);
+        _validatorMock
+            .Setup(x => x.ValidateToken("bad-token", instanceGuid, CommandKey))
+            .ReturnsAsync((ValidatedWorkflowCallbackToken?)null);
 
         var (result, _) = await Authenticate("bad-token", instanceGuid);
 

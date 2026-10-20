@@ -1,0 +1,35 @@
+# The Victoria observability backend, applied from the observability artifact
+# but by its own Kustomization rather than by observability's.
+#
+# The Victoria custom resources cannot be applied until the VictoriaMetrics
+# operator has installed their CRDs, so this Kustomization dependsOn
+# victoriametrics-operator. The observability Kustomization deliberately does
+# not: it also carries the Application Insights router and gateway and
+# observability-proxy, and a dependency on the operator would stall all of them
+# whenever the operator is unhealthy or being upgraded. Keeping the two apart
+# means only the Victoria backend waits for the operator.
+#
+# Prod only, like the operator: the observability node pool exists only there.
+# It reuses the observability OCIRepository, so the backend ships with the same
+# artifact revision as the rest of observability, from ./studio/victoria in
+# that artifact (build.sh copies infra/observability/studio to studio/).
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: observability-victoria
+  namespace: default
+spec:
+  targetNamespace: observability
+  interval: 5m
+  timeout: 1m
+  prune: true
+  path: ./studio/victoria
+  sourceRef:
+    kind: OCIRepository
+    name: observability
+    namespace: default
+  dependsOn:
+    - name: victoriametrics-operator
+  postBuild:
+    substitute:
+      ENVIRONMENT: ${ENVIRONMENT}

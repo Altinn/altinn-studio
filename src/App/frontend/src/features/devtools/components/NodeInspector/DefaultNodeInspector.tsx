@@ -7,8 +7,7 @@ import { NodeInspectorDataField } from 'src/features/devtools/components/NodeIns
 import { NodeInspectorDataModelBindings } from 'src/features/devtools/components/NodeInspector/NodeInspectorDataModelBindings';
 import { NodeInspectorTextResourceBindings } from 'src/features/devtools/components/NodeInspector/NodeInspectorTextResourceBindings';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemFor } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 
 interface DefaultNodeInspectorParams {
   baseComponentId: string;
@@ -16,24 +15,25 @@ interface DefaultNodeInspectorParams {
 }
 
 export function DefaultNodeInspector({ baseComponentId, ignoredProperties }: DefaultNodeInspectorParams) {
-  // Hidden state is removed from the item by the hierarchy generator, but we simulate adding it back here (but only
-  // if it's an expression). This allows app developers to inspect this as well.
-  const _item = useItemFor(baseComponentId);
+  const config = useComponentConfig(baseComponentId);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   const hidden = useIsHidden(baseComponentId);
-  const component = useExternalItem(baseComponentId);
-  const hiddenIsExpression = Array.isArray(component?.hidden);
-  const item = hiddenIsExpression ? { ..._item, hidden } : _item;
 
   const ignoredPropertiesFinal = new Set(['id', 'type'].concat(ignoredProperties ?? []));
 
   return (
     <dl className={cn(classes.propertyList, classes.mainPropertyList)}>
-      {Object.keys(item).map((key) => {
+      {Object.keys(config).map((key) => {
         if (ignoredPropertiesFinal.has(key)) {
           return null;
         }
 
-        const value = item[key];
+        const value =
+          key === 'hidden' && Array.isArray(config.hidden)
+            ? hidden
+            : key === 'dataModelBindings'
+              ? dataModelBindings
+              : config[key];
         if (key === 'dataModelBindings' && typeof value === 'object' && Object.keys(value).length > 0) {
           return (
             <NodeInspectorDataModelBindings

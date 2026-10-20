@@ -1,119 +1,34 @@
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@studio/ui-test';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigPdfServiceTask } from './ConfigPdfServiceTask';
-import { createPdfBpmnDetails, renderWithProviders } from './testUtils';
+import { createPdfBpmnDetails } from './testUtils';
+import { renderWithProviders } from '../../../../../test/renderWithProviders';
 
-jest.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
+vi.mock('../../../../utils/bpmnModeler/StudioModeler', () => {
   return {
-    StudioModeler: jest.fn().mockImplementation(() => {
+    StudioModeler: vi.fn().mockImplementation(function () {
       return {
-        getAllTasksByType: jest.fn(() => []),
+        getElementsByType: vi.fn(() => []),
       };
     }),
   };
 });
 
-jest.mock('../../../../hooks/useUpdatePdfConfigTaskIds', () => ({
-  useUpdatePdfConfigTaskIds: () => jest.fn(),
-}));
-
-jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+vi.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
   useStudioEnvironmentParams: () => ({ org: 'test-org', app: 'test-app' }),
 }));
 
-jest.mock('app-shared/hooks/queries', () => ({
+vi.mock('app-shared/hooks/queries', () => ({
   useTextResourcesQuery: () => ({ data: { nb: [] } }),
 }));
 
-jest.mock('app-shared/hooks/mutations', () => ({
-  useUpsertTextResourceMutation: () => ({ mutate: jest.fn() }),
-}));
-
-jest.mock('app-shared/hooks/useValidateLayoutSetName', () => ({
-  useValidateLayoutSetName: () => ({
-    validateLayoutSetName: () => undefined,
-  }),
+vi.mock('app-shared/hooks/mutations', () => ({
+  useUpsertTextResourceMutation: () => ({ mutate: vi.fn() }),
 }));
 
 describe('ConfigPdfServiceTask', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('version warnings', () => {
-    it('should show warning when backendVersion is below minimum required version', () => {
-      renderConfigPdfServiceTask({
-        contextProps: {
-          bpmnContextProps: {
-            appVersion: {
-              backendVersion: '8.0.0',
-              frontendVersion: '4.25.2',
-            },
-          },
-        },
-      });
-
-      expect(
-        screen.getByText(
-          textMock('process_editor.palette_pdf_service_task_version_error', {
-            version: '8.9.0',
-          }),
-        ),
-      ).toBeInTheDocument();
-    });
-
-    it('should show warning when frontendVersion is below minimum required version', () => {
-      renderConfigPdfServiceTask({
-        contextProps: {
-          bpmnContextProps: {
-            appVersion: {
-              backendVersion: '8.9.0',
-              frontendVersion: '4.0.0',
-            },
-          },
-        },
-      });
-
-      expect(
-        screen.getByText(
-          textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
-            version: '4.25.2',
-          }),
-        ),
-      ).toBeInTheDocument();
-    });
-
-    it('should not show version warning when both versions meet requirements', () => {
-      renderConfigPdfServiceTask({
-        contextProps: {
-          bpmnContextProps: {
-            appVersion: {
-              backendVersion: '8.9.0',
-              frontendVersion: '4.25.2',
-            },
-          },
-        },
-      });
-
-      expect(
-        screen.queryByText(
-          textMock('process_editor.palette_pdf_service_task_version_error', {
-            version: '8.9.0',
-          }),
-        ),
-      ).not.toBeInTheDocument();
-
-      expect(
-        screen.queryByText(
-          textMock('process_editor.palette_pdf_service_task_frontend_version_error', {
-            version: '4.25.2',
-          }),
-        ),
-      ).not.toBeInTheDocument();
-    });
-  });
-
   describe('PDF mode radio group', () => {
     it('should render PDF mode radio group with automatic and layout-based options', () => {
       renderConfigPdfServiceTask();
@@ -170,8 +85,8 @@ describe('ConfigPdfServiceTask', () => {
   describe('mode switching with layout set deletion', () => {
     it('should call deleteLayoutSet when switching from layout-based to automatic mode and confirming', async () => {
       const user = userEvent.setup();
-      const deleteLayoutSetMock = jest.fn();
-      jest.spyOn(window, 'confirm').mockReturnValue(true);
+      const deleteLayoutSetMock = vi.fn();
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
 
       renderConfigPdfServiceTask({
         withLayoutSet: true,
@@ -195,8 +110,8 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should not change mode when switching from layout-based to automatic mode and canceling', async () => {
       const user = userEvent.setup();
-      const deleteLayoutSetMock = jest.fn();
-      jest.spyOn(window, 'confirm').mockReturnValue(false);
+      const deleteLayoutSetMock = vi.fn();
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
 
       renderConfigPdfServiceTask({
         withLayoutSet: true,
@@ -223,17 +138,15 @@ describe('ConfigPdfServiceTask', () => {
 
     it('should not show confirmation when switching to automatic mode without existing layout set', async () => {
       const user = userEvent.setup();
-      const confirmSpy = jest.spyOn(window, 'confirm');
+      const confirmSpy = vi.spyOn(window, 'confirm');
 
       renderConfigPdfServiceTask();
 
-      // First switch to layout-based
       const layoutBasedRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_layout_based'),
       });
       await user.click(layoutBasedRadio);
 
-      // Then switch back to automatic (no layout set was created)
       const automaticRadio = screen.getByRole('radio', {
         name: textMock('process_editor.configuration_panel_pdf_mode_automatic'),
       });
@@ -248,7 +161,6 @@ describe('ConfigPdfServiceTask', () => {
     it('should render PdfAutomaticTaskSelection when in automatic mode', () => {
       renderConfigPdfServiceTask();
 
-      // PdfAutomaticTaskSelection renders a combobox
       expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
@@ -262,15 +174,14 @@ describe('ConfigPdfServiceTask', () => {
       });
       await user.click(layoutBasedRadio);
 
-      // PdfLayoutBasedSection renders layout set name input
       expect(
         screen.getByLabelText(
-          textMock('process_editor.configuration_panel_pdf_layout_set_name_label'),
+          textMock('process_editor.configuration_panel_pdf_select_data_model_label'),
         ),
       ).toBeInTheDocument();
     });
 
-    it('should render PdfFilenameTextResource component', () => {
+    it('renders FilenameTextResource component', () => {
       renderConfigPdfServiceTask();
 
       expect(

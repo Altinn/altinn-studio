@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { AppTable, useIsMobile } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Link } from '@digdir/designsystemet-react';
 import { pick } from 'dot-object';
 import type { FormDataObject } from '@app/form-component';
@@ -11,7 +12,8 @@ import { useExternalApis } from 'src/core/queries/externalApi';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 interface ApiTableProps extends PropsFromGenericComponent<'SimpleTable'> {
@@ -19,8 +21,20 @@ interface ApiTableProps extends PropsFromGenericComponent<'SimpleTable'> {
 }
 
 export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
-  const { textResourceBindings, zebra, size, columns } = useItemWhenType(baseComponentId, 'SimpleTable');
-  const { title, description, help } = textResourceBindings ?? {};
+  const config = useComponentConfig(baseComponentId, 'SimpleTable');
+  const title = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.SimpleTable.textResourceBindings.title,
+  );
+  const description = useEvalOptionalText(
+    config.textResourceBindings?.description,
+    Expressions.SimpleTable.textResourceBindings.description,
+  );
+  const help = useEvalOptionalText(
+    config.textResourceBindings?.help,
+    Expressions.SimpleTable.textResourceBindings.help,
+  );
+
   const { elementAsString, langAsString } = useLanguage();
   const accessibleTitle = elementAsString(title);
   const isMobile = useIsMobile();
@@ -50,24 +64,31 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
 
   return (
     <AppTable
-      zebra={zebra}
-      size={size}
+      zebra={config.zebra}
+      size={config.size}
       caption={
         title && (
           <Caption
             title={<Lang id={title} />}
             description={description && <Lang id={description} />}
-            helpText={help ? { text: <Lang id={help} />, accessibleTitle } : undefined}
+            helpText={
+              help
+                ? {
+                    text: <Lang id={help} />,
+                    accessibleTitle,
+                  }
+                : undefined
+            }
           />
         )
       }
       data={dataToDisplay}
       stickyHeader={true}
       emptyText={langAsString('general.empty_table')}
-      columns={columns.map((config) => {
-        const { component } = config;
+      columns={config.columns.map((config) => {
         let renderCell;
-        if (component) {
+        if (config.component) {
+          const component = config.component;
           renderCell = (_, __, rowIndex) => {
             const rowData = dataToDisplay[rowIndex];
             if (component.type === 'link') {

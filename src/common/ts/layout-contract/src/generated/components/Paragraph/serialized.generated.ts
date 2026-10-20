@@ -1,18 +1,13 @@
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
-import {
-  ComponentBase,
-  SummarizableComponentProps,
-  TRBSummarizable,
-} from '@app/layout-contract/generated/common.generated';
+import { ComponentBase } from '@app/layout-contract/generated/common.generated';
 
 export type CompParagraphSerialized = {
   type: 'Paragraph';
   textResourceBindings?: {
     title?: ExprValToActualOrExpr<ExprVal.String>;
     help?: ExprValToActualOrExpr<ExprVal.String>;
-  } & TRBSummarizable;
+  };
   dataModelBindings?: undefined;
-} & ComponentBase &
-  SummarizableComponentProps;
+} & ComponentBase;
 
-// Source hash: a54b22ae9c16e215a005c7b5b7464d5116224dcd0406c7044776cf1395b46172
+// Source hash: e86286b4e3148c3e5bc2e71da0aa3f934a23c852529c693d3ae86f46312f5d4a

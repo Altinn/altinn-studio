@@ -16,8 +16,7 @@ public class FrontendFeaturesTest
     {
         var frontendFeatures = new FrontendFeatures(
             Configuration(
-                ("FeatureManagement:JsonObjectInDataResponse", "true"),
-                ("FeatureManagement:BetaPDFenabled", "true"),
+                ("FeatureManagement:AddInstanceIdentifierToLayoutRequests", "true"),
                 ("FeatureManagement:SimpleTableEnabled", "false")
             )
         );
@@ -25,8 +24,7 @@ public class FrontendFeaturesTest
         Assert.Equal(
             new Dictionary<string, bool>
             {
-                ["jsonObjectInDataResponse"] = true,
-                ["betaPDFenabled"] = true,
+                ["addInstanceIdentifierToLayoutRequests"] = true,
                 ["simpleTableEnabled"] = false,
             },
             frontendFeatures.GetDictionary()
@@ -37,17 +35,17 @@ public class FrontendFeaturesTest
     public async Task An_implementation_that_only_provides_the_dictionary_gets_the_rest_from_the_interface()
     {
         IFrontendFeatures frontendFeatures = new DictionaryOnlyFeatures(
-            new Dictionary<string, bool> { ["jsonObjectInDataResponse"] = true }
+            new Dictionary<string, bool> { ["addInstanceIdentifierToLayoutRequests"] = true }
         );
 
-        Assert.True(frontendFeatures.IsEnabled(FeatureFlags.JsonObjectInDataResponse));
+        Assert.True(frontendFeatures.IsEnabled(FeatureFlags.AddInstanceIdentifierToLayoutRequests));
         Assert.False(frontendFeatures.IsEnabled(FeatureFlags.SimpleTableEnabled));
 #pragma warning disable CS0618 // The obsolete method must keep working
         var copy = await frontendFeatures.GetFrontendFeatures();
 #pragma warning restore CS0618
         Assert.Equal(frontendFeatures.GetDictionary(), copy);
-        copy["jsonObjectInDataResponse"] = false;
-        Assert.True(frontendFeatures.IsEnabled(FeatureFlags.JsonObjectInDataResponse));
+        copy["addInstanceIdentifierToLayoutRequests"] = false;
+        Assert.True(frontendFeatures.IsEnabled(FeatureFlags.AddInstanceIdentifierToLayoutRequests));
     }
 
     private sealed class DictionaryOnlyFeatures(Dictionary<string, bool> flags) : IFrontendFeatures
@@ -59,10 +57,10 @@ public class FrontendFeaturesTest
     public void IsEnabled_looks_a_flag_up_by_its_configured_name_and_treats_unknown_flags_as_disabled()
     {
         IFrontendFeatures frontendFeatures = new FrontendFeatures(
-            Configuration(("FeatureManagement:JsonObjectInDataResponse", "true"))
+            Configuration(("FeatureManagement:AddInstanceIdentifierToLayoutRequests", "true"))
         );
 
-        Assert.True(frontendFeatures.IsEnabled(FeatureFlags.JsonObjectInDataResponse));
+        Assert.True(frontendFeatures.IsEnabled(FeatureFlags.AddInstanceIdentifierToLayoutRequests));
         Assert.False(frontendFeatures.IsEnabled(FeatureFlags.SimpleTableEnabled));
     }
 
@@ -78,22 +76,22 @@ public class FrontendFeaturesTest
     public void A_flag_that_is_not_a_boolean_is_rejected()
     {
         var exception = Assert.Throws<ApplicationConfigException>(() =>
-            new FrontendFeatures(Configuration(("FeatureManagement:BetaPDFenabled:EnabledFor:0:Name", "AlwaysOn")))
+            new FrontendFeatures(Configuration(("FeatureManagement:SimpleTableEnabled:EnabledFor:0:Name", "AlwaysOn")))
         );
 
-        Assert.Contains("FeatureManagement:BetaPDFenabled", exception.Message);
+        Assert.Contains("FeatureManagement:SimpleTableEnabled", exception.Message);
     }
 
     [Fact]
     public void The_flags_follow_the_configuration_when_it_reloads()
     {
-        var configuration = Configuration(("FeatureManagement:BetaPDFenabled", "false"));
+        var configuration = Configuration(("FeatureManagement:SimpleTableEnabled", "false"));
         var frontendFeatures = new FrontendFeatures(configuration);
-        Assert.False(frontendFeatures.IsEnabled("BetaPDFenabled"));
+        Assert.False(frontendFeatures.IsEnabled(FeatureFlags.SimpleTableEnabled));
 
-        configuration["FeatureManagement:BetaPDFenabled"] = "true";
+        configuration["FeatureManagement:SimpleTableEnabled"] = "true";
         configuration.Reload();
 
-        Assert.True(frontendFeatures.IsEnabled("BetaPDFenabled"));
+        Assert.True(frontendFeatures.IsEnabled(FeatureFlags.SimpleTableEnabled));
     }
 }

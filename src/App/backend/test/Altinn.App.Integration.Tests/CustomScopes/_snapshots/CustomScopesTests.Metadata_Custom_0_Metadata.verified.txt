@@ -562,20 +562,6 @@
         }
       },
       {
-        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGuid}/pdf/format,
-        metadata: {
-          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
-          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
-          requiredScopesUsers: [
-            custom:instances.read,
-            altinn:portal/enduser
-          ],
-          requiredScopesServiceOwners: [
-            custom:serviceowner/instances.read
-          ]
-        }
-      },
-      {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/datalists/{id},
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
@@ -1036,20 +1022,6 @@
       },
       {
         endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/resume,
-        metadata: {
-          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
-          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
-          requiredScopesUsers: [
-            custom:instances.write,
-            altinn:portal/enduser
-          ],
-          requiredScopesServiceOwners: [
-            custom:serviceowner/instances.write
-          ]
-        }
-      },
-      {
-        endpoint: POST {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/start,
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
           errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,

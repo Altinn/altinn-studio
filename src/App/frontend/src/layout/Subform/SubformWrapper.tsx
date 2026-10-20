@@ -10,13 +10,14 @@ import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigateToPage } from 'src/hooks/useNavigatePage';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 
 export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<{ baseComponentId: string }>) {
   const dataElementId = useNavigationParam('dataElementId');
-  const { layoutSet } = useItemWhenType(baseComponentId, 'Subform');
+  const config = useComponentConfig(baseComponentId, 'Subform');
 
-  if (!layoutSet || !dataElementId) {
+  if (!config.layoutSet || !dataElementId) {
     return null;
   }
 
@@ -26,7 +27,7 @@ export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<
       providedDataElementId={dataElementId}
     >
       <FormProvider
-        uiFolderOverride={layoutSet}
+        uiFolderOverride={config.layoutSet}
         dataElementIdOverride={dataElementId}
       >
         {children}
@@ -66,8 +67,9 @@ export function SubformOverrideWrapper({
 }>) {
   const dataElementId = useNavigationParam('dataElementId');
   const actualDataElementId = providedDataElementId ? providedDataElementId : dataElementId;
-  const { layoutSet, id } = useItemWhenType(baseComponentId, 'Subform');
-  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
+  const config = useComponentConfig(baseComponentId, 'Subform');
+  const id = useIndexedId(baseComponentId);
+  const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
 
   if (!dataType) {
     throw new Error(`Unable to find data type for subform with id ${id}`);
@@ -77,7 +79,7 @@ export function SubformOverrideWrapper({
     <TaskOverrides
       dataModelType={dataType}
       dataModelElementId={actualDataElementId}
-      uiFolder={layoutSet}
+      uiFolder={config.layoutSet}
     >
       {children}
     </TaskOverrides>

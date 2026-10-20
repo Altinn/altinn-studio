@@ -9,7 +9,7 @@ using Moq;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
-using WorkflowEngine.Resilience.Models;
+using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Core.Tests;
@@ -693,6 +693,63 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
+    public async Task Handle_StepSucceedsWithState_StoresStateOut()
+    {
+        var executor = MockExecutor(ExecutionResult.Success("produced"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal("produced", workflow.Steps[0].StateOut);
+    }
+
+    [Fact]
+    public async Task Handle_StepDefersWithState_StoresStateOut()
+    {
+        var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1), state: "carried"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Waiting, workflow.Steps[0].Status);
+        Assert.Equal("carried", workflow.Steps[0].StateOut);
+    }
+
+    [Fact]
+    public async Task Handle_ResultWithoutState_KeepsStateOut()
+    {
+        var executor = MockExecutor(
+            ExecutionResult.Defer(TimeSpan.FromMinutes(1), state: "carried"),
+            ExecutionResult.Success()
+        );
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Equal("carried", workflow.Steps[0].StateOut);
+    }
+
+    [Theory]
+    [InlineData(ExecutionStatus.RetryableError)]
+    [InlineData(ExecutionStatus.CriticalError)]
+    public async Task Handle_ErrorResultWithState_DoesNotStoreStateOut(ExecutionStatus status)
+    {
+        var executor = MockExecutor(new ExecutionResult(status, "boom", StateOut: "ignored"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        Assert.Null(workflow.Steps[0].StateOut);
+    }
+
+    [Fact]
     public async Task Handle_DeferWaitBudgetExhausted_WorkflowFailed_WaitExpired()
     {
         var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(5), "still nothing"));
@@ -776,7 +833,8 @@ public class WorkflowHandlerTests
     [Fact]
     public async Task Handle_DeferAtTheDeadline_FailsWithWaitExpired()
     {
-        // The clamped final poll runs at the deadline; a deferral there has no budget left to spend.
+        // The clamped final poll starts at the deadline, so it is the final check: a deferral from it
+        // has no budget left to spend.
         var executor = MockExecutor(ExecutionResult.Defer(TimeSpan.FromMinutes(1)));
         var handler = CreateHandler(executor.Object);
         var step = new Step
@@ -795,6 +853,51 @@ public class WorkflowHandlerTests
         Assert.Equal(PersistentItemStatus.Failed, step.Status);
         Assert.Null(workflow.BackoffUntil);
         Assert.Contains("Wait budget", Assert.Single(step.ErrorHistory).Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Handle_AttemptThatOverranTheDeadline_IsDueAtOnce_AndItsReRunIsTheFinalCheck()
+    {
+        // An attempt that started before the deadline but returned after it is not the final check: it
+        // is re-run at once, and that re-run is.
+        var settings = _defaultSettings;
+        var time = new FakeTimeProvider(_t0);
+        var step = new Step
+        {
+            OperationId = "step",
+            ProcessingOrder = 0,
+            Command = CommandDefinition.Create("webhook", waitBudget: TimeSpan.FromMinutes(5)),
+        };
+        step.DeferCount = 3;
+        step.FirstDeferredAt = _t0.AddSeconds(1).AddMinutes(-5);
+
+        var verdictsSeenByExecutor = new List<bool>();
+        var executor = new Mock<IWorkflowExecutor>();
+        executor
+            .Setup(e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                (Workflow _, Step executing, CancellationToken _) =>
+                {
+                    verdictsSeenByExecutor.Add(executing.IsFinalWaitCheck(settings));
+                    time.Advance(TimeSpan.FromSeconds(2));
+                    return ExecutionResult.Defer(TimeSpan.FromMinutes(1));
+                }
+            );
+        var handler = CreateHandler(executor.Object, settings, timeProvider: time);
+        var workflow = CreateWorkflow(step);
+
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal(PersistentItemStatus.Waiting, step.Status);
+        Assert.Empty(step.ErrorHistory);
+        Assert.Equal(_t0.AddSeconds(2), workflow.BackoffUntil);
+
+        workflow.Status = PersistentItemStatus.Processing;
+        await handler.Handle(workflow, TestContext.Current.CancellationToken);
+
+        Assert.Equal([false, true], verdictsSeenByExecutor);
+        Assert.Equal(PersistentItemStatus.Failed, step.Status);
+        Assert.Equal("wait_expired", workflow.FailureReason);
     }
 
     [Fact]

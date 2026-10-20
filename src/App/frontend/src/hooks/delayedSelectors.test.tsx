@@ -234,6 +234,59 @@ function TestSingleDelayedSelector({ onGetValue }: Props) {
 }
 
 describe('useDelayedSelector', () => {
+  it('reuses a selector for equivalent object arguments and updates it when the store changes', async () => {
+    const directSelector = vi.fn(
+      (reference: { dataType: string; field: string }) => (state: State) =>
+        `${reference.dataType}.${reference.field}: ${state.state}`,
+    );
+    const laxSelector = vi.fn(
+      (reference: { dataType: string; field: string }) => (state: State) =>
+        `${reference.dataType}.${reference.field}: ${state.state}`,
+    );
+    const cacheKey = ([arg]: unknown[]) => {
+      const reference = arg as { dataType: string; field: string };
+      return [reference.dataType, reference.field];
+    };
+
+    function Probe() {
+      const [renderCount, setRenderCount] = useState(0);
+      const selectDirect = Ctx.useDelayedSelector({ mode: 'simple', selector: directSelector }, undefined, cacheKey);
+      const selectLax = Ctx.useLaxDelayedSelector(
+        { mode: 'simple', selector: laxSelector },
+        undefined,
+        undefined,
+        cacheKey,
+      );
+      const increment = Ctx.useSelector((state) => state.increment);
+
+      return (
+        <>
+          <div data-testid='direct-value'>{selectDirect({ dataType: 'model', field: 'value' })}</div>
+          <div data-testid='lax-value'>{selectLax({ dataType: 'model', field: 'value' })}</div>
+          <button onClick={() => setRenderCount(renderCount + 1)}>Re-render</button>
+          <button onClick={increment}>Change store</button>
+        </>
+      );
+    }
+
+    render(
+      <Ctx.Provider>
+        <Probe />
+      </Ctx.Provider>,
+    );
+    expect(directSelector).toHaveBeenCalledTimes(1);
+    expect(laxSelector).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByText('Re-render'));
+    await userEvent.click(screen.getByText('Re-render'));
+    expect(directSelector).toHaveBeenCalledTimes(1);
+    expect(laxSelector).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByText('Change store'));
+    expect(screen.getByTestId('direct-value')).toHaveTextContent('model.value: 1');
+    expect(screen.getByTestId('lax-value')).toHaveTextContent('model.value: 1');
+  });
+
   it('should cache according to cache key', async () => {
     const fn = vi.fn();
     render(<TestComponent onGetValue={fn} />);

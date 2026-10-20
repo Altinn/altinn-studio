@@ -15,13 +15,13 @@ so never do resolution arithmetic yourself.
 
 ## Choose the cheapest observation that answers the question
 
-| Question | Observe with |
-| --- | --- |
-| What is on a web page, and where | `playwright-cli snapshot`: the whole page, with stable element refs |
-| What is on screen now: the browser's own bar and dialogs, a native window | `desktop tree`: what is showing, with click boxes |
-| Does it *look* right | `desktop screenshot` |
-| What windows are open, and how big | `desktop windows` |
-| What does this small control say | `desktop zoom X Y W H` |
+| Question                                                                  | Observe with                                                        |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| What is on a web page, and where                                          | `playwright-cli snapshot`: the whole page, with stable element refs |
+| What is on screen now: the browser's own bar and dialogs, a native window | `desktop tree`: what is showing, with click boxes                   |
+| Does it _look_ right                                                      | `desktop screenshot`                                                |
+| What windows are open, and how big                                        | `desktop windows`                                                   |
+| What does this small control say                                          | `desktop zoom X Y W H`                                              |
 
 `playwright-cli open --browser chromium --headed` puts the browser on this same desktop, so one
 browser is scriptable, in the tree and visible: act on refs with `playwright-cli click e12`, and
@@ -132,8 +132,7 @@ Add `--json` before the command for machine-readable output from `screenshot`, `
 
 ## When a person is watching
 
-A person opens this desktop with `agentctl vnc --web`, in their browser, or with a VNC client of
-their own; `agents/README.md` has the commands. They see exactly what you see and share the same
-keyboard and pointer, so say what you are about to do before you do it, and stop when they take
-over. They can open a terminal with `Ctrl+Alt+T` or the panel's launcher; `desktop tree sakura`
-shows you its last lines.
+A person can open this desktop from their own machine, in a browser or a VNC client. They see
+exactly what you see and share the same keyboard and pointer, so say what you are about to do
+before you do it, and stop when they take over. They can open a terminal with `Ctrl+Alt+T` or the
+panel's launcher; `desktop tree sakura` shows you its last lines.

@@ -1,5 +1,6 @@
 /* istanbul ignore file */
 
+import { vi } from 'vitest';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
@@ -37,6 +38,7 @@ import type {
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
 import {
   type IFrontEndSettings,
   type ILayoutSettings,
@@ -94,24 +96,24 @@ import type { AppSettings } from 'app-shared/types/AppSettings';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
-  getAppMetadataModelIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getAppValidation: jest.fn().mockImplementation(() => Promise.resolve<any>({})),
-  getAppReleases: jest
+  getAppMetadataModelIds: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getAppValidation: vi.fn().mockImplementation(() => Promise.resolve<any>({})),
+  getAppReleases: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
-  getAppVersion: jest.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
-  getAvailableResourcesFromOrg: jest
+  getAppVersion: vi.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
+  getAvailableResourcesFromOrg: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
-  getAppTemplates: jest.fn().mockImplementation(() => Promise.resolve<AppTemplate[]>([])),
-  getAvailableTemplates: jest
+  getAppTemplates: vi.fn().mockImplementation(() => Promise.resolve<AppTemplate[]>([])),
+  getAvailableTemplates: vi
     .fn()
     .mockImplementation(() =>
       Promise.resolve<CustomTemplateList>({ templates: [], totalCount: 0 }),
     ),
-  getBranchStatus: jest.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
-  getBranches: jest.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
-  getCurrentBranch: jest.fn().mockImplementation(() =>
+  getBranchStatus: vi.fn().mockImplementation(() => Promise.resolve<BranchStatus>(branchStatus)),
+  getBranches: vi.fn().mockImplementation(() => Promise.resolve<Branch[]>([])),
+  getCurrentBranch: vi.fn().mockImplementation(() =>
     Promise.resolve<CurrentBranchInfo>({
       branchName: 'master',
       commitSha: 'abc123',
@@ -119,48 +121,46 @@ export const queriesMock: ServicesContextProps = {
       remoteName: 'origin',
     }),
   ),
-  getDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  getDataModelMetadata: jest
+  getDataModel: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  getDataModelMetadata: vi
     .fn()
     .mockImplementation(() =>
       Promise.resolve<DataModelMetadataResponse>(dataModelMetadataResponse),
     ),
-  getDataModelsJson: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<DataModelMetadataJson[]>([])),
-  getDataModelPrefill: jest.fn().mockImplementation(() => Promise.resolve<PrefillConfig>(null)),
-  getDataModelsXsd: jest.fn().mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
-  getDataModelGenerationStatus: jest.fn().mockImplementation(() => Promise.resolve<boolean>(false)),
-  getDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getDeployments: jest
+  getDataModelsJson: vi.fn().mockImplementation(() => Promise.resolve<DataModelMetadataJson[]>([])),
+  getDataModelPrefill: vi.fn().mockImplementation(() => Promise.resolve<PrefillConfig>(null)),
+  getDataModelsXsd: vi.fn().mockImplementation(() => Promise.resolve<DataModelMetadataXsd[]>([])),
+  getDataModelGenerationStatus: vi.fn().mockImplementation(() => Promise.resolve<boolean>(false)),
+  getDataType: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  getDeployPermissions: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getDeployments: vi
     .fn()
     .mockImplementation(() => Promise.resolve<DeploymentsResponse>(deploymentsResponse)),
-  getRepoDiff: jest.fn().mockImplementation(() => Promise.resolve<RepoDiffResponse>({})),
-  getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
-  getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
-  getValidationOnNavigationLayoutSettings: jest
+  getRepoDiff: vi.fn().mockImplementation(() => Promise.resolve<RepoDiffResponse>({})),
+  getEnvironments: vi.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
+  getFormLayoutSettings: vi.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
+  getValidationOnNavigationLayoutSettings: vi
     .fn()
     .mockImplementation(() => Promise.resolve<IValidationOnNavigationLayoutSettings[]>([])),
-  getValidationOnNavigationPageSettings: jest
+  getValidationOnNavigationPageSettings: vi
     .fn()
     .mockImplementation(() => Promise.resolve<IValidationOnNavigationPageSettings[]>([])),
-  getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
-  getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
-  getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
-  getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
-  getLayoutSetsExtendedV4: jest
+  getFormLayouts: vi.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
+  getFormLayoutsV3: vi.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
+  getFrontEndSettings: vi.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
+  getImageFileNames: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getLayoutNames: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getLayoutSets: vi.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  getLayoutSetsExtendedV4: vi
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
-  getLayoutSetsExtended: jest
+  getLayoutSetsExtended: vi
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetModel[]>(layoutSetsExtendedMock)),
-  getValidationOnNavigationLayoutSets: jest
+  getValidationOnNavigationLayoutSets: vi
     .fn()
     .mockImplementation(() => Promise.resolve({ show: [], page: '' })),
-  getValidationOnNavigation: jest
+  getValidationOnNavigation: vi
     .fn()
     .mockImplementation((_org, _app, level = ValidationOnNavigationLevel.Global) => {
       switch (level) {
@@ -172,44 +172,45 @@ export const queriesMock: ServicesContextProps = {
           return Promise.resolve({ show: [], page: '' });
       }
     }),
-  getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
-  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
-  getOptionListsReferences: jest
+  getOptionListIds: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getOptionList: vi.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
+  getOptionLists: vi.fn().mockImplementation(() => Promise.resolve<OptionListsResponse>([])),
+  getOptionListsReferences: vi
     .fn()
     .mockImplementation(() => Promise.resolve<OptionListReferences>([])),
-  getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
-  getOrgCodeLists: jest.fn().mockImplementation(() => Promise.resolve<CodeListsResponse>([])),
-  getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
-  getOrgTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[] | null>([])),
-  getOrgTextResources: jest
+  getOrganizations: vi.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
+  getOrgCodeLists: vi.fn().mockImplementation(() => Promise.resolve<CodeListsResponse>([])),
+  getOrgList: vi.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
+  getOrgTextLanguages: vi.fn().mockImplementation(() => Promise.resolve<string[] | null>([])),
+  getOrgTextResources: vi
     .fn()
     .mockImplementation(() =>
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
-  getSharedResources: jest.fn().mockImplementation(() =>
+  getSharedResources: vi.fn().mockImplementation(() =>
     Promise.resolve<SharedResourcesResponse>({
       files: [],
       commitSha: '',
     }),
   ),
-  getPublishedResources: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
-  getRepoPull: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
-  getRepoStatus: jest.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
-  getRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
-  getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getStarredRepos: jest.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
-  getTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getTextLanguages: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getTextResources: jest
+  getPublishedResources: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getRepoMetadata: vi.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
+  getRepoPull: vi.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
+  getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve<RepoStatus>(repoStatus)),
+  getRuleConfig: vi.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
+  getRuleModel: vi.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getStarredRepos: vi.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
+  getSubformComponents: vi.fn().mockImplementation(() => Promise.resolve<SubformComponent[]>([])),
+  getTaskNavigationGroupV4: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getTaskNavigationGroup: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getTextResources: vi
     .fn()
     .mockImplementation(() =>
       Promise.resolve<ITextResourcesWithLanguage>(textResourcesWithLanguage),
     ),
-  getUser: jest.fn().mockImplementation(() => Promise.resolve<User>(user)),
-  getStudioctlAuthRequest: jest.fn().mockImplementation(() =>
+  getUser: vi.fn().mockImplementation(() => Promise.resolve<User>(user)),
+  getStudioctlAuthRequest: vi.fn().mockImplementation(() =>
     Promise.resolve<StudioctlAuthRequest>({
       username: user.login,
       clientName: 'studioctl dev',
@@ -217,230 +218,233 @@ export const queriesMock: ServicesContextProps = {
       expiresAt: '2099-01-01T00:00:00Z',
     }),
   ),
-  getWidgetSettings: jest
+  getWidgetSettings: vi
     .fn()
     .mockImplementation(() => Promise.resolve<WidgetSettingsResponse | null>({})),
-  searchRepos: jest
+  searchRepos: vi
     .fn()
     .mockImplementation(() => Promise.resolve<SearchRepositoryResponse>(searchRepositoryResponse)),
-  validateImageFromExternalUrl: jest
+  validateImageFromExternalUrl: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalImageUrlValidationResponse>('Ok')),
-  getUserOrgPermissions: jest.fn().mockImplementation(() =>
+  getUserOrgPermissions: vi.fn().mockImplementation(() =>
     Promise.resolve({
       canCreateOrgRepo: true,
     }),
   ),
-  getPages: jest.fn().mockImplementation(() => Promise.resolve([])),
-  canUseFeature: jest
+  getPages: vi.fn().mockImplementation(() => Promise.resolve([])),
+  canUseFeature: vi
     .fn()
     .mockImplementation(() => Promise.resolve<CanUseFeature>({ canUseFeature: false })),
 
   // Queries - Settings modal
-  getAppConfig: jest.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),
-  getAppPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
-  getAppMetadata: jest
+  getAppConfig: vi.fn().mockImplementation(() => Promise.resolve<AppConfig>(appConfig)),
+  getAppPolicy: vi.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
+  getAppMetadata: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ApplicationMetadata>(applicationMetadata)),
 
   // Queries - Resourceadm
-  getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
-  getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
-  getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
-  getAccessPackages: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getAccessPackageServices: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
-  getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
-  getResourcePublishStatus: jest
+  getAltinn2ResourcePolicies: vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<{ identifier?: string; policy?: Policy; resourceType: string }[]>([]),
+    ),
+  getPolicyActions: vi.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
+  getPolicy: vi.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
+  getPolicySubjects: vi.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
+  getAccessPackages: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getAccessPackageServices: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getResource: vi.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
+  getResourceList: vi.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
+  getResourcePublishStatus: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ResourceVersionStatus>(resourceVersionStatus)),
-  getValidatePolicy: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
-  getValidateResource: jest.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
-  getAccessLists: jest
+  getValidatePolicy: vi.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
+  getValidateResource: vi.fn().mockImplementation(() => Promise.resolve<Validation>(validation)),
+  getAccessLists: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
-  getAllAccessLists: jest.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
-  getAccessList: jest.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
-  getResourceAccessLists: jest
+  getAllAccessLists: vi.fn().mockImplementation(() => Promise.resolve<AccessList[]>([])),
+  getAccessList: vi.fn().mockImplementation(() => Promise.resolve<AccessList>(null)),
+  getResourceAccessLists: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AccessListsResponse>({ data: [] })),
-  getParties: jest.fn().mockImplementation(() => Promise.resolve<BrregPartySearchResult>(null)),
-  getSubParties: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
-  getAccessListMembers: jest.fn().mockImplementation(() => Promise.resolve({ data: [] })),
+  getParties: vi.fn().mockImplementation(() => Promise.resolve<BrregPartySearchResult>(null)),
+  getSubParties: vi.fn().mockImplementation(() => Promise.resolve<BrregSubPartySearchResult>(null)),
+  getAccessListMembers: vi.fn().mockImplementation(() => Promise.resolve({ data: [] })),
 
   // Queries - PrgetBpmnFile
-  getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
-  getSelectedMaskinportenScopes: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve({ scopes: [] })),
-  getAppSettings: jest
+  getBpmnFile: vi.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getProcessTaskType: vi.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getMaskinportenScopes: vi.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
+  getSelectedMaskinportenScopes: vi.fn().mockImplementation(() => Promise.resolve({ scopes: [] })),
+  getAppSettings: vi
     .fn()
     .mockImplementation(() => Promise.resolve<AppSettings>({ undeployOnInactivity: false })),
-  updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateAppSettings: jest.fn().mockImplementation(() => Promise.resolve()),
-  getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
+  updateSelectedMaskinportenScopes: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateAppSettings: vi.fn().mockImplementation(() => Promise.resolve()),
+  getConsentTemplates: vi.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact
-  fetchBelongsToGiteaOrg: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
+  fetchBelongsToGiteaOrg: vi.fn().mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
   // Queries - Assistant chat
-  getChatThreads: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getChatMessages: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getChatThreads: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getChatMessages: vi.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - User settings
-  getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
-  confirmStudioctlAuthRequest: jest
+  getUserApiKeys: vi.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
+  confirmStudioctlAuthRequest: vi
     .fn()
     .mockImplementation(() =>
       Promise.resolve<StudioctlAuthCallback>({ callbackUrl: 'http://127.0.0.1/callback' }),
     ),
-  cancelStudioctlAuthRequest: jest
+  cancelStudioctlAuthRequest: vi
     .fn()
     .mockImplementation(() =>
       Promise.resolve<StudioctlAuthCallback>({ callbackUrl: 'http://127.0.0.1/callback' }),
     ),
 
   // Queries - Org settings - Contact points
-  getContactPoints: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getContactPoints: vi.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Org settings - Bot accounts
-  getBotAccounts: jest.fn().mockImplementation(() => Promise.resolve([])),
-  getBotAccountApiKeys: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getBotAccounts: vi.fn().mockImplementation(() => Promise.resolve([])),
+  getBotAccountApiKeys: vi.fn().mockImplementation(() => Promise.resolve([])),
 
   // Mutations
-  addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  addImage: jest.fn().mockImplementation(() => Promise.resolve()),
-  addLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
-  addLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
-  addRepo: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
-  addXsdFromRepo: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  checkoutBranch: jest.fn().mockImplementation(() => Promise.resolve({})),
-  commitAndPushChanges: jest
+  addAppAttachmentMetadata: vi.fn().mockImplementation(() => Promise.resolve()),
+  addDataTypeToAppMetadata: vi.fn().mockImplementation(() => Promise.resolve()),
+  addImage: vi.fn().mockImplementation(() => Promise.resolve()),
+  addLayoutSet: vi.fn().mockImplementation(() => Promise.resolve()),
+  addLanguageCode: vi.fn().mockImplementation(() => Promise.resolve()),
+  addRepo: vi.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
+  addXsdFromRepo: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  checkoutBranch: vi.fn().mockImplementation(() => Promise.resolve({})),
+  commitAndPushChanges: vi
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
-  copyApp: jest.fn().mockImplementation(() => Promise.resolve()),
-  createBranch: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteBranch: jest.fn().mockImplementation(() => Promise.resolve()),
-  createDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  createDeployment: jest.fn().mockImplementation(() => Promise.resolve()),
-  createOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
-  createOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
-  createRelease: jest.fn().mockImplementation(() => Promise.resolve()),
-  createRepoCommit: jest
+  copyApp: vi.fn().mockImplementation(() => Promise.resolve()),
+  createBranch: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteBranch: vi.fn().mockImplementation(() => Promise.resolve()),
+  createDataModel: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  createDeployment: vi.fn().mockImplementation(() => Promise.resolve()),
+  createOrgCodeList: vi.fn().mockImplementation(() => Promise.resolve()),
+  createOrgTextResources: vi.fn().mockImplementation(() => Promise.resolve()),
+  createRelease: vi.fn().mockImplementation(() => Promise.resolve()),
+  createRepoCommit: vi
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
-  deleteAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteDataTypeFromAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteImage: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteLanguageCode: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteLayoutSet: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
-  discardChanges: jest.fn().mockImplementation(() => Promise.resolve()),
-  generateModels: jest.fn().mockImplementation(() => Promise.resolve()),
-  importCodeListFromOrgToApp: jest.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
-  publishCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
-  pushRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
-  resetRepoChanges: jest.fn().mockImplementation(() => Promise.resolve()),
-  saveDataModel: jest.fn().mockImplementation(() => Promise.resolve()),
-  saveDataModelPrefill: jest.fn().mockImplementation(() => Promise.resolve()),
-  saveFormLayout: jest.fn().mockImplementation(() => Promise.resolve()),
-  saveFormLayoutV3: jest.fn().mockImplementation(() => Promise.resolve()),
-  saveFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
-  saveRuleConfig: jest.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
-  setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateTaskNavigationGroupV4: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateValidationOnNavigationLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateValidationOnNavigationPageSettings: jest.fn().mockImplementation(() => Promise.resolve()),
-  unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  updateFormLayoutName: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateLayoutSetId: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateTextId: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateTranslationByLangCode: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateValidationOnNavigationLayoutSets: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateValidationOnNavigation: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOrgCodeListId: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOrgTextResources: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateSharedResources: jest.fn().mockImplementation(() => Promise.resolve()),
-  uploadOrgCodeList: jest.fn().mockImplementation(() => Promise.resolve()),
-  uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  replaceDataModelXsd: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
-  uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
-  upsertTextResources: jest.fn().mockImplementation(async (_org, _app, language) => {
+  deleteAppAttachmentMetadata: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteDataModel: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteDataTypeFromAppMetadata: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteFormLayout: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteImage: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteLanguageCode: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteLayoutSet: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteOptionList: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteOrgCodeList: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteValidationOnNavigationLayoutSets: vi.fn().mockImplementation(() => Promise.resolve()),
+  discardChanges: vi.fn().mockImplementation(() => Promise.resolve()),
+  generateModels: vi.fn().mockImplementation(() => Promise.resolve()),
+  importCodeListFromOrgToApp: vi.fn().mockImplementation(() => Promise.resolve<OptionList>([])),
+  publishCodeList: vi.fn().mockImplementation(() => Promise.resolve()),
+  pushRepoChanges: vi.fn().mockImplementation(() => Promise.resolve()),
+  resetRepoChanges: vi.fn().mockImplementation(() => Promise.resolve()),
+  saveDataModel: vi.fn().mockImplementation(() => Promise.resolve()),
+  saveDataModelPrefill: vi.fn().mockImplementation(() => Promise.resolve()),
+  saveFormLayout: vi.fn().mockImplementation(() => Promise.resolve()),
+  saveFormLayoutV3: vi.fn().mockImplementation(() => Promise.resolve()),
+  saveFormLayoutSettings: vi.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
+  saveRuleConfig: vi.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
+  saveSubformPdfComponent: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<SubformComponent[]>([])),
+  setStarredRepo: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateTaskNavigationGroupV4: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateTaskNavigationGroup: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationLayoutSettings: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationPageSettings: vi.fn().mockImplementation(() => Promise.resolve()),
+  unsetStarredRepo: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateAppAttachmentMetadata: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateDataType: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  updateFormLayoutName: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateLayoutSetId: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateTextId: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateTranslationByLangCode: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateAppPolicy: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateAppMetadata: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateAppConfig: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationLayoutSets: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigation: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateOptionList: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateOptionListId: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgCodeListId: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgCodeList: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateOrgTextResources: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateSharedResources: vi.fn().mockImplementation(() => Promise.resolve()),
+  uploadOrgCodeList: vi.fn().mockImplementation(() => Promise.resolve()),
+  uploadDataModel: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  replaceDataModelXsd: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  uploadOptionList: vi.fn().mockImplementation(() => Promise.resolve()),
+  upsertTextResources: vi.fn().mockImplementation(async (_org, _app, language) => {
     return Promise.resolve<ITextResourcesWithLanguage>(emptyTextResourceListMock(language));
   }),
-  undeployAppFromEnv: jest.fn().mockImplementation(() => Promise.resolve()),
-  deletePage: jest.fn().mockImplementation(() => Promise.resolve()),
-  modifyPage: jest.fn().mockImplementation(() => Promise.resolve()),
-  createPage: jest.fn().mockImplementation(() => Promise.resolve()),
-  changePageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
-  changePageGroups: jest.fn().mockImplementation(() => Promise.resolve()),
-  convertToPageGroups: jest.fn().mockImplementation(() => Promise.resolve()),
-  convertToPageOrder: jest.fn().mockImplementation(() => Promise.resolve()),
+  undeployAppFromEnv: vi.fn().mockImplementation(() => Promise.resolve()),
+  deletePage: vi.fn().mockImplementation(() => Promise.resolve()),
+  modifyPage: vi.fn().mockImplementation(() => Promise.resolve()),
+  createPage: vi.fn().mockImplementation(() => Promise.resolve()),
+  changePageOrder: vi.fn().mockImplementation(() => Promise.resolve()),
+  changePageGroups: vi.fn().mockImplementation(() => Promise.resolve()),
+  convertToPageGroups: vi.fn().mockImplementation(() => Promise.resolve()),
+  convertToPageOrder: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Resourceadm
-  createResource: jest.fn().mockImplementation(() => Promise.resolve()),
-  importResourceFromAltinn3: jest.fn().mockImplementation(() => Promise.resolve({})),
-  publishResource: jest.fn().mockImplementation(() => Promise.resolve()),
-  updatePolicy: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateResource: jest.fn().mockImplementation(() => Promise.resolve()),
-  createAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
-  addAccessListMember: jest.fn().mockImplementation(() => Promise.resolve()),
-  removeAccessListMember: jest.fn().mockImplementation(() => Promise.resolve()),
-  addResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
-  removeResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
+  publishResourcePolicy: vi.fn().mockImplementation(() => Promise.resolve()),
+  createResource: vi.fn().mockImplementation(() => Promise.resolve()),
+  importResourceFromAltinn3: vi.fn().mockImplementation(() => Promise.resolve({})),
+  publishResource: vi.fn().mockImplementation(() => Promise.resolve()),
+  updatePolicy: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateResource: vi.fn().mockImplementation(() => Promise.resolve()),
+  createAccessList: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateAccessList: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteAccessList: vi.fn().mockImplementation(() => Promise.resolve()),
+  addAccessListMember: vi.fn().mockImplementation(() => Promise.resolve()),
+  removeAccessListMember: vi.fn().mockImplementation(() => Promise.resolve()),
+  addResourceAccessList: vi.fn().mockImplementation(() => Promise.resolve()),
+  removeResourceAccessList: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Preview
-  createPreviewInstance: jest.fn().mockImplementation(() => Promise.resolve()),
+  createPreviewInstance: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - ProcessEditor
-  updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateBpmnXml: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateProcessDataTypes: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - User settings
-  addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  addUserApiKey: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteUserApiKey: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Assistant chat
-  createChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteChatThread: jest.fn().mockImplementation(() => Promise.resolve()),
-  createChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteChatMessage: jest.fn().mockImplementation(() => Promise.resolve()),
-  sendChatFeedback: jest.fn().mockImplementation(() => Promise.resolve()),
-  clearChatFeedback: jest.fn().mockImplementation(() => Promise.resolve()),
+  createChatThread: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateChatThread: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteChatThread: vi.fn().mockImplementation(() => Promise.resolve()),
+  createChatMessage: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteChatMessage: vi.fn().mockImplementation(() => Promise.resolve()),
+  sendChatFeedback: vi.fn().mockImplementation(() => Promise.resolve()),
+  clearChatFeedback: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Contact points
-  addContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
-  toggleContactPointActive: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteContactPoint: jest.fn().mockImplementation(() => Promise.resolve()),
+  addContactPoint: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateContactPoint: vi.fn().mockImplementation(() => Promise.resolve()),
+  toggleContactPointActive: vi.fn().mockImplementation(() => Promise.resolve()),
+  deleteContactPoint: vi.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - Org settings - Bot accounts
-  createBotAccount: jest.fn().mockImplementation(() => Promise.resolve({})),
-  deactivateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
-  createBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve({})),
-  revokeBotAccountApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateBotAccount: jest.fn().mockImplementation(() => Promise.resolve()),
+  createBotAccount: vi.fn().mockImplementation(() => Promise.resolve({})),
+  deactivateBotAccount: vi.fn().mockImplementation(() => Promise.resolve()),
+  createBotAccountApiKey: vi.fn().mockImplementation(() => Promise.resolve({})),
+  revokeBotAccountApiKey: vi.fn().mockImplementation(() => Promise.resolve()),
+  updateBotAccount: vi.fn().mockImplementation(() => Promise.resolve()),
 };

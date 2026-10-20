@@ -1,10 +1,16 @@
-export const updatePropertiesMock = jest.fn();
-export const updateModdlePropertiesMock = jest.fn();
-export const createMock = jest.fn();
-export const commandStackExecuteMock = jest.fn();
+import { vi } from 'vitest';
+export const updatePropertiesMock = vi.fn();
+export const updateModdlePropertiesMock = vi.fn();
+export const createMock = vi.fn();
+export const commandStackExecuteMock = vi.fn();
+
+export const modelerOnMock = vi.fn();
+export const modelerOffMock = vi.fn();
 
 export const mockModelerRef = {
   current: {
+    on: modelerOnMock,
+    off: modelerOffMock,
     get: (service: string) => {
       if (service === 'commandStack') {
         return {

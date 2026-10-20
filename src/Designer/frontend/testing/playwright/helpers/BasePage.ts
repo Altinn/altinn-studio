@@ -3,6 +3,7 @@ import * as enTexts from '@altinn-studio/language/src/en.json';
 import type { Locator, Page } from '@playwright/test';
 import { RouterRoute } from './RouterRoute';
 import type { Environment } from './StudioEnvironment';
+import type { BpmnTaskType } from '../types/BpmnTaskType';
 
 type Locale = 'nb' | 'en';
 export type TextKey = keyof typeof nbTexts | keyof typeof enTexts;
@@ -33,6 +34,17 @@ export class BasePage extends RouterRoute {
     }
 
     return text;
+  }
+
+  /** The name the process editor gives a new task of this type. */
+  public getDefaultTaskName(task: BpmnTaskType): string {
+    const taskTypeToTranslationKeyMap = {
+      data: 'process_editor.default_task_name.data',
+      confirm: 'process_editor.default_task_name.confirmation',
+      feedback: 'process_editor.default_task_name.feedback',
+      signing: 'process_editor.default_task_name.signing',
+    } as const satisfies Record<BpmnTaskType, TextKey>;
+    return this.textMock(taskTypeToTranslationKeyMap[task]);
   }
 
   public async waitForXAmountOfMilliseconds(milliseconds: number): Promise<void> {

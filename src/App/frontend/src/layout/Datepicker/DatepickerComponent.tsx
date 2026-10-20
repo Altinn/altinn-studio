@@ -1,17 +1,25 @@
 import React from 'react';
 
 import { Datepicker } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
+import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import { useLabelData } from 'src/utils/layout/useLabelData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsFromGenericComponent<'Datepicker'>) {
-  const { minDate, maxDate, format, timeStamp, readOnly, required, id, dataModelBindings, grid, autocomplete } =
-    useItemWhenType(baseComponentId, 'Datepicker');
+  const config = useComponentConfig(baseComponentId, 'Datepicker');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Datepicker');
+  const componentId = useIndexedId(baseComponentId);
+  const minDate = useEvalExpression(config.minDate, Expressions.Datepicker.minDate);
+  const maxDate = useEvalExpression(config.maxDate, Expressions.Datepicker.maxDate);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.Datepicker.readOnly);
+  const required = useEvalExpression(config.required, Expressions.Datepicker.required);
 
   const { setValue, formData } = useDataModelBindings(dataModelBindings);
 
@@ -23,15 +31,15 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
 
   return (
     <Datepicker
-      componentId={id}
+      componentId={componentId}
       value={formData.simpleBinding}
-      format={format}
+      format={config.format}
       minDate={minDate}
       maxDate={maxDate}
-      timeStamp={timeStamp}
+      timeStamp={config.timeStamp}
       readOnly={readOnly}
       required={required}
-      autoComplete={autocomplete}
+      autoComplete={config.autocomplete}
       onValueChange={(isoDateString) => setValue('simpleBinding', isoDateString)}
       innerGrid={innerGrid}
       validationGrid={validationGrid}
@@ -42,7 +50,7 @@ export function DatepickerComponent({ baseComponentId, overrideDisplay }: PropsF
       help={help}
       description={description}
       showOptionalMarking={showOptionalMarking}
-      labelGrid={grid?.labelGrid}
+      labelGrid={config.grid?.labelGrid}
     />
   );
 }

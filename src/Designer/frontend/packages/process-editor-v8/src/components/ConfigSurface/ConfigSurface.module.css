@@ -1,0 +1,7 @@
+.surface {
+  width: 100%;
+  background-color: var(--ds-color-neutral-surface-default);
+  border-left: 1px solid var(--ds-color-neutral-border-subtle);
+  overflow-y: auto;
+  min-width: 500px;
+}

@@ -18,12 +18,12 @@ export const Config = new CG.component({
     renderInCardsMedia: false,
     renderInTabs: false,
   },
-  functionality: {
-    customExpressions: false,
-  },
+
   directRendering: false,
 })
   .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addTextResource(
     new CG.trb({
       name: 'title',

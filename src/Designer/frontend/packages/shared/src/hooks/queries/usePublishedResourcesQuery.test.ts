@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createQueryClientMock } from '../../mocks/queryClientMock';
 import type { QueryKey as TanstackQueryKey } from '@tanstack/react-query';
 import { QueryKey } from '../../types/QueryKey';
@@ -9,7 +10,7 @@ import { waitFor } from '@testing-library/react';
 const org = 'testOrg';
 const path = 'code_lists';
 const response: string[] = ['1.json', '2.json', '_latest.json'];
-const getPublishedResources = jest.fn(() => Promise.resolve(response));
+const getPublishedResources = vi.fn(() => Promise.resolve(response));
 
 describe('usePublishedResourcesQuery', () => {
   beforeEach(getPublishedResources.mockClear);

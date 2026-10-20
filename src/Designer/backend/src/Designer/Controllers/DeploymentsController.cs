@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
@@ -129,6 +130,7 @@ public class DeploymentsController : ControllerBase
             return BadRequest(ModelState);
         }
 
+        HttpContext.SetTargetEnvironment(createDeployment.EnvName);
         string token = OidcAuthTokenPlaceholder;
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -156,6 +158,7 @@ public class DeploymentsController : ControllerBase
     )
     {
         Guard.AssertValidEnvironmentName(undeployRequest.Environment);
+        HttpContext.SetTargetEnvironment(undeployRequest.Environment);
         string token = OidcAuthTokenPlaceholder;
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =

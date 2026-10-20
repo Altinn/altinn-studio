@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { MapContainer, ZoomControl } from 'react-leaflet';
 import type { RefObject } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
 import { type Map as LeafletMap } from 'leaflet';
 
@@ -17,8 +18,8 @@ import { MapSingleMarker } from 'src/layout/Map/features/singleMarker/MapSingleM
 import classes from 'src/layout/Map/MapComponent.module.css';
 import { DefaultBoundsPadding, DefaultFlyToZoomLevel, getMapStartingView, isLocationValid } from 'src/layout/Map/utils';
 import utilClasses from 'src/styles/utils.module.css';
-import { useExternalItem } from 'src/utils/layout/hooks';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 type MapProps = {
   baseComponentId: string;
@@ -32,7 +33,8 @@ export function Map({ baseComponentId, className, readOnly, animate = true }: Ma
   const isPdf = useIsPdf();
   const { langAsString } = useLanguage();
   const { center, zoom, bounds } = useAutoViewport(baseComponentId, map, animate);
-  const { toolbar, dataModelBindings } = useItemWhenType(baseComponentId, 'Map');
+  const config = useComponentConfig(baseComponentId, 'Map');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'Map');
   const simpleBinding = dataModelBindings?.simpleBinding;
 
   return (
@@ -69,13 +71,13 @@ export function Map({ baseComponentId, className, readOnly, animate = true }: Ma
           zoomOutTitle={langAsString('map_component.zoomOut')}
         />
       )}
-      {toolbar !== undefined && !readOnly && <MapEditGeometries baseComponentId={baseComponentId} />}
+      {config.toolbar !== undefined && !readOnly && <MapEditGeometries baseComponentId={baseComponentId} />}
       <MapLayers baseComponentId={baseComponentId} />
       <MapGeometries
         baseComponentId={baseComponentId}
         readOnly={readOnly}
       />
-      {toolbar === undefined && simpleBinding && (
+      {config.toolbar === undefined && simpleBinding && (
         <MapSingleMarker
           baseComponentId={baseComponentId}
           readOnly={readOnly}
@@ -87,10 +89,17 @@ export function Map({ baseComponentId, className, readOnly, animate = true }: Ma
 
 function useAutoViewport(baseComponentId: string, map: RefObject<LeafletMap | null>, animate: boolean) {
   const markerLocation = useSingleMarker(baseComponentId);
-  const { centerLocation: customCenterLocation } = useItemWhenType(baseComponentId, 'Map');
-  const { zoom: customZoom } = useExternalItem(baseComponentId, 'Map');
+  const config = useComponentConfig(baseComponentId, 'Map');
+  const latitude = useEvalExpression(config.centerLocation?.latitude, Expressions.Map.centerLocation.latitude);
+  const longitude = useEvalExpression(config.centerLocation?.longitude, Expressions.Map.centerLocation.longitude);
+  const resolvedCenterLocation = config.centerLocation ? { latitude, longitude } : undefined;
   const geometryBounds = useMapGeometryBounds(baseComponentId);
-  const { center, zoom, bounds } = getMapStartingView(markerLocation, customCenterLocation, customZoom, geometryBounds);
+  const { center, zoom, bounds } = getMapStartingView(
+    markerLocation,
+    resolvedCenterLocation,
+    config.zoom,
+    geometryBounds,
+  );
 
   useEffect(() => {
     if (isLocationValid(markerLocation)) {

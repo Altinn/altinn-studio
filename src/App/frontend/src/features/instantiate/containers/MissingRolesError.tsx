@@ -5,11 +5,13 @@ import { InstantiationErrorPage } from 'src/features/instantiate/containers/Inst
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { getHostname } from 'src/utils/urls/appUrlHelper';
+import { returnUrlToAccessManagement, returnUrlToRolesAndRightsHelp } from 'src/utils/urls/urlHelper';
 
 export function MissingRolesError() {
   const { langAsString } = useLanguage();
   const selectedParty = useSelectedParty();
+  const accessManagementUrl = returnUrlToAccessManagement(window.location.host);
+  const rolesAndRightsHelpUrl = returnUrlToRolesAndRightsHelp(window.location.host);
 
   return (
     <InstantiationErrorPage
@@ -33,20 +35,24 @@ export function MissingRolesError() {
             <Lang id='instantiate.authorization_error_ask' />
           </span>
           <br />
-          <span>
-            <Lang
-              id='instantiate.authorization_error_check_rights'
-              params={[getHostname()]}
-            />
-          </span>
+          {accessManagementUrl && (
+            <span>
+              <Lang
+                id='instantiate.authorization_error_check_rights'
+                params={[accessManagementUrl]}
+              />
+            </span>
+          )}
           <br />
           <br />
-          <span>
-            <Lang
-              id='instantiate.authorization_error_info_rights'
-              params={[getHostname()]}
-            />
-          </span>
+          {rolesAndRightsHelpUrl && (
+            <span>
+              <Lang
+                id='instantiate.authorization_error_info_rights'
+                params={[rolesAndRightsHelpUrl]}
+              />
+            </span>
+          )}
           <span>
             <Lang
               id='instantiate.authorization_error_info_customer_service'

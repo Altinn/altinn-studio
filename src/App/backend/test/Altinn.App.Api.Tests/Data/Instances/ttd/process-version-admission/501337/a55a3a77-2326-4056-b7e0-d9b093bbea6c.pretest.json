@@ -1,0 +1,40 @@
+{
+  "id": "501337/a55a3a77-2326-4056-b7e0-d9b093bbea6c",
+  "instanceOwner": {
+    "partyId": "501337",
+    "personNumber": "01039012345"
+  },
+  "appId": "ttd/process-version-admission",
+  "org": "ttd",
+  "process": {
+    "started": "2024-08-28T05:10:09.8564665Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2024-08-28T05:23:48.7768741Z",
+      "elementId": "Task_1",
+      "name": "Before transition",
+      "altinnTaskType": "data",
+      "flowType": "CompleteCurrentMoveToNext"
+    }
+  },
+  "status": {
+    "isArchived": false,
+    "isSoftDeleted": false,
+    "isHardDeleted": false,
+    "readStatus": "Read"
+  },
+  "data": [
+    {
+      "id": "10581c3b-d5bc-409d-8ef1-3a25ed7c63cc",
+      "dataType": "Model",
+      "contentType": "application/xml",
+      "size": 173,
+      "locked": false
+    }
+  ],
+  "created": "2024-08-28T05:10:09.8629034Z",
+  "createdBy": "1337",
+  "lastChanged": "2024-08-28T05:10:22.1350004Z",
+  "lastChangedBy": "1337"
+}

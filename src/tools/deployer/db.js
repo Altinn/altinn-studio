@@ -45,6 +45,12 @@ function initDb(dbPath = DB_PATH) {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    -- Latest run attempt whose jobs are stored, so re-runs (same run id) are detected.
+    CREATE TABLE IF NOT EXISTS run_attempts (
+      run_id INTEGER PRIMARY KEY,
+      run_attempt INTEGER NOT NULL
+    );
   `);
 
   // Migration for existing databases
@@ -109,6 +115,12 @@ function prepareStatements(db) {
         updated_at = excluded.updated_at,
         pr_number = excluded.pr_number
       WHERE excluded.updated_at >= jobs.updated_at
+    `),
+    deleteRunJobs: db.prepare('DELETE FROM jobs WHERE run_id = ?'),
+    getRunAttempt: db.prepare('SELECT run_attempt FROM run_attempts WHERE run_id = ?'),
+    setRunAttempt: db.prepare(`
+      INSERT INTO run_attempts (run_id, run_attempt) VALUES (?, ?)
+      ON CONFLICT(run_id) DO UPDATE SET run_attempt = excluded.run_attempt
     `),
     getState: db.prepare('SELECT value FROM sync_state WHERE key = ?'),
     setState: db.prepare(`

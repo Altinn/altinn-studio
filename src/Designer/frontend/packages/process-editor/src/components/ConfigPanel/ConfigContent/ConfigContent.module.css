@@ -13,10 +13,6 @@
   height: 100%;
 }
 
-.displayTile {
-  padding-inline: var(--ds-size-5);
-}
-
 .detailsContent {
   margin: 0;
   padding: var(--ds-size-5);

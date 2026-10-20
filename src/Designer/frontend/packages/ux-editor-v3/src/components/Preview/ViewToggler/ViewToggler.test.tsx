@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -26,7 +27,7 @@ describe('ViewToggler', () => {
 
   it('should emit onChange with value "mobile" or "desktop" when toggled', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
+    const onChangeMock = vi.fn();
     render(<ViewToggler onChange={onChangeMock} />);
 
     const switchButton = screen.getByRole('switch', {

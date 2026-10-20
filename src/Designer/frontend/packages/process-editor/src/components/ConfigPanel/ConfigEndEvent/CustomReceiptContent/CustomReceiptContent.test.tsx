@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { CustomReceiptContent } from './CustomReceiptContent';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '../../../../../../../testing/mocks/i18nMock';
@@ -15,8 +16,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('CustomReceiptContent', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('Shows the spinner when there are pending API operations', () => {
     renderCustomReceiptContent({ pendingApiOperations: true });
 
@@ -54,16 +53,16 @@ describe('CustomReceiptContent', () => {
     });
 
     expect(
-      screen.queryByRole('textbox', {
-        name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      screen.queryByRole('button', {
+        name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
       }),
     ).not.toBeInTheDocument();
 
     await user.click(addButton);
 
     expect(
-      screen.getByRole('textbox', {
-        name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      screen.getByRole('button', {
+        name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
       }),
     ).toBeInTheDocument();
   });
@@ -100,10 +99,10 @@ describe('CustomReceiptContent', () => {
       existingCustomReceiptLayoutSetId: 'testId',
     });
 
-    const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_delete_button'),
     });
-    expect(toggleableTextfieldButton).toBeInTheDocument();
+    expect(deleteButton).toBeInTheDocument();
   });
 });
 

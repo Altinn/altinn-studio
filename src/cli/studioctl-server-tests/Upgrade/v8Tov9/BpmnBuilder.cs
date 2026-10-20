@@ -22,16 +22,9 @@ internal static class BpmnBuilder
     /// <param name="id">The BPMN element id.</param>
     /// <param name="taskType">The <c>altinn:taskType</c> value.</param>
     /// <param name="actions">Process actions the task declares (the default <c>processAction</c> type).</param>
-    /// <param name="serverActions">Actions the task declares as <c>type="serverAction"</c>.</param>
-    public static string Task(string id, string taskType, string[]? actions = null, string[]? serverActions = null)
+    public static string Task(string id, string taskType, string[]? actions = null)
     {
-        var declared = string.Concat(
-            (actions ?? [])
-                .Select(a => $"<altinn:action>{a}</altinn:action>")
-                .Concat(
-                    (serverActions ?? []).Select(a => $"""<altinn:action type="serverAction">{a}</altinn:action>""")
-                )
-        );
+        var declared = string.Concat((actions ?? []).Select(a => $"<altinn:action>{a}</altinn:action>"));
         var actionsXml = declared.Length == 0 ? "" : $"\n          <altinn:actions>{declared}</altinn:actions>";
 
         return $"""
@@ -59,7 +52,7 @@ internal static class BpmnBuilder
     /// <summary>A pdf service task as the migrator emits it (serviceTask carrying taskType `pdf`).</summary>
     public static string PdfServiceTask(string id) =>
         $"""
-                <bpmn:serviceTask id="{id}" name="Generate PDF">
+                <bpmn:serviceTask id="{id}" name="Lag PDF">
                   <bpmn:extensionElements>
                     <altinn:taskExtension>
                       <altinn:taskType>pdf</altinn:taskType>

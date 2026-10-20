@@ -25,7 +25,7 @@ import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { capitalizeName } from 'src/utils/stringHelper';
-import { getHostname } from 'src/utils/urls/appUrlHelper';
+import { returnUrlToPartiesSettings } from 'src/utils/urls/urlHelper';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IParty } from 'src/types/shared';
 
@@ -46,6 +46,7 @@ export const PartySelection = () => {
   const defaultShowDeleted = partiesAllowedToInstantiate.every((party) => party.isDeleted);
 
   const appPromptForPartyOverride = appMetadata.promptForParty;
+  const partiesSettingsUrl = returnUrlToPartiesSettings(window.location.host);
   const { langAsString } = useLanguage();
 
   const [filterString, setFilterString] = React.useState('');
@@ -71,13 +72,20 @@ export const PartySelection = () => {
 
   const numberFilterString = filterString.replace(/\s+/g, '');
   const hasNumberFilter = numberFilterString.length > 0 && numberFilterString.match(/^\d+$/);
-  const filteredParties = partiesAllowedToInstantiate.filter(
-    (party) =>
-      (party.name.toUpperCase().includes(filterString.toUpperCase()) ||
-        (hasNumberFilter &&
-          (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)))) &&
-      !(party.isDeleted && !showDeleted),
-  );
+  const matchesSearch = (party: IParty) =>
+    party.name.toUpperCase().includes(filterString.toUpperCase()) ||
+    (hasNumberFilter && (party.ssn?.includes(numberFilterString) || party.orgNumber?.includes(numberFilterString)));
+
+  const filteredParties = partiesAllowedToInstantiate.flatMap((party) => {
+    if (party.isDeleted && !showDeleted) {
+      return [];
+    }
+    const matchingSubUnits = filterString && showSubUnits ? party.childParties?.filter(matchesSearch) : undefined;
+    if (matchingSubUnits?.length) {
+      return [{ party: { ...party, childParties: matchingSubUnits }, expandSubUnits: true }];
+    }
+    return matchesSearch(party) ? [{ party, expandSubUnits: false }] : [];
+  });
 
   const hasMoreParties = filteredParties.length > numberOfPartiesShown;
   const partiesSubset = filteredParties.slice(0, numberOfPartiesShown);
@@ -85,13 +93,14 @@ export const PartySelection = () => {
   function renderParties() {
     return (
       <>
-        {partiesSubset.map((party, index) => (
+        {partiesSubset.map(({ party, expandSubUnits }) => (
           <AltinnParty
-            key={index}
+            key={`${party.partyId}-${expandSubUnits}`}
             party={party}
             onSelectParty={onSelectParty}
             showSubUnits={showSubUnits}
             pendingPartyId={pendingPartyId}
+            initiallyExpanded={expandSubUnits}
           />
         ))}
         {hasMoreParties ? (
@@ -205,7 +214,7 @@ export const PartySelection = () => {
           </Flex>
         </Flex>
         {renderParties()}
-        {errorCode === 'explained' && (
+        {errorCode === 'explained' && (appPromptForPartyOverride === 'always' || partiesSettingsUrl) && (
           <Flex style={{ padding: 12 }}>
             <Heading
               level={2}
@@ -221,7 +230,7 @@ export const PartySelection = () => {
                     ? 'party_selection.seeing_this_override'
                     : 'party_selection.seeing_this_preference'
                 }
-                params={[getHostname()]}
+                params={[partiesSettingsUrl]}
               />
             </Paragraph>
           </Flex>

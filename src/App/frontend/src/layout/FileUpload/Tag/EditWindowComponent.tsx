@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import { Button, ErrorValidations, Flex } from '@app/form-component';
 import comboboxClasses from '@app/form-component/styles/combobox.module.css';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { EXPERIMENTAL_Suggestion as Suggestion } from '@digdir/designsystemet-react';
 import deepEqual from 'fast-deep-equal';
 import type { SuggestionItem } from '@digdir/designsystemet-react';
@@ -16,7 +17,8 @@ import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTabl
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import classes from 'src/layout/FileUpload/Tag/EditWindowComponent.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import { optionFilter } from 'src/utils/options';
 import type { IAttachment } from 'src/features/attachments';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
@@ -40,7 +42,13 @@ export function EditWindowComponent({
   options,
   isFetching,
 }: EditWindowProps): React.JSX.Element {
-  const { textResourceBindings } = useItemWhenType(baseComponentId, 'FileUpload');
+  const config = useComponentConfig(baseComponentId, 'FileUpload');
+  const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
+  const tagTitle = useEvalOptionalText(
+    config.textResourceBindings?.tagTitle,
+    Expressions.FileUpload.textResourceBindings.tagTitle,
+  );
+
   const { langAsString } = useLanguage();
   const { setEditIndex } = useFileTableRow();
   const uploadedAttachment = isAttachmentUploaded(attachment) ? attachment : undefined;
@@ -61,7 +69,7 @@ export function EditWindowComponent({
   };
 
   const handleSave = async () => {
-    if (!uploadedAttachment) {
+    if (readOnly || !uploadedAttachment) {
       return;
     }
 
@@ -80,7 +88,7 @@ export function EditWindowComponent({
   };
 
   const setAttachmentTag = async (tags: string[]) => {
-    if (!isAttachmentUploaded(attachment)) {
+    if (readOnly || !isAttachmentUploaded(attachment)) {
       return;
     }
 
@@ -156,12 +164,12 @@ export function EditWindowComponent({
         direction='column'
         className={classes.gap}
       >
-        {textResourceBindings?.tagTitle && (
+        {tagTitle && (
           <label
             className={classes.label}
             htmlFor={`attachment-tag-dropdown-${uniqueId}`}
           >
-            <Lang id={textResourceBindings?.tagTitle} />
+            <Lang id={tagTitle} />
           </label>
         )}
         {isLoading ? (
@@ -258,9 +266,9 @@ export function EditWindowComponent({
                   <Lang
                     id='form_filler.file_uploader_validation_error_no_chosen_tag'
                     params={[
-                      textResourceBindings?.tagTitle
+                      tagTitle
                         ? {
-                            key: textResourceBindings.tagTitle,
+                            key: tagTitle,
                             makeLowerCase: true,
                           }
                         : 'tag',

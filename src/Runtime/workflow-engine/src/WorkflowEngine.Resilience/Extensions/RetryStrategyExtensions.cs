@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Constants;
 using WorkflowEngine.Resilience.Models;
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -62,9 +63,25 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
         Assert.Contains($"window.org = \"{Org}\";", body);
         Assert.Contains($"window.app = \"{AppV9}\";", body);
         Assert.Contains("window.altinnAppGlobalData = ", body);
-        Assert.Contains("/altinn-app-frontend/altinn-app-frontend.js", body);
-        Assert.Contains("/altinn-app-frontend/altinn-app-frontend.css", body);
         Assert.Contains("\"onEntry\":{\"show\":\"new-instance\"}", body);
+    }
+
+    [Fact]
+    public async Task AppFrontendSpecificPreview_ForV9App_LoadsAppFrontendMatchingAppLibVersion()
+    {
+        _appVersionServiceMock
+            .Setup(s => s.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(NuGet.Versioning.NuGetVersion.Parse("9.2.1-preview.3"));
+
+        string url = $"/app-specific-preview/{Org}/{AppV9}";
+        using HttpRequestMessage request = new(HttpMethod.Get, url);
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("src=\"/designer/app-dist/9.2.1-preview.3/altinn-app-frontend.js\"", body);
+        Assert.Contains("href=\"/designer/app-dist/9.2.1-preview.3/altinn-app-frontend.css\"", body);
     }
 
     [Fact]
@@ -95,9 +112,10 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
     }
 
     [Fact]
-    public async Task GetEnrichedInstance_ForV9App_IncludesProcessTasksForCurrentTask()
+    public async Task GetEnrichedInstance_ForV9App_IncludesTasksAndServiceTasks()
     {
-        string createUrl = $"{Org}/{AppV9}/instances?instanceOwnerPartyId={PartyId}&taskId=Task_1";
+        const string app = "app-with-subform-pdf-v9";
+        string createUrl = $"{Org}/{app}/instances?instanceOwnerPartyId={PartyId}&taskId=Task_1";
         using HttpRequestMessage createRequest = new(HttpMethod.Post, createUrl);
         using HttpResponseMessage createResponse = await HttpClient.SendAsync(createRequest);
         Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
@@ -107,7 +125,7 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
         );
         Assert.NotNull(instance);
 
-        string enrichedUrl = $"{Org}/{AppV9}/instances/{PartyId}/{instance.Id}/enriched";
+        string enrichedUrl = $"{Org}/{app}/instances/{PartyId}/{instance.Id}/enriched";
         using HttpRequestMessage enrichedRequest = new(HttpMethod.Get, enrichedUrl);
         using HttpResponseMessage enrichedResponse = await HttpClient.SendAsync(enrichedRequest);
 
@@ -116,6 +134,17 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
         JsonArray processTasks = enriched?["process"]?["processTasks"] as JsonArray;
 
         Assert.NotNull(processTasks);
-        Assert.Equal("Task_1", processTasks[0]?["elementId"]?.GetValue<string>());
+        Assert.Equal(
+            new[]
+            {
+                ("Task_1", "data"),
+                ("PdfWithStaleCopy", "subformPdf"),
+                ("PdfWithCopy", "subformPdf"),
+                ("PdfWithoutPages", "subformPdf"),
+            },
+            processTasks.Select(task =>
+                (task?["elementId"]?.GetValue<string>(), task?["altinnTaskType"]?.GetValue<string>())
+            )
+        );
     }
 }

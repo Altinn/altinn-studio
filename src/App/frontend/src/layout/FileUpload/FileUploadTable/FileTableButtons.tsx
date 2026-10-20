@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button, ConditionalWrapper } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
@@ -13,7 +14,8 @@ import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.c
 import { useFileTableRow } from 'src/layout/FileUpload/FileUploadTable/FileTableRowContext';
 import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
+import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { IAttachment } from 'src/features/attachments';
 
 interface IFileTableButtonsProps {
@@ -29,9 +31,13 @@ export function FileTableButtons({
   mobileView,
   editWindowIsOpen,
 }: IFileTableButtonsProps) {
-  const item = useItemWhenType(baseComponentId, 'FileUpload');
-  const hasTag = fileUploadHasTag(item);
-  const { alertOnDelete, dataModelBindings, readOnly } = item;
+  const config = useComponentConfig(baseComponentId, 'FileUpload');
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'FileUpload');
+  const alertOnDelete = useEvalExpression(config.alertOnDelete, Expressions.FileUpload.alertOnDelete);
+  const readOnly = useEvalExpression(config.readOnly, Expressions.FileUpload.readOnly);
+
+  const hasTag = fileUploadHasTag(config);
+
   const showEditButton = hasTag && !editWindowIsOpen && !readOnly;
   const { langAsString } = useLanguage();
   const { index, setEditIndex, editIndex } = useFileTableRow();
@@ -40,6 +46,10 @@ export function FileTableButtons({
 
   // Edit button
   const handleEdit = (index: number) => {
+    if (readOnly) {
+      return;
+    }
+
     if (editIndex === -1 || editIndex !== index) {
       setEditIndex(index);
     } else {
@@ -48,7 +58,7 @@ export function FileTableButtons({
   };
 
   const handleDeleteFile = async () => {
-    if (!isAttachmentUploaded(attachment)) {
+    if (readOnly || !isAttachmentUploaded(attachment)) {
       return;
     }
 
@@ -63,6 +73,10 @@ export function FileTableButtons({
     confirmChange,
     cancelChange,
   } = useAlertOnChange(Boolean(alertOnDelete), handleDeleteFile);
+
+  if (readOnly) {
+    return null;
+  }
 
   return (
     <ConditionalWrapper

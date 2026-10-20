@@ -1,9 +1,9 @@
 import React, { useLayoutEffect, useState } from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { ExprVal } from 'src/features/expressions/types';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -19,9 +19,9 @@ import {
   useExpressionDataSourcesForSubform,
   useSubformFormData,
 } from 'src/layout/Subform/utils';
-import { useExternalItem } from 'src/utils/layout/hooks';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
 export function SubformsForPage({ pageKey, expandedByDefault }: { pageKey: string; expandedByDefault?: boolean }) {
@@ -52,19 +52,16 @@ function SubformGroup({ baseId, expandedByDefault }: { baseId: string; expandedB
   useLayoutEffect(() => setIsOpen(isCurrentPage || !!expandedByDefault), [isCurrentPage, expandedByDefault]);
 
   const subformIdsWithError = useComponentValidationsFor(baseId).find(isSubformValidation)?.subformDataElementIds;
-  const { layoutSet, textResourceBindings, entryDisplayName } = useExternalItem(baseId, 'Subform');
-  const title = useEvalExpression(textResourceBindings?.title, {
-    returnType: ExprVal.String,
-    defaultValue: '',
-    errorIntroText: `Invalid expression for Subform title in ${baseId}`,
-  });
-  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
+  const config = useComponentConfig(baseId, 'Subform');
+
+  const title = useEvalExpression(config.textResourceBindings?.title, Expressions.Subform.textResourceBindings.title);
+  const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
   if (!dataType) {
     throw new Error(`Unable to find data type for subform with id ${baseId}`);
   }
   const dataElements = useInstanceDataElements(dataType);
 
-  if (!dataElements.length || !entryDisplayName) {
+  if (!dataElements.length || !config.entryDisplayName) {
     return null;
   }
 
@@ -99,7 +96,7 @@ function SubformGroup({ baseId, expandedByDefault }: { baseId: string; expandedB
           <SubformLink
             key={dataElement.id}
             page={pageKey}
-            entryDisplayName={entryDisplayName}
+            entryDisplayName={config.entryDisplayName}
             nodeId={baseId}
             dataElement={dataElement}
             hasErrors={Boolean(subformIdsWithError?.includes(dataElement.id))}
@@ -118,7 +115,7 @@ function SubformLink({
   hasErrors,
 }: {
   page: string;
-  entryDisplayName: ExprValToActualOrExpr<ExprVal.String>;
+  entryDisplayName: ExprValToActualOrExpr<ExprVal.String> | undefined;
   nodeId: string;
   dataElement: IData;
   hasErrors: boolean;

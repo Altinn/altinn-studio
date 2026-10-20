@@ -1,7 +1,5 @@
 import { useCallback } from 'react';
-import { useBpmnContext } from '../contexts/BpmnContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
-import { isLayoutSetNamedAfterTask } from '../utils/processEditorUtils';
 import { useReloadSavedProcess } from './useReloadSavedProcess';
 
 /**
@@ -12,17 +10,14 @@ export const useUpdateLayoutSetId = (): ((
   layoutSetIdToUpdate: string,
   newLayoutSetId: string,
 ) => void) => {
-  const { appVersion } = useBpmnContext();
   const { mutateLayoutSetId } = useBpmnApiContext();
   const reloadSavedProcess = useReloadSavedProcess();
 
   return useCallback(
     (layoutSetIdToUpdate: string, newLayoutSetId: string): void => {
-      const onSuccess = isLayoutSetNamedAfterTask(appVersion)
-        ? () => reloadSavedProcess(newLayoutSetId)
-        : undefined;
+      const onSuccess = () => reloadSavedProcess(newLayoutSetId);
       mutateLayoutSetId({ layoutSetIdToUpdate, newLayoutSetId }, { onSuccess });
     },
-    [appVersion, mutateLayoutSetId, reloadSavedProcess],
+    [mutateLayoutSetId, reloadSavedProcess],
   );
 };

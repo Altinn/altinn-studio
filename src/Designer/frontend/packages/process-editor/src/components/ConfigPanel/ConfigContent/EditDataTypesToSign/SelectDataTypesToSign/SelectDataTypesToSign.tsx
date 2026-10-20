@@ -1,12 +1,13 @@
-import { useState } from 'react';
 import { StudioButton, StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
 import classes from './SelectDataTypesToSign.module.css';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { StudioModeler } from '../../../../../utils/bpmnModeler/StudioModeler';
+import { TaskUtils } from '../../../../../utils/taskUtils';
 import { useGetDataTypesToSign } from '../../../../../hooks/dataTypesToSign/useGetDataTypesToSign';
 import { useUpdateDataTypesToSign } from '../../../../../hooks/dataTypesToSign/useUpdateDataTypesToSign';
+import { BpmnTypeEnum } from '../../../../../enum/BpmnTypeEnum';
 
 export interface SelectDataTypesToSignProps {
   onClose: () => void;
@@ -15,25 +16,20 @@ export interface SelectDataTypesToSignProps {
 export const SelectDataTypesToSign = ({ onClose }: SelectDataTypesToSignProps) => {
   const { availableDataTypeIds } = useBpmnApiContext();
   const updateDataTypesToSign = useUpdateDataTypesToSign();
-  const selectedDataTypes = useGetDataTypesToSign();
-  const [value, setValue] = useState<string[]>(() => selectedDataTypes);
+  const value = useGetDataTypesToSign();
 
   const { t } = useTranslation();
 
   const handleSelectedChange = (items: StudioSuggestionItem[]) => {
     const dataTypes = items.map((item) => item.value);
-    setValue(dataTypes);
     updateDataTypesToSign(dataTypes);
   };
 
   const studioModeler = new StudioModeler();
-  const tasks = studioModeler.getAllTasksByType('bpmn:Task');
+  const tasks = studioModeler.getElementsByType(BpmnTypeEnum.Task);
   const signingDataTypeIds = tasks
-    .filter((item) => item.businessObject.extensionElements?.values[0]?.taskType === 'signing')
-    .map(
-      (item) =>
-        item.businessObject.extensionElements?.values[0]?.signatureConfig?.signatureDataType,
-    );
+    .filter((task) => TaskUtils.getTaskExtension(task)?.taskType === 'signing')
+    .map((task) => TaskUtils.getTaskExtension(task)?.signatureConfig?.signatureDataType);
 
   const filteredDataTypeIds = availableDataTypeIds.filter(
     (dataTypeId) => !signingDataTypeIds.includes(dataTypeId),

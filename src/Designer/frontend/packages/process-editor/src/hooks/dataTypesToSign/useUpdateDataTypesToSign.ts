@@ -1,51 +1,26 @@
-import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
 import type Modeling from 'bpmn-js/lib/features/modeling/Modeling';
 import type BpmnFactory from 'bpmn-js/lib/features/modeling/BpmnFactory';
-import type { BpmnDetails } from '../../types/BpmnDetails';
-import { useBpmnContext } from '@altinn/process-editor/contexts/BpmnContext';
-import { useDebounce } from '@studio/hooks';
-import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-
-const updateDataTypes = (
-  bpmnFactory: BpmnFactory,
-  modeling: Modeling,
-  bpmnDetails: BpmnDetails,
-  updatedDataTypes: string[],
-) => {
-  const dataTypesToSignElement: ModdleElement =
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig?.dataTypesToSign;
-
-  dataTypesToSignElement.dataTypes = updatedDataTypes.map((dataType) =>
-    bpmnFactory.create('altinn:DataType', {
-      dataType,
-    }),
-  );
-
-  updateDataTypesToSign(modeling, bpmnDetails, dataTypesToSignElement);
-};
-
-const updateDataTypesToSign = (
-  modeling: Modeling,
-  bpmnDetails: BpmnDetails,
-  dataTypesToSignElement: ModdleElement,
-) => {
-  modeling.updateModdleProperties(
-    bpmnDetails.element,
-    bpmnDetails.element.businessObject.extensionElements.values[0].signatureConfig,
-    {
-      dataTypesToSign: dataTypesToSignElement,
-    },
-  );
-};
+import { useBpmnContext } from '../../contexts/BpmnContext';
+import { TaskUtils } from '../../utils/taskUtils';
 
 export const useUpdateDataTypesToSign = () => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
-  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
-  return (dataTypes: string[]) => {
-    const modelerInstance = modelerRef.current;
-    const modeling: Modeling = modelerInstance.get('modeling');
-    const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
-    debounce(() => updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes));
+  return (dataTypes: string[]): void => {
+    const { element } = bpmnDetails;
+    const taskExtension = TaskUtils.getTaskExtension(element);
+    const modeling: Modeling = modelerRef.current.get('modeling');
+    const bpmnFactory: BpmnFactory = modelerRef.current.get('bpmnFactory');
+    const dataTypesToSign = bpmnFactory.create('altinn:DataTypesToSign', {
+      dataTypes: dataTypes.map((dataType) => bpmnFactory.create('altinn:DataType', { dataType })),
+    });
+
+    if (taskExtension.signatureConfig) {
+      modeling.updateModdleProperties(element, taskExtension.signatureConfig, { dataTypesToSign });
+    } else {
+      modeling.updateModdleProperties(element, taskExtension, {
+        signatureConfig: bpmnFactory.create('altinn:SignatureConfig', { dataTypesToSign }),
+      });
+    }
   };
 };

@@ -34,7 +34,7 @@ internal sealed class ProcessTaskResolver
         }
 
         IEnumerable<IPipelineServiceTask> serviceTasks = _appImplementationFactory.GetServiceTasks();
-        IPipelineServiceTask? serviceTask = serviceTasks.LastOrDefault(pt => pt.Type == altinnTaskType);
+        IPipelineServiceTask? serviceTask = serviceTasks.ResolveByTaskType(altinnTaskType);
 
         if (serviceTask is not null)
         {
@@ -42,7 +42,7 @@ internal sealed class ProcessTaskResolver
         }
 
         IEnumerable<IProcessTask> tasks = _appImplementationFactory.GetAll<IProcessTask>();
-        IProcessTask? processTask = tasks.LastOrDefault(pt => pt.Type == altinnTaskType);
+        IProcessTask? processTask = tasks.ResolveByTaskType(altinnTaskType);
 
         if (processTask == null)
         {

@@ -4,6 +4,7 @@ import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import {
   type AnyValidation,
+  type BackendComponentValidation,
   type FieldValidation,
   FrontendValidationSource,
   type NodeRefValidation,
@@ -22,15 +23,17 @@ import {
   type ValidationFilter,
 } from 'src/layout';
 import { getDerivedNodeDescendantIds } from 'src/utils/layout/derivedNodeTraversal';
-import { getCurrentDataModelPath, getRuntimeIntermediateItem } from 'src/utils/layout/rowContext';
+import { getCurrentDataModelPath, getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { DerivedValidationNode, DeriveNodesInputs } from 'src/features/validation/deriveNodes';
-import type { CompIntermediate } from 'src/layout/layout';
+import type { CompExternal } from 'src/layout/layout';
 import type { IData } from 'src/types/shared';
 
 type BindingEntry = [bindingKey: string, reference: IDataModelReference];
 type BoundFieldValidation = FieldValidation & { bindingKey: string };
+type ComponentLinkedValidation =
+  { validation: FieldValidation; dataType: string } | { validation: BackendComponentValidation; dataType?: undefined };
 
 export type ValidationVisibilityBreakdown = {
   initial: number;
@@ -75,14 +78,14 @@ function isDataModelReference(reference: unknown): reference is IDataModelRefere
   );
 }
 
-function getBindings(item: CompIntermediate): BindingEntry[] {
-  const bindings = item.dataModelBindings;
+function getBindings(item: CompExternal, node: DerivedValidationNode): BindingEntry[] {
+  const bindings = getIndexedDataModelBindings(item.dataModelBindings, node.rowContexts);
   return bindings
     ? Object.entries(bindings).filter((entry): entry is BindingEntry => isDataModelReference(entry[1]))
     : [];
 }
 
-function shouldValidateNode(item: CompIntermediate): boolean {
+function shouldValidateNode(item: CompExternal): boolean {
   return !('renderAsSummary' in item && item.renderAsSummary);
 }
 
@@ -138,15 +141,18 @@ function getExpressionValidations(
 
 function makeComponentValidationContext(
   node: DerivedValidationNode,
-  item: CompIntermediate,
+  item: CompExternal,
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
   taskId: string | undefined,
 ): ComponentValidationContext {
+  const component = { ...item };
+  component.dataModelBindings = getIndexedDataModelBindings(item.dataModelBindings, node.rowContexts);
   return {
     baseComponentId: node.baseId,
-    component: item,
+    indexedId: node.id,
+    component,
     formState: state,
     instanceData,
     taskId,
@@ -185,19 +191,56 @@ function applyValidationFilters(
     : validations;
 }
 
+/**
+ * Indexes backend validations the backend linked to a specific component by the indexed component id.
+ * Validations linked to a data element that is not part of this form are left out.
+ */
+function getBackendValidationsByComponentId(state: FormStoreState): Map<string, ComponentLinkedValidation[]> {
+  const index = new Map<string, ComponentLinkedValidation[]>();
+  const add = (componentId: string, entry: ComponentLinkedValidation) => {
+    const entries = index.get(componentId);
+    if (entries) {
+      entries.push(entry);
+    } else {
+      index.set(componentId, [entry]);
+    }
+  };
+
+  const mountedDataElementIds = new Set<string>();
+  for (const [dataType, model] of Object.entries(state.data.models)) {
+    mountedDataElementIds.add(model.dataElementId ?? dataType);
+    for (const fieldValidations of Object.values(model.validations.backend)) {
+      for (const validation of fieldValidations) {
+        if (validation.componentId) {
+          add(validation.componentId, { validation, dataType });
+        }
+      }
+    }
+  }
+
+  for (const validation of state.validation.state.component) {
+    if (!validation.dataElementId || mountedDataElementIds.has(validation.dataElementId)) {
+      add(validation.componentId, { validation });
+    }
+  }
+
+  return index;
+}
+
 function getRawValidationsForNode(
   node: DerivedValidationNode,
-  item: CompIntermediate,
+  item: CompExternal,
   state: FormStoreState,
   dataSources: ExpressionDataSources,
   instanceData: IData[],
   taskId: string | undefined,
+  backendValidationsByComponentId: Map<string, ComponentLinkedValidation[]>,
 ): AnyValidation[] {
   if (!node.isValid || !shouldValidateNode(item)) {
     return emptyArray;
   }
 
-  const bindings = getBindings(item);
+  const bindings = getBindings(item, node);
   const def = getComponentDef(item.type);
   if (!def) {
     return emptyArray;
@@ -215,11 +258,20 @@ function getRawValidationsForNode(
     }
 
     const fieldValidations = [
-      ...(dataModel.validations.backend[reference.field] ?? emptyArray),
+      // Backend validations linked to a component are added below, only for that component
+      ...(dataModel.validations.backend[reference.field] ?? emptyArray).filter((validation) => !validation.componentId),
       ...(dataModel.validations.invalidData[reference.field] ?? emptyArray),
       ...(dataModel.validations.schema[reference.field] ?? emptyArray),
     ];
     validations.push(...fieldValidations.map((validation) => ({ ...validation, bindingKey })));
+  }
+
+  for (const { validation, dataType } of backendValidationsByComponentId.get(node.id) ?? emptyArray) {
+    const binding =
+      'field' in validation
+        ? bindings.find(([, reference]) => reference.dataType === dataType && reference.field === validation.field)
+        : undefined;
+    validations.push(binding ? { ...validation, bindingKey: binding[0] } : validation);
   }
 
   validations.push(
@@ -235,7 +287,7 @@ function getRawValidationsForNode(
 function getVisibilityBreakdown(
   state: FormStoreState,
   node: DerivedValidationNode,
-  item: CompIntermediate,
+  item: CompExternal,
 ): ValidationVisibilityBreakdown {
   const initial = getInitialMaskFromItem(item);
   const form = state.validation.formMask ?? 0;
@@ -273,6 +325,7 @@ export function buildDerivedValidationState(
   inputs: DerivedValidationStateInputs,
 ): DerivedValidationState {
   const nodes = deriveNodes(state, inputs);
+  const backendValidationsByComponentId = getBackendValidationsByComponentId(state);
   const nodeById = new Map<string, DerivedValidationNode>();
   const nodeIdsByPage = new Map<string, string[]>();
   const nodeIdsByRowId = new Map<string, string[]>();
@@ -280,7 +333,7 @@ export function buildDerivedValidationState(
   const visibleBreakdownByNode = new Map<string, ValidationVisibilityBreakdown>();
 
   for (const node of nodes) {
-    const item = getRuntimeIntermediateItem(state.bootstrap.layoutLookups.getComponent(node.baseId), node.rowContexts);
+    const item = state.bootstrap.layoutLookups.getComponent(node.baseId);
     nodeById.set(node.id, node);
     addToIndex(nodeIdsByPage, node.pageKey, node.id);
     for (const rowId of node.rowIds) {
@@ -289,7 +342,15 @@ export function buildDerivedValidationState(
 
     rawValidationsByNode.set(
       node.id,
-      getRawValidationsForNode(node, item, state, inputs.evalDataSources, inputs.instanceData, inputs.taskId),
+      getRawValidationsForNode(
+        node,
+        item,
+        state,
+        inputs.evalDataSources,
+        inputs.instanceData,
+        inputs.taskId,
+        backendValidationsByComponentId,
+      ),
     );
     visibleBreakdownByNode.set(node.id, getVisibilityBreakdown(state, node, item));
   }

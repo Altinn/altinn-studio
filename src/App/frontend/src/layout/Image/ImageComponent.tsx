@@ -1,20 +1,28 @@
 import React from 'react';
 
 import { ImageLayout } from '@app/form-component';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useParentCard } from 'src/layout/Cards/CardContext';
+import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentStructureData } from 'src/utils/layout/useComponentStructureData';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export function ImageComponent({ baseComponentId }: PropsFromGenericComponent<'Image'>) {
-  const { image, textResourceBindings } = useItemWhenType(baseComponentId, 'Image');
+  const config = useComponentConfig(baseComponentId, 'Image');
+  const altTextImg = useEvalOptionalText(
+    config.textResourceBindings?.altTextImg,
+    Expressions.Image.textResourceBindings.altTextImg,
+  );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Image.textResourceBindings.help);
+
   const { componentId, innerGrid } = useComponentStructureData(baseComponentId);
   const languageKey = useCurrentLanguage();
   const parentCard = useParentCard();
 
-  let src = image?.src[languageKey] ?? image?.src.nb ?? '';
+  let src = config.image?.src[languageKey] ?? config.image?.src.nb ?? '';
   if (src.startsWith('wwwroot')) {
     src = src.replace('wwwroot', `/${window.org}/${window.app}`);
   }
@@ -23,10 +31,10 @@ export function ImageComponent({ baseComponentId }: PropsFromGenericComponent<'I
     <ImageLayout
       componentId={componentId}
       src={src}
-      width={image?.width}
-      align={image?.align}
-      altText={textResourceBindings?.altTextImg}
-      help={textResourceBindings?.help}
+      width={config.image?.width}
+      align={config.image?.align}
+      altText={altTextImg}
+      help={help}
       innerGrid={innerGrid}
       renderedInCardMedia={parentCard?.renderedInMedia}
       cardMediaHeight={parentCard?.minMediaHeight}

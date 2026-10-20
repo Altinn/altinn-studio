@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ConfigPanel } from './ConfigPanel';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,14 +11,11 @@ import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
 import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
-jest.mock('./ConfigSequenceFlow', () => ({
+vi.mock('./ConfigSequenceFlow', () => ({
   ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
 }));
 
 describe('ConfigPanel', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
   it('should render no selected task message', () => {
     renderConfigPanel({ bpmnDetails: null });
     const title = screen.getByRole('heading', {
@@ -74,6 +72,17 @@ describe('ConfigPanel', () => {
       name: textMock('process_editor.configuration_panel_change_task_id'),
     });
     expect(editTaskIdButton).toBeInTheDocument();
+  });
+
+  it('renders the gateway config panel if BPMN type is ExclusiveGateway', () => {
+    renderConfigPanel({
+      bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.ExclusiveGateway },
+    });
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('process_editor.configuration_panel_gateway_connected_data_type_label'),
+      }),
+    ).toBeInTheDocument();
   });
 
   it.each([

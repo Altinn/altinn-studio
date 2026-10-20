@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import {
   PolicyAccessPackageAccordion,
@@ -13,7 +14,7 @@ const defaultProps = {
     isResourcePolicyAvailable: true,
   },
   isChecked: false,
-  handleSelectChange: jest.fn(),
+  handleSelectChange: vi.fn(),
 };
 
 describe('PolicyAccessPackageAccordion', () => {

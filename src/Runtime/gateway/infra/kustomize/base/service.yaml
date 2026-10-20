@@ -8,6 +8,7 @@ spec:
     - port: 80
       targetPort: 8080
       protocol: TCP
+      appProtocol: http
       name: http
   selector:
     app: gateway
@@ -22,6 +23,7 @@ spec:
     - port: 80
       targetPort: 8081
       protocol: TCP
+      appProtocol: http
       name: http
   selector:
     app: gateway

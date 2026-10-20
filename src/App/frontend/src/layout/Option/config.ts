@@ -21,19 +21,19 @@ export const Config = asOptionsComponent(
       renderInCards: true,
       renderInCardsMedia: false,
     },
-    functionality: {
-      customExpressions: true,
-    },
   }),
   { supportsPreselection: false },
 )
   .makeSummarizable()
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'))
   .addSummaryOverrides()
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(
     new CG.prop(
       'value',
       new CG.expr(ExprVal.String)
+        .setFallback('')
         .setTitle('Selected value', 'Valgt verdi')
         .setDescription('The value represented by the option.', 'Verdien alternativet representerer.'),
     ),

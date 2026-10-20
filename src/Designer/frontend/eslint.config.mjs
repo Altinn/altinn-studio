@@ -157,19 +157,6 @@ export default [
     },
   },
   {
-    files: ['testing/cypress/src/**/*.js', 'testing/cypress/src/**/*.ts'],
-    languageOptions: {
-      parserOptions: {
-        project: false,
-        tsconfigRootDir: __dirname,
-      },
-    },
-    rules: {
-      '@typescript-eslint/consistent-type-exports': 'off',
-      '@typescript-eslint/consistent-type-imports': 'off',
-    },
-  },
-  {
     files: ['libs/studio-components/.storybook/**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {
@@ -383,7 +370,33 @@ export default [
     },
   },
   {
-    files: ['packages/policy-editor/**/*.{ts,tsx}', 'packages/process-editor/**/*.{ts,tsx}'],
+    files: ['packages/process-editor/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports([
+        {
+          group: ['@altinn/process-editor-v8'],
+          message: 'Do not import from @altinn/process-editor-v8 in process-editor.',
+        },
+      ]),
+    },
+  },
+  {
+    files: ['packages/process-editor-v8/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': restrictedImports([
+        {
+          group: ['@altinn/process-editor'],
+          message: 'Do not import from @altinn/process-editor in process-editor-v8.',
+        },
+      ]),
+    },
+  },
+  {
+    files: [
+      'packages/policy-editor/**/*.{ts,tsx}',
+      'packages/process-editor/**/*.{ts,tsx}',
+      'packages/process-editor-v8/**/*.{ts,tsx}',
+    ],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     },

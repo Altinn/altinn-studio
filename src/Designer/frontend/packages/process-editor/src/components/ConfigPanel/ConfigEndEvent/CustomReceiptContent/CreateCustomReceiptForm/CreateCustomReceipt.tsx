@@ -3,10 +3,8 @@ import classes from './CreateCustomReceipt.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { SelectCustomReceiptDataModelId } from './SelectCustomReceiptDataModelId';
-import { CreateCustomReceiptFormLegacy } from './CreateCustomReceiptFormLegacy';
-import { createNewCustomReceipt, hasFixedCustomReceiptName } from '../CustomReceiptUtils';
+import { createNewCustomReceipt } from '../CustomReceiptUtils';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 export type CreateCustomReceiptFormProps = {
@@ -21,7 +19,6 @@ export const CreateCustomReceipt = ({
   const [dataModelError, setDataModelError] = useState<string>(null);
   const [dataModelId, setDataModelId] = useState<string>(null);
   const hasAvailableDataModels: boolean = allDataModelIds.length > 0;
-  const { appVersion } = useBpmnContext();
 
   const addCustomReceipt = (customReceipt: LayoutSetConfig) => {
     addLayoutSet(
@@ -34,19 +31,9 @@ export const CreateCustomReceipt = ({
     );
   };
 
-  if (!hasFixedCustomReceiptName(appVersion)) {
-    return (
-      <CreateCustomReceiptFormLegacy
-        addCustomReceipt={addCustomReceipt}
-        onCloseForm={onCloseForm}
-        hasAvailableDataModels={hasAvailableDataModels}
-      />
-    );
-  }
-
   const handleSave = () => {
     if (dataModelId) {
-      const customReceipt = createNewCustomReceipt({ dataModelId }, true);
+      const customReceipt = createNewCustomReceipt({ dataModelId });
       setDataModelError(null);
       addCustomReceipt(customReceipt);
     } else {

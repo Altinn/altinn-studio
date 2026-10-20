@@ -13,6 +13,7 @@ using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Helpers.Preview;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -262,7 +263,7 @@ public class PreviewBootstrapService(
     {
         try
         {
-            return GetRepository(editingContext).GetProcessDefinitions()?.Process?.Tasks ?? [];
+            return [.. GetRepository(editingContext).GetProcessDefinitions()?.Process?.AllTasks() ?? []];
         }
         catch (Exception)
         {

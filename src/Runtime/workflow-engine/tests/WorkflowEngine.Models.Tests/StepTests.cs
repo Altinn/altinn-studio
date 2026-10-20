@@ -1,5 +1,3 @@
-using WorkflowEngine.Resilience.Models;
-
 namespace WorkflowEngine.Models.Tests;
 
 public class StepTests

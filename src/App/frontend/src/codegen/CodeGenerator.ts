@@ -3,6 +3,8 @@ import type { JSONSchema7, JSONSchema7Type } from 'json-schema';
 
 import { CodeGeneratorContext } from 'src/codegen/CodeGeneratorContext';
 import { ComponentCatalogContext } from 'src/codegen/ComponentCatalogContext';
+import type { CompBehaviors } from 'src/codegen/Config';
+import type { ExpressionDescriptorEntry } from 'src/codegen/ExpressionDescriptors';
 
 export interface JsonSchemaExt<T> {
   title: LocalizedText | undefined;
@@ -39,6 +41,8 @@ export interface InternalConfig<T> {
 export type Extract<Val extends CodeGenerator<any>> = Val extends CodeGenerator<infer X> ? X : never;
 
 export abstract class CodeGenerator<T> {
+  private readonly requiredBehaviors = new Set<keyof CompBehaviors>();
+
   public internal: InternalConfig<T> = {
     jsonSchema: {
       title: undefined,
@@ -94,6 +98,47 @@ export abstract class CodeGenerator<T> {
   abstract toJsonSchema(): JSONSchema7;
   abstract toTypeScript(): string;
   abstract toComponentCatalog(): PropertyValueDefinition;
+
+  requireBehaviors(...behaviors: (keyof CompBehaviors)[]): this {
+    this.ensureMutable();
+    for (const behavior of behaviors) {
+      this.requiredBehaviors.add(behavior);
+    }
+    return this;
+  }
+
+  protected getBehaviorRequirementDescription(): string {
+    return this.constructor.name;
+  }
+
+  protected getChildren(): readonly CodeGenerator<unknown>[] {
+    return [];
+  }
+
+  validateComponentBehaviors(
+    behaviors: Readonly<CompBehaviors>,
+    componentType: string,
+    seen = new Set<CodeGenerator<unknown>>(),
+  ): void {
+    if (seen.has(this)) {
+      return;
+    }
+    seen.add(this);
+    for (const behavior of this.requiredBehaviors) {
+      if (!behaviors[behavior]) {
+        throw new Error(
+          `Component '${componentType}' ${this.getBehaviorRequirementDescription()} requires behavior '${behavior}'.`,
+        );
+      }
+    }
+    for (const child of this.getChildren()) {
+      child.validateComponentBehaviors(behaviors, componentType, seen);
+    }
+  }
+
+  expressionDescriptors(): ExpressionDescriptorEntry[] {
+    return [];
+  }
 }
 
 export abstract class MaybeSymbolizedCodeGenerator<T> extends CodeGenerator<T> {

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { TextResource } from '@studio/pure-functions';
 import type { Option } from 'app-shared/types/Option';
 import { useConcatOptionListLabels } from './useConcatOptionListLabels';

@@ -3,16 +3,16 @@ import { useEffect } from 'react';
 import type { IDataModelBindingsOptionsSimple } from '@app/layout-contract/generated/common.generated';
 
 import { useSaveDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import type { CompIntermediate, CompWithBehavior } from 'src/layout/layout';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 
 export function EffectSetDownstreamParameters({
-  item,
+  baseComponentId,
   downstreamParameters,
 }: {
-  item: CompIntermediate<CompWithBehavior<'canHaveOptions'>>;
+  baseComponentId: string;
   downstreamParameters: string | undefined;
 }) {
-  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId) as IDataModelBindingsOptionsSimple | undefined;
   const { setValue } = useSaveDataModelBindings(dataModelBindings);
 
   useEffect(() => {

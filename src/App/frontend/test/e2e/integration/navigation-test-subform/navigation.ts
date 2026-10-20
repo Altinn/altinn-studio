@@ -9,7 +9,7 @@ const ICON_ERROR = '[data-testid=state-error]';
 
 describe('navigation', () => {
   const viewportSizes = {
-    desktop: { width: 1440, height: 900 }, // Laptop
+    desktop: { width: 1440, height: 900 }, // Desktop
     tablet: { width: 810, height: 1080 }, // iPad
     mobile: { width: 375, height: 812 }, // iPhone mini
   };

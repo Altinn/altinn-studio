@@ -1,4 +1,4 @@
-using WorkflowEngine.Resilience.Models;
+using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data;
 

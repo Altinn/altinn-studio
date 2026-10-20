@@ -126,6 +126,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             DeferCount = context.Step.DeferCount,
             FirstDeferredAt = context.Step.FirstDeferredAt,
             WaitDeadline = context.WaitDeadline,
+            IsFinalWaitCheck = context.IsFinalWaitCheck,
         };
 
         var endpoint = commandData.CommandKey.ToUri(UriKind.Relative);
@@ -176,18 +177,13 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
             }
 
-            // Captured before classifying the outcome, so a deferral carries state forward exactly as a
-            // completion does — the app's next re-check resumes from what this one produced.
-            if (callbackResponse?.State is not null)
-                context.Step.StateOut = callbackResponse.State;
-
             if (callbackResponse?.Defer is { } deferral)
             {
                 _logger.AppCommandDeferred(commandData.CommandKey, context.Workflow.DatabaseId, deferral.Delay);
-                return ExecutionResult.Defer(deferral.Delay, deferral.Reason);
+                return ExecutionResult.Defer(deferral.Delay, deferral.Reason, callbackResponse.State);
             }
 
-            return ExecutionResult.Success();
+            return ExecutionResult.Success(callbackResponse?.State);
         }
 
         var statusCode = (int)response.StatusCode;

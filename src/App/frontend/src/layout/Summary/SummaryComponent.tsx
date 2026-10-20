@@ -7,7 +7,7 @@ import type { SummaryDisplayProperties } from '@app/layout-contract/generated/co
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
 import { FormStore } from 'src/features/form/FormContext';
-import { Lang } from 'src/features/language/Lang';
+import { Lang, LangReference } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -20,7 +20,8 @@ import { SummaryContent } from 'src/layout/Summary/SummaryContent';
 import { pageBreakStyles } from 'src/utils/formComponentUtils';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
-import { useItemFor, useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useResolvedPageBreak } from 'src/utils/layout/useResolvedPageBreak';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { ExprResolved } from 'src/features/expressions/types';
 
@@ -29,7 +30,6 @@ import type { ExprResolved } from 'src/features/expressions/types';
  * summaries. This way we only fetch the settings in the SummaryComponent render cycle, and then pass the config
  * down to the internal summary components, so that all underlying code can work the same regardless if there is an
  * actual Summary component in the layout or not. Cases when there's not a real Summary component include:
- * - Automatic PDF layout
  * - Using the `renderAsSummary` prop on a component
  */
 export interface LegacySummaryOverrides {
@@ -44,19 +44,21 @@ export const SummaryComponentFor = React.forwardRef(function (
   { targetBaseComponentId, overrides }: { targetBaseComponentId: string; overrides?: LegacySummaryOverrides },
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const targetItem = useItemFor(targetBaseComponentId);
+  const targetItem = useComponentConfig(targetBaseComponentId);
+  const componentId = useIndexedId(targetBaseComponentId);
+  const targetPageBreak = useResolvedPageBreak(targetItem.pageBreak);
 
   return (
     <SummaryComponentInner
       ref={ref}
       targetBaseComponentId={targetBaseComponentId}
-      summaryTestId={targetItem.id}
-      originNodeId={targetItem.id}
-      componentId={`summary-${targetItem.id}`}
+      summaryTestId={componentId}
+      originNodeId={componentId}
+      componentId={`summary-${componentId}`}
       componentBaseId={`summary-${targetBaseComponentId}`}
       display={overrides?.display}
       grid={overrides?.display && overrides?.display.useComponentGrid ? overrides?.grid || targetItem?.grid : undefined}
-      pageBreak={overrides?.pageBreak ?? targetItem?.pageBreak}
+      pageBreak={overrides?.pageBreak ?? targetPageBreak}
       largeGroup={overrides?.largeGroup}
       excludedChildren={overrides?.excludedChildren}
     />
@@ -73,24 +75,27 @@ export const SummaryComponent = React.forwardRef(function (
   { summaryBaseId, overrides }: { summaryBaseId: string; overrides?: LegacySummaryOverrides },
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const summaryItem = useItemWhenType(summaryBaseId, 'Summary');
-  const { grid, pageBreak } = useItemFor(summaryItem.componentRef);
+  const summaryItem = useComponentConfig(summaryBaseId, 'Summary');
+  const componentId = useIndexedId(summaryBaseId);
+  const config = useComponentConfig(summaryItem.componentRef);
+  const pageBreak = useResolvedPageBreak(config.pageBreak);
+  const summaryPageBreak = useResolvedPageBreak(summaryItem.pageBreak);
 
   return (
     <SummaryComponentInner
       ref={ref}
       targetBaseComponentId={summaryItem.componentRef}
-      summaryTestId={summaryItem.id}
-      originNodeId={summaryItem.id}
-      componentId={summaryItem.id}
+      summaryTestId={componentId}
+      originNodeId={componentId}
+      componentId={componentId}
       componentBaseId={summaryBaseId}
       display={overrides?.display ?? summaryItem?.display}
       grid={
         overrides?.display && overrides?.display.useComponentGrid
-          ? overrides?.grid || grid
+          ? overrides?.grid || config.grid
           : overrides?.grid || summaryItem?.grid
       }
-      pageBreak={overrides?.pageBreak ?? summaryItem?.pageBreak ?? pageBreak}
+      pageBreak={overrides?.pageBreak ?? summaryPageBreak ?? pageBreak}
       largeGroup={overrides?.largeGroup ?? summaryItem?.largeGroup}
       excludedChildren={overrides?.excludedChildren ?? summaryItem?.excludedChildren}
     />
@@ -122,7 +127,7 @@ const SummaryComponentInner = React.forwardRef(function (
   }: ISummaryProps,
   ref: React.Ref<HTMLDivElement>,
 ) {
-  const targetItem = useItemFor(targetBaseComponentId);
+  const targetItem = useComponentConfig(targetBaseComponentId);
   const { langAsString } = useLanguage();
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
   const currentPageId = useNavigationParam('pageKey');
@@ -157,7 +162,7 @@ const SummaryComponentInner = React.forwardRef(function (
   }
 
   const component = getComponentDef(targetItem.type);
-  const RenderSummary = 'renderSummary' in component ? component.renderSummary.bind(component) : null;
+  const RenderSummary = component.renderSummary?.bind(component) ?? null;
   const shouldShowBorder =
     RenderSummary && 'renderSummaryBoilerplate' in component && component?.renderSummaryBoilerplate();
 
@@ -209,12 +214,7 @@ const SummaryComponentInner = React.forwardRef(function (
               return (
                 <ErrorPaper
                   key={key}
-                  message={
-                    <Lang
-                      id={message.key}
-                      params={message.params}
-                    />
-                  }
+                  message={<LangReference reference={message} />}
                 />
               );
             })}

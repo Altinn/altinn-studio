@@ -1,25 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 
-import { useBrowserWidth, useIsMobile } from '@app/form-component';
+import { useIsLgUp, useIsMobile } from '@app/form-component';
+import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';
 import { BulletListIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { Button } from '@digdir/designsystemet-react';
 
-import { ExprVal } from 'src/features/expressions/types';
 import { useExpandedWidth } from 'src/features/form/layout/useExpandedWidth';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
-import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
+import { useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
   const hasGroupedNavigation = useHasGroupedNavigation();
   const { expandedWidth } = useExpandedWidth();
-  const isScreenSmall = !useBrowserWidth((width) => width >= SIDEBAR_BREAKPOINT) || expandedWidth;
+  const isScreenSmall = !useIsLgUp() || expandedWidth;
 
   if (!hasGroupedNavigation || !isScreenSmall) {
     return null;
@@ -30,11 +30,7 @@ export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
 
 function InnerPopoverNavigation(props: Parameters<typeof Button>[0]) {
   const { navigationTitle: navigationTitleExpr } = usePageSettings();
-  const navigationTitle = useEvalExpression(navigationTitleExpr, {
-    returnType: ExprVal.String,
-    defaultValue: 'navigation.form_pages',
-    errorIntroText: 'Invalid expression for navigationTitle in Settings.json',
-  });
+  const navigationTitle = useEvalExpression(navigationTitleExpr, CommonExpressions.IPagesSettings.navigationTitle);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

@@ -11,7 +11,7 @@ public enum RetryDecision
     Abort,
 
     /// <summary>
-    /// Continue retrying according to the active <see cref="RetryStrategy"/>.
+    /// Continue retrying according to the active <see cref="WorkflowEngine.Models.RetryStrategy"/>.
     /// </summary>
     Retry,
 }

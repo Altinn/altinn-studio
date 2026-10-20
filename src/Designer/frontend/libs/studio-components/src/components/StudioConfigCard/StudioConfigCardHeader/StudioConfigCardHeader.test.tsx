@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import { StudioConfigCardHeader, type StudioConfigCardHeaderProps } from './StudioConfigCardHeader';
 import userEvent from '@testing-library/user-event';
@@ -9,10 +10,16 @@ describe('StudioConfigCardHeader', () => {
     expect(screen.getByText('Card Title')).toBeInTheDocument();
   });
 
+  it('should set the given id on the card label', () => {
+    renderStudioConfigCardHeader({ cardLabelId: 'card-label-id' });
+
+    expect(screen.getByText('Card Title')).toHaveAttribute('id', 'card-label-id');
+  });
+
   it('should call onDelete when delete button is clicked', async () => {
     const user = userEvent.setup();
-    const onDeleteMock = jest.fn();
-    jest.spyOn(window, 'confirm').mockImplementation(() => true);
+    const onDeleteMock = vi.fn();
+    vi.spyOn(window, 'confirm').mockImplementation(() => true);
 
     renderStudioConfigCardHeader({ onDelete: onDeleteMock });
 
@@ -29,7 +36,7 @@ const renderStudioConfigCardHeader = (
     cardLabel: 'Card Title',
     deleteAriaLabel: 'Delete Card',
     confirmDeleteMessage: 'Are you sure you want to delete this card?',
-    onDelete: jest.fn(),
+    onDelete: vi.fn(),
   };
 
   const mergedProps = { ...defaultProps, ...props };

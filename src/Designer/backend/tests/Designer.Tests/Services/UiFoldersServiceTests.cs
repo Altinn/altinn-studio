@@ -78,9 +78,8 @@ public class UiFoldersServiceTests : IDisposable
     [Fact]
     public async Task GetLayoutSetsExtended_OrdersByProcessFlowAndPlacesSubformsLast()
     {
-        // Arrange: the process flows StartEvent -> Task_2 -> Task_1 -> EndEvent, while the BPMN file lists
-        // the Task_1 element before Task_2. The result must follow the flow order (Task_2, Task_1), not the
-        // element/alphabetical order, and the subform (which has no task) must come last.
+        // The BPMN lists Task_1 before Task_2, but the flow reaches Task_2 first. The subform has no task
+        // and must come last.
         (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext(OrderedRepo);
 
         // Act
@@ -90,7 +89,23 @@ public class UiFoldersServiceTests : IDisposable
         );
 
         // Assert
-        Assert.Equal(["Task_2", "Task_1", "subformSet"], result.Select(dto => dto.Id));
+        Assert.Equal(["Task_2", "Task_1", "PdfTask", "subformSet"], result.Select(dto => dto.Id));
+    }
+
+    [Fact]
+    public async Task GetLayoutSetsExtended_ReturnsLayoutSetOfPdfServiceTask()
+    {
+        (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext(OrderedRepo);
+
+        // Act
+        IEnumerable<UiFolderLayoutSetDto> result = await service.GetLayoutSetsExtended(
+            editingContext,
+            CancellationToken.None
+        );
+        UiFolderLayoutSetDto pdfLayoutSet = result.Single(dto => dto.Id == "PdfTask");
+
+        // Assert
+        Assert.Equal("pdf", pdfLayoutSet.TaskType);
     }
 
     private async Task<(AltinnRepoEditingContext editingContext, UiFoldersService service)> CreateTestContext(

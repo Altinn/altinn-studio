@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { YesNoQuestion } from './YesNoQuestion';
 import userEvent from '@testing-library/user-event';
 
 describe('YesNoQuestion', () => {
   it('should render YesNoQuestion', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(
       <YesNoQuestion
         id='1'
@@ -19,7 +20,7 @@ describe('YesNoQuestion', () => {
   });
 
   it('should render YesNoQuestion with both buttons un-selected', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(
       <YesNoQuestion
         id='1'
@@ -37,7 +38,7 @@ describe('YesNoQuestion', () => {
     expect(screen.getByRole('button', { name: 'no' })).not.toHaveAttribute('aria-selected', 'true');
   });
   it('should render YesNoQuestion with yes button selected', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(
       <YesNoQuestion
         id='1'
@@ -53,7 +54,7 @@ describe('YesNoQuestion', () => {
   });
 
   it('should render YesNoQuestion with no button selected', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(
       <YesNoQuestion
         id='1'
@@ -72,7 +73,7 @@ describe('YesNoQuestion', () => {
   });
 
   it('should call onChange when yes button is selected', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const user = userEvent.setup();
     render(
       <YesNoQuestion
@@ -94,7 +95,7 @@ describe('YesNoQuestion', () => {
   });
 
   it('should call onChange when yes button is unselected', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const user = userEvent.setup();
     render(
       <YesNoQuestion
@@ -116,7 +117,7 @@ describe('YesNoQuestion', () => {
   });
 
   it('should call onChange when no button is clicked', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const user = userEvent.setup();
     render(
       <YesNoQuestion

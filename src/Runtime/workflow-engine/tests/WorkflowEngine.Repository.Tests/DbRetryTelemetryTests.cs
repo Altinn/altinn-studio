@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Repository.Tests;

@@ -1,0 +1,1 @@
+export { ConfigEFormidlingServiceTask } from './ConfigEFormidlingServiceTask';

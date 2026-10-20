@@ -1,22 +1,18 @@
-import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import type { Expression } from '@studio/components';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { IDataModelBindingsKeyValue } from '@altinn/ux-editor-v4/types/global';
+import type {
+  ExternalData as GenericExternalData,
+  ExternalFormLayout as GenericExternalFormLayout,
+  FormLayoutsResponse as GenericFormLayoutsResponse,
+} from './FormLayout';
 
-export type FormLayoutsResponse = KeyValuePairs<ExternalFormLayout>;
-
-export interface ExternalFormLayout {
-  $schema: string;
-  data: ExternalData;
-  [key: string]: any;
-}
-
-export interface ExternalData {
-  layout: ExternalComponent[];
-  hidden?: Expression;
-  [key: string]: any;
-}
+export type FormLayoutsResponse<TComponent = ExternalComponent> =
+  GenericFormLayoutsResponse<TComponent>;
+export type ExternalFormLayout<TComponent = ExternalComponent> =
+  GenericExternalFormLayout<TComponent>;
+export type ExternalData<TComponent = ExternalComponent> = GenericExternalData<TComponent>;
 
 export type ExternalComponentBase<T extends ComponentType = ComponentType> = {
   id: string;

@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { Assistant } from './Assistant';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -6,7 +7,7 @@ import { mockTexts } from '../mocks/mockTexts';
 import { MessageAuthor } from '../types/MessageAuthor';
 
 // Test data
-const onSubmitMessage = jest.fn();
+const onSubmitMessage = vi.fn();
 
 describe('Assistant', () => {
   it('should render the complete chat interface by default', () => {
@@ -37,7 +38,7 @@ describe('Assistant', () => {
 
   it('wires the feedback handlers through every layer down to the thumbs', async () => {
     const user = userEvent.setup();
-    const onClearMessageFeedback = jest.fn();
+    const onClearMessageFeedback = vi.fn();
     renderAssistant({
       messages: [
         {
@@ -49,7 +50,7 @@ describe('Assistant', () => {
           feedbackThumbsUp: true,
         },
       ],
-      onMessageFeedback: jest.fn(),
+      onMessageFeedback: vi.fn(),
       onClearMessageFeedback,
     });
 

@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -19,11 +22,27 @@ public class GetTaskNavigationTests(WebApplicationFactory<Program> factory)
         $"/designer/api/{org}/{repository}/task-navigation";
 
     [Theory]
-    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
-    public async Task GetTaskNavigation_WhenExists_ReturnsTaskNavigationArray(string org, string app, string developer)
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser", "task", "data")]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser", "serviceTask", "pdf")]
+    public async Task GetTaskNavigation_WhenExists_ReturnsTaskNavigationArray(
+        string org,
+        string app,
+        string developer,
+        string taskElement,
+        string taskType
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string processPath = Path.Combine(TestRepoPath, "App", "config", "process", "process.bpmn");
+        XDocument process = XDocument.Load(processPath);
+        XNamespace bpmn = "http://www.omg.org/spec/BPMN/20100524/MODEL";
+        XNamespace altinn = "http://altinn.no/process";
+        XElement task = process.Descendants(bpmn + "task").Single(task => (string)task.Attribute("id") == "Task_1");
+        task.Name = bpmn + taskElement;
+        task.Descendants(altinn + "taskType").Single().Value = taskType;
+        process.Save(processPath);
 
         string url = VersionPrefix(org, targetRepository);
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -37,7 +56,7 @@ public class GetTaskNavigationTests(WebApplicationFactory<Program> factory)
                 new()
                 {
                     TaskId = "Task_1",
-                    TaskType = "data",
+                    TaskType = taskType,
                     Name = "tasks.form",
                 },
                 new() { TaskId = "Task_Confirm", TaskType = "confirmation" },

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Core.Tests;
 

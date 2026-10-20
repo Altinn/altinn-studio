@@ -61,7 +61,14 @@ describe('RepeatingGroupTableSummary', () => {
             ...(withRowsAfter && {
               rowsAfter: [
                 {
-                  cells: [{ text: 'summary.total' }],
+                  cells: [
+                    { text: 'summary.label' },
+                    { text: '' },
+                    {
+                      text: 'summary.total',
+                      cellStyle: { colSpan: 2 },
+                    },
+                  ],
                 },
               ],
             }),
@@ -245,7 +252,9 @@ describe('RepeatingGroupTableSummary', () => {
 
   test('should render rowsAfter in summary table', async () => {
     await render({ layout: createLayout({ editButton: true, withRowsAfter: true }) });
+    expect(screen.getByText('summary.label')).toBeInTheDocument();
     expect(screen.getByText('summary.total')).toBeInTheDocument();
+    expect(screen.getByText('summary.total').closest('td')).toHaveAttribute('colspan', '2');
   });
 
   test('should render rowsBefore in summary table', async () => {

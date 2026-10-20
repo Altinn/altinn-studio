@@ -1,7 +1,7 @@
+import expressionSchema from '@app/layout-contract/schemas/json/layout/expression.schema.v1.json';
 import Ajv from 'ajv';
 import fs from 'node:fs';
 import path from 'node:path';
-import expressionSchema from 'schemas/json/layout/expression.schema.v1.json';
 
 import { CompareOperators, ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { ExprVal } from 'src/features/expressions/types';
@@ -137,7 +137,10 @@ describe('expression schema tests', () => {
   // A definition that is declared twice is silently dropped when the schema is parsed (the last one wins), so
   // additions to an existing definition can look applied while having no effect at all.
   it('no definition should be declared more than once', () => {
-    const schemaPath = path.join(__dirname, '../../../schemas/json/layout/expression.schema.v1.json');
+    const schemaPath = path.resolve(
+      import.meta.dirname,
+      '../../../../../common/ts/layout-contract/schemas/json/layout/expression.schema.v1.json',
+    );
     const rawSchema = fs.readFileSync(schemaPath, 'utf-8');
     const declarations = [...rawSchema.matchAll(/^ {4}"([^"]+)": \{$/gm)].map(([, name]) => name);
     const duplicates = declarations.filter((name, index) => declarations.indexOf(name) !== index);

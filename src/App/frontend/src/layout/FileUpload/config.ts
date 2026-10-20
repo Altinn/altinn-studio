@@ -24,9 +24,6 @@ export const Config = asOptionsComponent(
         renderInCardsMedia: false,
         renderInTabs: true,
       },
-      functionality: {
-        customExpressions: true,
-      },
     }),
   ).addTextResource(
     new CG.trb({
@@ -39,7 +36,11 @@ export const Config = asOptionsComponent(
     }),
   ),
   { supportsPreselection: false },
-);
+)
+  .makeSummarizable()
+  .addProperty(CG.common('renderAsSummary'))
+  .addProperty(CG.common('forceShowInSummary'))
+  .extendTextResources(CG.common('TRBSummarizable'));
 
 export function asUploaderComponent(config: ComponentConfig) {
   return asAttachmentUploader(config)
@@ -60,6 +61,7 @@ export function asUploaderComponent(config: ComponentConfig) {
       new CG.prop(
         'maxNumberOfAttachments',
         new CG.expr(ExprVal.Number)
+          .setFallback(Infinity)
           .setTitle('Max number of attachments', 'Maksimalt antall vedlegg')
           .setDescription(
             'Sets the maximum number of attachments allowed to upload',
@@ -71,6 +73,7 @@ export function asUploaderComponent(config: ComponentConfig) {
       new CG.prop(
         'minNumberOfAttachments',
         new CG.expr(ExprVal.Number)
+          .setFallback(0)
           .setTitle('Min number of attachments', 'Minste antall vedlegg')
           .setDescription(
             'Sets the minimum number of attachments required to upload',
@@ -116,6 +119,7 @@ export function asUploaderComponent(config: ComponentConfig) {
           ),
       ),
     )
+    .addProperty(CG.common('readOnly'))
     .extends(CG.common('LabeledComponentProps'))
     .extendTextResources(CG.common('TRBLabel'));
 }

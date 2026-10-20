@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { TextResource } from '../types/TextResource';
 import { ObjectUtils } from '../ObjectUtils';
 import { TextResourceUtils } from './TextResourceUtils';

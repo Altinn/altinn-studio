@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import cn from 'classnames';
 
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -8,7 +9,8 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
-import { useItemWhenType } from 'src/utils/layout/useNodeItem';
+import { useComponentConfig } from 'src/utils/layout/hooks';
+import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
@@ -30,11 +32,20 @@ function getHeadingLevel(headingLevel: number | undefined) {
 }
 
 export function SummaryAccordionComponent({ targetBaseComponentId }: SummaryRendererProps) {
-  const { textResourceBindings, headingLevel, children } = useItemWhenType(targetBaseComponentId, 'Accordion');
+  const config = useComponentConfig(targetBaseComponentId, 'Accordion');
+  const summaryTitle = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Accordion.textResourceBindings.summaryTitle,
+  );
+  const resolvedTitle = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Accordion.textResourceBindings.title,
+  );
+
   const { langAsString } = useLanguage();
 
-  const title = langAsString(textResourceBindings?.summaryTitle || textResourceBindings?.title);
-  const Heading = getHeadingLevel(headingLevel);
+  const title = langAsString(summaryTitle || resolvedTitle);
+  const Heading = getHeadingLevel(config.headingLevel);
 
   return (
     <div className={cn(classes.container)}>
@@ -42,7 +53,7 @@ export function SummaryAccordionComponent({ targetBaseComponentId }: SummaryRend
         <Heading className={classes.paddingSmall}>{title}</Heading>
       </div>
       <div className={classes.padding}>
-        {children.map((baseId) => (
+        {config.children.map((baseId) => (
           <GenericComponent
             key={baseId}
             baseComponentId={baseId}
@@ -55,13 +66,22 @@ export function SummaryAccordionComponent({ targetBaseComponentId }: SummaryRend
 
 export function SummaryAccordionComponent2({ targetBaseComponentId }: Summary2Props) {
   const canRenderInAccordion = useHasCapability('renderInAccordion');
-  const { textResourceBindings, headingLevel, children } = useItemWhenType(targetBaseComponentId, 'Accordion');
+  const config = useComponentConfig(targetBaseComponentId, 'Accordion');
+  const summaryTitle2 = useEvalOptionalText(
+    config.textResourceBindings?.summaryTitle,
+    Expressions.Accordion.textResourceBindings.summaryTitle,
+  );
+  const title2 = useEvalOptionalText(
+    config.textResourceBindings?.title,
+    Expressions.Accordion.textResourceBindings.title,
+  );
+
   const { langAsString } = useLanguage();
 
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 
-  const title = langAsString(textResourceBindings?.summaryTitle || textResourceBindings?.title);
-  const Heading = getHeadingLevel(headingLevel);
+  const title = langAsString(summaryTitle2 || title2);
+  const Heading = getHeadingLevel(config.headingLevel);
 
   return (
     <SummaryFlexForContainer
@@ -73,7 +93,7 @@ export function SummaryAccordionComponent2({ targetBaseComponentId }: Summary2Pr
           <Heading className={classes.paddingSmall}>{title}</Heading>
         </div>
         <div className={classes.padding}>
-          {children.filter(canRenderInAccordion).map((baseId) => (
+          {config.children.filter(canRenderInAccordion).map((baseId) => (
             <ComponentSummary
               key={baseId}
               targetBaseComponentId={baseId}

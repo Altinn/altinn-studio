@@ -4,7 +4,6 @@ using System.IO;
 using Altinn.WorkflowEngine.ContractTesting;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.App.Tests.Contract;
 

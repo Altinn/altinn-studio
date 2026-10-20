@@ -94,7 +94,7 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
         );
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [CarryProbeCommand.Key])
         );
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
 

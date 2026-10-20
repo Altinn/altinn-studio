@@ -20,6 +20,9 @@ public static class ServiceCollectionExtensions
         {
             // Plain HttpClient for local / mock runtime gateway
             services.AddHttpClient("runtime-gateway").AddStandardResilienceHandler();
+            services
+                .AddHttpClient(RuntimeGatewayClient.ActivitySignalsHttpClientName)
+                .ConfigureHttpClient(client => client.Timeout = RuntimeGatewayClient.ActivitySignalsTimeout);
         }
         else
         {
@@ -33,6 +36,12 @@ public static class ServiceCollectionExtensions
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>("runtime-gateway", settings)
                     .AddStandardResilienceHandler();
+                services
+                    .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(
+                        RuntimeGatewayClient.ActivitySignalsHttpClientName,
+                        settings
+                    )
+                    .ConfigureHttpClient(client => client.Timeout = RuntimeGatewayClient.ActivitySignalsTimeout);
             }
         }
 

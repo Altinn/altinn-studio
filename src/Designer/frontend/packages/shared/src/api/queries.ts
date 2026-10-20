@@ -41,6 +41,7 @@ import {
   repoStatusPath,
   resourceActionsPath,
   resourceListPath,
+  altinn2ResourcePoliciesPath,
   resourcePolicyPath,
   resourcePublishStatusPath,
   resourceSinglePath,
@@ -90,6 +91,7 @@ import {
   botAccountsPath,
   botAccountApiKeysPath,
   layoutSetsExtendedPath,
+  subformComponentsPath,
   validationOnNavigationLayoutSetsPath,
   taskNavigationGroupPath,
 } from './paths';
@@ -100,7 +102,7 @@ import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
 import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import type { Environment } from 'app-shared/types/Environment';
-import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
+import type { ExternalComponent, FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets, ValidationOnNavigationByLevel } from 'app-shared/types/global';
 import { ValidationOnNavigationLevel } from 'app-shared/types/global';
@@ -130,6 +132,7 @@ import type { OptionListsResponse } from 'app-shared/types/api/OptionListsRespon
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
+import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
@@ -176,7 +179,7 @@ export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getValidationOnNavigationLayoutSettings = (owner: string, app: string) => get<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(owner, app));
 export const getValidationOnNavigationPageSettings = (owner: string, app: string) => get<IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(owner, app));
-export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
+export const getFormLayouts = <TComponent = ExternalComponent>(owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse<TComponent>>(formLayoutsPath(owner, app, layoutSetName));
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
@@ -184,6 +187,7 @@ export const getLayoutNames = (owner: string, app: string) => get<string[]>(layo
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedV4Path(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getSubformComponents = (org: string, app: string) => get<SubformComponent[]>(subformComponentsPath(org, app));
 export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(validationOnNavigationLayoutSetsPath(owner, app));
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
@@ -229,6 +233,7 @@ export const getAccessPackages = (org: string, repo: string) => get<PolicyAccess
 export const getAccessPackageServices = (accessPackageUrn: string, env: string) => get<AccessPackageResource[]>(resourceAccessPackageServicesPath(accessPackageUrn, env));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getResourceList = (org: string, skipGiteaFields = false, skipParseJson = false) => get<ResourceListItem[]>(resourceListPath(org, skipGiteaFields, skipParseJson));
+export const getAltinn2ResourcePolicies = (org: string, env: string) => get<{ identifier: string; policy: Policy; resourceType: string }[]>(altinn2ResourcePoliciesPath(org, env));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));

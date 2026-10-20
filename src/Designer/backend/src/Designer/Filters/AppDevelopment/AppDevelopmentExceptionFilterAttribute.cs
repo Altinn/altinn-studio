@@ -7,12 +7,10 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Altinn.Studio.Designer.Filters.AppDevelopment;
 
-public class AppDevelopmentExceptionFilterAttribute : ExceptionFilterAttribute
+public class AppDevelopmentExceptionFilterAttribute : HandledExceptionFilterAttribute
 {
-    public override void OnException(ExceptionContext context)
+    protected override void HandleException(ExceptionContext context)
     {
-        base.OnException(context);
-
         if (context.ActionDescriptor is not ControllerActionDescriptor)
         {
             return;
@@ -27,6 +25,19 @@ public class AppDevelopmentExceptionFilterAttribute : ExceptionFilterAttribute
             context.Result = new ObjectResult(new { infoMessage = context.Exception.Message })
             {
                 StatusCode = (int)HttpStatusCode.OK,
+            };
+        }
+        if (context.Exception is UiFolderNameCaseConflictException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.UiFolderNameCaseConflict,
+                    HttpStatusCode.Conflict
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.Conflict,
             };
         }
         if (context.Exception is InvalidLayoutSetIdException)
@@ -74,6 +85,58 @@ public class AppDevelopmentExceptionFilterAttribute : ExceptionFilterAttribute
                 ProblemDetailsUtils.GenerateProblemDetails(
                     context.Exception,
                     AppDevelopmentErrorCodes.ResourcePublishingError,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
+        if (context.Exception is SubformComponentNotFoundException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.SubformComponentNotFound,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
+        if (context.Exception is SubformComponentMissingLayoutSetException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.SubformComponentMissingLayoutSet,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
+        if (context.Exception is SubformMissingDefaultDataTypeException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.SubformMissingDefaultDataType,
+                    HttpStatusCode.BadRequest
+                )
+            )
+            {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+            };
+        }
+        if (context.Exception is LayoutSetIsNotSubformPdfTaskException)
+        {
+            context.Result = new ObjectResult(
+                ProblemDetailsUtils.GenerateProblemDetails(
+                    context.Exception,
+                    AppDevelopmentErrorCodes.LayoutSetIsNotSubformPdfTask,
                     HttpStatusCode.BadRequest
                 )
             )

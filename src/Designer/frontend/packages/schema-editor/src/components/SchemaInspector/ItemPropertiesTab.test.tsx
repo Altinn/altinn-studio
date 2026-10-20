@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import type { CombinationNode, FieldNode, UiSchemaNodes } from '@altinn/schema-model';

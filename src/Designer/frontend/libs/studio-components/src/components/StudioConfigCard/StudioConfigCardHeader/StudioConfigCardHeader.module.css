@@ -6,5 +6,9 @@
 }
 
 .cardTitle {
+  display: flex;
+  gap: var(--ds-size-1);
   color: var(--ds-color-neutral-text-subtle);
+  min-width: 0;
+  overflow: hidden;
 }

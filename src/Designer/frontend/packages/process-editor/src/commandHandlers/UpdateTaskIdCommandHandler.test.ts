@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import UpdateTaskIdCommandHandlerModule from './UpdateTaskIdCommandHandler';
 import type { UpdateTaskIdContext } from './UpdateTaskIdCommandHandler';
 import type { Element } from 'bpmn-js/lib/model/Types';
@@ -19,7 +20,7 @@ const createPdfTask = (options: PdfConfigOptions = { taskType: 'pdf' }): Element
     type: 'bpmn:ServiceTask',
     businessObject: {
       extensionElements: {
-        values: [options],
+        values: [{ $type: 'altinn:TaskExtension', ...options }],
       },
     },
   }) as Element;
@@ -43,23 +44,19 @@ describe('UpdateTaskIdCommandHandler', () => {
 
   beforeEach(() => {
     mockModeling = {
-      updateProperties: jest.fn(),
-      updateModdleProperties: jest.fn(),
+      updateProperties: vi.fn(),
+      updateModdleProperties: vi.fn(),
     };
 
     mockElementRegistry = {
-      filter: jest.fn(() => []),
+      filter: vi.fn(() => []),
     };
 
     mockCommandStack = {
-      register: jest.fn(),
+      register: vi.fn(),
     };
 
     handler = new UpdateTaskIdCommandHandler(mockModeling, mockElementRegistry, mockCommandStack);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('constructor', () => {
@@ -86,7 +83,7 @@ describe('UpdateTaskIdCommandHandler', () => {
     it('should call updateAutoPdfTaskIds with old and new ids', () => {
       const element = createTaskElement('task_1');
       const context = createContext(element);
-      const updateAutoPdfTaskIdsSpy = jest.spyOn(handler as any, 'updateAutoPdfTaskIds');
+      const updateAutoPdfTaskIdsSpy = vi.spyOn(handler as any, 'updateAutoPdfTaskIds');
 
       handler.preExecute(context);
 
@@ -109,7 +106,7 @@ describe('UpdateTaskIdCommandHandler', () => {
         type: 'bpmn:Task',
         businessObject: {
           extensionElements: {
-            values: [{ taskType: 'data' }],
+            values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
           },
         },
       };
@@ -247,7 +244,7 @@ describe('UpdateTaskIdCommandHandler', () => {
         type: 'bpmn:ServiceTask',
         businessObject: {
           extensionElements: {
-            values: [{ taskType: 'data' }],
+            values: [{ $type: 'altinn:TaskExtension', taskType: 'data' }],
           },
         },
       };

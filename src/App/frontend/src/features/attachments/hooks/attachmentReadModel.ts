@@ -12,7 +12,7 @@ import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { getComponentBehaviors } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { deriveRuntimeNodeRefs } from 'src/utils/layout/deriveRuntimeNodeRefs';
-import { useIntermediateItem } from 'src/utils/layout/hooks';
+import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { getIndexedDataModelBindings } from 'src/utils/layout/rowContext';
 import type { IAttachment, IAttachmentsMap, IFailedAttachment } from 'src/features/attachments';
 import type { AttachmentStateInfo } from 'src/features/attachments/types';
@@ -27,11 +27,11 @@ const ATTACHMENT_STATE_RESULTS = {
 
 function useAttachmentNode(baseComponentId: string): AttachmentNode {
   const indexedId = useIndexedId(baseComponentId);
-  const item = useIntermediateItem(baseComponentId);
+  const dataModelBindings = useDataModelBindingsFor(baseComponentId);
   return {
     id: indexedId,
     baseId: baseComponentId,
-    dataModelBindings: item.dataModelBindings as AttachmentNode['dataModelBindings'],
+    dataModelBindings: dataModelBindings as AttachmentNode['dataModelBindings'],
   };
 }
 

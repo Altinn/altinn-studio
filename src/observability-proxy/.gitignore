@@ -1,0 +1,5 @@
+[Bb]in/
+[Oo]bj/
+
+# Local appsettings override
+appsettings.Local.json

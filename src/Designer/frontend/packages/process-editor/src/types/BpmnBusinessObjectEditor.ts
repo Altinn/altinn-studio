@@ -21,6 +21,8 @@ export interface BpmnExtensionElementsEditor {
     };
     signatureConfig?: {
       signatureDataType: string;
+      signingPdfDataType?: string;
+      signeeStatesDataTypeId?: string;
     };
   }>;
 }

@@ -1,0 +1,1 @@
+export { ConfigGateway } from './ConfigGateway';

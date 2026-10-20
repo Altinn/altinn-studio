@@ -170,6 +170,12 @@ func buildTraefikCRDsRelease() *helmv2.HelmRelease {
 	}
 }
 
+// linkerdChartVersion is the linkerd-crds and linkerd-control-plane chart version. Keep it, and
+// the control-plane values below that change behavior, in step with the runtime clusters' Linkerd
+// (dis-way/gitops-manifests, oci/linkerd). From 2026.7.2 the chart injects the proxy as a native
+// sidecar by default.
+const linkerdChartVersion = "2026.7.2"
+
 func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 	values := map[string]any{
 		"installGatewayAPI": true,
@@ -189,7 +195,7 @@ func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "linkerd-crds",
-					Version: "2026.4.2",
+					Version: linkerdChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "linkerd-edge",
@@ -213,7 +219,12 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 			"image": map[string]any{
 				"name": "ghcr.io/linkerd/proxy",
 			},
+			"livenessProbe":  map[string]any{"timeoutSeconds": 10},
+			"readinessProbe": map[string]any{"timeoutSeconds": 10},
 		},
+		// A failing injector blocks pod creation, as in the runtime clusters, rather than
+		// letting a pod start without its proxy.
+		"webhookFailurePolicy": "Fail",
 		"proxyInit": map[string]any{
 			"image": map[string]any{
 				"name": "ghcr.io/linkerd/proxy-init",
@@ -249,7 +260,7 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   "linkerd-control-plane",
-					Version: "2026.4.2",
+					Version: linkerdChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      "HelmRepository",
 						Name:      "linkerd-edge",

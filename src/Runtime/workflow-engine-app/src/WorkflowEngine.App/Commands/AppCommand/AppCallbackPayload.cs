@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using WorkflowEngine.Models;
-using WorkflowEngine.Resilience.JsonConverters;
+using WorkflowEngine.Models.JsonConverters;
 
 namespace WorkflowEngine.App.Commands.AppCommand;
 
@@ -83,6 +83,12 @@ internal sealed record AppCallbackPayload
     /// </remarks>
     [JsonPropertyName("waitDeadline")]
     public DateTimeOffset? WaitDeadline { get; init; }
+
+    /// <summary>
+    /// Whether this attempt is the step's final check, so deferring fails the step as expired.
+    /// </summary>
+    [JsonPropertyName("isFinalWaitCheck")]
+    public bool IsFinalWaitCheck { get; init; }
 }
 
 /// <summary>

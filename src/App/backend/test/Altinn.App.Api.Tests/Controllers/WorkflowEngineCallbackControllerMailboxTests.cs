@@ -188,9 +188,6 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
@@ -225,8 +222,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         );
 
     /// <summary>
-    /// Drives the send stage's own callback — Main's last step. The exchange's handler is composed right
-    /// after it, so its completion starts that exchange's receive leg; nothing in its payload says so.
+    /// Drives the send stage's own callback — the primary workflow's last step. The exchange's handler is composed
+    /// right after it, so its completion starts that exchange's receive leg; nothing in its payload says so.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallback(
         Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
@@ -326,7 +323,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         );
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
             "Bearer",
-            Services.GetRequiredService<IWorkflowCallbackTokenGenerator>().GenerateToken(instanceGuid)
+            Services.GenerateCallbackToken(instanceGuid, commandKeys: [ExecuteServiceTask.Key])
         );
         var signer = Services.GetRequiredService<WorkflowStateSigner>();
 
@@ -553,7 +550,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     }
 
     // ---------------------------------------------------------------------------------------------
-    // The send stage's own callback — Main's last step for a declaring pipeline.
+    // The send stage's own callback — the primary workflow's last step for a declaring pipeline.
     // ---------------------------------------------------------------------------------------------
 
     [Fact]
@@ -658,7 +655,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
     /// <summary>
     /// The relay runs inside the callback, after the save: a throw from its tail must reach the engine as a
-    /// retryable failure (5xx) — never a swallowed success, which would settle Main with no receiver
+    /// retryable failure (5xx) — never a swallowed success, which would settle the primary workflow with no receiver
     /// listening on the published address, and never a non-retryable 4xx, since the enqueue is
     /// idempotency-keyed and a replay of the whole step is the designed recovery. The controller has no
     /// catch on this path and the app pipeline no exception handler, so the pin here is the exception

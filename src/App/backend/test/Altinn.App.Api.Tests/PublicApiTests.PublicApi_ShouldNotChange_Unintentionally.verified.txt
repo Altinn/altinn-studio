@@ -1,5 +1,5 @@
 ﻿[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/Altinn/app-lib-dotnet")]
-[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v11.0", FrameworkDisplayName=".NET 11.0")]
 namespace Altinn.App.Api.Controllers
 {
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
@@ -78,6 +78,7 @@ namespace Altinn.App.Api.Controllers
         public AuthorizationController(Altinn.App.Core.Internal.Auth.IAuthorizationClient authorization, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.GeneralSettings> settings, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/api/authorization/parties/current")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(204)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(401)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Register.Models.Party), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(int), 200)]
@@ -87,7 +88,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(bool), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 500, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateSelectedParty(int userId, int partyId, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ValidateSelectedParty(int partyId, System.Threading.CancellationToken cancellationToken) { }
     }
     [Microsoft.AspNetCore.Mvc.ApiController]
     [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
@@ -103,12 +104,14 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public DataController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.DataController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.App.IFrontendFeatures frontendFeatures, Altinn.App.Api.Helpers.Patch.InternalPatchService patchService, Altinn.App.Core.Helpers.Serialization.ModelSerializationService modelDeserializer, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider) { }
+        public DataController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.DataController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Api.Helpers.Patch.InternalPatchService patchService, Altinn.App.Core.Helpers.Serialization.ModelSerializationService modelDeserializer, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpPost]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.DataElement), 201)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>), 400)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         [System.Obsolete("Use the POST method with the dataType parameter in url instead, to get more sensi" +
             "ble BadRequests when validation fails.")]
@@ -116,11 +119,16 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpDelete("{dataGuid:guid}")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.DataPostResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[0])]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.DataPostResponse>> Delete([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string? dataType = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? ignoredValidators = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.HttpGet("{dataGuid:guid}")]
         [Microsoft.AspNetCore.Mvc.HttpGet("{dataGuid:guid}/type/{dataType}")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Get([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string? dataType = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool includeRowId = false, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpPatch("{dataGuid:guid}")]
@@ -143,7 +151,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.HttpPost("type/{dataType}")]
         [Microsoft.AspNetCore.Mvc.HttpPost("{dataType}")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.DataPostErrorResponse), 400)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.DataPostResponse), 201)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.DataPostResponse), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[0])]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
@@ -152,9 +160,12 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceWrite")]
         [Microsoft.AspNetCore.Mvc.HttpPut("{dataGuid:guid}")]
         [Microsoft.AspNetCore.Mvc.HttpPut("{dataGuid:guid}/type/{dataType}")]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.DataPostErrorResponse), 400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Models.CalculationResult), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.DataElement), 201)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 413)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> Put([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string? dataType = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
     }
@@ -331,7 +342,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.Platform.Storage.Interface.Models.Instance), 200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CopyInstance([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> CopyInstance([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, System.Threading.CancellationToken cancellationToken = default) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceDelete")]
         [Microsoft.AspNetCore.Mvc.HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
@@ -364,7 +375,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> Post([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] int? instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> Post([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] int? instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, System.Threading.CancellationToken cancellationToken = default) { }
         [Altinn.App.Api.Controllers.DisableFormValueModelBinding]
         [Microsoft.AspNetCore.Mvc.HttpPost("create")]
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
@@ -373,7 +384,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         [Microsoft.AspNetCore.Mvc.RequestSizeLimit(2097152000)]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> PostSimplified([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.InstantiationInstance instantiationInstance, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Api.Models.InstanceResponse>> PostSimplified([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.InstantiationInstance instantiationInstance, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, System.Threading.CancellationToken cancellationToken = default) { }
         [Microsoft.AspNetCore.Authorization.Authorize]
         [Microsoft.AspNetCore.Mvc.HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/substatus")]
         [Microsoft.AspNetCore.Mvc.Produces("application/json", new string[0])]
@@ -500,19 +511,15 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiController]
     public class PdfController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Features.IPdfFormatter pdfFormatter, Altinn.App.Core.Internal.App.IAppResources resources, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Data.IDataClient dataClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService) { }
-        [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data/{dataGu" +
-            "id}/pdf/format")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(object), 200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 409, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfFormat([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid dataGuid) { }
-        [Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi=true)]
+        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileStreamResult), 200, "application/pdf", new string[0])]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileContentResult), 200, "application/pdf", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 404, "text/plain", new string[0])]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreview([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid) { }
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(void), 429)]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("AltinnPdfPreview")]
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> GetPdfPreview([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? taskId = null, [Microsoft.AspNetCore.Mvc.FromQuery] System.Guid? dataElementId = default, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
     [Altinn.App.Api.Infrastructure.Filters.AutoValidateAntiforgeryTokenIfAuthCookie]
     [Microsoft.AspNetCore.Authorization.Authorize]
@@ -548,14 +555,6 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> ResumeCurrentTask([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken cancellationToken) { }
-        [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceInstantiate")]
-        [Microsoft.AspNetCore.Mvc.HttpPost("start")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.WorkflowInitializationProblemDetails), 500)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[] {
-                "application/json"})]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> StartProcess([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? startEvent = null) { }
     }
     [Microsoft.AspNetCore.Authorization.Authorize]
     [Microsoft.AspNetCore.Mvc.ApiController]
@@ -1320,9 +1319,8 @@ namespace Altinn.App.Api.Models
     public enum WorkflowRecommendedAction
     {
         RetryInstanceCreation = 0,
-        RetryStartProcess = 1,
-        InspectInstance = 2,
-        ResumeCurrentTask = 3,
+        InspectInstance = 1,
+        ResumeCurrentTask = 2,
     }
     public sealed class WorkflowResumeEndpoint : System.IEquatable<Altinn.App.Api.Models.WorkflowResumeEndpoint>
     {

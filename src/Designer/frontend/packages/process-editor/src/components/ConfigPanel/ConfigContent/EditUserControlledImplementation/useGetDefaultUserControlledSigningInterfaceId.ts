@@ -1,7 +1,7 @@
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
+import { TaskUtils } from '../../../../utils/taskUtils';
 
 export const useGetDefaultUserControlledSigningInterfaceId = (): string | null => {
   const { bpmnDetails } = useBpmnContext();
-  return bpmnDetails.element.businessObject.extensionElements?.values[0]?.signatureConfig
-    ?.signeeProviderId;
+  return TaskUtils.getTaskExtension(bpmnDetails.element)?.signatureConfig?.signeeProviderId;
 };

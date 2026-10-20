@@ -3,17 +3,16 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "devDependencies": {
-    "@studio/ui-test": "workspace:^",
-    "jest": "29.7.0"
+    "@studio/ui-test": "workspace:^"
   },
   "peerDependencies": {
-    "axios": "1.19.0",
+    "axios": "1.20.0",
     "classnames": "2.5.1",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "private": true,
   "scripts": {
-    "test": "jest --maxWorkers=50%"
+    "test": "yarn workspace studio-designer-frontend vitest run packages/schema-editor/"
   }
 }

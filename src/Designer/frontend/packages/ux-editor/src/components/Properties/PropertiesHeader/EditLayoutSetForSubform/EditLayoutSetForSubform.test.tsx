@@ -1,6 +1,7 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { componentMocks } from '../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { screen } from '@testing-library/react';
@@ -15,19 +16,18 @@ import { AppContext } from '../../../../AppContext';
 import { appContextMock } from '../../../../testing/appContextMock';
 import { useNavigate } from 'react-router-dom';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn(),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useNavigate: vi.fn(),
 }));
 
-const handleComponentChangeMock = jest.fn();
+const handleComponentChangeMock = vi.fn();
 const subformLayoutSetId = 'subformLayoutSetId';
 const layoutSetsDefault = [{ id: subformLayoutSetId, type: 'subform' }] as LayoutSets;
 
 describe('EditLayoutSetForSubform', () => {
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should display the selected subform layout set in document and be read only', () => {
@@ -45,8 +45,8 @@ describe('EditLayoutSetForSubform', () => {
   });
 
   it('should call navigate when navigating to subform', async () => {
-    const navigateMock = jest.fn();
-    jest.mocked(useNavigate).mockReturnValue(navigateMock);
+    const navigateMock = vi.fn();
+    vi.mocked(useNavigate).mockReturnValue(navigateMock);
     const user = userEvent.setup();
     renderEditLayoutSetForSubform({
       layoutSetsMock: layoutSetsDefault,

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import type { ForwardedRef } from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
