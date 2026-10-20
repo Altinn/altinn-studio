@@ -35,9 +35,9 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
 
     public async Task<string?> ResolveCostOrg(string org, string app)
     {
-        if (IsDevelopersOwnRepository(org))
+        if (IsRepositoryOwnedByDeveloper(org))
         {
-            return ResolveCostOrgForOwnRepository(await GetEligibleCostOrgs());
+            return ResolveCostOrgForOwnRepository(await GetAllowedUserOrganizations());
         }
 
         // Checking the allowlist first spares a Gitea request for the organizations without access.
@@ -46,21 +46,21 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
             return null;
         }
 
-        IReadOnlyList<Organization> eligibleCostOrgs = await GetEligibleCostOrgs();
-        return eligibleCostOrgs.Any(costOrg => costOrg.Username == org) ? org : null;
+        IReadOnlyList<Organization> allowedUserOrganizations = await GetAllowedUserOrganizations();
+        return allowedUserOrganizations.Any(organization => organization.Username == org) ? org : null;
     }
 
-    private static string? ResolveCostOrgForOwnRepository(IReadOnlyList<Organization> eligibleCostOrgs)
+    private static string? ResolveCostOrgForOwnRepository(IReadOnlyList<Organization> allowedUserOrganizations)
     {
-        return eligibleCostOrgs.Count switch
+        return allowedUserOrganizations.Count switch
         {
             0 => null,
-            1 => eligibleCostOrgs[0].Username,
+            1 => allowedUserOrganizations[0].Username,
             _ => ICanUseAiAssistantEvaluator.UnattributedCostOrg,
         };
     }
 
-    private async Task<IReadOnlyList<Organization>> GetEligibleCostOrgs()
+    private async Task<IReadOnlyList<Organization>> GetAllowedUserOrganizations()
     {
         List<Organization>? organizations = await _giteaClient.GetUserOrganizations();
         if (organizations == null)
@@ -71,7 +71,7 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
         return organizations.Where(organization => s_allowedServiceOwners.Contains(organization.Username)).ToList();
     }
 
-    private bool IsDevelopersOwnRepository(string org)
+    private bool IsRepositoryOwnedByDeveloper(string org)
     {
         HttpContext context =
             _httpContextAccessor.HttpContext ?? throw new InvalidOperationException("No HTTP context available");
