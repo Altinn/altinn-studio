@@ -490,6 +490,15 @@
   color: var(--v9);
 }
 
+.s-engine {
+  position: relative;
+}
+
+.s-layer__intro {
+  position: absolute;
+  inset: 0 0 auto;
+}
+
 .s-layer {
   height: 660px;
 }

@@ -10,15 +10,15 @@ import { test, expect, type Page } from '@playwright/test';
  */
 const FIRST_ID = 'forside';
 /** A slide deep in the deck, and a build step inside it, for the deep-link test. */
-const DEEP = { hash: '/#/12/7', id: 'scenario-feil', step: '7' };
+const DEEP = { hash: '/#/9/7', id: 'scenario-feil', step: '7' };
 const LAST_ID = 'bli-med';
-const TOTAL = 16;
+const TOTAL = 15;
 /** Build steps on slide 1 (the cover has none, so the first `→` navigates). */
 const FIRST_SLIDE_STEPS = 0;
 /** Build steps on the last slide, so `→` parks there fully built. */
 const LAST_SLIDE_STEPS = 0;
 /**
- * 16 slides + 30 build steps = every state a presenter clicks through. Each
+ * 15 slides + 31 build steps = every state a presenter clicks through. Each
  * scenario slide contributes 7: six paired beats, and the comparison.
  */
 const TOTAL_STATES = 46;

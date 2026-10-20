@@ -6,7 +6,6 @@ import FrontendBrukerneMerker from './04-frontend-brukerne-merker';
 import FrontendFolgerAppen from './05-frontend-folger-appen';
 import InfraNyttIV9 from './07-infra-nytt-i-v9';
 import Prosessmotor from './08-prosessmotor';
-import LagPaLag from './09-lag-pa-lag';
 import ForUtviklere from './10-for-utviklere';
 import Dashbord from './11-dashbord';
 import ScenarioFeil from './12-scenario-feil';
@@ -22,8 +21,9 @@ import '../styles/slides.css';
  * THE SLIDE REGISTRY — the v9 town hall, in stage order.
  *
  * A cover that maps the talk, a short hook (the v8 half of Kari's first example), then
- * three parts — det brukerne merker, bak kulissene, kom i gang. Part 2 ends on
- * Kari's two examples, the first of them picking up where the hook left off.
+ * three parts — det brukerne merker, bak kulissene, kom i gang. In part 2, Kari's
+ * two examples follow the process engine, the first of them picking up where
+ * the hook left off.
  *
  * `notes` are the taleranmerkninger (norsk bokmål). Accuracy rules that hold
  * across the deck: si «det som er fullført, kjøres ikke på nytt», aldri
@@ -78,28 +78,9 @@ export const slides: SlideDef[] = [
   {
     id: 'prosessmotor',
     component: Prosessmotor,
+    steps: 8,
     notes:
-      'Dette er hele ideen. Appen sier hva som skal skje, og prosessmotoren sørger for at det blir gjort. Hvert steg lagres før det gjøres, så en feil eller en omstart underveis ikke betyr at noe går tapt. Det gjelder alle overganger i prosessen, ikke bare «Send inn».',
-  },
-  {
-    id: 'lag-pa-lag',
-    component: LagPaLag,
-    steps: 7,
-    notes:
-      'Samme prosess, og for hvert klikk et nytt lag under den. Slik tegner dere prosessen i Studio. I v8 lages PDF-en skjult i overgangen fra utfylling til slutt. Første klikk: i v9 er PDF-en en egen tjenesteoppgave. Andre klikk: Kari starter skjemaet. Før hun ser det, har prosessmotoren startet steget, fylt ut det som kan fylles ut på forhånd, kjørt appens egen kode og lagret. Tredje klikk: mens Kari fyller ut, er det appen som svarer henne, akkurat som i dag. Validering, beregninger og lagring underveis skjer der, ikke i motoren. Merket over prosessen viser hele veien hvor Kari og skjemaet er. Fjerde klikk: Kari sender inn. Motoren avslutter steget, låser svarene og lagrer, og så lager den PDF-en. Femte klikk: hendelsene til andre systemer går som egne jobber i bakgrunnen så snart en overgang er lagret. De holder ikke prosessen igjen. Sjette klikk: PDF-tjenesten svarer ikke. Bare det steget prøves igjen. Det som er fullført, kjøres ikke på nytt, og bakgrunnsjobbene er allerede sendt. Sjuende klikk: PDF-en er laget, og prosessen går videre til slutt uten at noen gjør noe.',
-  },
-  {
-    id: 'for-utviklere',
-    component: ForUtviklere,
-    notes:
-      'For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente i timer eller dager på svar fra et annet system. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.',
-  },
-  {
-    id: 'dashbord',
-    component: Dashbord,
-    steps: 3,
-    notes:
-      'Dashbordet viser prosesser som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp. Så tilbake til Kari.',
+      'Dette er hele ideen. Appen sier hva som skal skje, og prosessmotoren sørger for at det blir gjort. Hvert steg lagres når det er ferdig, så en feil eller en omstart underveis ikke betyr at noe går tapt. Første klikk: slik ser det ut i en ekte prosess. Slik tegner dere den i Studio, og i v8 lages PDF-en skjult i overgangen fra utfylling til slutt. Andre klikk: i v9 er PDF-en en egen tjenesteoppgave. Tredje klikk: Kari starter skjemaet. Før hun ser det, har prosessmotoren startet steget, fylt ut det som kan fylles ut på forhånd, kjørt appens egen kode og lagret. Fjerde klikk: mens Kari fyller ut, er det appen som svarer henne, akkurat som i dag. Validering, beregninger og lagring underveis skjer der, ikke i motoren. Merket over prosessen viser hele veien hvor Kari og skjemaet er. Femte klikk: Kari sender inn. Motoren avslutter steget, låser svarene og lagrer, og så lager den PDF-en. Sjette klikk: hendelsene til andre systemer går som egne jobber i bakgrunnen så snart en overgang er lagret. De holder ikke prosessen igjen. Sjuende klikk: PDF-tjenesten svarer ikke. Bare det steget prøves igjen. Det som er fullført, kjøres ikke på nytt, og bakgrunnsjobbene er allerede sendt. Åttende klikk: PDF-en er laget, og prosessen går videre til slutt uten at noen gjør noe. Så tilbake til Kari.',
   },
   {
     id: 'scenario-feil',
@@ -114,6 +95,19 @@ export const slides: SlideDef[] = [
     steps: SIM_STEPS.lukker,
     notes:
       'Et eksempel til. Nå går Kari fra skjemaet før det er sendt, og mens hun er borte svarer ikke en tjeneste. I v8 er arbeidet knyttet til nettleseren hennes: feiler noe etter at hun har gått, prøver ingen igjen, og ingen sier fra. Skjemaet ligger fortsatt som utkast, og Kari tror det er sendt. I v9 er det plattformen som gjør jobben. Siden sier at hun trygt kan lukke den, plattformen prøver igjen, og kvitteringen ligger i innboksen når hun ser etter. Om noen spør: i v8 går arbeidet videre selv om fanen lukkes, så lenge ingenting feiler. Det er feilen etter at hun har gått, ingen tar seg av.',
+  },
+  {
+    id: 'for-utviklere',
+    component: ForUtviklere,
+    notes:
+      'For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente i timer eller dager på svar fra et annet system. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.',
+  },
+  {
+    id: 'dashbord',
+    component: Dashbord,
+    steps: 3,
+    notes:
+      'Dashbordet viser prosesser som pågår, tid brukt per steg, nedtelling til neste forsøk og hele feilhistorikken. Derfra kan drift kjøre et steg på nytt, be det sjekke nå, eller gi opp.',
   },
   {
     id: 'seksjon-kom-i-gang',
