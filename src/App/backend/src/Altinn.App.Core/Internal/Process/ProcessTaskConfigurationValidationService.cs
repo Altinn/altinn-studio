@@ -200,7 +200,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
     /// <remarks>
     /// The gateway takes its default only when no other flow is valid, and a flow without a condition is always valid.
     /// Such a flow fails the gateway whenever another flow's condition holds, and keeps it from ever taking its default.
-    /// A gateway without conditions is left alone when it has no default, or when the app's own
+    /// A gateway without conditions is left alone when it has a single flow and no default, or when the app's own
     /// <see cref="IProcessExclusiveGateway"/> chooses its flow.
     /// </remarks>
     private static IEnumerable<string> ValidateExclusiveGateways(
@@ -213,7 +213,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
             List<SequenceFlow> outgoingFlows = processReader.GetOutgoingSequenceFlows(gateway);
             if (
                 !outgoingFlows.Exists(flow => flow.ConditionExpression is not null)
-                && (gateway.Default is null || gatewaysWithCode.Contains(gateway.Id))
+                && (gatewaysWithCode.Contains(gateway.Id) || (gateway.Default is null && outgoingFlows.Count == 1))
             )
             {
                 continue;

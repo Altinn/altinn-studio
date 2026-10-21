@@ -539,8 +539,8 @@ public class ProcessTaskConfigurationValidationServiceTests
     [Theory]
     // Every flow has a condition.
     [InlineData(null, true, true, false)]
-    // No conditions and no default: the app's own gateway code, or the only flow, decides.
-    [InlineData(null, false, false, false)]
+    // No conditions and no default: the app's own gateway code decides.
+    [InlineData(null, false, false, true)]
     // No conditions: the app's own gateway code decides, so the default is up to it.
     [InlineData("Flow3", false, false, true)]
     public async Task StartAsync_GatewayFlowsWithConditionsOrOwnCode_PassValidation(
@@ -560,6 +560,25 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
 
         Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task StartAsync_GatewayWithOnlyOneFlowWithoutCondition_PassesValidation()
+    {
+        var exception = await Validate(_ => { }, GatewayReader(null, Flow("Flow3", false)));
+
+        Assert.Null(exception);
+    }
+
+    // Without code for the gateway, both flows are always taken.
+    [Fact]
+    public async Task StartAsync_FlowsWithoutConditionOrDefault_FailsValidation()
+    {
+        var exception = await Validate(_ => { }, GatewayReader(null, Flow("Flow3", false), Flow("Flow4", false)));
+
+        Assert.NotNull(exception);
+        Assert.Contains("not its default: 'Flow3', 'Flow4'. ", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("default=", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
