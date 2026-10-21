@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
@@ -78,8 +78,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('ResourceAccessLists', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show show spinner on loading', () => {
     renderResourceAccessLists();
 

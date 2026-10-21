@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PolicyTab } from './PolicyTab';
@@ -77,8 +77,6 @@ mockUpdateAppPolicyMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, Policy, unknown>);
 
 describe('PolicyTab', () => {
-  afterEach(vi.clearAllMocks);
-
   it('initially displays the spinner when loading data', () => {
     renderPolicyTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();

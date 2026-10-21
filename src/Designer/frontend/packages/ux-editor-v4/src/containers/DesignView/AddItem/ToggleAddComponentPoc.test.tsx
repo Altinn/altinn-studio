@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { ToggleAddComponentPoc } from './ToggleAddComponentPoc';
@@ -11,8 +11,6 @@ const addFlag = vi.fn();
 const removeFlag = vi.fn();
 
 describe('ToggleAddComponentPoc', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('should render the component', () => {
     renderToggleAddComponentPoc();
     expect(screen.getByText('Prøv nytt design')).toBeInTheDocument();

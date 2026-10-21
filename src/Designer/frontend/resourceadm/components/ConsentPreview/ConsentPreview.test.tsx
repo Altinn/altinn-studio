@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -31,8 +31,6 @@ const defaultProps = {
 };
 
 describe('ConsentPreview', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should show consent preview if consentText is null', () => {
     render(<ConsentPreview {...defaultProps} consentText={null} />);
 

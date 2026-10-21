@@ -27,6 +27,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Versioning;
 using ApplicationLanguage = Altinn.Studio.Designer.Models.ApplicationLanguage;
 
 namespace Altinn.Studio.Designer.Controllers;
@@ -67,9 +68,6 @@ public partial class PreviewController(
 {
     // This value will be overridden to act as the task number for apps that use layout sets
     private const int PartyId = 51001;
-
-    // Base URL where Designer serves the app-frontend bundle for v9 previews (wwwroot/altinn-app-frontend/).
-    private const string V9PreviewAssetBaseUrl = "/altinn-app-frontend";
 
     /// <summary>
     /// Default action for the preview.
@@ -972,10 +970,11 @@ public partial class PreviewController(
         CancellationToken cancellationToken
     )
     {
-        string globalDataJson = await previewBootstrapService.GetAppGlobalDataJson(
-            AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
-            cancellationToken
-        );
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        string globalDataJson = await previewBootstrapService.GetAppGlobalDataJson(editingContext, cancellationToken);
+        // v9 app-frontend has the same version as the app backend (app-lib).
+        SemanticVersion appLibVersion = appVersionService.GetAppLibVersion(editingContext);
+        string appFrontendAssetBaseUrl = $"/designer/app-dist/{appLibVersion.ToNormalizedString()}";
 
         // Not configurable from the preview yet; app-frontend treats {} as "all defaults".
         const string FeatureTogglesJson = "{}";
@@ -994,7 +993,7 @@ public partial class PreviewController(
               <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
               <title>{{orgTitle}} - {{appTitle}}</title>
               <link rel="icon" href="/favicon.ico">
-              <link rel="stylesheet" type="text/css" href="{{V9PreviewAssetBaseUrl}}/altinn-app-frontend.css">
+              <link rel="stylesheet" type="text/css" href="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.css">
             </head>
             <body>
               <div id="root"></div>
@@ -1004,7 +1003,7 @@ public partial class PreviewController(
                 window.featureToggles = {{FeatureTogglesJson}};
                 window.altinnAppGlobalData = {{globalDataJson}};
               </script>
-              <script src="{{V9PreviewAssetBaseUrl}}/altinn-app-frontend.js" crossorigin></script>
+              <script src="{{appFrontendAssetBaseUrl}}/altinn-app-frontend.js" crossorigin></script>
             </body>
             </html>
             """;

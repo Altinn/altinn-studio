@@ -21,12 +21,12 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
 `LocalTest.sln` / `src/LocalTest.csproj` is a normal .NET project:
 
 ```bash
-dotnet build LocalTest.sln    # from src/Runtime/localtest
+dotnet build LocalTest.sln                           # from src/Runtime/localtest
+dotnet test test/LocalTest.Tests/LocalTest.Tests.csproj  # CI runs these too
 ```
 
 Normally you don't run it by hand — `studioctl env up` starts it (Docker/Podman) alongside the other
-local services. The `Makefile` here only holds helpers (`podman-selinux-bind-hack`, `sync-dashboards`),
-not build/test targets.
+local services. The `Makefile` here only holds the `podman-selinux-bind-hack` helper, not build/test targets.
 
 ## Working here
 

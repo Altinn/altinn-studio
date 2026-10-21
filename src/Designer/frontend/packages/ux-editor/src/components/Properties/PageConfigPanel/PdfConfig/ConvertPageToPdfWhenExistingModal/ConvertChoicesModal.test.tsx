@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { formLayoutSettingsMock, renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { ConvertChoicesModal } from '@altinn/ux-editor/components/Properties/PageConfigPanel/PdfConfig/ConvertPageToPdfWhenExistingModal/ConvertChoicesModal';
@@ -18,7 +18,6 @@ const selectedLayoutSet = layoutSet1NameMock;
 const handleModalActionMock = vi.fn();
 
 describe('ConvertChoicesModal', () => {
-  afterEach(() => vi.clearAllMocks());
   it('converts existing pdf back to formLayout when clicking convert in conversion choices modal', async () => {
     const user = userEvent.setup();
     const pdfLayoutNameMock = 'pdfLayoutNameMock';

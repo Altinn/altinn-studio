@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -101,8 +101,6 @@ describe('SelectUniqueFromSignaturesInDataTypes', () => {
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
       { dataTypes: [] };
   });
-
-  afterEach(vi.clearAllMocks);
 
   it.each([
     { dataType: 'dataType2', label: /Name 2/ },

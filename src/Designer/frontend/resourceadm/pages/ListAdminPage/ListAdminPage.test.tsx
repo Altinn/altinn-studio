@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { MemoryRouter, useParams } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -37,8 +37,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('ListAdminPage', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should navigate to first available enviromnent if no environment is selected', async () => {
     (useParams as Mock).mockReturnValue({
       org: 'ttd',

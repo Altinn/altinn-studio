@@ -143,6 +143,72 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("api_keys", "designer");
                 });
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppActivityDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<bool>("Deployed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("deployed");
+
+                    b.Property<string>("Environment")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("environment");
+
+                    b.Property<DateTimeOffset>("FirstCollectedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("first_collected_at");
+
+                    b.Property<DateTimeOffset>("LastCollectedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("last_collected_at");
+
+                    b.Property<DateTimeOffset?>("LastReadAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("last_read_at");
+
+                    b.Property<DateTimeOffset?>("LastWriteAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("last_write_at");
+
+                    b.Property<string>("LatestWindowCounts")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("latest_window_counts");
+
+                    b.Property<int>("LatestWindowDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("latest_window_days");
+
+                    b.Property<DateTimeOffset>("ObservedSince")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("observed_since");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.HasKey("Id")
+                        .HasName("app_activity_pkey");
+
+                    b.HasIndex(new[] { "Org", "Environment", "App" }, "idx_app_activity_org_environment_app")
+                        .IsUnique();
+
+                    b.ToTable("app_activity", "designer");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel", b =>
                 {
                     b.Property<long>("Id")
@@ -481,6 +547,12 @@ namespace Altinn.Studio.Designer.Migrations
                     b.Property<Guid?>("UpdatedByUserAccountId")
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by_user_account_id");
+
+                    b.Property<int>("ReportFrequency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("report_frequency");
 
                     b.HasKey("Id")
                         .HasName("contact_points_pkey");

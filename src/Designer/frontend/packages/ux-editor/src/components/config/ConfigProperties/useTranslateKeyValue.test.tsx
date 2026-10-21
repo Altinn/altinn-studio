@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useTranslateKeyValue } from './useTranslateKeyValue';
@@ -8,10 +8,6 @@ import { useComponentPropertyEnumValue, useComponentPropertyLabel } from '../../
 vi.mock('@altinn/ux-editor/hooks');
 
 describe('useTranslateKeyValue', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should return null when no values are provided', () => {
     const { result } = renderHook(() => useTranslateKeyValue(null));
     expect(result.current).toBeUndefined();

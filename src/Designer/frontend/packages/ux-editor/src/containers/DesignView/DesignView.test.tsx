@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
@@ -23,7 +23,7 @@ import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsU
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
@@ -32,10 +32,6 @@ const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
 describe('DesignView', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('displays the correct number of accordions', () => {
     renderDesignView({});
 
@@ -184,7 +180,7 @@ describe('DesignView', () => {
 
 type renderDesignViewParams = {
   layoutSettings?: ILayoutSettings;
-  externalLayout?: FormLayoutsResponse;
+  externalLayout?: SerializedFormLayoutsResponse;
   pagesModel?: PagesModel;
 };
 

@@ -107,6 +107,19 @@ public static class PolicyConverter
                         policy.RequiredAuthenticationLevelOrg = astr.Value;
                     }
                 }
+
+                if (
+                    attributeAssignmentExpression.Category.AbsoluteUri.Equals(
+                        AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelSystemUser
+                    )
+                )
+                {
+                    XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
+                    if (astr != null)
+                    {
+                        policy.RequiredAuthenticationLevelSystemUser = astr.Value;
+                    }
+                }
             }
         }
     }
@@ -218,6 +231,13 @@ public static class PolicyConverter
             );
         }
 
+        if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelSystemUser))
+        {
+            policyOutput.ObligationExpressions.Add(
+                GetAuthenticationLevelObligationSystemUser(policyInput.RequiredAuthenticationLevelSystemUser)
+            );
+        }
+
         return policyOutput;
     }
 
@@ -265,6 +285,11 @@ public static class PolicyConverter
             foreach (string res in resource)
             {
                 int splitLocation = res.LastIndexOf(":");
+                if (res.StartsWith($"{AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute}:a1-"))
+                {
+                    // Migrated Altinn 1 app values contain colons (e.g. "a1-1269-5942:1"), so split after urn:altinn:app
+                    splitLocation = AltinnXacmlConstants.MatchAttributeIdentifiers.AppAttribute.Length;
+                }
                 string attributeDesignator = res.Substring(0, splitLocation);
                 string attributeValue = res.Substring(splitLocation + 1);
 
@@ -407,6 +432,28 @@ public static class PolicyConverter
         );
         xacmlAttributeAssignmentExpression.Category = new Uri(
             AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
+        );
+        expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
+        expression.FulfillOn = XacmlEffectType.Permit;
+        return expression;
+    }
+
+    private static XacmlObligationExpression GetAuthenticationLevelObligationSystemUser(string level)
+    {
+        XacmlObligationExpression expression = new XacmlObligationExpression(
+            new Uri("urn:altinn:obligation:authenticationLevel3"),
+            XacmlEffectType.Permit
+        );
+
+        XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
+        astr.Value = level;
+
+        XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(
+            new Uri("urn:altinn:obligation3-assignment3"),
+            astr
+        );
+        xacmlAttributeAssignmentExpression.Category = new Uri(
+            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelSystemUser
         );
         expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
         expression.FulfillOn = XacmlEffectType.Permit;

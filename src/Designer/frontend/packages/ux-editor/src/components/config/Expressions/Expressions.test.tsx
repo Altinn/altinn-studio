@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
@@ -11,12 +11,14 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { Expressions } from './Expressions';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import type { FormComponent } from '../../../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { parsableLogicalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
 import { ObjectUtils } from '@studio/pure-functions';
 import { LogicalTupleOperator } from '@studio/components';
 import { app, org } from '@studio/testing/testids';
+import { expressionPropertiesOnFormItem, setExpressionOnFormItem } from './utils';
+import type { FormItem } from '../../../types/FormItem';
 
 // Test data:
 const layoutSetName = layoutSet1NameMock;
@@ -28,14 +30,12 @@ const componentWithExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
   hidden: parsableLogicalExpression,
 };
 const componentWithoutExpression: FormComponent<ComponentType.Input> = {
   id: 'some-id',
   type: ComponentType.Input,
   dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-  itemType: 'COMPONENT',
 };
 
 const defaultFormItemContext: FormItemContext = {
@@ -49,8 +49,6 @@ const defaultFormItemContext: FormItemContext = {
 };
 
 describe('Expressions', () => {
-  beforeEach(vi.clearAllMocks);
-
   it('renders add new expression button when there are no existing expressions on component', async () => {
     renderExpressions({ formItem: componentWithoutExpression });
     screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
@@ -58,21 +56,17 @@ describe('Expressions', () => {
 
   it('renders the expression and the button for adding an expression when the hidden field on the component has an expression', () => {
     renderExpressions();
-    const expressionName = textMock('right_menu.expressions_property_preview_hidden');
+    const expressionName = `${textMock('ux_editor.component_properties.hidden')} some-id`;
     screen.getByRole('group', { name: expressionName });
     screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
   });
 
   it('Disables the add button when all supported expression properties are set on a simple component', () => {
-    const componentWithMultipleExpressions: FormComponent = {
+    const componentWithMultipleExpressions = withAllExpressions({
       id: 'some-id',
       type: ComponentType.Input,
       dataModelBindings: { simpleBinding: { field: 'some-path', dataType: '' } },
-      itemType: 'COMPONENT',
-      hidden: parsableLogicalExpression,
-      required: parsableLogicalExpression,
-      readOnly: parsableLogicalExpression,
-    };
+    });
     renderExpressions({ formItem: componentWithMultipleExpressions });
     const addButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
@@ -81,22 +75,11 @@ describe('Expressions', () => {
   });
 
   it('Disables the add button when all supported expression properties are set on a repeating group', () => {
-    const groupComponentWithAllBooleanFieldsAsExpressions: FormContainer<ComponentType.RepeatingGroup> =
-      {
-        id: 'some-id',
-        itemType: 'CONTAINER',
-        type: ComponentType.RepeatingGroup,
-        dataModelBindings: { group: { field: 'some-path', dataType: '' } },
-        hidden: parsableLogicalExpression,
-        edit: {
-          addButton: parsableLogicalExpression,
-          alertOnDelete: parsableLogicalExpression,
-          deleteButton: parsableLogicalExpression,
-          editButton: parsableLogicalExpression,
-          saveAndNextButton: parsableLogicalExpression,
-          saveButton: parsableLogicalExpression,
-        },
-      };
+    const groupComponentWithAllBooleanFieldsAsExpressions = withAllExpressions({
+      id: 'some-id',
+      type: ComponentType.RepeatingGroup,
+      dataModelBindings: { group: { field: 'some-path', dataType: '' } },
+    } as FormContainer<ComponentType.RepeatingGroup>);
     renderExpressions({ formItem: groupComponentWithAllBooleanFieldsAsExpressions });
     const addButton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_expressions_limit_reached_alert'),
@@ -110,7 +93,7 @@ describe('Expressions', () => {
     renderExpressions({ handleUpdate });
     const addButton = screen.getByRole('button', { name: textMock('right_menu.expressions_add') });
     await user.click(addButton);
-    const buttonName = textMock('right_menu.expressions_property_read_only');
+    const buttonName = textMock('ux_editor.component_properties.readOnly');
     const button = screen.getByRole('button', { name: buttonName });
     await user.click(button);
     expect(handleUpdate).toHaveBeenCalledTimes(1);
@@ -125,7 +108,7 @@ describe('Expressions', () => {
     vi.spyOn(window, 'confirm').mockImplementation(() => true);
     const handleUpdate = vi.fn();
     renderExpressions({ handleUpdate });
-    const expressionName = textMock('right_menu.expressions_property_preview_hidden');
+    const expressionName = `${textMock('ux_editor.component_properties.hidden')} some-id`;
     const expression = screen.getByRole('group', { name: expressionName });
     const deleteButtonName = textMock('right_menu.expression_delete');
     const deleteButton = within(expression).getByRole('button', { name: deleteButtonName });
@@ -140,7 +123,7 @@ describe('Expressions', () => {
     const user = userEvent.setup();
     const handleUpdate = vi.fn();
     renderExpressions({ handleUpdate });
-    const expressionName = textMock('right_menu.expressions_property_preview_hidden');
+    const expressionName = `${textMock('ux_editor.component_properties.hidden')} some-id`;
     const expression = screen.getByRole('group', { name: expressionName });
     const orButtonName = textMock('expression.logicalTupleOperator.or');
     const orButton = within(expression).getByRole('radio', { name: orButtonName });
@@ -155,7 +138,6 @@ describe('Expressions', () => {
   it('Renders successfully when the component is a multipage group', () => {
     const formItem: FormContainer = {
       id: 'some-id',
-      itemType: 'CONTAINER',
       type: ComponentType.RepeatingGroup,
       dataModelBindings: { group: { field: 'some-path', dataType: '' } },
       edit: {
@@ -167,6 +149,13 @@ describe('Expressions', () => {
     expect(addExpressionBtn).toBeInTheDocument();
   });
 });
+
+const withAllExpressions = <T extends FormItem>(formItem: T): T =>
+  expressionPropertiesOnFormItem(formItem.type).reduce(
+    (component, property) =>
+      setExpressionOnFormItem(component, property, parsableLogicalExpression),
+    formItem,
+  );
 
 const renderExpressions = (formItemContext: Partial<FormItemContext> = {}) => {
   const queryClient = createQueryClientMock();

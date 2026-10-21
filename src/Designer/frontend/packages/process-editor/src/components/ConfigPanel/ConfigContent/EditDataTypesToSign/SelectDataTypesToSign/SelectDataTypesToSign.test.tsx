@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../../../test/renderWithProviders';
 import { textMock } from '../../../../../../../../testing/mocks/i18nMock';
@@ -91,8 +91,6 @@ describe('SelectDataTypesToSign', () => {
       dataTypes: [],
     };
   });
-
-  afterEach(vi.clearAllMocks);
 
   it('shows the current BPMN selection after an external change', async () => {
     const { rerender } = renderSelectDataTypesToSign(existingDataTypesProps);

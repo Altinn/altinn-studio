@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -36,10 +36,6 @@ const renderHook = async ({
 };
 
 describe('useAddGroupMutation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('throws an error if trying to add group to pages without groups', async () => {
     const queryClient = createQueryClientMock();
     const services = {

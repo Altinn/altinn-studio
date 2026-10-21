@@ -1,7 +1,8 @@
-"""Tests for the surviving write tools: verify_changes, commit_session_branch.
+"""Tests for the write tools: the read-only refusal of every tool that
+needs write mode, and the behavior of verify_changes and
+commit_session_branch.
 
-(The `propose_patch` and `rollback` tools have been removed in favor of
-the CC-style file surface — see `test_file_tools.py`.)
+The behavior of the file tools is tested in `test_file_tools.py`.
 
 External services (git_ops, repo_manager, the layout-schema CDN fetch)
 are monkeypatched or stubbed — nothing in here touches the network.  The
@@ -21,8 +22,13 @@ import pytest
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
 from agents.core import (
     CommitSessionBranchTool,
+    DatamodelSyncTool,
+    DiscardFileChangesTool,
+    EditFileTool,
     LoopContext,
+    PreviewRenderCheckTool,
     VerifyChangesTool,
+    WriteFileTool,
 )
 
 from .git_repo import create_committed_repo, write_files
@@ -55,11 +61,11 @@ def _write_ctx(
 @pytest.fixture
 def permissive_schema(monkeypatch):
     """Layout schema fetch → empty schema (accepts any layout)."""
-    monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
+    monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", lambda url: {})
 
 
 # ---------------------------------------------------------------------------
-# Permission gating (the surviving write tools should still respect the flag)
+# Permission gating (every tool that needs write mode must respect the flag)
 # ---------------------------------------------------------------------------
 
 
@@ -67,8 +73,13 @@ class TestPermission:
     @pytest.mark.parametrize(
         "tool_factory,args",
         [
+            (EditFileTool, {"path": "f.txt", "old_string": "a", "new_string": "b"}),
+            (WriteFileTool, {"path": "f.txt", "content": "a"}),
+            (DiscardFileChangesTool, {"path": "f.txt"}),
             (VerifyChangesTool, {}),
             (CommitSessionBranchTool, {"message": "msg"}),
+            (PreviewRenderCheckTool, {}),
+            (DatamodelSyncTool, {"schema_path": "App/models/model.schema.json"}),
         ],
     )
     async def test_denied_in_read_only_mode(self, tool_factory, args):
@@ -113,7 +124,7 @@ class TestVerifyChanges:
             requested_locations.append(schema_location)
             return {}
 
-        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", load_schema)
+        monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", load_schema)
         ctx = _write_ctx(
             repo_path=str(tmp_path),
             changed={"App/ui/form/layouts/Page1.json"},
@@ -136,7 +147,7 @@ class TestVerifyChanges:
             return {"valid": True, "errors": [], "warnings": []}
 
         monkeypatch.setattr(
-            "agents.core.tools.verify_tool.resource_validator_tool",
+            "agents.core.tools.verify_changes_tool.resource_validator_tool",
             fake_resource_validator,
         )
 
@@ -259,9 +270,9 @@ class TestVerifyChanges:
         layout_path.parent.mkdir(parents=True)
         layout_path.write_text('{"data": {}}', encoding="utf-8")
 
-        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
+        monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", lambda url: {})
         monkeypatch.setattr(
-            "agents.core.tools.verify_tool.validate_layout_json",
+            "agents.core.tools.verify_changes_tool.validate_layout_json",
             lambda layout, schema, referenced_schemas: {
                 "status": "validation_failed",
                 "message": "Layout validation failed with 1 error(s)",
@@ -284,9 +295,9 @@ class TestVerifyChanges:
         layout_path.parent.mkdir(parents=True)
         layout_path.write_text('{"data": {"layout": []}}', encoding="utf-8")
 
-        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", lambda url: {})
+        monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", lambda url: {})
         monkeypatch.setattr(
-            "agents.core.tools.verify_tool.validate_layout_json",
+            "agents.core.tools.verify_changes_tool.validate_layout_json",
             lambda layout, schema, referenced_schemas: {
                 "status": "validation_failed",
                 "message": "Layout validation failed with 1 error(s)",
@@ -318,7 +329,7 @@ class TestVerifyChanges:
         def boom(url):
             raise RuntimeError("CDN unreachable")
 
-        monkeypatch.setattr("agents.core.tools.verify_tool.get_layout_schema", boom)
+        monkeypatch.setattr("agents.core.tools.verify_changes_tool.get_layout_schema", boom)
         ctx = _write_ctx(
             repo_path=str(tmp_path),
             changed={"App/ui/layouts/P.json"},
@@ -477,7 +488,7 @@ class TestCommitSessionBranch:
                 seen.setdefault("pushes", []).append((session_id, branch_name))
                 return True
 
-        monkeypatch.setattr("agents.core.tools.git_tool.git_ops.commit", fake_commit)
+        monkeypatch.setattr("agents.core.tools.commit_session_branch_tool.git_ops.commit", fake_commit)
         monkeypatch.setattr(
             "agents.services.git.repo_manager.get_repo_manager",
             lambda: FakeRepoManager(),
@@ -503,7 +514,7 @@ class TestCommitSessionBranch:
 
     async def test_empty_tree_returns_error(self, monkeypatch):
         monkeypatch.setattr(
-            "agents.core.tools.git_tool.git_ops.commit",
+            "agents.core.tools.commit_session_branch_tool.git_ops.commit",
             lambda m, r, b: None,
         )
 
@@ -514,7 +525,7 @@ class TestCommitSessionBranch:
 
     async def test_push_failure_keeps_commit_but_flags_error(self, monkeypatch):
         monkeypatch.setattr(
-            "agents.core.tools.git_tool.git_ops.commit",
+            "agents.core.tools.commit_session_branch_tool.git_ops.commit",
             lambda m, r, b: "deadbeef",
         )
 
@@ -541,7 +552,7 @@ class TestCommitSessionBranch:
             called["commit"] = True
             return "abc12345"
 
-        monkeypatch.setattr("agents.core.tools.git_tool.git_ops.commit", fake_commit)
+        monkeypatch.setattr("agents.core.tools.commit_session_branch_tool.git_ops.commit", fake_commit)
 
         ctx = _write_ctx(
             changed={"App/ui/layouts/P.json"},
@@ -558,7 +569,7 @@ class TestCommitSessionBranch:
 
     async def test_proceeds_when_all_changed_files_are_verified(self, monkeypatch):
         monkeypatch.setattr(
-            "agents.core.tools.git_tool.git_ops.commit",
+            "agents.core.tools.commit_session_branch_tool.git_ops.commit",
             lambda m, r, b: "abc12345",
         )
 
@@ -584,7 +595,7 @@ class TestCommitSessionBranch:
 
     async def test_push_raises_keeps_commit_but_flags_error(self, monkeypatch):
         monkeypatch.setattr(
-            "agents.core.tools.git_tool.git_ops.commit",
+            "agents.core.tools.commit_session_branch_tool.git_ops.commit",
             lambda m, r, b: "feedface",
         )
 

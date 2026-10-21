@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RedirectToLayoutSet } from './RedirectToLayoutSet';
 import { screen } from '@testing-library/react';
@@ -16,10 +16,6 @@ vi.mock('react-router-dom', async () => ({
 }));
 
 describe('RedirectToLayoutSet', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('displays a redirect button to design layout set for the subform if set', () => {
     renderRedirectToLayoutSet();
     const redirectBoxTitle = screen.queryByText(

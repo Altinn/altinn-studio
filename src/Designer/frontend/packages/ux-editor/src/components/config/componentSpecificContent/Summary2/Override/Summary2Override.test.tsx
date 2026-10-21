@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { Summary2Override, type Summary2OverrideProps } from './Summary2Override';
@@ -7,7 +7,6 @@ import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
 import {
   component1IdMock,
-  container1IdMock,
   componentWithOptionsMock,
   componentWithMultipleSelectMock,
   layout1NameMock,
@@ -22,8 +21,8 @@ import type {
   OverrideDisplay,
   OverrideDisplayType,
   Summary2TargetConfig,
-} from 'app-shared/types/ComponentSpecificConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
+} from '@altinn/ux-editor/types/Summary2Config';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 const checkBoxId = componentWithOptionsMock.id;
 const multipleSelectId = componentWithMultipleSelectMock.id;
@@ -39,10 +38,6 @@ const layoutMockWithMultipleSelect = {
 };
 
 describe('Summary2Override', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should be able to add new override', async () => {
     const user = userEvent.setup();
     render();
@@ -147,52 +142,6 @@ describe('Summary2Override', () => {
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.objectContaining({
           overrides: [{ componentId: '1', hidden: true }],
-        }),
-      ),
-    );
-  });
-
-  it('"isCompact" switch should not be checked when isCompact is false', async () => {
-    const user = userEvent.setup();
-    const component = {
-      ...defaultProps.component,
-      overrides: [{ componentId: container1IdMock, isCompact: false }],
-    };
-    render({ component });
-    await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('switch', {
-      name: textMock('ux_editor.component_properties.summary.override.is_compact'),
-    });
-    expect(compactCheckbox).toBeInTheDocument();
-    expect(compactCheckbox).not.toBeChecked();
-    await user.click(compactCheckbox);
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          overrides: [{ componentId: container1IdMock, isCompact: true }],
-        }),
-      ),
-    );
-  });
-
-  it('"isCompact" switch should be checked when isCompact is true', async () => {
-    const user = userEvent.setup();
-    const component = {
-      ...defaultProps.component,
-      overrides: [{ componentId: container1IdMock, isCompact: true }],
-    };
-    render({ component });
-    await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('switch', {
-      name: textMock('ux_editor.component_properties.summary.override.is_compact'),
-    });
-    expect(compactCheckbox).toBeInTheDocument();
-    expect(compactCheckbox).toBeChecked();
-    await user.click(compactCheckbox);
-    await waitFor(() =>
-      expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          overrides: [{ componentId: container1IdMock, isCompact: false }],
         }),
       ),
     );
@@ -396,7 +345,6 @@ const renderedTypeOptions = () => {
 const defaultProps: Summary2OverrideProps = {
   component: {
     id: '1',
-    itemType: 'COMPONENT',
     type: ComponentType.Summary2,
     overrides: [],
     target: {},

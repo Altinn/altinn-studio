@@ -83,7 +83,6 @@ describe('CreateService', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: originalWindowLocation,

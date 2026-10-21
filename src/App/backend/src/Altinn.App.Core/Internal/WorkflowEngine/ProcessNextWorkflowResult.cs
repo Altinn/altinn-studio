@@ -8,5 +8,5 @@ internal sealed record ProcessNextWorkflowResult(
     Instance Instance,
     StorageVersionMetadata InstanceVersions,
     WorkflowFailure? WorkflowFailure,
-    bool ProcessStateChanged
+    bool ProcessStateCommitted
 );

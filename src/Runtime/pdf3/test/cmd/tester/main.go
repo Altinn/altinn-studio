@@ -267,12 +267,12 @@ func addPDF3PublishResources(
 		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
 	}
 	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
-		filepath.Join(root, "infra/kustomize"),
+		filepath.Join(root, "infra/local"),
 		bundle,
 		workloads,
 	)
 	if err != nil {
-		return pdf3PublishedResources{}, nil, fmt.Errorf("prepare pdf3 kustomize artifact: %w", err)
+		return pdf3PublishedResources{}, nil, fmt.Errorf("prepare pdf3 local artifact: %w", err)
 	}
 	artifact := &resource.OCIArtifact{
 		Format:    resource.OCIArtifactFormatGeneric,
@@ -328,7 +328,7 @@ func addPDF3DeploymentResources(
 	objects := &resource.KubernetesObjectSet{
 		Name:      "deployment-pdf3",
 		Cluster:   runtime.ClusterRef(),
-		Path:      filepath.Join(root, "infra/kustomize/local-syncroot-"+variantName),
+		Path:      filepath.Join(root, "infra/local/syncroot-"+variantName),
 		DependsOn: deps,
 		Readiness: []resource.KubernetesReadinessCheck{
 			{

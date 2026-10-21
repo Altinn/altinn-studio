@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Policy } from 'app-shared/types/Policy';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler, AllowedContributor } from './OnProcessTaskAddHandler';
@@ -50,10 +50,6 @@ const createTaskEvent = (businessObject?: BpmnBusinessObjectEditor): TaskEvent =
   }) as TaskEvent;
 
 describe('OnProcessTaskAddHandler', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should add layoutSet when data-task is added', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 

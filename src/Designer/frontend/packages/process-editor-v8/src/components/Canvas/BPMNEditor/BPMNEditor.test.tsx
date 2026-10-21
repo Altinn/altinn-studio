@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BPMNEditor } from './BPMNEditor';
 import { BpmnApiContextProvider } from '../../../contexts/BpmnApiContext';
@@ -10,8 +10,6 @@ vi.mock('../../../hooks/useBpmnEditor', () => ({
 }));
 
 describe('BPMNEditor', () => {
-  afterEach(vi.clearAllMocks);
-
   it('does not render spinner when pendingApiOperations is false', () => {
     renderBpmnEditor({ pendingApiOperations: false });
 

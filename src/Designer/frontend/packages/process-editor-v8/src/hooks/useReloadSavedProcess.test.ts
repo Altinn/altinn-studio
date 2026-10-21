@@ -27,7 +27,6 @@ const modeler = {
 
 describe('useReloadSavedProcess', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     isReloadingRef.current = false;
     importXML.mockResolvedValue({ warnings: [] });
     getSavedBpmn.mockResolvedValue(savedXml);

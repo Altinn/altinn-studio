@@ -24,6 +24,7 @@ This document is aimed at internal developers who need to understand, integrate 
     - [Failure-Storm Throttling](#failure-storm-throttling)
     - [Mailboxes](#mailboxes)
     - [Dependency Graphs](#dependency-graphs)
+    - [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)
     - [Telemetry \& Observability](#telemetry--observability)
     - [Dashboard](#dashboard)
     - [API Reference](#api-reference)
@@ -1105,6 +1106,39 @@ Reference previously-enqueued workflows by database ID:
 ```json
 { "ref": "new-workflow", "dependsOn": ["local-ref", "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] }
 ```
+
+## Primary and auxiliary workflows
+
+A primary workflow is one the process waits on. An auxiliary workflow runs beside the process: it
+never blocks or moves it, and its failure means work was lost and must be redriven, not that the
+instance is stuck.
+
+The category is encoded by the per-workflow `isHead` directive on enqueue:
+
+- `isHead` `true` or unset is a primary workflow; `false` is an auxiliary workflow. The directive is
+  persisted verbatim in the `is_head` column and returned as `isHead` on workflow status reads.
+- An auxiliary workflow never joins the collection's heads and its dependency edges never consume
+  them, so no later enqueue waits on it through the heads. With `dependsOnHeads` (the default) it still waits
+  for the current heads before it runs.
+- `engine.workflows.execution.failed` carries an `is_head` tag (`true`, `false` or `unset`) on every
+  `reason`. `false` is an auxiliary workflow's failure: nothing waits on it, so this metric is where it
+  surfaces.
+
+The collection's head frontier (`heads` on collection responses) is a different thing: the workflows
+the next enqueue will depend on right now. A primary workflow leaves the frontier once a later
+workflow depends on it; it stays primary.
+
+| Layer                      | Primary workflow    | Auxiliary workflow |
+| -------------------------- | ------------------- | ------------------ |
+| English (docs, UI, prose)  | primary workflow    | auxiliary workflow |
+| Norwegian (UI text)        | hovedflyt           | sideflyt           |
+| Code identifiers           | `Primary…`          | `Auxiliary…`       |
+| JSON and query enum values | `Primary`           | `Auxiliary`        |
+| JSON property keys         | `primary`           | `auxiliary`        |
+| Encoding                   | `isHead` true/unset | `isHead` false     |
+
+Words such as visible/invisible, side effect, side chain, non-critical and fire-and-forget are not
+used for this concept, and "head" is kept for the frontier and the `isHead` directive.
 
 ## Telemetry & Observability
 

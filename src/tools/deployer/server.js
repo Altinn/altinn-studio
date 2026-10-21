@@ -28,7 +28,7 @@ class FatalSyncError extends Error {
 // --- Service & environment definitions ---
 
 function envDisplayName(name) {
-  return name.replace(/^(runtime_|studio_|adminservices_)/, '');
+  return name.replace(/^(runtime_|studio_|adminservices_|dis_core_|dis_edge_)/, '');
 }
 
 function createEnv(name, aliases = [], ungated = false) {
@@ -52,7 +52,7 @@ function createPlane(name, envs) {
 function workflowDisplayName(workflow) {
   return workflow
     .replace(/\.ya?ml$/i, '')
-    .replace(/^deploy-(runtime|studio|admin)-/, '')
+    .replace(/^deploy-(runtime|studio|admin|dis)-/, '')
     .replace(/^deploy-/, '');
 }
 
@@ -68,8 +68,23 @@ const STUDIO_ENVS = Object.freeze([
 ]);
 // Admin workflows name their tag jobs after the matrix tag, e.g. "Tag syncroot (test)".
 const ADMIN_ENVS = Object.freeze([createEnv('adminservices_test', ['test'], true)]);
+// DIS Core workflows name their tag jobs after the Core environment, e.g. "Tag syncroot (at22)".
+// The at environments need no approval; yt01, tt02 and prod need a reviewer.
+const DIS_CORE_ENVS = Object.freeze(
+  ['at22', 'at23', 'yt01', 'tt02', 'prod'].map((name) =>
+    createEnv(`dis_core_${name}`, [name], name.startsWith('at')),
+  ),
+);
+// DIS Edge workflows name their tag jobs the same way, with the same approvals.
+const DIS_EDGE_ENVS = Object.freeze(
+  ['at22', 'at23', 'yt01', 'tt02', 'prod'].map((name) =>
+    createEnv(`dis_edge_${name}`, [name], name.startsWith('at')),
+  ),
+);
 const PLANE_DEFINITIONS = Object.freeze([
   { name: 'runtime', envs: RUNTIME_ENVS },
+  { name: 'dis-core', envs: DIS_CORE_ENVS },
+  { name: 'dis-edge', envs: DIS_EDGE_ENVS },
   { name: 'studio', envs: STUDIO_ENVS },
   { name: 'admin', envs: ADMIN_ENVS },
 ]);
@@ -110,7 +125,6 @@ const ADMIN_WORKFLOWS = [
 const RUNTIME_SERVICE_DEFS = [
   ['deploy-runtime-gateway.yaml', RUNTIME_ENVS],
   ['deploy-runtime-operator.yaml', RUNTIME_ENVS],
-  ['deploy-runtime-pdf3.yaml', RUNTIME_ENVS],
   ['deploy-runtime-observability.yaml', RUNTIME_ENVS],
   ['deploy-runtime-flux-config.yaml', RUNTIME_ENVS],
   ['deploy-runtime-grafana-manifests.yaml', RUNTIME_ENVS.slice(2)],
@@ -125,6 +139,12 @@ const SERVICES = [
     ['studio', STUDIO_ENVS],
   ]),
   ...RUNTIME_SERVICE_DEFS.map(([workflow, envs]) => service(workflow, [['runtime', envs]])),
+  // Tags the tenant artifact per ring and DIS Core's syncroot per Core environment.
+  service('deploy-runtime-pdf3.yaml', [
+    ['runtime', RUNTIME_ENVS],
+    ['dis-core', DIS_CORE_ENVS],
+  ]),
+  service('deploy-runtime-pdf3-edge.yaml', [['dis-edge', DIS_EDGE_ENVS]]),
   ...ADMIN_WORKFLOWS.map((workflow) => service(workflow, [['admin', ADMIN_ENVS]])),
   ...STUDIO_PROD_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS.slice(2)]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),

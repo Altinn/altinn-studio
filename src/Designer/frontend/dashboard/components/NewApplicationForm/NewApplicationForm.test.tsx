@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import {
   NewApplicationForm,
@@ -44,8 +44,6 @@ const mockCancelComponentButton: ActionableElement = {
 const mockSubmitbuttonText: string = 'Submit';
 
 describe('NewApplicationForm', () => {
-  afterEach(vi.clearAllMocks);
-
   it('calls onSubmit when form is submitted with valid data', async () => {
     const user = userEvent.setup();
     renderNewApplicationForm();

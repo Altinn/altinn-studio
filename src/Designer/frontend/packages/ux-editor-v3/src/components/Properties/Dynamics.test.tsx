@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FormItemContext } from '../../containers/FormItemContext';
@@ -24,8 +24,6 @@ vi.mock('../config/Expressions', () => ({
 }));
 
 describe('Dynamics', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render new expressions editor by default', async () => {
     await render();
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();

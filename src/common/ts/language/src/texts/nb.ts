@@ -4,8 +4,6 @@ export function nb() {
   return {
     'dateTime.am': 'a.m.',
     'dateTime.pm': 'p.m.',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'Det ser ut som du prøver å laste opp en filtype som ikke er tillatt. Sjekk at filen faktisk er av den typen den utgir seg for å være.',
     'actions.sign': 'Signer',
     'actions.confirm': 'Bekreft',
     'actions.reject': 'Avslå',
@@ -70,6 +68,18 @@ export function nb() {
     'form_filler.alert_confirm': 'Bekreft',
     'form_filler.checkbox_alert': 'Er du sikker på at du vil fjerne avkrysningen?',
     'form_filler.multi_select_alert': 'Er du sikker på at du vil slette <b>{0}</b>?',
+    'form_filler.suggestion_added': 'La til',
+    'form_filler.suggestion_clear': 'Fjern tekst',
+    'form_filler.suggestion_empty': 'Ingen valgte',
+    'form_filler.suggestion_found': 'Naviger til venstre for å finne %d valgte',
+    'form_filler.suggestion_invalid': 'Ugyldig valg',
+    'form_filler.suggestion_items': 'Valgte',
+    'form_filler.suggestion_of': 'av',
+    'form_filler.suggestion_plural': '%d forslag',
+    'form_filler.suggestion_remove': 'Trykk for å fjerne',
+    'form_filler.suggestion_removed': 'Fjernet',
+    'form_filler.suggestion_singular': '%d forslag',
+    'form_filler.suggestion_toggle': 'Forslag',
     'form_filler.dropdown_alert': 'Er du sikker på at du vil endre til <b>{0}</b>?',
     'form_filler.error_report_header': 'Du må rette disse feilene før du kan gå videre',
     'form_filler.error_required': 'Du må fylle ut {0}',
@@ -282,9 +292,9 @@ export function nb() {
     'instantiate.authorization_error_ask':
       'Om du representerer en person, er det den du representerer som kan gi deg rettighet til å starte tjenesten. Representerer du en organisasjon er det de som har rollen tilgangsstyring innad i organisasjonen som kan gi deg rettighet.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
+      '<a href="{0}" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
     'instantiate.authorization_error_info_rights':
-      '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
+      '<a href="{0}" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
     'instantiate.authorization_error_info_customer_service':
       'Du kan også kontakte oss på brukerservice {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
@@ -326,7 +336,7 @@ export function nb() {
     'party_selection.show_sub_unit': 'Vis underenheter',
     'party_selection.why_seeing_this': 'Hvorfor ser jeg dette?',
     'party_selection.seeing_this_preference':
-      'Du kan endre [profilinnstillingene](https://af.{0}/profile/parties) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
+      'Du kan endre [profilinnstillingene]({0}) dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema. Du finner denne innstillingen under **Profil** > **Aktører**.',
     'party_selection.seeing_this_override': 'Denne appen er satt opp til å alltid spørre om aktør.',
     'payment.pay': 'Betal',
     'payment.summary': 'Oppsummering',
@@ -477,6 +487,10 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
+    'process_error.instance_changed':
+      'Skjemaet ble endret mens du sendte det inn, så det ble ikke sendt. Se over skjemaet og prøv igjen.',
+    'process_error.concurrent_transition':
+      'Skjemaet ble sendt inn fra et annet sted samtidig, så innsendingen din ble ikke sendt. Se over skjemaet og prøv igjen.',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mocked } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -12,10 +12,6 @@ describe('LayoutPageOverviewFeedback', () => {
   beforeEach(() => {
     mockedAxios.post.mockClear();
     vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
   });
 
   it('should render feedback form', () => {

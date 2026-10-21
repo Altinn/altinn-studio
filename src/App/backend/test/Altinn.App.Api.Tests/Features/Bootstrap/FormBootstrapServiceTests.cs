@@ -191,6 +191,74 @@ public class FormBootstrapServiceTests
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
     }
 
+    [Theory]
+    [InlineData(false, false, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    public async Task GetInstanceFormBootstrap_CalculationConfig(bool isPdf, bool locked, bool included)
+    {
+        SetupMocks(CreateAppMetadata("model"));
+        _appResources
+            .Setup(x => x.GetCalculationConfiguration("model"))
+            .Returns("""{ "calculations": { "value": { "expression": ["multiply", 4, 2] } } }""");
+
+        var result = await CreateService()
+            .GetInstanceFormBootstrap(CreateTestInstance("Task_1", locked: locked), "Task_1", null, isPdf, "nb");
+
+        Assert.Equal(included, result.DataModels["model"].CalculationConfig is not null);
+        if (included)
+        {
+            var config = Assert.IsType<JsonElement>(result.DataModels["model"].CalculationConfig);
+            Assert.Equal(
+                "multiply",
+                config.GetProperty("calculations").GetProperty("value").GetProperty("expression")[0].GetString()
+            );
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("{ \"calculations\": { \"value\": { \"expression\": true } } }")]
+    public async Task GetStatelessFormBootstrap_CalculationConfig(string? configuration)
+    {
+        SetupStatelessMocks(CreateAppMetadata("model"));
+        _appResources.Setup(x => x.GetCalculationConfiguration("model")).Returns(configuration);
+
+        var result = await CreateService().GetStatelessFormBootstrap("stateless", "nb", ["model"]);
+
+        Assert.Equal(configuration is not null, result.DataModels["model"].CalculationConfig is not null);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CalculationDependencies_LoadModelsNotReferencedInLayouts_AndHandleCycles(bool stateless)
+    {
+        if (stateless)
+        {
+            SetupStatelessMocks(CreateAppMetadata("model", "submodel"));
+        }
+        else
+        {
+            SetupMocks(CreateAppMetadata("model", "submodel"));
+        }
+        _appResources
+            .Setup(x => x.GetCalculationConfiguration("model"))
+            .Returns("""{ "calculations": { "value": { "expression": ["dataModel", "value", "submodel"] } } }""");
+        _appResources
+            .Setup(x => x.GetCalculationConfiguration("submodel"))
+            .Returns("""{ "calculations": { "value": { "expression": ["dataModel", "value", "model"] } } }""");
+
+        var service = CreateService();
+        var result = stateless
+            ? await service.GetStatelessFormBootstrap("stateless", "nb", ["model"])
+            : await service.GetInstanceFormBootstrap(CreateTestInstance("Task_1"), "Task_1", null, false, "nb");
+
+        Assert.Equal(2, result.DataModels.Count);
+        Assert.NotNull(result.DataModels["model"].CalculationConfig);
+        Assert.NotNull(result.DataModels["submodel"].CalculationConfig);
+    }
+
     [Fact]
     public async Task GetStatelessFormBootstrap_RunsProcessDataRead()
     {
@@ -443,7 +511,7 @@ public class FormBootstrapServiceTests
             }
         );
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("countries", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 new AppOptions
                 {
@@ -455,7 +523,7 @@ public class FormBootstrapServiceTests
                 }
             );
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("regions", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("regions", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Region 1" }] });
 
         var service = CreateService();
@@ -492,10 +560,10 @@ public class FormBootstrapServiceTests
             }
         );
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("valid", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("valid", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [new AppOption { Value = "1", Label = "Valid" }] });
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("invalid", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("invalid", "nb", It.IsAny<Dictionary<string, string>>()))
             .ThrowsAsync(new Exception("Not found"));
 
         var service = CreateService();
@@ -577,7 +645,7 @@ public class FormBootstrapServiceTests
         SetupMocks(appMetadata, staticOptions: dynamicReference);
 
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
+            .Setup(x => x.ReadOptionsFromFile("fileBased"))
             .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
 
         var service = CreateService();
@@ -587,7 +655,7 @@ public class FormBootstrapServiceTests
         Assert.True(result.StaticOptions.ContainsKey("fileBased"));
         Assert.Single(result.StaticOptions["fileBased"].Options);
         _appOptionsService.Verify(
-            x => x.GetOptionsAsync("fileBased", It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
+            x => x.GetOptions("fileBased", It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
             Times.Never
         );
     }
@@ -608,10 +676,10 @@ public class FormBootstrapServiceTests
         );
 
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
+            .Setup(x => x.ReadOptionsFromFile("fileBased"))
             .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
         _appOptionsService
-            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
+            .Setup(x => x.GetOptions("countries", "nb", It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 new AppOptions
                 {
@@ -1188,12 +1256,12 @@ public class FormBootstrapServiceTests
             )
             .ReturnsAsync(new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray());
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
+            .Setup(x => x.ReadOptionsFromFile(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);
 
         _appOptionsService
             .Setup(x =>
-                x.GetOptionsAsync(
+                x.GetOptions(
                     It.IsAny<InstanceIdentifier>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -1202,9 +1270,7 @@ public class FormBootstrapServiceTests
             )
             .ReturnsAsync((AppOptions?)null);
         _appOptionsService
-            .Setup(x =>
-                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
-            )
+            .Setup(x => x.GetOptions(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [] });
         _validationService
             .Setup(x =>
@@ -1262,12 +1328,10 @@ public class FormBootstrapServiceTests
 
         _appMetadata.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
         _appOptionsFileHandler
-            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
+            .Setup(x => x.ReadOptionsFromFile(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);
         _appOptionsService
-            .Setup(x =>
-                x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
-            )
+            .Setup(x => x.GetOptions(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(new AppOptions { Options = [] });
 
         // Default to unauthenticated - GetStatelessInstanceOwner returns null so only query-parameter prefill can run.

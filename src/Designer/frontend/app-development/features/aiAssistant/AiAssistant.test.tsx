@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import AiAssistant from './AiAssistant';
 import { renderWithProviders } from 'app-development/test/mocks';
@@ -15,8 +15,6 @@ const org = 'ttd';
 const app = 'test-app';
 
 describe('AiAssistant', () => {
-  afterEach(vi.clearAllMocks);
-
   it('renders a spinner when loading', () => {
     vi.mocked(queriesMock.canUseFeature).mockResolvedValue({ canUseFeature: false });
     renderAiAssistant();

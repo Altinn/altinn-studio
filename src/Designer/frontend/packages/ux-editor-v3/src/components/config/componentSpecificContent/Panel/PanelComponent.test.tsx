@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PanelComponent } from './PanelComponent';
@@ -59,8 +59,6 @@ const render = async () => {
 };
 
 describe('PanelComponent', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should call handleComponentChange with showIcon property set to true when the showIcon checkbox is clicked', async () => {
     await render();
 

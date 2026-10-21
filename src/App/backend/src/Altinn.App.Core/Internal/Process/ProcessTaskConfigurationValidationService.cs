@@ -13,15 +13,19 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types, the BPMN element each task uses, task configuration and exclusive gateway flows at
-/// startup.
+/// Validates BPMN task types, the BPMN element each task uses, task configuration, exclusive gateway flows, and
+/// that at most one process hook of each kind runs for each task, at startup.
 /// </summary>
 /// <remarks>
 /// Creates a dependency injection scope so task and gateway implementations can use scoped services.
-/// Stops startup if configuration cannot be read.
+/// Stops startup if configuration cannot be read. Each task hook registration is created on its own: one that
+/// cannot be created at startup, for example because it needs request state, is skipped with a warning while the
+/// others are still checked, and the hook step checks for duplicates when it runs. Process-ended hooks are counted
+/// by registration, without creating them.
 /// </remarks>
 internal sealed class ProcessTaskConfigurationValidationService(
     IServiceScopeFactory scopeFactory,
+    IServiceCollection registrations,
     ILogger<ProcessTaskConfigurationValidationService> logger
 ) : IHostedService
 {
@@ -38,13 +42,13 @@ internal sealed class ProcessTaskConfigurationValidationService(
         HashSet<string> gatewaysWithCode;
         ApplicationMetadata appMetadata;
         HostingEnvironment environment;
+        var factory = new AppImplementationFactory(services);
         try
         {
             processReader = services.GetRequiredService<IProcessReader>();
             bpmnTasks = processReader.GetProcessTasks();
             appMetadata = services.GetRequiredService<IAppMetadata>().ApplicationMetadata;
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
-            var factory = new AppImplementationFactory(services);
             serviceTasks = factory.GetServiceTasks().ToList();
             processTasks = factory.GetAll<IProcessTask>().ToList();
             // Same lookup as ExclusiveGatewayFactory.
@@ -133,6 +137,34 @@ internal sealed class ProcessTaskConfigurationValidationService(
 
         findings.AddRange(ValidateExclusiveGateways(processReader, gatewaysWithCode));
 
+        await AddMultipleTaskHooksFindings<IOnTaskStartingHandler>(
+            services,
+            bpmnTasks,
+            findings,
+            (hook, taskId) => hook.ShouldRunForTask(taskId)
+        );
+        await AddMultipleTaskHooksFindings<IOnTaskEndingHandler>(
+            services,
+            bpmnTasks,
+            findings,
+            (hook, taskId) => hook.ShouldRunForTask(taskId)
+        );
+        await AddMultipleTaskHooksFindings<IOnTaskAbandonHandler>(
+            services,
+            bpmnTasks,
+            findings,
+            (hook, taskId) => hook.ShouldRunForTask(taskId)
+        );
+
+        List<ServiceDescriptor> processEndedHooks = HookRegistrations<IOnProcessEndedHandler>();
+        if (processEndedHooks.Count > 1)
+        {
+            findings.Add(
+                $"{processEndedHooks.Count} {nameof(IOnProcessEndedHandler)} implementations are registered "
+                    + $"({string.Join(", ", processEndedHooks.Select(RegistrationName))}). Register only one."
+            );
+        }
+
         WarnAboutUnreferencedServiceTasks(bpmnTasks, serviceTasks);
 
         if (listRegisteredTypes)
@@ -207,6 +239,119 @@ internal sealed class ProcessTaskConfigurationValidationService(
                 );
         }
     }
+
+    /// <summary>
+    /// Returns the registrations the service provider returns for <typeparamref name="THook"/>, in registration
+    /// order.
+    /// </summary>
+    private List<ServiceDescriptor> HookRegistrations<THook>()
+        where THook : class =>
+        registrations
+            .Where(registration => registration.ServiceType == typeof(THook) && !registration.IsKeyedService)
+            .ToList();
+
+    /// <summary>
+    /// Creates each registered <typeparamref name="THook"/> on its own, so one that cannot be created at startup, for
+    /// example because it needs request state, is skipped with a warning without hiding the others.
+    /// </summary>
+    /// <remarks>
+    /// Hooks created from an implementation type are added to <paramref name="createdHooks"/> for the caller to
+    /// dispose. A factory may return an instance the service provider owns, so its result is never disposed here.
+    /// </remarks>
+    private List<THook> CreateHooks<THook>(IServiceProvider services, List<object> createdHooks)
+        where THook : class
+    {
+        var hooks = new List<THook>();
+        foreach (ServiceDescriptor registration in HookRegistrations<THook>())
+        {
+            try
+            {
+                switch (registration)
+                {
+                    case { ImplementationInstance: THook instance }:
+                        hooks.Add(instance);
+                        break;
+                    case { ImplementationFactory: { } createHook }:
+                        hooks.Add(
+                            (THook)(
+                                createHook(services)
+                                ?? throw new InvalidOperationException("The factory returned null.")
+                            )
+                        );
+                        break;
+                    case { ImplementationType: { } type }:
+                        var hook = (THook)ActivatorUtilities.CreateInstance(services, type);
+                        createdHooks.Add(hook);
+                        hooks.Add(hook);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(
+                    e,
+                    "Could not create {HookImplementation} at startup to check that at most one {HookType} runs for "
+                        + "each task. The hook step checks this when it runs.",
+                    RegistrationName(registration),
+                    typeof(THook).Name
+                );
+            }
+        }
+        return hooks;
+    }
+
+    private static string RegistrationName(ServiceDescriptor registration) =>
+        (registration.ImplementationType ?? registration.ImplementationInstance?.GetType())?.FullName
+        ?? $"a factory registration of {registration.ServiceType.Name}";
+
+    private static async Task DisposeAll(List<object> createdHooks)
+    {
+        foreach (object hook in createdHooks)
+        {
+            if (hook is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync();
+            else if (hook is IDisposable disposable)
+                disposable.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Reports each task that more than one <typeparamref name="THook"/> runs for.
+    /// </summary>
+    private async Task AddMultipleTaskHooksFindings<THook>(
+        IServiceProvider services,
+        List<ProcessTask> bpmnTasks,
+        List<string> findings,
+        Func<THook, string, bool> runsForTask
+    )
+        where THook : class
+    {
+        var createdHooks = new List<object>();
+        try
+        {
+            List<THook> hooks = CreateHooks<THook>(services, createdHooks);
+            foreach (ProcessTask bpmnTask in bpmnTasks)
+            {
+                List<THook> running = hooks.Where(hook => runsForTask(hook, bpmnTask.Id)).ToList();
+                if (running.Count > 1)
+                {
+                    findings.Add(
+                        $"Task '{bpmnTask.Id}' has {running.Count} {typeof(THook).Name} implementations that run for "
+                            + $"it ({ImplementationNames(running)}). Only one may run for a task: combine them, or "
+                            + "change ShouldRunForTask so that only one returns true."
+                    );
+                }
+            }
+        }
+        finally
+        {
+            await DisposeAll(createdHooks);
+        }
+    }
+
+    private static string ImplementationNames<T>(IEnumerable<T> implementations)
+        where T : class =>
+        string.Join(", ", implementations.Select(implementation => implementation.GetType().FullName));
 
     /// <summary>
     /// Warns once per service task type that is registered on purpose but that no BPMN task declares.

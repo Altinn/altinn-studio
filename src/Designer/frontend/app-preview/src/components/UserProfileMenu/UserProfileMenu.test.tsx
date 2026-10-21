@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -42,10 +42,6 @@ const defaultProps: UserProfileMenuProps = {
 };
 
 describe('UserProfileMenu', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render trigger button text when on a large screen', () => {
     (useMediaQuery as Mock).mockReturnValue(false);
 

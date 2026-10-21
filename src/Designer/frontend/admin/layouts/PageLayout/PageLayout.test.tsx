@@ -74,7 +74,6 @@ const renderPageLayout = (initialEntries = ['/ttd/apps']) => {
 
 describe('PageLayout', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     (useRequiredRoutePathsParams as Mock).mockReturnValue({ owner: 'ttd' });
   });
 

@@ -1,5 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { IInstance } from 'src/types/shared';
+
 const appFrontend = new AppFrontend();
 
 /**
@@ -38,12 +40,12 @@ const appFrontend = new AppFrontend();
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
  *     engine surfaces `processing` (delay / transient retries) or `failed` (endState failure) on Task_1.
  *   - postCommit: an IPipelineServiceTask ("scenario") runs it POST-commit inside ExecuteServiceTask — a
- *     critical post-commit step of the committed Task_1 -> Task_Service transition — so
+ *     primary post-commit step of the committed Task_1 -> Task_Service transition — so
  *     `processing` is observable on the committed Task_Service and an endState "failure" is a real
  *     permanent failure (terminal Failed -> frontend `failed`). On success the service task
- *     advances the process to Task_2. Non-gating side effects (the Altinn event registrations) are
- *     deliberately NOT lever-controlled: they run in fire-and-forget side-effects workflows that
- *     are invisible to the frontend by design (see the noncritical-side-effects ADR).
+ *     advances the process to Task_2. The Altinn event registrations are deliberately NOT
+ *     lever-controlled: they run in auxiliary workflows, which the process never waits on and the
+ *     frontend never sees.
  *
  * UI states:
  *   processing  = the standard form loader, followed by a safe-to-leave message after eight seconds
@@ -235,6 +237,62 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('an instanceChanged response refreshes a real editable field and lets the user review and submit again', () => {
+    cy.ignoreConsoleMessages([/Process next failed:/]);
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'none' });
+
+    // Change persisted form data through the real API while this page still holds the old value.
+    captureInstanceRoot().then((instanceRoot) => {
+      const instanceUrl = instanceRoot.replace('/instance/', '/instances/');
+      cy.request<IInstance>(instanceUrl).then(({ body: instance }) => {
+        const dataElement = instance.data?.find((data) => data.dataType === 'TransitionControl');
+        expect(dataElement, 'Task_1 form data').to.exist;
+        const dataUrl = `${instanceUrl}/data/${dataElement!.id}`;
+        cy.request<Record<string, unknown>>({ url: dataUrl, headers: { Accept: 'application/json' } }).then(
+          ({ body }) => {
+            cy.getCookie('XSRF-TOKEN').then((token) => {
+              cy.request({
+                method: 'PUT',
+                url: dataUrl,
+                headers: { 'X-XSRF-TOKEN': token?.value },
+                body: { ...body, path: 'preCommit' },
+              })
+                .its('status')
+                .should('eq', 201);
+            });
+          },
+        );
+      });
+    });
+    cy.get('#path').should('have.value', leverLabels.path.none);
+
+    // Backend integration tests cover the acquire conflict. Only its response is injected here;
+    // the form, stored data, bootstrap refresh and following submission use the real app.
+    cy.intercept(
+      { method: 'PUT', url: '**/instances/*/*/process/next*', times: 1 },
+      {
+        statusCode: 409,
+        body: { processNextState: 'instanceChanged', validationIssues: null },
+      },
+    ).as('instanceChanged');
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.wait('@instanceChanged').its('response.statusCode').should('eq', 409);
+
+    cy.get(appFrontend.toast).should(
+      'contain.text',
+      'Skjemaet ble endret mens du sendte det inn, så det ble ikke sendt. Se over skjemaet og prøv igjen.',
+    );
+    cy.get('#path').should('have.value', leverLabels.path.preCommit);
+    waitForProcessState({ workflowStatus: 'idle', currentTask: 'Task_1' });
+
+    // The refreshed field remains editable, and retrying goes through ordinary validation and save.
+    fillLevers({ path: 'none' });
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
   });
 
   it('processing (pre-commit): reload during the delay shows the loader, then converges on Task_2', () => {
@@ -560,8 +618,7 @@ describe('Live workflow status (real engine)', () => {
 
     // Committed currentTask is already Task_Service (not idle/receipt), yet the post-commit step is
     // still in flight -> the loader shows on the committed service task and no form UI leaks
-    // through. This is exactly what a legacy IProcessEnd (which runs on the process-END transition)
-    // could NOT surface.
+    // through.
     workflowLoader().should('be.visible');
     cy.findByRole('button', { name: task2SubmitButton }).should('not.exist');
 
@@ -580,10 +637,9 @@ describe('Live workflow status (real engine)', () => {
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' }).then((root) =>
-      cy.visit(`${root}/Task_Service`, {
-        onLoad: (win) => {
-          cy.spy(win, 'logErrorOnce').as('logErrorOnce');
-        },
+      cy.visit(`${root}/Task_Service`).then((win) => {
+        cy.wrap(win).its('logErrorOnce').should('be.a', 'function');
+        cy.then(() => cy.spy(win, 'logErrorOnce').as('logErrorOnce'));
       }),
     );
     workflowLoader().should('be.visible');

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { MockedFunction } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { UseMutationResult } from '@tanstack/react-query';
@@ -24,8 +24,6 @@ mockUpdateAppMetadataMutation.mockReturnValue({
 } as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 describe('SetupTabInputFields', () => {
-  afterEach(vi.clearAllMocks);
-
   it('does not display an error message when validTo is a later date than validFrom', () => {
     renderSetupTabInputFields();
     const errorText = screen.queryByText(textMock('app_settings.setup_tab_start_before_end'));

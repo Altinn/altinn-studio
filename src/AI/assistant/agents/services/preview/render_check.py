@@ -64,7 +64,7 @@ def render_check(
     *,
     studio_base: str,
     username: str,
-    org: str,
+    repo_owner: str,
     app: str,
     branch: str,
     page_order: list[str],
@@ -82,7 +82,7 @@ def render_check(
         from playwright.sync_api import sync_playwright
     except ImportError as error:
         raise PreviewCheckUnavailable(
-            "playwright is not installed (pip install playwright && playwright install chromium)"
+            "playwright is not installed (uv sync && uv run playwright install chromium)"
         ) from error
 
     studio_base = studio_base.rstrip("/")
@@ -94,9 +94,9 @@ def render_check(
             raise PreviewCheckUnavailable(f"could not launch Chromium: {error}") from error
         try:
             context = _authenticated_context(browser, studio_base, username, storage_state_path)
-            _checkout_branch(context, studio_base, org, app, branch)
+            _checkout_branch(context, studio_base, repo_owner, app, branch)
             page = context.new_page()
-            first_page_url = _resolve_preview_url(page, studio_base, org, app)
+            first_page_url = _resolve_preview_url(page, studio_base, repo_owner, app)
             return _check_pages(page, first_page_url, page_order)
         finally:
             browser.close()
@@ -114,7 +114,7 @@ def read_page_order(repo_root: Path) -> list[str]:
     for settings_path in sorted(ui_dir.rglob(LAYOUT_SETTINGS_FILE_NAME)):
         try:
             settings = json.loads(settings_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+        except OSError, json.JSONDecodeError:
             continue
         if not isinstance(settings, dict):
             continue
@@ -182,11 +182,11 @@ def _login(context, studio_base: str, username: str) -> None:
     page.close()
 
 
-def _checkout_branch(context, studio_base: str, org: str, app: str, branch: str) -> None:
+def _checkout_branch(context, studio_base: str, repo_owner: str, app: str, branch: str) -> None:
     """Reset and check out through the Designer API on the browser's cookie
     session, mirroring the frontend's reset/checkout flow.
     """
-    repo_api = f"{studio_base}/designer/api/repos/repo/{org}/{app}"
+    repo_api = f"{studio_base}/designer/api/repos/repo/{repo_owner}/{app}"
 
     reset = context.request.get(f"{repo_api}/reset", timeout=CHECKOUT_TIMEOUT_MS)
     if not reset.ok:
@@ -210,12 +210,12 @@ def _xsrf_token(context, studio_base: str) -> str:
     raise PreviewCheckUnavailable("no XSRF token cookie after login")
 
 
-def _resolve_preview_url(page, studio_base: str, org: str, app: str) -> str:
+def _resolve_preview_url(page, studio_base: str, repo_owner: str, app: str) -> str:
     """Open Studio's preview page, which creates the mock instance, and return the
     app-specific-preview URL its iframe points at.
     """
     try:
-        page.goto(f"{studio_base}/preview/{org}/{app}")
+        page.goto(f"{studio_base}/preview/{repo_owner}/{app}")
         iframe = page.wait_for_selector(PREVIEW_IFRAME_SELECTOR, timeout=PAGE_RENDER_TIMEOUT_MS)
         src = iframe.get_attribute("src")
     except Exception as error:

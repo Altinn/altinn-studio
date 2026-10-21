@@ -27,9 +27,12 @@ docker compose up
 
 ### Local Python
 
+Install [uv](https://docs.astral.sh/uv/). `uv sync` installs the Python version in `.python-version` and the dependencies in `uv.lock`.
+
 ```bash
-# 1. Install the dependencies
-pip install -r requirements.txt
+# 1. Install the dependencies and activate the environment
+uv sync
+source .venv/bin/activate
 
 # 2. Make the configuration file
 cp .env.example .env
@@ -41,9 +44,9 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8071 --reload
 
 ### Lint, format, type check and test
 
-```bash
-pip install -r requirements.txt -r requirements-dev.txt
+`uv sync` also installs the development tools.
 
+```bash
 ruff check .          # lint (add --fix to correct the problems)
 ruff format .         # format
 pyright               # type check
@@ -51,6 +54,7 @@ python -m pytest      # unit tests
 ```
 
 CI runs `.github/workflows/altinity-build-test.yaml` on each pull request. This workflow runs `ruff check`, `ruff format --check`, `pyright` and `pytest`. Then it starts the server and examines `/health`.
+Ruff formatting applies to Python source. Markdown formatting is optional.
 
 ## API
 
@@ -65,7 +69,7 @@ X-Developer: <developer username>
 {
   "session_id": "unique-session-id",
   "repo_url": "http://gitea:3000/org/app.git",
-  "org": "org",
+  "cost_org": "org",
   "goal": "Add a date field for 'birthDate' after the name field",
   "allow_app_changes": true
 }
@@ -79,8 +83,8 @@ X-Developer: <developer username>
 **Parameters:**
 
 - `session_id`: A unique identifier for the session. Use 1 to 128 letters, digits, `-` or `_`.
-- `repo_url`: The Git URL of the Altinn app repository. The agent uses only the path. The host comes from `GITEA_BASE_URL`.
-- `org`: The organization that owns the app.
+- `repo_url`: The Git URL of the Altinn app repository. The agent uses only the path. The host comes from `GITEA_BASE_URL`. The path ends with the owner of the repository and the app name. The owner is an organization, or the developer for the developer's own repository.
+- `cost_org`: The organization that the model usage is recorded on, as the Langfuse `user_id`. Designer sets this value. See [System context](docs/2-system-context.md).
 - `goal`: What the agent must do, in natural language.
 - `allow_app_changes`: `true` for workflow mode. `false` for chat mode. The default is `false`.
 - `branch`: Optional. A branch where the agent continues work.

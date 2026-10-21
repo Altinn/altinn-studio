@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
@@ -26,10 +26,6 @@ vi.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
 const APP_DOCUMENT_TITLE = 'my-app – Altinn Studio';
 
 describe('PageLayout', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('initially displays the spinner when loading data', () => {
     render();
 
@@ -57,6 +53,19 @@ describe('PageLayout', () => {
     expect(
       screen.getByRole('heading', { name: textMock('not_found_page.heading'), level: 1 }),
     ).toBeInTheDocument();
+  });
+
+  it('renders "UnsupportedRepositoryPage" instead of the app pages when the repository is not an app', () => {
+    const resourcesRepoName = 'my-org-resources';
+    render({}, resourcesRepoName);
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('unsupported_repository_page.heading', { repoName: resourcesRepoName }),
+        level: 1,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(textMock('repo_status.loading'))).not.toBeInTheDocument();
   });
 
   it('renders "MergeConflictWarning" when repoStatus has merge conflict', async () => {
@@ -130,10 +139,6 @@ describe('PageLayout', () => {
   });
 
   describe('UnsupportedVersion', () => {
-    afterEach(() => {
-      vi.clearAllMocks();
-    });
-
     it('renders dialog if frontend is unsupported', async () => {
       render({
         getAppVersion: () => Promise.resolve({ frontendVersion: '2', backendVersion: '8' }),
@@ -204,13 +209,13 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
   await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 };
 
-const render = async (queries: Partial<ServicesContextProps> = {}) => {
+const render = async (queries: Partial<ServicesContextProps> = {}, repoName: string = 'my-app') => {
   renderWithProviders(
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <PageLayout />
     </FeatureFlagsContextProvider>,
     {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/${repoName}/${RoutePaths.Overview}`,
       queries,
     },
   );

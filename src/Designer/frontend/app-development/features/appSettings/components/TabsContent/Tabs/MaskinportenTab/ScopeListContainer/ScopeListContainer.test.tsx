@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ScopeListContainer } from './ScopeListContainer';
 import type { MaskinportenScope, MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
@@ -24,8 +24,6 @@ const scopeMock2: MaskinportenScope = {
 const maskinportenScopes: MaskinportenScopes = { scopes: [scopeMock1, scopeMock2] };
 
 describe('ScopeListContainer', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should display a spinner while loading', () => {
     renderScopeListContainer();
     expect(getText(textMock('general.loading'))).toBeInTheDocument();

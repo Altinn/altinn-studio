@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -18,10 +18,6 @@ const actionElementDefaultMock: Action = {
 };
 
 describe('EditActions', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should add new action if actions not already exists', async () => {
     const user = userEvent.setup();
 

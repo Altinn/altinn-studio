@@ -7,7 +7,8 @@ This directory contains the test suite for the Studio Assistant service.
 ### Install the development dependencies
 
 ```bash
-pip install -r requirements.txt -r requirements-dev.txt
+uv sync
+source .venv/bin/activate
 ```
 
 ### Run all tests

@@ -4,7 +4,6 @@ import {
   IQueryParameters,
   IRawDataModelBinding,
   LabeledComponentProps,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBLabel,
   TRBSummarizable,
@@ -25,6 +24,8 @@ export interface IPagination {
 export type CompListSerialized = {
   type: 'List';
   textResourceBindings?: TRBFormComp & TRBSummarizable & TRBLabel;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
   dataModelBindings?: IDataModelBindingsForList;
@@ -39,7 +40,6 @@ export type CompListSerialized = {
   tableHeadersMobile?: string[];
 } & ComponentBase &
   FormComponentProps &
-  SummarizableComponentProps &
   LabeledComponentProps;
 
-// Source hash: 32bde15ff538efa40b17ccc5e6668498d9f088ec53060910b4eac5a35de2eaba
+// Source hash: f8e6592a6d3831851b4b4132bc5da02146e71f100c8a19e35bc385146ed56540

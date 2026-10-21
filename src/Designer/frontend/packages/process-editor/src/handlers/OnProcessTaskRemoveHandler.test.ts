@@ -91,7 +91,6 @@ const createOnRemoveProcessTaskHandler = ({ currentPolicy, layoutSets }: any) =>
 
 describe('OnProcessTaskRemoveHandler', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     signingTasks = [
       createSigningTask('task_1', 'dataType1', []),
       createSigningTask('task_2', 'dataType2', ['dataType1']),

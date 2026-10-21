@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import {
@@ -17,11 +17,10 @@ import type {
   FormFileUploaderComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
-import type { IDataModelBindingsKeyValue } from '../../types/global';
+import type { IDataModelBindingsKeyValueExplicit } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
@@ -31,12 +30,11 @@ const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const dataModelBindings: IDataModelBindingsKeyValue & DataModelBindingsSimple = {
+const dataModelBindings: IDataModelBindingsKeyValueExplicit = {
   simpleBinding: { field: 'some-path', dataType: '' },
 };
-const updatedComponent: FormComponent = {
+const updatedComponent: FormComponent<ComponentType.TextArea> = {
   id,
-  itemType: 'COMPONENT',
   type: ComponentType.TextArea,
   dataModelBindings,
 };
@@ -59,8 +57,6 @@ vi.mock('bpmn-moddle', () => ({
 }));
 
 describe('useUpdateFormComponentMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Saves layout with updated component', async () => {
     renderAndWaitForData();
 
@@ -111,8 +107,7 @@ describe('useUpdateFormComponentMutation', () => {
     ).result;
     const newComponent: FormFileUploaderComponent = {
       ...updatedComponent,
-      description: 'test',
-      displayMode: 'test',
+      displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 100,
       maxNumberOfAttachments: 2,
@@ -226,6 +221,93 @@ describe('useUpdateFormComponentMutation', () => {
     );
   });
 
+  it('Keeps the settings of the old data type when updating the id of a FileUpload component', async () => {
+    const oldId = componentMocks[ComponentType.FileUpload].id;
+    const newId = 'newId';
+    const oldDataType = {
+      id: oldId,
+      allowedContentTypes: ['application/pdf'],
+      validationErrorOnPendingFileScan: true,
+      enableFileScan: false,
+    };
+    renderAndWaitForData();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [oldDataType],
+    });
+    const updateFormComponentResult = renderHookWithProviders(() =>
+      useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+    ).result;
+
+    await updateFormComponentResult.current.mutateAsync({
+      id: oldId,
+      updatedComponent: { ...componentMocks[ComponentType.FileUpload], id: newId },
+    });
+
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+    expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(
+      org,
+      app,
+      expect.objectContaining({ ...oldDataType, id: newId }),
+    );
+  });
+
+  describe('Update ImageUpload components', () => {
+    const oldId = componentMocks[ComponentType.FileUpload].id;
+    const imageUploadComponent: FormComponent = {
+      id: oldId,
+      type: ComponentType.ImageUpload,
+    };
+    const imageUploadDataType = {
+      id: oldId,
+      taskId: 'Task_1',
+      maxCount: 1,
+      minCount: 0,
+      maxSize: 5,
+      allowedContentTypes: ['image/png'],
+      enableFileScan: false,
+    };
+
+    it('Moves the old data type to the new id when updating the id of an ImageUpload component', async () => {
+      const newId = 'newId';
+      renderAndWaitForData();
+      queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+        dataTypes: [imageUploadDataType],
+      });
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+
+      await updateFormComponentResult.current.mutateAsync({
+        id: oldId,
+        updatedComponent: { ...imageUploadComponent, id: newId },
+      });
+
+      expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledTimes(1);
+      expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
+        ...imageUploadDataType,
+        id: newId,
+      });
+      expect(queriesMock.deleteAppAttachmentMetadata).toHaveBeenCalledWith(org, app, oldId);
+      expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
+    });
+
+    it('Does not run attachment metadata queries when the id of an ImageUpload component is unchanged', async () => {
+      renderAndWaitForData();
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+
+      await updateFormComponentResult.current.mutateAsync({
+        id: oldId,
+        updatedComponent: imageUploadComponent,
+      });
+
+      expect(queriesMock.addAppAttachmentMetadata).not.toHaveBeenCalled();
+      expect(queriesMock.deleteAppAttachmentMetadata).not.toHaveBeenCalled();
+      expect(queriesMock.updateAppAttachmentMetadata).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Updating dataType for fileupload components in repeating groups', () => {
     it('Does not update maxCount and minCount when maxCount decreases', async () => {
       renderAndWaitForData();
@@ -303,8 +385,7 @@ function createFileUploaderMutationPayload(
     ...updatedComponent,
     id,
     optionsId: 'test',
-    description: 'test',
-    displayMode: 'test',
+    displayMode: 'list',
     hasCustomFileEndings: false,
     maxFileSizeInMB: 100,
     maxNumberOfAttachments: newMaxCount,

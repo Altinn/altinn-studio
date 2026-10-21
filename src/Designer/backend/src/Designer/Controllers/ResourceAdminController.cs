@@ -41,6 +41,7 @@ public class ResourceAdminController : ControllerBase
     private readonly CacheSettings _cacheSettings;
     private readonly IOrgService _orgService;
     private readonly IResourceRegistry _resourceRegistry;
+    private readonly ISourceControl _sourceControl;
     private readonly ILogger<ResourceAdminController> _logger;
 
     /// <summary>
@@ -57,6 +58,7 @@ public class ResourceAdminController : ControllerBase
         IOrgService orgService,
         IResourceRegistry resourceRegistry,
         IEnvironmentsService environmentsService,
+        ISourceControl sourceControl,
         ILogger<ResourceAdminController> logger
     )
     {
@@ -67,6 +69,7 @@ public class ResourceAdminController : ControllerBase
         _cacheSettings = cacheSettings.Value;
         _orgService = orgService;
         _resourceRegistry = resourceRegistry;
+        _sourceControl = sourceControl;
         _logger = logger;
     }
 
@@ -468,29 +471,7 @@ public class ResourceAdminController : ControllerBase
         }
         else
         {
-            using SemaphoreSlim semaphore = new(25); // Limit to 25 concurrent requests
-
-            async Task<ListviewServiceResource> ProcessResourceAsync(ServiceResource resource)
-            {
-                await semaphore.WaitAsync(cancellationToken);
-                try
-                {
-                    return await _giteaClient.MapServiceResourceToListViewResource(
-                        org,
-                        repository,
-                        resource,
-                        cancellationToken
-                    );
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            }
-            IEnumerable<Task<ListviewServiceResource>> tasks = repositoryResourceList.Select(resource =>
-                ProcessResourceAsync(resource)
-            );
-            resources = await Task.WhenAll(tasks);
+            resources = await MapToListviewResourcesWithHistory(org, repository, repositoryResourceList);
         }
 
         foreach (ListviewServiceResource listviewResource in resources)
@@ -570,6 +551,53 @@ public class ResourceAdminController : ControllerBase
             .ToList();
     }
 
+    private async Task<List<ListviewServiceResource>> MapToListviewResourcesWithHistory(
+        string org,
+        string repository,
+        List<ServiceResource> serviceResources
+    )
+    {
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            org,
+            repository,
+            AuthenticationHelper.GetDeveloperUserName(HttpContext)
+        );
+        Dictionary<string, FolderHistory> historyByFolder = _sourceControl.GetTopLevelFolderHistory(editingContext);
+
+        List<(ServiceResource Resource, FolderHistory? History)> resourcesWithHistory = serviceResources
+            .Select(resource =>
+                (
+                    resource,
+                    historyByFolder.GetValueOrDefault(
+                        ResourceAdminHelper.GetResourceFileStructureName(resource.Identifier)
+                    )
+                )
+            )
+            .ToList();
+
+        string[] authorNames = resourcesWithHistory
+            .Where(resourceWithHistory => resourceWithHistory.History is not null)
+            .Select(resourceWithHistory => resourceWithHistory.History!.FirstCommitAuthorName)
+            .Distinct()
+            .ToArray();
+        string[] authorFullNames = await Task.WhenAll(authorNames.Select(_giteaClient.GetUserFullName));
+        Dictionary<string, string> fullNameByAuthorName = authorNames
+            .Zip(authorFullNames)
+            .ToDictionary(names => names.First, names => names.Second);
+
+        return resourcesWithHistory
+            .Select(resourceWithHistory => new ListviewServiceResource
+            {
+                Identifier = resourceWithHistory.Resource.Identifier,
+                Title = resourceWithHistory.Resource.Title,
+                CreatedBy = resourceWithHistory.History is null
+                    ? null
+                    : fullNameByAuthorName[resourceWithHistory.History.FirstCommitAuthorName],
+                LastChanged = resourceWithHistory.History?.LastCommitTime.UtcDateTime,
+            })
+            .ToList();
+    }
+
     [HttpGet]
     [Route("designer/api/{org}/resources/{repository}/{id}")]
     public async Task<ActionResult<ServiceResource>> GetResourceById(
@@ -592,13 +620,7 @@ public class ResourceAdminController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        ServiceResource resource = await _repository.GetServiceResourceById(org, repository, id, cancellationToken);
-        if (resource == null)
-        {
-            return StatusCode(404);
-        }
-
-        ServiceResourceStatus resourceStatus = new() { ResourceVersion = resource.Version, PublishedVersions = [] };
+        ServiceResourceStatus resourceStatus = new() { PublishedVersions = [] };
 
         IEnumerable<string> environments = GetEnvironmentsForOrg(org);
         foreach (string envir in environments)

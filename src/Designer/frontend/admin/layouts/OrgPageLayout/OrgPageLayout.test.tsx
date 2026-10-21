@@ -57,7 +57,6 @@ const renderOrgPageLayout = ({
 
 describe('OrgPageLayout', () => {
   afterEach(() => {
-    vi.clearAllMocks();
     (useRequiredRoutePathsParams as Mock).mockReturnValue({ owner: 'ttd' });
   });
 

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -25,10 +25,6 @@ const getCreateButton = (): HTMLElement =>
   });
 
 describe('PdfLayoutBasedSection', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   describe('when layout set exists', () => {
     it('should show edit PDF button when layout set exists for current task', () => {
       const pdfBpmnDetails = createPdfBpmnDetails({});

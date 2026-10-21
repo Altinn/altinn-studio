@@ -41,7 +41,6 @@ describe('AddMapLayer', () => {
   let componentMock;
 
   afterEach(() => {
-    vi.clearAllMocks();
     componentMock = {
       layers: [
         {

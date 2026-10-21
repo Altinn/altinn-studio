@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Preview } from './Preview';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
@@ -12,10 +12,6 @@ import { app, layoutSet, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('Preview', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -157,7 +153,7 @@ describe('Preview', () => {
     expect(screen.getByText(textMock('general.page_error_title'))).toBeInTheDocument();
   });
 
-  it('points the iframe at the browser-router url for v9 apps', async () => {
+  it('points the iframe at the browser-router url for current apps', async () => {
     render({
       queries: {
         getAppVersion: vi

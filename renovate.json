@@ -31,30 +31,6 @@
     },
     {
       "customType": "regex",
-      "description": "Track the Claude Code release installed into the Agent images",
-      "managerFilePatterns": ["/^agents/Dockerfile$/"],
-      "matchStrings": ["ARG CLAUDE_CODE_VERSION=(?<currentValue>[\\w.-]+)"],
-      "datasourceTemplate": "npm",
-      "depNameTemplate": "@anthropic-ai/claude-code"
-    },
-    {
-      "customType": "regex",
-      "description": "Track the Codex release installed into the Agent images",
-      "managerFilePatterns": ["/^agents/Dockerfile$/"],
-      "matchStrings": ["ARG CODEX_VERSION=(?<currentValue>[\\w.-]+)"],
-      "datasourceTemplate": "npm",
-      "depNameTemplate": "@openai/codex"
-    },
-    {
-      "customType": "regex",
-      "description": "Track the Playwright CLI installed into the full Agent image; it pins the playwright package and browser build",
-      "managerFilePatterns": ["/^agents/Dockerfile$/"],
-      "matchStrings": ["ARG PLAYWRIGHT_CLI_VERSION=(?<currentValue>[\\w.-]+)"],
-      "datasourceTemplate": "npm",
-      "depNameTemplate": "@playwright/cli"
-    },
-    {
-      "customType": "regex",
       "description": "Track the Rust toolchain copies that cannot read rust-toolchain.toml: image build ARGs, the workspace rust-version and the cargo-deny container",
       "managerFilePatterns": [
         "/^Cargo\\.toml$/",
@@ -155,6 +131,19 @@
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
+      "description": "Move uv in the Studio Assistant CI and image, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
+      "matchFileNames": [
+        ".github/workflows/altinity-build-test.yaml",
+        ".github/workflows/assistant-evals.yaml",
+        ".github/workflows/assistant-prompts.yaml",
+        "src/AI/assistant/dockerfile",
+        "src/AI/assistant/.python-version"
+      ],
+      "matchPackageNames": ["astral-sh/uv", "ghcr.io/astral-sh/uv", "python"],
+      "groupName": "Studio Assistant uv and Python",
+      "groupSlug": "assistant-uv-python"
+    },
+    {
       "matchFileNames": ["src/Designer/**"],
       "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in Designer"
@@ -201,11 +190,18 @@
       "automerge": true
     },
     {
-      "description": "Automerge non-major harness releases installed into the Agent images so the published images track current Claude Code and Codex",
-      "matchManagers": ["custom.regex"],
+      "description": "Keep the v8 app template's .NET SDK on 8.x: it targets net8.0 and its Dockerfile builds with the 8.0 SDK image",
+      "matchManagers": ["nuget"],
+      "matchFileNames": ["src/App/template/v8/global.json"],
+      "matchPackageNames": ["dotnet-sdk"],
+      "allowedVersions": "<9"
+    },
+    {
+      "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with, and the image smoke test gates the update",
+      "matchManagers": ["dockerfile"],
       "matchFileNames": ["agents/Dockerfile"],
-      "matchPackageNames": ["@anthropic-ai/claude-code", "@openai/codex"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["ghcr.io/digdir/agentctl-base"],
+      "matchUpdateTypes": ["digest"],
       "addLabels": ["approve"],
       "automerge": true
     },

@@ -20,7 +20,7 @@ func TestLocaltestManifest_Bindings(t *testing.T) {
 		),
 		envtopology.ComponentGrafana: enabledBinding(
 			envtopology.ComponentGrafana,
-			envHTTPDestination("http://"+ContainerMonitoringGrafana+":3000"),
+			envHTTPDestination("http://"+ContainerGrafana+":3000"),
 		),
 		envtopology.ComponentWorkflowEngine: enabledBinding(
 			envtopology.ComponentWorkflowEngine,

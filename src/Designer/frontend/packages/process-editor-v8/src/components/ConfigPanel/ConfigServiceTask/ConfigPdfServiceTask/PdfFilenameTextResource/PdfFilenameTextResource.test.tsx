@@ -45,7 +45,6 @@ vi.mock('@studio/components', async () => {
 
 describe('PdfFilenameTextResource', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     capturedProps = null;
   });
 

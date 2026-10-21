@@ -38,7 +38,6 @@ const renderApp = (
 describe('App', () => {
   afterEach(() => {
     typedLocalStorage.setItem('featureFlags', []);
-    vi.clearAllMocks();
   });
 
   it('should render the spinner', () => {

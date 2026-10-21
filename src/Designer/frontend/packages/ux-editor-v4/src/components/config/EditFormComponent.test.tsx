@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, it, test, vi } from 'vitest';
 import type { IEditFormComponentProps } from './EditFormComponent';
 import { EditFormComponent } from './EditFormComponent';
 import { screen } from '@testing-library/react';
@@ -19,10 +19,6 @@ vi.mock('./componentSpecificContent/Image/ImageComponent', () => ({
 }));
 
 describe('EditFormComponent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   test('should render Image component when component type is Image', async () => {
     await render({
       component: { ...componentMocks[ComponentType.Image] },

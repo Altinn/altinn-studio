@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ConfigServiceTask } from './ConfigServiceTask';
@@ -42,8 +42,6 @@ vi.mock('../../../utils/bpmnModeler/StudioModeler', () => {
 });
 
 describe('ConfigServiceTask', () => {
-  afterEach(() => vi.clearAllMocks());
-
   it('should render EditTaskId component', () => {
     renderConfigServiceTask();
 

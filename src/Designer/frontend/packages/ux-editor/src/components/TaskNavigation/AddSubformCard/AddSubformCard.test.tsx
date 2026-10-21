@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { AddSubformCard, type AddSubformCardProps } from './AddSubformCard';
@@ -6,10 +6,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 describe('AddSubformCard', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render AddSubformCard', () => {
     renderAddSubformCard();
     expect(screen.getByText(addNewSubformText)).toBeInTheDocument();

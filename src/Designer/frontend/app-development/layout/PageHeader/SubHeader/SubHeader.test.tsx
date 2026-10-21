@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { LeftContent, type LeftContentProps, SubHeader, type SubHeaderProps } from './SubHeader';
 import { renderWithProviders } from '../../../test/mocks';
@@ -23,8 +23,6 @@ const defaultProps: SubHeaderProps = {
 };
 
 describe('SubHeader', () => {
-  afterEach(vi.clearAllMocks);
-
   it('should render the GiteaHeader with left content if repository type is not DataModels', () => {
     renderSubHeader();
 
@@ -52,10 +50,6 @@ describe('SubHeader', () => {
 });
 
 describe('LeftContent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should render the returnTo button if returnTo is set', () => {
     renderLeftContent({
       pageHeaderContextProps: {

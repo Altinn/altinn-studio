@@ -119,7 +119,7 @@ internal sealed class ProcessNavigator : IProcessNavigator
                     DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId,
                 };
 
-                validFlows = await gatewayFilter.FilterAsync(
+                validFlows = await gatewayFilter.Filter(
                     flowsToFilter,
                     dataAccessor.Instance,
                     dataAccessor,

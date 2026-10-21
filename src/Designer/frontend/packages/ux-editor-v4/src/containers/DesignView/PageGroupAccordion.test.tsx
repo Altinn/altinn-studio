@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 import { renderWithProviders } from '../../testing/mocks';
@@ -29,6 +29,8 @@ const pagesMock: PagesModel = {
   ],
 };
 
+const groupDisplayNames = [pagesMock.groups[0].name, pagesMock.groups[1].order[0].id];
+
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
   [layout1NameMock]: layoutMock,
@@ -39,10 +41,6 @@ const singlePageGroupMock: PagesModel = {
 };
 
 describe('PageGroupAccordion', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('should disable move-up for first group, and move-down for last group', async () => {
     const user = userEvent.setup();
     await renderPageGroupAccordion({});
@@ -143,7 +141,11 @@ describe('PageGroupAccordion', () => {
 
 const groupAccordionHeader = (nth: number) => screen.getByTestId(pageGroupAccordionHeader(nth));
 const openGroupMenu = async (user: UserEvent, nth: number): Promise<void> =>
-  user.click(within(groupAccordionHeader(nth)).getByRole('button', { name: '' }));
+  user.click(
+    within(groupAccordionHeader(nth)).getByRole('button', {
+      name: textMock('general.options_for_item', { item: groupDisplayNames[nth] }),
+    }),
+  );
 const moveGroupUpButton = (nth: number) =>
   within(groupAccordionHeader(nth)).getByRole('button', {
     name: textMock('ux_editor.page_menu_up'),

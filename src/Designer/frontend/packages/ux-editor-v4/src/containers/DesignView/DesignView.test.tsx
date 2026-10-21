@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { formLayoutSettingsMock, renderWithProviders } from '../../testing/mocks';
 import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
@@ -32,10 +32,6 @@ const mockPageName1: string = layout1NameMock;
 const mockPageName2: string = layout2NameMock;
 
 describe('DesignView', () => {
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('displays the correct number of accordions', () => {
     renderDesignView({});
 

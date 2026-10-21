@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { TasksTable, type TasksTableProps } from './TasksTable';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -16,8 +16,6 @@ const tasksMock: TaskNavigationGroup[] = [
 const allTasksMock: TaskNavigationGroup[] = [...tasksMock, { taskType: 'type3', name: 'Task 3' }];
 
 describe('TasksTable', () => {
-  beforeEach(() => vi.clearAllMocks());
-
   it('should render the table with tasks', () => {
     renderTasksTable();
 

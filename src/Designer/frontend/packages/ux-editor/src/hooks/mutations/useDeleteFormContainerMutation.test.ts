@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import { useDeleteFormContainerMutation } from './useDeleteFormContainerMutation';
@@ -14,7 +14,7 @@ import {
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -36,8 +36,6 @@ vi.mock('bpmn-moddle', () => ({
 }));
 
 describe('useDeleteFormContainerMutation', () => {
-  afterEach(vi.clearAllMocks);
-
   it('Should save layout without deleted container and send componentIds that has been deleted for syncing', async () => {
     const { result } = await renderDeleteFormContainerMutation();
     await result.current.mutateAsync(id);
