@@ -39,7 +39,6 @@ internal sealed class ProcessTaskConfigurationValidationService(
         List<ProcessTask> bpmnTasks;
         List<IProcessTask> processTasks;
         List<IPipelineServiceTask> serviceTasks;
-        HashSet<string> gatewaysWithCode;
         ApplicationMetadata appMetadata;
         HostingEnvironment environment;
         var factory = new AppImplementationFactory(services);
@@ -51,11 +50,6 @@ internal sealed class ProcessTaskConfigurationValidationService(
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
             serviceTasks = factory.GetServiceTasks().ToList();
             processTasks = factory.GetAll<IProcessTask>().ToList();
-            // Same lookup as ExclusiveGatewayFactory.
-            gatewaysWithCode = factory
-                .GetAll<IProcessExclusiveGateway>()
-                .Select(gateway => gateway.GatewayId)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
@@ -135,6 +129,23 @@ internal sealed class ProcessTaskConfigurationValidationService(
             }
         }
 
+        HashSet<string>? gatewaysWithCode = null;
+        try
+        {
+            // Same lookup as ExclusiveGatewayFactory, but request-dependent implementations may not exist yet.
+            gatewaysWithCode = factory
+                .GetAll<IProcessExclusiveGateway>()
+                .Select(gateway => gateway.GatewayId)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+        catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(
+                e,
+                "Could not resolve gateway implementations at startup. Validation that requires knowing which "
+                    + "gateways have custom code is deferred until navigation. Expression gateways are still checked."
+            );
+        }
         findings.AddRange(ValidateExclusiveGateways(processReader, gatewaysWithCode));
 
         await AddMultipleTaskHooksFindings<IOnTaskStartingHandler>(
@@ -201,11 +212,12 @@ internal sealed class ProcessTaskConfigurationValidationService(
     /// The gateway takes its default only when no other flow is valid, and a flow without a condition is always valid.
     /// Such a flow fails the gateway whenever another flow's condition holds, and keeps it from ever taking its default.
     /// A gateway without conditions is left alone when it has a single flow and no default, or when the app's own
-    /// <see cref="IProcessExclusiveGateway"/> chooses its flow.
+    /// <see cref="IProcessExclusiveGateway"/> chooses its flow. If implementations cannot be resolved at startup,
+    /// their gateway IDs are unknown, so checks for gateways without expressions are deferred to navigation.
     /// </remarks>
     private static IEnumerable<string> ValidateExclusiveGateways(
         IProcessReader processReader,
-        HashSet<string> gatewaysWithCode
+        HashSet<string>? gatewaysWithCode
     )
     {
         foreach (ExclusiveGateway gateway in processReader.GetExclusiveGateways())
@@ -213,7 +225,11 @@ internal sealed class ProcessTaskConfigurationValidationService(
             List<SequenceFlow> outgoingFlows = processReader.GetOutgoingSequenceFlows(gateway);
             if (
                 !outgoingFlows.Exists(flow => flow.ConditionExpression is not null)
-                && (gatewaysWithCode.Contains(gateway.Id) || (gateway.Default is null && outgoingFlows.Count == 1))
+                && (
+                    gatewaysWithCode is null
+                    || gatewaysWithCode.Contains(gateway.Id)
+                    || (gateway.Default is null && outgoingFlows.Count == 1)
+                )
             )
             {
                 continue;

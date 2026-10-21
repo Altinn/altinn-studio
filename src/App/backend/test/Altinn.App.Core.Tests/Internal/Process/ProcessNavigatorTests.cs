@@ -134,6 +134,17 @@ public class ProcessNavigatorTests
         Assert.Equal(expectedNext, next?.Id);
     }
 
+    [Theory]
+    [InlineData("confirm", "EndEvent")]
+    [InlineData("reject", "Task2")]
+    public async Task GetNextTask_never_evaluates_default_condition(string action, string expectedNext)
+    {
+        using var fixture = SetupProcessNavigator("gateway-default-invalid-condition.bpmn", [], expressions: true);
+        var (_, navigator) = fixture;
+        var next = await navigator.GetNextTask(await fixture.Accessor(InstanceOn("Task1")), "Task1", action);
+        Assert.Equal(expectedNext, next?.Id);
+    }
+
     [Fact]
     public async Task GetNextTask_throws_when_more_than_one_condition_holds()
     {
@@ -151,8 +162,12 @@ public class ProcessNavigatorTests
         );
     }
 
-    [Fact]
-    public async Task GetNextTask_takes_default_flow_when_custom_filter_returns_no_flow()
+    [Theory]
+    [InlineData("NoSuchFlow")]
+    [InlineData("Flow3")]
+    public async Task GetNextTask_takes_default_flow_when_custom_filter_returns_none_or_selects_default(
+        string selectedFlow
+    )
     {
         using var fixture = SetupProcessNavigator(
             "simple-gateway-default.bpmn",
@@ -163,7 +178,7 @@ public class ProcessNavigatorTests
         {
             Id = $"123/{Guid.NewGuid()}",
             AppId = "org/app",
-            DataValues = new Dictionary<string, string>() { { "choose", "NoSuchFlow" } },
+            DataValues = new Dictionary<string, string>() { { "choose", selectedFlow } },
         };
 
         var next = await processNavigator.GetNextTask(await fixture.Accessor(i), "Task1", null);
@@ -231,9 +246,7 @@ public class ProcessNavigatorTests
         var result = await Assert.ThrowsAsync<ProcessException>(async () =>
             await processNavigator.GetNextTask(dataAccessor, "Task1", null)
         );
-        result
-            .Message.Should()
-            .Be("Multiple next elements found from Task1. Please supply action and filters or define a default flow.");
+        result.Message.Should().Be("Exclusive gateway Gateway1 has 2 valid outgoing flows (Flow3, Flow4). Expected 1");
     }
 
     [Fact]

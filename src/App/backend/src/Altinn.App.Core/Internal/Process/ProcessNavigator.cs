@@ -125,20 +125,19 @@ internal sealed class ProcessNavigator : IProcessNavigator
                     dataAccessor,
                     gatewayInformation
                 );
-
-                if (validFlows.Count > 1)
-                {
-                    throw new ProcessException(
-                        $"Exclusive gateway {gateway.Id} has {validFlows.Count} valid outgoing flows "
-                            + $"({string.Join(", ", validFlows.Select(flow => flow.Id))}). Expected 1"
-                    );
-                }
-                if (validFlows.Count == 0 && defaultFlow is null)
-                {
-                    throw new ProcessException(
-                        $"Exclusive gateway {gateway.Id} has no valid outgoing flow and no default flow"
-                    );
-                }
+            }
+            if (validFlows.Count > 1)
+            {
+                throw new ProcessException(
+                    $"Exclusive gateway {gateway.Id} has {validFlows.Count} valid outgoing flows "
+                        + $"({string.Join(", ", validFlows.Select(flow => flow.Id))}). Expected 1"
+                );
+            }
+            if (gatewayFilter is not null && validFlows.Count == 0 && defaultFlow is null)
+            {
+                throw new ProcessException(
+                    $"Exclusive gateway {gateway.Id} has no valid outgoing flow and no default flow"
+                );
             }
             List<SequenceFlow> takenFlows =
                 validFlows.Count == 0 && defaultFlow is not null ? [defaultFlow] : validFlows;

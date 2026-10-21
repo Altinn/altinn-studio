@@ -193,7 +193,6 @@ public class ProcessTaskConfigurationValidationServiceTests
     [InlineData("bpmn")]
     [InlineData("metadata")]
     [InlineData("task")]
-    [InlineData("gateway")]
     public async Task StartAsync_WhenConfigurationOrTaskResolutionFails_Throws(string failingDependency)
     {
         var reader = new Mock<IProcessReader>();
@@ -214,10 +213,6 @@ public class ProcessTaskConfigurationValidationServiceTests
                 }
                 if (failingDependency == "task")
                     services.AddTransient<IProcessTask>(_ => throw new InvalidOperationException("unreadable task"));
-                if (failingDependency == "gateway")
-                    services.AddTransient<IProcessExclusiveGateway>(_ =>
-                        throw new InvalidOperationException("unreadable gateway")
-                    );
             },
             reader.Object
         );
@@ -526,6 +521,41 @@ public class ProcessTaskConfigurationValidationServiceTests
             record => record.Level == LogLevel.Warning
         );
         Assert.Contains($"({typeof(OtherSimpleTask).FullName})", warning.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StartAsync_RequestDependentGateway_DefersOnlyCodeDependentValidation(bool expressions)
+    {
+        var logger = new FakeLogger<ProcessTaskConfigurationValidationService>();
+        var httpContext = new Microsoft.AspNetCore.Http.HttpContextAccessor();
+        var exception = await Validate(
+            services =>
+                services.AddTransient<IProcessExclusiveGateway>(provider =>
+                {
+                    _ = httpContext.HttpContext ?? throw new InvalidOperationException("No HTTP context available");
+                    return new DataValuesFilter("Gateway1", "choose");
+                }),
+            GatewayReader(null, Flow("Flow3", false), Flow("Flow4", expressions)),
+            logger
+        );
+
+        if (expressions)
+        {
+            Assert.NotNull(exception);
+            Assert.Contains("not its default: 'Flow3'", exception.Message);
+        }
+        else
+        {
+            Assert.Null(exception);
+        }
+        Assert.Contains(
+            logger.Collector.GetSnapshot(),
+            record =>
+                record.Level == LogLevel.Warning
+                && record.Message.Contains("deferred until navigation", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
