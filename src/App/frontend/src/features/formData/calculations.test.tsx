@@ -4,7 +4,7 @@ import { act, waitFor } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import { FormStore } from 'src/features/form/FormContext';
 import { resolveCalculationConfig, resolveCalculationTargets } from 'src/features/formData/calculations';
@@ -39,15 +39,25 @@ const schema: JSONSchema7 = {
   },
 };
 
-async function renderCalculations(config: CalculationConfig, initialData: object, otherModel = false) {
+async function renderCalculations(
+  config: CalculationConfig,
+  initialData: object,
+  otherModel = false,
+  previewOtherTask = false,
+) {
   let store: FormStoreApi | undefined;
   function Snapshot() {
     store = FormStore.raw.useStore();
     return null;
   }
   window.altinnAppGlobalData.ui.settings!.autoSaveBehavior = 'onChangePage';
+  if (previewOtherTask) {
+    window.altinnAppGlobalData.ui.folders.Task_Pdf = getLayoutSettingsMock({ defaultDataType: defaultDataTypeMock });
+  }
   const rendered = await renderWithInstanceAndLayout({
     renderer: () => <Snapshot />,
+    taskId: previewOtherTask ? 'Task_Pdf' : undefined,
+    query: previewOtherTask ? 'pdf=1' : undefined,
     queries: {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((bootstrap) => {
@@ -98,6 +108,21 @@ describe('calculation targets', () => {
 });
 
 describe('calculations in the form store', () => {
+  it('preserves stored values when a PDF previews another task with calculations', async () => {
+    const initialData = { quantity: 4, total: 3 };
+    const { store } = await renderCalculations(
+      { calculations: { total: { expression: ['multiply', ['dataModel', 'quantity'], 2] } } },
+      initialData,
+      false,
+      true,
+    );
+
+    expect(store.getState().readOnly).toBe(true);
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual(initialData);
+    act(() => store.getState().data.debounce('forced'));
+    expect(store.getState().data.models[defaultDataTypeMock].debouncedCurrentData).toEqual(initialData);
+  });
+
   it('calculates initial data, converts scalar types, and runs dependent expressions in order', async () => {
     const { store } = await renderCalculations(
       {

@@ -48,13 +48,13 @@ public class WorkflowCommandSetTests
             Keys(commandSet.Commands)
         );
 
-        // ExecuteServiceTask is critical - the next transition must wait on it.
-        Assert.Equal([ExecuteServiceTask.Key], Keys(commandSet.CriticalPostCommitCommands));
+        // ExecuteServiceTask is primary - the next transition must wait on it.
+        Assert.Equal([ExecuteServiceTask.Key], Keys(commandSet.PrimaryPostCommitCommands));
 
-        // Outbound events and notifications are fire-and-forget side effects.
+        // Outbound events and notifications are auxiliary: they run beside the process.
         Assert.Equal(
             [MovedToAltinnEvent.Key, InstanceCreatedAltinnEvent.Key, NotifyInstanceOwnerOnInstantiation.Key],
-            Keys(commandSet.SideEffectCommands)
+            Keys(commandSet.AuxiliaryCommands)
         );
     }
 
@@ -71,8 +71,8 @@ public class WorkflowCommandSetTests
             }
         );
 
-        Assert.Empty(commandSet.CriticalPostCommitCommands);
-        Assert.Empty(commandSet.SideEffectCommands);
+        Assert.Empty(commandSet.PrimaryPostCommitCommands);
+        Assert.Empty(commandSet.AuxiliaryCommands);
     }
 
     [Fact]
@@ -81,8 +81,8 @@ public class WorkflowCommandSetTests
         var commandSet = WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true });
 
         Assert.Empty(commandSet.Commands);
-        Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(commandSet.CriticalPostCommitCommands));
-        Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.SideEffectCommands));
+        Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(commandSet.PrimaryPostCommitCommands));
+        Assert.Equal([CompletedAltinnEvent.Key], Keys(commandSet.AuxiliaryCommands));
     }
 
     [Fact]
@@ -94,8 +94,8 @@ public class WorkflowCommandSetTests
             [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
             Keys(commandSet.Commands)
         );
-        Assert.Empty(commandSet.CriticalPostCommitCommands);
-        Assert.Empty(commandSet.SideEffectCommands);
+        Assert.Empty(commandSet.PrimaryPostCommitCommands);
+        Assert.Empty(commandSet.AuxiliaryCommands);
     }
 
     [Fact]
@@ -104,8 +104,8 @@ public class WorkflowCommandSetTests
         var commandSet = WorkflowCommandSet.GetTaskAbandonSteps();
 
         Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
-        Assert.Empty(commandSet.CriticalPostCommitCommands);
-        Assert.Empty(commandSet.SideEffectCommands);
+        Assert.Empty(commandSet.PrimaryPostCommitCommands);
+        Assert.Empty(commandSet.AuxiliaryCommands);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -164,11 +164,11 @@ public class WorkflowCommandSetTests
             .ToList();
 
     /// <summary>
-    /// The regression floor for the whole expansion: a pipeline whose only exchange is answered by the
-    /// terminal still runs Main up to the send, and the answering handler is a workflow of its own. (The
-    /// assembled version of this is
-    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion</c>,
-    /// which must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
+    /// The regression floor for the whole expansion: a pipeline whose only exchange is answered by the terminal still
+    /// runs the primary workflow up to the send, and the answering handler is a workflow of its own. (The assembled
+    /// version of this is
+    /// <c>ProcessNextRequestFactoryTests.Create_MailboxPipeline_EndsMainWithTheSendStageAndEmitsNoConclusion</c>, which
+    /// must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
     /// </summary>
     [Fact]
     public void PlanSegment_SingleExchangePipeline_EndsMainOnTheSendAndAnswersItInAWorkflowOfItsOwn()
@@ -184,8 +184,8 @@ public class WorkflowCommandSetTests
             [$"{ExecuteServiceTask.Key}: 0", $"{MintMailbox.Key}: 1", $"{ExecuteServiceTask.Key}: 1"],
             OperationIds(plan)
         );
-        // Main is no receive workflow: the send ends its run, and what follows the send is worked out when
-        // that step runs.
+        // The primary workflow is no receive workflow: the send ends its run, and what follows the send is worked out
+        // when that step runs.
         Assert.Null(plan.ReceiveOpeningIndex);
 
         ServiceTaskSegmentPlan receive = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);

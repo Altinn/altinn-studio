@@ -11,6 +11,17 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- PDF preview in the app developer tools can now show a PDF or subform PDF service task before the instance reaches it, including individual subforms. `GET .../pdf/preview` accepts optional `taskId` and `language`; subform PDF service tasks require `dataElementId`. ([Altinn/app-lib-dotnet#1659](https://github.com/Altinn/app-lib-dotnet/issues/1659))
+- `GET .../pdf/preview` now appears in the app's OpenAPI documentation for integrations that use the API directly. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
+- Build checks compare the data types `process.bpmn` uses with `applicationmetadata.json` ([#21024](https://github.com/Altinn/altinn-studio/pull/21024)):
+    - `ALTINNAPP1013`–`ALTINNAPP1015` (errors): missing, such as `ref-data-as-pdf`, or unable to hold what the task stores
+    - `ALTINNAPP1016`–`ALTINNAPP1019` (warnings): signing and payment data types that are not app-owned, a `taskId` that names no task, and unknown ids the app skips
+- Build checks report task configuration in `process.bpmn` that the app rejects or ignores ([#21025](https://github.com/Altinn/altinn-studio/pull/21025)):
+    - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
+    - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
+
+- Build checks `ALTINNAPP1004`–`ALTINNAPP1012` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element or a task with two outgoing flows. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023))
+
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
@@ -18,6 +29,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
 
 ### Changed
+
+- `GET .../pdf/preview` now allows 20 previews per minute across all instances by default; further requests return 429 with `Retry-After`. Configure `PdfGeneratorSettings:PreviewRateLimit` using `PermitLimit` (0 disables the limit), `Window` and `QueueLimit` (requests queued for the next window). ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
+- Breaking: `IPdfService.GeneratePdf` now has one overload requiring a language, with optional `autoGeneratePdfForTaskIds`, `isPreview` and `authenticationMethod` parameters. Pass `isPreview` and cancellation tokens by name; custom `IPdfService` implementations must implement every method, including the new `GenerateSubformPdf`. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
+- Breaking: `IPdfGeneratorClient.GeneratePdf` returns the PDF as `byte[]` instead of `Stream`. Use the bytes directly, or wrap them in a `MemoryStream` where you need a stream. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
+- An app no longer starts when a `subformPdf` task in `config/process/process.bpmn` has no `<altinn:subformPdfConfig>`, lacks `subformComponentId` or `subformDataTypeId`, or names a `subformDataTypeId` that is not in `applicationmetadata.json`. ([#21022](https://github.com/Altinn/altinn-studio/pull/21022))
 
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
@@ -29,14 +45,13 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
-  - the obsolete `POST .../data?dataType=` returns a list of validation issues
-  - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+    - the obsolete `POST .../data?dataType=` returns a list of validation issues
+    - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
 - `PUT .../process/next` with concurrent changes to the instance: ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
     - answers `409 Conflict` and does nothing if the instance changed after the call read it (`processNextState: "instanceChanged"`) or another call chose differently on the same version (`"concurrentTransition"`); try again
     - waits for an earlier call that has not started yet, or that made the same choice on the same version
 - Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `Filter` gets instead, which reads as the app.
 - Breaking: `PUT .../process/next` now records the `Process.GenerateChangeEvent` and `Process.End` spans in its own trace, not the workflow callback's, even if the transition is not carried out. Update dashboards, alerts and queries that use them or count `Process.End` as ended processes. ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
-
 
 ### Fixed
 
@@ -44,8 +59,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - An app that exports telemetry directly to Application Insights sends every trace and all logs instead of a sample of 5 traces per second. ([Altinn/app-lib-dotnet#1889](https://github.com/Altinn/app-lib-dotnet/pull/1889))
 - Submitting no longer fails when a hidden Map component has drawn geometries and `RemoveHiddenData` is enabled. ([Altinn/app-lib-dotnet#1862](https://github.com/Altinn/app-lib-dotnet/issues/1862))
 - Copying an instance with `copyInstanceSettings.includeAttachments`:
-  - keeps the tags on its attachments ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
-  - shows the attachments of a `FileUpload` in a repeating group in the copy ([Altinn/app-lib-dotnet#1894](https://github.com/Altinn/app-lib-dotnet/pull/1894))
+    - keeps the tags on its attachments ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
+    - shows the attachments of a `FileUpload` in a repeating group in the copy ([Altinn/app-lib-dotnet#1894](https://github.com/Altinn/app-lib-dotnet/pull/1894))
 - The OpenAPI document no longer lists a `dataGuid` path parameter on endpoints that create data. ([Altinn/app-lib-dotnet#1871](https://github.com/Altinn/app-lib-dotnet/pull/1871))
 - Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
@@ -54,6 +69,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
+- Breaking: `IPdfService.GenerateAndStorePdf` is removed. Call `GeneratePdf` with the instance and data mutator's language, then store the returned bytes with your chosen filename using `IInstanceDataMutator.AddBinaryDataElement`. Use `ref-data-as-pdf` and `generatedFromTask` to preserve cleanup when the task restarts. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
+- Breaking: the `PdfService.GenerateAndStorePdf` trace span is removed. Update queries, dashboards and alerts to use `PdfService.GeneratePdf` for PDF service tasks. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandonHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
