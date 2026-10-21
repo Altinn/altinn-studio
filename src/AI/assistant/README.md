@@ -69,7 +69,6 @@ X-Developer: <developer username>
 {
   "session_id": "unique-session-id",
   "repo_url": "http://gitea:3000/org/app.git",
-  "org": "org",
   "cost_org": "org",
   "goal": "Add a date field for 'birthDate' after the name field",
   "allow_app_changes": true
@@ -84,8 +83,7 @@ X-Developer: <developer username>
 **Parameters:**
 
 - `session_id`: A unique identifier for the session. Use 1 to 128 letters, digits, `-` or `_`.
-- `repo_url`: The Git URL of the Altinn app repository. The agent uses only the path. The host comes from `GITEA_BASE_URL`.
-- `org`: The owner of the repository. This is an organization, or the developer for the developer's own repository.
+- `repo_url`: The Git URL of the Altinn app repository. The agent uses only the path. The host comes from `GITEA_BASE_URL`. The path ends with the owner of the repository and the app name. The owner is an organization, or the developer for the developer's own repository.
 - `cost_org`: The organization that the model usage is recorded on, as the Langfuse `user_id`. Designer sets this value. See [System context](docs/2-system-context.md).
 - `goal`: What the agent must do, in natural language.
 - `allow_app_changes`: `true` for workflow mode. `false` for chat mode. The default is `false`.
