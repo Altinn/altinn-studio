@@ -13,6 +13,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// </summary>
 internal sealed class RedundantUsingDirectiveMigration
 {
+    private const string GlobalAliasPrefix = "global::";
+
     private readonly CSharpSourceScanner _scanner;
     private readonly IReadOnlySet<string> _globalNamespaces;
 
@@ -36,7 +38,7 @@ internal sealed class RedundantUsingDirectiveMigration
             if (redundant.Length == 0)
                 continue;
 
-            _scanner.Update(file, UsingDirectiveRemoval.Remove(file.Root, redundant));
+            _scanner.Update(file, Remove(file.Root, redundant));
             UpgradeConsole.Ok($"Removed {redundant.Length} redundant using directive(s) in {file.Path}");
             changedFiles++;
         }
@@ -64,10 +66,7 @@ internal sealed class RedundantUsingDirectiveMigration
             if (directive.Alias is not null || directive.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
                 continue;
 
-            if (
-                directive.Name is null
-                || !_globalNamespaces.Contains(CSharpSyntaxQueries.NormalizedName(directive.Name))
-            )
+            if (directive.Name is null || !_globalNamespaces.Contains(NormalizedName(directive.Name)))
                 continue;
 
             if (IsGlobalNamespaceImport(file, directive))
@@ -90,10 +89,86 @@ internal sealed class RedundantUsingDirectiveMigration
             return false;
 
         return model.GetSymbolInfo(directive.Name).Symbol is INamespaceSymbol ns
-            && string.Equals(
-                ns.ToDisplayString(),
-                CSharpSyntaxQueries.NormalizedName(directive.Name),
-                StringComparison.Ordinal
-            );
+            && string.Equals(ns.ToDisplayString(), NormalizedName(directive.Name), StringComparison.Ordinal);
     }
+
+    private static string NormalizedName(NameSyntax name)
+    {
+        var text = name.WithoutTrivia().ToString();
+        // ToString keeps trivia between name parts ("System . Linq"), and 'global::' says nothing
+        // about which namespace is meant.
+        text = string.Concat(text.Where(c => !char.IsWhiteSpace(c)));
+        return text.StartsWith(GlobalAliasPrefix, StringComparison.Ordinal) ? text[GlobalAliasPrefix.Length..] : text;
+    }
+
+    private static CompilationUnitSyntax Remove(CompilationUnitSyntax root, UsingDirectiveSyntax[] directives)
+    {
+        var tracked = root.TrackNodes(directives);
+        foreach (var directive in directives)
+        {
+            var current = Current(tracked, directive);
+
+            // The directive's own line goes, but not a comment or preprocessor directive (such as
+            // '#nullable enable') on the lines above it, nor a comment after it on the same line. Those
+            // are handed to whatever follows, minus the whitespace that separated them from the code.
+            var carriedLeading = current.GetLeadingTrivia().Any(static trivia => !IsBlank(trivia))
+                ? current.GetLeadingTrivia()
+                : SyntaxTriviaList.Empty;
+            var carriedTrailing = current
+                .GetTrailingTrivia()
+                .Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                ? new SyntaxTriviaList(
+                    current.GetTrailingTrivia().Where(static trivia => !trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                )
+                : SyntaxTriviaList.Empty;
+
+            var options = SyntaxRemoveOptions.KeepNoTrivia;
+            if (carriedLeading.Count > 0 || carriedTrailing.Count > 0)
+            {
+                tracked = tracked.ReplaceNode(
+                    current,
+                    current.WithLeadingTrivia(carriedLeading).WithTrailingTrivia(carriedTrailing)
+                );
+                current = Current(tracked, directive);
+                options = SyntaxRemoveOptions.KeepExteriorTrivia;
+            }
+
+            tracked =
+                tracked.RemoveNode(current, options)
+                ?? throw new InvalidOperationException("Failed to remove using directive");
+        }
+
+        return TrimLeadingBlankLines(tracked);
+    }
+
+    private static UsingDirectiveSyntax Current(CompilationUnitSyntax tracked, UsingDirectiveSyntax original) =>
+        tracked.GetCurrentNode(original) ?? throw new InvalidOperationException("Failed to track using directive");
+
+    /// <summary>
+    /// Removing the first directive of a file leaves the blank line that separated it from what
+    /// follows at the very top of the file. A file does not start with blank lines, so drop them.
+    /// </summary>
+    private static CompilationUnitSyntax TrimLeadingBlankLines(CompilationUnitSyntax root)
+    {
+        var firstToken = root.GetFirstToken(includeZeroWidth: true);
+        var leading = firstToken.LeadingTrivia;
+
+        var blankCount = 0;
+        var lastLineBreak = -1;
+        while (blankCount < leading.Count && IsBlank(leading[blankCount]))
+        {
+            if (leading[blankCount].IsKind(SyntaxKind.EndOfLineTrivia))
+                lastLineBreak = blankCount;
+            blankCount++;
+        }
+
+        if (lastLineBreak < 0)
+            return root;
+
+        var trimmed = new SyntaxTriviaList(leading.Skip(lastLineBreak + 1));
+        return root.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(trimmed));
+    }
+
+    private static bool IsBlank(SyntaxTrivia trivia) =>
+        trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia);
 }

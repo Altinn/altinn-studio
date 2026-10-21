@@ -683,15 +683,6 @@ internal static class CSharpSyntaxQueries
         name.StartsWith("global::", StringComparison.Ordinal) ? name["global::".Length..] : name;
 
     /// <summary>
-    /// <paramref name="name"/> as a plain dotted name, for comparing a <c>using</c> directive against a
-    /// namespace. Built from the name's tokens, because <see cref="SyntaxNode.ToString"/> keeps the trivia
-    /// between name parts (<c>System . Linq</c>); and <c>global::</c> says nothing about which namespace
-    /// is meant.
-    /// </summary>
-    public static string NormalizedName(NameSyntax name) =>
-        WithoutGlobalAlias(string.Concat(name.DescendantTokens().Select(static token => token.Text)));
-
-    /// <summary>
     /// Whether <paramref name="name"/> is the name that identifies a base-list entry itself - the
     /// name <see cref="TypesImplementing"/> resolves and reports - as opposed to a name nested
     /// inside it (a generic type argument).
