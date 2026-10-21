@@ -24,9 +24,11 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
     private const string Scenario = "delegated-signing";
     private const int SigneeCount = 2;
 
-    // DDG Fitness in Localtest's test data, where user 1337 is general manager (DAGL).
-    private const string OrganizationNumber = "897069650";
-    private const string OrganizationPartyUuid = "00000000-0000-0000-0000-000000500000";
+    // Skog og Fjell Consulting in Localtest's test data, where user 1337 is general manager (DAGL). Most of the
+    // other organizations of user 1337 have organization numbers that fail the checksum, which the app rejects, or are
+    // sub-units, whose delegations Localtest does not grant to the user.
+    private const string OrganizationNumber = "043871668";
+    private const string OrganizationPartyUuid = "00000000-0000-0000-0000-000000500004";
 
     private static readonly JsonSerializerOptions _webOptions = new(JsonSerializerDefaults.Web);
 
