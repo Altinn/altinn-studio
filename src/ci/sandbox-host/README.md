@@ -31,6 +31,7 @@ pod spec of each workload mounts two folders from it, and `ProviderArguments` on
 `clear_home` empties the Provider home when a run ends, also after a failed run, so that nothing carries over to the
 next run.
 
-The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/AGENTS.md) uses this crate.
+The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/AGENTS.md) and the
+[assistant runner](../../AI/assistant-runner/README.md) use this crate.
 
 See the [`Makefile`](Makefile) for available development commands. `sandbox-host-build.yaml` runs them in CI.
