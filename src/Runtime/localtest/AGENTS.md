@@ -34,7 +34,9 @@ the app libraries send and read; a field the app client marks `required` must be
 - **Not checked locally:** the resource registry, access to the resource, the service owner agreement, the
   contact reservation register (KRR), confidentiality and Dialogporten. Test those in TT02.
 - **`idempotentKey` is load-bearing:** a reused key answers 409 Conflict, which apps treat as "already sent"
-  when they retry. Duplicate detection runs under a lock, so concurrent sends with one key create one message.
+  when they retry. As in the real API, the key is looked up after the model validation and before the other
+  checks, so a retry that has since become invalid, such as one whose due date has passed, still gets 409.
+  Duplicate detection runs under a lock, so concurrent sends with one key create one message.
 - Attachments go through `POST …/attachment`, `POST …/attachment/{id}/upload` and `GET …/attachment/{id}`, as
   the app client sends them. An upload is published at once (no malware scan), and a correspondence may only
   reference published attachments.

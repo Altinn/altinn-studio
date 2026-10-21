@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 using Altinn.Correspondence.Controllers;
+using Altinn.Notifications.Core.Helpers;
+using PhoneNumbers;
 
 namespace LocalTest.Services.Correspondence;
 
@@ -45,19 +47,16 @@ internal static partial class CorrespondenceRequestValidator
         ".dicom",
     ];
 
-    /// <summary>The reason the Correspondence API would refuse the request, or <c>null</c> when it would not.</summary>
-    public static CorrespondenceError? Validate(InitializeCorrespondencesRequestDto request, DateTimeOffset now)
+    /// <summary>
+    /// The reason the Correspondence API would refuse the request before it looks up the idempotent key, or
+    /// <c>null</c> when it would not: what its model validation refuses, and a key sent to several recipients.
+    /// </summary>
+    public static CorrespondenceError? ValidateBeforeIdempotencyCheck(InitializeCorrespondencesRequestDto request)
     {
         if (ValidateRecipients(request.Recipients) is { } recipientError)
             return recipientError;
-        IReadOnlyList<string> recipients = request.Recipients!;
-
         if (request.IdempotentKey == Guid.Empty)
             return CorrespondenceErrors.InvalidIdempotencyKey;
-        if (request.IdempotentKey is not null && recipients.Count > 1)
-            return CorrespondenceErrors.IdempotencyKeyNotAllowedWithMultipleRecipients;
-        if (recipients.Distinct(StringComparer.OrdinalIgnoreCase).Count() != recipients.Count)
-            return CorrespondenceErrors.DuplicateRecipients;
 
         if (request.Correspondence is not { } correspondence)
             return CorrespondenceErrors.Invalid("The Correspondence field is required.");
@@ -65,6 +64,26 @@ internal static partial class CorrespondenceRequestValidator
             return CorrespondenceErrors.Invalid("The ResourceId field is required.");
         if (string.IsNullOrWhiteSpace(correspondence.SendersReference))
             return CorrespondenceErrors.Invalid("The SendersReference field is required.");
+        if (ValidateContentFields(correspondence.Content) is { } contentError)
+            return contentError;
+
+        if (request.IdempotentKey is not null && request.Recipients!.Count > 1)
+            return CorrespondenceErrors.IdempotencyKeyNotAllowedWithMultipleRecipients;
+        return null;
+    }
+
+    /// <summary>
+    /// The reason the Correspondence API would refuse a request that passed
+    /// <see cref="ValidateBeforeIdempotencyCheck"/> and whose idempotent key is unused, or <c>null</c> when it would
+    /// not.
+    /// </summary>
+    public static CorrespondenceError? Validate(InitializeCorrespondencesRequestDto request, DateTimeOffset now)
+    {
+        IReadOnlyList<string> recipients = request.Recipients!;
+        CorrespondenceRequestDto correspondence = request.Correspondence!;
+
+        if (recipients.Distinct(StringComparer.OrdinalIgnoreCase).Count() != recipients.Count)
+            return CorrespondenceErrors.DuplicateRecipients;
 
         if (correspondence.IsConfirmationNeeded && correspondence.DueDateTime is null)
             return CorrespondenceErrors.DueDateRequired;
@@ -76,7 +95,7 @@ internal static partial class CorrespondenceRequestValidator
                 return CorrespondenceErrors.DueDatePriorRequestedPublishTime;
         }
 
-        if (ValidateContent(correspondence.Content) is { } contentError)
+        if (ValidateContent(correspondence.Content!) is { } contentError)
             return contentError;
         if (!string.IsNullOrEmpty(correspondence.MessageSender) && !IsPlainText(correspondence.MessageSender))
             return CorrespondenceErrors.MessageSenderIsNotPlainText;
@@ -128,14 +147,13 @@ internal static partial class CorrespondenceRequestValidator
         return null;
     }
 
-    private static CorrespondenceError? ValidateContent(CorrespondenceContentRequestDto? content)
+    /// <summary>The content fields the real API's model validation requires, and their lengths.</summary>
+    private static CorrespondenceError? ValidateContentFields(CorrespondenceContentRequestDto? content)
     {
         if (content is null)
             return CorrespondenceErrors.MissingContent;
         if (string.IsNullOrWhiteSpace(content.MessageTitle))
             return CorrespondenceErrors.MessageTitleEmpty;
-        if (!IsPlainText(content.MessageTitle))
-            return CorrespondenceErrors.MessageTitleIsNotPlainText;
         if (content.MessageTitle.Length > MaxTitleLength)
             return CorrespondenceErrors.MessageTitleTooLong;
         if (content.MessageSummary is { Length: > MaxSummaryLength })
@@ -144,10 +162,21 @@ internal static partial class CorrespondenceRequestValidator
             return CorrespondenceErrors.MessageBodyEmpty;
         if (content.MessageBody.Length > MaxBodyLength)
             return CorrespondenceErrors.MessageBodyTooLong;
-        if (!_languages.Contains(content.Language?.ToLowerInvariant()))
+        return null;
+    }
+
+    private static CorrespondenceError? ValidateContent(CorrespondenceContentRequestDto content)
+    {
+        if (!IsPlainText(content.MessageTitle!))
+            return CorrespondenceErrors.MessageTitleIsNotPlainText;
+        if (!_languages.Contains(LanguageOrDefault(content.Language).ToLowerInvariant()))
             return CorrespondenceErrors.InvalidLanguage;
         return null;
     }
+
+    /// <summary>The content's language, or <c>nb</c>, which the real API takes when the request names none.</summary>
+    public static string LanguageOrDefault(string? language) =>
+        string.IsNullOrWhiteSpace(language) ? "nb" : language;
 
     private static CorrespondenceError? ValidateCustomRecipients(NotificationRequestDto notification, int recipientCount)
     {
@@ -184,7 +213,7 @@ internal static partial class CorrespondenceRequestValidator
                 && (!EmailAddress().IsMatch(email) || email.Contains(';', StringComparison.Ordinal))
             )
                 return CorrespondenceErrors.InvalidEmailProvided;
-            if (customRecipient.MobileNumber is { } mobile && !MobileNumber().IsMatch(mobile.Replace(" ", "")))
+            if (customRecipient.MobileNumber is { } mobile && !IsValidMobileNumber(mobile))
                 return CorrespondenceErrors.InvalidMobileNumberProvided;
         }
 
@@ -271,10 +300,20 @@ internal static partial class CorrespondenceRequestValidator
     private static partial Regex EmailAddress();
 
     /// <summary>
-    /// Only the characters the real API allows. It also checks the number against E.164, which this does not.
+    /// The real API's check: a country code, as <c>+</c> or <c>00</c>, and a number libphonenumber accepts, so a bare
+    /// Norwegian number such as <c>92010000</c> is refused. A number it cannot parse is invalid rather than an error.
     /// </summary>
-    [GeneratedRegex(@"^\+?\d+$")]
-    private static partial Regex MobileNumber();
+    private static bool IsValidMobileNumber(string mobileNumber)
+    {
+        try
+        {
+            return MobileNumberHelper.IsValidMobileNumber(mobileNumber);
+        }
+        catch (NumberParseException)
+        {
+            return false;
+        }
+    }
 
     [GeneratedRegex(@"[<>:""/\\|?*\u0000-\u001F]")]
     private static partial Regex InvalidFileNameCharacters();

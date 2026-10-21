@@ -80,6 +80,16 @@ public class CorrespondenceController(
         {
             return ErrorResult(CorrespondenceErrors.Invalid("The request body is empty."));
         }
+        if (CorrespondenceRequestValidator.ValidateBeforeIdempotencyCheck(request) is { } malformed)
+        {
+            return ErrorResult(malformed);
+        }
+        // The real API answers a reused key before it validates the rest, so a retry that has since become invalid,
+        // such as one whose due date has passed, still gets 409. TryCreate checks the key again under its lock.
+        if (request.IdempotentKey is { } idempotentKey && await _repository.IdempotentKeyExists(idempotentKey))
+        {
+            return ErrorResult(CorrespondenceErrors.DuplicateInitCorrespondenceRequest);
+        }
         if (CorrespondenceRequestValidator.Validate(request, DateTimeOffset.UtcNow) is { } invalid)
         {
             return ErrorResult(invalid);
@@ -223,7 +233,9 @@ public class CorrespondenceController(
                 ],
                 Content = new CorrespondenceContentResponseDto
                 {
-                    Language = details?.Content?.Language,
+                    Language = details?.Content is { } content
+                        ? CorrespondenceRequestValidator.LanguageOrDefault(content.Language)
+                        : null,
                     MessageTitle = details?.Content?.MessageTitle ?? string.Empty,
                     MessageSummary = details?.Content?.MessageSummary ?? string.Empty,
                     MessageBody = details?.Content?.MessageBody ?? string.Empty,

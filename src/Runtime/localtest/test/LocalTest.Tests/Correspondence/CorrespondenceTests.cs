@@ -135,6 +135,39 @@ public sealed class CorrespondenceTests : IDisposable
     }
 
     [Fact]
+    public async Task Initialize_RetryThatHasSinceBecomeInvalid_ReturnsConflict()
+    {
+        var idempotentKey = Guid.NewGuid();
+        await Initialize(Request(OrganizationRecipient, idempotentKey: idempotentKey));
+
+        // The real API looks the key up before it checks the due date, so the retry is still "already sent"
+        var problem = await InitializeProblem(
+            Request(
+                [OrganizationRecipient],
+                idempotentKey,
+                configure: c => c["dueDateTime"] = DateTimeOffset.UtcNow.AddDays(-1)
+            )
+        );
+
+        Assert.Equal(StatusCodes.Status409Conflict, problem.Status);
+        Assert.Equal(1034, problem.Extensions["errorCode"]);
+    }
+
+    [Fact]
+    public async Task Initialize_MalformedRequestWithUsedIdempotentKey_ReturnsBadRequest()
+    {
+        var idempotentKey = Guid.NewGuid();
+        await Initialize(Request(OrganizationRecipient, idempotentKey: idempotentKey));
+
+        // Model validation runs before the real API looks the key up
+        var problem = await InitializeProblem(
+            Request([OrganizationRecipient], idempotentKey, resourceId: null)
+        );
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+    }
+
+    [Fact]
     public async Task Initialize_RecordFromAnOlderLocaltestInStorage_StillHonorsItsIdempotentKey()
     {
         var oldCorrespondenceId = Guid.NewGuid();
@@ -283,6 +316,21 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Equal("nb", details.Content?.Language);
         Assert.NotNull(details.Published);
         Assert.Empty(details.Notifications);
+    }
+
+    [Fact]
+    public async Task Details_RequestWithoutLanguage_IsInBokmal()
+    {
+        var response = await Initialize(
+            Request([OrganizationRecipient], null, configure: c => Content(c).Remove("language"))
+        );
+
+        var created = Assert.Single(response.Correspondences);
+
+        var result = await _controller.GetCorrespondenceDetails(created.CorrespondenceId);
+        var details = Assert.IsType<CorrespondenceDetailsResponseDto>(Assert.IsType<OkObjectResult>(result).Value);
+
+        Assert.Equal("nb", details.Content?.Language);
     }
 
     [Fact]
@@ -583,6 +631,14 @@ public sealed class CorrespondenceTests : IDisposable
                 c => c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "call me" }),
                 3012
             ),
+            ["custom recipient with mobile number without country code"] = (
+                c => c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "87654321" }),
+                3012
+            ),
+            ["custom recipient with mobile number libphonenumber cannot parse"] = (
+                c => c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "+" }),
+                3012
+            ),
             ["recipient name with custom email"] = (
                 c =>
                 {
@@ -635,6 +691,11 @@ public sealed class CorrespondenceTests : IDisposable
         },
         ["custom recipients overriding the registered ones"] = c =>
             c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "+4799999999" }),
+        ["custom recipient with mobile number with punctuation"] = c =>
+            c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "+47 999-99-999" }),
+        ["custom recipient with mobile number with 00 country code"] = c =>
+            c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "004799999999" }),
+        ["no language"] = c => Content(c).Remove("language"),
     };
 
     public static TheoryData<string> AcceptedRequests => [.. _accepted.Keys];

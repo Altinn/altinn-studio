@@ -177,7 +177,11 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     private string AttachmentDataFileName(Guid attachmentId) =>
         Path.Join(AttachmentStorage().FullName, $"{attachmentId}.bin");
 
-    private async Task<bool> IdempotentKeyExists(Guid idempotentKey)
+    /// <summary>
+    /// Whether a stored correspondence carries the idempotent key. Only <see cref="TryCreate"/> decides under its lock,
+    /// so a caller that checks first must still handle <see cref="TryCreate"/> refusing.
+    /// </summary>
+    public async Task<bool> IdempotentKeyExists(Guid idempotentKey)
     {
         foreach (var file in Storage().GetFiles("*.json"))
         {
