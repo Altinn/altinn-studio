@@ -4,12 +4,7 @@ import deepEqual from 'fast-deep-equal';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useGetCachedInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
-import {
-  mapBackendIssuesToFieldValidations,
-  mapBackendValidationsToValidatorGroups,
-  mapValidatorGroupsToDataModelValidations,
-} from 'src/features/validation/backendValidation/backendValidationUtils';
+import { mapBackendIssuesToFieldValidations } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { Validation } from 'src/features/validation/validationContext';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 
@@ -19,18 +14,15 @@ import type { BackendValidationIssueGroups } from 'src/features/validation';
 export function useUpdateIncrementalValidations(setInFormData = true) {
   const updateBackendValidations = Validation.useUpdateBackendValidations();
   const defaultDataElementId = DataModels.useDefaultDataElementId();
-  const getCachedInitialValidations = useGetCachedInitialValidations();
+  const getBackendValidatorGroups = Validation.useGetBackendValidatorGroups();
   const updateInFormData = FD.useSetLastValidationIssues();
 
   return useCallback(
     (lastSaveValidations: BackendValidationIssueGroups) => {
-      const { cachedInitialValidations } = getCachedInitialValidations();
-      const initialValidatorGroups = mapBackendValidationsToValidatorGroups(
-        cachedInitialValidations,
-        defaultDataElementId,
-      );
+      // Validators that did not run on this save are not in lastSaveValidations, and keep their validations
+      const previousValidatorGroups = getBackendValidatorGroups();
 
-      const newValidatorGroups = structuredClone(initialValidatorGroups);
+      const newValidatorGroups = structuredClone(previousValidatorGroups);
       for (const [group, validationIssues] of Object.entries(lastSaveValidations)) {
         newValidatorGroups[group] = mapBackendIssuesToFieldValidations(validationIssues, defaultDataElementId);
       }
@@ -39,15 +31,14 @@ export function useUpdateIncrementalValidations(setInFormData = true) {
         updateInFormData(lastSaveValidations);
       }
 
-      if (deepEqual(initialValidatorGroups, newValidatorGroups)) {
+      if (deepEqual(previousValidatorGroups, newValidatorGroups)) {
         // Don't update any validations, only set last saved validations
         updateBackendValidations(undefined, { incremental: lastSaveValidations });
         return;
       }
 
-      const backendValidations = mapValidatorGroupsToDataModelValidations(newValidatorGroups);
-      updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
+      updateBackendValidations(newValidatorGroups, { incremental: lastSaveValidations });
     },
-    [defaultDataElementId, getCachedInitialValidations, updateBackendValidations, setInFormData, updateInFormData],
+    [defaultDataElementId, getBackendValidatorGroups, updateBackendValidations, setInFormData, updateInFormData],
   );
 }

@@ -13,6 +13,7 @@ import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import {
+  type BackendFieldValidatorGroups,
   type BaseValidation,
   type DataModelValidations,
   type FieldValidations,
@@ -26,7 +27,10 @@ import {
   useGetCachedInitialValidations,
   useRefetchInitialValidations,
 } from 'src/features/validation/backendValidation/backendValidationQuery';
-import { useShouldValidateInitial } from 'src/features/validation/backendValidation/backendValidationUtils';
+import {
+  mapValidatorGroupsToDataModelValidations,
+  useShouldValidateInitial,
+} from 'src/features/validation/backendValidation/backendValidationUtils';
 import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
 import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
@@ -42,6 +46,11 @@ interface Internals {
     schema: DataModelValidations;
     invalidData: DataModelValidations;
   };
+  /**
+   * Backend validations grouped by validator. A save only returns the validators that ran, so the others must keep
+   * the validations they had before the save.
+   */
+  backendValidatorGroups: BackendFieldValidatorGroups;
   processedLast: ValidationsProcessedLast; // This should only be used to check if we have finished processing the last validations from backend so that we know if the validation state is up to date
   /**
    * updateDataModelValidations
@@ -53,7 +62,7 @@ interface Internals {
     validations?: FieldValidations,
   ) => void;
   updateBackendValidations: (
-    backendValidations: { [dataElementId: string]: FieldValidations } | undefined,
+    validatorGroups: BackendFieldValidatorGroups | undefined,
     processedLast?: Partial<ValidationsProcessedLast>,
     taskValidations?: BaseValidation[],
   ) => void;
@@ -84,6 +93,7 @@ function initialCreateStore() {
         schema: {},
         invalidData: {},
       },
+      backendValidatorGroups: {},
       processedLast: {
         initial: undefined,
         incremental: undefined,
@@ -100,7 +110,7 @@ function initialCreateStore() {
             );
           }
         }),
-      updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
+      updateBackendValidations: (validatorGroups, processedLast, taskValidations) =>
         set((state) => {
           if (processedLast?.incremental) {
             state.processedLast.incremental = processedLast.incremental;
@@ -111,7 +121,8 @@ function initialCreateStore() {
           if (taskValidations) {
             state.state.task = taskValidations;
           }
-          if (backendValidations) {
+          if (validatorGroups) {
+            const backendValidations = mapValidatorGroupsToDataModelValidations(validatorGroups);
             /**
              * If a data model no longer has any backend validations, the key will not exist in the new object,
              * we therefore need to make sure we update data model validations for any model that
@@ -122,6 +133,7 @@ function initialCreateStore() {
               ...Object.keys(state.individualValidations.backend),
             ]);
 
+            state.backendValidatorGroups = validatorGroups;
             state.individualValidations.backend = backendValidations;
             for (const dataElementId of keys) {
               state.state.dataModels[dataElementId] = mergeFieldValidations(
@@ -375,6 +387,10 @@ export const Validation = {
   useGetProcessedLast: () => {
     const store = useStore();
     return useCallback(() => store.getState().processedLast, [store]);
+  },
+  useGetBackendValidatorGroups: () => {
+    const store = useStore();
+    return useCallback(() => store.getState().backendValidatorGroups, [store]);
   },
 
   useRef: () => useSelectorAsRef((state) => state),

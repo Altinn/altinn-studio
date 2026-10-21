@@ -6,7 +6,6 @@ import { useBackendValidationQuery } from 'src/features/validation/backendValida
 import {
   mapBackendIssuesToTaskValidations,
   mapBackendValidationsToValidatorGroups,
-  mapValidatorGroupsToDataModelValidations,
   useShouldValidateInitial,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
@@ -25,8 +24,7 @@ export function BackendValidation() {
     if (!isFetchingInitial) {
       const initialTaskValidations = mapBackendIssuesToTaskValidations(initialValidations);
       const initialValidatorGroups = mapBackendValidationsToValidatorGroups(initialValidations, defaultDataElementId);
-      const backendValidations = mapValidatorGroupsToDataModelValidations(initialValidatorGroups);
-      updateBackendValidations(backendValidations, { initial: initialValidations }, initialTaskValidations);
+      updateBackendValidations(initialValidatorGroups, { initial: initialValidations }, initialTaskValidations);
     }
   }, [defaultDataElementId, initialValidations, isFetchingInitial, updateBackendValidations]);
 
