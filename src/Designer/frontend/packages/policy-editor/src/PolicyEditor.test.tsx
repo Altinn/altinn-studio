@@ -69,26 +69,11 @@ describe('PolicyEditor', () => {
       screen.getByRole('option', { name: textMock(newAuthLevelOption.label) }),
     );
 
+    expect(mockOnSave).toHaveBeenCalledTimes(1);
     expect(mockOnSave).toHaveBeenCalledWith({
       ...mockPolicy,
       requiredAuthenticationLevelEndUser: newAuthLevelOption.value,
     });
-  });
-
-  it('calls "onSave" when the auth level changes', async () => {
-    const user = userEvent.setup();
-    renderPolicyEditor();
-
-    const [selectElement] = screen.getAllByLabelText(
-      textMock('policy_editor.select_auth_level_label'),
-    );
-    await user.click(selectElement);
-
-    const mockOption2 = textMock(authLevelOptions[2].label);
-    await user.selectOptions(selectElement, screen.getByRole('option', { name: mockOption2 }));
-    await user.tab();
-
-    expect(mockOnSave).toHaveBeenCalledTimes(1);
   });
 
   it('increases the rule list length when add rule button is clicked', async () => {
