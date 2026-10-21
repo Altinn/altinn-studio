@@ -51,6 +51,9 @@ internal static class V8Tov9Upgrade
     // Namespace the v9 app template imports globally; it holds the interfaces app code implements.
     private const string FeaturesNamespace = "Altinn.App.Core.Features";
 
+    // Namespace of the obsolete Maskinporten shim, which v9 deletes with nothing in its place.
+    private const string MaskinportenShimNamespace = "Altinn.App.Core.Internal.Maskinporten";
+
     // Keep the release floor aligned with the app template. This release carries the .NET 11
     // arithmetic fixes and compatible OpenAPI dependencies; earlier v9 packages cannot be retargeted alone.
     private const string MinimumPackageVersion = "9.0.0-preview.8";
@@ -211,6 +214,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAppResourcesParameterNames(scanner));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, RemoveMaskinportenShimNamespace(scanner));
 
         // Last of the C# rewrites, so the using directives the steps above leave behind are covered
         // too. The rule migration further down generates its code without the redundant usings.
@@ -666,6 +672,30 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error enabling implicit usings", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes usings of the namespace the obsolete Maskinporten shim lived in. v9 deletes it, so a leftover
+    /// import breaks the build even where nothing uses it. Code using the shim's types is reported by
+    /// <see cref="CheckRemovedCSharpApis"/>.
+    /// </summary>
+    static int RemoveMaskinportenShimNamespace(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Maskinporten namespace");
+        try
+        {
+            var migration = new RemovedNamespaceUsingMigration(scanner);
+            if (migration.Migrate(MaskinportenShimNamespace) == 0)
+            {
+                UpgradeConsole.Skip($"No using directive of {MaskinportenShimNamespace}");
+            }
+
+            return ExitSuccess;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing using directives of the Maskinporten namespace", ex);
         }
     }
 
