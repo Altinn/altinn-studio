@@ -47,13 +47,11 @@ jobs:
         include:
           - variant: minimal
             repository: ghcr.io/altinn/altinn-studio/agent-minimal
-          - variant: full
-            repository: ghcr.io/altinn/altinn-studio/agent-full
-          # The desktop image is one stage on top of full, so it warms its build from that image's
-          # cache as well as its own and only rebuilds the desktop layers.
+          # The desktop image is one stage on top of minimal, so it warms its build from that image's
+          # cache as well as its own.
           - variant: desktop
             repository: ghcr.io/altinn/altinn-studio/agent-desktop
-            extra_cache: ghcr.io/altinn/altinn-studio/agent-full
+            extra_cache: ghcr.io/altinn/altinn-studio/agent-minimal
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

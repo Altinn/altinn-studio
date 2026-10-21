@@ -10,14 +10,16 @@ See its [README](https://github.com/digdir/digdir-agents/blob/main/agentctl/READ
 | `minimal` `nested`       | Minimal published image, reduced to fit inside another Agent         |
 | `minimal` `nested-build` | Reduced resources and a minimal image built from this checkout       |
 | `minimal` `worktree`     | Minimal published image with the current checkout mounted read-write |
-| `full` default           | Full published image and a fresh checkout                            |
-| `full` `nested`          | Full published image, reduced to fit inside another Agent            |
-| `full` `nested-build`    | Reduced resources and a full image built from this checkout          |
-| `full` `worktree`        | Full published image with the current checkout mounted read-write    |
-| `desktop` default        | Full image plus a graphical desktop, and a fresh checkout            |
+| `desktop` default        | Desktop published image and a fresh checkout                         |
 | `desktop` `nested`       | Desktop published image, reduced to fit inside another Agent         |
 | `desktop` `nested-build` | Reduced resources and a desktop image built from this checkout       |
 | `desktop` `worktree`     | Desktop published image with the current checkout mounted read-write |
+
+`minimal` has the .NET, Go and Node.js toolchains, `studioctl` and the pull request tools, and suits code and review
+work. `desktop` adds Podman, kind, Rust and the other developer tools, Chromium and a graphical desktop, for LocalTest,
+browser evidence and computer use. Both build on the
+[agentctl base image](https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base), which provides the
+harnesses and the desktop.
 
 ## Getting started
 
@@ -47,7 +49,7 @@ on a remote host over SSH. Apps known to work include:
 - T3 Code
 - VS Code Insiders, in the Agents window
 
-Connect the app to the Agent's SSH alias, `agentctl-<name>`, for example `agentctl-altinn-full`. Choose **Set up SSH** in
+Connect the app to the Agent's SSH alias, `agentctl-<name>`, for example `agentctl-altinn-desktop`. Choose **Set up SSH** in
 the TUI's `o` menu once, or run `agentctl ssh-config install`, so OpenSSH resolves the alias; `y` in the same menu
 copies it.
 
