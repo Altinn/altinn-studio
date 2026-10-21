@@ -126,33 +126,61 @@ public sealed class LocalCorrespondenceRepository : IDisposable
 
     /// <summary>
     /// Stores an attachment's data and publishes it straight away: Localtest does no malware scan. Data can be
-    /// uploaded once.
+    /// uploaded once. The data is streamed to a temporary file outside the lock, so a large upload is never held in
+    /// memory and does not block other requests, and the attachment is published only once all of it is written.
     /// </summary>
     public async Task<(AttachmentUploadOutcome Outcome, StoredAttachment? Attachment)> UploadAttachment(
         Guid attachmentId,
-        byte[] data,
-        string? contentType
+        Stream data,
+        string? contentType,
+        CancellationToken cancellationToken = default
     )
     {
-        using var mutationLock = await _mutationLock.Lock();
-
-        var attachment = await FindAttachment(attachmentId);
-        if (attachment is null)
+        if (await FindAttachment(attachmentId) is not { } pending)
         {
             return (AttachmentUploadOutcome.NotFound, null);
         }
-        if (attachment.Status != AttachmentStatus.Initialized)
+        if (pending.Status != AttachmentStatus.Initialized)
         {
-            return (AttachmentUploadOutcome.AlreadyUploaded, attachment);
+            return (AttachmentUploadOutcome.AlreadyUploaded, pending);
         }
 
-        await File.WriteAllBytesAsync(AttachmentDataFileName(attachmentId), data);
-        attachment.Status = AttachmentStatus.Published;
-        attachment.StatusChanged = DateTimeOffset.UtcNow;
-        attachment.DataType = contentType;
-        attachment.Size = data.LongLength;
-        await Write(AttachmentFileName(attachmentId), attachment);
-        return (AttachmentUploadOutcome.Uploaded, attachment);
+        var dataFileName = AttachmentDataFileName(attachmentId);
+        var temporaryFile = $"{dataFileName}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            long size;
+            await using (var file = File.Create(temporaryFile))
+            {
+                await data.CopyToAsync(file, cancellationToken);
+                size = file.Length;
+            }
+
+            using var mutationLock = await _mutationLock.Lock();
+
+            // Another upload of the same attachment may have finished while this one was streaming.
+            var attachment = await FindAttachment(attachmentId);
+            if (attachment is null)
+            {
+                return (AttachmentUploadOutcome.NotFound, null);
+            }
+            if (attachment.Status != AttachmentStatus.Initialized)
+            {
+                return (AttachmentUploadOutcome.AlreadyUploaded, attachment);
+            }
+
+            File.Move(temporaryFile, dataFileName, overwrite: true);
+            attachment.Status = AttachmentStatus.Published;
+            attachment.StatusChanged = DateTimeOffset.UtcNow;
+            attachment.DataType = contentType;
+            attachment.Size = size;
+            await Write(AttachmentFileName(attachmentId), attachment);
+            return (AttachmentUploadOutcome.Uploaded, attachment);
+        }
+        finally
+        {
+            File.Delete(temporaryFile);
+        }
     }
 
     /// <summary>
@@ -177,7 +205,11 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     private string AttachmentDataFileName(Guid attachmentId) =>
         Path.Join(AttachmentStorage().FullName, $"{attachmentId}.bin");
 
-    private async Task<bool> IdempotentKeyExists(Guid idempotentKey)
+    /// <summary>
+    /// Whether a stored correspondence carries the idempotent key. Only <see cref="TryCreate"/> decides under its lock,
+    /// so a caller that checks first must still handle <see cref="TryCreate"/> refusing.
+    /// </summary>
+    public async Task<bool> IdempotentKeyExists(Guid idempotentKey)
     {
         foreach (var file in Storage().GetFiles("*.json"))
         {

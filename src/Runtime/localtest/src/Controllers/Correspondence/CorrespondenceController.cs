@@ -37,6 +37,9 @@ public class CorrespondenceController(
     /// <summary>How long an attachment is kept when the sender does not say.</summary>
     private const int DefaultAttachmentExpirationInDays = 365;
 
+    /// <summary>The largest attachment upload the real API takes, in bytes. It streams uploads to storage.</summary>
+    internal const long MaxAttachmentUploadSize = 50L * 1000 * 1000 * 1000;
+
     /// <summary>The statuses a correspondence passes through on its way to the recipient, in order.</summary>
     private static readonly CorrespondenceStatus[] _publishingStatuses =
     [
@@ -79,6 +82,16 @@ public class CorrespondenceController(
         if (request is null)
         {
             return ErrorResult(CorrespondenceErrors.Invalid("The request body is empty."));
+        }
+        if (CorrespondenceRequestValidator.ValidateBeforeIdempotencyCheck(request) is { } malformed)
+        {
+            return ErrorResult(malformed);
+        }
+        // The real API answers a reused key before it validates the rest, so a retry that has since become invalid,
+        // such as one whose due date has passed, still gets 409. TryCreate checks the key again under its lock.
+        if (request.IdempotentKey is { } idempotentKey && await _repository.IdempotentKeyExists(idempotentKey))
+        {
+            return ErrorResult(CorrespondenceErrors.DuplicateInitCorrespondenceRequest);
         }
         if (CorrespondenceRequestValidator.Validate(request, DateTimeOffset.UtcNow) is { } invalid)
         {
@@ -223,7 +236,9 @@ public class CorrespondenceController(
                 ],
                 Content = new CorrespondenceContentResponseDto
                 {
-                    Language = details?.Content?.Language,
+                    Language = details?.Content is { } content
+                        ? CorrespondenceRequestValidator.LanguageOrDefault(content.Language)
+                        : null,
                     MessageTitle = details?.Content?.MessageTitle ?? string.Empty,
                     MessageSummary = details?.Content?.MessageSummary ?? string.Empty,
                     MessageBody = details?.Content?.MessageBody ?? string.Empty,
@@ -350,10 +365,12 @@ public class CorrespondenceController(
     }
 
     /// <summary>
-    /// Uploads an attachment's data. The attachment is published right away, since Localtest does no malware scan.
+    /// Uploads an attachment's data, streamed to disk. The attachment is published once the data is written, since
+    /// Localtest does no malware scan. It takes uploads as large as the real API does.
     /// </summary>
     [HttpPost]
     [Route("v1/attachment/{attachmentId:guid}/upload")]
+    [RequestSizeLimit(MaxAttachmentUploadSize)]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(AttachmentOverviewDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -363,13 +380,11 @@ public class CorrespondenceController(
         CancellationToken cancellationToken = default
     )
     {
-        using var data = new MemoryStream();
-        await Request.Body.CopyToAsync(data, cancellationToken);
-
         var (outcome, attachment) = await _repository.UploadAttachment(
             attachmentId,
-            data.ToArray(),
-            Request.ContentType
+            Request.Body,
+            Request.ContentType,
+            cancellationToken
         );
         return outcome switch
         {

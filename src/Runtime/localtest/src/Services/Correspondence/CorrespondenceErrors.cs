@@ -87,6 +87,11 @@ internal static class CorrespondenceErrors
         "A correspondence with the same idempotent key already exists",
         1034
     );
+    public static readonly CorrespondenceError InvalidReplyOptions = new(
+        StatusCodes.Status400BadRequest,
+        "Reply options must be well-formed URIs and HTTPS with a max length of 255 characters",
+        1035
+    );
     public static readonly CorrespondenceError MessageTitleTooLong = new(
         StatusCodes.Status400BadRequest,
         "Message title cannot exceed 255 characters",
@@ -137,6 +142,11 @@ internal static class CorrespondenceErrors
         StatusCodes.Status400BadRequest,
         "Filetype not allowed",
         2013
+    );
+    public static readonly CorrespondenceError AttachmentExpirationPriorMinimumDaysFromNow = new(
+        StatusCodes.Status400BadRequest,
+        "Attachment expirationTime must be at least 1 days from now",
+        2017
     );
     public static readonly CorrespondenceError FilenameCannotBeAReservedWindowsFilename = new(
         StatusCodes.Status400BadRequest,

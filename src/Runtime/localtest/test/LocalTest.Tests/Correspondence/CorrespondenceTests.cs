@@ -5,6 +5,7 @@ using Altinn.Notifications.Core.Models.ContactPoints;
 using LocalTest.Configuration;
 using LocalTest.Services.Correspondence;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -132,6 +133,39 @@ public sealed class CorrespondenceTests : IDisposable
 
         Assert.Single(results.OfType<OkObjectResult>());
         Assert.Single(await _repository.Read());
+    }
+
+    [Fact]
+    public async Task Initialize_RetryThatHasSinceBecomeInvalid_ReturnsConflict()
+    {
+        var idempotentKey = Guid.NewGuid();
+        await Initialize(Request(OrganizationRecipient, idempotentKey: idempotentKey));
+
+        // The real API looks the key up before it checks the due date, so the retry is still "already sent"
+        var problem = await InitializeProblem(
+            Request(
+                [OrganizationRecipient],
+                idempotentKey,
+                configure: c => c["dueDateTime"] = DateTimeOffset.UtcNow.AddDays(-1)
+            )
+        );
+
+        Assert.Equal(StatusCodes.Status409Conflict, problem.Status);
+        Assert.Equal(1034, problem.Extensions["errorCode"]);
+    }
+
+    [Fact]
+    public async Task Initialize_MalformedRequestWithUsedIdempotentKey_ReturnsBadRequest()
+    {
+        var idempotentKey = Guid.NewGuid();
+        await Initialize(Request(OrganizationRecipient, idempotentKey: idempotentKey));
+
+        // Model validation runs before the real API looks the key up
+        var problem = await InitializeProblem(
+            Request([OrganizationRecipient], idempotentKey, resourceId: null)
+        );
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
     }
 
     [Fact]
@@ -286,6 +320,21 @@ public sealed class CorrespondenceTests : IDisposable
     }
 
     [Fact]
+    public async Task Details_RequestWithoutLanguage_IsInBokmal()
+    {
+        var response = await Initialize(
+            Request([OrganizationRecipient], null, configure: c => Content(c).Remove("language"))
+        );
+
+        var created = Assert.Single(response.Correspondences);
+
+        var result = await _controller.GetCorrespondenceDetails(created.CorrespondenceId);
+        var details = Assert.IsType<CorrespondenceDetailsResponseDto>(Assert.IsType<OkObjectResult>(result).Value);
+
+        Assert.Equal("nb", details.Content?.Language);
+    }
+
+    [Fact]
     public async Task Details_UnknownCorrespondence_ReturnsNotFound()
     {
         var result = await _controller.GetCorrespondenceDetails(Guid.NewGuid());
@@ -326,6 +375,51 @@ public sealed class CorrespondenceTests : IDisposable
         var result = await Upload(attachmentId, [2]);
 
         Assert.Equal(StatusCodes.Status400BadRequest, Assert.IsType<ObjectResult>(result).StatusCode);
+    }
+
+    [Fact]
+    public void Attachment_Upload_TakesUploadsAsLargeAsTheRealApi()
+    {
+        var limit = typeof(CorrespondenceController)
+            .GetMethod(nameof(CorrespondenceController.UploadAttachment))!
+            .GetCustomAttributes(inherit: true)
+            .OfType<IRequestSizeLimitMetadata>()
+            .Single();
+
+        // Without it, the web server's 30 MB default refuses attachments the real API takes
+        Assert.Equal(50L * 1000 * 1000 * 1000, limit.MaxRequestBodySize);
+    }
+
+    [Fact]
+    public async Task Attachment_LargerThanTheWebServerDefault_IsStoredInFull()
+    {
+        const long size = 32L * 1024 * 1024;
+        Guid attachmentId = await InitializeAttachment();
+
+        var uploaded = await UploadAttachment(attachmentId, new GeneratedBody(size));
+
+        Assert.Equal(AttachmentStatus.Published, uploaded.Status);
+        Assert.Equal(size, (await _repository.FindAttachment(attachmentId))!.Size);
+        Assert.Equal(size, new FileInfo(AttachmentDataFile(attachmentId)).Length);
+        Assert.Empty(Directory.GetFiles(AttachmentFolder, "*.tmp"));
+    }
+
+    [Fact]
+    public async Task Attachment_UploadThatBreaksOff_IsNotPublishedAndCanBeRetried()
+    {
+        Guid attachmentId = await InitializeAttachment();
+
+        await Assert.ThrowsAsync<IOException>(() =>
+            Upload(attachmentId, new GeneratedBody(1024 * 1024, breakOffAfter: 512 * 1024))
+        );
+
+        Assert.Equal(AttachmentStatus.Initialized, (await _repository.FindAttachment(attachmentId))!.Status);
+        Assert.False(File.Exists(AttachmentDataFile(attachmentId)));
+        Assert.Empty(Directory.GetFiles(AttachmentFolder, "*.tmp"));
+
+        var retried = await UploadAttachment(attachmentId, [1, 2, 3]);
+        Assert.Equal(AttachmentStatus.Published, retried.Status);
+        Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(AttachmentDataFile(attachmentId)));
     }
 
     [Fact]
@@ -583,6 +677,14 @@ public sealed class CorrespondenceTests : IDisposable
                 c => c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "call me" }),
                 3012
             ),
+            ["custom recipient with mobile number without country code"] = (
+                c => c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "87654321" }),
+                3012
+            ),
+            ["custom recipient with mobile number libphonenumber cannot parse"] = (
+                c => c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "+" }),
+                3012
+            ),
             ["recipient name with custom email"] = (
                 c =>
                 {
@@ -591,6 +693,12 @@ public sealed class CorrespondenceTests : IDisposable
                     c["notification"] = notification;
                 },
                 3015
+            ),
+            ["reply link over HTTP"] = (c => c["replyOptions"] = ReplyOption("http://example.com/reply"), 1035),
+            ["reply link that is not an absolute URI"] = (c => c["replyOptions"] = ReplyOption("/reply"), 1035),
+            ["reply link too long"] = (
+                c => c["replyOptions"] = ReplyOption("https://example.com/" + new string('a', 236)),
+                1035
             ),
         };
 
@@ -607,6 +715,92 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
         Assert.Equal("Bad Request", problem.Title);
         Assert.Equal(errorCode, problem.Extensions["errorCode"]);
+        Assert.Empty(await _repository.Read());
+    }
+
+    /// <summary>
+    /// Requests the real Correspondence API's model validation refuses, by case, with its message. These errors
+    /// have no code.
+    /// </summary>
+    private static readonly Dictionary<
+        string,
+        (Action<Dictionary<string, object?>> Configure, string Message)
+    > _malformed = new()
+        {
+            ["resource id too long"] = (
+                c => c["resourceId"] = new string('a', 256),
+                "The field ResourceId must be a string with a minimum length of 1 and a maximum length of 255."
+            ),
+            ["senders reference too long"] = (
+                c => c["sendersReference"] = new string('a', 4097),
+                "The field SendersReference must be a string with a minimum length of 1 and a maximum length of 4096."
+            ),
+            ["sender name too long"] = (
+                c => c["messageSender"] = new string('a', 256),
+                "The field MessageSender must be a string with a maximum length of 255."
+            ),
+            ["email subject too long"] = (
+                c =>
+                    c["notification"] = CustomNotification(
+                        "Email",
+                        ("emailSubject", new string('a', 513)),
+                        ("emailBody", "Sign")
+                    ),
+                "The field EmailSubject must be a string with a maximum length of 512."
+            ),
+            ["email body too long"] = (
+                c =>
+                    c["notification"] = CustomNotification(
+                        "Email",
+                        ("emailSubject", "Sign"),
+                        ("emailBody", new string('a', 10001))
+                    ),
+                "The field EmailBody must be a string with a maximum length of 10000."
+            ),
+            ["SMS reminder text too long"] = (
+                c =>
+                {
+                    var notification = CustomNotification(
+                        "Sms",
+                        ("smsBody", "Sign"),
+                        ("reminderSmsBody", new string('a', 2145))
+                    );
+                    notification["sendReminder"] = true;
+                    c["notification"] = notification;
+                },
+                "The field ReminderSmsBody must be a string with a maximum length of 2144."
+            ),
+            ["eleven properties"] = (
+                c => c["propertyList"] = Enumerable.Range(0, 11).ToDictionary(i => $"key{i}", i => "value"),
+                "propertyList can contain at most 10 properties"
+            ),
+            ["property key too long"] = (
+                c => c["propertyList"] = new Dictionary<string, string> { [new string('k', 51)] = "value" },
+                $"propertyList Key can not be longer than 50. Length:51, KeyValue:{new string('k', 51)}"
+            ),
+            ["property value too long"] = (
+                c => c["propertyList"] = new Dictionary<string, string> { ["key"] = new string('v', 301) },
+                $"propertyList Value can not be longer than 300. Length:301, Value:{new string('v', 301)}"
+            ),
+            ["reply option without a link"] = (
+                c => c["replyOptions"] = new[] { new Dictionary<string, object?> { ["linkText"] = "Svar" } },
+                "The LinkURL field is required."
+            ),
+        };
+
+    public static TheoryData<string> MalformedRequests => [.. _malformed.Keys];
+
+    [Theory]
+    [MemberData(nameof(MalformedRequests))]
+    public async Task Initialize_RequestTheRealApiModelValidationRefuses_AnswersItsMessage(string malformed)
+    {
+        var (configure, message) = _malformed[malformed];
+
+        var problem = await InitializeProblem(Request([PersonRecipient], null, configure: configure));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Equal(message, problem.Detail);
+        Assert.False(problem.Extensions.ContainsKey("errorCode"));
         Assert.Empty(await _repository.Read());
     }
 
@@ -635,6 +829,32 @@ public sealed class CorrespondenceTests : IDisposable
         },
         ["custom recipients overriding the registered ones"] = c =>
             c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "+4799999999" }),
+        ["custom recipient with mobile number with punctuation"] = c =>
+            c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "+47 999-99-999" }),
+        ["custom recipient with mobile number with 00 country code"] = c =>
+            c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "004799999999" }),
+        ["no language"] = c => Content(c).Remove("language"),
+        ["notification texts at their maximum lengths"] = c =>
+        {
+            var notification = CustomNotification(
+                "EmailAndSms",
+                ("emailSubject", new string('a', 512)),
+                ("emailBody", new string('a', 10000)),
+                ("smsBody", new string('a', 2144)),
+                ("reminderEmailSubject", new string('a', 512)),
+                ("reminderEmailBody", new string('a', 10000)),
+                ("reminderSmsBody", new string('a', 2144))
+            );
+            notification["sendReminder"] = true;
+            c["notification"] = notification;
+        },
+        ["ten properties at their maximum lengths"] = c =>
+            c["propertyList"] = Enumerable
+                .Range(0, 10)
+                .ToDictionary(i => $"{i}{new string('k', 49)}", _ => new string('v', 300)),
+        ["sender name at its maximum length"] = c => c["messageSender"] = new string('a', 255),
+        ["HTTPS reply link at its maximum length"] = c =>
+            c["replyOptions"] = ReplyOption("https://example.com/" + new string('a', 235)),
     };
 
     public static TheoryData<string> AcceptedRequests => [.. _accepted.Keys];
@@ -731,6 +951,32 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Equal(errorCode, problem.Extensions["errorCode"]);
     }
 
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(-1, false)]
+    [InlineData(1, true)]
+    [InlineData(null, true)]
+    public async Task InitializeAttachment_Expiration_NeedsAtLeastADay(int? expirationInDays, bool accepted)
+    {
+        var result = await _controller.InitializeAttachment(
+            new InitializeAttachmentRequestDto
+            {
+                ResourceId = ResourceId,
+                FileName = "signed.pdf",
+                SendersReference = "senders-reference",
+                ExpirationInDays = expirationInDays,
+            }
+        );
+
+        if (accepted)
+        {
+            Assert.IsType<OkObjectResult>(result);
+            return;
+        }
+        var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(result).Value);
+        Assert.Equal(2017, problem.Extensions["errorCode"]);
+    }
+
     [Fact]
     public async Task Notification_CustomRecipientWithoutOverride_IsNotifiedAlongsideTheRegisteredAddress()
     {
@@ -783,6 +1029,9 @@ public sealed class CorrespondenceTests : IDisposable
         }
         return notification;
     }
+
+    private static Dictionary<string, object?>[] ReplyOption(string linkUrl) =>
+        [new() { ["linkURL"] = linkUrl, ["linkText"] = "Svar" }];
 
     private static Dictionary<string, object?> WithCustomRecipient(Dictionary<string, object?> customRecipient)
     {
@@ -841,16 +1090,74 @@ public sealed class CorrespondenceTests : IDisposable
         return Assert.IsType<Guid>(Assert.IsType<OkObjectResult>(result).Value);
     }
 
-    private async Task<AttachmentOverviewDto> UploadAttachment(Guid attachmentId, byte[] data) =>
+    private Task<AttachmentOverviewDto> UploadAttachment(Guid attachmentId, byte[] data) =>
+        UploadAttachment(attachmentId, new MemoryStream(data));
+
+    private async Task<AttachmentOverviewDto> UploadAttachment(Guid attachmentId, Stream data) =>
         Assert.IsType<AttachmentOverviewDto>(Assert.IsType<OkObjectResult>(await Upload(attachmentId, data)).Value);
 
-    private async Task<ActionResult> Upload(Guid attachmentId, byte[] data)
+    private Task<ActionResult> Upload(Guid attachmentId, byte[] data) => Upload(attachmentId, new MemoryStream(data));
+
+    private async Task<ActionResult> Upload(Guid attachmentId, Stream data)
     {
         var httpContext = new DefaultHttpContext();
-        httpContext.Request.Body = new MemoryStream(data);
+        httpContext.Request.Body = data;
         httpContext.Request.ContentType = "application/pdf";
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return await _controller.UploadAttachment(attachmentId);
+    }
+
+    private string AttachmentFolder => Path.Join(_storagePath, "correspondence", "attachments");
+
+    private string AttachmentDataFile(Guid attachmentId) => Path.Join(AttachmentFolder, $"{attachmentId}.bin");
+
+    /// <summary>
+    /// A request body of the given length that is generated as it is read, never held in memory, and can break off
+    /// part way, as when the client disconnects.
+    /// </summary>
+    private sealed class GeneratedBody(long length, long? breakOffAfter = null) : Stream
+    {
+        private long _position;
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(Span<byte> buffer)
+        {
+            if (breakOffAfter is { } end && _position >= end)
+            {
+                throw new IOException("The client disconnected");
+            }
+
+            int read = (int)Math.Min(buffer.Length, (breakOffAfter ?? length) - _position);
+            buffer[..read].Fill((byte)'a');
+            _position += read;
+            return read;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(Read(buffer.Span));
+
+        public override void Flush() { }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     private async Task<InitializeCorrespondencesResponseDto> Initialize(JsonElement request)
