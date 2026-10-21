@@ -1,10 +1,14 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Exceptions;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Signing.Exceptions;
 using Altinn.App.Core.Features.Signing.Extensions;
+using Altinn.App.Core.Features.Signing.Helpers;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
@@ -54,95 +58,271 @@ internal sealed class SigningService(
     private const string ApplicationJsonContentType = "application/json";
 
     /// <inheritdoc />
-    public async Task<List<SigneeContext>> InitializeSignees(
+    public async Task InitializeSignees(
         IInstanceDataMutator instanceDataMutator,
-        List<SigneeContext> signeeContexts,
+        AltinnSignatureConfiguration signatureConfiguration,
+        Guid stepId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using Activity? activity = telemetry?.StartAssignSigneesActivity();
+
+        string taskId = GetTaskId(instanceDataMutator);
+        string signeeStateDataTypeId = GetSigneeStatesDataTypeId(signatureConfiguration);
+
+        RemoveSigneeState(instanceDataMutator, signeeStateDataTypeId);
+        List<SigneeContext> signeeContexts = await _signeeContextsManager.GenerateSigneeContexts(
+            instanceDataMutator,
+            signatureConfiguration,
+            cancellationToken
+        );
+        await DelegateRights(instanceDataMutator.Instance, taskId, signeeContexts, cancellationToken);
+        await SendCallsToSign(
+            instanceDataMutator.Instance,
+            signatureConfiguration,
+            signeeContexts,
+            stepId,
+            cancellationToken
+        );
+        AddSigneeState(instanceDataMutator, signeeStateDataTypeId, taskId, signeeContexts);
+    }
+
+    /// <inheritdoc />
+    public async Task ResolveSignees(
+        IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
         CancellationToken cancellationToken = default
     )
     {
         using Activity? activity = telemetry?.StartAssignSigneesActivity();
 
-        string taskId = instanceDataMutator.Instance.Process.CurrentTask.ElementId;
-
-        string signeeStateDataTypeId =
-            signatureConfiguration.SigneeStatesDataTypeId
-            ?? throw new ApplicationConfigException(
-                "SigneeStatesDataTypeId is not set in the signature configuration."
-            );
+        string taskId = GetTaskId(instanceDataMutator);
+        string signeeStateDataTypeId = GetSigneeStatesDataTypeId(signatureConfiguration);
 
         RemoveSigneeState(instanceDataMutator, signeeStateDataTypeId);
+        List<SigneeContext> signeeContexts = await _signeeContextsManager.GenerateSigneeContexts(
+            instanceDataMutator,
+            signatureConfiguration,
+            cancellationToken
+        );
+        AddSigneeState(instanceDataMutator, signeeStateDataTypeId, taskId, signeeContexts);
+    }
 
-        string instanceIdCombo = instanceDataMutator.Instance.Id;
-        InstanceOwner instanceOwner = instanceDataMutator.Instance.InstanceOwner;
-        Party? instanceOwnerParty = await GetInstanceOwnerParty(instanceOwner, cancellationToken);
-        Guid? instanceOwnerPartyUuid = instanceOwnerParty?.PartyUuid;
-        AppIdentifier appIdentifier = new(instanceDataMutator.Instance.AppId);
+    /// <inheritdoc />
+    public async Task DelegateSigneeRights(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        CancellationToken cancellationToken = default
+    )
+    {
+        (DataElement? signeeStateElement, List<SigneeContext> signeeContexts) = await ReadSigneeState(
+            instanceDataMutator,
+            signatureConfiguration,
+            cancellationToken
+        );
+        if (signeeStateElement is null || signeeContexts.All(context => context.SigneeState.IsAccessDelegated))
+        {
+            return;
+        }
 
-        (signeeContexts, bool delegateSuccess) = await signingDelegationService.DelegateSigneeRights(
-            taskId,
-            instanceIdCombo,
-            instanceOwnerPartyUuid,
-            appIdentifier,
+        await DelegateRights(
+            instanceDataMutator.Instance,
+            GetTaskId(instanceDataMutator),
             signeeContexts,
             cancellationToken
         );
+        WriteSigneeState(instanceDataMutator, signeeStateElement, signeeContexts);
+    }
 
-        Party serviceOwnerParty = new();
-        bool getServiceOwnerSuccess = false;
-
-        if (delegateSuccess)
+    /// <inheritdoc />
+    public async Task NotifySignees(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        Guid stepId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        (DataElement? signeeStateElement, List<SigneeContext> signeeContexts) = await ReadSigneeState(
+            instanceDataMutator,
+            signatureConfiguration,
+            cancellationToken
+        );
+        if (signeeStateElement is null || !signeeContexts.Any(IsAwaitingCallToSign))
         {
-            (serviceOwnerParty, getServiceOwnerSuccess) = await GetServiceOwnerParty(cancellationToken);
+            return;
         }
 
-        if (getServiceOwnerSuccess)
+        await SendCallsToSign(
+            instanceDataMutator.Instance,
+            signatureConfiguration,
+            signeeContexts,
+            stepId,
+            cancellationToken
+        );
+        WriteSigneeState(instanceDataMutator, signeeStateElement, signeeContexts);
+    }
+
+    private async Task DelegateRights(
+        Instance instance,
+        string taskId,
+        List<SigneeContext> signeeContexts,
+        CancellationToken cancellationToken
+    )
+    {
+        if (signeeContexts.All(context => context.SigneeState.IsAccessDelegated))
         {
-            foreach (SigneeContext signeeContext in signeeContexts)
+            return;
+        }
+
+        Party instanceOwnerParty =
+            await GetInstanceOwnerParty(instance.InstanceOwner, cancellationToken)
+            ?? throw new SigningException("Failed to lookup instance owner party. Unable to delegate signing rights.");
+        Guid instanceOwnerPartyUuid =
+            instanceOwnerParty.PartyUuid
+            ?? throw new SigningException(
+                "PartyUuid was missing on instance owner party. Unable to delegate signing rights."
+            );
+
+        await signingDelegationService.DelegateSigneeRights(
+            taskId,
+            instance.Id,
+            instanceOwnerPartyUuid,
+            new AppIdentifier(instance.AppId),
+            signeeContexts,
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// A signee whose delegation failed cannot sign, so there is nothing to call them to action about.
+    /// </summary>
+    private static bool IsAwaitingCallToSign(SigneeContext signeeContext) =>
+        signeeContext.SigneeState is { IsAccessDelegated: true, HasBeenMessagedForCallToSign: false };
+
+    private async Task SendCallsToSign(
+        Instance instance,
+        AltinnSignatureConfiguration signatureConfiguration,
+        List<SigneeContext> signeeContexts,
+        Guid stepId,
+        CancellationToken cancellationToken
+    )
+    {
+        List<SigneeContext> pending = [.. signeeContexts.Where(IsAwaitingCallToSign)];
+        if (pending.Count == 0)
+        {
+            return;
+        }
+
+        Party serviceOwnerParty;
+        try
+        {
+            serviceOwnerParty = await GetServiceOwnerParty(cancellationToken);
+        }
+        catch (Exception e) when (!SigningFailures.IsTransient(e))
+        {
+            // Retrying will not make the sender resolvable. The signees can still sign without the message.
+            _logger.LogError(e, "Failed to look up party for service owner. No signee will be notified.");
+            foreach (SigneeContext signeeContext in pending)
             {
-                if (signeeContext.SigneeState.HasBeenMessagedForCallToSign)
-                {
-                    continue;
-                }
+                RecordCallToSignFailure(signeeContext, "The service owner's party could not be resolved.");
+            }
+            return;
+        }
 
-                try
-                {
-                    Party signingParty = signeeContext.Signee.GetParty();
-
-                    SendCorrespondenceResponse? response = await _signingCallToActionService.SendSignCallToAction(
-                        signeeContext.CommunicationConfig,
-                        appIdentifier,
-                        new InstanceIdentifier(instanceDataMutator.Instance),
-                        signingParty,
-                        serviceOwnerParty,
-                        signatureConfiguration.CorrespondenceResources,
-                        cancellationToken
-                    );
-                    signeeContext.SigneeState.CtaCorrespondenceId = response?.Correspondences.Single().CorrespondenceId;
-                    signeeContext.SigneeState.HasBeenMessagedForCallToSign = true;
-                    telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Success);
-                }
-                catch (ConfigurationException e)
-                {
-                    _logger.LogError(e, "Correspondence configuration error: {Exception}", e.Message);
-                    signeeContext.SigneeState.HasBeenMessagedForCallToSign = false;
-                    signeeContext.SigneeState.CallToSignFailedReason = $"Correspondence configuration error.";
-                    telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
-                }
-                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-                {
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Correspondence send failed: {Exception}", e.Message);
-                    signeeContext.SigneeState.HasBeenMessagedForCallToSign = false;
-                    signeeContext.SigneeState.CallToSignFailedReason = $"Correspondence configuration error.";
-                    telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
-                }
+        AppIdentifier appIdentifier = new(instance.AppId);
+        InstanceIdentifier instanceIdentifier = new(instance);
+        foreach (SigneeContext signeeContext in pending)
+        {
+            Party signingParty = signeeContext.Signee.GetParty();
+            try
+            {
+                SendCorrespondenceResponse? response = await _signingCallToActionService.SendSignCallToAction(
+                    signeeContext.CommunicationConfig,
+                    appIdentifier,
+                    instanceIdentifier,
+                    signingParty,
+                    serviceOwnerParty,
+                    signatureConfiguration.CorrespondenceResources,
+                    CreateCallToActionIdempotentKey(stepId, signingParty),
+                    cancellationToken
+                );
+                signeeContext.SigneeState.CtaCorrespondenceId = response?.Correspondences.Single().CorrespondenceId;
+                signeeContext.SigneeState.HasBeenMessagedForCallToSign = true;
+                signeeContext.SigneeState.CallToSignFailedReason = null;
+                telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Success);
+            }
+            catch (Exception e) when (SigningFailures.IsAlreadySent(e))
+            {
+                // An earlier attempt of this step sent the message before it failed on a later signee.
+                signeeContext.SigneeState.HasBeenMessagedForCallToSign = true;
+                signeeContext.SigneeState.CallToSignFailedReason = null;
+            }
+            catch (Exception e) when (!SigningFailures.IsTransient(e))
+            {
+                // Retrying will not change the answer, and the signee can still sign without the message. A
+                // transient failure fails the step instead, so the workflow engine retries it with the same keys.
+                _logger.LogError(e, "Correspondence send failed: {Exception}", e.Message);
+                RecordCallToSignFailure(
+                    signeeContext,
+                    e is ConfigurationException ? "Correspondence configuration error." : "Correspondence send failed."
+                );
             }
         }
+    }
 
+    /// <summary>
+    /// The idempotency key for one signee's call to action, stable across retries of the step that sends it and
+    /// different for every other step, so a new visit to the task notifies everyone again.
+    /// </summary>
+    internal static Guid CreateCallToActionIdempotentKey(Guid stepId, Party signingParty)
+    {
+        string signee =
+            signingParty.PartyUuid?.ToString("D")
+            ?? $"partyId:{signingParty.PartyId.ToString(CultureInfo.InvariantCulture)}";
+        Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
+        SHA256.HashData(Encoding.UTF8.GetBytes($"signing-call-to-action:{stepId:D}:{signee}"), hash);
+        return new Guid(hash[..16]);
+    }
+
+    private void RecordCallToSignFailure(SigneeContext signeeContext, string reason)
+    {
+        signeeContext.SigneeState.HasBeenMessagedForCallToSign = false;
+        signeeContext.SigneeState.CallToSignFailedReason = reason;
+        telemetry?.RecordNotifySignees(Telemetry.NotifySigneesConst.NotifySigneesResult.Error);
+    }
+
+    /// <summary>
+    /// The task's signee-state element and the signee contexts in it, or no element when the task has none.
+    /// </summary>
+    private async Task<(DataElement? Element, List<SigneeContext> SigneeContexts)> ReadSigneeState(
+        IInstanceDataMutator instanceDataMutator,
+        AltinnSignatureConfiguration signatureConfiguration,
+        CancellationToken cancellationToken
+    )
+    {
+        DataElement? element = instanceDataMutator
+            .GetDataElementsForType(GetSigneeStatesDataTypeId(signatureConfiguration))
+            .SingleOrDefault();
+        if (element is null)
+        {
+            return (null, []);
+        }
+
+        List<SigneeContext> signeeContexts = await _signeeContextsManager.GetSigneeContexts(
+            instanceDataMutator,
+            signatureConfiguration,
+            cancellationToken
+        );
+        return (element, signeeContexts);
+    }
+
+    private void AddSigneeState(
+        IInstanceDataMutator instanceDataMutator,
+        string signeeStateDataTypeId,
+        string taskId,
+        List<SigneeContext> signeeContexts
+    )
+    {
         ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
         instanceDataMutator.OverrideAuthenticationMethodForRestrictedDataTypes(
             applicationMetadata,
@@ -157,9 +337,22 @@ internal sealed class SigningService(
             bytes: JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions),
             generatedFromTask: taskId
         );
-
-        return signeeContexts;
     }
+
+    private static void WriteSigneeState(
+        IInstanceDataMutator instanceDataMutator,
+        DataElement signeeStateElement,
+        List<SigneeContext> signeeContexts
+    ) =>
+        instanceDataMutator.UpdateBinaryDataElement(
+            signeeStateElement,
+            signeeStateElement.ContentType ?? ApplicationJsonContentType,
+            JsonSerializer.SerializeToUtf8Bytes(signeeContexts, _jsonSerializerOptions)
+        );
+
+    private static string GetSigneeStatesDataTypeId(AltinnSignatureConfiguration signatureConfiguration) =>
+        signatureConfiguration.SigneeStatesDataTypeId
+        ?? throw new ApplicationConfigException("SigneeStatesDataTypeId is not set in the signature configuration.");
 
     /// <inheritdoc />
     public async Task<List<SigneeContext>> GetSigneeContexts(
@@ -362,32 +555,26 @@ internal sealed class SigningService(
         }
     }
 
-    internal async Task<(Party serviceOwnerParty, bool success)> GetServiceOwnerParty(
-        CancellationToken cancellationToken
-    )
+    internal async Task<Party> GetServiceOwnerParty(CancellationToken cancellationToken)
     {
         using var activity = telemetry?.StartGetServiceOwnerPartyActivity();
-        Party serviceOwnerParty;
         try
         {
             AltinnCdnOrgDetails? serviceOwnerDetails = await _altinnCdnClient.GetOrgDetails(cancellationToken);
             PartyLookup partyLookup = new() { OrgNo = serviceOwnerDetails?.Orgnr };
-            serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup, cancellationToken: cancellationToken);
+            Party serviceOwnerParty = await altinnPartyClient.LookupParty(
+                partyLookup,
+                cancellationToken: cancellationToken
+            );
 
             telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Success);
+            return serviceOwnerParty;
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (Exception)
         {
+            telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Error);
             throw;
         }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to look up party for service owner.");
-            telemetry?.RecordGetServiceOwnerParty(Telemetry.ServiceOwnerPartyConst.ServiceOwnerPartyResult.Error);
-            return (new Party(), false);
-        }
-
-        return (serviceOwnerParty, true);
     }
 
     /// <summary>

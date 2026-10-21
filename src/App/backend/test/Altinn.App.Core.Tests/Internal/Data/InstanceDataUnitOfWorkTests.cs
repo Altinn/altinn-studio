@@ -1212,6 +1212,57 @@ public sealed class InstanceDataUnitOfWorkTests
         Assert.True(storedData[setup.DataElement.Id].AsSpan().SequenceEqual(updatedBytes));
     }
 
+    [Fact]
+    public async Task SaveWorkflowOwnedAggregate_BinaryUpdate_KeepsReferencesAndCachesTheWrittenBytes()
+    {
+        byte[] initialBytes = Encoding.UTF8.GetBytes("""{"status":"created"}""");
+        byte[] updatedBytes = Encoding.UTF8.GetBytes("""{"status":"workflow-updated"}""");
+
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
+            initialBytes,
+            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+            seedStorageVersions: true,
+            blobVersionId: BlobVersion(1)
+        );
+        setup.DataMutator.Instance.Process!.Status = ProcessStatus.Processing;
+        DataElement element = setup.DataMutator.GetDataElement(setup.DataElement);
+        Guid referencedElement = Guid.NewGuid();
+        element.Refs = [referencedElement];
+        element.References =
+        [
+            new Reference
+            {
+                Relation = RelationType.GeneratedFrom,
+                ValueType = ReferenceType.Task,
+                Value = "Task_1",
+            },
+        ];
+
+        // Read first, so the cache holds the old bytes the way a step that rewrites its input does.
+        await setup.DataMutator.GetBinaryData(setup.DataElement);
+        setup.DataMutator.UpdateBinaryDataElement(setup.DataElement, setup.DataElement.ContentType!, updatedBytes);
+        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
+            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
+            "workflow-save-key",
+            CancellationToken.None
+        );
+
+        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
+        var mutationRequest = Assert.Single(
+            setup.Services.Storage.RequestsResponses,
+            request =>
+                request.RequestMethod == HttpMethod.Post
+                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
+        );
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(
+            DeserializeMutationRequest(mutationRequest.RequestBody!).UpdateDataElements
+        );
+        Assert.Equal("Task_1", update.GeneratedFromTask);
+        Assert.Equal([referencedElement], update.Refs);
+        Assert.True(setup.DataMutator.TryGetCachedBinaryData(setup.DataElement, out ReadOnlyMemory<byte> cached));
+        Assert.True(cached.Span.SequenceEqual(updatedBytes));
+    }
+
     [Theory]
     [InlineData(ProcessStatus.Idle, false, ProcessStatus.Processing)]
     [InlineData(ProcessStatus.Processing, true, ProcessStatus.Idle)]

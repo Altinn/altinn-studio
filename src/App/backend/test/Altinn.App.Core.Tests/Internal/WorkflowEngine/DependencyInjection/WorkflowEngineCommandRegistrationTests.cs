@@ -41,6 +41,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -53,6 +54,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -66,6 +68,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -80,6 +83,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("simple", CreatePipeline()),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -93,6 +97,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("mailbox", CreateMailboxPipeline()),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -100,8 +105,8 @@ public class WorkflowEngineCommandRegistrationTests
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("Task_1"), keys);
-        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline()), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(CreateLifecyclePipeline()), keys);
         CollectCommandKeys(
             WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }),
             keys
@@ -115,6 +120,12 @@ public class WorkflowEngineCommandRegistrationTests
 
         return keys;
     }
+
+    /// <summary>
+    /// A process task lifecycle pipeline. Every stage count plans the same command key, so one stage suffices.
+    /// </summary>
+    private static ProcessTaskPipeline CreateLifecyclePipeline() =>
+        new ProcessTaskPipelineBuilder().Stage(_ => Task.CompletedTask).Build();
 
     private static ServiceTaskPipeline CreatePipeline() =>
         new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));

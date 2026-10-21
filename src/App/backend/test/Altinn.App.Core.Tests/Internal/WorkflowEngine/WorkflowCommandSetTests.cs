@@ -22,6 +22,20 @@ public class WorkflowCommandSetTests
     private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
         new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
+    /// <summary>The lifecycle pipeline every task type without its own definition forwards to.</summary>
+    private static ProcessTaskPipeline SingleStagePipeline() =>
+        new ProcessTaskPipelineBuilder().Stage(_ => Task.CompletedTask).Build();
+
+    private static ProcessTaskPipeline ThreeStagePipeline(ProcessStepOptions? middleOptions = null) =>
+        new ProcessTaskPipelineBuilder()
+            .Stage(_ => Task.CompletedTask)
+            .Stage(_ => Task.CompletedTask, middleOptions)
+            .Stage(_ => Task.CompletedTask)
+            .Build();
+
+    private static string? Payload(StepRequest step) =>
+        JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!.Payload;
+
     [Fact]
     public void GetTaskStartSteps_ServiceTaskInstantiation_RoutesCommandsToTheCorrectBuckets()
     {
@@ -29,6 +43,7 @@ public class WorkflowCommandSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
+                StartPipeline = SingleStagePipeline(),
                 ServiceTask = new ResolvedServiceTask("pdf", ConclusionOnlyPipeline()),
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
@@ -65,6 +80,7 @@ public class WorkflowCommandSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
+                StartPipeline = SingleStagePipeline(),
                 ServiceTask = null,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
@@ -88,7 +104,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1");
+        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1", SingleStagePipeline());
 
         Assert.Equal(
             [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
@@ -101,11 +117,100 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskAbandonSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps();
+        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps(SingleStagePipeline());
 
         Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.PrimaryPostCommitCommands);
         Assert.Empty(commandSet.AuxiliaryCommands);
+    }
+
+    [Fact]
+    public void GetTaskStartSteps_SingleStagePipeline_PlansOnePayloadlessStep()
+    {
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                StartPipeline = SingleStagePipeline(),
+                ServiceTask = null,
+                IsInitialTaskStart = false,
+            }
+        );
+
+        StepRequest startStep = Assert.Single(commandSet.Commands, step => step.CommandKey == StartTask.Key);
+        Assert.Equal(StartTask.Key, startStep.OperationId);
+        Assert.Null(Payload(startStep));
+    }
+
+    [Fact]
+    public void GetTaskStartSteps_MultiStagePipeline_PlansOneStepPerStage()
+    {
+        var middleOptions = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) };
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                StartPipeline = ThreeStagePipeline(middleOptions),
+                ServiceTask = null,
+                IsInitialTaskStart = false,
+            }
+        );
+
+        Assert.Equal(
+            [
+                UnlockTaskData.Key,
+                CleanupGeneratedFromTask.Key,
+                OnTaskStartingHook.Key,
+                CommonTaskInitialization.Key,
+                StartTask.Key,
+                StartTask.Key,
+                StartTask.Key,
+            ],
+            Keys(commandSet.Commands)
+        );
+
+        List<StepRequest> stageSteps = commandSet.Commands.Where(step => step.CommandKey == StartTask.Key).ToList();
+        Assert.Equal(["StartTask: 0", "StartTask: 1", "StartTask: 2"], stageSteps.Select(step => step.OperationId));
+        Assert.Equal(
+            [0, 1, 2],
+            stageSteps.Select(step =>
+                Assert
+                    .IsType<ProcessTaskStagePayload>(
+                        CommandPayloadSerializer.Deserialize<CommandRequestPayload>(Payload(step))
+                    )
+                    .StageIndex
+            )
+        );
+        Assert.Equal([null, middleOptions, null], stageSteps.Select(step => step.StageOptions));
+    }
+
+    [Fact]
+    public void GetTaskEndAndAbandonSteps_MultiStagePipeline_PlanStagesBeforeTheHooks()
+    {
+        Assert.Equal(
+            [EndTask.Key, EndTask.Key, EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
+            Keys(WorkflowCommandSet.GetTaskEndSteps("Task_1", ThreeStagePipeline()).Commands)
+        );
+        Assert.Equal(
+            [AbandonTask.Key, AbandonTask.Key, AbandonTask.Key, OnTaskAbandonHook.Key],
+            Keys(WorkflowCommandSet.GetTaskAbandonSteps(ThreeStagePipeline()).Commands)
+        );
+    }
+
+    [Fact]
+    public void GetTaskStartSteps_EmptyPipeline_PlansNoStartStep()
+    {
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                StartPipeline = new ProcessTaskPipelineBuilder().Build(),
+                ServiceTask = null,
+                IsInitialTaskStart = false,
+            }
+        );
+
+        Assert.DoesNotContain(StartTask.Key, Keys(commandSet.Commands));
     }
 
     // ---------------------------------------------------------------------------------------------

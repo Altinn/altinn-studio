@@ -1,41 +1,16 @@
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Process.ProcessTasks;
-
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 
-internal sealed class AbandonTask : IWorkflowEngineCommand
+/// <summary>
+/// Runs the abandon pipeline of the current task's type (see <see cref="ProcessTaskStageCommand"/>).
+/// </summary>
+internal sealed class AbandonTask : ProcessTaskStageCommand
 {
     public static string Key => "AbandonTask";
 
-    public string GetKey() => Key;
-
-    private readonly ProcessTaskResolver _processTaskResolver;
-
     public AbandonTask(ProcessTaskResolver processTaskResolver)
-    {
-        _processTaskResolver = processTaskResolver;
-    }
+        : base(processTaskResolver) { }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
-    {
-        IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
-        string? altinnTaskType = dataMutator.Instance.Process.CurrentTask.AltinnTaskType;
+    public override string GetKey() => Key;
 
-        try
-        {
-            IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            await processTask.Abandon(
-                new ProcessTaskContext
-                {
-                    InstanceDataMutator = dataMutator,
-                    CancellationToken = parameters.CancellationToken,
-                }
-            );
-            return new SuccessfulProcessEngineCommandResult();
-        }
-        catch (Exception ex)
-        {
-            return FailedProcessEngineCommandResult.Retryable(ex);
-        }
-    }
+    protected override ProcessTaskPhase Phase => ProcessTaskPhase.Abandon;
 }

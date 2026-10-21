@@ -2,7 +2,6 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Signing;
-using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -25,15 +24,13 @@ internal sealed class SigningProcessTask : IProcessTask
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ILogger<SigningProcessTask> _logger;
     private readonly IPdfService _pdfService;
-    private readonly ISigneeContextsManager _signeeContextsManager;
 
     public SigningProcessTask(
         ISigningService signingService,
         IProcessReader processReader,
         IServiceProvider services,
         ILogger<SigningProcessTask> logger,
-        IPdfService pdfService,
-        ISigneeContextsManager signeeContextsManager
+        IPdfService pdfService
     )
     {
         _signingService = signingService;
@@ -42,7 +39,6 @@ internal sealed class SigningProcessTask : IProcessTask
         _appImplementationFactory = new AppImplementationFactory(services);
         _logger = logger;
         _pdfService = pdfService;
-        _signeeContextsManager = signeeContextsManager;
     }
 
     public string Type => "signing";
@@ -132,22 +128,84 @@ internal sealed class SigningProcessTask : IProcessTask
         }
     }
 
+    /// <summary>
+    /// Initializing runtime delegated signing takes three steps, each saved on its own so a failure retries only
+    /// the step that failed: resolving the signees, delegating them the right to sign, and notifying them. A task
+    /// without runtime delegated signing has the same steps, which do nothing; the stages must not depend on the
+    /// task's configuration, since a step is dispatched by its position.
+    /// </summary>
+    public ProcessTaskPipeline DefineStart(ProcessTaskPipelineBuilder pipeline) =>
+        pipeline
+            .Stage(ResolveSignees, _signeeInitializationStepOptions)
+            .Stage(DelegateSigneeRights, _signeeInitializationStepOptions)
+            .Stage(NotifySignees, _signeeInitializationStepOptions)
+            .Build();
+
+    /// <summary>
+    /// Each step makes one platform call per signee, so it gets more time than the engine's default.
+    /// </summary>
+    private static readonly ProcessStepOptions _signeeInitializationStepOptions = new()
+    {
+        MaxExecutionTime = TimeSpan.FromMinutes(5),
+    };
+
     /// <inheritdoc/>
+    /// <remarks>
+    /// Runs all of <see cref="DefineStart"/>'s stages in one step, for a transition enqueued by a version that called
+    /// <see cref="Start"/> instead.
+    /// </remarks>
     public async Task Start(ProcessTaskContext context)
     {
-        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken cancellationToken = context.CancellationToken;
-        string taskId = GetTaskId(dataMutator);
-        AltinnSignatureConfiguration signingConfiguration = GetAltinnSignatureConfiguration(taskId);
-
-        // Initialize delegated signing if configured
-        if (
-            signingConfiguration.SigneeProviderId is not null
-            && signingConfiguration.SigneeStatesDataTypeId is not null
-        )
+        if (GetRuntimeDelegatedSigningConfiguration(context) is { } configuration)
         {
-            await InitialiseRuntimeDelegatedSigning(dataMutator, signingConfiguration, cancellationToken);
+            await _signingService.InitializeSignees(
+                context.InstanceDataMutator,
+                configuration,
+                context.StepId,
+                context.CancellationToken
+            );
         }
+    }
+
+    private async Task ResolveSignees(ProcessTaskContext context)
+    {
+        if (GetRuntimeDelegatedSigningConfiguration(context) is { } configuration)
+        {
+            await _signingService.ResolveSignees(context.InstanceDataMutator, configuration, context.CancellationToken);
+        }
+    }
+
+    private async Task DelegateSigneeRights(ProcessTaskContext context)
+    {
+        if (GetRuntimeDelegatedSigningConfiguration(context) is { } configuration)
+        {
+            await _signingService.DelegateSigneeRights(
+                context.InstanceDataMutator,
+                configuration,
+                context.CancellationToken
+            );
+        }
+    }
+
+    private async Task NotifySignees(ProcessTaskContext context)
+    {
+        if (GetRuntimeDelegatedSigningConfiguration(context) is { } configuration)
+        {
+            await _signingService.NotifySignees(
+                context.InstanceDataMutator,
+                configuration,
+                context.StepId,
+                context.CancellationToken
+            );
+        }
+    }
+
+    private AltinnSignatureConfiguration? GetRuntimeDelegatedSigningConfiguration(ProcessTaskContext context)
+    {
+        AltinnSignatureConfiguration configuration = GetAltinnSignatureConfiguration(
+            GetTaskId(context.InstanceDataMutator)
+        );
+        return configuration is { SigneeProviderId: not null, SigneeStatesDataTypeId: not null } ? configuration : null;
     }
 
     /// <inheritdoc/>
@@ -204,26 +262,6 @@ internal sealed class SigningProcessTask : IProcessTask
         string taskId = GetTaskId(dataMutator);
         AltinnSignatureConfiguration signatureConfiguration = GetAltinnSignatureConfiguration(taskId);
         await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, cancellationToken);
-    }
-
-    private async Task InitialiseRuntimeDelegatedSigning(
-        IInstanceDataMutator cachedDataMutator,
-        AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken cancellationToken
-    )
-    {
-        List<SigneeContext> signeeContexts = await _signeeContextsManager.GenerateSigneeContexts(
-            cachedDataMutator,
-            signatureConfiguration,
-            cancellationToken
-        );
-
-        await _signingService.InitializeSignees(
-            cachedDataMutator,
-            signeeContexts,
-            signatureConfiguration,
-            cancellationToken
-        );
     }
 
     private AltinnSignatureConfiguration GetAltinnSignatureConfiguration(string taskId)

@@ -5,6 +5,7 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
+using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -124,6 +125,21 @@ internal sealed class ProcessTaskConfigurationValidationService(
             catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
                 findings.Add($"Task '{bpmnTask.Id}': validating its configuration failed: {e.Message}");
+            }
+
+            // Lifecycle pipelines are composed on every transition, so one that cannot be composed would fail every
+            // transition into or out of the task.
+            foreach (ProcessTaskPhase phase in Enum.GetValues<ProcessTaskPhase>())
+            {
+                try
+                {
+                    _ = task.ResolvePipeline(phase);
+                }
+                catch (Exception e)
+                    when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                {
+                    findings.Add($"Task '{bpmnTask.Id}': composing its {phase} pipeline failed: {e.Message}");
+                }
             }
         }
 

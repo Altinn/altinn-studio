@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
+- Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. Localtest checks requests against selected rules of the real API, with the same error codes. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
 
 ### Changed
 
@@ -28,6 +29,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` lists `using Altinn.App.Core.Internal.Maskinporten` directives among the removed Maskinporten APIs to replace. ([#19188](https://github.com/Altinn/altinn-studio/issues/19188))
 - `studioctl app upgrade v9` quotes the `dotnet restore` error when restore fails, instead of a line of dashes or the "Failed to restore" summary. ([#21404](https://github.com/Altinn/altinn-studio/pull/21404))
+- Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 
 ## [0.1.0-preview.29] - 2026-10-14
 

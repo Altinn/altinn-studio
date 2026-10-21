@@ -2243,6 +2243,12 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
+    public sealed class ProcessTaskPipeline { }
+    public sealed class ProcessTaskPipelineBuilder
+    {
+        public Altinn.App.Core.Features.Process.ProcessTaskPipeline Build() { }
+        public Altinn.App.Core.Features.Process.ProcessTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext, System.Threading.Tasks.Task> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+    }
     public sealed class ProcessTaskValidationContext : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskValidationContext>
     {
         public ProcessTaskValidationContext() { }
@@ -3722,6 +3728,9 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     {
         string Type { get; }
         System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineAbandon(Altinn.App.Core.Features.Process.ProcessTaskPipelineBuilder pipeline);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineEnd(Altinn.App.Core.Features.Process.ProcessTaskPipelineBuilder pipeline);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart(Altinn.App.Core.Features.Process.ProcessTaskPipelineBuilder pipeline);
         System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
@@ -3736,6 +3745,8 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
         public ProcessTaskContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public System.Guid StepId { get; init; }
+        public System.Guid WorkflowId { get; init; }
     }
 }
 namespace Altinn.App.Core.Internal.Profile

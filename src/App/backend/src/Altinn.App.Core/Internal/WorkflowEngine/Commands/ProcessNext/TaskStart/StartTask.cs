@@ -1,41 +1,16 @@
-using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Process.ProcessTasks;
-
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 
-internal sealed class StartTask : IWorkflowEngineCommand
+/// <summary>
+/// Runs the start pipeline of the current task's type (see <see cref="ProcessTaskStageCommand"/>).
+/// </summary>
+internal sealed class StartTask : ProcessTaskStageCommand
 {
     public static string Key => "StartTask";
 
-    public string GetKey() => Key;
-
-    private readonly ProcessTaskResolver _processTaskResolver;
-
     public StartTask(ProcessTaskResolver processTaskResolver)
-    {
-        _processTaskResolver = processTaskResolver;
-    }
+        : base(processTaskResolver) { }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
-    {
-        IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
-        string? altinnTaskType = dataMutator.Instance.Process.CurrentTask.AltinnTaskType;
+    public override string GetKey() => Key;
 
-        try
-        {
-            IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            await processTask.Start(
-                new ProcessTaskContext
-                {
-                    InstanceDataMutator = dataMutator,
-                    CancellationToken = parameters.CancellationToken,
-                }
-            );
-            return new SuccessfulProcessEngineCommandResult();
-        }
-        catch (Exception ex)
-        {
-            return FailedProcessEngineCommandResult.Retryable(ex);
-        }
-    }
+    protected override ProcessTaskPhase Phase => ProcessTaskPhase.Start;
 }
