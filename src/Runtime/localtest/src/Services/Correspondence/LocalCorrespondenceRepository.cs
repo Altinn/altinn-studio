@@ -184,12 +184,27 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     }
 
     /// <summary>
-    /// Reads an attachment's uploaded data, or <c>null</c> when there is none.
+    /// Opens an attachment's uploaded data for reading, or returns <c>null</c> when there is none. The caller disposes
+    /// the stream. The data is streamed rather than read whole, since an attachment can be as large as the real API
+    /// takes.
     /// </summary>
-    public async Task<byte[]?> ReadAttachmentData(Guid attachmentId)
+    public Stream? OpenAttachmentData(Guid attachmentId)
     {
-        var fileName = AttachmentDataFileName(attachmentId);
-        return File.Exists(fileName) ? await File.ReadAllBytesAsync(fileName) : null;
+        try
+        {
+            return new FileStream(
+                AttachmentDataFileName(attachmentId),
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read | FileShare.Delete,
+                bufferSize: 4096,
+                useAsync: true
+            );
+        }
+        catch (FileNotFoundException)
+        {
+            return null;
+        }
     }
 
     public void Dispose() => _mutationLock.Dispose();

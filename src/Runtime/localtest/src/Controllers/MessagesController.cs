@@ -58,12 +58,13 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
     public async Task<IActionResult> Attachment(Guid id)
     {
         var attachment = await repository.FindAttachment(id);
-        var data = await repository.ReadAttachmentData(id);
+        var data = attachment is null ? null : repository.OpenAttachmentData(id);
         if (attachment is null || data is null)
         {
             return NotFound();
         }
 
+        // The result disposes the stream once it is sent
         return File(
             data,
             attachment.DataType ?? "application/octet-stream",

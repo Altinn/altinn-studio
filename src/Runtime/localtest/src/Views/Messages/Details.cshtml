@@ -39,7 +39,8 @@
 </dl>
 
 <div class="card mb-4">
-    <div class="card-header">Message@(content?.Language is { } language ? $" ({language})" : "")</div>
+    @* A request without a language is in bokmål, as in the real API. *@
+    <div class="card-header">Message@(content is null ? "" : $" ({LocalTest.Services.Correspondence.CorrespondenceRequestValidator.LanguageOrDefault(content.Language)})")</div>
     <div class="card-body">
         @if (!string.IsNullOrEmpty(content?.MessageSummary))
         {

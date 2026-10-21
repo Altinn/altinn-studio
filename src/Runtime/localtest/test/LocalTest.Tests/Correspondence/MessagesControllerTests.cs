@@ -63,17 +63,22 @@ public sealed class MessagesControllerTests : IDisposable
                 FileName = "signed.pdf",
             }
         );
-        await _repository.UploadAttachment(attachment.AttachmentId, [1, 2, 3], "application/pdf");
+        await _repository.UploadAttachment(attachment.AttachmentId, new MemoryStream([1, 2, 3]), "application/pdf");
         var id = await Store("With attachment", DateTimeOffset.UtcNow, [attachment.AttachmentId]);
 
         var model = Assert.IsType<CorrespondenceViewModel>(
             Assert.IsType<ViewResult>(await _controller.Details(id)).Model
         );
-        var file = Assert.IsType<FileContentResult>(await _controller.Attachment(attachment.AttachmentId));
+        var file = Assert.IsType<FileStreamResult>(await _controller.Attachment(attachment.AttachmentId));
+        using var downloaded = new MemoryStream();
+        await using (file.FileStream)
+        {
+            await file.FileStream.CopyToAsync(downloaded);
+        }
 
         Assert.Equal("With attachment", model.Request?.Content?.MessageTitle);
         Assert.Equal("signed.pdf", Assert.Single(model.Attachments).Request.FileName);
-        Assert.Equal([1, 2, 3], file.FileContents);
+        Assert.Equal([1, 2, 3], downloaded.ToArray());
         Assert.Equal("application/pdf", file.ContentType);
         Assert.Equal("signed.pdf", file.FileDownloadName);
     }
