@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { PolicyEditor, type PolicyEditorProps } from './PolicyEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { Policy, RequiredAuthLevel, PolicyEditorUsage } from './types';
-import { authlevelOptions } from './components/SecurityLevelSelect/SecurityLevelSelect';
+import { authLevelOptions } from './components/SecurityLevelSelect/SecurityLevelSelect';
 import { mockActions } from '../test/mocks/policyActionMocks';
 import { mockSubjects } from '../test/mocks/policySubjectMocks';
 import { mockPolicyRules } from '../test/mocks/policyRuleMocks';
@@ -63,7 +63,7 @@ describe('PolicyEditor', () => {
     );
     expect(selectElement).toHaveValue(mockRequiredAuthLevel);
 
-    const newAuthLevelOption = authlevelOptions[2];
+    const newAuthLevelOption = authLevelOptions[2];
     await user.selectOptions(
       selectElement,
       screen.getByRole('option', { name: textMock(newAuthLevelOption.label) }),
@@ -84,7 +84,7 @@ describe('PolicyEditor', () => {
     );
     await user.click(selectElement);
 
-    const mockOption2 = textMock(authlevelOptions[2].label);
+    const mockOption2 = textMock(authLevelOptions[2].label);
     await user.selectOptions(selectElement, screen.getByRole('option', { name: mockOption2 }));
     await user.tab();
 

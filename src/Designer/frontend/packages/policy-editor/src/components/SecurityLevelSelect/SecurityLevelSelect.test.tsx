@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { SecurityLevelSelectProps } from './SecurityLevelSelect';
-import { SecurityLevelSelect, authlevelOptions } from './SecurityLevelSelect';
+import { SecurityLevelSelect, authLevelOptions } from './SecurityLevelSelect';
 import type { RemovedAuthLevel, RequiredAuthLevel } from '../../types';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
@@ -20,14 +20,14 @@ describe('SelectAuthLevel', () => {
     renderSecurityLevelSelect();
 
     const [selectElement] = screen.getAllByLabelText(mockLabel);
-    expect(selectElement).toHaveValue(authlevelOptions[0].value);
+    expect(selectElement).toHaveValue(authLevelOptions[0].value);
 
     await userEvent.selectOptions(
       selectElement,
-      screen.getByRole('option', { name: textMock(authlevelOptions[2].label) }),
+      screen.getByRole('option', { name: textMock(authLevelOptions[2].label) }),
     );
 
-    expect(mockOnSave).toHaveBeenCalledWith(authlevelOptions[2].value, undefined);
+    expect(mockOnSave).toHaveBeenCalledWith(authLevelOptions[2].value, undefined);
   });
 
   it('hides the system user checkbox when the security level is lower than 4', () => {
@@ -119,7 +119,7 @@ describe('SelectAuthLevel', () => {
   it('does not show the removed option or the error when the auth level is supported', () => {
     renderSecurityLevelSelect();
 
-    expect(screen.getAllByRole('option')).toHaveLength(authlevelOptions.length);
+    expect(screen.getAllByRole('option')).toHaveLength(authLevelOptions.length);
     expect(screen.queryByText(removedAuthLevelError)).not.toBeInTheDocument();
   });
 });

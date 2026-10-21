@@ -21,7 +21,7 @@ const SYSTEM_USER_AUTH_LEVEL_VALUE: string = 'system-user-auth-level';
 const AUTH_LEVEL_3: RequiredAuthLevel = '3';
 const AUTH_LEVEL_4: RequiredAuthLevel = '4';
 
-export const authlevelOptions = [
+export const authLevelOptions = [
   { value: '0', label: 'policy_editor.auth_level_option_0' },
   { value: AUTH_LEVEL_3, label: 'policy_editor.auth_level_option_3' },
   { value: AUTH_LEVEL_4, label: 'policy_editor.auth_level_option_4' },
@@ -42,7 +42,7 @@ export const SecurityLevelSelect = ({
   onSave,
 }: SecurityLevelSelectProps): ReactNode => {
   const { t } = useTranslation();
-  const hasRemovedAuthLevel: boolean = !authlevelOptions.some(
+  const hasRemovedAuthLevel: boolean = !authLevelOptions.some(
     (option) => option.value === requiredAuthenticationLevelEndUser,
   );
 
@@ -92,7 +92,7 @@ export const SecurityLevelSelect = ({
               })}
             </StudioSelect.Option>
           )}
-          {authlevelOptions.map((option) => (
+          {authLevelOptions.map((option) => (
             <StudioSelect.Option key={option.value} value={option.value}>
               {t(option.label)}
             </StudioSelect.Option>
