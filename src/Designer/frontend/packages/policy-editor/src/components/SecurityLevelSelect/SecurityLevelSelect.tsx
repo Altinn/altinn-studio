@@ -27,6 +27,9 @@ export const authLevelOptions = [
   { value: AUTH_LEVEL_4, label: 'policy_editor.auth_level_option_4' },
 ];
 
+const isAuthLevel4 = (authLevel: RequiredAuthLevel | RemovedAuthLevel): authLevel is '4' =>
+  authLevel === AUTH_LEVEL_4;
+
 export type SecurityLevelSelectProps = {
   requiredAuthenticationLevelEndUser: RequiredAuthLevel | RemovedAuthLevel;
   requiredAuthenticationLevelSystemUser?: RequiredAuthLevel;
@@ -55,7 +58,9 @@ export const SecurityLevelSelect = ({
   };
 
   const handleSystemUserAllowedChange = (allowSystemUser: boolean): void => {
-    onSave(AUTH_LEVEL_4, allowSystemUser ? AUTH_LEVEL_3 : undefined);
+    if (isAuthLevel4(requiredAuthenticationLevelEndUser)) {
+      onSave(requiredAuthenticationLevelEndUser, allowSystemUser ? AUTH_LEVEL_3 : undefined);
+    }
   };
 
   return (
@@ -98,7 +103,7 @@ export const SecurityLevelSelect = ({
             </StudioSelect.Option>
           ))}
         </StudioSelect>
-        {requiredAuthenticationLevelEndUser === AUTH_LEVEL_4 && (
+        {isAuthLevel4(requiredAuthenticationLevelEndUser) && (
           <StudioAlert data-color='info'>
             <StudioHeading level={5} data-size='xs'>
               {t('policy_editor.system_user_auth_level_heading')}
