@@ -79,7 +79,9 @@ Reusable class library for async workflow processing. Provides the core engine, 
 Supporting services for local development. Without a profile, compose starts those alone and the
 engine runs on the host against them; the one profile, `core`, adds an engine host built from this
 folder. `make dev` / `make run` / `make stop` / `make reset` wrap the compose invocations — see
-[`docs/docker.md`](docs/docker.md) for the details.
+[`docs/docker.md`](docs/docker.md) for the details. `make playground` and `make playground-host` run
+the observability playground with its engine in a container or on the host, sharing
+`.k6/playground.env` — see [`.k6/README.md`](.k6/README.md#perpetual-mixjs).
 
 | Container                 | Port | Purpose                          |
 | ------------------------- | ---- | -------------------------------- |

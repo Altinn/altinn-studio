@@ -32,12 +32,17 @@
  *
  * Every arm is independently tunable, and setting a rate to 0 removes its scenario entirely.
  *
- * Requires the playground stack, because the throttle arm needs the namespace circuit breaker
+ * Requires the playground, because the throttle arm needs the namespace circuit breaker
  * switched on and it ships dark, and an OTLP collector on the host feeding the dashboard
  * (docs/docker.md#monitoring):
  *
  *   make playground          # from src/Runtime/workflow-engine
  *   k6 run .k6/perpetual-mix.js
+ *
+ * or, with the engine on the host (.k6/README.md says when that is the one to use):
+ *
+ *   make playground-host     # in the foreground; run k6 from a second terminal
+ *   k6 run -e WIREMOCK_URL=http://localhost:6060 .k6/perpetual-mix.js
  *
  * KNOWN LEAK: the `deferring` arm drives the TestApp's `test-defer` command, whose invocation
  * counter is a process-lifetime static dictionary keyed per workflow. At the default 2/s that is
@@ -52,7 +57,7 @@ import { buildRequestParams, pollHealthOnce, trackStatus } from './lib/helpers.j
 
 const ENGINE_URL = __ENV.ENGINE_URL || 'http://localhost:9090';
 
-/** Reachable from *inside* the engine container, which is what dials it. */
+/** Reachable from the engine, which dials it; the default resolves only on the compose network. */
 const WIREMOCK = __ENV.WIREMOCK_URL || 'http://wiremock:8080';
 /** Reachable from wherever k6 runs, which is where the storm arm drives the admin API from. */
 const WIREMOCK_ADMIN = __ENV.WIREMOCK_ADMIN_URL || 'http://localhost:6060';

@@ -29,6 +29,13 @@ dotnet run --project ../workflow-engine-app/src/WorkflowEngine.App
 make run            # docker compose --profile core up -d --build
 ```
 
+**Observability playground, throttling on and short windows (see [`.k6/README.md`](../.k6/README.md#perpetual-mixjs)):**
+
+```bash
+make playground       # full stack, the engine in a container; make playground-stop takes it down
+make playground-host  # dependencies, then the engine on the host until Ctrl+C; make stop afterwards
+```
+
 **Stop everything:**
 
 ```bash
@@ -69,7 +76,7 @@ SDK's default, `http://localhost:4317`. `workflow-engine-testapp` exports to
 when that is unset. When nothing listens there, the exporter fails quietly and the engine runs on.
 Docker Engine on Linux does not route `host.docker.internal` to the host's loopback, where a collector
 is usually published, so there only an engine on the host reaches it unless you point the variable
-elsewhere.
+elsewhere. For the observability playground, that is `make playground-host`.
 
 The engine dashboard links each workflow to its trace in Grafana only once the engine is told which
 Grafana: `EngineSettings__Dashboard__GrafanaUrl`, the Grafana a browser opens, and
@@ -96,7 +103,7 @@ them for the App host on the host.
 This stack and studioctl's environment publish no host port in common as long as studioctl runs
 without `--dev-workflow-engine`. That flag publishes studioctl's engine database on port 9543, which
 this stack's `postgres` holds, and routes the environment's engine traffic to port 9090 on the host,
-where the `core` profile's engine listens. Use one or the other.
+where the `core` profile's engine listens, as does a TestApp on the host. Use one or the other.
 
 ## Database reset
 

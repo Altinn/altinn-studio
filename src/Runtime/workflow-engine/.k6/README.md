@@ -63,10 +63,13 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 
 A generator that never stops, whose job is to make every panel on the _Workflow Engine_ Grafana
 dashboard show something true. The other scripts measure; this one **populates**. Point it at the
-playground stack, leave it running, and watch the engine's telemetry wherever the OTLP collector on
-the host sends it. With studioctl's monitoring as the collector, that is the _Workflow Engine_
+playground, leave it running, and watch the engine's telemetry wherever the OTLP collector on the
+host sends it. With studioctl's monitoring as the collector, that is the _Workflow Engine_
 dashboard (folder _Altinn Studio_) in studioctl's Grafana, <http://local.altinn.cloud:8000/grafana>,
-with the `workflow-engine-testapp` service selected:
+with the `workflow-engine-testapp` service selected.
+
+The playground runs its engine in a container or on the host, with the same settings either way. In
+a container:
 
 ```bash
 studioctl env up --monitoring   # once — a collector on the host, and Grafana
@@ -75,9 +78,24 @@ k6 run .k6/perpetual-mix.js     # Ctrl+C to stop
 make playground-stop            # stack down; `make reset` also drops the database volume
 ```
 
-It needs the playground stack rather than `make run` for one reason: the namespace circuit breaker
-ships dark, and without it the throttle arm has nothing to show. See
-`.k6/docker-compose.playground.yaml` for exactly what the overrides change and why.
+On the host, which reaches a collector published on the host's loopback on any OS. A container on
+Docker Engine for Linux cannot, so this is the way to use studioctl's collector there:
+
+```bash
+studioctl env up --monitoring   # once — a collector on the host, and Grafana
+make playground-host            # dependencies up, then the engine in the foreground until Ctrl+C
+k6 run -e WIREMOCK_URL=http://localhost:6060 .k6/perpetual-mix.js   # from a second terminal
+make stop                       # dependencies down, once the engine has stopped
+```
+
+`WIREMOCK_URL` is WireMock as the engine reaches it, and its default, `http://wiremock:8080`,
+resolves only on the compose network. Nothing else changes: k6 reaches the engine and WireMock's
+admin API on `localhost` either way.
+
+It needs the playground rather than `make run` or `make dev` for one reason: the namespace circuit
+breaker ships dark, and without it the throttle arm has nothing to show. Both ways load the same
+settings, from `.k6/playground.env`; it and the header of `.k6/docker-compose.playground.yaml` say
+exactly what they change and why.
 
 The playground has no monitoring of its own: its engine exports to an OTLP collector on the host,
 such as the one studioctl publishes. How, where that does not work, and how to give the dashboard trace
@@ -86,7 +104,8 @@ links, are in [`docs/docker.md`](../docs/docker.md#monitoring).
 The playground and studioctl's environment publish no host port in common as long as studioctl runs
 without `--dev-workflow-engine`. That flag publishes studioctl's engine database on port 9543, which
 the playground's `postgres` holds, and routes the environment's engine traffic to port 9090 on the
-host, where the playground's engine listens. Leave it off while the playground runs.
+host, where the playground's engine listens, in a container or not. Leave it off while the
+playground runs.
 
 Give the throttle panels about eight minutes before reading anything into them. `storm-a` trips
 within a sweep of its first burst and its trip → extend → release → clear arc takes two to three
