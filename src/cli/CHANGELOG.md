@@ -13,15 +13,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
-- Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. A request the real API would refuse fails with the same error code. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
+- Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. Localtest checks requests against selected rules of the real API, with the same error codes. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
 
 ### Changed
 
 - `studioctl app upgrade v9` no longer asks you to grant the app owner task-specific actions in `policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - `studioctl app upgrade v9` now verifies that the app can use .NET SDK 11.0.100-rc.2 or newer before changing any files. ([#21229](https://github.com/Altinn/altinn-studio/pull/21229))
 - `studioctl app upgrade v9` keeps your validation message texts showing: ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
-  - renames your texts for built-in validation messages and PDF texts to their v9 keys, such as `DataElementTooLarge` to `validation_errors.file_too_large` and `pdfPreviewText` to `pdf.preview_text`
-  - moves a text key your code sets as a validation issue's `Description` to `CustomTextKey`, and removes a description that repeats the text key, also in `CreateValidationIssue` calls
+    - renames your texts for built-in validation messages and PDF texts to their v9 keys, such as `DataElementTooLarge` to `validation_errors.file_too_large` and `pdfPreviewText` to `pdf.preview_text`
+    - moves a text key your code sets as a validation issue's `Description` to `CustomTextKey`, and removes a description that repeats the text key, also in `CreateValidationIssue` calls
 
 ### Fixed
 

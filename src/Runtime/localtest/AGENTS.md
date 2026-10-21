@@ -25,10 +25,11 @@ the app libraries send and read; a field the app client marks `required` must be
 
 - `POST correspondence/api/v1/correspondence` creates one correspondence per recipient and publishes it at once.
   `GET …/correspondence/{id}/details` returns it with its attachments and notifications.
-- **Validation mirrors the real API's, with its error codes.** `CorrespondenceRequestValidator` makes the checks
-  that need only the request (recipient format, content, field lengths, dates, notification texts, custom
-  recipients, the property list, reply links, and attachment names, types and expiry), with the messages and
-  `errorCode`s from the Correspondence API's error catalog.
+- **Validation mirrors selected rules of the real API, with its error codes.** It is not a contract test: the real
+  API can refuse more. `CorrespondenceRequestValidator` makes checks that need only the request (recipient format,
+  content, field lengths, dates, notification texts, custom recipients, the property list, reply links, and
+  attachment names, types and expiry), with the messages and `errorCode`s from the Correspondence API's error
+  catalog.
   Recipients are looked up among the test data's parties (`1029`). Where a real check can't be repeated exactly,
   such as markdown in a title, the local one is more lenient: Localtest must never refuse what a deployed
   environment accepts, so add a case to the accepted-requests test whenever you tighten a rule.
@@ -42,8 +43,10 @@ the app libraries send and read; a field the app client marks `required` must be
   the app client sends them. An upload is streamed to a temporary file and published once it is all written (no
   malware scan), up to the real API's 50 GB, and a correspondence may only reference published attachments.
 - **Notifications are worked out, not sent.** `CorrespondenceNotificationBuilder` applies the requested channel
-  and template to the recipient's contact information in the test data and the custom recipients (only those,
-  with `overrideRegisteredContactInformation`), and orders a reminder a week later when asked. The result is
+  and template to the recipient's contact information in the test data and to the custom recipients (only those,
+  with `overrideRegisteredContactInformation`), and orders a reminder a week later when asked. As in the real API,
+  the channel chooses once per registered person or organization, not per address, and an email address or mobile
+  number given as a custom recipient is notified whatever the channel. The result is
   stored with the correspondence. A generic template's text is a stand-in for the real API's wording.
 - Each correspondence is stored as `{correspondenceId}.json` in the `correspondence` folder under the storage
   path, with the request body the app sent, so you can see exactly what went out. Attachments are stored in
