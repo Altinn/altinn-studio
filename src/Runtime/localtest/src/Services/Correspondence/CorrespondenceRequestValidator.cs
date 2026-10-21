@@ -6,10 +6,11 @@ using PhoneNumbers;
 namespace LocalTest.Services.Correspondence;
 
 /// <summary>
-/// The checks the Correspondence API makes on a request that need nothing but the request itself, with the same
-/// errors. A check the real API makes against data Localtest does not have, such as the resource registry, access
-/// to the resource or the contact reservation register, is not made here. Where the real check cannot be repeated
-/// exactly, this one is more lenient, so Localtest never rejects what a deployed environment accepts.
+/// A selection of the checks the Correspondence API makes on a request that need nothing but the request itself, with
+/// the same errors. It is not a contract test: the real API can refuse more. A check the real API makes against data
+/// Localtest does not have, such as the resource registry, access to the resource or the contact reservation
+/// register, is not made here. Where the real check cannot be repeated exactly, this one is more lenient, so
+/// Localtest never rejects what a deployed environment accepts.
 /// </summary>
 internal static partial class CorrespondenceRequestValidator
 {

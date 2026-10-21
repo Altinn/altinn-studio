@@ -11,9 +11,9 @@ namespace Altinn.Correspondence.Controllers;
 /// Emulates the Altinn Correspondence API an app calls to send messages, such as the signing call to action and
 /// the receipt a signee gets. Apps reach it through <c>PlatformSettings__ApiCorrespondenceEndpoint</c>, which
 /// studioctl points at <c>http://local.altinn.cloud:8000/correspondence/api/v1/</c>. A correspondence is
-/// published as soon as it is created, and its notifications are worked out but not sent. It refuses what the
-/// real API refuses based on the request alone, with the same error codes, and looks the recipients up in the
-/// Localtest test data. It does not check the resource registry, access to the resource, the service owner
+/// published as soon as it is created, and its notifications are worked out but not sent. It repeats a selection
+/// of the checks the real API makes on the request alone, with the same error codes, and looks the recipients up
+/// in the Localtest test data. It does not check the resource registry, access to the resource, the service owner
 /// agreement or the contact reservation register, and like the other emulated platform services here, it
 /// performs no authentication or authorization.
 /// </summary>

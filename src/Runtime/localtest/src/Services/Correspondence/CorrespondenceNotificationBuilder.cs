@@ -35,12 +35,12 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
             return [];
         }
 
-        IReadOnlyList<ContactPoint> contacts = await ResolveContacts(request, recipient);
+        IReadOnlyList<NotificationTarget> targets = await ResolveTargets(request, recipient);
         var notifications = new List<StoredNotification>
         {
             Order(
                 request,
-                contacts,
+                targets,
                 isReminder: false,
                 request.NotificationChannel ?? NotificationChannel.Email,
                 request.EmailSubject,
@@ -56,7 +56,7 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
             notifications.Add(
                 Order(
                     request,
-                    contacts,
+                    targets,
                     isReminder: true,
                     request.ReminderNotificationChannel ?? request.NotificationChannel ?? NotificationChannel.Email,
                     request.ReminderEmailSubject ?? request.EmailSubject,
@@ -73,7 +73,7 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
 
     private static StoredNotification Order(
         NotificationRequestDto request,
-        IReadOnlyList<ContactPoint> contacts,
+        IReadOnlyList<NotificationTarget> targets,
         bool isReminder,
         NotificationChannel channel,
         string? emailSubject,
@@ -87,28 +87,28 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
         var emails = new List<SentEmail>();
         var smses = new List<SentSms>();
 
-        foreach (ContactPoint contact in contacts)
+        foreach (NotificationTarget target in targets)
         {
-            (bool sendEmail, bool sendSms) = Channels(channel, contact);
-            if (sendEmail)
+            var (emailAddresses, mobileNumbers) = Addresses(channel, target);
+            foreach (string emailAddress in emailAddresses)
             {
                 emails.Add(
                     new SentEmail
                     {
                         Id = Guid.NewGuid(),
-                        Recipient = contact.Recipient(email: true),
+                        Recipient = target.Recipient(emailAddress: emailAddress),
                         Subject = generic ? GenericEmailSubject : emailSubject ?? string.Empty,
                         Body = generic ? GenericEmailBody : emailBody ?? string.Empty,
                     }
                 );
             }
-            if (sendSms)
+            foreach (string mobileNumber in mobileNumbers)
             {
                 smses.Add(
                     new SentSms
                     {
                         Id = Guid.NewGuid(),
-                        Recipient = contact.Recipient(email: false),
+                        Recipient = target.Recipient(mobileNumber: mobileNumber),
                         Body = generic ? GenericSmsBody : smsBody ?? string.Empty,
                     }
                 );
@@ -130,118 +130,150 @@ public sealed class CorrespondenceNotificationBuilder(IProfileClient profileClie
         };
     }
 
-    private static (bool Email, bool Sms) Channels(NotificationChannel channel, ContactPoint contact)
+    /// <summary>
+    /// The addresses a notification goes to. For a registered person or organization the channel chooses once, for the
+    /// recipient as a whole, so an organization with an email address gets no SMS on a preferred-email channel. An
+    /// address the request gives is used whatever the channel: the real API sends it on without one.
+    /// </summary>
+    private static (IReadOnlyList<string> Emails, IReadOnlyList<string> MobileNumbers) Addresses(
+        NotificationChannel channel,
+        NotificationTarget target
+    )
     {
-        bool hasEmail = !string.IsNullOrWhiteSpace(contact.Email);
-        bool hasSms = !string.IsNullOrWhiteSpace(contact.MobileNumber);
+        if (target.IsExplicitAddress)
+        {
+            return (target.Emails, target.MobileNumbers);
+        }
+
+        bool hasEmail = target.Emails.Count > 0;
+        bool hasSms = target.MobileNumbers.Count > 0;
         return channel switch
         {
-            NotificationChannel.Email => (hasEmail, false),
-            NotificationChannel.Sms => (false, hasSms),
-            NotificationChannel.EmailPreferred => (hasEmail, !hasEmail && hasSms),
-            NotificationChannel.SmsPreferred => (!hasSms && hasEmail, hasSms),
-            NotificationChannel.EmailAndSms => (hasEmail, hasSms),
-            _ => (false, false),
+            NotificationChannel.Email => (target.Emails, _none),
+            NotificationChannel.Sms => (_none, target.MobileNumbers),
+            NotificationChannel.EmailPreferred => hasEmail ? (target.Emails, _none) : (_none, target.MobileNumbers),
+            NotificationChannel.SmsPreferred => hasSms ? (_none, target.MobileNumbers) : (target.Emails, _none),
+            NotificationChannel.EmailAndSms => (target.Emails, target.MobileNumbers),
+            _ => (_none, _none),
         };
     }
 
     /// <summary>
-    /// The addresses to notify: every registered email address and mobile number of the correspondence's recipient,
-    /// and the custom recipients the correspondence names. Only the custom recipients when it overrides the
-    /// registered contact information.
+    /// Who to notify: the correspondence's recipient at their registered contact information, and the custom
+    /// recipients the correspondence names. Only the custom recipients when it overrides the registered contact
+    /// information.
     /// </summary>
-    private async Task<IReadOnlyList<ContactPoint>> ResolveContacts(NotificationRequestDto request, string recipient)
+    private async Task<IReadOnlyList<NotificationTarget>> ResolveTargets(
+        NotificationRequestDto request,
+        string recipient
+    )
     {
-        var contacts = new List<ContactPoint>();
+        var targets = new List<NotificationTarget>();
         IReadOnlyList<NotificationRecipientDto> customRecipients = request.CustomRecipients ?? [];
         if (!request.OverrideRegisteredContactInformation || customRecipients.Count == 0)
         {
             var registered = CorrespondenceRecipient.TryParse(recipient);
-            contacts.AddRange(
-                await RegisteredContacts(registered?.OrganizationNumber, registered?.NationalIdentityNumber)
+            NotificationTarget? target = await RegisteredTarget(
+                registered?.OrganizationNumber,
+                registered?.NationalIdentityNumber
             );
+            if (target is not null)
+            {
+                targets.Add(target);
+            }
         }
 
         foreach (NotificationRecipientDto custom in customRecipients)
         {
-            bool hasAddress =
-                !string.IsNullOrWhiteSpace(custom.EmailAddress) || !string.IsNullOrWhiteSpace(custom.MobileNumber);
-            if (hasAddress)
+            IReadOnlyList<string> emails = Present(custom.EmailAddress);
+            IReadOnlyList<string> mobileNumbers = Present(custom.MobileNumber);
+            if (emails.Count > 0 || mobileNumbers.Count > 0)
             {
-                contacts.Add(new ContactPoint(null, null, custom.EmailAddress, custom.MobileNumber, custom.IsReserved));
-            }
-            else
-            {
-                contacts.AddRange(
-                    await RegisteredContacts(
-                        CorrespondenceRecipient.WithoutPrefix(custom.OrganizationNumber),
-                        CorrespondenceRecipient.WithoutPrefix(custom.NationalIdentityNumber)
+                targets.Add(
+                    new NotificationTarget(
+                        null,
+                        null,
+                        emails,
+                        mobileNumbers,
+                        custom.IsReserved,
+                        IsExplicitAddress: true
                     )
                 );
             }
+            else if (
+                await RegisteredTarget(
+                    CorrespondenceRecipient.WithoutPrefix(custom.OrganizationNumber),
+                    CorrespondenceRecipient.WithoutPrefix(custom.NationalIdentityNumber)
+                )
+                is { } target
+            )
+            {
+                targets.Add(target);
+            }
         }
-        return contacts;
+        return targets;
     }
 
-    private async Task<IReadOnlyList<ContactPoint>> RegisteredContacts(
-        string? organizationNumber,
-        string? nationalIdentityNumber
-    )
+    /// <summary>
+    /// A registered person or organization with every email address and mobile number the test data has for them, or
+    /// <c>null</c> when neither is given.
+    /// </summary>
+    private async Task<NotificationTarget?> RegisteredTarget(string? organizationNumber, string? nationalIdentityNumber)
     {
         if (!string.IsNullOrWhiteSpace(nationalIdentityNumber))
         {
             var users = await profileClient.GetUserContactPoints([nationalIdentityNumber]);
-            return
-            [
-                .. users.Select(user => new ContactPoint(
-                    null,
-                    nationalIdentityNumber,
-                    user.Email,
-                    user.MobileNumber,
-                    user.IsReserved
-                )),
-            ];
+            return new NotificationTarget(
+                null,
+                nationalIdentityNumber,
+                Present([.. users.Select(user => user.Email)]),
+                Present([.. users.Select(user => user.MobileNumber)]),
+                users.FirstOrDefault()?.IsReserved,
+                IsExplicitAddress: false
+            );
         }
 
         if (!string.IsNullOrWhiteSpace(organizationNumber))
         {
             var organizations = await registerClient.GetOrganizationContactPoints([organizationNumber]);
-            return
-            [
-                .. organizations.SelectMany(organization =>
-                    organization
-                        .EmailList.Select(email => new ContactPoint(organizationNumber, null, email, null, null))
-                        .Concat(
-                            organization.MobileNumberList.Select(mobile => new ContactPoint(
-                                organizationNumber,
-                                null,
-                                null,
-                                mobile,
-                                null
-                            ))
-                        )
-                ),
-            ];
+            return new NotificationTarget(
+                organizationNumber,
+                null,
+                Present([.. organizations.SelectMany(organization => organization.EmailList)]),
+                Present([.. organizations.SelectMany(organization => organization.MobileNumberList)]),
+                null,
+                IsExplicitAddress: false
+            );
         }
 
-        return [];
+        return null;
     }
 
-    private sealed record ContactPoint(
+    private static readonly IReadOnlyList<string> _none = [];
+
+    private static IReadOnlyList<string> Present(params string?[] values) =>
+        [.. values.Where(value => !string.IsNullOrWhiteSpace(value)).Select(value => value!)];
+
+    /// <summary>
+    /// Someone a notification goes to, as the real API sends it on to the Notifications service: a registered person or
+    /// organization, whose addresses the channel chooses among, or an address the request gives explicitly.
+    /// </summary>
+    private sealed record NotificationTarget(
         string? OrganizationNumber,
         string? NationalIdentityNumber,
-        string? Email,
-        string? MobileNumber,
-        bool? IsReserved
+        IReadOnlyList<string> Emails,
+        IReadOnlyList<string> MobileNumbers,
+        bool? IsReserved,
+        bool IsExplicitAddress
     )
     {
-        public NotificationRecipientDto Recipient(bool email) =>
+        public NotificationRecipientDto Recipient(string? emailAddress = null, string? mobileNumber = null) =>
             new()
             {
                 OrganizationNumber = OrganizationNumber,
                 NationalIdentityNumber = NationalIdentityNumber,
-                EmailAddress = email ? Email : null,
-                MobileNumber = email ? null : MobileNumber,
+                EmailAddress = emailAddress,
+                MobileNumber = mobileNumber,
                 IsReserved = IsReserved,
             };
     }

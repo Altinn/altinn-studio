@@ -511,6 +511,69 @@ public sealed class CorrespondenceTests : IDisposable
         );
     }
 
+    /// <summary>
+    /// The channel chooses for the organization as a whole, not for each of its addresses: an organization with an
+    /// email address gets no SMS on a preferred-email channel.
+    /// </summary>
+    [Theory]
+    [InlineData("EmailPreferred", true, true, 2, 0)]
+    [InlineData("EmailPreferred", false, true, 0, 1)]
+    [InlineData("SmsPreferred", true, true, 0, 1)]
+    [InlineData("SmsPreferred", true, false, 2, 0)]
+    [InlineData("EmailAndSms", true, true, 2, 1)]
+    public async Task Notification_OrganizationWithBothAddressTypes_ChannelChoosesForTheOrganization(
+        string channel,
+        bool hasEmail,
+        bool hasMobile,
+        int expectedEmails,
+        int expectedSms
+    )
+    {
+        _contacts.Organizations[OrganizationNumber] = new OrganizationContactPoints
+        {
+            OrganizationNumber = OrganizationNumber,
+            EmailList = hasEmail ? ["post@org.example", "boss@org.example"] : [],
+            MobileNumberList = hasMobile ? ["+4799999999"] : [],
+        };
+
+        await Initialize(Request([OrganizationRecipient], null, notification: Notification(channel)));
+
+        var notification = Assert.Single((await _repository.Read())[0].Notifications);
+        Assert.Equal(expectedEmails, notification.Emails.Count);
+        Assert.Equal(expectedSms, notification.Smses.Count);
+    }
+
+    /// <summary>
+    /// An address the request gives is used whatever the channel, as the real API sends it on without one.
+    /// </summary>
+    [Theory]
+    [InlineData("Sms", "emailAddress", "custom@example.com", 1, 0)]
+    [InlineData("Email", "mobileNumber", "+4799999999", 0, 1)]
+    public async Task Notification_ExplicitCustomAddressOutsideTheChannel_IsStillNotified(
+        string channel,
+        string field,
+        string address,
+        int expectedEmails,
+        int expectedSms
+    )
+    {
+        var notification = Notification(channel);
+        notification["customRecipients"] = new[] { new Dictionary<string, object?> { [field] = address } };
+        notification["overrideRegisteredContactInformation"] = true;
+
+        await Initialize(Request([PersonRecipient], null, notification: notification));
+
+        var stored = Assert.Single((await _repository.Read())[0].Notifications);
+        Assert.Equal(expectedEmails, stored.Emails.Count);
+        Assert.Equal(expectedSms, stored.Smses.Count);
+        Assert.Equal(
+            address,
+            expectedEmails > 0
+                ? Assert.Single(stored.Emails).Recipient.EmailAddress
+                : Assert.Single(stored.Smses).Recipient.MobileNumber
+        );
+    }
+
     [Fact]
     public async Task Notification_WithReminder_OrdersTheReminderAWeekLater()
     {
