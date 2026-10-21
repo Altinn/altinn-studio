@@ -26,6 +26,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+- After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. ([#21207](https://github.com/Altinn/altinn-studio/pull/21207))
 
 ## [0.1.0-preview.29] - 2026-10-14
 
