@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Option } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import type { OptionDirection } from '@app/form-component';
 
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -12,11 +11,10 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 type OptionComponentProps = Pick<PropsFromGenericComponent<'Option'>, 'baseComponentId'> & {
   isSummary?: boolean;
-  direction?: OptionDirection;
   emptyFieldText?: string;
 };
 
-export const OptionComponent = ({ baseComponentId, isSummary, direction, emptyFieldText }: OptionComponentProps) => {
+export const OptionComponent = ({ baseComponentId, isSummary, emptyFieldText }: OptionComponentProps) => {
   const summaryId = React.useId();
   const config = useComponentConfig(baseComponentId, 'Option');
   const value = useEvalExpression(config.value, Expressions.Option.value);
@@ -41,7 +39,7 @@ export const OptionComponent = ({ baseComponentId, isSummary, direction, emptyFi
       description={description}
       help={help}
       icon={config.icon}
-      direction={direction ?? config.direction ?? 'horizontal'}
+      direction={config.direction ?? 'horizontal'}
       labelGrid={config.grid?.labelGrid}
       innerGrid={innerGrid}
       isLoading={isFetching}
