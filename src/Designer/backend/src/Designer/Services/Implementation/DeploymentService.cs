@@ -550,7 +550,7 @@ public class DeploymentService : IDeploymentService
     {
         var (rawKey, _) = await _apiKeyService.CreateAsync(
             username,
-            $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+            $"deploy-{Guid.NewGuid()}",
             Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
             _timeProvider.GetUtcNow().AddHours(1)
         );

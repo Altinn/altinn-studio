@@ -9,5 +9,12 @@ yarn.lock
 *.snap
 # Verify writes these; their shape is the tool's, not a formatting choice
 *.verified.json
+*.verified.md
+# Roslyn's release-tracking tables have a compiler-defined format.
+**/AnalyzerReleases.*.md
+# These files are runtime inputs covered by assistant evaluation digests.
+src/AI/assistant/agents/prompts/**/*.md
+src/AI/assistant/agents/skills/**/*.md
+src/AI/assistant/benchmarks/prompts/**/*.md
 *.yaml
 eidlogger/
