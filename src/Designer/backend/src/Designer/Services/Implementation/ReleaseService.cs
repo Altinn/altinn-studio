@@ -183,7 +183,7 @@ public class ReleaseService : IReleaseService
         string username = AuthenticationHelper.GetDeveloperUserName(httpContext);
         var (rawKey, _) = await _apiKeyService.CreateAsync(
             username,
-            $"release-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+            $"release-{Guid.NewGuid()}",
             Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
             _timeProvider.GetUtcNow().AddHours(1)
         );
