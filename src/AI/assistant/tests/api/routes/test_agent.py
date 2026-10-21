@@ -24,7 +24,6 @@ def _start_payload() -> dict:
         "session_id": "session-1",
         "goal": "Add a field to the form",
         "repo_url": "https://dev.altinn.studio/repos/ttd/my-app.git",
-        "org": "ttd",
         "cost_org": "ttd",
     }
 
@@ -111,7 +110,6 @@ class TestPermissionGateDefaults:
             session_id="sess-1",
             goal="add a field",
             repo_url="http://gitea/repo.git",
-            org="ttd",
             cost_org="ttd",
         )
 
@@ -126,7 +124,7 @@ class TestPermissionGateDefaults:
             repo_path="/tmp/repo",
             app_name="test-app",
             developer="dev",
-            org="ttd",
+            repo_owner="ttd",
             cost_org="ttd",
         )
 
@@ -134,11 +132,10 @@ class TestPermissionGateDefaults:
 
 
 class TestCostOrg:
-    def test_passes_repo_owner_and_cost_org_separately_to_the_agent_state(self, tmp_path):
+    def test_takes_the_repo_owner_from_the_repo_url_and_the_cost_org_from_the_request(self, tmp_path):
         payload = {
             **_start_payload(),
             "repo_url": "https://dev.altinn.studio/repos/kari/my-app.git",
-            "org": "kari",
             "cost_org": "ttd",
         }
         with _stubbed_agent_start(tmp_path), patch("api.routes.agent.run_in_background") as run_in_background:
@@ -146,7 +143,7 @@ class TestCostOrg:
 
         assert response.status_code == 200
         state = run_in_background.call_args.args[0]
-        assert state.org == "kari"
+        assert state.repo_owner == "kari"
         assert state.cost_org == "ttd"
 
     def test_rejects_a_request_without_cost_org(self, tmp_path):

@@ -190,7 +190,6 @@ class SessionContext:
     allow_app_changes: bool
     form_spec_summary: str | None = None
     developer: str = ""
-    org: str = ""
     today: date | None = None
     app_version_profile: AppVersionProfile = V8_PROFILE
 
