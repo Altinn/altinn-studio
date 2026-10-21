@@ -1,6 +1,6 @@
 import type { IInternalLayout } from '../../types/global';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
@@ -15,6 +15,7 @@ import { isItemChildOfContainer } from '../../utils/formLayoutUtils';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import { getFileUploadMetadataProperties } from '../../utils/fileUploadMetadata';
 import { imageUploadDefaultDataType } from './useAddItemToLayoutMutation';
 
 export interface UpdateFormComponentMutationArgs {
@@ -46,6 +47,10 @@ export const useUpdateFormComponentMutation = (
         componentIdsChange = [{ oldComponentId: currentId, newComponentId: newId }];
         components[newId] = updatedComponent;
         delete components[id];
+        if (updatedLayout.pageIndexes?.[id] !== undefined) {
+          updatedLayout.pageIndexes[newId] = updatedLayout.pageIndexes[id];
+          delete updatedLayout.pageIndexes[id];
+        }
 
         // Update ID in parent container order
         const parentContainerId = Object.keys(order).find(
@@ -190,14 +195,13 @@ const buildDataTypeForFileUpload = (
   oldDataType?: ApplicationAttachmentMetadata,
   oldComponent?: FormFileUploaderComponent,
 ): ApplicationAttachmentMetadata => {
+  const metadataProperties = getFileUploadMetadataProperties(component);
   const baseDataType: ApplicationAttachmentMetadata = {
     id: component.id,
-    fileType: component.validFileEndings,
     taskId,
-    maxSize: component.maxFileSizeInMB,
-    maxCount: component.maxNumberOfAttachments,
-    minCount: shouldUpdateMinCount(component, oldDataType, oldComponent)
-      ? component.minNumberOfAttachments
+    ...metadataProperties,
+    minCount: shouldUpdateMinCount(metadataProperties.minCount, oldDataType, oldComponent)
+      ? metadataProperties.minCount
       : oldDataType.minCount,
   };
 
@@ -214,9 +218,7 @@ const buildDataTypeForFileUpload = (
   return {
     ...baseDataType,
     maxCount:
-      component.maxNumberOfAttachments > oldDataType?.maxCount
-        ? component.maxNumberOfAttachments
-        : oldDataType?.maxCount,
+      baseDataType.maxCount > oldDataType?.maxCount ? baseDataType.maxCount : oldDataType?.maxCount,
     minCount: oldDataType?.minCount,
   };
 };
@@ -226,16 +228,18 @@ const buildDataTypeForFileUpload = (
  * than the new minNumberOfAttachments. A lower minCount has been set on purpose, typically 0 on an attachment that
  * is required only while the component is shown, since the backend counts data elements for the whole task and
  * does not check `hidden`. A higher minCount would make the backend stricter than the form, so it is updated.
+ * An old minNumberOfAttachments that is not a static number counts as 0, so minCount follows the new one.
  */
 const shouldUpdateMinCount = (
-  component: FormFileUploaderComponent,
+  minNumberOfAttachments: number,
   oldDataType?: ApplicationAttachmentMetadata,
   oldComponent?: FormFileUploaderComponent,
 ): boolean => {
   if (oldDataType === undefined || oldComponent === undefined) return true;
   const oldMinCount = oldDataType.minCount ?? 0;
-  return (
-    oldMinCount >= (oldComponent.minNumberOfAttachments ?? 0) ||
-    oldMinCount > (component.minNumberOfAttachments ?? 0)
-  );
+  const oldMinNumberOfAttachments =
+    typeof oldComponent.minNumberOfAttachments === 'number'
+      ? oldComponent.minNumberOfAttachments
+      : 0;
+  return oldMinCount >= oldMinNumberOfAttachments || oldMinCount > minNumberOfAttachments;
 };

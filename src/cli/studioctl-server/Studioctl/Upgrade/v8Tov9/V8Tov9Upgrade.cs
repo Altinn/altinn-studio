@@ -230,13 +230,20 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveGeneralSettingsHostName(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveJsonObjectInDataResponseFlag(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateLaunchSettings(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, await MigrateDatepickerTextResourceKeys(projectFolder));
+        returnCode = CombineExitCodes(returnCode, await MigrateTextResourceKeys(projectFolder));
+
+        // After the text key renames, so a description set to a renamed key moves to the new key.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateValidationDescriptionTextKeys(scanner, projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         var layoutOutcome = await MigrateLayouts(projectFolder);
@@ -1280,6 +1287,29 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
+    /// Removes the FeatureManagement:JsonObjectInDataResponse flag from the appsettings files: v9 always returns
+    /// validation issues from the data API as JSON.
+    /// </summary>
+    static async Task<int> RemoveJsonObjectInDataResponseFlag(string projectFile)
+    {
+        UpgradeConsole.BeginStep("JsonObjectInDataResponse feature flag");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await JsonObjectInDataResponseMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No JsonObjectInDataResponse feature flag in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the JsonObjectInDataResponse feature flag from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
     /// Reports app files and folders whose names differ only in case from the names v9 reads, since v9 matches
     /// names case-sensitively on every operating system.
     /// </summary>
@@ -1303,19 +1333,49 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Rewrites the renamed datepicker text-resource keys in app-owned resource.*.json overrides,
-    /// so a customized validation message keeps applying after the v9 key rename.
+    /// Rewrites the built-in text-resource keys v9 renamed in app-owned resource.*.json overrides,
+    /// so a customized message keeps applying after the upgrade.
     /// </summary>
-    static async Task<int> MigrateDatepickerTextResourceKeys(string projectFolder)
+    static async Task<int> MigrateTextResourceKeys(string projectFolder)
     {
-        UpgradeConsole.BeginStep("Datepicker text keys");
+        UpgradeConsole.BeginStep("Renamed text keys");
         try
         {
-            return await DatepickerTextResourceKeyMigration.Migrate(projectFolder);
+            return await TextResourceKeyMigration.Migrate(projectFolder);
         }
         catch (Exception ex)
         {
-            return Fail("Error migrating Datepicker text-resource keys", ex);
+            return Fail("Error migrating renamed text-resource keys", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves text keys that app code sets as a validation issue's Description to CustomTextKey, since the v9 form
+    /// shows the description as text, and removes a Description that repeats CustomTextKey, in ValidationIssue
+    /// initializers and GenericFormDataValidator.CreateValidationIssue calls.
+    /// </summary>
+    static async Task<int> MigrateValidationDescriptionTextKeys(CSharpSourceScanner scanner, string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Validation issue text keys");
+        try
+        {
+            var textIds = await AppTextResources.ReadIds(projectFolder);
+            var renamedTextIds = TextResourceKeyMigration.KeyRenames.ToDictionary(
+                rename => rename.Old,
+                rename => rename.New,
+                StringComparer.Ordinal
+            );
+            var initializers = new ValidationDescriptionTextKeyMigration(scanner, textIds, renamedTextIds).Migrate();
+            var calls = new CreateValidationIssueDescriptionMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                new MigrationResult([.. initializers.Messages, .. calls.Messages]),
+                cleanText: "No validation issue sets Description to a text key or next to CustomTextKey",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error moving validation issue text keys to CustomTextKey", ex);
         }
     }
 

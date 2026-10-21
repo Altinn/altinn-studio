@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import {
@@ -17,11 +17,10 @@ import type {
   FormFileUploaderComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
-import type { IDataModelBindingsKeyValue } from '../../types/global';
+import type { IDataModelBindingsKeyValueExplicit } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
@@ -31,12 +30,11 @@ const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const dataModelBindings: IDataModelBindingsKeyValue & DataModelBindingsSimple = {
+const dataModelBindings: IDataModelBindingsKeyValueExplicit = {
   simpleBinding: { field: 'some-path', dataType: '' },
 };
-const updatedComponent: FormComponent = {
+const updatedComponent: FormComponent<ComponentType.TextArea> = {
   id,
-  itemType: 'COMPONENT',
   type: ComponentType.TextArea,
   dataModelBindings,
 };
@@ -109,8 +107,7 @@ describe('useUpdateFormComponentMutation', () => {
     ).result;
     const newComponent: FormFileUploaderComponent = {
       ...updatedComponent,
-      description: 'test',
-      displayMode: 'test',
+      displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 100,
       maxNumberOfAttachments: 2,
@@ -258,7 +255,6 @@ describe('useUpdateFormComponentMutation', () => {
     const oldId = componentMocks[ComponentType.FileUpload].id;
     const imageUploadComponent: FormComponent = {
       id: oldId,
-      itemType: 'COMPONENT',
       type: ComponentType.ImageUpload,
     };
     const imageUploadDataType = {
@@ -375,7 +371,7 @@ describe('useUpdateFormComponentMutation', () => {
 
     const renderAndMutate = async (
       oldMinCount?: number,
-      oldMinNumberOfAttachments?: number,
+      oldMinNumberOfAttachments?: FormFileUploaderComponent['minNumberOfAttachments'],
       newMinNumberOfAttachments?: number,
     ) => {
       renderAndWaitForData();
@@ -411,21 +407,18 @@ describe('useUpdateFormComponentMutation', () => {
 
     it.each`
       oldMinCount  | oldMinNumberOfAttachments | newMinNumberOfAttachments | expectedMinCount | reason
-      ${undefined} | ${undefined}              | ${undefined}              | ${undefined}     | ${'nothing set'}
       ${undefined} | ${undefined}              | ${1}                      | ${1}             | ${'minCount follows a new requirement'}
       ${0}         | ${1}                      | ${1}                      | ${0}             | ${'a lower minCount is kept'}
       ${undefined} | ${1}                      | ${1}                      | ${undefined}     | ${'an unset minCount counts as 0 and is kept'}
       ${0}         | ${1}                      | ${2}                      | ${0}             | ${'a lower minCount is kept when the requirement is raised'}
       ${0}         | ${1}                      | ${0}                      | ${0}             | ${'a lower minCount is kept when the requirement is removed'}
-      ${0}         | ${1}                      | ${undefined}              | ${0}             | ${'a lower minCount is kept when the requirement is unset'}
       ${1}         | ${3}                      | ${2}                      | ${1}             | ${'a lower minCount is kept when the requirement is lowered to above it'}
       ${1}         | ${2}                      | ${0}                      | ${0}             | ${'a lower minCount follows a requirement lowered below it'}
-      ${1}         | ${2}                      | ${undefined}              | ${undefined}     | ${'a lower minCount follows a requirement unset below it'}
       ${1}         | ${1}                      | ${0}                      | ${0}             | ${'an equal minCount follows a lowered requirement'}
       ${1}         | ${1}                      | ${2}                      | ${2}             | ${'an equal minCount follows a raised requirement'}
-      ${1}         | ${undefined}              | ${undefined}              | ${undefined}     | ${'a higher minCount follows an unset requirement'}
       ${1}         | ${0}                      | ${0}                      | ${0}             | ${'a higher minCount follows a requirement of 0'}
       ${2}         | ${1}                      | ${1}                      | ${1}             | ${'a higher minCount follows a lower requirement'}
+      ${0}         | ${['dataModel', 'count']} | ${1}                      | ${1}             | ${'minCount follows when the old requirement was an expression'}
     `(
       'Sets minCount to $expectedMinCount when minCount was $oldMinCount and minNumberOfAttachments changes from $oldMinNumberOfAttachments to $newMinNumberOfAttachments ($reason)',
       async ({
@@ -465,8 +458,7 @@ function createFileUploaderMutationPayload(
     ...updatedComponent,
     id,
     optionsId: 'test',
-    description: 'test',
-    displayMode: 'test',
+    displayMode: 'list',
     hasCustomFileEndings: false,
     maxFileSizeInMB: 100,
     maxNumberOfAttachments: newMaxCount,

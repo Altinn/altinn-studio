@@ -1,16 +1,14 @@
 import { describe, expect, test, vi } from 'vitest';
 import type { EditTextResourceBindingProps } from './EditTextResourceBinding';
 import { EditTextResourceBinding } from './EditTextResourceBinding';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderHookWithProviders, renderWithProviders } from '../../../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../../../hooks/queries/useLayoutSchemaQuery';
+import { renderWithProviders } from '../../../../../testing/mocks';
 import type { ITextResource } from 'app-shared/types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { QueryClient } from '@tanstack/react-query';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { app, org } from '@studio/testing/testids';
 
@@ -24,7 +22,6 @@ describe('EditTextResourceBindings component', () => {
       test: 'test-text',
     },
     type: ComponentType.Input,
-    itemType: 'COMPONENT',
     dataModelBindings: { simpleBinding: { field: '', dataType: '' } },
   };
 
@@ -115,13 +112,6 @@ describe('EditTextResourceBindings component', () => {
     await user.click(getSaveButton());
   };
 
-  const waitForData = async (queryClient: QueryClient) => {
-    const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery(), {
-      queryClient,
-    }).result;
-    await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-  };
-
   const renderEditTextResourceBindingsComponent = async ({
     component = mockComponent,
     handleComponentChange = () => {},
@@ -130,8 +120,6 @@ describe('EditTextResourceBindings component', () => {
     labelKey = 'ux_editor.modal_text',
   }: Partial<EditTextResourceBindingProps>) => {
     const queryClient = createQueryClientMock();
-    await waitForData(queryClient);
-
     queryClient.setQueryData([QueryKey.TextResources, org, app], {
       nb: textResources,
     });

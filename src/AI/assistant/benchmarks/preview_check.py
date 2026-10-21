@@ -15,6 +15,7 @@ from agents.services.preview.render_check import (
     render_check,
     swap_layout_in_preview_url,
 )
+from shared.utils.path_utils import repo_owner_and_app_name
 
 from .evaluators import Score
 
@@ -69,21 +70,16 @@ def _in_worker_thread(session_branch: str, page_order: list[str]) -> list[PageRe
 
 
 def _render_results(session_branch: str, page_order: list[str]) -> list[PageRenderResult]:
-    org, app = _repo_org_and_app()
+    repo_owner, app = repo_owner_and_app_name(os.environ["BENCH_REPO_URL"])
     return render_check(
         studio_base=os.environ.get("BENCH_STUDIO_BASE_URL", DEFAULT_STUDIO_BASE_URL),
         username=os.environ.get("BENCH_STUDIO_USER", DEFAULT_STUDIO_USERNAME),
-        org=org,
+        repo_owner=repo_owner,
         app=app,
         branch=session_branch,
         page_order=page_order,
         storage_state_path=STORAGE_STATE_PATH,
     )
-
-
-def _repo_org_and_app() -> tuple[str, str]:
-    segments = [s for s in urlparse(os.environ["BENCH_REPO_URL"]).path.split("/") if s]
-    return segments[0], segments[1].removesuffix(".git")
 
 
 def build_scores(results: list[PageRenderResult]) -> list[Score]:

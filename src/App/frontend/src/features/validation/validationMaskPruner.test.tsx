@@ -78,6 +78,7 @@ beforeEach(() => {
           },
         },
         validation: {
+          state: { task: [], component: [] },
           formMask: 0,
           pageMasks: {},
           rowMasks: {},

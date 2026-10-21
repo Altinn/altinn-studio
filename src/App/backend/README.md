@@ -10,8 +10,8 @@ Altinn.App .NET libraries for apps running on Altinn 3, part of the [Altinn Stud
 
 These libraries support the runtime of Altinn apps by
 
-* Exposing APIs used by service owners and the [frontend (app-frontend-react)](https://github.com/Altinn/app-frontend-react) of an Altinn app
-* Exposing abstractions to interact with features of Altinn Studio and Altinn 3 Platform services
+- Exposing APIs used by service owners and the [frontend (app-frontend-react)](https://github.com/Altinn/app-frontend-react) of an Altinn app
+- Exposing abstractions to interact with features of Altinn Studio and Altinn 3 Platform services
 
 ## Contributing
 
@@ -26,6 +26,5 @@ Documentation on how to develop Altinn apps can be found [here](https://docs.alt
 This template is built using .NET
 
 The below diagram shows the different layers.
-
 
 ![Template](./apptemplate.drawio.svg)

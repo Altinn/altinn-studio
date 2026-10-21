@@ -113,8 +113,8 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
             // createWorkflowCard centers the active step itself; record which one so the first
             // rebuild does not re-center a pipeline the operator has since scrolled.
             _processingIdx[wf.databaseId] = activeStepIndex(wf);
-            // New workflows can extend an open chain view (a fresh transition's Main +
-            // side chains are new ids — nothing already rendered changes when they land).
+            // New workflows can extend an open chain view (a fresh transition's primary and
+            // auxiliary workflows are new ids — nothing already rendered changes when they land).
             notifyChainChanged(wf.databaseId);
             notifyRecentChainsChanged(wf.databaseId);
         } else if (state.workflowFingerprints[wf.databaseId] !== fp) {
