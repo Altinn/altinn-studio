@@ -46,7 +46,8 @@ public interface ICommand
     /// <remarks>
     /// Called on every attempt, with the same deserialized values <see cref="Execute"/> receives, before the
     /// command runs — and only while those spans are recorded. Keep it cheap and free of I/O, and return
-    /// identifiers, never personal data or secrets. Use the shared Altinn attribute keys where a concept has one.
+    /// identifiers, never personal data or secrets, under keys the host defines for its domain: the engine's own
+    /// keys name engine concepts only.
     /// A throw is logged and ignored: it never affects the step.
     /// </remarks>
     IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(object? commandData, object? workflowContext) =>

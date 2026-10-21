@@ -243,6 +243,28 @@ func TestWorkflowEngineContainer_TelemetryFollowsMonitoring(t *testing.T) {
 	}
 }
 
+func TestWorkflowEngineContainer_DashboardTraceLinksFollowMonitoring(t *testing.T) {
+	t.Setenv(config.EnvCI, "")
+
+	for name, includeMonitoring := range map[string]bool{
+		"without monitoring": false,
+		"with monitoring":    true,
+	} {
+		t.Run(name, func(t *testing.T) {
+			resources := localtestResources(t, t.TempDir(), includeMonitoring)
+			env := mustContainerSpec(t, resources, components.ContainerWorkflowEngine).Environment
+
+			if !includeMonitoring {
+				assertEnvMissing(t, env, "EngineSettings__Dashboard__GrafanaUrl")
+				assertEnvMissing(t, env, "EngineSettings__Dashboard__GrafanaTracesDatasourceUid")
+				return
+			}
+			assertEnvValue(t, env, "EngineSettings__Dashboard__GrafanaUrl", "http://local.altinn.cloud:8000/grafana")
+			assertEnvValue(t, env, "EngineSettings__Dashboard__GrafanaTracesDatasourceUid", "altinn-studio-traces")
+		})
+	}
+}
+
 // An endpoint reaches the collector when it names one of the collector's aliases on the environment
 // network, on a port the collector receives OTLP on. It is the one apps are given.
 func assertEndpointReachesCollector(t *testing.T, endpoint string, collector components.ContainerSpec) {

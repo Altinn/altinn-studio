@@ -6,14 +6,17 @@ namespace WorkflowEngine.Telemetry;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The keys come in three groups. The engine's own concepts are <c>altinn.workflow_engine.</c> followed by the
+/// The keys come in two groups. The engine's own concepts are <c>altinn.workflow_engine.</c> followed by the
 /// concept's path, and each member is named after that path in PascalCase, so the members group by the entity
 /// they describe: <c>Workflow…</c>, <c>Step…</c>, <c>Mailbox…</c>, <c>Batch…</c>, with the concepts that belong
-/// to no single entity unprefixed. Concepts every Altinn service shares — the service owner, the app, the
-/// instance — use the shared Altinn vocabulary, <c>altinn.</c> followed by the concept, so a trace can be found by
-/// the same key whichever service it passed through. The few OpenTelemetry semantic-convention keys the engine
-/// sets itself are spelled exactly as the conventions spell them and never carry another meaning. A new key
-/// joins the group it belongs to and follows the same rule.
+/// to no single entity unprefixed. The few OpenTelemetry semantic-convention keys the engine sets itself are
+/// spelled exactly as the conventions spell them and never carry another meaning. A new key joins the group it
+/// belongs to and follows the same rule.
+/// </para>
+/// <para>
+/// The engine treats a workflow's context as opaque, so the domain object a step works on is named by keys the
+/// host defines itself: its command returns them from <c>ICommand.GetTelemetryAttributes</c>, and the engine puts
+/// them on the step's span and the workflow's entry span. They do not belong here.
 /// </para>
 /// <para>
 /// The keys are a contract with dashboards and alerts, so renaming one is a breaking change. A value the
@@ -120,12 +123,6 @@ public static class TelemetryAttributes
     public const string StepCommandType = "altinn.workflow_engine.step.command.type";
 
     /// <summary>
-    /// The command key an app command calls back with — which of the app's handlers the step runs. Set by the
-    /// <c>workflow-engine-app</c> host's app command.
-    /// </summary>
-    public const string AppCommandKey = "altinn.workflow_engine.app_command.key";
-
-    /// <summary>
     /// Why a workflow's state was submitted for write-back: <c>step_started</c>, <c>step_completed</c>, or
     /// <c>workflow_</c> followed by the workflow's status in <c>snake_case</c>, such as
     /// <c>workflow_completed</c>.
@@ -208,25 +205,6 @@ public static class TelemetryAttributes
     /// The mailbox rendezvous state the executor could not answer for: <c>unregistered</c> or <c>undecided</c>.
     /// </summary>
     public const string MailboxRendezvousState = "altinn.workflow_engine.mailbox.rendezvous.state";
-
-    // Shared Altinn vocabulary. The engine core treats a workflow's context as opaque, so it never sets these
-    // itself: a host's command reads them from the context it understands, and the engine puts what the command
-    // returns on the step's span and the workflow's entry span.
-
-    /// <summary>
-    /// The organization that owns the service, such as <c>ttd</c>: the <c>org</c> of an Altinn app.
-    /// </summary>
-    public const string ServiceOwner = "altinn.service_owner";
-
-    /// <summary>
-    /// The app's name within its service owner, such as <c>e2e-tests</c>: the <c>app</c> of an Altinn app.
-    /// </summary>
-    public const string App = "altinn.app";
-
-    /// <summary>
-    /// The GUID of the app instance a workflow works on, as a lowercase string in the <c>D</c> format.
-    /// </summary>
-    public const string InstanceGuid = "altinn.instance.guid";
 
     // OpenTelemetry semantic-convention keys the engine sets itself, spelled as the conventions spell them.
 

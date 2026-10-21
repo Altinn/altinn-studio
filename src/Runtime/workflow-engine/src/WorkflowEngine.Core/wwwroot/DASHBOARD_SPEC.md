@@ -89,6 +89,13 @@ Pushes workflow arrays. Uses PG NOTIFY to wake up on changes (2s timeout fallbac
 
 ## REST Endpoints
 
+### `GET /dashboard/config`
+
+The host's dashboard settings, read once at startup before anything renders. Response:
+`{ grafanaUrl?, grafanaTracesDatasourceUid? }` — `EngineSettings.Dashboard`, each omitted while unset (an
+empty or whitespace value counts as unset). The page draws [Grafana links](#grafana-link) only when both are
+present.
+
 ### `GET /dashboard/query`
 
 Paginated workflow search.
@@ -360,7 +367,7 @@ Left to right:
 7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
 8. **Copy idempotency key button**
 9. **Relation chips** — One chip per non-empty relation group: `↑` dependsOn, `↓` dependents, chain icon for links. Each chip shows a status-colored dot per related workflow (capped at 5, then `+N`); the tooltip lists `operationId (status)` pairs. Click behavior: exactly one relation whose card is on screen → smooth-scroll to it and flash it (`rel-flash`); otherwise → toggle the collection filter (connected workflows share a collection). Relation arrays are tri-state: active/scheduled cards carry them inline from their source queries; recent/query cards don't — a ghost `rel?` chip (full cards only) or expanding a compact card fetches them via `/dashboard/relations` and re-renders. Relation dot colors on active cards refresh via the live fingerprint (which includes relation statuses).
-10. **Action buttons** — Collection filter funnel, chain modal (tree icon, all cards), open state modal, Grafana trace link.
+10. **Action buttons** — Collection filter funnel, chain modal (tree icon, all cards), open state modal, Grafana trace link (only where the host configures a Grafana, see [Grafana Link](#grafana-link)).
 
 ### Pipeline
 
@@ -467,7 +474,7 @@ The modal has four distinct DOM zones:
     - Max Execution Time (formatted duration, if set)
     - Webhook-specific: URI, Content-Type (extracted from `command.data`, supports both camelCase and PascalCase keys)
     - Error History (collapsible section, see below)
-    - Grafana trace link (if traceId exists)
+    - Grafana trace link (if traceId exists and the host configures a Grafana)
 
 2. **State** (conditional) — Only shown if step has stateIn or stateOut.
     - **Both stateIn and stateOut exist**: Shows sub-tabs (Diff, State In, State Out). Diff tab is default.
@@ -494,12 +501,12 @@ While the modal is open, if the workflow's fingerprint changes (from live SSE up
 ### Grafana Link
 
 Opens the workflow's engine trace, the one its `WorkflowHandler.Handle` span roots, by the workflow's `traceId` in
-Grafana Explore. The link targets the **local** studioctl Grafana, the one `studioctl env up --monitoring` starts:
-`http://local.altinn.cloud:8000/grafana/explore`, querying the trace ID on its traces datasource
-(`{ type: 'tempo', uid: 'altinn-studio-traces' }` — Grafana's Tempo datasource over VictoriaTraces). Nothing else
-serves that address, so the link resolves only where that stack runs, whichever engine serves the dashboard. Built by
-`grafanaTraceUrl()` in `modules/core/helpers.js`, which the cards' trace icon uses too. Link text: "Open Grafana".
-Opens in new tab.
+Grafana Explore. The host decides which Grafana: the link is `<grafanaUrl>/explore`, querying the trace ID in TraceQL
+on the Tempo datasource `{ type: 'tempo', uid: <grafanaTracesDatasourceUid> }`, both from
+[`GET /dashboard/config`](#get-dashboardconfig) (`EngineSettings.Dashboard`). While the host leaves either unset, the
+dashboard draws no Grafana link anywhere: no _Open Grafana_ here and no trace icon on the cards. Built by
+`grafanaTraceUrl()` in `modules/core/helpers.js`, which the cards' trace icon uses too and which returns `null` while
+the link is off. Link text: "Open Grafana". Opens in new tab.
 
 ### Error History
 

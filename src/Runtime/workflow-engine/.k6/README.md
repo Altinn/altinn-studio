@@ -61,14 +61,15 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 
 ### perpetual-mix.js
 
-A generator that never stops, whose job is to make every panel on the Grafana dashboard show
-something true. The other scripts measure; this one **populates**. Point it at the playground stack,
-leave it running, and open the _Workflow Engine_ dashboard (folder _Altinn Studio_) in studioctl's
-Grafana, <http://local.altinn.cloud:8000/grafana>, with the `workflow-engine-testapp` service
-selected.
+A generator that never stops, whose job is to make every panel on the _Workflow Engine_ Grafana
+dashboard show something true. The other scripts measure; this one **populates**. Point it at the
+playground stack, leave it running, and watch the engine's telemetry wherever the OTLP collector on
+the host sends it. With studioctl's monitoring as the collector, that is the _Workflow Engine_
+dashboard (folder _Altinn Studio_) in studioctl's Grafana, <http://local.altinn.cloud:8000/grafana>,
+with the `workflow-engine-testapp` service selected:
 
 ```bash
-studioctl env up --monitoring   # once — the collector the engine exports to, and Grafana
+studioctl env up --monitoring   # once — a collector on the host, and Grafana
 make playground                 # from src/Runtime/workflow-engine — throttling ON, fast windows
 k6 run .k6/perpetual-mix.js     # Ctrl+C to stop
 make playground-stop            # stack down; `make reset` also drops the database volume
@@ -78,8 +79,9 @@ It needs the playground stack rather than `make run` for one reason: the namespa
 ships dark, and without it the throttle arm has nothing to show. See
 `.k6/docker-compose.playground.yaml` for exactly what the overrides change and why.
 
-The playground has no monitoring of its own: its engine exports to the collector studioctl publishes
-on the host. How, and where that does not work, is in [`docs/docker.md`](../docs/docker.md#monitoring).
+The playground has no monitoring of its own: its engine exports to an OTLP collector on the host,
+such as the one studioctl publishes. How, where that does not work, and how to give the dashboard trace
+links, are in [`docs/docker.md`](../docs/docker.md#monitoring).
 
 The playground and studioctl's environment publish no host port in common as long as studioctl runs
 without `--dev-workflow-engine`. That flag publishes studioctl's engine database on port 9543, which

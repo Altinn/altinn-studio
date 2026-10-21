@@ -1185,19 +1185,18 @@ OpenTelemetry semantic conventions.
   split into `<object>.queue.duration`, the time before the work began, and
   `<object>.processing.duration`, the work itself. The main loop idles rather than queues, so its first
   part is `main_loop.wait.duration`.
-- **An attribute key** is a constant in `TelemetryAttributes` (`WorkflowEngine.Telemetry`), and one of
-  three kinds. The engine's own concepts are `altinn.workflow_engine.<object>.<property>`, such as
-  `altinn.workflow_engine.workflow.is_head`. Concepts every Altinn service shares use the shared
-  vocabulary — `altinn.service_owner`, `altinn.app`, `altinn.instance.guid` — so a trace is found by
-  the same key whichever service it passed through. The few semantic-convention keys the engine sets
-  itself, such as `error.type`, are spelled as the conventions spell them and never carry another
-  meaning.
+- **An attribute key** the engine sets is a constant in `TelemetryAttributes` (`WorkflowEngine.Telemetry`),
+  and one of two kinds. The engine's own concepts are `altinn.workflow_engine.<object>.<property>`, such as
+  `altinn.workflow_engine.workflow.is_head`. The few semantic-convention keys the engine sets itself, such
+  as `error.type`, are spelled as the conventions spell them and never carry another meaning. A key a host
+  sets — on the domain object a step works on, or on its own command's span — is the host's own, defined
+  in the host ([Domain attributes on spans](#domain-attributes-on-spans)).
 - **One key per concept.** The namespace is `altinn.workflow_engine.namespace` on a throttle counter
   and on a span alike. A value the engine chooses is lowercase snake_case, and a count on a span ends in
   `_count`.
 - **Names and keys are a contract** with the _Workflow Engine_ dashboard
-  ([`workflow-engine.json`](../../localtest/infra/grafana-dashboards/workflow-engine.json) in
-  studioctl's monitoring stack) and with alerts. Use the constants instead of spelling a key again, and
+  ([`workflow-engine.json`](../../localtest/infra/grafana-dashboards/workflow-engine.json)) and with
+  alerts. Use the constants instead of spelling a key again, and
   treat a rename as a breaking change that updates the dashboard with it.
 
 Log records are not part of the scheme yet: their attributes keep the log messages' own placeholder
@@ -1406,7 +1405,7 @@ correlation runs both ways.
 | `WorkflowHandler.Handle`                                              | Consumer | The workflow's entry span: `altinn.workflow_engine.workflow.id`, `altinn.workflow_engine.collection.key`, `altinn.workflow_engine.workflow.idempotency_key`, `altinn.workflow_engine.workflow.operation_id`, `altinn.workflow_engine.namespace`, and the command's [domain attributes](#domain-attributes-on-spans) |
 | `WorkflowHandler.ProcessStep`                                         | Consumer | One step attempt, under the entry span: `altinn.workflow_engine.step.id`, `altinn.workflow_engine.step.operation_id`, `altinn.workflow_engine.step.command.type`, and the domain attributes                                                                                                                         |
 | `WorkflowExecutor.Execute`                                            | Internal | The executor's run of the step                                                                                                                                                                                                                                                                                      |
-| `AppCommand.Execute`, `WebhookCommand.Execute`                        | Client   | The callback; `altinn.workflow_engine.app_command.key` on the app command. The HttpClient span beneath carries `url.full`, with query values redacted by the instrumentation                                                                                                                                        |
+| `AppCommand.Execute`, `WebhookCommand.Execute`                        | Client   | The callback; the `workflow-engine-app` host's app command adds its own command key. The HttpClient span beneath carries `url.full`, with query values redacted by the instrumentation                                                                                                                              |
 | `ConcurrencyLimiter.AcquireDbSlot`, `.AcquireHttpSlot`, …             | Internal | The wait for a slot                                                                                                                                                                                                                                                                                                 |
 | `WorkflowUpdateBuffer.Submit`, `WorkflowUpdateBuffer.SubmitAndForget` | Internal | One write-back submission: `altinn.workflow_engine.update.reason` (`step_started`, `step_completed`, or `workflow_` and the status, such as `workflow_completed`), `altinn.workflow_engine.workflow.status`, `altinn.workflow_engine.update.dirty_step_count`                                                       |
 | `…Buffer.FlushBatch`                                                  | Internal | One flush of a write buffer, in a trace of its own (see below): `altinn.workflow_engine.batch.size` and the `altinn.workflow_engine.batch.…_count` attributes                                                                                                                                                       |
@@ -1438,11 +1437,13 @@ one step. It is skipped while neither span is recorded, so an unsampled step cos
 and a command that throws is logged and otherwise ignored: what telemetry says about a step never
 decides how the step runs.
 
-A command returns identifiers, never personal data or secrets, keeps the call cheap and free of I/O, and
-uses the shared Altinn key wherever a concept has one. `AppCommand` returns `altinn.service_owner` (the
-org), `altinn.app` and `altinn.instance.guid` (lowercase, `D` format) — not the instance owner's party ID
-and not the actor. `WebhookCommand` returns nothing. So every engine span for an app instance is one
-search away on the traces datasource, for example `{span.altinn.instance.guid="<guid>"}` in TraceQL.
+A command returns identifiers, never personal data or secrets, and keeps the call cheap and free of I/O.
+The keys are the host's: `TelemetryAttributes` holds only the engine's own, so a host defines the keys of
+its domain itself and returns them here. `workflow-engine-app` does that for the Altinn app instance, with
+the `AppTelemetryAttributes` its `AppCommand` returns (listed in
+[its `AGENTS.md`](../../workflow-engine-app/AGENTS.md#appcommand)). `WebhookCommand` returns nothing. So
+every engine span for one domain object is one search away on the traces datasource, by a key and value
+its command returns: `{span.<key>="<value>"}` in TraceQL.
 
 #### Errors and exceptions
 
@@ -1461,15 +1462,20 @@ written under. From a failed span, the traces datasource's link to the logs (by 
 
 ### Where to look locally
 
-`studioctl env up --monitoring` runs the monitoring stack: an OpenTelemetry collector on the host's ports
+The engine exports over OTLP to whatever collector listens on the host, so any collector works. studioctl
+is one example: `studioctl env up --monitoring` runs an OpenTelemetry collector on the host's ports
 4317 and 4318, VictoriaMetrics, VictoriaTraces and VictoriaLogs behind it, and Grafana at
-<http://local.altinn.cloud:8000/grafana>. The _Workflow Engine_ dashboard is in the _Altinn Studio_
+<http://local.altinn.cloud:8000/grafana>. Its _Workflow Engine_ dashboard is in the _Altinn Studio_
 folder; pick the service on it — `workflow-engine-testapp` for the TestApp, `workflow-engine-app` for the
-App host. In Explore, the datasources are _Metrics_ (uid `altinn-studio-metrics`), _Traces_
+App host. In Explore, its datasources are _Metrics_ (uid `altinn-studio-metrics`), _Traces_
 (`altinn-studio-traces`, Grafana's Tempo datasource over VictoriaTraces, so it takes TraceQL) and _Logs_
-(`altinn-studio-logs`). The engine dashboard's trace links — the Grafana icon on a workflow card, _Open
-Grafana_ in the step modal — open the workflow's trace there. How an engine on the host or in the compose
-stack reaches the collector, and the one studioctl flag that clashes with the compose stack, are in
+(`altinn-studio-logs`).
+
+The engine dashboard's trace links — the Grafana icon on a workflow card, _Open Grafana_ in the step
+modal — open the workflow's trace in the Grafana the host names in its
+[dashboard settings](#dashboard-trace-links), and are not drawn while it names none. studioctl names its
+own for the engine it runs. How an engine on the host or in the compose stack reaches a collector, how
+to give the TestApp trace links, and the one studioctl flag that clashes with the compose stack, are in
 [Monitoring](docker.md#monitoring).
 
 ## Dashboard
@@ -1483,7 +1489,7 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
   or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
   exercises the same contract external callers use
 - State evolution viewer
-- A link from each workflow to its trace in the local studioctl Grafana (see [Where to look locally](#where-to-look-locally))
+- A link from each workflow to its trace in Grafana, where the host configures one (see [Dashboard trace links](#dashboard-trace-links))
 - Paginated query interface with namespace/status/label filters
 - Mailboxes rendered under their collections, log laid out position by position
   (`GET /dashboard/mailboxes` — payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`)
@@ -2126,6 +2132,22 @@ described under [Failure-Storm Throttling](#failure-storm-throttling).
 Window growth (×2), release cohort growth (×2), and jitter (±20%) are named constants on
 `ThrottlingSettings`, deliberately not configuration.
 
+### Dashboard trace links
+
+The dashboard links each workflow to its trace in Grafana Explore once the host names its Grafana. Both
+settings are unset by default, and while either is unset the dashboard draws no trace links. An empty or
+whitespace value counts as unset, so a compose file can pass an unset variable through. The dashboard
+reads them once, from `GET /dashboard/config`, when it loads.
+
+| Setting                                | Default | Description                                                                         |
+| -------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| `Dashboard.GrafanaUrl`                 | unset   | Grafana's base URL as the browser reaches it, such as `https://grafana.example.com` |
+| `Dashboard.GrafanaTracesDatasourceUid` | unset   | UID of the Tempo datasource holding the engine's traces; the link queries TraceQL   |
+
+A host sets them like any other setting, for example `EngineSettings__Dashboard__GrafanaUrl` in its
+environment. studioctl, for one, sets both on the engine it runs with `--monitoring`, naming its own
+Grafana.
+
 ## Testing
 
 ### TestKit
@@ -2246,9 +2268,10 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 - **Context**: `AppWorkflowContext` — `{ actor, callbackToken, org, app, instanceOwnerPartyId, instanceGuid }`
 - **Execution**: HTTP POST to a templated URL expanded from the workflow context
 - **Telemetry**: names the app instance on the step's span and the workflow's entry span through
-  [`GetTelemetryAttributes`](#domain-attributes-on-spans) — `altinn.service_owner`, `altinn.app` and
-  `altinn.instance.guid`, never the instance owner's party ID or the actor. Its `AppCommand.Execute`
-  client span carries the command key as `altinn.workflow_engine.app_command.key`
+  [`GetTelemetryAttributes`](#domain-attributes-on-spans), never the instance owner's party ID or the
+  actor, and its `AppCommand.Execute` client span carries the command key. All of these keys are this
+  host's own, in `AppTelemetryAttributes` (listed in
+  [its `AGENTS.md`](../../workflow-engine-app/AGENTS.md#appcommand))
 
 ### Error Classification
 

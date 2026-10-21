@@ -9,7 +9,9 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "OTEL_SERVICE_NAME": "workflow-engine-app",
-        "OTEL_METRIC_EXPORT_INTERVAL": "15000"
+        "OTEL_METRIC_EXPORT_INTERVAL": "15000",
+        "EngineSettings__Dashboard__GrafanaUrl": "http://local.altinn.cloud:8000/grafana",
+        "EngineSettings__Dashboard__GrafanaTracesDatasourceUid": "altinn-studio-traces"
       }
     },
     "http-stress": {
@@ -22,7 +24,9 @@
         "EngineSettings__TraceSamplingRate": "0.01",
         "EngineSettings__EnableDatabaseInstrumentation": "false",
         "OTEL_SERVICE_NAME": "workflow-engine-app",
-        "OTEL_METRIC_EXPORT_INTERVAL": "15000"
+        "OTEL_METRIC_EXPORT_INTERVAL": "15000",
+        "EngineSettings__Dashboard__GrafanaUrl": "http://local.altinn.cloud:8000/grafana",
+        "EngineSettings__Dashboard__GrafanaTracesDatasourceUid": "altinn-studio-traces"
       }
     }
   }

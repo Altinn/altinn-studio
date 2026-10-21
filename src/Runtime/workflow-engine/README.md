@@ -42,17 +42,16 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 
 ### Monitoring
 
-Telemetry goes to studioctl's monitoring stack. Start it with `studioctl env up --monitoring`, and the engine — on the host or in the `core` profile — exports to its collector. See [Monitoring](docs/docker.md#monitoring) for how, and for the studioctl flag that clashes with this stack.
+The engine — on the host or in the `core` profile — exports its telemetry over OTLP to a collector on the host, at port 4317. Any collector works; `studioctl env up --monitoring` runs one, with Grafana and the _Workflow Engine_ dashboard. See [Monitoring](docs/docker.md#monitoring) for how, for the two settings that turn on the dashboard's trace links, and for the studioctl flag that clashes with this stack.
 
 ### Ports & URLs
 
-| Service    | URL                                                                              | Notes                                                   |
-| ---------- | -------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Engine API | [http://localhost:9090](http://localhost:9090)                                   | Swagger UI at [/swagger](http://localhost:9090/swagger) |
-| Grafana    | [http://local.altinn.cloud:8000/grafana](http://local.altinn.cloud:8000/grafana) | From `studioctl env up --monitoring`                    |
-| WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests)                  | Mock app/webhook target                                 |
-| PgAdmin    | [http://localhost:5050](http://localhost:5050)                                   | Db password: postgres123                                |
-| PostgreSQL | `localhost:9543`                                                                 |                                                         |
+| Service    | URL                                                             | Notes                                                   |
+| ---------- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| Engine API | [http://localhost:9090](http://localhost:9090)                  | Swagger UI at [/swagger](http://localhost:9090/swagger) |
+| WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
+| PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |
+| PostgreSQL | `localhost:9543`                                                |                                                         |
 
 ### API endpoints
 

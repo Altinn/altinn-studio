@@ -102,9 +102,9 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             ? []
             :
             [
-                new(TelemetryAttributes.ServiceOwner, workflowContext.Org),
-                new(TelemetryAttributes.App, workflowContext.App),
-                new(TelemetryAttributes.InstanceGuid, workflowContext.InstanceGuid.ToString("D")),
+                new(AppTelemetryAttributes.ServiceOwner, workflowContext.Org),
+                new(AppTelemetryAttributes.App, workflowContext.App),
+                new(AppTelemetryAttributes.InstanceGuid, workflowContext.InstanceGuid.ToString("D")),
             ];
 
     /// <inheritdoc/>
@@ -120,7 +120,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             "AppCommand.Execute",
             parentContext: context.ParentTraceContext ?? context.Step.EngineActivity?.Context,
             kind: ActivityKind.Client,
-            tags: [(TelemetryAttributes.AppCommandKey, commandData.CommandKey)]
+            tags: [(AppTelemetryAttributes.AppCommandKey, commandData.CommandKey)]
         );
 
         using var slot = await _limiter.AcquireHttpSlot(activity?.Context, cancellationToken);

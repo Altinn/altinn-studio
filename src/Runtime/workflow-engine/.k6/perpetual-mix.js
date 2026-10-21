@@ -4,7 +4,7 @@
  *
  * This is not a benchmark. `stress-test.js` and `mailbox-storm.js` measure; this one *populates*.
  * It runs until Ctrl+C and produces a deliberately varied mix, so an engineer opening the Workflow
- * Engine dashboard in studioctl's Grafana sees real curves rather than an hour of flat zeroes:
+ * Engine Grafana dashboard sees real curves rather than an hour of flat zeroes:
  *
  *   healthy      — webhooks that complete first time (the baseline the rest is read against)
  *   scheduled    — webhooks enqueued with a future `startAt`, so a population sits in `Scheduled`
@@ -33,10 +33,9 @@
  * Every arm is independently tunable, and setting a rate to 0 removes its scenario entirely.
  *
  * Requires the playground stack, because the throttle arm needs the namespace circuit breaker
- * switched on and it ships dark, and studioctl's monitoring, which collects the engine's telemetry
- * and serves the dashboard:
+ * switched on and it ships dark, and an OTLP collector on the host feeding the dashboard
+ * (docs/docker.md#monitoring):
  *
- *   studioctl env up --monitoring
  *   make playground          # from src/Runtime/workflow-engine
  *   k6 run .k6/perpetual-mix.js
  *

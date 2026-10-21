@@ -174,9 +174,12 @@ func workflowEngineEnv(topology envtopology.Local, includeMonitoring bool) map[s
 		"OTEL_SERVICE_NAME":                   workflowEngineOTelServiceName,
 		"OTEL_METRIC_EXPORT_INTERVAL":         otelMetricExportIntervalMillis,
 	}
-	// The collector's host alias resolves on the environment network only while monitoring runs.
 	if includeMonitoring {
+		// The collector's host alias resolves on the environment network only while monitoring runs.
 		env["OTEL_EXPORTER_OTLP_ENDPOINT"] = topology.OTelURL()
+		// The dashboard's trace links are opened by the browser, so they take Grafana's public URL.
+		env["EngineSettings__Dashboard__GrafanaUrl"] = topology.PublicRouteURL(envtopology.ComponentGrafana)
+		env["EngineSettings__Dashboard__GrafanaTracesDatasourceUid"] = grafanaTracesDatasourceUID
 	}
 	return env
 }

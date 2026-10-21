@@ -72,26 +72,47 @@ export const abbrevGuids = (s) =>
               .replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
 
 /**
- * The Grafana that `studioctl env up --monitoring` starts, and its traces datasource: Grafana's Tempo
- * datasource over VictoriaTraces. Only that local stack serves this address, so a trace link resolves
- * only where it runs.
+ * The host's Grafana and its traces datasource, from `/dashboard/config`. Null while the host leaves
+ * either unset, and then the dashboard draws no trace links.
+ * @type {{ url: string, tracesDatasourceUid: string } | null}
  */
-const GRAFANA_URL = 'http://local.altinn.cloud:8000/grafana';
-const GRAFANA_TRACES_DATASOURCE = { type: 'tempo', uid: 'altinn-studio-traces' };
+let grafana = null;
+
+/** Reads the host's dashboard settings. Call once at startup, before anything renders a card. */
+export const loadDashboardConfig = async () => {
+    try {
+        const res = await fetch('/dashboard/config');
+        if (!res.ok) return;
+        /** @type {{ grafanaUrl?: string, grafanaTracesDatasourceUid?: string }} */
+        const config = await res.json();
+        if (config.grafanaUrl && config.grafanaTracesDatasourceUid) {
+            grafana = {
+                url: config.grafanaUrl.replace(/\/+$/, ''),
+                tracesDatasourceUid: config.grafanaTracesDatasourceUid,
+            };
+        }
+    } catch {
+        /* non-critical: the dashboard runs without trace links */
+    }
+};
 
 /**
- * Grafana Explore URL that opens one trace by its ID. Every trace link on the dashboard is built here.
+ * Grafana Explore URL that opens one trace by its ID, or null when the host configures no Grafana.
+ * Every trace link on the dashboard is built here.
  * @param {string} traceId
- * @returns {string}
+ * @returns {string | null}
  */
 export const grafanaTraceUrl = (traceId) => {
+    if (!grafana) return null;
+    // The query is TraceQL, which only a Tempo datasource takes.
+    const datasource = { type: 'tempo', uid: grafana.tracesDatasourceUid };
     const panes = {
         trace: {
-            datasource: GRAFANA_TRACES_DATASOURCE.uid,
+            datasource: datasource.uid,
             queries: [
                 {
                     refId: 'A',
-                    datasource: GRAFANA_TRACES_DATASOURCE,
+                    datasource,
                     queryType: 'traceql',
                     query: traceId,
                 },
@@ -99,7 +120,8 @@ export const grafanaTraceUrl = (traceId) => {
             range: { from: 'now-24h', to: 'now' },
         },
     };
-    return `${GRAFANA_URL}/explore?schemaVersion=1&panes=${encodeURIComponent(JSON.stringify(panes))}&orgId=1`;
+    // No orgId: Grafana opens Explore in the viewer's current organization.
+    return `${grafana.url}/explore?schemaVersion=1&panes=${encodeURIComponent(JSON.stringify(panes))}`;
 };
 
 /** @param {number} seconds */

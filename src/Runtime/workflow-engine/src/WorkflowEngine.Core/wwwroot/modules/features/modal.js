@@ -273,8 +273,8 @@ const buildDetailsContent = (data) => {
         }
         html += `</div></div>`;
     }
-    if (data.traceId) {
-        const traceUrl = grafanaTraceUrl(/** @type {string} */ (data.traceId));
+    const traceUrl = data.traceId ? grafanaTraceUrl(/** @type {string} */ (data.traceId)) : null;
+    if (traceUrl) {
         html += `<a class="modal-grafana-link" href="${escAttr(traceUrl)}" target="_blank">Open Grafana</a>`;
     }
 
