@@ -67,6 +67,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
+- In delegated signing, an organization that a person signed for no longer keeps read and sign rights on the instance after the task ends. Extra actions from `AdditionalActionsToDelegate`, such as `reject`, are revoked too. Rights left on tasks that already ended are not removed. ([#21399](https://github.com/Altinn/altinn-studio/pull/21399))
 
 ### Fixed
 
