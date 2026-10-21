@@ -66,6 +66,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
+- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to the signee's registered contact details, such as KRR for persons. It no longer fails with Correspondence error 3012 or arrives as the generic email instead. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 
 ### Removed
 
