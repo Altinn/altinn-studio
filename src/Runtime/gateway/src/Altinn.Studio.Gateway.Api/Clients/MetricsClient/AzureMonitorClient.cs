@@ -20,8 +20,8 @@ internal sealed class AzureMonitorClient(
 {
     private const int MaxRange = 10080;
 
-    // Periodic reports cover up to 30 days, the monthly report window.
-    internal const int MaxReportRange = 30 * 24 * 60;
+    // Periodic reports cover up to a calendar month: 31 days, plus the hour gained when daylight saving time ends.
+    internal static readonly TimeSpan MaxReportPeriod = TimeSpan.FromDays(31) + TimeSpan.FromHours(1);
     private const int MaxActivityWindowDays = 30;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
@@ -58,6 +58,12 @@ internal sealed class AzureMonitorClient(
         var maxPoints = 12;
         return (int)Math.Max(1, Math.Ceiling((double)range / maxPoints));
     }
+
+    internal static bool IsValidReportPeriod(DateTimeOffset from, DateTimeOffset to) =>
+        from < to && to - from <= MaxReportPeriod;
+
+    internal static int GetPeriodMinutes(DateTimeOffset from, DateTimeOffset to) =>
+        (int)Math.Ceiling((to - from).TotalMinutes);
 
     private static string GetInterval(int range)
     {
@@ -317,16 +323,19 @@ internal sealed class AzureMonitorClient(
         );
     }
 
-    public async Task<IEnumerable<Metric>> GetMetrics(int range, CancellationToken cancellationToken)
+    public async Task<IEnumerable<Metric>> GetMetrics(
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken
+    )
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxReportRange);
+        ThrowIfInvalidReportPeriod(from, to);
 
         var names = MetricNames;
 
         var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
-        var interval = GetInterval(range);
+        var interval = GetInterval(GetPeriodMinutes(from, to));
 
         var query =
             $@"
@@ -338,7 +347,7 @@ internal sealed class AzureMonitorClient(
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+            new LogsQueryTimeRange(from, to),
             cancellationToken: cancellationToken
         );
 
@@ -356,16 +365,16 @@ internal sealed class AzureMonitorClient(
     }
 
     public async Task<IEnumerable<AllAppsFailedRequest>> GetAllAppsFailedRequests(
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     )
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxReportRange);
+        ThrowIfInvalidReportPeriod(from, to);
 
         var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
-        var interval = GetInterval(range);
+        var interval = GetInterval(GetPeriodMinutes(from, to));
 
         var query =
             $@"
@@ -380,7 +389,7 @@ internal sealed class AzureMonitorClient(
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
-            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+            new LogsQueryTimeRange(from, to),
             cancellationToken: cancellationToken
         );
 
@@ -400,6 +409,18 @@ internal sealed class AzureMonitorClient(
                 ),
                 Counts = group.Select(row => row.GetDouble("Count") ?? 0),
             });
+    }
+
+    private static void ThrowIfInvalidReportPeriod(DateTimeOffset from, DateTimeOffset to)
+    {
+        if (!IsValidReportPeriod(from, to))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(to),
+                to,
+                $"The report period must start before it ends and last at most {MaxReportPeriod}."
+            );
+        }
     }
 
     public async Task<IEnumerable<AppMetric>> GetAppMetrics(string app, int range, CancellationToken cancellationToken)
