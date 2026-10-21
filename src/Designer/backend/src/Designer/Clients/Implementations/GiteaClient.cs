@@ -261,69 +261,6 @@ public class GiteaClient(
     }
 
     /// <inheritdoc/>
-    public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(
-        string org,
-        string repo,
-        ServiceResource serviceResource,
-        CancellationToken cancellationToken
-    )
-    {
-        ListviewServiceResource listviewResource = new()
-        {
-            Identifier = serviceResource.Identifier,
-            Title = serviceResource.Title,
-        };
-
-        string resourceFolder = ResourceAdminHelper.GetResourceFileStructureName(serviceResource.Identifier);
-
-        HttpResponseMessage fileResponse = await httpClient.GetAsync(
-            $"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false",
-            cancellationToken
-        );
-
-        if (fileResponse.StatusCode == HttpStatusCode.OK)
-        {
-            List<GiteaCommit> commitResponse = null;
-
-            try
-            {
-                commitResponse = await fileResponse.Content.ReadAsAsync<List<GiteaCommit>>(cancellationToken);
-            }
-            catch (JsonException)
-            {
-                // Not pushed to git
-            }
-            catch (Exception)
-            {
-                // Not pushed to git
-            }
-
-            if (commitResponse is not null)
-            {
-                string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
-                string userFullName = await GetCachedUserFullName(commitUserName);
-                listviewResource.CreatedBy = userFullName;
-                listviewResource.LastChanged = DateTime.Parse(commitResponse.FirstOrDefault().Created);
-            }
-        }
-        else
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-            logger.LogError(
-                "User {Developer}, method {MethodName} failed with statuscode {StatusCode} for {Org}/{Repo} and resource folder {ResourceFolder}",
-                developer,
-                nameof(MapServiceResourceToListViewResource),
-                fileResponse.StatusCode,
-                org,
-                repo,
-                resourceFolder
-            );
-        }
-
-        return listviewResource;
-    }
-
-    /// <inheritdoc/>
     public async Task<SearchResults> SearchRepo(SearchOptions searchOption)
     {
         string giteaSearchUriString = BuildSearchQuery(searchOption);
@@ -873,7 +810,8 @@ public class GiteaClient(
         return false;
     }
 
-    private async Task<string> GetCachedUserFullName(string username)
+    /// <inheritdoc/>
+    public async Task<string> GetUserFullName(string username)
     {
         string cacheKey = $"giteauser_fullname:{username}";
         MemoryCacheEntryOptions cacheEntryOptions = new();
