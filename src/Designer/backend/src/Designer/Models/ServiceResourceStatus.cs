@@ -7,7 +7,5 @@ public class ServiceResourceStatus
 {
     public string PolicyVersion { get; set; }
 
-    public string ResourceVersion { get; set; }
-
     public List<ResourceVersionInfo> PublishedVersions { get; set; }
 }

@@ -43,6 +43,7 @@ def _state(goal: str) -> AgentState:
         app_name="test-app",
         developer="dev",
         org="ttd",
+        cost_org="ttd",
         allow_app_changes=True,
     )
 

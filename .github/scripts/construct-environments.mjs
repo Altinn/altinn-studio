@@ -1,13 +1,14 @@
 import { pathToFileURL } from "node:url";
 
-const VALID_MODES = new Set(["studio", "studio-preapproved", "runtime", "dis-core"]);
+const VALID_MODES = new Set(["studio", "studio-preapproved", "runtime", "dis-core", "dis-edge"]);
 const DEFAULTS_BY_MODE = {
   "studio": "dev,staging,prod",
   "studio-preapproved": "dev,staging,preapproved-prod",
   "runtime": "at_ring1,at_ring2,tt_ring1,tt_ring2,prod_ring1,prod_ring2",
   "dis-core": "at22,at23,yt01,tt02,prod",
+  "dis-edge": "at22,at23,yt01,tt02,prod",
 };
-// DIS Core has no override: a push covers every Core environment.
+// DIS Core and DIS Edge have no override: a push covers every environment.
 const OVERRIDE_DEFAULT_ENV_BY_MODE = {
   "studio": "OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS",
   "studio-preapproved": "OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS",
@@ -20,17 +21,20 @@ const ALLOWED_VALUES_BY_MODE = {
   ),
   "runtime": new Set(DEFAULTS_BY_MODE["runtime"].split(",").map((value) => value.trim())),
   "dis-core": new Set(DEFAULTS_BY_MODE["dis-core"].split(",").map((value) => value.trim())),
+  "dis-edge": new Set(DEFAULTS_BY_MODE["dis-edge"].split(",").map((value) => value.trim())),
 };
 
 /**
- * Construct parsed output for studio, runtime or DIS Core environment inputs.
+ * Construct parsed output for studio, runtime, DIS Core or DIS Edge environment inputs.
  * @param {{mode: string, inputs?: string, inputsKey?: string, allowEmpty?: boolean|string}} input
  * @returns {Array<{environment: string, ring?: string, tag?: string}>}
  */
 export function constructResult(input) {
   const mode = input.mode;
   if (!VALID_MODES.has(mode)) {
-    throw new Error("mode must be 'studio', 'studio-preapproved', 'runtime', or 'dis-core'.");
+    throw new Error(
+      "mode must be 'studio', 'studio-preapproved', 'runtime', 'dis-core', or 'dis-edge'."
+    );
   }
 
   const allowEmpty = parseBool(input.allowEmpty);
@@ -72,6 +76,9 @@ export function constructResult(input) {
     case "dis-core":
       validateValues(values, allowedValues, "DIS Core environment");
       return values.map((tag) => ({ environment: `dis_core_${tag}`, tag }));
+    case "dis-edge":
+      validateValues(values, allowedValues, "DIS Edge environment");
+      return values.map((tag) => ({ environment: `dis_edge_${tag}`, tag }));
     default:
       throw new Error("unreachable mode.");
   }
@@ -161,7 +168,7 @@ function parseBool(value) {
 }
 
 /**
- * @param {"studio"|"studio-preapproved"|"runtime"|"dis-core"} mode
+ * @param {"studio"|"studio-preapproved"|"runtime"|"dis-core"|"dis-edge"} mode
  * @returns {string}
  */
 function getDefaultOverrideValue(mode) {

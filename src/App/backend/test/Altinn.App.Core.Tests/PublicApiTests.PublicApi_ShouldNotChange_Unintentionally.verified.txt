@@ -84,6 +84,10 @@ namespace Altinn.App.Core.Constants
         public const string POLICY_INSTANCE_READ = "InstanceRead";
         public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
     }
+    public static class DataValueKeys
+    {
+        public const string CopySourceInstanceId = "copy.sourceInstanceId";
+    }
     public static class General
     {
         public const string AppTokenName = "AltinnToken";
@@ -1428,7 +1432,6 @@ namespace Altinn.App.Core.Features
     public static class FeatureFlags
     {
         public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
-        public const string JsonObjectInDataResponse = "JsonObjectInDataResponse";
         public const string SimpleTableEnabled = "SimpleTableEnabled";
     }
     public interface IAppOptionsProvider
@@ -3241,16 +3244,14 @@ namespace Altinn.App.Core.Internal.Pdf
 {
     public interface IPdfGeneratorClient
     {
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(System.Uri uri, string? footerContent, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod, System.Threading.CancellationToken cancellationToken);
     }
     public interface IPdfService
     {
-        System.Threading.Tasks.Task GenerateAndStorePdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<Altinn.App.Core.Models.BinaryDataChange> GenerateAndStorePdf(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, string? customFileNameTextResourceKey, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task<System.IO.Stream> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, bool isPreview, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GeneratePdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, string language, System.Collections.Generic.List<string>? autoGeneratePdfForTaskIds = null, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<byte[]> GenerateSubformPdf(Altinn.Platform.Storage.Interface.Models.Instance instance, string taskId, Altinn.App.Core.Internal.Pdf.SubformPdfContext subformPdfContext, string language, bool isPreview = false, Altinn.App.Core.Features.StorageAuthenticationMethod? authenticationMethod = null, System.Threading.CancellationToken cancellationToken = default);
     }
     public class PdfGenerationException : Altinn.App.Core.Exceptions.AltinnException
     {
@@ -3263,8 +3264,16 @@ namespace Altinn.App.Core.Internal.Pdf
         public PdfGeneratorSettings() { }
         public string AppPdfPagePathTemplate { get; set; }
         public bool DisplayFooter { get; set; }
+        public Altinn.App.Core.Internal.Pdf.PdfPreviewRateLimitSettings PreviewRateLimit { get; set; }
         public string WaitForSelector { get; set; }
         public int WaitForTime { get; set; }
+    }
+    public class PdfPreviewRateLimitSettings
+    {
+        public PdfPreviewRateLimitSettings() { }
+        public int PermitLimit { get; set; }
+        public int QueueLimit { get; set; }
+        public System.TimeSpan Window { get; set; }
     }
     public sealed class SubformPdfContext : System.IEquatable<Altinn.App.Core.Internal.Pdf.SubformPdfContext>
     {
@@ -4691,6 +4700,24 @@ namespace Altinn.App.Core.Models.Layout.Components
         public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
         public static Altinn.App.Core.Models.Layout.Components.LikertComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
     }
+    public sealed class MapComponent : Altinn.App.Core.Models.Layout.Components.Base.NoReferenceComponent
+    {
+        public MapComponent() { }
+        public required Altinn.App.Core.Models.Layout.Components.MapGeometriesBinding? GeometriesBinding { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding? SimpleBinding { get; init; }
+        public override System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Layout.DataReference>> GetDataReferencesToRemoveWhenHidden(Altinn.App.Core.Models.Expressions.ComponentContext context) { }
+        public static Altinn.App.Core.Models.Layout.Components.MapComponent Parse(System.Text.Json.JsonElement componentElement, string pageId, string layoutId) { }
+    }
+    public sealed class MapGeometriesBinding : System.IEquatable<Altinn.App.Core.Models.Layout.Components.MapGeometriesBinding>
+    {
+        public MapGeometriesBinding() { }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Data { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Geometries { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding IsEditable { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding IsHidden { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Label { get; init; }
+        public required Altinn.App.Core.Models.Layout.ModelBinding Style { get; init; }
+    }
     public sealed class NonRepeatingGroupComponent : Altinn.App.Core.Models.Layout.Components.Base.ReferenceComponent
     {
         public NonRepeatingGroupComponent() { }
@@ -5189,6 +5216,8 @@ namespace Altinn.App.Core.Models.Process
     {
         Retrying = 0,
         ResumeRequired = 1,
+        InstanceChanged = 2,
+        ConcurrentTransition = 3,
     }
     public class ProcessStartRequest
     {
@@ -5242,7 +5271,6 @@ namespace Altinn.App.Core.Models.Process
         DependencyFailed = 1,
         EngineFault = 2,
         Timeout = 3,
-        AcquireConflict = 4,
     }
     [System.Text.Json.Serialization.JsonConverter(typeof(Altinn.App.Core.Models.Process.JsonCamelCaseEnumConverter))]
     public enum WorkflowSubmissionFailureKind
@@ -5375,6 +5403,10 @@ namespace Altinn.App.Core.Models.Validation
         [Newtonsoft.Json.JsonProperty(PropertyName="code")]
         [System.Text.Json.Serialization.JsonPropertyName("code")]
         public string? Code { get; set; }
+        [Newtonsoft.Json.JsonProperty(NullValueHandling=Newtonsoft.Json.NullValueHandling.Ignore, PropertyName="componentId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("componentId")]
+        public string? ComponentId { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="customTextKey")]
         [System.Text.Json.Serialization.JsonPropertyName("customTextKey")]
         public string? CustomTextKey { get; set; }
@@ -5394,6 +5426,10 @@ namespace Altinn.App.Core.Models.Validation
         [Newtonsoft.Json.JsonProperty(PropertyName="field")]
         [System.Text.Json.Serialization.JsonPropertyName("field")]
         public string? Field { get; set; }
+        [Newtonsoft.Json.JsonProperty(NullValueHandling=Newtonsoft.Json.NullValueHandling.Ignore, PropertyName="rowIndexes")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("rowIndexes")]
+        public System.Collections.Generic.IReadOnlyList<int>? RowIndexes { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="severity")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonNumberEnumConverter<Altinn.App.Core.Models.Validation.ValidationIssueSeverity>?))]
         [System.Text.Json.Serialization.JsonPropertyName("severity")]
@@ -5451,6 +5487,9 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonPropertyName("code")]
         public required string? Code { get; set; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("componentId")]
+        public string? ComponentId { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("customTextKey")]
         public string? CustomTextKey { get; set; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -5469,6 +5508,9 @@ namespace Altinn.App.Core.Models.Validation
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
         [System.Text.Json.Serialization.JsonPropertyName("noIncrementalUpdates")]
         public bool NoIncrementalUpdates { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("rowIndexes")]
+        public System.Collections.Generic.IReadOnlyList<int>? RowIndexes { get; set; }
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonNumberEnumConverter<Altinn.App.Core.Models.Validation.ValidationIssueSeverity>?))]
         [System.Text.Json.Serialization.JsonPropertyName("severity")]
         public required Altinn.App.Core.Models.Validation.ValidationIssueSeverity Severity { get; set; }

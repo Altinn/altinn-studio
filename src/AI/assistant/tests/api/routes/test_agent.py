@@ -25,6 +25,7 @@ def _start_payload() -> dict:
         "goal": "Add a field to the form",
         "repo_url": "https://dev.altinn.studio/repos/ttd/my-app.git",
         "org": "ttd",
+        "cost_org": "ttd",
     }
 
 
@@ -111,6 +112,7 @@ class TestPermissionGateDefaults:
             goal="add a field",
             repo_url="http://gitea/repo.git",
             org="ttd",
+            cost_org="ttd",
         )
 
         assert request.allow_app_changes is False
@@ -125,6 +127,32 @@ class TestPermissionGateDefaults:
             app_name="test-app",
             developer="dev",
             org="ttd",
+            cost_org="ttd",
         )
 
         assert state.allow_app_changes is False
+
+
+class TestCostOrg:
+    def test_passes_repo_owner_and_cost_org_separately_to_the_agent_state(self, tmp_path):
+        payload = {
+            **_start_payload(),
+            "repo_url": "https://dev.altinn.studio/repos/kari/my-app.git",
+            "org": "kari",
+            "cost_org": "ttd",
+        }
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.run_in_background") as run_in_background:
+            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert response.status_code == 200
+        state = run_in_background.call_args.args[0]
+        assert state.org == "kari"
+        assert state.cost_org == "ttd"
+
+    def test_rejects_a_request_without_cost_org(self, tmp_path):
+        payload = _start_payload()
+        del payload["cost_org"]
+        with _stubbed_agent_start(tmp_path):
+            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert response.status_code == 422

@@ -1,12 +1,13 @@
 import React from 'react';
 
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { makeLikertChildId } from 'src/layout/Likert/makeLikertChildId';
 import { useLikertRows } from 'src/layout/Likert/rowUtils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
@@ -93,14 +94,7 @@ export function LikertSummary({ targetBaseComponentId }: Summary2Props) {
               />
             </DataModelLocationProvider>
           ))}
-          {errors?.map(({ message }) => (
-            <ValidationMessage key={message.key}>
-              <Lang
-                id={message.key}
-                params={message.params}
-              />
-            </ValidationMessage>
-          ))}
+          <ValidationMessageList validations={errors} />
         </div>
       </SummaryFlexForContainer>
     </EmptyChildrenBoundary>
