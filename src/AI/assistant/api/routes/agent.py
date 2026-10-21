@@ -17,7 +17,7 @@ from shared.models import AgentAttachment, AttachmentUpload
 from shared.models.attachments import cleanup_session_attachments, get_session_dir
 from shared.models.experiment import ExperimentContext
 from shared.utils.logging_utils import get_logger
-from shared.utils.path_utils import app_name_from_repo_url
+from shared.utils.path_utils import repo_owner_and_app_name
 
 router = APIRouter()
 log = get_logger(__name__)
@@ -47,7 +47,6 @@ class StartReq(BaseModel):
     # Fail closed: write access is opt-in. A caller that omits the flag
     # gets a read-only (chat mode) session, never silent write access.
     allow_app_changes: bool = False
-    org: str  # The owner of the repository. This is an organization or the developer.
     # The organization that the LLM usage is recorded on. Designer sets this value and makes sure that it is correct.
     cost_org: str
     attachments: list[AttachmentUpload] = Field(default_factory=list)
@@ -58,6 +57,12 @@ class StartReq(BaseModel):
     def _validate_session_id(cls, v: str) -> str:
         if not _SESSION_ID_PATTERN.match(v):
             raise ValueError("session_id must be 1-128 alphanumeric, hyphen, or underscore characters")
+        return v
+
+    @field_validator("repo_url")
+    @classmethod
+    def _validate_repo_url(cls, v: str) -> str:
+        repo_owner_and_app_name(v)
         return v
 
 
@@ -80,7 +85,7 @@ async def start_agent(
         sink.register_developer_session(developer, req.session_id)
         log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
 
-        app_name = app_name_from_repo_url(req.repo_url)
+        repo_owner, app_name = repo_owner_and_app_name(req.repo_url)
 
         # Clone the repository for this session
         repo_manager = get_repo_manager()
@@ -133,7 +138,7 @@ async def start_agent(
             repo_path=str(repo_path),
             app_name=app_name,
             developer=developer,
-            org=req.org,
+            repo_owner=repo_owner,
             cost_org=req.cost_org,
             allow_app_changes=req.allow_app_changes,
             attachments=saved_attachments,
