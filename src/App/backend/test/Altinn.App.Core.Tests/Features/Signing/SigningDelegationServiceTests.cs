@@ -1,16 +1,21 @@
 using System.Net;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Internal.AccessManagement.Exceptions;
 using Altinn.App.Core.Internal.AccessManagement.Models;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
 using static Altinn.App.Core.Features.Signing.Models.Signee;
 using InternalSignee = Altinn.App.Core.Features.Signing.Models.Signee;
+using SignDocument = Altinn.Platform.Storage.Interface.Models.SignDocument;
 using SigneeState = Altinn.App.Core.Features.Signing.Models.SigneeContextState;
+using StorageSignee = Altinn.Platform.Storage.Interface.Models.Signee;
 
 namespace Altinn.App.Core.Tests.Features.Signing;
 
@@ -715,5 +720,287 @@ public class SigningDelegationServiceTests
         Assert.Equal("read", capturedRequest.Rights[0].Action!.Value);
         Assert.Equal("sign", capturedRequest.Rights[1].Action!.Value);
         Assert.Equal("reject", capturedRequest.Rights[2].Action!.Value);
+    }
+
+    private static readonly Party _personParty = new()
+    {
+        PartyUuid = Guid.NewGuid(),
+        SSN = "12345678901",
+        Name = "Testperson 3",
+    };
+
+    private static readonly Party _orgParty = new()
+    {
+        PartyUuid = Guid.NewGuid(),
+        OrgNumber = "312345678",
+        Name = "Testorganisasjon AS",
+    };
+
+    private static PersonSignee CreatePersonSignee() =>
+        new()
+        {
+            Party = _personParty,
+            SocialSecurityNumber = _personParty.SSN,
+            FullName = _personParty.Name,
+        };
+
+    private static OrganizationSignee CreateOrganizationSignee() =>
+        new()
+        {
+            OrgParty = _orgParty,
+            OrgNumber = _orgParty.OrgNumber,
+            OrgName = _orgParty.Name,
+        };
+
+    /// <summary>Records the requests Access Management receives.</summary>
+    private static Mock<IAccessManagementClient> CreateRecordingAccessManagementClient(
+        List<DelegationRequest> delegations,
+        List<DelegationRequest> revocations
+    )
+    {
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        accessManagementClient
+            .Setup(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<DelegationRequest, CancellationToken>((request, _) => delegations.Add(request))
+            .ReturnsAsync(new DelegationResponse());
+        accessManagementClient
+            .Setup(x => x.RevokeRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<DelegationRequest, CancellationToken>((request, _) => revocations.Add(request))
+            .ReturnsAsync(new DelegationResponse());
+        return accessManagementClient;
+    }
+
+    [Theory]
+    [InlineData("person")]
+    [InlineData("organization")]
+    public async Task RevokeSigneeRights_RevokesFromThePartyTheRightsWereDelegatedTo(string signeeKind)
+    {
+        // Arrange
+        List<DelegationRequest> delegations = [];
+        List<DelegationRequest> revocations = [];
+        var accessManagementClient = CreateRecordingAccessManagementClient(delegations, revocations);
+        var service = new SigningDelegationService(
+            accessManagementClient.Object,
+            new Mock<ILogger<SigningDelegationService>>().Object
+        );
+        InternalSignee signee = signeeKind == "person" ? CreatePersonSignee() : CreateOrganizationSignee();
+        string instanceId = "instanceOwnerPartyId/" + Guid.NewGuid();
+        var appIdentifier = new AppIdentifier("testOrg", "testApp");
+        List<SigneeContext> signeeContexts =
+        [
+            new()
+            {
+                TaskId = "taskId",
+                SigneeState = new SigneeState(),
+                Signee = signee,
+            },
+        ];
+        await service.DelegateSigneeRights(
+            "taskId",
+            instanceId,
+            Guid.NewGuid(),
+            appIdentifier,
+            signeeContexts,
+            CancellationToken.None
+        );
+
+        // Act
+        (_, bool success) = await service.RevokeSigneeRights(
+            "taskId",
+            instanceId,
+            Guid.NewGuid(),
+            appIdentifier,
+            signeeContexts,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.True(success);
+        Assert.Equal(signee.GetParty().PartyUuid, signeeContexts[0].SigneeState.DelegatedToPartyUuid);
+        Assert.Equal(signee.GetParty().PartyUuid.ToString(), Assert.Single(delegations).To!.Value);
+        Assert.Equal(signee.GetParty().PartyUuid.ToString(), Assert.Single(revocations).To!.Value);
+    }
+
+    [Fact]
+    public async Task RevokeSigneeRights_AfterAPersonSignedForTheOrganization_RevokesFromTheOrganization()
+    {
+        // Arrange
+        List<DelegationRequest> delegations = [];
+        List<DelegationRequest> revocations = [];
+        var accessManagementClient = CreateRecordingAccessManagementClient(delegations, revocations);
+        var service = new SigningDelegationService(
+            accessManagementClient.Object,
+            new Mock<ILogger<SigningDelegationService>>().Object
+        );
+        string instanceId = "instanceOwnerPartyId/" + Guid.NewGuid();
+        var appIdentifier = new AppIdentifier("testOrg", "testApp");
+        List<SigneeContext> signeeContexts =
+        [
+            new()
+            {
+                TaskId = "taskId",
+                SigneeState = new SigneeState(),
+                Signee = CreateOrganizationSignee(),
+                AdditionalActionsToDelegate = ["reject"],
+            },
+        ];
+        await service.DelegateSigneeRights(
+            "taskId",
+            instanceId,
+            Guid.NewGuid(),
+            appIdentifier,
+            signeeContexts,
+            CancellationToken.None
+        );
+
+        // A person signs for the organization, so the signee becomes that person.
+        var altinnPartyClient = new Mock<IAltinnPartyClient>();
+        altinnPartyClient
+            .Setup(x =>
+                x.LookupParty(
+                    It.Is<PartyLookup>(lookup => lookup.Ssn == _personParty.SSN),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(_personParty);
+        var signDocumentManager = new SignDocumentManager(
+            altinnPartyClient.Object,
+            new Mock<IAppMetadata>().Object,
+            new Mock<ILogger<SigningService>>().Object
+        );
+        List<SigneeContext> signedContexts = await signDocumentManager.SynchronizeSigneeContextsWithSignDocuments(
+            "taskId",
+            signeeContexts,
+            [
+                new SignDocument
+                {
+                    SigneeInfo = new StorageSignee
+                    {
+                        PersonNumber = _personParty.SSN,
+                        OrganisationNumber = _orgParty.OrgNumber,
+                    },
+                },
+            ],
+            CancellationToken.None
+        );
+        Assert.IsType<PersonOnBehalfOfOrgSignee>(Assert.Single(signedContexts).Signee);
+
+        // Act
+        (_, bool success) = await service.RevokeSigneeRights(
+            "taskId",
+            instanceId,
+            Guid.NewGuid(),
+            appIdentifier,
+            signedContexts,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.True(success);
+        Assert.Equal(_orgParty.PartyUuid.ToString(), Assert.Single(delegations).To!.Value);
+        DelegationRequest revocation = Assert.Single(revocations);
+        Assert.Equal(_orgParty.PartyUuid.ToString(), revocation.To!.Value);
+        Assert.Equal(["read", "sign", "reject"], revocation.Rights.Select(right => right.Action!.Value));
+    }
+
+    [Theory]
+    [InlineData("person", false)]
+    [InlineData("organization", true)]
+    [InlineData("personOnBehalfOfOrg", true)]
+    [InlineData("systemUser", true)]
+    public async Task RevokeSigneeRights_WhenTheStateHasNoDelegatedParty_RevokesFromTheSigneesDelegatee(
+        string signeeKind,
+        bool revokesFromOrganization
+    )
+    {
+        // Arrange
+        List<DelegationRequest> revocations = [];
+        var accessManagementClient = CreateRecordingAccessManagementClient([], revocations);
+        var service = new SigningDelegationService(
+            accessManagementClient.Object,
+            new Mock<ILogger<SigningDelegationService>>().Object
+        );
+        InternalSignee signee = signeeKind switch
+        {
+            "person" => CreatePersonSignee(),
+            "organization" => CreateOrganizationSignee(),
+            "personOnBehalfOfOrg" => new PersonOnBehalfOfOrgSignee
+            {
+                Party = _personParty,
+                SocialSecurityNumber = _personParty.SSN,
+                FullName = _personParty.Name,
+                OnBehalfOfOrg = CreateOrganizationSignee(),
+            },
+            _ => CreateOrganizationSignee().ToSystemUserSignee(Guid.NewGuid()),
+        };
+        List<SigneeContext> signeeContexts =
+        [
+            new()
+            {
+                TaskId = "taskId",
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+                Signee = signee,
+            },
+        ];
+
+        // Act
+        (_, bool success) = await service.RevokeSigneeRights(
+            "taskId",
+            "instanceOwnerPartyId/" + Guid.NewGuid(),
+            Guid.NewGuid(),
+            new AppIdentifier("testOrg", "testApp"),
+            signeeContexts,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.True(success);
+        Party expectedParty = revokesFromOrganization ? _orgParty : _personParty;
+        Assert.Equal(expectedParty.PartyUuid.ToString(), Assert.Single(revocations).To!.Value);
+    }
+
+    [Fact]
+    public async Task RevokeSigneeRights_WhenTheDelegatedPartyIsUnknown_RecordsFailureWithoutCallingAccessManagement()
+    {
+        // Arrange
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        var service = new SigningDelegationService(
+            accessManagementClient.Object,
+            new Mock<ILogger<SigningDelegationService>>().Object
+        );
+        List<SigneeContext> signeeContexts =
+        [
+            new()
+            {
+                TaskId = "taskId",
+                SigneeState = new SigneeState { IsAccessDelegated = true },
+                Signee = new PersonSignee
+                {
+                    FullName = "Testperson 2",
+                    SocialSecurityNumber = "123456678234",
+                    Party = new Party(),
+                },
+            },
+        ];
+
+        // Act
+        (_, bool success) = await service.RevokeSigneeRights(
+            "taskId",
+            "instanceOwnerPartyId/" + Guid.NewGuid(),
+            Guid.NewGuid(),
+            new AppIdentifier("testOrg", "testApp"),
+            signeeContexts,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.False(success);
+        Assert.True(signeeContexts[0].SigneeState.IsAccessDelegated);
+        Assert.Contains("Failed to revoke signee rights", signeeContexts[0].SigneeState.DelegationFailedReason);
+        accessManagementClient.Verify(
+            x => x.RevokeRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 }
