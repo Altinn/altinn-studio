@@ -106,6 +106,28 @@ public sealed class LocalAppHttpTestDataTests
         Assert.Contains("Test data conflict detected in ttd/app-b", exception.Message);
     }
 
+    [Fact]
+    public async Task GetTestDataWithMetadata_CallerCancels_CachesNothing()
+    {
+        var topology = new TopologyMonitor(AppA, AppB);
+        using var cancellation = new CancellationTokenSource();
+        await using var host = new FakeHost(request =>
+        {
+            // The caller gives up while the first app answers, before the second app's turn
+            cancellation.Cancel();
+            return (200, TestData(userId: request.PathAndQuery.StartsWith(AppA) ? 1337 : 1338, lastName: "Nordmann"));
+        });
+        var localApp = CreateLocalApp(topology, host);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            localApp.GetTestDataWithMetadata(cancellation.Token)
+        );
+        var result = await localApp.GetTestDataWithMetadata();
+
+        Assert.Equal(new[] { 1337, 1338 }, result.Data!.Persons.Select(person => person.UserId).Order());
+        Assert.True(result.AllAppsHaveData);
+    }
+
     private static LocalAppHttp CreateLocalApp(TopologyMonitor topology, FakeHost host)
     {
         return new LocalAppHttp(

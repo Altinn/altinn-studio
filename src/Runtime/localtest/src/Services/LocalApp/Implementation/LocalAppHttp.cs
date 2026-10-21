@@ -252,8 +252,12 @@ namespace LocalTest.Services.LocalApp.Implementation
                 var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
                 appData = JsonSerializer.Deserialize<AppTestDataModel>(data.RemoveBom(), JSON_OPTIONS);
             }
-            // An app that stops mid-request can fail in any way (a cut-off body, a dropped bridge), and is offline rather than broken
-            catch (Exception e) when (e is HttpRequestException or OperationCanceledException || !IsReachable(appId))
+            // An app that stops mid-request can fail in any way (a cut-off body, a dropped bridge), and is offline rather than broken.
+            // A caller that cancels is neither: its cancellation propagates, so the cache never keeps a partial result.
+            catch (Exception e) when (
+                !cancellationToken.IsCancellationRequested
+                && (e is HttpRequestException or OperationCanceledException || !IsReachable(appId))
+            )
             {
                 _logger.LogWarning(e, "Failed to get test data from app {AppId} - app appears to be offline", appId);
                 return offline;
