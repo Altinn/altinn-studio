@@ -28,6 +28,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` lists `using Altinn.App.Core.Internal.Maskinporten` directives among the removed Maskinporten APIs to replace. ([#19188](https://github.com/Altinn/altinn-studio/issues/19188))
 - `studioctl app upgrade v9` quotes the `dotnet restore` error when restore fails, instead of a line of dashes or the "Failed to restore" summary. ([#21404](https://github.com/Altinn/altinn-studio/pull/21404))
+- Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 
 ## [0.1.0-preview.29] - 2026-10-14
 
