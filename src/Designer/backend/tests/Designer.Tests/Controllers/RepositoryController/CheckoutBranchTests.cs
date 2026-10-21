@@ -4,14 +4,11 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Clients.Interfaces;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
-using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -33,8 +30,7 @@ public class CheckoutBranchTests
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
-        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
+        base.ConfigureTestServices(services);
         services.AddSingleton(_sourceControlMock.Object);
     }
 
