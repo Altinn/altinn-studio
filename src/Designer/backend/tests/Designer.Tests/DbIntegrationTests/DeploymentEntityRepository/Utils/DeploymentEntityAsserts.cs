@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Altinn.AccessManagement.Tests.Utils;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -24,6 +25,7 @@ public static partial class EntityAssertions
         Assert.Equal(dbRecord.Buildresult, deploymentEntity.Build.Result.ToEnumMemberAttributeValue());
         Assert.Equal(dbRecord.Tagname, deploymentEntity.TagName);
         Assert.Equal(dbRecord.EnvName, deploymentEntity.EnvName);
+        Assert.Equal(dbRecord.AppStatus, deploymentEntity.AppStatus?.ToString());
         var entityFromColumn = JsonSerializer.Deserialize<DeploymentEntity>(dbRecord.Entity, JsonOptions);
         AssertionUtil.AssertEqualTo(deploymentEntity, entityFromColumn);
 
@@ -61,6 +63,7 @@ public static partial class EntityAssertions
         AssertionUtil.AssertCloseTo(expected.Created, actual.Created, datesTolerance);
         Assert.Equal(expected.TagName, actual.TagName);
         Assert.Equal(expected.EnvName, actual.EnvName);
+        Assert.Equal(expected.AppStatus, actual.AppStatus);
         Assert.Equal(expected.Build.Id, actual.Build.Id);
         Assert.Equal(expected.Build.Status, actual.Build.Status);
         Assert.Equal(expected.Build.Result, actual.Build.Result);
