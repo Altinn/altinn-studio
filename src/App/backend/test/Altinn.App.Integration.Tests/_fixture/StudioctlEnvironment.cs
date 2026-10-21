@@ -163,15 +163,9 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
 
     private static async Task<StudioctlStatus> GetStatus(ILogger logger, CancellationToken cancellationToken)
     {
-        var result = await new Command(
-            StudioctlCommand,
-            "env status --json",
-            ModuleInitializer.GetSolutionDirectory(),
-            logger,
-            CancellationToken: cancellationToken
-        );
+        var stdout = await RunForOutput(logger, cancellationToken, "env", "status", "--json");
 
-        return System.Text.Json.JsonSerializer.Deserialize<StudioctlStatus>(result.StdOut)
+        return System.Text.Json.JsonSerializer.Deserialize<StudioctlStatus>(stdout)
             ?? throw new InvalidOperationException("studioctl env status returned empty JSON");
     }
 

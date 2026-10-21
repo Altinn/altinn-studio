@@ -43,8 +43,18 @@ public sealed class LocalInstanceDelegationsRepository : IDisposable
 
         foreach (var file in files)
         {
-            await using var stream = File.OpenRead(file.FullName);
-            var delegation = await JsonSerializer.DeserializeAsync<AppsInstanceDelegationResponseDto>(stream, _options);
+            AppsInstanceDelegationResponseDto delegation;
+            try
+            {
+                await using var stream = OpenRead(file.FullName);
+                delegation = await JsonSerializer.DeserializeAsync<AppsInstanceDelegationResponseDto>(stream, _options);
+            }
+            catch (FileNotFoundException)
+            {
+                // Revoked after the folder was listed.
+                continue;
+            }
+
             if (delegation is not null && (instanceId is null || delegation.InstanceId == instanceId.ToString()))
             {
                 result.Add(delegation);
@@ -112,9 +122,16 @@ public sealed class LocalInstanceDelegationsRepository : IDisposable
             return null;
         }
 
-        await using var stream = File.OpenRead(fileName);
+        await using var stream = OpenRead(fileName);
         return await JsonSerializer.DeserializeAsync<AppsInstanceDelegationResponseDto>(stream, _options);
     }
+
+    /// <summary>
+    /// Shares delete access, so a grant or revocation can replace or delete the file while an authorization request
+    /// reads it. Windows refuses both while the file is open without it.
+    /// </summary>
+    private static FileStream OpenRead(string fileName) =>
+        new(fileName, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
     /// <summary>
     /// Writes the whole file under a temporary name first, so an authorization request reading the folder never

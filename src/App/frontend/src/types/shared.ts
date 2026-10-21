@@ -390,6 +390,9 @@ export interface IPlatformFrontendSettings {
   arbeidsflateProfileUrl?: string;
   /** Supports the {partyId} and {goTo} placeholders. */
   accessManagementChangeAndRedirectUrl?: string;
+  accessManagementUrl?: string;
+  rolesAndRightsHelpUrl?: string;
+  arbeidsflatePartiesUrl?: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';

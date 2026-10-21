@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { SummaryMainConfig } from './SummaryMainConfig';
 import type { FormItem } from '../../../../types/FormItem';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -14,7 +14,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const summary2Component: FormItem = {
   id: '0',
   type: ComponentType.Summary2,
-  itemType: 'COMPONENT',
   target: {},
 };
 

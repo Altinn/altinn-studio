@@ -2,8 +2,6 @@ export function en() {
   return {
     'dateTime.am': 'AM',
     'dateTime.pm': 'PM',
-    'altinn.standard_validation.file_content_type_not_allowed':
-      'It looks like you are trying to upload a file type that is not allowed. Please make sure that the file is actually the type it claims to be.',
     'actions.sign': 'Sign',
     'actions.confirm': 'Confirm',
     'actions.reject': 'Reject',
@@ -291,9 +289,9 @@ export function en() {
     'instantiate.authorization_error_ask':
       'If you are representing a person, it is the one you are representing that can give you the required rights to start this service. If you are representing an organisation, you have to ask for the required rights from persons with access delegation rights within your organisation.',
     'instantiate.authorization_error_check_rights':
-      '<a href="https://am.ui.{0}/accessmanagement/ui" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
+      '<a href="{0}" target="_blank">See who has rights to delegate access under "Others with rights within the organisation"</a>.',
     'instantiate.authorization_error_info_rights':
-      '<a href="https://{0}/hjelp/profil/enkelttjenester-og-roller/" target="_blank">Learn more about roles and rights</a>.',
+      '<a href="{0}" target="_blank">Learn more about roles and rights</a>.',
     'instantiate.authorization_error_info_customer_service':
       'You can also contact customer service at {0}.',
     'instantiate.authorization_error_instantiate_validation_info_customer_service':
@@ -334,7 +332,7 @@ export function en() {
     'party_selection.show_sub_unit': 'Show sub units',
     'party_selection.why_seeing_this': 'Why am I seeing this?',
     'party_selection.seeing_this_preference':
-      'You can change your [profile settings](https://af.{0}/profile/parties) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Parties**.',
+      'You can change your [profile settings]({0}) to not get prompted for party selection each time you start a new instance. You can find this setting under **Profile** > **Parties**.',
     'party_selection.seeing_this_override':
       'This app has been configured to always prompt you for party selection.',
     'payment.pay': 'Pay',
@@ -487,6 +485,10 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
+    'process_error.instance_changed':
+      'The form was changed while you were submitting it, so it was not submitted. Check the form and try again.',
+    'process_error.concurrent_transition':
+      'The form was submitted from somewhere else at the same time, so your submission was not sent. Check the form and try again.',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',

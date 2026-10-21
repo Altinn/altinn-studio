@@ -116,7 +116,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             bool isCollectionRoot = workflow.DependsOn is null || workflow.DependsOn.All(dependency => dependency.IsId);
             List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
             // Mirrors the engine: only roots that opted in via DependsOnHeads pick up the current
-            // collection heads as dependencies. A DependsOnHeads=false root (e.g. the side-effects
+            // collection heads as dependencies. A DependsOnHeads=false root (e.g. an auxiliary
             // workflow enqueued at the commit boundary) starts independently.
             if (isCollectionRoot && workflow.DependsOnHeads)
             {
@@ -322,54 +322,6 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         }
 
         return new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []);
-    }
-
-    public async Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default)
-    {
-        bool abandoned = false;
-        lock (_gate)
-        {
-            if (_workflows.TryGetValue(workflowId, out StoredWorkflow? workflow) && workflow.Namespace == ns)
-            {
-                if (workflow.Status == PersistentItemStatus.Abandoned)
-                {
-                    // Idempotent replay, mirroring the real engine.
-                    abandoned = true;
-                }
-                else if (
-                    workflow.Status
-                    is PersistentItemStatus.Failed
-                        or PersistentItemStatus.Canceled
-                        or PersistentItemStatus.DependencyFailed
-                )
-                {
-                    workflow.Status = PersistentItemStatus.Abandoned;
-                    workflow.UpdatedAt = DateTimeOffset.UtcNow;
-
-                    // The engine releases an abandoned workflow's idempotency key, so a subsequent
-                    // enqueue with the same fingerprint is accepted as a fresh workflow instead of
-                    // deduplicating onto the abandoned one.
-                    string batchKey = CreateBatchKey(ns, workflow.IdempotencyKey);
-                    if (
-                        _workflowsByIdempotencyKey.TryGetValue(batchKey, out Guid[]? batchWorkflowIds)
-                        && batchWorkflowIds.Contains(workflowId)
-                    )
-                    {
-                        _workflowsByIdempotencyKey.TryRemove(batchKey, out _);
-                    }
-
-                    abandoned = true;
-                }
-            }
-        }
-
-        if (abandoned)
-        {
-            // A workflow gated only by the abandoned one may have become runnable.
-            await ProcessAvailableWorkflows(cancellationToken);
-        }
-
-        return abandoned;
     }
 
     /// <summary>
@@ -846,20 +798,20 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         IReadOnlyList<StoredWorkflow> createdWorkflows
     )
     {
-        // Mirrors the engine's IsHead semantics: IsHead == false workflows are invisible to head
-        // tracking - excluded from the heads set, and their dependency edges neither consume
+        // Mirrors the engine's IsHead semantics: IsHead == false (auxiliary) workflows take no part
+        // in head tracking - excluded from the heads set, and their dependency edges neither consume
         // existing heads nor remove leaf status from batch workflows they depend on.
         HashSet<Guid> previousHeadSet = [.. previousHeads];
-        List<StoredWorkflow> visibleWorkflows = createdWorkflows.Where(workflow => workflow.IsHead != false).ToList();
+        List<StoredWorkflow> primaryWorkflows = createdWorkflows.Where(workflow => workflow.IsHead != false).ToList();
         HashSet<Guid> consumedHeads =
         [
-            .. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
+            .. primaryWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
         ];
-        HashSet<Guid> dependedOnByVisibleBatch = [.. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds)];
+        HashSet<Guid> dependedOnByPrimaryBatch = [.. primaryWorkflows.SelectMany(workflow => workflow.DependencyIds)];
         List<Guid> newHeads = createdWorkflows
             .Where(workflow =>
                 workflow.IsHead == true
-                || (workflow.IsHead is null && !dependedOnByVisibleBatch.Contains(workflow.DatabaseId))
+                || (workflow.IsHead is null && !dependedOnByPrimaryBatch.Contains(workflow.DatabaseId))
             )
             .Select(workflow => workflow.DatabaseId)
             .ToList();

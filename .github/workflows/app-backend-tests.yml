@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - 'src/common/dotnet/**'
+      - 'src/common/expression-tests/**'
       - 'src/App/backend/**'
       - 'src/App/PackageVersioning.props'
       - 'src/Runtime/common/dotnet/**'

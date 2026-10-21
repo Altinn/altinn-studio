@@ -131,11 +131,13 @@ def start_agent(
     experiment: dict | None = None,
 ) -> None:
     repo_url = bench_repo_url()
+    org = repo_org(repo_url)
     payload: dict[str, Any] = {
         "session_id": session_id,
         "goal": goal,
         "repo_url": repo_url,
-        "org": repo_org(repo_url),
+        "org": org,
+        "cost_org": org,
         "allow_app_changes": True,
         "attachments": attachments,
     }

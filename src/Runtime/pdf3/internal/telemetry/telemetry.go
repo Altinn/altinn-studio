@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -27,6 +29,12 @@ const scopeName = "pdf3"
 // serviceVersion is the build's version, the commit the deployment workflow builds from:
 // go build -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=...".
 var serviceVersion = "dev"
+
+// Capture process identity once, before main starts or telemetry is configured.
+var (
+	instanceStartTime = time.Now()
+	instanceID        = uuid.NewString()
+)
 
 //nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
 func Tracer() oteltrace.Tracer {
@@ -90,6 +98,11 @@ func ConfigureOTel(
 		shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 		otel.SetMeterProvider(meterProvider)
 
+		if err := registerInstanceMetric(meterProvider.Meter(scopeName), instanceStartTime); err != nil {
+			handleErr(err)
+			return shutdown, err
+		}
+
 		if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(15 * time.Second)); err != nil {
 			handleErr(err)
 			return shutdown, fmt.Errorf("start runtime metrics instrumentation: %w", err)
@@ -118,6 +131,7 @@ func newResource(ctx context.Context, environment string) (*resource.Resource, e
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceVersion(serviceVersion),
+			semconv.ServiceInstanceID(instanceID),
 			semconv.DeploymentEnvironmentNameKey.String(environment),
 		),
 		resource.WithFromEnv(),

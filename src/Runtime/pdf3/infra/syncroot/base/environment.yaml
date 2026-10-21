@@ -1,8 +1,0 @@
-# The environment's name, as the platform names it (at22, tt02, prod, ...). Set per environment;
-# the pdf3 proxy and workers read it as PDF3_ENVIRONMENT.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: pdf3-environment
-data:
-  environment: set-per-environment

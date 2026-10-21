@@ -5,9 +5,12 @@ import {
   getUrlWithLanguage,
   logoutUrlAltinn,
   makeUrlRelativeIfSameDomain,
+  returnUrlToAccessManagement,
   returnUrlToAllForms,
   returnUrlToArchive,
+  returnUrlToPartiesSettings,
   returnUrlToProfile,
+  returnUrlToRolesAndRightsHelp,
 } from 'src/utils/urls/urlHelper';
 import type { IPlatformFrontendSettings } from 'src/types/shared';
 
@@ -282,6 +285,46 @@ describe('Shared urlHelper.ts', () => {
         hostname: 'altinn3local.no',
       } as Location),
     ).toBe('/');
+  });
+
+  describe('instantiation help URLs come from the runtime config map', () => {
+    const helpUrls = [returnUrlToAccessManagement, returnUrlToRolesAndRightsHelp, returnUrlToPartiesSettings];
+
+    test('the configured URLs are used on Altinn hosts', () => {
+      window.altinnAppGlobalData.platformFrontendSettings = {
+        ...window.altinnAppGlobalData.platformFrontendSettings,
+        accessManagementUrl: 'https://ny.altinn.no/tilganger',
+        rolesAndRightsHelpUrl: 'https://ny.altinn.no/hjelp/roller',
+        arbeidsflatePartiesUrl: 'https://ny.altinn.no/profil/aktorer',
+      };
+
+      expect(returnUrlToAccessManagement(hostProd)).toBe('https://ny.altinn.no/tilganger');
+      expect(returnUrlToRolesAndRightsHelp(hostProd)).toBe('https://ny.altinn.no/hjelp/roller');
+      expect(returnUrlToPartiesSettings(hostProd)).toBe('https://ny.altinn.no/profil/aktorer');
+    });
+
+    test('localtest links to its front page', () => {
+      for (const helpUrl of helpUrls) {
+        expect(helpUrl(hostPodman)).toBe('http://local.altinn.cloud:8000/');
+      }
+    });
+
+    test('no link on unknown hosts or when not configured', () => {
+      for (const helpUrl of helpUrls) {
+        expect(helpUrl(hostStudio)).toBe(undefined);
+        expect(helpUrl(hostUnknown)).toBe(undefined);
+      }
+
+      window.altinnAppGlobalData.platformFrontendSettings = {
+        ...window.altinnAppGlobalData.platformFrontendSettings,
+        accessManagementUrl: undefined,
+        rolesAndRightsHelpUrl: undefined,
+        arbeidsflatePartiesUrl: undefined,
+      };
+      for (const helpUrl of helpUrls) {
+        expect(helpUrl(hostTT)).toBe(undefined);
+      }
+    });
   });
 
   describe('getUrlWithLanguage', () => {

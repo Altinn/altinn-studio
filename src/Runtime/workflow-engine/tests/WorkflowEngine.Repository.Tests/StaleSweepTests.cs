@@ -201,7 +201,7 @@ public sealed class StaleSweepTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(PersistentItemStatus.Failed, dbWf.Status);
 
         // Poisoned finalization feeds the same is_head alert dimension as the execution failure
-        // paths: an is_head=false workflow (e.g. a fire-and-forget side chain) that dies poisoned
+        // paths: an auxiliary (is_head=false) workflow that dies poisoned
         // gates nothing and must be visible to the is_head="false" failure alert.
         var (value, tags) = Assert.Single(collector.Measurements);
         Assert.Equal(1L, value);

@@ -96,6 +96,26 @@ export const returnUrlToAllForms = (host: string): string | undefined => {
   return GlobalData.platformFrontendSettings.allFormsUrl;
 };
 
+/** Links from texts on the instantiation pages, which localtest has no equivalent of beyond its front page. */
+function instantiationHelpUrl(host: string, url: string | undefined): string | undefined {
+  if (isLocalEnvironment(host)) {
+    return `http://${host}/`;
+  }
+  if (!isRecognizedAltinnHost(host)) {
+    return undefined;
+  }
+  return url;
+}
+
+export const returnUrlToAccessManagement = (host: string): string | undefined =>
+  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.accessManagementUrl);
+
+export const returnUrlToRolesAndRightsHelp = (host: string): string | undefined =>
+  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.rolesAndRightsHelpUrl);
+
+export const returnUrlToPartiesSettings = (host: string): string | undefined =>
+  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.arbeidsflatePartiesUrl);
+
 export function logoutUrlAltinn(host: string): string | undefined {
   if (isLocalEnvironment(host)) {
     return `http://${host}/`;
