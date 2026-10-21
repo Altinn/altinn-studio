@@ -24,6 +24,10 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
     private const string Scenario = "delegated-signing";
     private const int SigneeCount = 2;
 
+    // DDG Fitness in Localtest's test data, where user 1337 is general manager (DAGL).
+    private const string OrganizationNumber = "897069650";
+    private const string OrganizationPartyUuid = "00000000-0000-0000-0000-000000500000";
+
     private static readonly JsonSerializerOptions _webOptions = new(JsonSerializerDefaults.Web);
 
     [Fact]
@@ -154,6 +158,46 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         Assert.True(receipt.AttachmentCount > 0);
     }
 
+    [Fact]
+    public async Task SignForOrganization_ThenEndTheTask_RevokesTheOrganizationsDelegation()
+    {
+        await using var fixtureScope = await classFixture.Get(output, TestApps.Basic, scenario: Scenario);
+        var fixture = fixtureScope.Fixture;
+        await ResetProbe(fixture, new() { OrganizationSignee = OrganizationNumber });
+        using SigningRun run = await EnterSigning(fixture);
+        Instance instance = run.Instance.Data.Model!;
+        Assert.Single(await ReadLocaltestDelegations(fixture, instance));
+
+        // User 1337 holds a key role in the organization, and signs for it on the strength of the rights delegated to
+        // the organization.
+        using (
+            var signResponse = await fixture.Generic.Post(
+                $"/ttd/{fixture.App}/instances/{instance.Id}/actions",
+                run.Token,
+                JsonContent.Create(new UserActionRequest { Action = "sign", OnBehalfOf = OrganizationNumber })
+            )
+        )
+        {
+            using var signed = await signResponse.Read<UserActionResponse>();
+            Assert.Equal(HttpStatusCode.OK, signed.Response.StatusCode);
+        }
+
+        using (var endResponse = await fixture.Instances.ProcessNext(run.Token, run.Instance))
+        {
+            using var ended = await endResponse.Read<AppProcessState>();
+            Assert.Equal(HttpStatusCode.OK, ended.Response.StatusCode);
+            Assert.Null(ended.Data.Model!.CurrentTask);
+        }
+
+        // The rights went to the organization, so they are revoked from it, not from the person who signed for it.
+        ProbeState probe = await GetProbe(fixture);
+        Assert.Equal(OrganizationPartyUuid, Assert.Single(probe.Delegations).Recipient);
+        RevocationAttempt revocation = Assert.Single(probe.Revocations);
+        Assert.Equal(OrganizationPartyUuid, revocation.Recipient);
+        Assert.True(revocation.Succeeded);
+        Assert.Empty(await ReadLocaltestDelegations(fixture, instance));
+    }
+
     private sealed record SigningRun(string Token, AppFixture.ReadApiResponse<Instance> Instance) : IDisposable
     {
         public void Dispose() => Instance.Dispose();
@@ -223,11 +267,11 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         Assert.All(signees, signee => Assert.Equal(NotificationStatus.Sent, signee.NotificationStatus));
     }
 
-    private static async Task ResetProbe(AppFixture fixture, SigningFaults faults)
+    private static async Task ResetProbe(AppFixture fixture, SigningSetup setup)
     {
         using var response = await fixture
             .GetDirectAppClient()
-            .PostAsJsonAsync("/test/delegated-signing/reset", faults, _webOptions);
+            .PostAsJsonAsync("/test/delegated-signing/reset", setup, _webOptions);
         response.EnsureSuccessStatusCode();
     }
 
@@ -235,9 +279,31 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
         await fixture.GetDirectAppClient().GetFromJsonAsync<ProbeState>("/test/delegated-signing/state", _webOptions)
         ?? throw new InvalidOperationException("The delegated-signing probe returned no state.");
 
-    // Mirrors the scenario's probe types, which the test project does not compile.
-    private sealed record SigningFaults
+    /// <summary>
+    /// The delegations Localtest holds for the instance, read from its storage, since Access Management has no API
+    /// that lists them.
+    /// </summary>
+    private static async Task<List<JsonNode>> ReadLocaltestDelegations(AppFixture fixture, Instance instance)
     {
+        string folder = Path.Join(await fixture.GetLocaltestStorageDirectory(), "instanceDelegations");
+        string instanceGuid = instance.Id.Split('/')[1];
+        if (!Directory.Exists(folder))
+            return [];
+
+        List<JsonNode> delegations = [];
+        foreach (string file in Directory.GetFiles(folder, "*.json"))
+        {
+            JsonNode delegation = JsonNode.Parse(await File.ReadAllTextAsync(file))!;
+            if (delegation["instanceId"]?.GetValue<string>() == instanceGuid)
+                delegations.Add(delegation);
+        }
+        return delegations;
+    }
+
+    // Mirrors the scenario's probe types, which the test project does not compile.
+    private sealed record SigningSetup
+    {
+        public string? OrganizationSignee { get; init; }
         public int? FailDelegationToSignee { get; init; }
         public int? LoseNotificationResponseForSignee { get; init; }
     }

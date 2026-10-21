@@ -427,6 +427,9 @@ public sealed partial class AppFixture : IAsyncDisposable
     public Task<string> GetLocaltestLogs(CancellationToken cancellationToken = default) =>
         _studioctlEnvironmentLease.GetLogs(cancellationToken);
 
+    public Task<string> GetLocaltestStorageDirectory(CancellationToken cancellationToken = default) =>
+        _studioctlEnvironmentLease.GetLocaltestStorageDirectory(cancellationToken);
+
     private string ResolveAppEndpoint(string endpoint)
     {
         if (endpoint.StartsWith(OriginalAppPath, StringComparison.Ordinal))
