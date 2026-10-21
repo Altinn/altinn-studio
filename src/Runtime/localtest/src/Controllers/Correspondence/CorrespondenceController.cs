@@ -37,6 +37,9 @@ public class CorrespondenceController(
     /// <summary>How long an attachment is kept when the sender does not say.</summary>
     private const int DefaultAttachmentExpirationInDays = 365;
 
+    /// <summary>The largest attachment upload the real API takes, in bytes. It streams uploads to storage.</summary>
+    internal const long MaxAttachmentUploadSize = 50L * 1000 * 1000 * 1000;
+
     /// <summary>The statuses a correspondence passes through on its way to the recipient, in order.</summary>
     private static readonly CorrespondenceStatus[] _publishingStatuses =
     [
@@ -362,10 +365,12 @@ public class CorrespondenceController(
     }
 
     /// <summary>
-    /// Uploads an attachment's data. The attachment is published right away, since Localtest does no malware scan.
+    /// Uploads an attachment's data, streamed to disk. The attachment is published once the data is written, since
+    /// Localtest does no malware scan. It takes uploads as large as the real API does.
     /// </summary>
     [HttpPost]
     [Route("v1/attachment/{attachmentId:guid}/upload")]
+    [RequestSizeLimit(MaxAttachmentUploadSize)]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(AttachmentOverviewDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -375,13 +380,11 @@ public class CorrespondenceController(
         CancellationToken cancellationToken = default
     )
     {
-        using var data = new MemoryStream();
-        await Request.Body.CopyToAsync(data, cancellationToken);
-
         var (outcome, attachment) = await _repository.UploadAttachment(
             attachmentId,
-            data.ToArray(),
-            Request.ContentType
+            Request.Body,
+            Request.ContentType,
+            cancellationToken
         );
         return outcome switch
         {

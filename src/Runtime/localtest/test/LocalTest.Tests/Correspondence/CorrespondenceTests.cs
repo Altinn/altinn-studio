@@ -5,6 +5,7 @@ using Altinn.Notifications.Core.Models.ContactPoints;
 using LocalTest.Configuration;
 using LocalTest.Services.Correspondence;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -374,6 +375,51 @@ public sealed class CorrespondenceTests : IDisposable
         var result = await Upload(attachmentId, [2]);
 
         Assert.Equal(StatusCodes.Status400BadRequest, Assert.IsType<ObjectResult>(result).StatusCode);
+    }
+
+    [Fact]
+    public void Attachment_Upload_TakesUploadsAsLargeAsTheRealApi()
+    {
+        var limit = typeof(CorrespondenceController)
+            .GetMethod(nameof(CorrespondenceController.UploadAttachment))!
+            .GetCustomAttributes(inherit: true)
+            .OfType<IRequestSizeLimitMetadata>()
+            .Single();
+
+        // Without it, the web server's 30 MB default refuses attachments the real API takes
+        Assert.Equal(50L * 1000 * 1000 * 1000, limit.MaxRequestBodySize);
+    }
+
+    [Fact]
+    public async Task Attachment_LargerThanTheWebServerDefault_IsStoredInFull()
+    {
+        const long size = 32L * 1024 * 1024;
+        Guid attachmentId = await InitializeAttachment();
+
+        var uploaded = await UploadAttachment(attachmentId, new GeneratedBody(size));
+
+        Assert.Equal(AttachmentStatus.Published, uploaded.Status);
+        Assert.Equal(size, (await _repository.FindAttachment(attachmentId))!.Size);
+        Assert.Equal(size, new FileInfo(AttachmentDataFile(attachmentId)).Length);
+        Assert.Empty(Directory.GetFiles(AttachmentFolder, "*.tmp"));
+    }
+
+    [Fact]
+    public async Task Attachment_UploadThatBreaksOff_IsNotPublishedAndCanBeRetried()
+    {
+        Guid attachmentId = await InitializeAttachment();
+
+        await Assert.ThrowsAsync<IOException>(() =>
+            Upload(attachmentId, new GeneratedBody(1024 * 1024, breakOffAfter: 512 * 1024))
+        );
+
+        Assert.Equal(AttachmentStatus.Initialized, (await _repository.FindAttachment(attachmentId))!.Status);
+        Assert.False(File.Exists(AttachmentDataFile(attachmentId)));
+        Assert.Empty(Directory.GetFiles(AttachmentFolder, "*.tmp"));
+
+        var retried = await UploadAttachment(attachmentId, [1, 2, 3]);
+        Assert.Equal(AttachmentStatus.Published, retried.Status);
+        Assert.Equal([1, 2, 3], await File.ReadAllBytesAsync(AttachmentDataFile(attachmentId)));
     }
 
     [Fact]
@@ -1044,16 +1090,74 @@ public sealed class CorrespondenceTests : IDisposable
         return Assert.IsType<Guid>(Assert.IsType<OkObjectResult>(result).Value);
     }
 
-    private async Task<AttachmentOverviewDto> UploadAttachment(Guid attachmentId, byte[] data) =>
+    private Task<AttachmentOverviewDto> UploadAttachment(Guid attachmentId, byte[] data) =>
+        UploadAttachment(attachmentId, new MemoryStream(data));
+
+    private async Task<AttachmentOverviewDto> UploadAttachment(Guid attachmentId, Stream data) =>
         Assert.IsType<AttachmentOverviewDto>(Assert.IsType<OkObjectResult>(await Upload(attachmentId, data)).Value);
 
-    private async Task<ActionResult> Upload(Guid attachmentId, byte[] data)
+    private Task<ActionResult> Upload(Guid attachmentId, byte[] data) => Upload(attachmentId, new MemoryStream(data));
+
+    private async Task<ActionResult> Upload(Guid attachmentId, Stream data)
     {
         var httpContext = new DefaultHttpContext();
-        httpContext.Request.Body = new MemoryStream(data);
+        httpContext.Request.Body = data;
         httpContext.Request.ContentType = "application/pdf";
         _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return await _controller.UploadAttachment(attachmentId);
+    }
+
+    private string AttachmentFolder => Path.Join(_storagePath, "correspondence", "attachments");
+
+    private string AttachmentDataFile(Guid attachmentId) => Path.Join(AttachmentFolder, $"{attachmentId}.bin");
+
+    /// <summary>
+    /// A request body of the given length that is generated as it is read, never held in memory, and can break off
+    /// part way, as when the client disconnects.
+    /// </summary>
+    private sealed class GeneratedBody(long length, long? breakOffAfter = null) : Stream
+    {
+        private long _position;
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override int Read(Span<byte> buffer)
+        {
+            if (breakOffAfter is { } end && _position >= end)
+            {
+                throw new IOException("The client disconnected");
+            }
+
+            int read = (int)Math.Min(buffer.Length, (breakOffAfter ?? length) - _position);
+            buffer[..read].Fill((byte)'a');
+            _position += read;
+            return read;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+            ValueTask.FromResult(Read(buffer.Span));
+
+        public override void Flush() { }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     private async Task<InitializeCorrespondencesResponseDto> Initialize(JsonElement request)

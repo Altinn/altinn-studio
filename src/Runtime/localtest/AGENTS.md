@@ -39,8 +39,8 @@ the app libraries send and read; a field the app client marks `required` must be
   checks, so a retry that has since become invalid, such as one whose due date has passed, still gets 409.
   Duplicate detection runs under a lock, so concurrent sends with one key create one message.
 - Attachments go through `POST …/attachment`, `POST …/attachment/{id}/upload` and `GET …/attachment/{id}`, as
-  the app client sends them. An upload is published at once (no malware scan), and a correspondence may only
-  reference published attachments.
+  the app client sends them. An upload is streamed to a temporary file and published once it is all written (no
+  malware scan), up to the real API's 50 GB, and a correspondence may only reference published attachments.
 - **Notifications are worked out, not sent.** `CorrespondenceNotificationBuilder` applies the requested channel
   and template to the recipient's contact information in the test data and the custom recipients (only those,
   with `overrideRegisteredContactInformation`), and orders a reminder a week later when asked. The result is
