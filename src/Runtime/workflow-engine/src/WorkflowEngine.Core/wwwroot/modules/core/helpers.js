@@ -33,6 +33,13 @@ export const escJsArg = (s) =>
     esc(String(s ?? '').replace(/[\\']/g, (c) => `\\${c}`)).replace(/"/g, '&quot;');
 
 /**
+ * Whether a workflow is auxiliary: enqueued with `isHead: false`, it runs beside the process and is
+ * not part of its collection's head frontier. Every other workflow is primary.
+ * @param {{ isHead?: boolean }} wf
+ */
+export const isAuxiliaryWorkflow = (wf) => wf.isHead === false;
+
+/**
  * Decode a namespace for display. Namespaces are URL-encoded for use as routing
  * path segments (e.g. `ttd%2fworkflow-engine-test`), so decode for human display.
  * Keep the raw value for filtering, data attributes, and API calls.

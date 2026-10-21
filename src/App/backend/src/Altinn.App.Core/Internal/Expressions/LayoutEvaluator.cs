@@ -173,18 +173,19 @@ public static class LayoutEvaluator
                             }
                         }
 
-                        validationIssues.Add(
-                            BuiltInValidationIssues.Required(
-                                dataElementId: field.DataElementIdentifier.ToString(),
-                                field: field.Field,
-                                layoutId: context.Component.LayoutId,
-                                pageId: context.Component.PageId,
-                                componentId: context.Component.Id,
-                                bindingName: bindingName,
-                                pageName: pageName,
-                                componentTitle: componentTitle
-                            )
+                        var issue = BuiltInValidationIssues.Required(
+                            dataElementId: field.DataElementIdentifier.ToString(),
+                            field: field.Field,
+                            layoutId: context.Component.LayoutId,
+                            pageId: context.Component.PageId,
+                            componentId: context.Component.Id,
+                            bindingName: bindingName,
+                            pageName: pageName,
+                            componentTitle: componentTitle
                         );
+                        issue.ComponentId = context.Component.Id;
+                        issue.RowIndexes = context.RowIndices;
+                        validationIssues.Add(issue);
                     }
                 }
             }

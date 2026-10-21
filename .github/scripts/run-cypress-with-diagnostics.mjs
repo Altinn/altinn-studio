@@ -222,8 +222,13 @@ async function nativeBrowserStacks(processes) {
           "python executable = gdb.current_progspace().filename; objfile = next((objfile for objfile in gdb.objfiles() if objfile.filename == executable), None); print('Executable:', executable); print('Build ID:', objfile.build_id if objfile else None)",
           '-ex',
           'info proc mappings',
+          ...(target.role !== 'cypress'
+            ? ['-ex', `source ${path.join(import.meta.dirname, 'chrome-frame-unwinder.py')}`]
+            : []),
           '-ex',
           'thread apply all bt 30',
+          '-ex',
+          'thread apply all info registers rbp rsp',
           '-ex',
           'detach',
         ],

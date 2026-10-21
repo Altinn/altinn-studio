@@ -12,7 +12,7 @@
 | `MissingSignatures` | Error | `validation_errors.missing_signatures` | `signedCount`, `signeeCount`, `minCount`, `dataType` |
 | `InvalidSignatureHash` | Error | `validation_errors.invalid_signature_hash` | `dataElementId`, `filename`, `dataType` |
 | `required` | Error | `validation_errors.required` | `field`, `layoutId`, `pageId`, `componentId`, `bindingName`, `pageName`, `componentTitle` |
-| `Xsd` | Error | `validation_errors.xsd` | `schema`, `message` |
+| `Xsd` | Error | `validation_errors.xsd` | `schema`, `message`, `path` |
 
 ## `validation_errors.missing_content_type`
 
@@ -203,11 +203,12 @@ Code `Xsd`, severity Error.
 
 | Language | Default text |
 |---|---|
-| nb | Et felt bryter reglene satt av XSD. Melding: {message} |
-| nn | Eit felt bryt reglane sette av XSD. Melding: {message} |
-| en | A field is in violation of the rules set by the XSD schema. Message: {message} |
+| nb | Feltet {path} bryter reglene satt av XSD. Melding: {message} |
+| nn | Feltet {path} bryt reglane sette av XSD. Melding: {message} |
+| en | The field {path} is in violation of the rules set by the XSD schema. Message: {message} |
 
 | Custom text parameter | Description |
 |---|---|
 | `schema` | Id of the data type whose schema was violated. |
 | `message` | The message from the XML schema validation. |
+| `path` | XML path of the invalid field, such as /Skjema/melding/gruppe[2]/felt. / when the field is unknown, such as for malformed XML. |

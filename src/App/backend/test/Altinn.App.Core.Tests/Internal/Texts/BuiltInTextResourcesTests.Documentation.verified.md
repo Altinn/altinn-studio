@@ -147,14 +147,15 @@ An app changes one of these texts by adding a text resource with the same key.
 
 | Language | Default text |
 |---|---|
-| nb | Et felt bryter reglene satt av XSD. Melding: {message} |
-| nn | Eit felt bryt reglane sette av XSD. Melding: {message} |
-| en | A field is in violation of the rules set by the XSD schema. Message: {message} |
+| nb | Feltet {path} bryter reglene satt av XSD. Melding: {message} |
+| nn | Feltet {path} bryt reglane sette av XSD. Melding: {message} |
+| en | The field {path} is in violation of the rules set by the XSD schema. Message: {message} |
 
 | Variable | Source | Description |
 |---|---|---|
 | `schema` | `customTextParameters` | Id of the data type whose schema was violated. |
 | `message` | `customTextParameters` | The message from the XML schema validation. |
+| `path` | `customTextParameters` | XML path of the invalid field, such as /Skjema/melding/gruppe[2]/felt. / when the field is unknown, such as for malformed XML. |
 
 ## `pdf.preview_text`
 

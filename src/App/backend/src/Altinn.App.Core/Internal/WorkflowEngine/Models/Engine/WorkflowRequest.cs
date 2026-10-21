@@ -70,7 +70,8 @@ internal sealed record WorkflowRequest
     ///   <item><c>true</c> — Force-include: always a head, even if other batch workflows depend on it.</item>
     ///   <item><c>null</c> (default) — Neutral: natural leaf detection applies (head if nothing in the batch depends on it).</item>
     ///   <item><c>false</c> — Force-exclude: never a head, and this workflow's dependency edges do not consume
-    ///         existing heads.</item>
+    ///         existing heads. This is what makes a workflow auxiliary; <c>true</c> and <c>null</c> make it
+    ///         primary.</item>
     /// </list>
     /// </summary>
     [JsonPropertyName("isHead")]
