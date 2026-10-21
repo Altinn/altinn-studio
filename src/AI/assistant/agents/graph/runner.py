@@ -301,7 +301,7 @@ async def run_once(state: AgentState, event_sink: EventSink | None = None):
                 "session_id": str(state.session_id),
                 "developer": state.developer,
                 "app_name": state.app_name,
-                "repo_owner": state.org,
+                "repo_owner": state.repo_owner,
             },
         ) as root_span:
             state.trace_id = get_current_trace_id()

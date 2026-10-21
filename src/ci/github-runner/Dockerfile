@@ -8,7 +8,8 @@ ARG RUST_VERSION=1.97.1
 ARG RUSTUP_VERSION=1.29.0
 ARG DOTNET_CHANNEL=10.0
 ARG DOTNET_11_VERSION=11.0.100-rc.2.26504.105
-ARG CHROME_FOR_TESTING_CHANNEL=Stable
+# Pin Chrome 157 while evaluating its rendering scheduler correction for Cypress stalls.
+ARG CHROME_FOR_TESTING_VERSION=157.0.8103.6
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
 # Kept in sync with src/App/frontend/package.json by deploy-github-runners.yaml;
@@ -81,14 +82,12 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       xz-utils \
       xvfb \
       zstd \
-    && CHROME_FOR_TESTING_URL="$(curl -fsSL "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json" \
-      | jq -r --arg channel "${CHROME_FOR_TESTING_CHANNEL}" '.channels[$channel].downloads.chrome[] | select(.platform == "linux64") | .url')" \
-    && test -n "${CHROME_FOR_TESTING_URL}" \
-    && test "${CHROME_FOR_TESTING_URL}" != "null" \
-    && curl -fsSL "${CHROME_FOR_TESTING_URL}" -o /tmp/chrome-for-testing.zip \
+    && curl -fsSL "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_FOR_TESTING_VERSION}/linux64/chrome-linux64.zip" \
+      -o /tmp/chrome-for-testing.zip \
     && mkdir -p /opt/chrome-for-testing \
     && unzip -q /tmp/chrome-for-testing.zip -d /opt/chrome-for-testing \
     && rm -f /tmp/chrome-for-testing.zip \
+    && test "$(/opt/chrome-for-testing/chrome-linux64/chrome --product-version)" = "${CHROME_FOR_TESTING_VERSION}" \
     && mkdir -p /opt/google/chrome \
     && ln -s /opt/chrome-for-testing/chrome-linux64/chrome /opt/google/chrome/chrome \
     && ln -s /opt/chrome-for-testing/chrome-linux64/chrome /usr/bin/google-chrome \
