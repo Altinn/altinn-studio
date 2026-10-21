@@ -19,6 +19,14 @@ internal sealed class SigneeContextState
     public bool IsAccessDelegated { get; set; }
 
     /// <summary>
+    /// The party the signee's rights were delegated to, which is the party they are revoked from. The signee can change
+    /// after delegation: when a person signs for an organization signee, the signee becomes that person, while the
+    /// rights stay with the organization.
+    /// </summary>
+    [JsonPropertyName("delegatedToPartyUuid")]
+    public Guid? DelegatedToPartyUuid { get; set; }
+
+    /// <summary>
     /// The reason why the delegation failed.
     /// </summary>
     [JsonPropertyName("delegationFailedReason")]

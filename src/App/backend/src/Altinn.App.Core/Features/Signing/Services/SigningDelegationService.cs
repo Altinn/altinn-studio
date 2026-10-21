@@ -5,6 +5,7 @@ using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Internal.AccessManagement.Models.Shared;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Logging;
+using static Altinn.App.Core.Features.Signing.Models.Signee;
 using static Altinn.App.Core.Features.Telemetry.DelegationConst;
 
 namespace Altinn.App.Core.Features.Signing.Services;
@@ -67,6 +68,7 @@ internal sealed class SigningDelegationService(
                 // earlier attempt already reached.
                 await accessManagementClient.DelegateRights(delegationRequest, cancellationToken);
                 state.IsAccessDelegated = true;
+                state.DelegatedToPartyUuid = partyUuid;
                 state.DelegationFailedReason = null;
                 telemetry?.RecordDelegation(DelegationResult.Success);
             }
@@ -104,7 +106,7 @@ internal sealed class SigningDelegationService(
         {
             if (signeeContext.SigneeState.IsAccessDelegated is true)
             {
-                Guid? partyUuid = signeeContext.Signee.GetParty().PartyUuid;
+                Guid? partyUuid = GetDelegatedPartyUuid(signeeContext);
                 logger.LogInformation(
                     "Revoking signee rights from {PartyUuid} to {AppResourceId} by {InstanceOwnerPartyUuid}",
                     partyUuid,
@@ -121,7 +123,7 @@ internal sealed class SigningDelegationService(
                         To = new DelegationParty
                         {
                             Value =
-                                partyUuid.ToString()
+                                partyUuid?.ToString()
                                 ?? throw new InvalidOperationException("Delegatee: PartyUuid is null"),
                         },
                         Rights = CreateRights(appIdentifier, taskId, signeeContext.AdditionalActionsToDelegate),
@@ -141,6 +143,22 @@ internal sealed class SigningDelegationService(
         }
         return (signeeContexts, success);
     }
+
+    /// <summary>
+    /// Signee states saved before <see cref="SigneeContextState.DelegatedToPartyUuid"/> existed lack it, so the party is
+    /// then derived from the signee. Rights for an organization signee went to the organization, also when a person
+    /// later signed on its behalf.
+    /// </summary>
+    private static Guid? GetDelegatedPartyUuid(SigneeContext signeeContext) =>
+        signeeContext.SigneeState.DelegatedToPartyUuid
+        ?? signeeContext.Signee switch
+        {
+            PersonOnBehalfOfOrgSignee personOnBehalfOfOrgSignee => personOnBehalfOfOrgSignee
+                .OnBehalfOfOrg
+                .OrgParty
+                .PartyUuid,
+            _ => signeeContext.Signee.GetParty().PartyUuid,
+        };
 
     private static Guid ParseInstanceGuid(string instanceIdCombo)
     {
