@@ -47,7 +47,9 @@ class StartReq(BaseModel):
     # Fail closed: write access is opt-in. A caller that omits the flag
     # gets a read-only (chat mode) session, never silent write access.
     allow_app_changes: bool = False
-    org: str
+    org: str  # The owner of the repository. This is an organization or the developer.
+    # The organization that the LLM usage is recorded on. Designer sets this value and makes sure that it is correct.
+    cost_org: str
     attachments: list[AttachmentUpload] = Field(default_factory=list)
     experiment: ExperimentContext | None = None
 
@@ -132,6 +134,7 @@ async def start_agent(
             app_name=app_name,
             developer=developer,
             org=req.org,
+            cost_org=req.cost_org,
             allow_app_changes=req.allow_app_changes,
             attachments=saved_attachments,
             designer_api_key=designer_api_key,

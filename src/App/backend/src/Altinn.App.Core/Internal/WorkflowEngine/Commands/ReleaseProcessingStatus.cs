@@ -47,7 +47,7 @@ internal sealed class ReleaseProcessingStatus(IAppMetadata appMetadata) : IWorkf
                 unitOfWork.HardDeleteInstance();
             }
 
-            unitOfWork.TransitionProcessStatus(ProcessStatus.Processing, ProcessStatus.Idle);
+            unitOfWork.ReleaseProcessingStatus();
             process.Status = ProcessStatus.Idle;
             return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
         }

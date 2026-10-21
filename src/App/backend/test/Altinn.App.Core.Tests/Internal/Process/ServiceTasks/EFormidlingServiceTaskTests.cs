@@ -301,7 +301,9 @@ public class EFormidlingServiceTaskTests
                 x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("EFormidling is disabled for task taskId")),
+                    It.Is<It.IsAnyType>(
+                        (v, t) => v != null && v.ToString()!.Contains("EFormidling is disabled for task taskId")
+                    ),
                     It.IsAny<Exception>(),
                     It.Is<Func<It.IsAnyType, Exception?, string>>((v, t) => true)
                 ),

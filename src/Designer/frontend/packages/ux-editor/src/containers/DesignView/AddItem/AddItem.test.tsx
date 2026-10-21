@@ -73,7 +73,6 @@ const createDefaultLayout = (): IInternalLayout => ({
   containers: {
     [BASE_CONTAINER_ID]: {
       type: null,
-      itemType: 'CONTAINER',
       id: BASE_CONTAINER_ID,
     } as const,
   },

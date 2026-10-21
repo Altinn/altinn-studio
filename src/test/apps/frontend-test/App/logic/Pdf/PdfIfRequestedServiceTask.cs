@@ -1,6 +1,7 @@
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Models;
 
 namespace Altinn.App.logic.Pdf
@@ -18,11 +19,17 @@ namespace Altinn.App.logic.Pdf
     public sealed class PdfIfRequestedServiceTask : IServiceTask
     {
         private readonly IPdfService _pdfService;
+        private readonly ITranslationService _translationService;
         private readonly IProcessReader _processReader;
 
-        public PdfIfRequestedServiceTask(IPdfService pdfService, IProcessReader processReader)
+        public PdfIfRequestedServiceTask(
+            IPdfService pdfService,
+            ITranslationService translationService,
+            IProcessReader processReader
+        )
         {
             _pdfService = pdfService;
+            _translationService = translationService;
             _processReader = processReader;
         }
 
@@ -39,17 +46,28 @@ namespace Altinn.App.logic.Pdf
 
             if (createPdf)
             {
-                // Honour the task's pdfConfig (autoPdfTaskIds / filename) exactly like the built-in
-                // "pdf" service task. autoPdfTaskIds tells the frontend which data task to render.
+                // Honor the task's autoPdfTaskIds, which tells the frontend which data task to render.
                 var taskId = mutator.Instance.Process.CurrentTask.ElementId;
                 var pdfConfig = _processReader.GetAltinnTaskExtension(taskId)?.PdfConfiguration;
 
-                await _pdfService.GenerateAndStorePdf(
-                    mutator,
-                    pdfConfig?.FilenameTextResourceKey,
+                var pdf = await _pdfService.GeneratePdf(
+                    mutator.Instance,
+                    taskId,
+                    mutator.Language ?? "nb",
                     pdfConfig?.AutoPdfTaskIds,
-                    StorageAuthenticationMethod.ServiceOwner(),
-                    context.CancellationToken
+                    authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
+                    cancellationToken: context.CancellationToken
+                );
+                var appName = await _translationService.TranslateTextKey("appName", mutator);
+                var fileName = $"{appName}.pdf";
+
+                // Generated from the task, so the PDF is removed if the task starts again
+                mutator.AddBinaryDataElement(
+                    "ref-data-as-pdf",
+                    "application/pdf",
+                    fileName,
+                    pdf,
+                    generatedFromTask: taskId
                 );
             }
 
