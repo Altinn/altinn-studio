@@ -698,7 +698,6 @@ public class TaskConfigurationUtilsTests
             processReader,
             services.BuildServiceProvider(),
             NullLogger<SigningProcessTask>.Instance,
-            null!,
             null!
         );
         var metadata = new ApplicationMetadata("ttd/app")
