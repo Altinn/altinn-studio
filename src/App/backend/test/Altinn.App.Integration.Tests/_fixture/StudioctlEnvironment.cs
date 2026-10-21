@@ -161,6 +161,25 @@ internal sealed class StudioctlEnvironmentLease : IAsyncDisposable
         return await RunForOutput(_logger, cancellationToken, "env", "logs", "--follow=false");
     }
 
+    /// <summary>
+    /// The host folder localtest persists its data in, for asserting on platform state localtest has no API for.
+    /// </summary>
+    public async Task<string> GetLocaltestStorageDirectory(CancellationToken cancellationToken)
+    {
+        var stdout = await RunForOutput(_logger, cancellationToken, "doctor", "--json");
+        using var doctor = System.Text.Json.JsonDocument.Parse(stdout);
+        string dataDirectory =
+            doctor
+                .RootElement.GetProperty("disk")
+                .GetProperty("checks")
+                .EnumerateArray()
+                .Single(check => check.GetProperty("id").GetString() == "data_dir")
+                .GetProperty("path")
+                .GetString()
+            ?? throw new InvalidOperationException("studioctl doctor reported no data directory");
+        return Path.Join(dataDirectory, "AltinnPlatformLocal");
+    }
+
     private static async Task<StudioctlStatus> GetStatus(ILogger logger, CancellationToken cancellationToken)
     {
         var stdout = await RunForOutput(logger, cancellationToken, "env", "status", "--json");
