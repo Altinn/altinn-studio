@@ -50,6 +50,12 @@ spec:
     - type: codex
       auth: mediated
       optional: true
+    # Pi has no platform login: its providers and models come from ~/.pi/agent/models.json in the
+    # `home` overlay, and the gateway key from the optional AIVAR_API_KEY secret below. Without the
+    # key Pi starts, but a prompt's wait times out.
+    - type: pi
+      defaults:
+        model: aivar/sigma2:Qwen3.8-27B
   environment:
     - name: GIT_USER_NAME
     - name: GIT_USER_EMAIL
@@ -79,6 +85,10 @@ spec:
       optional: true
       allowedHosts:
         - dev.altinn.studio
+    - environment: AIVAR_API_KEY
+      optional: true
+      allowedHosts:
+        - api.aivar.no
   access:
     - type: ssh
   network:
