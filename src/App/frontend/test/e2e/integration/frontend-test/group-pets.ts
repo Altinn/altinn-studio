@@ -192,12 +192,14 @@ describe('Group (Pets)', () => {
       .should('contain.text', 'Svømmedyr')
       .and('contain.text', 'Dyr som svømmer');
 
-    for (const isCompact of [false, true]) {
-      cy.changeLayout((component) => {
-        if (component.id === 'option-summary' && component.type === 'Summary2') {
-          component.isCompact = isCompact;
-        }
-      });
+    for (const isCompact of [undefined, false, true]) {
+      if (isCompact !== undefined) {
+        cy.changeLayout((component) => {
+          if (component.id === 'option-summary' && component.type === 'Summary2') {
+            component.isCompact = isCompact;
+          }
+        });
+      }
       for (const [id, direction] of [
         ['option-test1', 'row'],
         ['option-test3', 'row'],
@@ -205,7 +207,8 @@ describe('Group (Pets)', () => {
       ]) {
         cy.get(`#form-content-${id}`).parent().should('have.css', 'flex-direction', direction);
         cy.get(`[data-summary-target="${id}"]`).within(() => {
-          cy.get(`[id^="form-content-${id}-"]`).parent().should('have.css', 'flex-direction', direction);
+          const summaryDirection = isCompact === undefined ? direction : isCompact ? 'row' : 'column';
+          cy.get(`[id^="form-content-${id}-"]`).parent().should('have.css', 'flex-direction', summaryDirection);
           cy.get(`[id^="label-${id}-"]`)
             .should('have.length', 1)
             .then(($label) => {
