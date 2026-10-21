@@ -59,6 +59,12 @@ class StartReq(BaseModel):
             raise ValueError("session_id must be 1-128 alphanumeric, hyphen, or underscore characters")
         return v
 
+    @field_validator("repo_url")
+    @classmethod
+    def _validate_repo_url(cls, v: str) -> str:
+        repo_owner_and_app_name(v)
+        return v
+
 
 @router.post(
     "/api/agent/start",

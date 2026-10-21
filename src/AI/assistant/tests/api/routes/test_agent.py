@@ -109,7 +109,7 @@ class TestPermissionGateDefaults:
         request = StartReq(
             session_id="sess-1",
             goal="add a field",
-            repo_url="http://gitea/repo.git",
+            repo_url="http://gitea/ttd/repo.git",
             cost_org="ttd",
         )
 
@@ -153,3 +153,13 @@ class TestCostOrg:
             response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
 
         assert response.status_code == 422
+
+
+class TestRepoUrl:
+    def test_rejects_a_repo_url_without_an_owner_before_the_session_is_registered(self, tmp_path):
+        payload = {**_start_payload(), "repo_url": "https://dev.altinn.studio/my-app.git"}
+        with _stubbed_agent_start(tmp_path), patch("api.routes.agent.sink") as sink_stub:
+            response = TestClient(app).post(START_PATH, json=payload, headers=_headers("kari"))
+
+        assert response.status_code == 422
+        sink_stub.register_developer_session.assert_not_called()
