@@ -26,8 +26,9 @@ the app libraries send and read; a field the app client marks `required` must be
 - `POST correspondence/api/v1/correspondence` creates one correspondence per recipient and publishes it at once.
   `GET …/correspondence/{id}/details` returns it with its attachments and notifications.
 - **Validation mirrors the real API's, with its error codes.** `CorrespondenceRequestValidator` makes the checks
-  that need only the request (recipient format, content, dates, notification texts, custom recipients,
-  attachment names and types), with the messages and `errorCode`s from the Correspondence API's error catalog.
+  that need only the request (recipient format, content, field lengths, dates, notification texts, custom
+  recipients, the property list, reply links, and attachment names, types and expiry), with the messages and
+  `errorCode`s from the Correspondence API's error catalog.
   Recipients are looked up among the test data's parties (`1029`). Where a real check can't be repeated exactly,
   such as markdown in a title, the local one is more lenient: Localtest must never refuse what a deployed
   environment accepts, so add a case to the accepted-requests test whenever you tighten a rule.

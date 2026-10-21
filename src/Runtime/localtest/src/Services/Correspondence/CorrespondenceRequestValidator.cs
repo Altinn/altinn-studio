@@ -19,6 +19,17 @@ internal static partial class CorrespondenceRequestValidator
     private const int MaxSummaryLength = 255;
     private const int MaxBodyLength = 30000;
     private const int MaxFileNameLength = 255;
+    private const int MaxResourceIdLength = 255;
+    private const int MaxSendersReferenceLength = 4096;
+    private const int MaxMessageSenderLength = 255;
+    private const int MaxEmailSubjectLength = 512;
+    private const int MaxEmailBodyLength = 10000;
+    private const int MaxSmsBodyLength = 2144;
+    private const int MaxProperties = 10;
+    private const int MaxPropertyKeyLength = 50;
+    private const int MaxPropertyValueLength = 300;
+    private const int MaxReplyLinkLength = 255;
+    private const int MinAttachmentExpirationInDays = 1;
     private const string RecipientNameKeyword = "$recipientName$";
 
     private static readonly string[] _languages = ["nb", "nn", "en"];
@@ -66,6 +77,22 @@ internal static partial class CorrespondenceRequestValidator
             return CorrespondenceErrors.Invalid("The SendersReference field is required.");
         if (ValidateContentFields(correspondence.Content) is { } contentError)
             return contentError;
+        CorrespondenceError? fieldError =
+            TooLong(correspondence.ResourceId, MaxResourceIdLength, nameof(correspondence.ResourceId), minimumLength: 1)
+            ?? TooLong(
+                correspondence.SendersReference,
+                MaxSendersReferenceLength,
+                nameof(correspondence.SendersReference),
+                minimumLength: 1
+            )
+            ?? TooLong(correspondence.MessageSender, MaxMessageSenderLength, nameof(correspondence.MessageSender))
+            ?? ValidatePropertyList(correspondence.PropertyList);
+        if (fieldError is not null)
+            return fieldError;
+        if (correspondence.ReplyOptions?.Any(option => option.LinkUrl is null) == true)
+            return CorrespondenceErrors.Invalid("The LinkURL field is required.");
+        if (correspondence.Notification is { } notification && ValidateNotificationTexts(notification) is { } textError)
+            return textError;
 
         if (request.IdempotentKey is not null && request.Recipients!.Count > 1)
             return CorrespondenceErrors.IdempotencyKeyNotAllowedWithMultipleRecipients;
@@ -102,6 +129,8 @@ internal static partial class CorrespondenceRequestValidator
 
         if (request.ExistingAttachments is { Count: > MaxAttachments })
             return CorrespondenceErrors.AttachmentCountExceeded;
+        if (correspondence.ReplyOptions?.Any(option => !IsValidReplyLink(option.LinkUrl!)) == true)
+            return CorrespondenceErrors.InvalidReplyOptions;
 
         if (correspondence.Notification is { } notification)
         {
@@ -130,6 +159,11 @@ internal static partial class CorrespondenceRequestValidator
             return CorrespondenceErrors.FilenameInvalid;
         if (WindowsReservedFileName().IsMatch(fileName))
             return CorrespondenceErrors.FilenameCannotBeAReservedWindowsFilename;
+
+        // The real API requires 14 days in production and 1 elsewhere. The lower one keeps Localtest from refusing
+        // what TT02 accepts.
+        if (request.ExpirationInDays < MinAttachmentExpirationInDays)
+            return CorrespondenceErrors.AttachmentExpirationPriorMinimumDaysFromNow;
 
         return null;
     }
@@ -177,6 +211,54 @@ internal static partial class CorrespondenceRequestValidator
     /// <summary>The content's language, or <c>nb</c>, which the real API takes when the request names none.</summary>
     public static string LanguageOrDefault(string? language) =>
         string.IsNullOrWhiteSpace(language) ? "nb" : language;
+
+    /// <summary>The real API's limits on the property list, with its messages.</summary>
+    private static CorrespondenceError? ValidatePropertyList(IReadOnlyDictionary<string, string>? properties)
+    {
+        if (properties is null)
+            return null;
+        if (properties.Count > MaxProperties)
+            return CorrespondenceErrors.Invalid("propertyList can contain at most 10 properties");
+        foreach (var (key, value) in properties)
+        {
+            if (key.Length > MaxPropertyKeyLength)
+                return CorrespondenceErrors.Invalid(
+                    $"propertyList Key can not be longer than 50. Length:{key.Length}, KeyValue:{key}"
+                );
+            if (value?.Length > MaxPropertyValueLength)
+                return CorrespondenceErrors.Invalid(
+                    $"propertyList Value can not be longer than 300. Length:{value.Length}, Value:{value}"
+                );
+        }
+        return null;
+    }
+
+    /// <summary>The lengths the real API's model validation allows notification texts, reminders included.</summary>
+    private static CorrespondenceError? ValidateNotificationTexts(NotificationRequestDto notification) =>
+        TooLong(notification.EmailSubject, MaxEmailSubjectLength, nameof(notification.EmailSubject))
+        ?? TooLong(notification.EmailBody, MaxEmailBodyLength, nameof(notification.EmailBody))
+        ?? TooLong(notification.SmsBody, MaxSmsBodyLength, nameof(notification.SmsBody))
+        ?? TooLong(notification.ReminderEmailSubject, MaxEmailSubjectLength, nameof(notification.ReminderEmailSubject))
+        ?? TooLong(notification.ReminderEmailBody, MaxEmailBodyLength, nameof(notification.ReminderEmailBody))
+        ?? TooLong(notification.ReminderSmsBody, MaxSmsBodyLength, nameof(notification.ReminderSmsBody));
+
+    /// <summary>The error model validation reports for text longer than its <c>[StringLength]</c>, if any.</summary>
+    private static CorrespondenceError? TooLong(string? text, int maxLength, string field, int minimumLength = 0)
+    {
+        if (text is null || text.Length <= maxLength)
+            return null;
+        string range =
+            minimumLength == 0
+                ? $"a maximum length of {maxLength}"
+                : $"a minimum length of {minimumLength} and a maximum length of {maxLength}";
+        return CorrespondenceErrors.Invalid($"The field {field} must be a string with {range}.");
+    }
+
+    /// <summary>The real API's rule for a reply link: an absolute HTTPS URI of at most 255 characters.</summary>
+    private static bool IsValidReplyLink(string link) =>
+        link.Length <= MaxReplyLinkLength
+        && Uri.IsWellFormedUriString(link, UriKind.Absolute)
+        && link.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
 
     private static CorrespondenceError? ValidateCustomRecipients(NotificationRequestDto notification, int recipientCount)
     {

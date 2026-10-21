@@ -648,6 +648,12 @@ public sealed class CorrespondenceTests : IDisposable
                 },
                 3015
             ),
+            ["reply link over HTTP"] = (c => c["replyOptions"] = ReplyOption("http://example.com/reply"), 1035),
+            ["reply link that is not an absolute URI"] = (c => c["replyOptions"] = ReplyOption("/reply"), 1035),
+            ["reply link too long"] = (
+                c => c["replyOptions"] = ReplyOption("https://example.com/" + new string('a', 236)),
+                1035
+            ),
         };
 
     public static TheoryData<string> RefusedRequests => [.. _refused.Keys];
@@ -663,6 +669,92 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
         Assert.Equal("Bad Request", problem.Title);
         Assert.Equal(errorCode, problem.Extensions["errorCode"]);
+        Assert.Empty(await _repository.Read());
+    }
+
+    /// <summary>
+    /// Requests the real Correspondence API's model validation refuses, by case, with its message. These errors
+    /// have no code.
+    /// </summary>
+    private static readonly Dictionary<
+        string,
+        (Action<Dictionary<string, object?>> Configure, string Message)
+    > _malformed = new()
+        {
+            ["resource id too long"] = (
+                c => c["resourceId"] = new string('a', 256),
+                "The field ResourceId must be a string with a minimum length of 1 and a maximum length of 255."
+            ),
+            ["senders reference too long"] = (
+                c => c["sendersReference"] = new string('a', 4097),
+                "The field SendersReference must be a string with a minimum length of 1 and a maximum length of 4096."
+            ),
+            ["sender name too long"] = (
+                c => c["messageSender"] = new string('a', 256),
+                "The field MessageSender must be a string with a maximum length of 255."
+            ),
+            ["email subject too long"] = (
+                c =>
+                    c["notification"] = CustomNotification(
+                        "Email",
+                        ("emailSubject", new string('a', 513)),
+                        ("emailBody", "Sign")
+                    ),
+                "The field EmailSubject must be a string with a maximum length of 512."
+            ),
+            ["email body too long"] = (
+                c =>
+                    c["notification"] = CustomNotification(
+                        "Email",
+                        ("emailSubject", "Sign"),
+                        ("emailBody", new string('a', 10001))
+                    ),
+                "The field EmailBody must be a string with a maximum length of 10000."
+            ),
+            ["SMS reminder text too long"] = (
+                c =>
+                {
+                    var notification = CustomNotification(
+                        "Sms",
+                        ("smsBody", "Sign"),
+                        ("reminderSmsBody", new string('a', 2145))
+                    );
+                    notification["sendReminder"] = true;
+                    c["notification"] = notification;
+                },
+                "The field ReminderSmsBody must be a string with a maximum length of 2144."
+            ),
+            ["eleven properties"] = (
+                c => c["propertyList"] = Enumerable.Range(0, 11).ToDictionary(i => $"key{i}", i => "value"),
+                "propertyList can contain at most 10 properties"
+            ),
+            ["property key too long"] = (
+                c => c["propertyList"] = new Dictionary<string, string> { [new string('k', 51)] = "value" },
+                $"propertyList Key can not be longer than 50. Length:51, KeyValue:{new string('k', 51)}"
+            ),
+            ["property value too long"] = (
+                c => c["propertyList"] = new Dictionary<string, string> { ["key"] = new string('v', 301) },
+                $"propertyList Value can not be longer than 300. Length:301, Value:{new string('v', 301)}"
+            ),
+            ["reply option without a link"] = (
+                c => c["replyOptions"] = new[] { new Dictionary<string, object?> { ["linkText"] = "Svar" } },
+                "The LinkURL field is required."
+            ),
+        };
+
+    public static TheoryData<string> MalformedRequests => [.. _malformed.Keys];
+
+    [Theory]
+    [MemberData(nameof(MalformedRequests))]
+    public async Task Initialize_RequestTheRealApiModelValidationRefuses_AnswersItsMessage(string malformed)
+    {
+        var (configure, message) = _malformed[malformed];
+
+        var problem = await InitializeProblem(Request([PersonRecipient], null, configure: configure));
+
+        Assert.Equal(StatusCodes.Status400BadRequest, problem.Status);
+        Assert.Equal(message, problem.Detail);
+        Assert.False(problem.Extensions.ContainsKey("errorCode"));
         Assert.Empty(await _repository.Read());
     }
 
@@ -696,6 +788,27 @@ public sealed class CorrespondenceTests : IDisposable
         ["custom recipient with mobile number with 00 country code"] = c =>
             c["notification"] = WithCustomRecipient(new() { ["mobileNumber"] = "004799999999" }),
         ["no language"] = c => Content(c).Remove("language"),
+        ["notification texts at their maximum lengths"] = c =>
+        {
+            var notification = CustomNotification(
+                "EmailAndSms",
+                ("emailSubject", new string('a', 512)),
+                ("emailBody", new string('a', 10000)),
+                ("smsBody", new string('a', 2144)),
+                ("reminderEmailSubject", new string('a', 512)),
+                ("reminderEmailBody", new string('a', 10000)),
+                ("reminderSmsBody", new string('a', 2144))
+            );
+            notification["sendReminder"] = true;
+            c["notification"] = notification;
+        },
+        ["ten properties at their maximum lengths"] = c =>
+            c["propertyList"] = Enumerable
+                .Range(0, 10)
+                .ToDictionary(i => $"{i}{new string('k', 49)}", _ => new string('v', 300)),
+        ["sender name at its maximum length"] = c => c["messageSender"] = new string('a', 255),
+        ["HTTPS reply link at its maximum length"] = c =>
+            c["replyOptions"] = ReplyOption("https://example.com/" + new string('a', 235)),
     };
 
     public static TheoryData<string> AcceptedRequests => [.. _accepted.Keys];
@@ -792,6 +905,32 @@ public sealed class CorrespondenceTests : IDisposable
         Assert.Equal(errorCode, problem.Extensions["errorCode"]);
     }
 
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(-1, false)]
+    [InlineData(1, true)]
+    [InlineData(null, true)]
+    public async Task InitializeAttachment_Expiration_NeedsAtLeastADay(int? expirationInDays, bool accepted)
+    {
+        var result = await _controller.InitializeAttachment(
+            new InitializeAttachmentRequestDto
+            {
+                ResourceId = ResourceId,
+                FileName = "signed.pdf",
+                SendersReference = "senders-reference",
+                ExpirationInDays = expirationInDays,
+            }
+        );
+
+        if (accepted)
+        {
+            Assert.IsType<OkObjectResult>(result);
+            return;
+        }
+        var problem = Assert.IsType<ProblemDetails>(Assert.IsType<ObjectResult>(result).Value);
+        Assert.Equal(2017, problem.Extensions["errorCode"]);
+    }
+
     [Fact]
     public async Task Notification_CustomRecipientWithoutOverride_IsNotifiedAlongsideTheRegisteredAddress()
     {
@@ -844,6 +983,9 @@ public sealed class CorrespondenceTests : IDisposable
         }
         return notification;
     }
+
+    private static Dictionary<string, object?>[] ReplyOption(string linkUrl) =>
+        [new() { ["linkURL"] = linkUrl, ["linkText"] = "Svar" }];
 
     private static Dictionary<string, object?> WithCustomRecipient(Dictionary<string, object?> customRecipient)
     {

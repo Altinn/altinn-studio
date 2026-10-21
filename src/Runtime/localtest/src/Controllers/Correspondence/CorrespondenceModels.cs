@@ -165,6 +165,9 @@ public sealed class CorrespondenceRequestDto
     [JsonPropertyName("propertyList")]
     public IReadOnlyDictionary<string, string>? PropertyList { get; set; }
 
+    [JsonPropertyName("replyOptions")]
+    public IReadOnlyList<ReplyOptionRequestDto>? ReplyOptions { get; set; }
+
     [JsonPropertyName("ignoreReservation")]
     public bool? IgnoreReservation { get; set; }
 
@@ -176,6 +179,16 @@ public sealed class CorrespondenceRequestDto
 
     [JsonPropertyName("notification")]
     public NotificationRequestDto? Notification { get; set; }
+}
+
+/// <summary>A link the recipient can follow to reply to the correspondence.</summary>
+public sealed class ReplyOptionRequestDto
+{
+    [JsonPropertyName("linkURL")]
+    public string? LinkUrl { get; set; }
+
+    [JsonPropertyName("linkText")]
+    public string? LinkText { get; set; }
 }
 
 /// <summary>The message a correspondence carries.</summary>
