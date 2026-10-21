@@ -438,6 +438,12 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             CorrespondenceNotificationChannel.Email,
             capturedPayload.CorrespondenceRequest.Notification!.NotificationChannel
         );
+        Assert.Equal(
+            CorrespondenceNotificationTemplate.GenericAltinnMessage,
+            capturedPayload.CorrespondenceRequest.Notification.NotificationTemplate
+        );
+        Assert.False(capturedPayload.CorrespondenceRequest.Notification.OverrideRegisteredContactInformation);
+        Assert.Null(capturedPayload.CorrespondenceRequest.Notification.CustomRecipients);
         Assert.Null(capturedPayload.CorrespondenceRequest.Notification.SmsBody);
         Assert.Equal(
             "Din signatur ventes for TestAppName. Åpne Altinn-innboksen din for å fortsette.\n\nHvis du lurer på noe, kan du kontakte Service owner.",
@@ -457,6 +463,124 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         // Assert.Equal(orgNo, capturedPayload.CorrespondenceRequest.Sender.ToString()); Builder mapping removed, sender is now determined from resource registry
         Assert.IsType<OrganizationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
         Assert.True(ssn == capturedPayload.CorrespondenceRequest.Recipients[0]);
+    }
+
+    /// <summary>
+    /// Test case: the app asks for SMS without a mobile number.
+    /// Expected: SMS is sent to the signee's registered contact details, with no custom recipient.
+    /// </summary>
+    [Fact]
+    public async Task SendSignCallToAction_SmsWithoutMobileNumber_NotifiesRegisteredContactBySms()
+    {
+        CorrespondenceNotification notification = await SendAndCaptureNotification(
+            new CommunicationConfig { Notification = new Notification { Sms = new Sms() } }
+        );
+
+        Assert.Equal(CorrespondenceNotificationTemplate.CustomMessage, notification.NotificationTemplate);
+        Assert.Equal(CorrespondenceNotificationChannel.Sms, notification.NotificationChannel);
+        Assert.False(notification.OverrideRegisteredContactInformation);
+        Assert.Null(notification.CustomRecipients);
+    }
+
+    /// <summary>
+    /// Test case: the app asks for SMS to a given mobile number.
+    /// Expected: SMS is sent to that number only.
+    /// </summary>
+    [Fact]
+    public async Task SendSignCallToAction_SmsWithMobileNumber_OverridesRegisteredContact()
+    {
+        CorrespondenceNotification notification = await SendAndCaptureNotification(
+            new CommunicationConfig
+            {
+                Notification = new Notification { Sms = new Sms { MobileNumber = "+4799999999" } },
+            }
+        );
+
+        Assert.Equal(CorrespondenceNotificationChannel.Sms, notification.NotificationChannel);
+        Assert.True(notification.OverrideRegisteredContactInformation);
+        CorrespondenceNotificationRecipient recipient = Assert.Single(notification.CustomRecipients!);
+        Assert.Equal("+4799999999", recipient.MobileNumber);
+        Assert.Null(recipient.EmailAddress);
+    }
+
+    /// <summary>
+    /// Test case: the app asks for email without an email address.
+    /// Expected: email is sent to the signee's registered contact details, with no custom recipient.
+    /// </summary>
+    [Fact]
+    public async Task SendSignCallToAction_EmailWithoutAddress_NotifiesRegisteredContactByEmail()
+    {
+        CorrespondenceNotification notification = await SendAndCaptureNotification(
+            new CommunicationConfig { Notification = new Notification { Email = new Email() } }
+        );
+
+        Assert.Equal(CorrespondenceNotificationTemplate.CustomMessage, notification.NotificationTemplate);
+        Assert.Equal(CorrespondenceNotificationChannel.Email, notification.NotificationChannel);
+        Assert.False(notification.OverrideRegisteredContactInformation);
+        Assert.Null(notification.CustomRecipients);
+    }
+
+    /// <summary>
+    /// Test case: the app asks for email to a given address.
+    /// Expected: email is sent to that address only.
+    /// </summary>
+    [Fact]
+    public async Task SendSignCallToAction_EmailWithAddress_OverridesRegisteredContact()
+    {
+        CorrespondenceNotification notification = await SendAndCaptureNotification(
+            new CommunicationConfig
+            {
+                Notification = new Notification { Email = new Email { EmailAddress = "signee@example.com" } },
+            }
+        );
+
+        Assert.Equal(CorrespondenceNotificationChannel.Email, notification.NotificationChannel);
+        Assert.True(notification.OverrideRegisteredContactInformation);
+        CorrespondenceNotificationRecipient recipient = Assert.Single(notification.CustomRecipients!);
+        Assert.Equal("signee@example.com", recipient.EmailAddress);
+        Assert.Null(recipient.MobileNumber);
+    }
+
+    private async Task<CorrespondenceNotification> SendAndCaptureNotification(CommunicationConfig communicationConfig)
+    {
+        SendCorrespondencePayload? capturedPayload = null;
+        Mock<ICorrespondenceClient> correspondenceClientMock = new();
+        correspondenceClientMock
+            .Setup(m => m.Send(It.IsAny<SendCorrespondencePayload>(), It.IsAny<CancellationToken>()))
+            .Callback<SendCorrespondencePayload, CancellationToken>((payload, token) => capturedPayload = payload);
+        Mock<IHostEnvironment> hostEnvironmentMock = new();
+        hostEnvironmentMock.Setup(m => m.EnvironmentName).Returns("tt02");
+        Mock<IAppMetadata> appMetadataMock = new();
+        appMetadataMock.Setup(m => m.ApplicationMetadata).Returns(new ApplicationMetadata("org/app"));
+
+        AppIdentifier appIdentifier = new("org", "app");
+        TranslationService translationService = new(
+            appIdentifier,
+            SetupAppResourcesMock().Object,
+            FakeLoggerXunit.Get<TranslationService>(output),
+            appMetadataMock.Object
+        );
+
+        SigningCallToActionService service = SetupService(
+            correspondenceClientMockOverride: correspondenceClientMock,
+            translationServiceOverride: translationService,
+            appMetadataMockOverride: appMetadataMock,
+            hostEnvironmentMockOverride: hostEnvironmentMock
+        );
+
+        await service.SendSignCallToAction(
+            communicationConfig,
+            appIdentifier,
+            new InstanceIdentifier(123, Guid.Parse("ab0cdeb5-dc5e-4faa-966b-d18bb932ca07")),
+            new Party { Name = "Signee", SSN = GetSsn(2) },
+            new Party { Name = "Service owner", OrgNumber = GetOrgNumber(2) },
+            [new() { Environment = "tt02", Value = "app_ttd_appname" }],
+            CancellationToken.None
+        );
+
+        Assert.NotNull(capturedPayload);
+        Assert.NotNull(capturedPayload.CorrespondenceRequest.Notification);
+        return capturedPayload.CorrespondenceRequest.Notification;
     }
 
     /// <summary>

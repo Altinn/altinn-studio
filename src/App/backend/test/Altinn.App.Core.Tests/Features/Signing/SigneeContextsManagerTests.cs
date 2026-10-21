@@ -248,8 +248,8 @@ public sealed class SigneeContextsManagerTests : IDisposable
             {
                 Notification = new Notification
                 {
-                    Email = new EmailModel { }, // Empty to test auto-fill from Party
-                    Sms = new SmsModel { }, // Empty to test auto-fill from Party
+                    Email = new EmailModel { },
+                    Sms = new SmsModel { },
                 },
             },
         };
@@ -284,19 +284,15 @@ public sealed class SigneeContextsManagerTests : IDisposable
         Assert.NotNull(context.CommunicationConfig);
         Assert.NotNull(context.CommunicationConfig.Notification);
         Assert.NotNull(context.CommunicationConfig.Notification.Email);
-        Assert.Equal("test@org.com", context.CommunicationConfig.Notification.Email.EmailAddress);
+        Assert.Null(context.CommunicationConfig.Notification.Email.EmailAddress);
         Assert.NotNull(context.CommunicationConfig.Notification.Sms);
-        Assert.Equal("87654321", context.CommunicationConfig.Notification.Sms.MobileNumber);
+        Assert.Null(context.CommunicationConfig.Notification.Sms.MobileNumber);
     }
 
     [Theory]
-    [InlineData(true, "test@org.com", "87654321")] // Organization: both email and mobile come from the party register
-    [InlineData(false, null, "12345678")] // Person: only the mobile is backfilled; persons get no email from the register
-    public async Task GenerateSigneeContexts_EmptyContactValues_AreBackfilledFromParty(
-        bool isOrganization,
-        string? expectedEmail,
-        string? expectedMobile
-    )
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GenerateSigneeContexts_EmptyContactValues_AreNotFilledFromRegister(bool isOrganization)
     {
         // Arrange
         var signatureConfiguration = new AltinnSignatureConfiguration
@@ -313,7 +309,9 @@ public sealed class SigneeContextsManagerTests : IDisposable
         var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
         cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
 
-        // Channel objects are present but carry no address/number, so they should be backfilled from the party.
+        // Channel objects are present but carry no address/number. The register has contact details, but they must
+        // not be copied in: Correspondence notifies the signee at their registered contact details itself, and register
+        // numbers often lack the country code Correspondence requires for a custom recipient.
         var communicationConfig = new CommunicationConfig
         {
             Notification = new Notification { Email = new EmailModel(), Sms = new SmsModel() },
@@ -347,55 +345,10 @@ public sealed class SigneeContextsManagerTests : IDisposable
         // Assert
         var notification = Assert.Single(result).CommunicationConfig?.Notification;
         Assert.NotNull(notification);
-        Assert.Equal(expectedEmail, notification.Email?.EmailAddress);
-        Assert.Equal(expectedMobile, notification.Sms?.MobileNumber);
-    }
-
-    [Fact]
-    public async Task GenerateSigneeContexts_NullContactObjects_AreNotBackfilled()
-    {
-        // Arrange: the party register has contact info, but the notification channels themselves are null.
-        // The backfill only fires when a channel object exists, so nothing should be created here.
-        var signatureConfiguration = new AltinnSignatureConfiguration
-        {
-            SigneeProviderId = "testProvider",
-            SigneeStatesDataTypeId = SigneeStatesDataTypeId,
-        };
-
-        var instance = new Instance
-        {
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
-        };
-
-        var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
-        cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
-
-        var orgSignee = new ProvidedOrganization
-        {
-            OrganizationNumber = "123456789",
-            Name = "Test Organization",
-            CommunicationConfig = new CommunicationConfig
-            {
-                Notification = new Notification { Email = null, Sms = null },
-            },
-        };
-
-        var signeesResult = new SigneeProviderResult { Signees = [orgSignee] };
-        _signeeProvider.Setup(x => x.Id).Returns("testProvider");
-        _signeeProvider.Setup(x => x.GetSignees(It.IsAny<GetSigneesParameters>())).ReturnsAsync(signeesResult);
-
-        // Act
-        var result = await _signeeContextsManager.GenerateSigneeContexts(
-            cachedInstanceMutator.Object,
-            signatureConfiguration,
-            CancellationToken.None
-        );
-
-        // Assert
-        var notification = Assert.Single(result).CommunicationConfig?.Notification;
-        Assert.NotNull(notification);
-        Assert.Null(notification.Email);
-        Assert.Null(notification.Sms);
+        Assert.NotNull(notification.Email);
+        Assert.Null(notification.Email.EmailAddress);
+        Assert.NotNull(notification.Sms);
+        Assert.Null(notification.Sms.MobileNumber);
     }
 
     [Fact]

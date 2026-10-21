@@ -21,16 +21,15 @@ internal static class SigningNotificationHelper
     }
 
     /// <summary>
-    /// Determines the notification choice based on the provided notification object.
-    /// This is to keep backwards compatibility.
+    /// Determines the notification choice from which channels the app configured, for apps that do not set
+    /// <see cref="CommunicationConfig.NotificationChoice"/>. A channel configured without an address still counts:
+    /// Correspondence then notifies the signee at their registered contact details.
     /// </summary>
-    /// <param name="notification"></param>
-    /// <returns></returns>
     internal static NotificationChoice GetNotificationChoiceIfNotSet(Notification? notification)
     {
-        var data = (Email: notification?.Email?.EmailAddress, Sms: notification?.Sms?.MobileNumber);
+        var channels = (Email: notification?.Email, Sms: notification?.Sms);
 
-        return data switch
+        return channels switch
         {
             { Email: not null, Sms: not null } => NotificationChoice.SmsAndEmail,
             { Email: not null } => NotificationChoice.Email,

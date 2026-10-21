@@ -195,20 +195,53 @@ public class SigningNotificationHelperTests
         Assert.Null(notification.CustomRecipients);
     }
 
-    [Fact]
-    public void GetNotificationChoiceIfNotSet_EmptyStringAddress_IsTreatedAsPresent()
+    [Theory]
+    [InlineData(true, false, NotificationChoice.Email)]
+    [InlineData(false, true, NotificationChoice.Sms)]
+    [InlineData(true, true, NotificationChoice.SmsAndEmail)]
+    [InlineData(false, false, NotificationChoice.None)]
+    public void GetNotificationChoiceIfNotSet_ChannelWithoutAddress_SelectsThatChannel(
+        bool emailConfigured,
+        bool smsConfigured,
+        NotificationChoice expected
+    )
     {
-        // Documents a known quirk: choice detection checks for non-null, not non-empty, so an
-        // empty-string address still selects a channel - even though MaybeWithRecipientOverrides
-        // would later drop that empty value. This is benign in practice: SigneeContextsManager
-        // normalizes empty strings to a register value or null before this runs.
+        // The channel is chosen by which channels the app configured, not by whether it gave an address.
         Notification notification = new()
         {
-            Email = new Email { EmailAddress = "" },
-            Sms = null,
+            Email = emailConfigured ? new Email() : null,
+            Sms = smsConfigured ? new Sms() : null,
         };
 
-        Assert.Equal(NotificationChoice.Email, SigningNotificationHelper.GetNotificationChoiceIfNotSet(notification));
+        Assert.Equal(expected, SigningNotificationHelper.GetNotificationChoiceIfNotSet(notification));
+    }
+
+    [Theory]
+    [InlineData(NotificationChoice.Email, CorrespondenceNotificationChannel.Email)]
+    [InlineData(NotificationChoice.Sms, CorrespondenceNotificationChannel.Sms)]
+    [InlineData(NotificationChoice.SmsAndEmail, CorrespondenceNotificationChannel.EmailAndSms)]
+    [InlineData(NotificationChoice.SmsPreferred, CorrespondenceNotificationChannel.SmsPreferred)]
+    public void CreateNotification_ChannelWithoutAddress_NotifiesRegisteredContactDetails(
+        NotificationChoice notificationChoice,
+        CorrespondenceNotificationChannel expectedChannel
+    )
+    {
+        // Arrange: channels configured without addresses. Correspondence must look up the signee's
+        // registered contact details itself, so no custom recipient is sent.
+        ContentWrapper contentWrapper = CreateContentWrapper(
+            notificationChoice,
+            new Notification { Email = new Email(), Sms = new Sms() }
+        );
+
+        // Act
+        CorrespondenceNotification? notification = SigningNotificationHelper.CreateNotification(contentWrapper);
+
+        // Assert
+        Assert.NotNull(notification);
+        Assert.Equal(CorrespondenceNotificationTemplate.CustomMessage, notification.NotificationTemplate);
+        Assert.Equal(expectedChannel, notification.NotificationChannel);
+        Assert.False(notification.OverrideRegisteredContactInformation);
+        Assert.Null(notification.CustomRecipients);
     }
 
     private static int CountIdentifiers(CorrespondenceNotificationRecipient recipient)
@@ -231,6 +264,18 @@ public class SigningNotificationHelperTests
         string? mobileNumber
     )
     {
+        return CreateContentWrapper(
+            notificationChoice,
+            new Notification
+            {
+                Email = emailAddress is null ? null : new Email { EmailAddress = emailAddress },
+                Sms = mobileNumber is null ? null : new Sms { MobileNumber = mobileNumber },
+            }
+        );
+    }
+
+    private static ContentWrapper CreateContentWrapper(NotificationChoice notificationChoice, Notification notification)
+    {
         return new ContentWrapper
         {
             CorrespondenceContent = new CorrespondenceContent
@@ -242,11 +287,7 @@ public class SigningNotificationHelperTests
             },
             SendersReference = "ref",
             NotificationChoice = notificationChoice,
-            Notification = new Notification
-            {
-                Email = emailAddress is null ? null : new Email { EmailAddress = emailAddress },
-                Sms = mobileNumber is null ? null : new Sms { MobileNumber = mobileNumber },
-            },
+            Notification = notification,
             EmailBody = "email body",
             EmailSubject = "email subject",
             SmsBody = "sms body",
