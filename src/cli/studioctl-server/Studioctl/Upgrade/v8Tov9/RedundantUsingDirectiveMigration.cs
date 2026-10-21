@@ -13,8 +13,6 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// </summary>
 internal sealed class RedundantUsingDirectiveMigration
 {
-    private const string GlobalAliasPrefix = "global::";
-
     private readonly CSharpSourceScanner _scanner;
     private readonly IReadOnlySet<string> _globalNamespaces;
 
@@ -66,7 +64,10 @@ internal sealed class RedundantUsingDirectiveMigration
             if (directive.Alias is not null || directive.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
                 continue;
 
-            if (directive.Name is null || !_globalNamespaces.Contains(NormalizedName(directive.Name)))
+            if (
+                directive.Name is null
+                || !_globalNamespaces.Contains(CSharpSyntaxQueries.NormalizedName(directive.Name))
+            )
                 continue;
 
             if (IsGlobalNamespaceImport(file, directive))
@@ -89,15 +90,10 @@ internal sealed class RedundantUsingDirectiveMigration
             return false;
 
         return model.GetSymbolInfo(directive.Name).Symbol is INamespaceSymbol ns
-            && string.Equals(ns.ToDisplayString(), NormalizedName(directive.Name), StringComparison.Ordinal);
-    }
-
-    private static string NormalizedName(NameSyntax name)
-    {
-        var text = name.WithoutTrivia().ToString();
-        // ToString keeps trivia between name parts ("System . Linq"), and 'global::' says nothing
-        // about which namespace is meant.
-        text = string.Concat(text.Where(c => !char.IsWhiteSpace(c)));
-        return text.StartsWith(GlobalAliasPrefix, StringComparison.Ordinal) ? text[GlobalAliasPrefix.Length..] : text;
+            && string.Equals(
+                ns.ToDisplayString(),
+                CSharpSyntaxQueries.NormalizedName(directive.Name),
+                StringComparison.Ordinal
+            );
     }
 }

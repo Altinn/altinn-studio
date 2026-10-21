@@ -15,8 +15,6 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// </summary>
 internal sealed class RemovedNamespaceUsingMigration
 {
-    private const string GlobalAliasPrefix = "global::";
-
     private readonly CSharpSourceScanner _scanner;
 
     public RemovedNamespaceUsingMigration(CSharpSourceScanner scanner)
@@ -54,12 +52,10 @@ internal sealed class RemovedNamespaceUsingMigration
     /// </summary>
     private static bool Imports(UsingDirectiveSyntax directive, string removedNamespace)
     {
-        if (directive.Alias is not null || directive.Name?.ToString() is not { } name)
+        if (directive.Alias is not null || directive.Name is null)
             return false;
 
-        if (name.StartsWith(GlobalAliasPrefix, StringComparison.Ordinal))
-            name = name[GlobalAliasPrefix.Length..];
-
+        var name = CSharpSyntaxQueries.NormalizedName(directive.Name);
         return name.Equals(removedNamespace, StringComparison.Ordinal)
             || name.StartsWith(removedNamespace + ".", StringComparison.Ordinal);
     }
