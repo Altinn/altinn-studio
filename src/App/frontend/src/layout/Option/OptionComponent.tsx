@@ -36,7 +36,7 @@ export const OptionComponent = ({ baseComponentId, isSummary, direction, emptyFi
   const selectedOption = options.find((option) => option.value === value);
   return (
     <Option
-      componentId={isSummary ? summaryId : componentId}
+      componentId={isSummary ? `${componentId}-${summaryId}` : componentId}
       title={isSummary ? summaryTitle || title : title}
       description={description}
       help={help}
