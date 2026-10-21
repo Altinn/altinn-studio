@@ -377,7 +377,7 @@ public class ResourceAdminController : ControllerBase
             .ToList();
 
         ConcurrentBag<ResourceWithAltinn2Subject> altinn2ResourcePolicies = [];
-        List<FileSystemObject> resourceFiles = _repository.GetContents(org, GetRepositoryName(org));
+        List<FileSystemObject> resourceFiles = _repository.GetContents(org, RepositoryNames.Resources(org));
 
         await Parallel.ForEachAsync(
             resourcesToLoadPolicyFor,
@@ -437,7 +437,7 @@ public class ResourceAdminController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        string repository = GetRepositoryName(org);
+        string repository = RepositoryNames.Resources(org);
         IEnumerable<ListviewServiceResource> resources;
         List<ServiceResource> repositoryResourceList;
         List<ListviewServiceResource> listviewServiceResources = new List<ListviewServiceResource>();
@@ -641,7 +641,7 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/addexistingresource/{resourceId}/{env}")]
     public async Task<ActionResult> AddExistingResource(string org, string resourceId, string env)
     {
-        string repository = GetRepositoryName(org);
+        string repository = RepositoryNames.Resources(org);
         List<ServiceResource> allResources = await _resourceRegistry.GetServiceResourceList(
             env.ToLower(),
             includeApps: true,
@@ -918,7 +918,7 @@ public class ResourceAdminController : ControllerBase
     [Route("designer/api/{org}/resources/publish/{repository}/{id}/{env}")]
     public async Task<ActionResult> PublishResource(string org, string repository, string id, string env)
     {
-        if (repository == $"{org}-resources")
+        if (repository == RepositoryNames.Resources(org))
         {
             string resourceFileStructureName = ResourceAdminHelper.GetResourceFileStructureName(id);
             string xacmlPolicyPath = _repository.GetPolicyPath(org, repository, resourceFileStructureName);
@@ -969,7 +969,7 @@ public class ResourceAdminController : ControllerBase
             return new StatusCodeResult(403);
         }
 
-        if (repository == $"{org}-resources")
+        if (repository == RepositoryNames.Resources(org))
         {
             XacmlPolicy xacmlPolicy = PolicyConverter.ConvertPolicy(policyData);
 
@@ -1073,11 +1073,6 @@ public class ResourceAdminController : ControllerBase
             version = resource.Version;
         }
         return new ResourceVersionInfo() { Environment = env, Version = version };
-    }
-
-    private string GetRepositoryName(string org)
-    {
-        return string.Format("{0}-resources", org);
     }
 
     private static List<string> GetEnvironmentsForOrg(string org)
