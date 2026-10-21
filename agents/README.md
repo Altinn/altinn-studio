@@ -73,8 +73,3 @@ Both Agents offer Pi beside Claude Code and Codex, on the aivar gateway. Pi has 
 overlay supplies `home/.pi/agent/models.json` with the `aivar` provider (`https://api.aivar.no/v1`, key from
 `$AIVAR_API_KEY`), and new Pi Sessions default to `aivar/sigma2:Qwen3.8-27B`. Without the key Pi starts, but a prompt's
 wait times out. The overlay is applied again on every pass, so edit it here rather than in the Sandbox.
-
-The two `models.json` files are identical and follow the
-[self-dev Agent's](https://github.com/digdir/digdir-agents/blob/main/agents/self-dev/README.md#pi), which records which
-gateway models work with Pi; keep all three in step. An Agent created before Pi was added needs `agentctl delete` and
-a new `apply`, since its harness types are fixed when it is created.
