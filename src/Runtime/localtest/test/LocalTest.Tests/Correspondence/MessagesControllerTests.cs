@@ -172,7 +172,53 @@ public sealed class MessagesControllerTests : IDisposable
         Assert.Equal("2 emails, reminder", MessagesDisplay.Summary([Order(false, 1), Order(true, 1)]));
     }
 
-    private async Task<Guid> Store(string title, DateTimeOffset created, IReadOnlyList<Guid>? attachments = null)
+    [Fact]
+    public async Task Clear_DeletesMessagesAttachmentsAndNotificationOrders_AndNothingElse()
+    {
+        var attachment = await _repository.CreateAttachment(
+            new InitializeAttachmentRequestDto
+            {
+                ResourceId = "resource",
+                SendersReference = "reference",
+                FileName = "signed.pdf",
+            }
+        );
+        await _repository.UploadAttachment(attachment.AttachmentId, new MemoryStream([1, 2, 3]), "application/pdf");
+        await Store("With attachment", DateTimeOffset.UtcNow, [attachment.AttachmentId]);
+        WriteNotificationOrder();
+        var instanceData = Path.Join(_storagePath, "blobs", "instance-data.txt");
+        Directory.CreateDirectory(Path.GetDirectoryName(instanceData)!);
+        await File.WriteAllTextAsync(instanceData, "kept");
+
+        var result = await _controller.Clear();
+
+        Assert.Equal(nameof(MessagesController.Index), Assert.IsType<RedirectToActionResult>(result).ActionName);
+        var model = Assert.IsType<MessagesViewModel>(Assert.IsType<ViewResult>(await _controller.Index()).Model);
+        Assert.Empty(model.Correspondences);
+        Assert.Empty(model.NotificationOrders);
+        Assert.Null(await _repository.FindAttachment(attachment.AttachmentId));
+        Assert.Null(_repository.OpenAttachmentData(attachment.AttachmentId));
+        Assert.True(File.Exists(instanceData));
+    }
+
+    [Fact]
+    public async Task Clear_ForgetsIdempotentKeys()
+    {
+        var idempotentKey = Guid.NewGuid();
+        await Store("Sent", DateTimeOffset.UtcNow, idempotentKey: idempotentKey);
+
+        await _controller.Clear();
+
+        // Store asserts that the key is accepted, which it would not be while the first message is kept
+        await Store("Sent again", DateTimeOffset.UtcNow, idempotentKey: idempotentKey);
+    }
+
+    private async Task<Guid> Store(
+        string title,
+        DateTimeOffset created,
+        IReadOnlyList<Guid>? attachments = null,
+        Guid? idempotentKey = null
+    )
     {
         var request = JsonSerializer.SerializeToElement(
             new
@@ -189,6 +235,7 @@ public sealed class MessagesControllerTests : IDisposable
         var correspondence = new StoredCorrespondence
         {
             CorrespondenceId = Guid.NewGuid(),
+            IdempotentKey = idempotentKey,
             Recipient = "urn:altinn:person:identifier-no:01899699552",
             ResourceId = "resource",
             SendersReference = "reference",
@@ -198,7 +245,7 @@ public sealed class MessagesControllerTests : IDisposable
             AttachmentIds = attachments ?? [],
             Request = request,
         };
-        Assert.True(await _repository.TryCreate(null, [correspondence]));
+        Assert.True(await _repository.TryCreate(idempotentKey, [correspondence]));
         return correspondence.CorrespondenceId;
     }
 

@@ -73,6 +73,28 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
     }
 
     /// <summary>
+    /// Deletes what this page shows: the stored correspondence with its attachments, and the notification orders.
+    /// Nothing else Localtest stores is touched, so a developer can start over without resetting the environment.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Clear()
+    {
+        await repository.Clear();
+
+        var orders = NotificationOrdersDirectory();
+        if (orders.Exists)
+        {
+            foreach (var file in orders.GetFiles("*.json"))
+            {
+                file.Delete();
+            }
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    /// <summary>
     /// The correspondence part of the request a record was created from, or <c>null</c> when the stored request is
     /// in a shape this version of Localtest does not know. The raw request is still shown.
     /// </summary>
@@ -96,13 +118,7 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
     /// </summary>
     private async Task<IReadOnlyList<NotificationOrderView>> ReadNotificationOrders()
     {
-        var directory = new DirectoryInfo(
-            Path.Join(
-                settings.Value.LocalTestingStorageBasePath,
-                settings.Value.NotificationsStorageFolder,
-                "orders"
-            )
-        );
+        var directory = NotificationOrdersDirectory();
         if (!directory.Exists)
         {
             return [];
@@ -131,6 +147,16 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
 
         return [.. orders.OrderByDescending(order => order.Created)];
     }
+
+    /// <summary>Where the emulated Notifications API stores its orders, one JSON file per order.</summary>
+    private DirectoryInfo NotificationOrdersDirectory() =>
+        new(
+            Path.Join(
+                settings.Value.LocalTestingStorageBasePath,
+                settings.Value.NotificationsStorageFolder,
+                "orders"
+            )
+        );
 
     private static NotificationOrderView ToView(JsonElement order)
     {

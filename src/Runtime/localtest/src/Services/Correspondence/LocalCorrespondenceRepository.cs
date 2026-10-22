@@ -207,6 +207,28 @@ public sealed class LocalCorrespondenceRepository : IDisposable
         }
     }
 
+    /// <summary>
+    /// Deletes every stored correspondence and attachment, and with them the idempotent keys they carry, so a
+    /// request that reuses one creates a new correspondence. An upload streaming meanwhile keeps its temporary
+    /// file and finds its attachment gone when it finishes.
+    /// </summary>
+    public async Task Clear()
+    {
+        using var mutationLock = await _mutationLock.Lock();
+
+        foreach (var file in Storage().GetFiles("*.json"))
+        {
+            file.Delete();
+        }
+        foreach (var file in AttachmentStorage().GetFiles())
+        {
+            if (file.Extension is ".json" or ".bin")
+            {
+                file.Delete();
+            }
+        }
+    }
+
     public void Dispose() => _mutationLock.Dispose();
 
     /// <summary>

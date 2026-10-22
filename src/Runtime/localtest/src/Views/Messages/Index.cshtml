@@ -5,7 +5,14 @@
 
 <div class="d-flex justify-content-between align-items-center">
     <h1>@ViewData["Title"]</h1>
-    <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Refresh</a>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Refresh</a>
+        @* Instances and everything else Localtest stores are kept. *@
+        <form asp-action="Clear" method="post"
+              onsubmit="return confirm('Delete all stored messages, attachments and notification orders?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Clear messages</button>
+        </form>
+    </div>
 </div>
 <p class="text-muted">
     What apps have sent through Localtest. Nothing leaves your machine: emails and SMS messages are shown here
