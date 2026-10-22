@@ -10,6 +10,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Fixed
+
+- After a `CustomButton` runs a server action, attachments in `AttachmentList` no longer lose their links until the page is reloaded, and files the action adds, such as a generated PDF, can be opened too. ([#17706](https://github.com/Altinn/altinn-studio/issues/17706))
+
 ## [9.0.0-preview.11] - 2026-11-16
 
 ### Added
