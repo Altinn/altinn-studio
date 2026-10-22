@@ -4,6 +4,7 @@
   overflow-wrap: anywhere;
 }
 
-.paragraphText {
+/* On the text blocks rather than the wrapper, so headings in the text keep their full width */
+.paragraphText :is(p, li) {
   max-width: var(--running-text-max-width);
 }
