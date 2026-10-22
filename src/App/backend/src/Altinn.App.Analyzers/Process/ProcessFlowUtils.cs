@@ -19,9 +19,10 @@ namespace Altinn.App.Analyzers.Process;
 /// failure to the build.
 /// </para>
 /// <para>
-/// An instance stands only on a start event or on a node it reaches from one over those flows, so the rules check
-/// only the reachable nodes and the flows out of them. A node nothing reaches never fails, such as a task placed in
-/// Studio's process editor and not yet connected.
+/// A condition on a gateway's default is checked even on unreachable gateways, because it prevents app startup.
+/// The flow navigation checks apply only to reachable nodes and the flows out of them: an instance stands only on
+/// a start event or a node it reaches from one. An unconnected task in Studio's process editor cannot cause a
+/// navigation failure.
 /// </para>
 /// <para>
 /// Two rules go beyond what fails at runtime, deliberately. A flow that starts at a gateway but is not listed in its
@@ -82,8 +83,17 @@ internal static class ProcessFlowUtils
         foreach (var node in graph.Nodes)
         {
             token.ThrowIfCancellationRequested();
+            if (Id(node) is not { } nodeId)
+            {
+                continue;
+            }
+            // Startup rejects a condition on any gateway's default, even if no instance can reach it.
+            if (node.Name == ProcessFile.ExclusiveGateway)
+            {
+                CheckGatewayDefaultCondition(node, nodeId);
+            }
             // The process ends at an end event, so the runtime never follows a flow out of one.
-            if (node.Name == ProcessFile.EndEvent || Id(node) is not { } nodeId || !reachable.Contains(nodeId))
+            if (node.Name == ProcessFile.EndEvent || !reachable.Contains(nodeId))
             {
                 continue;
             }
@@ -168,6 +178,26 @@ internal static class ProcessFlowUtils
             }
         }
 
+        void CheckGatewayDefaultCondition(XElement gateway, string gatewayId)
+        {
+            if (gateway.Attribute("default")?.Value is not { Length: > 0 } defaultId)
+            {
+                return;
+            }
+            var defaultFlow = graph.ListedFlows(gateway).Find(flow => Id(flow) == defaultId);
+            if (defaultFlow?.Element(ProcessFile.ConditionExpression) is not null)
+            {
+                diagnostics.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.GatewayDefaultHasCondition,
+                        LocationOf(gateway),
+                        gatewayId,
+                        defaultId
+                    )
+                );
+            }
+        }
+
         // Returns the flows the gateway takes.
         List<XElement> CheckGateway(XElement gateway, string gatewayId, List<XElement> leaving)
         {
@@ -211,17 +241,6 @@ internal static class ProcessFlowUtils
                     diagnostics.Add(
                         Diagnostic.Create(
                             Diagnostics.Process.GatewayDefaultNotOutgoing,
-                            LocationOf(gateway),
-                            gatewayId,
-                            defaultId
-                        )
-                    );
-                }
-                else if (defaultFlow.Element(ProcessFile.ConditionExpression) is not null)
-                {
-                    diagnostics.Add(
-                        Diagnostic.Create(
-                            Diagnostics.Process.GatewayDefaultHasCondition,
                             LocationOf(gateway),
                             gatewayId,
                             defaultId

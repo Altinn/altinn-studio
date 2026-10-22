@@ -650,6 +650,36 @@ public class ProcessFlowUtilsTests
         Assert.Equal("<bpmn:exclusiveGateway", process.Substring(span.Start, span.Length));
     }
 
+    [Theory]
+    [InlineData("<bpmn:conditionExpression>[\"equals\", 1, 1]</bpmn:conditionExpression>", true)]
+    [InlineData("<bpmn:conditionExpression />", true)]
+    [InlineData("", false)]
+    public void An_Unreachable_Gateway_Default_Is_Checked_For_Startup_Errors(string condition, bool hasError)
+    {
+        var process =
+            ValidProcess
+            + $"""
+                <bpmn:exclusiveGateway id="Detached" default="DetachedFlow">
+                  <bpmn:outgoing>DetachedFlow</bpmn:outgoing>
+                </bpmn:exclusiveGateway>
+                <bpmn:sequenceFlow id="DetachedFlow" sourceRef="Detached" targetRef="EndEvent_1">
+                  {condition}
+                </bpmn:sequenceFlow>
+                """;
+
+        var diagnostics = Collect(Process(process));
+
+        if (hasError)
+        {
+            AssertIds(diagnostics, "ALTINNAPP1023");
+            Assert.Equal(DiagnosticSeverity.Error, diagnostics[0].Severity);
+        }
+        else
+        {
+            Assert.Empty(diagnostics);
+        }
+    }
+
     // The default's condition is the gateway's only one, so the other flow is not mixed in with conditions.
     [Fact]
     public void A_Condition_Only_On_The_Default_Is_Reported_Once()
