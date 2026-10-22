@@ -150,6 +150,50 @@ public sealed class MessagesControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Index_CorrespondenceFileThatCannotBeRead_IsSkipped()
+    {
+        await Store("Readable", DateTimeOffset.UtcNow);
+        var locked = Path.Join(_storagePath, "correspondence", $"{await Store("Locked", DateTimeOffset.UtcNow)}.json");
+
+        // As if another request held the file, or Clear deleted it after Index listed it
+        IActionResult result;
+        using (new FileStream(locked, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            result = await _controller.Index();
+        }
+
+        var model = Assert.IsType<MessagesViewModel>(Assert.IsType<ViewResult>(result).Model);
+        Assert.Equal("Readable", MessagesDisplay.Title(Assert.Single(model.Correspondences)));
+    }
+
+    [Fact]
+    public async Task Details_RecordWithoutAStoredRequest_StillShows()
+    {
+        var id = Guid.NewGuid();
+        Directory.CreateDirectory(Path.Join(_storagePath, "correspondence"));
+        await File.WriteAllTextAsync(
+            Path.Join(_storagePath, "correspondence", $"{id}.json"),
+            $$"""
+            {
+              "correspondenceId": "{{id}}",
+              "recipient": "urn:altinn:person:identifier-no:01899699552",
+              "resourceId": "resource",
+              "sendersReference": "reference",
+              "status": "Initialized",
+              "created": "2026-09-11T08:11:15.5997297+00:00"
+            }
+            """
+        );
+
+        var details = Assert.IsType<CorrespondenceViewModel>(
+            Assert.IsType<ViewResult>(await _controller.Details(id)).Model
+        );
+
+        Assert.Null(details.Request);
+        Assert.Equal("(no request stored)", details.RawRequest);
+    }
+
+    [Fact]
     public async Task Details_UnknownCorrespondence_IsNotFound()
     {
         Assert.IsType<NotFoundResult>(await _controller.Details(Guid.NewGuid()));

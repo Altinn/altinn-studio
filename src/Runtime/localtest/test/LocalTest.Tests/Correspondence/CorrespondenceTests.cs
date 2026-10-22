@@ -241,6 +241,35 @@ public sealed class CorrespondenceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetDetails_RecordWithoutAStoredRequest_ReturnsTheRecordWithoutItsContent()
+    {
+        var correspondenceId = Guid.NewGuid();
+        Directory.CreateDirectory(Path.Join(_storagePath, "correspondence"));
+        await File.WriteAllTextAsync(
+            Path.Join(_storagePath, "correspondence", $"{correspondenceId}.json"),
+            $$"""
+            {
+              "correspondenceId": "{{correspondenceId}}",
+              "recipient": "{{PersonRecipient}}",
+              "resourceId": "{{ResourceId}}",
+              "sendersReference": "501337/old",
+              "status": "Published",
+              "created": "2026-09-11T08:11:15.5997297+00:00"
+            }
+            """
+        );
+
+        var details = Assert.IsType<CorrespondenceDetailsResponseDto>(
+            Assert.IsType<OkObjectResult>(
+                await _controller.GetCorrespondenceDetails(correspondenceId)
+            ).Value
+        );
+
+        Assert.Equal(PersonRecipient, details.Recipient);
+        Assert.Equal(string.Empty, details.Content?.MessageTitle);
+    }
+
+    [Fact]
     public async Task Initialize_UnreadableFileInStorage_IsSkipped()
     {
         Directory.CreateDirectory(Path.Join(_storagePath, "correspondence"));

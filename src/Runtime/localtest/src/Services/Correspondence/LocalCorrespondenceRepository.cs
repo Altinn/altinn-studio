@@ -280,6 +280,11 @@ public sealed class LocalCorrespondenceRepository : IDisposable
             );
             return null;
         }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Clear deleted the file after it was listed, or another request holds it; the rest still shows.
+            return null;
+        }
     }
 
     private static async Task Write<T>(string fileName, T record)

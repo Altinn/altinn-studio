@@ -50,7 +50,9 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
                 correspondence,
                 StoredRequest(correspondence),
                 attachments,
-                JsonSerializer.Serialize(correspondence.Request, _indented)
+                correspondence.Request.ValueKind == JsonValueKind.Undefined
+                    ? "(no request stored)"
+                    : JsonSerializer.Serialize(correspondence.Request, _indented)
             )
         );
     }
@@ -100,6 +102,12 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
     /// </summary>
     private static CorrespondenceRequestDto? StoredRequest(StoredCorrespondence correspondence)
     {
+        if (correspondence.Request.ValueKind == JsonValueKind.Undefined)
+        {
+            // The record has no request at all, which Deserialize reports as a misuse rather than as bad JSON
+            return null;
+        }
+
         try
         {
             return correspondence
