@@ -16,6 +16,7 @@ export type DefinedBindingProps = {
   internalBindingFormat: ExplicitDataModelBinding;
   componentType: ComponentType;
   bindingKey: string;
+  hasGroupBinding?: boolean;
 };
 
 export const DefinedBinding = ({
@@ -24,6 +25,7 @@ export const DefinedBinding = ({
   internalBindingFormat,
   componentType,
   bindingKey,
+  hasGroupBinding,
 }: DefinedBindingProps) => {
   const { t } = useTranslation();
   const title = t('right_menu.data_model_bindings_edit', { binding: label });
@@ -35,7 +37,12 @@ export const DefinedBinding = ({
     return <StudioSpinner aria-label={t('ux_editor.modal_properties_loading')} />;
   }
 
-  const dataModelFields = getDataModelFields({ componentType, bindingKey, dataModelMetadata });
+  const dataModelFields = getDataModelFields({
+    componentType,
+    bindingKey,
+    dataModelMetadata,
+    hasGroupBinding,
+  });
   const isFieldValid = validateSelectedDataField(currentDataModelField, dataModelFields);
   const isBindingError = !isFieldValid || !isDataModelValid;
 

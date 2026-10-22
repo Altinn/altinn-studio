@@ -135,6 +135,7 @@ export const EditBinding = ({
               handleBindingChange={setBinding}
               bindingKey={bindingKey}
               componentType={component.type}
+              hasGroupBinding={!!component.dataModelBindings?.group?.field}
             />
           </>
         )}

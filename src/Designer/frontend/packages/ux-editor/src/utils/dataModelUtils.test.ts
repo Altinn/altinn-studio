@@ -12,6 +12,7 @@ import {
   validateSelectedDataModel,
 } from './dataModelUtils';
 import { dataModelMetadataMock } from '@altinn/ux-editor/testing/dataModelMock';
+import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 
 describe('getMinOccursFromDataModelFields', () => {
   it('should be truthy if minOccurs is bigger than 0', () => {
@@ -139,6 +140,81 @@ describe('getDataModelFields', () => {
       dataModelMetadata: undefined,
     });
     expect(dataModelFields).toEqual([]);
+  });
+
+  describe('with a string list field in the data model', () => {
+    const stringListField = 'stringListField';
+    const metadataWithStringList: DataModelFieldElement[] = [
+      ...dataModelMetadataMock,
+      {
+        ...dataModelMetadataMock[1],
+        id: `defaultModel.${stringListField}`,
+        dataBindingName: stringListField,
+        maxOccurs: 99999,
+        xsdValueType: 'String',
+      },
+    ];
+    const plainFields = [
+      { value: 'field1', label: 'field1' },
+      { value: 'field2', label: 'field2' },
+      { value: 'datePickerField', label: 'datePickerField' },
+    ];
+    const stringListFields = [{ value: stringListField, label: stringListField }];
+
+    it.each([ComponentType.Checkboxes, ComponentType.MultipleSelect])(
+      'should return string list fields for the label binding of %s',
+      (multipleChoiceComponentType) => {
+        const dataModelFields = getDataModelFields({
+          componentType: multipleChoiceComponentType,
+          bindingKey: 'label',
+          dataModelMetadata: metadataWithStringList,
+        });
+        expect(dataModelFields).toEqual(stringListFields);
+      },
+    );
+
+    it.each([ComponentType.Checkboxes, ComponentType.MultipleSelect])(
+      'should return plain fields for the label binding of %s when a group binding is set',
+      (multipleChoiceComponentType) => {
+        const dataModelFields = getDataModelFields({
+          componentType: multipleChoiceComponentType,
+          bindingKey: 'label',
+          dataModelMetadata: metadataWithStringList,
+          hasGroupBinding: true,
+        });
+        expect(dataModelFields).toEqual(plainFields);
+      },
+    );
+
+    it.each([ComponentType.Dropdown, ComponentType.RadioButtons])(
+      'should return plain fields for the label binding of %s',
+      (singleChoiceComponentType) => {
+        const dataModelFields = getDataModelFields({
+          componentType: singleChoiceComponentType,
+          bindingKey: 'label',
+          dataModelMetadata: metadataWithStringList,
+        });
+        expect(dataModelFields).toEqual(plainFields);
+      },
+    );
+
+    it('should return plain fields for the simple binding of Checkboxes', () => {
+      const dataModelFields = getDataModelFields({
+        componentType: ComponentType.Checkboxes,
+        bindingKey: 'simpleBinding',
+        dataModelMetadata: metadataWithStringList,
+      });
+      expect(dataModelFields).toEqual(plainFields);
+    });
+
+    it('should return string list fields for the list binding of FileUpload', () => {
+      const dataModelFields = getDataModelFields({
+        componentType: ComponentType.FileUpload,
+        bindingKey: 'list',
+        dataModelMetadata: metadataWithStringList,
+      });
+      expect(dataModelFields).toEqual(stringListFields);
+    });
   });
 });
 

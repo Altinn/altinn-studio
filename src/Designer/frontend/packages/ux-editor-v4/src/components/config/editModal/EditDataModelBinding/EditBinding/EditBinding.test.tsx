@@ -103,6 +103,21 @@ const getAppMetadataModelIdsMock = vi
 const getDataModelMetadataMock = vi
   .fn()
   .mockImplementation(() => Promise.resolve(dataModelMetadataResponseMock));
+const stringListField = 'stringListField';
+const getDataModelMetadataWithStringListMock = vi.fn().mockImplementation(() =>
+  Promise.resolve({
+    elements: {
+      ...dataModelMetadataResponseMock.elements,
+      [`defaultModel.${stringListField}`]: {
+        ...dataModelMetadataResponseMock.elements['defaultModel.field1'],
+        id: `defaultModel.${stringListField}`,
+        dataBindingName: stringListField,
+        maxOccurs: 99999,
+        xsdValueType: 'String',
+      },
+    },
+  }),
+);
 
 describe('EditBinding', () => {
   it('should render loading spinner', async () => {
@@ -353,6 +368,51 @@ describe('EditBinding', () => {
         onSuccess: expect.any(Function),
       },
     );
+  });
+
+  it('should offer string list fields for the label binding of Checkboxes', async () => {
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        bindingKey: 'label',
+        component: componentMocks[ComponentType.Checkboxes],
+        internalBindingFormat: { field: '', dataType: defaultDataModel },
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataWithStringListMock,
+      },
+    });
+    await waitForLoadingToFinish();
+
+    expect(screen.getByRole('option', { name: stringListField })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: defaultDataModelField })).not.toBeInTheDocument();
+  });
+
+  it('should offer plain fields for the label binding of Checkboxes when a group binding is set', async () => {
+    const checkboxesComponent = componentMocks[ComponentType.Checkboxes];
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        bindingKey: 'label',
+        component: {
+          ...checkboxesComponent,
+          dataModelBindings: {
+            ...checkboxesComponent.dataModelBindings,
+            group: { field: 'group', dataType: defaultDataModel },
+          },
+        },
+        internalBindingFormat: { field: '', dataType: defaultDataModel },
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataWithStringListMock,
+      },
+    });
+    await waitForLoadingToFinish();
+
+    expect(screen.getByRole('option', { name: defaultDataModelField })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: stringListField })).not.toBeInTheDocument();
   });
 
   it('should close the EditBinding when clicking cancel', async () => {

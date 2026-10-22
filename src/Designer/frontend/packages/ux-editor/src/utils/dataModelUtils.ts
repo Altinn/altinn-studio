@@ -46,18 +46,22 @@ const generalFilter = (element: DataModelFieldElement) =>
   element.dataBindingName && element.maxOccurs <= 1;
 const repeatingGroupFilter = (element: DataModelFieldElement) =>
   element.dataBindingName && element.maxOccurs > 1;
-const multipleAttachmentsFilter = (element: DataModelFieldElement) =>
+const stringListFilter = (element: DataModelFieldElement) =>
   element.dataBindingName && element.maxOccurs > 1 && element.xsdValueType === 'String';
 
 export const getDataModelFieldsFilter = (
   componentType: ComponentType,
-  label: boolean,
+  bindingKey: string,
+  hasGroupBinding: boolean,
 ): ((element: DataModelFieldElement) => boolean) => {
   switch (componentType) {
     case ComponentType.RepeatingGroup:
       return repeatingGroupFilter;
     case ComponentType.FileUpload:
-      return label ? multipleAttachmentsFilter : generalFilter;
+      return bindingKey === 'list' ? stringListFilter : generalFilter;
+    case ComponentType.Checkboxes:
+    case ComponentType.MultipleSelect:
+      return bindingKey === 'label' && !hasGroupBinding ? stringListFilter : generalFilter;
     default:
       return generalFilter;
   }
@@ -85,14 +89,16 @@ type DataModelFields = {
   componentType: ComponentType;
   bindingKey: string;
   dataModelMetadata: DataModelFieldElement[];
+  hasGroupBinding?: boolean;
 };
 
 export const getDataModelFields = ({
   componentType,
   bindingKey,
   dataModelMetadata,
+  hasGroupBinding = false,
 }: DataModelFields): DataModelField[] => {
-  const filter = getDataModelFieldsFilter(componentType, bindingKey === 'list');
+  const filter = getDataModelFieldsFilter(componentType, bindingKey, hasGroupBinding);
   return filterDataModelFields(filter, dataModelMetadata);
 };
 
