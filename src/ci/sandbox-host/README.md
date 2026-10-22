@@ -1,8 +1,7 @@
 # sandbox-host
 
-Some workloads run code that must not reach the host they run on, such as GitHub Actions jobs. They start each job in
-its own short-lived microVM, a Sandbox, on the Altinn sandbox nodes. This crate is the host setup those workloads share
-to start Sandboxes safely. [`sandbox-node`](../sandbox-node/README.md) prepares the nodes themselves.
+Starts jobs in their own short-lived microVM on the Altinn sandbox nodes. This crate is the host setup those
+workloads share to start Sandboxes safely. [`sandbox-node`](../sandbox-node/README.md) prepares the nodes themselves.
 
 - `ProviderArguments` opens the Microsandbox Provider with the runtime bundle in the container image, after checking
   it against its published checksum. It takes the Provider home from `SANDBOX_PROVIDER_HOME` and the image cache from
