@@ -19,8 +19,19 @@ type Props = LinkProps & { children?: React.ReactNode };
 export const LinkToPotentialNode = (props: Props) => {
   const to = props.to;
   const searchParams = typeof to === 'string' ? to.split('?').at(1) : to.search;
-
   const componentId = new URLSearchParams(searchParams).get(SearchParams.FocusComponentId);
+
+  // Key on componentId to mount a new component when it changes, since useIsHidden does not support a changing id
+  return (
+    <LinkToPotentialNodeInner
+      key={componentId}
+      componentId={componentId}
+      {...props}
+    />
+  );
+};
+
+function LinkToPotentialNodeInner({ componentId, ...props }: Props & { componentId: string | null }) {
   const { baseComponentId } = splitDashedKey(componentId ?? '');
   const component = useExternalItem(baseComponentId);
 
@@ -42,4 +53,4 @@ export const LinkToPotentialNode = (props: Props) => {
   }
 
   return props.children;
-};
+}
