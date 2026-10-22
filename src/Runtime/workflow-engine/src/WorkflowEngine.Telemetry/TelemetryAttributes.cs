@@ -192,9 +192,10 @@ public static class TelemetryAttributes
     public const string MailboxDeliveryOutcome = "altinn.workflow_engine.mailbox.delivery.outcome";
 
     /// <summary>
-    /// The state a mailbox receive workflow was born in: <c>delivered</c>, <c>closed</c> or <c>held</c>.
+    /// The outcome of enqueuing a mailbox receive workflow: created runnable with the delivery at its position
+    /// (<c>delivered</c>) or with the closing signal (<c>closed</c>), or created parked (<c>held</c>).
     /// </summary>
-    public const string MailboxReceiverBirth = "altinn.workflow_engine.mailbox.receiver.birth";
+    public const string MailboxReceiverEnqueueOutcome = "altinn.workflow_engine.mailbox.receiver.enqueue_outcome";
 
     /// <summary>
     /// What released a parked mailbox receive workflow: <c>delivered</c> or <c>closed</c>.

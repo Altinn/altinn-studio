@@ -710,16 +710,16 @@ position could take one twice or skip one, and the pairing of the two logs is th
 
 Three constraints hold: the delivery lands in the **first** step only (later steps are ordinary); a
 workflow carries at most one mailbox block (the shape of the field, not a checked rule); and a
-receiver may not also carry `startAt` — a waiting receiver is born `Held`, which has no schedule.
+receiver may not also carry `startAt` — a waiting receiver is created `Held`, which has no schedule.
 There is no per-receiver timeout; the mailbox's deadline bounds the whole exchange.
 
-#### Three births, decided under the mailbox's row lock
+#### Three enqueue outcomes, decided under the mailbox's row lock
 
 Inside the enqueue flush, the engine locks the mailbox row — for the requests that are actually new,
 see [serialization point](#the-mailbox-row-is-its-own-serialization-point) — assigns
-`seq = nextSeq++`, and decides the state the workflow is born in:
+`seq = nextSeq++`, and decides the status the workflow is created in:
 
-| At the assigned position                        | Born                                          |
+| At the assigned position                        | Created                                       |
 | ----------------------------------------------- | --------------------------------------------- |
 | A delivery already sits there (`seq < nextIdx`) | `Enqueued`, runnable, with that message       |
 | No delivery, and the mailbox is closed          | `Enqueued`, runnable, with the closing signal |
@@ -744,7 +744,7 @@ already created, even once the log it filled is full.
 
 #### `Held`, and what releases it
 
-`Held` means born parked: durable and visible from creation, and never started. It is **absent from
+`Held` means parked from creation: durable and visible, and never started. It is **absent from
 the fetch gate's status list** — no worker claims it, and it holds no lease, no heartbeat, no
 backoff, and no timer of its own, because the release is transactional with its cause and the
 mailbox's deadline bounds the wait. It is non-terminal and counts as active, so the dependency gate
@@ -755,16 +755,16 @@ The position lives in `engine.mailbox_receivers`, keyed `(mailbox_id, seq)` for 
 and `UNIQUE (workflow_id)` for the executor's. The workflow row itself gains one nullable column,
 `mailbox_id` — the executor's discriminator and the marker ops reads a held row by.
 
-**Every receiver registers, whatever state it was born in.** The registry is positional, not a queue
-of waiters: the position is the address the executor reads the delivery by, so an unregistered
-born-runnable receiver would be handed the closing signal while its message sits at that very
-position — the one thing [the frozen-meaning
+**Every receiver registers, whatever status it was created in.** The registry is positional, not a
+queue of waiters: the position is the address the executor reads the delivery by, so a receiver
+created runnable but left unregistered would be handed the closing signal while its message sits at
+that very position — the one thing [the frozen-meaning
 rule](#the-receivers-meaning-is-frozen-before-it-can-run) forbids outright. `held_at` is the row's
 one structural distinction: stamped means the receiver parked (the unreleased subset is exactly the
-set the releases walk); null means born runnable, with `released_at` carrying the birth instant so no
-release can ever match it.
+set the releases walk); null means created runnable, with `released_at` carrying the creation time
+so no release can ever match it.
 
-Metric: `altinn.workflow_engine.mailbox.receiver.created`, tagged `altinn.workflow_engine.mailbox.receiver.birth`
+Metric: `altinn.workflow_engine.mailbox.receiver.created`, tagged `altinn.workflow_engine.mailbox.receiver.enqueue_outcome`
 (`delivered`/`closed`/`held`) — the one number that separates "the relay is running" from "the relay is parked".
 
 ### The rendezvous: exactly two things release a parked receiver
@@ -780,7 +780,8 @@ Both run the same statement: `Held` → `Enqueued` with a null backoff (so the r
 front of the fetch order), plus a `released_at` stamp on the registry row. The wake names one
 position; the closure release names none and takes every parked receiver the mailbox has. Two
 independent guards — skip rows already stamped, require the workflow to still be `Held` — are what
-make a registry holding every receiver safe to run these over: a born-runnable row fails both.
+make a registry holding every receiver safe to run these over: a receiver created runnable fails
+both.
 
 **The wake being transactional with the delivery insert is the design's load-bearing property.** A
 held receiver has no timer, so "message durable, wake lost" would park it until the deadline with its
@@ -797,10 +798,10 @@ acceleration and never correctness**: a release that commits unannounced is clai
 cycle.
 
 Metrics: `altinn.workflow_engine.mailbox.receiver.released`, tagged `altinn.workflow_engine.mailbox.receiver.release_cause`
-(`delivered`/`closed`) — against the `held` births, the relay's balance sheet — and
+(`delivered`/`closed`) — against the receivers created `held`, the relay's balance sheet — and
 `altinn.workflow_engine.mailbox.receiver.wake.duration`, seconds from release to first claim. Recorded once per release (the fetch stamps `claimed_at` under
 `claimed_at IS NULL`), so a failing receiver reports its wake once, not its retry ladder; a receiver
-born runnable records no sample (`held_at IS NULL` — there was no wake to time), keeping ordinary
+created runnable records no sample (`held_at IS NULL` — there was no wake to time), keeping ordinary
 fetch-cycle latency out of a histogram built for a sub-second gap.
 
 ### The receiver's meaning is frozen before it can run
@@ -811,7 +812,8 @@ nothing, followed by one that sees a message. The rendezvous removes the hazard 
 than by recording a verdict. A receiver becomes runnable in exactly three ways, and each settles the
 question first:
 
-1. **born with its message** — the enqueue flush found one at its position, mailbox open or closed;
+1. **created with its message** — the enqueue flush found one at its position, mailbox open or
+   closed;
 2. **released by the wake** — inside the transaction that wrote the delivery, so the message exists;
 3. **released by closure** — and a closed mailbox refuses every further delivery, so no message can
    ever arrive at that position.
@@ -836,7 +838,7 @@ The three rows are read in a single snapshot, and that is what makes the error s
 trustworthy: under `READ COMMITTED`, a split read that saw "no delivery" — a genuine bug — could see
 a close commit one statement later and report a perfectly ordinary closing signal, laundering the
 violation through traffic that happens all the time. (`held_at` is not consulted: it records how the
-receiver was born, not whether a message exists.)
+receiver was created, not whether a message exists.)
 
 **A callback with no delivery therefore means exactly one thing: the mailbox is closed and no message
 will ever reach this step.** It carries `disposedReason` — `deadline` or `request` — explicitly,
@@ -903,8 +905,8 @@ Closing is also a release: under the same row lock, **every** parked receiver go
 `Enqueued` on the no-delivery path, so the exchange concludes through the app's own conclusion path
 rather than an engine-written status. Every one of them at once — the mailbox accepts no further
 deliveries, so all their truths froze at the same instant. A repeat close releases nothing and cannot
-need to: the first close released everything parked, and later enqueues against a closed mailbox are
-born runnable.
+need to: the first close released everything parked, and receivers enqueued later against a closed
+mailbox are created runnable.
 
 The response reports `unpairedDeliveries` — accepted positions no receiver was ever enqueued for,
 messages that arrived while the app was concluding or past the relay's last hop. The rows stay
@@ -1053,8 +1055,8 @@ Two deliberate exceptions:
   requests that can actually consume a position — unknowable until the idempotency insert has told a
   first arrival from a replay, whose answer comes from `engine.idempotency_keys` alone. Locking
   earlier would stall every ordinary workflow batched alongside behind a delivery or a close, for a
-  request that changes no mailbox state. What matters is preserved exactly: nothing about a
-  receiver's birth is read before the lock.
+  request that changes no mailbox state. What matters is preserved exactly: nothing that decides a
+  receiver's enqueue outcome is read before the lock.
 - **The mint takes no row lock at all**, and cannot — the row is what it creates. The unique index on
   `(namespace, idempotencyKey)` serializes it instead: concurrent mints of one key contend there,
   exactly one inserts, and the losers are handed the winner's mailbox.
@@ -1316,7 +1318,7 @@ Names under `altinn.workflow_engine.`:
 | `mailbox.closed`                 | Counter   | `altinn.workflow_engine.reason` (`request`/`deadline`)                                                                           |
 | `mailbox.delivery.received`      | Counter   | `altinn.workflow_engine.mailbox.delivery.outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
 | `mailbox.delivery.unpaired`      | Counter   | — (recorded by the deadline sweep alone)                                                                                         |
-| `mailbox.receiver.created`       | Counter   | `altinn.workflow_engine.mailbox.receiver.birth` (`delivered`/`closed`/`held`)                                                    |
+| `mailbox.receiver.created`       | Counter   | `altinn.workflow_engine.mailbox.receiver.enqueue_outcome` (`delivered`/`closed`/`held`)                                          |
 | `mailbox.receiver.released`      | Counter   | `altinn.workflow_engine.mailbox.receiver.release_cause` (`delivered`/`closed`)                                                   |
 | `mailbox.receiver.wake.duration` | Histogram | — (seconds from release to first claim, recorded once per release)                                                               |
 | `mailbox.rendezvous.violations`  | Counter   | `altinn.workflow_engine.mailbox.rendezvous.state` (`unregistered`/`undecided`)                                                   |

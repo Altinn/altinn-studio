@@ -18,7 +18,7 @@
  *                  deferring until their wait budget expires
  *   nudger       — clears the backoff on parked workflows, the engine's push channel
  *   dependencies — a failed workflow with a dependent, resumed so the dependent is recovered
- *   mailboxes    — full request–reply exchanges: mints, receivers born before and after their
+ *   mailboxes    — full request–reply exchanges: mints, receivers created before and after their
  *                  message, duplicate deliveries, refusals, closes, and some mailboxes deliberately
  *                  left to hit their deadline
  *   storm        — one namespace per storm arm, each with its own switchable WireMock downstream:
@@ -597,9 +597,9 @@ function workflowStatus(id) {
 
 /**
  * One full request–reply exchange per iteration, shaped to hit every mailbox verdict the dashboard
- * plots. The order matters: a receiver enqueued before its message is born `held` and later released
- * by the delivery (which is what `altinn.workflow_engine.mailbox.receiver.wake.duration` measures),
- * while one enqueued after its message is born `delivered` and never parks at all.
+ * plots. The order matters: a receiver enqueued before its message is created `held` and later
+ * released by the delivery (which is what `altinn.workflow_engine.mailbox.receiver.wake.duration`
+ * measures), while one enqueued after its message is created `delivered` and never parks at all.
  */
 export function runMailboxExchange() {
     const collectionKey = `pg-mb-${uuidv4()}`;
@@ -621,7 +621,7 @@ export function runMailboxExchange() {
     }
     const deliveries = `${mailboxesUrl(NS)}/${mailboxId}/deliveries`;
 
-    // Receiver first: born `held`, released by the delivery below.
+    // Receiver first: created `held`, released by the delivery below.
     enqueueReceiver(mailboxId, collectionKey);
     const firstKey = `${collectionKey}-msg-1`;
     post(
@@ -638,7 +638,7 @@ export function runMailboxExchange() {
         'mailbox_duplicate',
     );
 
-    // Message first: the next receiver is born `delivered` and runs without ever parking.
+    // Message first: the next receiver is created `delivered` and runs without ever parking.
     post(
         deliveries,
         { idempotencyKey: `${collectionKey}-msg-2`, payload: '{"reply":2}' },
@@ -702,7 +702,7 @@ export function runMailboxExchange() {
     trackStatus(closed.status);
 
     if (roll === 2) {
-        // A saga replaying past the close: the receiver is still born, with `birth=closed`.
+        // A saga replaying past the close: the receiver is still created, with `enqueue_outcome=closed`.
         enqueueReceiver(mailboxId, collectionKey);
     }
 

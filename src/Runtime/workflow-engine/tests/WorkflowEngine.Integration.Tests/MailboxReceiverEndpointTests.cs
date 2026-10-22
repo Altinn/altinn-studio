@@ -152,7 +152,7 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
     #region Telemetry
 
     [Fact]
-    public async Task ReceiversAreCountedByTheStateTheyWereBornIn()
+    public async Task ReceiversAreCountedByTheirEnqueueOutcome()
     {
         var open = await MintMailbox("step-open");
         var withDelivery = await MintMailbox("step-delivered");
@@ -167,9 +167,11 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
         await _client.Enqueue(_helpers.CreateEnqueueRequest(Receiver(closed.Id)));
         (await _client.EnqueueRaw(_helpers.CreateEnqueueRequest(Receiver(Guid.CreateVersion7())))).Dispose();
 
-        var byBirth = collector
+        var byOutcome = collector
             .GetMeasurements("altinn.workflow_engine.mailbox.receiver.created")
-            .GroupBy(m => (string)m.Tags.Single(t => t.Key == "altinn.workflow_engine.mailbox.receiver.birth").Value!)
+            .GroupBy(m =>
+                (string)m.Tags.Single(t => t.Key == "altinn.workflow_engine.mailbox.receiver.enqueue_outcome").Value!
+            )
             .ToDictionary(g => g.Key, g => g.Sum(m => Convert.ToInt64(m.Value, CultureInfo.InvariantCulture)));
 
         Assert.Equal(
@@ -179,7 +181,7 @@ public sealed class MailboxReceiverEndpointTests(EngineAppFixture<Program> fixtu
                 ["delivered"] = 1,
                 ["closed"] = 1,
             },
-            byBirth
+            byOutcome
         );
     }
 

@@ -166,7 +166,7 @@ public sealed class MailboxRendezvousEndpointTests(EngineAppFixture<Program> fix
 
         var accepted = await _client.Enqueue(
             _helpers.CreateEnqueueRequest(Receiver(mailbox.Id, "/receive")),
-            idempotencyKey: "born-runnable"
+            idempotencyKey: "created-runnable"
         );
         var receiver = Assert.Single(accepted.Workflows).DatabaseId;
         await _client.WaitForWorkflowStatus(receiver, PersistentItemStatus.Completed);

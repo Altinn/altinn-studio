@@ -386,13 +386,13 @@ public static class Metrics
     );
 
     /// <summary>
-    /// The birth state separates "the relay is running" from "the relay is parked". Counted after commit, so a
-    /// rolled-back birth is not counted.
+    /// The enqueue outcome separates "the relay is running" from "the relay is parked". Counted after commit, so
+    /// a rolled-back creation is not counted.
     /// </summary>
     public static readonly Counter<long> MailboxReceiversCreated = Meter.CreateCounter<long>(
         "altinn.workflow_engine.mailbox.receiver.created",
         unit: "{receiver}",
-        description: "Number of mailbox receive workflows created, tagged by the state they were born in"
+        description: "Number of mailbox receive workflows created, tagged by enqueue outcome (delivered, closed or held)"
     );
 
     /// <summary>
@@ -406,7 +406,7 @@ public static class Metrics
     );
 
     /// <summary>
-    /// The part <c>NOTIFY</c> accelerates and the fetch cycle bounds. A receiver born runnable is excluded via
+    /// The part <c>NOTIFY</c> accelerates and the fetch cycle bounds. A receiver created runnable is excluded via
     /// <c>held_at</c>. Clamped at zero: the two ends come from two pods' clocks.
     /// </summary>
     public static readonly Histogram<double> MailboxReceiverWakeLatency = Meter.CreateHistogram<double>(

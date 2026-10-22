@@ -4523,7 +4523,7 @@
         "type": "prometheus",
         "uid": "altinn-studio-metrics"
       },
-      "description": "Receive workflows entering and leaving the rendezvous. Every receiver registers, not only the parked ones. Births, by how the receiver was born: `held` is born waiting for a message that has not arrived, `delivered` is born already holding one, `closed` is born into a mailbox that had already closed. Releases, by cause: `delivered` is a message arriving for a parked receiver, `closed` is closure releasing every receiver at once. `held` births and total releases should track each other over time; a persistent gap is receivers that never got woken.",
+      "description": "Receive workflows entering and leaving the rendezvous. Every receiver registers, not only the parked ones. Created, by enqueue outcome: `held` is created waiting for a message that has not arrived, `delivered` is created already holding one, `closed` is created against a mailbox that had already closed. Released, by cause: `delivered` is a message arriving for a parked receiver, `closed` is closure releasing every receiver at once. Receivers created `held` and total releases should track each other over time; a persistent gap is receivers that never got woken.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -4567,7 +4567,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Born (held)"
+              "options": "Created (held)"
             },
             "properties": [
               {
@@ -4582,7 +4582,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Born (delivered)"
+              "options": "Created (delivered)"
             },
             "properties": [
               {
@@ -4597,7 +4597,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Born (closed)"
+              "options": "Created (closed)"
             },
             "properties": [
               {
@@ -4669,8 +4669,8 @@
             "type": "prometheus",
             "uid": "altinn-studio-metrics"
           },
-          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.birth\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
-          "legendFormat": "Born ({{altinn.workflow_engine.mailbox.receiver.birth}})",
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.enqueue_outcome\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Created ({{altinn.workflow_engine.mailbox.receiver.enqueue_outcome}})",
           "refId": "A"
         },
         {
@@ -4683,7 +4683,7 @@
           "refId": "B"
         }
       ],
-      "title": "Receivers: Births & Releases",
+      "title": "Receivers: Created & Released",
       "type": "timeseries"
     },
     {
