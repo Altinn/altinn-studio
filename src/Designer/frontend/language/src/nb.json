@@ -315,6 +315,7 @@
   "app_deployment.unpublish_impact_error_page": "Hvis du ikke har fjernet aktive eksemplarer fra innboksen, får de som bruker appen en feilside, med melding om at appen ikke finnes lenger.",
   "app_deployment.unpublish_impact_title": "Dette skjer når du har avpublisert",
   "app_deployment.version_label": "Versjon {{tagName}} ({{createdDateTime}})",
+  "app_deployment.version_label_with_branch": "Versjon {{tagName}} ({{createdDateTime}}), gren: {{branch}}",
   "app_error.details": "Detaljer",
   "app_release.build_source_branch": "Gren:",
   "app_release.build_source_commit_message": "Kommentar:",
