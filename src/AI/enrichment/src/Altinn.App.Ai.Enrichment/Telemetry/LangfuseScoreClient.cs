@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.Ai.Enrichment.Telemetry;
 
 /// <summary>
-/// A judgement attached to a traced run — typically a caseworker's verdict on
+/// A judgment attached to a traced run — typically a caseworker's verdict on
 /// whether the model got it right.
 /// </summary>
 public sealed record LangfuseScore

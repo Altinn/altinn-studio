@@ -100,7 +100,7 @@ internal sealed class LangfuseTracing(
         catch (Exception ex)
         {
             // A misconfigured observability section must never stop an app from booting.
-            logger.LogError(ex, "Could not initialise Langfuse tracing; it stays disabled");
+            logger.LogError(ex, "Could not initialize Langfuse tracing; it stays disabled");
             _provider = null;
         }
     }
@@ -284,7 +284,7 @@ internal sealed class LangfuseTracing(
         /// Attaches the logger and enables everything seen so far.
         ///
         /// The base <see cref="EventListener"/> constructor replays already-created
-        /// sources before a derived class can finish initialising, so the logger cannot
+        /// sources before a derived class can finish initializing, so the logger cannot
         /// be supplied through the constructor — those early callbacks would race it.
         /// </summary>
         public void Start(ILogger logger)

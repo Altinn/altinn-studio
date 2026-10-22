@@ -132,7 +132,7 @@ public sealed class AiServiceTask(
                         + "skipping agent re-run (replay of an attempt whose success response was lost)",
                     taskId, workflowId);
 
-                // A replay is correct behaviour, not a failure, so it stays at default level
+                // A replay is correct behavior, not a failure, so it stays at default level
                 // and simply carries no children — the session shows why a submission has
                 // more than one trace without anyone having to cross-reference the engine.
                 trace.DescribeRun(

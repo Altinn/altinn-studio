@@ -193,8 +193,8 @@ public sealed class EnrichmentTrace(IOptions<LangfuseOptions> options)
             Metadata(activity, "tool_call_count", toolCalls);
             Metadata(activity, "finish_reason", finishReason);
 
-            // "ikke_vurdert" means the engine could not reach a judgement - a transport
-            // failure, an unparseable response, or an exhausted tool loop. Surfacing it as
+            // "ikke_vurdert" means the engine could not reach a judgment - a transport
+            // failure, an unparsable response, or an exhausted tool loop. Surfacing it as
             // an error is what makes Langfuse's error filter useful on this data.
             if (string.Equals(status, UnevaluatedStatus, StringComparison.Ordinal))
                 activity.SetStatus(ActivityStatusCode.Error, merknad);
@@ -327,7 +327,7 @@ public sealed class EnrichmentTrace(IOptions<LangfuseOptions> options)
         }
     }
 
-    /// <summary>Verdict status the orchestrator uses when it could not reach a judgement.</summary>
+    /// <summary>Verdict status the orchestrator uses when it could not reach a judgment.</summary>
     private const string UnevaluatedStatus = "ikke_vurdert";
 
     private Activity? Start(string name, string observationType)

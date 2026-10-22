@@ -171,7 +171,7 @@ session = instance id ......... one submission, including engine retries and rep
 A generation carries `tool_names` in its metadata, so whether a given response caused
 a tool call is visible without expanding the tree. `rule_key`, `step_name`,
 `iteration` and `tool_name` are flat metadata keys, so a question like "every
-`frist.klagefrist` that came back `ikke_vurdert` this month" is one filter rather
+`deadlines.appeal_deadline` that came back `ikke_vurdert` this month" is one filter rather
 than a text search through prompts.
 
 ```json
@@ -245,7 +245,7 @@ ambient trace 4bf9…, link https://langfuse.digdir.cloud/project/<id>/traces/0a
 
 That line is the fork in the road. If it is **missing**, no span was created, so the
 problem is upstream of the export — tracing is off for the environment the app is
-running in, or the `ai` task never ran. Check that the `Enabled` in the *effective*
+running in, or the `ai` task never ran. Check that the `Enabled` in the _effective_
 configuration is true: `appsettings.Development.json` overrides `appsettings.json`,
 and both apps ship with tracing off for local development.
 

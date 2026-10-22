@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 // Washes caseworker verdicts back onto the traces the ai process task produced.
 //
 // The connecting thread is the instance id: it is the Langfuse session id, so a
-// spreadsheet of instance ids plus a judgement is enough to find the runs and
+// spreadsheet of instance ids plus a judgment is enough to find the runs and
 // score them. Score ids are derived from the instance id and the score name, so
 // re-running a corrected file overwrites rather than duplicates.
 

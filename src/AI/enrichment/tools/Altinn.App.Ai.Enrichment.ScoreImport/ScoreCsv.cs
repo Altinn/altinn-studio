@@ -14,7 +14,7 @@ public sealed record ScoreRow
 
 /// <summary>
 /// Reads the spreadsheet a caseworker hands over. Deliberately small: the input is
-/// exported by hand, so the useful behaviour is a precise complaint about row 14
+/// exported by hand, so the useful behavior is a precise complaint about row 14
 /// rather than support for every CSV dialect.
 /// </summary>
 public static class ScoreCsv
@@ -104,7 +104,7 @@ public static class ScoreCsv
     }
 
     /// <summary>
-    /// Splits on the given separator, honouring double quotes so a comment may contain
+    /// Splits on the given separator, honoring double quotes so a comment may contain
     /// it. Norwegian Excel writes semicolons by default.
     /// </summary>
     private static List<string> SplitLine(string line, char separator)
