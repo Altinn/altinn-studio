@@ -20,7 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
     - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
 
-- Build checks `ALTINNAPP1004`–`ALTINNAPP1012` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element or a task with two outgoing flows. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023))
+- Build checks `ALTINNAPP1004`–`ALTINNAPP1012` and `ALTINNAPP1023` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element, a task with two outgoing flows or a condition on a gateway's default. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023), [#21105](https://github.com/Altinn/altinn-studio/pull/21105))
 
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
 
@@ -53,6 +53,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - waits for an earlier call that has not started yet, or that made the same choice on the same version
 - Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `Filter` gets instead, which reads as the app.
 - Breaking: `PUT .../process/next` now records the `Process.GenerateChangeEvent` and `Process.End` spans in its own trace, not the workflow callback's, even if the transition is not carried out. Update dashboards, alerts and queries that use them or count `Process.End` as ended processes. ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
+- Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow is valid. The app does not start: ([#21105](https://github.com/Altinn/altinn-studio/pull/21105))
+    - if the default has a condition, which the app never evaluates; remove it
+    - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
 
 ### Fixed
 
