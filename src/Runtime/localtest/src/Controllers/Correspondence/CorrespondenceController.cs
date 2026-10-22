@@ -266,6 +266,12 @@ public class CorrespondenceController(
     /// </summary>
     private static CorrespondenceRequestDto? StoredRequest(StoredCorrespondence correspondence)
     {
+        if (correspondence.Request.ValueKind == JsonValueKind.Undefined)
+        {
+            // The record has no request at all, which Deserialize reports as a misuse rather than as bad JSON
+            return null;
+        }
+
         try
         {
             return correspondence

@@ -184,12 +184,49 @@ public sealed class LocalCorrespondenceRepository : IDisposable
     }
 
     /// <summary>
-    /// Reads an attachment's uploaded data, or <c>null</c> when there is none.
+    /// Opens an attachment's uploaded data for reading, or returns <c>null</c> when there is none. The caller disposes
+    /// the stream. The data is streamed rather than read whole, since an attachment can be as large as the real API
+    /// takes.
     /// </summary>
-    public async Task<byte[]?> ReadAttachmentData(Guid attachmentId)
+    public Stream? OpenAttachmentData(Guid attachmentId)
     {
-        var fileName = AttachmentDataFileName(attachmentId);
-        return File.Exists(fileName) ? await File.ReadAllBytesAsync(fileName) : null;
+        try
+        {
+            return new FileStream(
+                AttachmentDataFileName(attachmentId),
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read | FileShare.Delete,
+                bufferSize: 4096,
+                useAsync: true
+            );
+        }
+        catch (FileNotFoundException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Deletes every stored correspondence and attachment, and with them the idempotent keys they carry, so a
+    /// request that reuses one creates a new correspondence. An upload streaming meanwhile keeps its temporary
+    /// file and finds its attachment gone when it finishes.
+    /// </summary>
+    public async Task Clear()
+    {
+        using var mutationLock = await _mutationLock.Lock();
+
+        foreach (var file in Storage().GetFiles("*.json"))
+        {
+            file.Delete();
+        }
+        foreach (var file in AttachmentStorage().GetFiles())
+        {
+            if (file.Extension is ".json" or ".bin")
+            {
+                file.Delete();
+            }
+        }
     }
 
     public void Dispose() => _mutationLock.Dispose();
@@ -241,6 +278,11 @@ public sealed class LocalCorrespondenceRepository : IDisposable
                 "Skipping {FileName}, which this version of Localtest cannot read",
                 fileName
             );
+            return null;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // Clear deleted the file after it was listed, or another request holds it; the rest still shows.
             return null;
         }
     }
