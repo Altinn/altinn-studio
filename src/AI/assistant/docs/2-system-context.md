@@ -31,6 +31,8 @@ flowchart LR
 
 _Support services. Langfuse is optional. Without it, the service records no traces and uses local prompt files._
 
+The v9 upgrade runs code from the app. For each upgrade, the service starts a Kubernetes Job in the namespace `assistant-runners` and sends the app to its pod. The pod runs the upgrade in a microVM without secrets (`src/AI/assistant-runner`).
+
 ## Connect and register a thread
 
 Designer opens one WebSocket to the assistant service for each developer. This socket stays open when the user reloads the page. Thus a run continues to send events after a page reload.

@@ -18,6 +18,8 @@ spec:
         app: altinn-altinity-agents
     spec:
       serviceAccountName: altinn-altinity-agents-sa
+      # The token lets the assistant start runner Jobs in the namespace assistant-runners, and nothing else.
+      automountServiceAccountToken: true
       containers:
         - name: altinn-altinity-agents
           image: altinn-altinity-agents:latest
@@ -39,6 +41,8 @@ spec:
                   key: AZURE_API_KEY
             - name: GITEA_BASE_URL
               value: "http://altinn-repositories-public"
+            - name: RUNNER_NAMESPACE
+              value: assistant-runners
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
