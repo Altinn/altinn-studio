@@ -17,4 +17,10 @@ public interface IAppVersionService
     /// resolved (e.g. no matching package reference) is treated as not being v9.
     /// </summary>
     bool IsV9App(AltinnRepoEditingContext altinnRepoEditingContext);
+
+    /// <summary>
+    /// Returns whether the given app's app-lib version reads a data type's <c>taskIds</c> rather than its
+    /// <c>taskId</c>. An app whose version cannot be resolved is treated as reading <c>taskId</c>.
+    /// </summary>
+    bool UsesDataTypeTaskIds(AltinnRepoEditingContext altinnRepoEditingContext);
 }

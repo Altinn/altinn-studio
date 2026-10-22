@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.App.Core.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -13,12 +14,16 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
 
+#pragma warning disable CS0618 // empty-app has no app-lib version, so Designer treats it as a v8 app
+
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.DataTypesChangeTests;
 
 public class ApplicationMetadataFileSyncDataTypesTests
     : DesignerEndpointsTestsBase<ApplicationMetadataFileSyncDataTypesTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
+    private string _targetRepository;
+
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/process-modelling/data-types";
 
@@ -214,6 +219,62 @@ public class ApplicationMetadataFileSyncDataTypesTests
         ); // No data type connected to Task_1
     }
 
+    [Fact]
+    public async Task ProcessDataTypesChangedNotify_WhenAppReadsTaskIds_ShouldMoveTaskBetweenTaskIdsLists()
+    {
+        await PrepareRepo(appLibVersion: "9.0.0");
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "datalist", taskId: null, ["Task_5", "Task_6"]);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "message", taskId: "Task_1", taskIds: null);
+
+        await SendDataTypesChange(new DataTypesChange { NewDataTypes = ["message"], ConnectedTaskId = "Task_5" });
+
+        JsonObject datalist = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "datalist");
+        Assert.Equal(new[] { "Task_6" }, DataTypeTaskBindingTestHelper.ReadTaskIds(datalist));
+        Assert.False(datalist.ContainsKey("taskId"));
+        JsonObject message = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "message");
+        Assert.Equal(new[] { "Task_5" }, DataTypeTaskBindingTestHelper.ReadTaskIds(message));
+        Assert.Equal("Task_1", (string)message["taskId"]);
+    }
+
+    [Fact]
+    public async Task ProcessDataTypesChangedNotify_WhenAppReadsTaskIds_ShouldKeepEmptiedListAndIgnoreTaskId()
+    {
+        await PrepareRepo(appLibVersion: "9.0.0");
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "datalist", taskId: null, ["Task_5"]);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "likert", taskId: "Task_5", taskIds: null);
+
+        await SendDataTypesChange(new DataTypesChange { NewDataTypes = [], ConnectedTaskId = "Task_5" });
+
+        JsonObject datalist = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "datalist");
+        Assert.Empty(DataTypeTaskBindingTestHelper.ReadTaskIds(datalist));
+        JsonObject likert = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "likert");
+        Assert.Equal("Task_5", (string)likert["taskId"]);
+        Assert.False(likert.ContainsKey("taskIds"));
+    }
+
+    [Fact]
+    public async Task ProcessDataTypesChangedNotify_WhenAppReadsOnlyTaskId_ShouldMoveTaskIdAndAddTaskToExistingTaskIds()
+    {
+        await PrepareRepo("8.12.10");
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "datalist", "Task_5", ["Task_5"]);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "message", "Task_1", ["Task_1"]);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(TestRepoPath, "likert", "Task_1", taskIds: null);
+
+        await SendDataTypesChange(
+            new DataTypesChange { NewDataTypes = ["message", "likert"], ConnectedTaskId = "Task_5" }
+        );
+
+        JsonObject datalist = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "datalist");
+        Assert.False(datalist.ContainsKey("taskId"));
+        Assert.Empty(DataTypeTaskBindingTestHelper.ReadTaskIds(datalist));
+        JsonObject message = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "message");
+        Assert.Equal("Task_5", (string)message["taskId"]);
+        Assert.Equal(new[] { "Task_1", "Task_5" }, DataTypeTaskBindingTestHelper.ReadTaskIds(message));
+        JsonObject likert = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "likert");
+        Assert.Equal("Task_5", (string)likert["taskId"]);
+        Assert.False(likert.ContainsKey("taskIds"));
+    }
+
     public static IEnumerable<object[]> ProcessDataTypeChangedNotifyTestData()
     {
         yield return
@@ -224,6 +285,28 @@ public class ApplicationMetadataFileSyncDataTypesTests
             "App/config/applicationmetadata.json",
             new DataTypesChange { NewDataTypes = [], ConnectedTaskId = "Task_1" },
         ];
+    }
+
+    private async Task PrepareRepo(string appLibVersion)
+    {
+        _targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "empty-app", "testUser", _targetRepository);
+        await AddFileToRepo("App/config/applicationmetadata.json", "App/config/applicationmetadata.json");
+        TestDataHelper.WriteAppLibVersion(TestRepoPath, appLibVersion);
+    }
+
+    private async Task SendDataTypesChange(DataTypesChange dataTypesChange)
+    {
+        string dataTypesChangeString = JsonSerializer.Serialize(
+            dataTypesChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, VersionPrefix("ttd", _targetRepository))
+        {
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json"),
+        };
+        using var response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }
 
     private async Task AddFileToRepo(string fileToCopyPath, string relativeCopyRepoLocation)

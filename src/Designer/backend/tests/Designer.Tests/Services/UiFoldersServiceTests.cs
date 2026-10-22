@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
@@ -108,6 +109,60 @@ public class UiFoldersServiceTests : IDisposable
         Assert.Equal("pdf", pdfLayoutSet.TaskType);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeleteLayoutSet_WhenAppReadsTaskIds_AndTaskIdsLacksTask_LeavesBindingAlone(bool hasTaskIds)
+    {
+        // Arrange
+        string[] existingTaskIds = hasTaskIds ? ["Task_2"] : null;
+        (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
+        TestDataHelper.WriteAppLibVersion(_testRepoPath, "9.0.0");
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(_testRepoPath, "myModel", "Task_1", existingTaskIds);
+
+        // Act
+        await service.DeleteLayoutSet(editingContext, "Task_1", CancellationToken.None);
+
+        // Assert
+        JsonObject dataType = DataTypeTaskBindingTestHelper.ReadDataType(_testRepoPath, "myModel");
+        Assert.Equal("Task_1", (string)dataType["taskId"]);
+        Assert.Equal(existingTaskIds, DataTypeTaskBindingTestHelper.ReadTaskIds(dataType));
+    }
+
+    [Fact]
+    public async Task DeleteLayoutSet_WhenAppReadsTaskIds_RemovesTaskFromTaskIdsAndLeavesTaskIdAlone()
+    {
+        // Arrange
+        (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
+        TestDataHelper.WriteAppLibVersion(_testRepoPath, "9.0.0");
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(_testRepoPath, "myModel", "Task_1", ["Task_1", "Task_2"]);
+
+        // Act
+        await service.DeleteLayoutSet(editingContext, "Task_1", CancellationToken.None);
+
+        // Assert
+        JsonObject dataType = DataTypeTaskBindingTestHelper.ReadDataType(_testRepoPath, "myModel");
+        Assert.Equal(new[] { "Task_2" }, DataTypeTaskBindingTestHelper.ReadTaskIds(dataType));
+        Assert.Equal("Task_1", (string)dataType["taskId"]);
+    }
+
+    [Fact]
+    public async Task DeleteLayoutSet_WhenAppReadsOnlyTaskId_ClearsTaskIdAndKeepsExistingTaskIdsInStep()
+    {
+        // Arrange
+        (AltinnRepoEditingContext editingContext, UiFoldersService service) = await CreateTestContext();
+        TestDataHelper.WriteAppLibVersion(_testRepoPath, "9.0.0-preview.8");
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(_testRepoPath, "myModel", "Task_1", ["Task_1", "Task_2"]);
+
+        // Act
+        await service.DeleteLayoutSet(editingContext, "Task_1", CancellationToken.None);
+
+        // Assert
+        JsonObject dataType = DataTypeTaskBindingTestHelper.ReadDataType(_testRepoPath, "myModel");
+        Assert.False(dataType.ContainsKey("taskId"));
+        Assert.Equal(new[] { "Task_2" }, DataTypeTaskBindingTestHelper.ReadTaskIds(dataType));
+    }
+
     private async Task<(AltinnRepoEditingContext editingContext, UiFoldersService service)> CreateTestContext(
         string repo = Repo
     )
@@ -119,11 +174,15 @@ public class UiFoldersServiceTests : IDisposable
             targetRepository,
             Developer
         );
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         UiFoldersService service = new(
-            new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory()),
+            altinnGitRepositoryFactory,
             new Mock<IProcessModelingService>().Object,
             new Mock<IPublisher>().Object,
-            NullLogger<UiFoldersService>.Instance
+            NullLogger<UiFoldersService>.Instance,
+            new AppVersionService(altinnGitRepositoryFactory)
         );
         return (editingContext, service);
     }
