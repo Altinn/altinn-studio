@@ -1,5 +1,11 @@
 using System.Text.Json;
 using Altinn.Correspondence.Controllers;
+using OrderChannel = Altinn.Notifications.Core.Enums.NotificationChannel;
+using Altinn.Notifications.Core.Models;
+using Altinn.Notifications.Core.Models.Address;
+using Altinn.Notifications.Core.Models.NotificationTemplate;
+using Altinn.Notifications.Core.Models.Orders;
+using LocalTest.Notifications.Persistence.Repository;
 using LocalTest.Configuration;
 using LocalTest.Controllers;
 using LocalTest.Models;
@@ -132,6 +138,37 @@ public sealed class MessagesControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Index_OrderTheNotificationsApiStored_ShowsItsChannelAndContent()
+    {
+        var settings = Options.Create(
+            new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath + Path.DirectorySeparatorChar }
+        );
+        await new LocalOrderRepository(settings).Create(
+            new NotificationOrder(
+                Guid.NewGuid(),
+                "ref",
+                [new SmsTemplate(null, "Your form is ready")],
+                DateTime.UtcNow,
+                OrderChannel.Sms,
+                new Creator("ttd"),
+                DateTime.UtcNow,
+                [new Recipient([new SmsAddressPoint("+4799999999")], organizationNumber: "991825827")],
+                null,
+                "resource"
+            )
+        );
+
+        var model = Assert.IsType<MessagesViewModel>(Assert.IsType<ViewResult>(await _controller.Index()).Model);
+
+        var order = Assert.Single(model.NotificationOrders);
+        Assert.Equal("Sms", order.Channel);
+        Assert.Equal("+4799999999 (organization 991825827)", Assert.Single(order.Recipients));
+        var template = Assert.Single(order.Templates);
+        Assert.Equal("SMS", template.Kind);
+        Assert.Equal("Your form is ready", template.Body);
+    }
+
+    [Fact]
     public async Task Index_NotificationOrderFileThatCannotBeRead_IsSkipped()
     {
         WriteNotificationOrder();
@@ -212,6 +249,7 @@ public sealed class MessagesControllerTests : IDisposable
             };
 
         Assert.Equal("None ordered", MessagesDisplay.Summary([]));
+        Assert.Equal("None ordered", MessagesDisplay.Summary(null));
         Assert.Equal("No contact information", MessagesDisplay.Summary([Order(false, 0), Order(true, 0)]));
         Assert.Equal("2 emails, reminder", MessagesDisplay.Summary([Order(false, 1), Order(true, 1)]));
     }

@@ -60,9 +60,9 @@ public static class MessagesDisplay
     }
 
     /// <summary>A short summary of what a correspondence's notifications sent.</summary>
-    public static string Summary(IReadOnlyList<StoredNotification> notifications)
+    public static string Summary(IReadOnlyList<StoredNotification>? notifications)
     {
-        if (notifications.Count == 0)
+        if (notifications is null || notifications.Count == 0)
         {
             return "None ordered";
         }

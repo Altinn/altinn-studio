@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.Correspondence.Controllers;
+using OrderChannel = Altinn.Notifications.Core.Enums.NotificationChannel;
 using LocalTest.Configuration;
 using LocalTest.Models;
 using LocalTest.Services.Correspondence;
@@ -199,13 +200,27 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
             Guid.TryParse(String(order, "id"), out var id) ? id : Guid.Empty,
             Time(order, "created"),
             Time(order, "requestedSendTime"),
-            String(order, "notificationChannel") ?? "Unknown",
+            Channel(order),
             String(order, "sendersReference"),
             String(order, "resourceId"),
             recipients,
             templates
         );
     }
+
+    /// <summary>
+    /// The order repository writes the channel enum as a number; a record edited by hand may carry its name.
+    /// </summary>
+    private static string Channel(JsonElement order) =>
+        order.ValueKind == JsonValueKind.Object && order.TryGetProperty("notificationChannel", out var value)
+            ? value.ValueKind switch
+            {
+                JsonValueKind.String => value.GetString() ?? "Unknown",
+                JsonValueKind.Number when value.TryGetInt32(out var number)
+                    && Enum.IsDefined(typeof(OrderChannel), number) => ((OrderChannel)number).ToString(),
+                _ => "Unknown",
+            }
+            : "Unknown";
 
     private static IEnumerable<JsonElement> Array(JsonElement element, string property) =>
         element.ValueKind == JsonValueKind.Object
