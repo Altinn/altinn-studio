@@ -96,7 +96,7 @@ internal sealed class ProcessNavigator : IProcessNavigator
             if (outgoingFlows.Any(a => a.ConditionExpression != null))
             {
                 gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway("AltinnExpressionsExclusiveGateway");
-                // The default's own condition is never evaluated.
+                // The default's own condition is never evaluated, and the app does not start with one.
                 flowsToFilter = otherFlows;
             }
             else

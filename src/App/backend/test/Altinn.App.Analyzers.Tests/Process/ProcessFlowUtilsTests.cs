@@ -12,7 +12,7 @@ public class ProcessFlowUtilsTests
         " An instance can move only to the tasks, service tasks, exclusive gateways and end events of the process. "
         + "Point the flow at one of them, or remove it.";
 
-    // The gateway's flows have complementary conditions, so exactly one of them matches.
+    // Flow_3 has a condition, and the gateway falls back to its default, Flow_4, when the condition does not hold.
     private const string ValidProcess = """
             <bpmn:startEvent id="StartEvent_1">
               <bpmn:outgoing>Flow_1</bpmn:outgoing>
@@ -39,17 +39,22 @@ public class ProcessFlowUtilsTests
             <bpmn:sequenceFlow id="Flow_3" sourceRef="Gateway_1" targetRef="Task_2">
               <bpmn:conditionExpression>["equals", 1, 1]</bpmn:conditionExpression>
             </bpmn:sequenceFlow>
-            <bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1">
-              <bpmn:conditionExpression>["notEquals", 1, 1]</bpmn:conditionExpression>
-            </bpmn:sequenceFlow>
+            <bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1" />
             <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_2" targetRef="EndEvent_1" />
         """;
+
+    private const string Flow3Condition = """<bpmn:conditionExpression>["equals", 1, 1]</bpmn:conditionExpression>""";
+
+    private const string Flow4 = """<bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1" />""";
+
+    private const string NoDefault = " default=\"Flow_4\"";
 
     private const string Flow5 = """<bpmn:sequenceFlow id="Flow_5" sourceRef="Task_2" targetRef="EndEvent_1" />""";
 
     private const string Flow4Listed = "<bpmn:outgoing>Flow_4</bpmn:outgoing>";
 
-    // The same process with no conditions, so the gateway takes its default.
+    // The same process with no conditions. The startup check, not the analyzer, knows whether the app's own gateway
+    // code chooses the flow.
     private static readonly string _plainGatewayProcess = string.Join(
         "\n",
         ValidProcess.Split('\n').Where(line => !line.Contains("conditionExpression"))
@@ -564,10 +569,7 @@ public class ProcessFlowUtilsTests
     [Fact]
     public void A_Gateway_Mixing_Flows_With_And_Without_A_Condition_Is_An_Error()
     {
-        var process = ValidProcess.Replace(
-            """<bpmn:conditionExpression>["notEquals", 1, 1]</bpmn:conditionExpression>""",
-            ""
-        );
+        var process = ValidProcess.Replace(NoDefault, "");
 
         var diagnostics = Collect(Process(process));
 
@@ -575,8 +577,27 @@ public class ProcessFlowUtilsTests
         Assert.Equal(DiagnosticSeverity.Error, diagnostics[0].Severity);
         Assert.Equal(
             "Exclusive gateway 'Gateway_1' has a condition on some outgoing sequence flows, but none on 'Flow_4'. "
-                + "The app treats a flow without a condition as always true, so leaving the gateway fails whenever a "
-                + "condition holds. Give every outgoing flow a condition.",
+                + "Only the gateway's default may leave out the condition: the app treats any other flow without one "
+                + "as always true, so leaving the gateway fails whenever a condition holds. Give it a condition, or "
+                + "make it the gateway's default.",
+            diagnostics[0].GetMessage()
+        );
+    }
+
+    [Fact]
+    public void A_Flow_Without_A_Condition_Beside_The_Default_Is_An_Error()
+    {
+        var process =
+            ValidProcess.Replace(Flow4Listed, Flow4Listed + "<bpmn:outgoing>Flow_6</bpmn:outgoing>")
+            + """<bpmn:sequenceFlow id="Flow_6" sourceRef="Gateway_1" targetRef="EndEvent_1" />""";
+
+        var diagnostics = Collect(Process(process));
+
+        AssertIds(diagnostics, "ALTINNAPP1010");
+        Assert.EndsWith(
+            "but none on 'Flow_6'. Only the gateway's default may leave out the condition: the app treats any other "
+                + "flow without one as always true, so leaving the gateway fails whenever a condition holds. Give it "
+                + "a condition.",
             diagnostics[0].GetMessage()
         );
     }
@@ -586,7 +607,7 @@ public class ProcessFlowUtilsTests
     {
         var process =
             ValidProcess
-                .Replace("""<bpmn:conditionExpression>["notEquals", 1, 1]</bpmn:conditionExpression>""", "")
+                .Replace(NoDefault, "")
                 .Replace(Flow4Listed, Flow4Listed + "<bpmn:outgoing>Flow_6</bpmn:outgoing>")
             + """<bpmn:sequenceFlow id="Flow_6" sourceRef="Gateway_1" targetRef="EndEvent_1" />""";
 
@@ -595,10 +616,52 @@ public class ProcessFlowUtilsTests
         AssertIds(diagnostics, "ALTINNAPP1010");
         Assert.Equal(
             "Exclusive gateway 'Gateway_1' has a condition on some outgoing sequence flows, but none on 'Flow_4', "
-                + "'Flow_6'. The app treats a flow without a condition as always true, so those flows always match "
-                + "together and leaving the gateway always fails. Give every outgoing flow a condition.",
+                + "'Flow_6'. Only the gateway's default may leave out the condition: the app treats any other flow "
+                + "without one as always true, so those flows always match together and leaving the gateway always "
+                + "fails. Give each of them a condition.",
             diagnostics[0].GetMessage()
         );
+    }
+
+    [Theory]
+    [InlineData("""<bpmn:conditionExpression>["notEquals", 1, 1]</bpmn:conditionExpression>""")]
+    [InlineData("<bpmn:conditionExpression />")]
+    public void A_Condition_On_The_Default_Is_An_Error(string condition)
+    {
+        var process = Process(
+            ValidProcess.Replace(
+                Flow4,
+                $"""<bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1">{condition}</bpmn:sequenceFlow>"""
+            )
+        );
+
+        var diagnostics = Collect(process);
+
+        AssertIds(diagnostics, "ALTINNAPP1023");
+        Assert.Equal(DiagnosticSeverity.Error, diagnostics[0].Severity);
+        Assert.Equal(
+            "Exclusive gateway 'Gateway_1' has a condition on its default, sequence flow 'Flow_4'. The gateway takes "
+                + "its default only when no other flow's condition holds, and never evaluates the default's own "
+                + "condition, so the app does not start. Remove the <bpmn:conditionExpression> from 'Flow_4', or "
+                + "remove default=\"Flow_4\" from the gateway so the condition is evaluated.",
+            diagnostics[0].GetMessage()
+        );
+        var span = diagnostics[0].Location.SourceSpan;
+        Assert.Equal("<bpmn:exclusiveGateway", process.Substring(span.Start, span.Length));
+    }
+
+    // The default's condition is the gateway's only one, so the other flow is not mixed in with conditions.
+    [Fact]
+    public void A_Condition_Only_On_The_Default_Is_Reported_Once()
+    {
+        var process = ValidProcess
+            .Replace(Flow3Condition, "")
+            .Replace(
+                Flow4,
+                """<bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1"><bpmn:conditionExpression>["equals", 1, 1]</bpmn:conditionExpression></bpmn:sequenceFlow>"""
+            );
+
+        AssertIds(Collect(Process(process)), "ALTINNAPP1023");
     }
 
     [Theory]
@@ -607,20 +670,15 @@ public class ProcessFlowUtilsTests
     [InlineData("<bpmn:conditionExpression>\n   \n</bpmn:conditionExpression>")]
     public void A_Gateway_Listing_A_Flow_With_An_Empty_Condition_Is_An_Error(string emptyCondition)
     {
-        // The other flow's condition is valid, so only the empty one is wrong.
-        var process = Process(
-            ValidProcess.Replace(
-                """<bpmn:conditionExpression>["notEquals", 1, 1]</bpmn:conditionExpression>""",
-                emptyCondition
-            )
-        );
+        // The default needs no condition, so only the empty one is wrong.
+        var process = Process(ValidProcess.Replace(Flow3Condition, emptyCondition));
 
         var diagnostics = Collect(process);
 
         AssertIds(diagnostics, "ALTINNAPP1012");
         Assert.Equal(DiagnosticSeverity.Error, diagnostics[0].Severity);
         Assert.Equal(
-            "Exclusive gateway 'Gateway_1' lists sequence flow 'Flow_4', which has an empty condition, so the app "
+            "Exclusive gateway 'Gateway_1' lists sequence flow 'Flow_3', which has an empty condition, so the app "
                 + "fails every time an instance leaves the gateway. Give the flow a condition, or remove the empty "
                 + "<bpmn:conditionExpression>.",
             diagnostics[0].GetMessage()
@@ -633,10 +691,11 @@ public class ProcessFlowUtilsTests
     public void An_Empty_Condition_Still_Counts_As_A_Condition_For_The_Flows_Without_One()
     {
         var process = ValidProcess
-            .Replace("""<bpmn:conditionExpression>["equals", 1, 1]</bpmn:conditionExpression>""", "")
+            .Replace(NoDefault, "")
+            .Replace(Flow3Condition, "")
             .Replace(
-                """<bpmn:conditionExpression>["notEquals", 1, 1]</bpmn:conditionExpression>""",
-                "<bpmn:conditionExpression />"
+                Flow4,
+                """<bpmn:sequenceFlow id="Flow_4" sourceRef="Gateway_1" targetRef="EndEvent_1"><bpmn:conditionExpression /></bpmn:sequenceFlow>"""
             );
 
         var diagnostics = Collect(Process(process));

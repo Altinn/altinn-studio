@@ -134,6 +134,7 @@ public class ProcessNavigatorTests
         Assert.Equal(expectedNext, next?.Id);
     }
 
+    // Startup rejects a condition on the default; the navigator ignores one regardless.
     [Theory]
     [InlineData("confirm", "EndEvent")]
     [InlineData("reject", "Task2")]

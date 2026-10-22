@@ -637,6 +637,33 @@ public class ProcessTaskConfigurationValidationServiceTests
         Assert.DoesNotContain("default=", exception.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    // Beside a flow with a condition.
+    [InlineData(true, false)]
+    // Beside a flow without one, which the app's own gateway code would choose if the default had no condition.
+    [InlineData(false, true)]
+    public async Task StartAsync_DefaultFlowWithCondition_FailsValidation(bool flow4HasCondition, bool gatewayCode)
+    {
+        var exception = await Validate(
+            s =>
+            {
+                if (gatewayCode)
+                    s.AddSingleton<IProcessExclusiveGateway>(new DataValuesFilter("Gateway1", "choose"));
+            },
+            GatewayReader("Flow3", Flow("Flow3", true), Flow("Flow4", flow4HasCondition))
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "  - Exclusive gateway 'Gateway1' has a condition on its default, sequence flow 'Flow3'. The gateway takes "
+                + "its default only when no other flow's condition holds, and never evaluates the default's own "
+                + "condition. Remove the condition from 'Flow3', or remove default=\"Flow3\" from the gateway so the "
+                + "condition is evaluated.",
+            exception.Message,
+            StringComparison.Ordinal
+        );
+    }
+
     private static SequenceFlow Flow(string id, bool hasCondition) =>
         new()
         {

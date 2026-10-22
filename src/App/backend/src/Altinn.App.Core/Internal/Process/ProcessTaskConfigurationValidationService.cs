@@ -206,14 +206,17 @@ internal sealed class ProcessTaskConfigurationValidationService(
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     /// <summary>
-    /// Reports outgoing flows of an exclusive gateway that have no condition and are not its default.
+    /// Reports a condition on an exclusive gateway's default flow, and outgoing flows that have no condition and are
+    /// not its default.
     /// </summary>
     /// <remarks>
-    /// The gateway takes its default only when no other flow is valid, and a flow without a condition is always valid.
-    /// Such a flow fails the gateway whenever another flow's condition holds, and keeps it from ever taking its default.
-    /// A gateway without conditions is left alone when it has a single flow and no default, or when the app's own
-    /// <see cref="IProcessExclusiveGateway"/> chooses its flow. If implementations cannot be resolved at startup,
-    /// their gateway IDs are unknown, so checks for gateways without expressions are deferred to navigation.
+    /// The gateway takes its default only when no other flow is valid, and never evaluates the default's own
+    /// condition, so a condition there decides nothing even when it seems to work in a test.
+    /// A flow without a condition is always valid. Such a flow fails the gateway whenever another flow's condition
+    /// holds, and keeps it from ever taking its default. A gateway without conditions is left alone when it has a
+    /// single flow and no default, or when the app's own <see cref="IProcessExclusiveGateway"/> chooses its flow. If
+    /// implementations cannot be resolved at startup, their gateway IDs are unknown, so checks for gateways without
+    /// expressions are deferred to navigation.
     /// </remarks>
     private static IEnumerable<string> ValidateExclusiveGateways(
         IProcessReader processReader,
@@ -223,6 +226,17 @@ internal sealed class ProcessTaskConfigurationValidationService(
         foreach (ExclusiveGateway gateway in processReader.GetExclusiveGateways())
         {
             List<SequenceFlow> outgoingFlows = processReader.GetOutgoingSequenceFlows(gateway);
+            // Same lookup as ProcessNavigator.
+            SequenceFlow? defaultFlow = outgoingFlows.Find(flow => flow.Id == gateway.Default);
+            if (defaultFlow?.ConditionExpression is not null)
+            {
+                yield return $"Exclusive gateway '{gateway.Id}' has a condition on its default, sequence flow "
+                    + $"'{defaultFlow.Id}'. The gateway takes its default only when no other flow's condition holds, "
+                    + "and never evaluates the default's own condition. Remove the condition from "
+                    + $"'{defaultFlow.Id}', or remove default=\"{defaultFlow.Id}\" from the gateway so the condition "
+                    + "is evaluated.";
+            }
+
             if (
                 !outgoingFlows.Exists(flow => flow.ConditionExpression is not null)
                 && (
