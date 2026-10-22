@@ -148,14 +148,14 @@ Every failure path ends in either **successful retry** or **explicit, visible fa
 
 # Tech stack
 
-| Component        | Technology                                                   |
-| ---------------- | ------------------------------------------------------------ |
-| Runtime          | .NET 10, C# 14                                               |
-| Database         | PostgreSQL (EF Core + raw SQL for hot paths)                 |
-| Telemetry        | OpenTelemetry &rarr; OTLP &rarr; Grafana (Tempo, Prometheus) |
-| Testing          | xUnit v3, Testcontainers (PostgreSQL), WireMock, Verify.Net  |
-| Dashboard        | Vanilla JS ES modules (no build step), embedded in Core      |
-| Containerization | Docker, multi-stage build                                    |
+| Component        | Technology                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| Runtime          | .NET 10, C# 14                                                                           |
+| Database         | PostgreSQL (EF Core + raw SQL for hot paths)                                             |
+| Telemetry        | OpenTelemetry &rarr; OTLP &rarr; Grafana (VictoriaMetrics, VictoriaTraces, VictoriaLogs) |
+| Testing          | xUnit v3, Testcontainers (PostgreSQL), WireMock, Verify.Net                              |
+| Dashboard        | Vanilla JS ES modules (no build step), embedded in Core                                  |
+| Containerization | Docker, multi-stage build                                                                |
 
 ---
 
@@ -225,7 +225,7 @@ Retries are per-step with configurable backoff (exponential, linear, constant), 
 
 - Real-time SSE streams: engine health, active workflows, step pipelines
 - Query interface with namespace/status/label filters
-- Click-through to Grafana Tempo traces
+- Click-through to each workflow's trace in Grafana
 
 ---
 

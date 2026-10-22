@@ -67,6 +67,7 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
             services.AddSingleton(new EngineConnectionString(_dbConnectionString));
 
             services.AddExceptionHandler<DiagnosticExceptionHandler>();
+            services.AddSingleton(TelemetryCollector.LoggerProvider);
         });
 
         _configureWebHost?.Invoke(builder);

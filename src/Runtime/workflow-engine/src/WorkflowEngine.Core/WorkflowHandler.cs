@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Altinn.Studio.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Models;
@@ -39,6 +40,10 @@ internal sealed class WorkflowHandler(
     /// reflects the final outcome (Completed, Failed, Canceled, Requeued for retry, or
     /// Waiting for a deferred step).
     /// </summary>
+    /// <remarks>
+    /// Throws only its own cancellation. Anything else that ends the handling is reported in the workflow's trace, and
+    /// the workflow is left as the database last saw it, for the stale-workflow reclaim.
+    /// </remarks>
     public async Task Handle(Workflow workflow, CancellationToken ct)
     {
         StartProcessWorkflowActivity(workflow);
@@ -46,34 +51,36 @@ internal sealed class WorkflowHandler(
         {
             await ProcessWorkflow(workflow, ct);
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (LeaseLostException)
         {
             // Reclaimed by another host. Exit cleanly — no retry, no re-enqueue.
-            HandleLeaseLost(workflow);
+            logger.WorkflowLeaseLost(workflow);
+            Metrics.WorkflowsLeaseLost.Add(1);
+
+            MarkLeaseLost(workflow.EngineActivity);
+        }
+        catch (Exception ex)
+        {
+            // Ahead of the finally: the span must still be current for the log to land in the workflow's trace.
+            workflow.EngineActivity?.Errored(ex);
+            logger.WorkflowHandlingEndedByException(workflow, ex);
+
+            Metrics.Errors.Add(
+                1,
+                [
+                    (TelemetryAttributes.Operation, "workflow_handling"),
+                    (TelemetryAttributes.Namespace, workflow.Namespace),
+                ]
+            );
         }
         finally
         {
             StopActivity(workflow);
         }
-    }
-
-    private void HandleLeaseLost(Workflow workflow)
-    {
-        logger.WorkflowLeaseLost(workflow);
-        Metrics.WorkflowsLeaseLost.Add(1, workflow.GetHistogramTags());
-
-        // Steps run sequentially so at most one span is open, but a per-step Submit that
-        // throws LeaseLostException unwinds past the per-step StopActivity. Loop to catch it.
-        foreach (var step in workflow.Steps)
-        {
-            if (step.EngineActivity is null)
-                continue;
-
-            step.EngineActivity.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
-            StopActivity(step);
-        }
-
-        workflow.EngineActivity?.Errored(errorMessage: "Lease lost — workflow reclaimed by another host");
     }
 
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken ct)
@@ -85,16 +92,16 @@ internal sealed class WorkflowHandler(
         // next attempt, which would corrupt every duration measured against it.
         var attemptAnchor = AttemptAnchor(workflow);
 
-        RecordWorkflowQueueTime(workflow, attemptAnchor);
+        RecordWorkflowQueueTime(attemptAnchor);
 
         if (workflow.CancellationRequestedAt is not null)
         {
             workflow.Status = PersistentItemStatus.Canceled;
-            workflow.EngineActivity?.Errored(errorMessage: "Canceled before processing started");
+            workflow.EngineActivity?.Errored(errorType: "canceled", errorMessage: "Canceled before processing started");
 
-            Metrics.WorkflowsCanceled.Add(1, ("reason", "before_processing"));
+            Metrics.WorkflowsCanceled.Add(1, (TelemetryAttributes.Reason, "before_processing"));
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -108,9 +115,13 @@ internal sealed class WorkflowHandler(
             workflow.Status = PersistentItemStatus.DependencyFailed;
 
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
-            Metrics.WorkflowsFailed.Add(1, ("reason", "dependency_failed"), ("is_head", workflow.IsHeadTagValue()));
+            Metrics.WorkflowsFailed.Add(
+                1,
+                (TelemetryAttributes.Reason, "dependency_failed"),
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
+            );
 
             await statusWriteBuffer.Submit(workflow, CancellationToken.None);
 
@@ -123,23 +134,26 @@ internal sealed class WorkflowHandler(
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            workflow.EngineActivity?.Errored(errorMessage: "Canceled during processing");
+            workflow.EngineActivity?.Errored(
+                errorType: workflow.CancellationRequestedAt is not null ? "canceled" : "shutdown",
+                errorMessage: "Canceled during processing"
+            );
 
             if (workflow.Status == PersistentItemStatus.Processing)
             {
                 if (workflow.CancellationRequestedAt is not null)
                 {
                     workflow.Status = PersistentItemStatus.Canceled;
-                    Metrics.WorkflowsCanceled.Add(1, ("reason", "during_processing"));
+                    Metrics.WorkflowsCanceled.Add(1, (TelemetryAttributes.Reason, "during_processing"));
                     RecordWorkflowServiceTime(workflow);
-                    RecordWorkflowTotalTime(workflow, attemptAnchor);
+                    RecordWorkflowTotalTime(attemptAnchor);
                 }
                 else
                 {
                     workflow.Status = PersistentItemStatus.Requeued;
-                    Metrics.WorkflowsRequeued.Add(1, ("reason", "shutdown"));
+                    Metrics.WorkflowsRequeued.Add(1, (TelemetryAttributes.Reason, "shutdown"));
                     RecordWorkflowServiceTime(workflow);
-                    RecordWorkflowTotalTime(workflow, attemptAnchor);
+                    RecordWorkflowTotalTime(attemptAnchor);
                 }
             }
 
@@ -149,37 +163,13 @@ internal sealed class WorkflowHandler(
 
             throw;
         }
-        catch (LeaseLostException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            workflow.Status = PersistentItemStatus.Failed;
-            workflow.EngineActivity?.Errored(ex);
-
-            logger.WorkflowProcessingFailed(workflow, ex.Message, ex);
-
-            Metrics.Errors.Add(
-                1,
-                [
-                    ("operation", "workflowProcessing"),
-                    ("target", workflow.Namespace),
-                    ("operationId", workflow.OperationId),
-                ]
-            );
-
-            await statusWriteBuffer.Submit(workflow, CancellationToken.None);
-
-            return;
-        }
 
         workflow.Status = workflow.OverallStatus();
 
         if (workflow.Status == PersistentItemStatus.Completed)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
             Metrics.WorkflowsSucceeded.Add(1);
             workflow.EngineActivity?.Succeeded();
@@ -188,26 +178,26 @@ internal sealed class WorkflowHandler(
         else if (workflow.Status == PersistentItemStatus.Failed)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
-            workflow.EngineActivity?.Errored();
+            workflow.EngineActivity?.Errored(errorType: FailureReason(workflow));
             Metrics.WorkflowsFailed.Add(
                 1,
-                ("reason", workflow.FailureReason ?? "execution"),
-                ("is_head", workflow.IsHeadTagValue())
+                (TelemetryAttributes.Reason, FailureReason(workflow)),
+                (TelemetryAttributes.WorkflowIsHead, workflow.IsHeadTagValue())
             );
         }
         else if (workflow.Status == PersistentItemStatus.Requeued)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
-            Metrics.WorkflowsRequeued.Add(1, ("reason", "step_retry"));
+            Metrics.WorkflowsRequeued.Add(1, (TelemetryAttributes.Reason, "step_retry"));
         }
         else if (workflow.Status == PersistentItemStatus.Waiting)
         {
             RecordWorkflowServiceTime(workflow);
-            RecordWorkflowTotalTime(workflow, attemptAnchor);
+            RecordWorkflowTotalTime(attemptAnchor);
 
             Metrics.WorkflowsDeferred.Add(1);
         }
@@ -230,8 +220,47 @@ internal sealed class WorkflowHandler(
                 continue;
             }
 
-            StartProcessStepActivity(workflow, step);
+            await ProcessStep(workflow, step, previous, queueAnchor, ct);
 
+            queueAnchor = step.UpdatedAt ?? throw new UnreachableException();
+
+            if (step.Status == PersistentItemStatus.Completed)
+            {
+                continue;
+            }
+
+            if (
+                step.Status
+                is PersistentItemStatus.Requeued
+                    or PersistentItemStatus.Waiting
+                    or PersistentItemStatus.Failed
+            )
+            {
+                break;
+            }
+
+            throw new UnreachableException();
+        }
+    }
+
+    /// <summary>
+    /// Runs one attempt of <paramref name="step"/> under its <c>WorkflowHandler.ProcessStep</c> span, and ends that span
+    /// however the attempt ends: a span left open is never exported, so the trace would lose the step. When an exception
+    /// ends the attempt, the span is left without a status if it is the handler's own cancellation, marked
+    /// <c>lease_lost</c> if the lease was lost, and otherwise marked with the exception, which
+    /// <see cref="Handle"/> then logs at ERROR in the same trace.
+    /// </summary>
+    private async Task ProcessStep(
+        Workflow workflow,
+        Step step,
+        Step? previous,
+        DateTimeOffset queueAnchor,
+        CancellationToken ct
+    )
+    {
+        StartProcessStepActivity(workflow, step);
+        try
+        {
             RecordStepQueueTime(step, queueAnchor);
 
             step.Status = PersistentItemStatus.Processing;
@@ -241,7 +270,7 @@ internal sealed class WorkflowHandler(
                 workflow,
                 ct,
                 dirtySteps: [step],
-                reason: "step.started",
+                reason: "step_started",
                 parentActivity: step.EngineActivity
             );
 
@@ -256,7 +285,6 @@ internal sealed class WorkflowHandler(
                     ? PersistentItemStatus.Canceled
                     : PersistentItemStatus.Requeued;
 
-                StopActivity(step);
                 throw;
             }
             catch (Exception e)
@@ -272,40 +300,32 @@ internal sealed class WorkflowHandler(
                 workflow,
                 ct,
                 dirtySteps: [step],
-                reason: "step.completed",
+                reason: "step_completed",
                 parentActivity: step.EngineActivity
             );
 
             RecordStepServiceTime(step);
             RecordStepTotalTime(step, queueAnchor);
             RecordStepWaitDuration(step);
+            SetStepActivityStatus(workflow, step, result);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (LeaseLostException)
+        {
+            MarkLeaseLost(step.EngineActivity);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            step.EngineActivity?.Errored(ex);
+            throw;
+        }
+        finally
+        {
             StopActivity(step);
-
-            queueAnchor = step.UpdatedAt ?? throw new UnreachableException();
-
-            if (step.Status == PersistentItemStatus.Completed)
-            {
-                step.EngineActivity?.Succeeded();
-                continue;
-            }
-
-            if (step.Status == PersistentItemStatus.Requeued)
-            {
-                break;
-            }
-
-            if (step.Status == PersistentItemStatus.Waiting)
-            {
-                break;
-            }
-
-            if (step.Status == PersistentItemStatus.Failed)
-            {
-                step.EngineActivity?.Errored(errorMessage: result.Message);
-                break;
-            }
-
-            throw new UnreachableException();
         }
     }
 
@@ -455,7 +475,7 @@ internal sealed class WorkflowHandler(
             workflow.BackoffUntil = null;
             workflow.FailureReason = "wait_expired";
 
-            Metrics.StepsFailed.Add(1, ("reason", "wait_expired"));
+            Metrics.StepsFailed.Add(1, (TelemetryAttributes.Reason, "wait_expired"));
             logger.FailingStepWaitExpired(currentStep, currentStep.DeferCount, waitBudget);
 
             return;
@@ -520,7 +540,7 @@ internal sealed class WorkflowHandler(
 
         workflow.ThrottledUntil = throttledUntil;
 
-        Metrics.ThrottleHandlerParked.Add(1, ("namespace", workflow.Namespace));
+        Metrics.ThrottleHandlerParked.Add(1, (TelemetryAttributes.Namespace, workflow.Namespace));
         logger.ParkingThrottledWorkflow(workflow, throttledUntil);
     }
 
@@ -529,6 +549,11 @@ internal sealed class WorkflowHandler(
     private DateTimeOffset GetExecutionRetryBackoff(Step step, RetryStrategy retryStrategy) =>
         timeProvider.GetUtcNow().Add(retryStrategy.CalculateDelay(step.RequeueCount));
 
+    /// <summary>
+    /// Starts the workflow's entry span and makes it the current activity for the rest of <see cref="Handle"/>, so
+    /// what the handler logs lands in the workflow's trace rather than the processor's. The change is local to
+    /// the handler's async flow: its caller's current activity is back when <see cref="Handle"/> returns.
+    /// </summary>
     private static void StartProcessWorkflowActivity(Workflow workflow)
     {
         List<string?> possibleLinks =
@@ -545,18 +570,45 @@ internal sealed class WorkflowHandler(
             includeCurrentContext: false
         );
         workflow.EngineTraceContext ??= workflow.EngineActivity?.Id;
+
+        if (workflow.EngineActivity is { } entrySpan)
+            Activity.Current = entrySpan;
     }
 
     private static void StartProcessStepActivity(Workflow workflow, Step step)
     {
         step.EngineActivity ??= Metrics.Source.StartActivity(
-            $"WorkflowHandler.ProcessStep.{step.OperationId}",
+            "WorkflowHandler.ProcessStep",
             ActivityKind.Consumer,
             workflow.EngineActivity?.Context ?? default,
             step.GetActivityTags()
         );
         step.EngineTraceContext ??= step.EngineActivity?.Id;
     }
+
+    /// <summary>
+    /// Sets the step span's status from the step's outcome: Ok when it completed, Error when it failed. A step
+    /// that is requeued or waiting has no outcome yet, so its span is left unset. Must run before
+    /// <see cref="StopActivity"/>, which releases the span.
+    /// </summary>
+    private static void SetStepActivityStatus(Workflow workflow, Step step, ExecutionResult result)
+    {
+        if (step.Status == PersistentItemStatus.Completed)
+            step.EngineActivity?.Succeeded();
+        else if (step.Status == PersistentItemStatus.Failed)
+            step.EngineActivity?.Errored(errorType: FailureReason(workflow), errorMessage: result.Message);
+    }
+
+    /// <summary>
+    /// Why a failed workflow failed, as the low-cardinality reason its failure metric and its spans carry.
+    /// </summary>
+    private static string FailureReason(Workflow workflow) => workflow.FailureReason ?? "execution";
+
+    /// <summary>
+    /// Marks a workflow or step span as ended by the loss of the workflow's lease to another host.
+    /// </summary>
+    private static void MarkLeaseLost(Activity? span) =>
+        span?.Errored(errorType: "lease_lost", errorMessage: "Lease lost — workflow reclaimed by another host");
 
     private static void StopActivity(PersistentItem item)
     {
@@ -583,10 +635,10 @@ internal sealed class WorkflowHandler(
         return anchor > now ? now : anchor;
     }
 
-    private void RecordWorkflowQueueTime(Workflow workflow, DateTimeOffset attemptAnchor)
+    private void RecordWorkflowQueueTime(DateTimeOffset attemptAnchor)
     {
         var queueDuration = timeProvider.GetUtcNow().Subtract(attemptAnchor).TotalSeconds;
-        Metrics.WorkflowQueueTime.Record(queueDuration, workflow.GetHistogramTags());
+        Metrics.WorkflowQueueTime.Record(queueDuration);
     }
 
     private void RecordWorkflowServiceTime(Workflow workflow)
@@ -596,13 +648,13 @@ internal sealed class WorkflowHandler(
             .Subtract(workflow.ExecutionStartedAt ?? workflow.CreatedAt)
             .TotalSeconds;
 
-        Metrics.WorkflowServiceTime.Record(serviceDuration, workflow.GetHistogramTags());
+        Metrics.WorkflowServiceTime.Record(serviceDuration);
     }
 
-    private void RecordWorkflowTotalTime(Workflow workflow, DateTimeOffset attemptAnchor)
+    private void RecordWorkflowTotalTime(DateTimeOffset attemptAnchor)
     {
         var totalDuration = timeProvider.GetUtcNow().Subtract(attemptAnchor).TotalSeconds;
-        Metrics.WorkflowTotalTime.Record(totalDuration, workflow.GetHistogramTags());
+        Metrics.WorkflowTotalTime.Record(totalDuration);
     }
 
     private void RecordStepQueueTime(Step step, DateTimeOffset anchor)
@@ -643,12 +695,11 @@ internal static partial class WorkflowHandlerLogs
     [LoggerMessage(LogLevel.Debug, "Processing workflow: {Workflow}")]
     internal static partial void ProcessingWorkflow(this ILogger<WorkflowHandler> logger, Workflow workflow);
 
-    [LoggerMessage(LogLevel.Error, "Processing of workflow {Workflow} resulted in an error: {Message}.")]
-    internal static partial void WorkflowProcessingFailed(
+    [LoggerMessage(LogLevel.Error, "Handling of workflow {Workflow} was ended by an exception")]
+    internal static partial void WorkflowHandlingEndedByException(
         this ILogger<WorkflowHandler> logger,
         Workflow workflow,
-        string message,
-        Exception? ex
+        Exception ex
     );
 
     [LoggerMessage(LogLevel.Debug, "Workflow {Workflow} is done")]

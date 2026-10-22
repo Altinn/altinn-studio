@@ -83,7 +83,7 @@ internal sealed class DbMaintenanceService(
             {
                 consecutiveFailures++;
                 Metrics.SetMaintenanceConsecutiveFailures(consecutiveFailures);
-                Metrics.Errors.Add(1, ("operation", "dbMaintenance"));
+                Metrics.Errors.Add(1, (TelemetryAttributes.Operation, "db_maintenance"));
                 activity?.Errored(ex);
 
                 var delay = _databaseBackoff.CalculateDelay(consecutiveFailures);
@@ -423,10 +423,10 @@ internal sealed class DbMaintenanceService(
 
         var staleDeadline = now - settings.StaleWorkflowThreshold;
 
-        // Bucketed by the head directive so poisoned finalization feeds the same is_head alert
-        // dimension as the execution failure paths: an auxiliary (is_head=false) workflow that
-        // dies poisoned gates nothing and is otherwise silent, so it must reach the
-        // is_head="false" failure alert.
+        // Bucketed by the head directive so poisoned finalization feeds the same
+        // altinn.workflow_engine.workflow.is_head alert dimension as the execution failure paths: an
+        // auxiliary (is_head = false) workflow that dies poisoned gates nothing and is otherwise
+        // silent, so it must reach the "false" failure alert.
         var failedByIsHead = new Dictionary<string, int>(StringComparer.Ordinal);
         int failed = 0;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))
@@ -455,7 +455,11 @@ internal sealed class DbMaintenanceService(
         {
             foreach ((string isHeadTag, int count) in failedByIsHead)
             {
-                Metrics.WorkflowsFailed.Add(count, ("reason", "poisoned"), ("is_head", isHeadTag));
+                Metrics.WorkflowsFailed.Add(
+                    count,
+                    (TelemetryAttributes.Reason, "poisoned"),
+                    (TelemetryAttributes.WorkflowIsHead, isHeadTag)
+                );
             }
 
             logger.FailedPoisonedWorkflows(failed);
