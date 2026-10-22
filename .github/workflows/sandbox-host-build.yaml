@@ -1,0 +1,90 @@
+name: sandbox-host - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'clippy.toml'
+      - 'rust-toolchain.toml'
+      - 'rustfmt.toml'
+      - 'src/ci/sandbox-host/**'
+      - '.github/workflows/sandbox-host-build.yaml'
+      - '!**/AGENTS.md'
+      - '!**/README.md'
+      - '!**/readme.md'
+      - '!**/_readme.md' # C# layout model documentation in Altinn.App.Core.
+      - '!**/CONTRIBUTING.md'
+      - '!**/CHANGELOG.md'
+      - '!**/docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Build and test
+    runs-on: self-hosted-ubuntu
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: src/ci/sandbox-host
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The runner image bakes the toolchain pinned by rust-toolchain.toml; only
+      # install through rustup when the two have drifted (e.g. a PR bumping
+      # the toolchain before the image has been rebuilt).
+      - name: Verify Rust toolchain
+        run: |
+          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
+          test -n "${RUST_VERSION}"
+          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
+            || ! rustfmt --version >/dev/null 2>&1 \
+            || ! cargo clippy --version >/dev/null 2>&1; then
+            rustup toolchain install "${RUST_VERSION}" --profile minimal --component rustfmt,clippy
+            rustup default "${RUST_VERSION}"
+          fi
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          # One shared cache for the whole root Cargo workspace, seeded by
+          # cache-warm.yml. Restore only: this workflow never runs on main,
+          # and saves from PR merge refs cannot be shared with other PRs and
+          # evict main-scoped caches.
+          shared-key: rust
+          save-if: false
+
+      - name: Install cargo-machete
+        run: |
+          if [ "$(cargo machete --version 2>/dev/null || true)" != "0.9.2" ]; then
+            cargo install cargo-machete --version 0.9.2 --locked
+          fi
+
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
+      - name: Build
+        run: make build
+
+      - name: Lint
+        run: make lint
+
+      - name: Run tests
+        run: make test
+
+      - name: Check dependencies
+        run: make deps-check
