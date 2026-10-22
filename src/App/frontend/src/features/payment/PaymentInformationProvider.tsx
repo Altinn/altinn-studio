@@ -1,16 +1,17 @@
-import { useEffect } from 'react';
-
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect } from 'react';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { skipToken, useQuery, useQueryClient } from 'src/core/queries/reactQuery';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { PaymentResponsePayload } from 'src/features/payment/types';
+
+const paymentInformationQueryKey = 'fetchPaymentInfoForTask';
 
 export function usePaymentInformationQueryDef(
   enabled: boolean,
@@ -23,7 +24,7 @@ export function usePaymentInformationQueryDef(
   const selectedLanguage = useCurrentLanguage();
 
   return {
-    queryKey: ['fetchPaymentInfoForTask', instanceId, selectedLanguage],
+    queryKey: [paymentInformationQueryKey, instanceId, selectedLanguage],
     queryFn: instanceId ? () => fetchPaymentInformationForTask(instanceId, selectedLanguage, taskId) : skipToken,
     enabled: enabled && !!instanceId,
     retry: 3,
@@ -58,3 +59,11 @@ const { Provider, useCtx } = delayedContext(() =>
 
 export const PaymentInformationProvider = Provider;
 export const usePaymentInformation = () => useCtx();
+
+/**
+ * Fetches the payment information again. The backend asks the payment processor for the status, and stores it.
+ */
+export function useRefetchPaymentInformation() {
+  const queryClient = useQueryClient();
+  return useCallback(() => queryClient.invalidateQueries({ queryKey: [paymentInformationQueryKey] }), [queryClient]);
+}

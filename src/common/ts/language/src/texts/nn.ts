@@ -346,6 +346,8 @@ export function nn() {
     'payment.summary': 'Oppsummering',
     'payment.alert.paid': 'Du har betalt!',
     'payment.alert.failed': 'Betalinga feila',
+    'payment.alert.processing':
+      'Betalinga di blir behandla. Sida blir oppdatert når betalinga er fullført.',
     'payment.receipt.title': 'Betalingskvittering',
     'payment.receipt.payment_id': 'Betalings-ID',
     'payment.receipt.altinn_ref': 'Altinn referanse',
