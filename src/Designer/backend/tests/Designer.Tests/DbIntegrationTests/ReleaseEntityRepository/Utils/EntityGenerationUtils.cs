@@ -20,7 +20,7 @@ public static partial class EntityGenerationUtils
             string tagname = null,
             BuildStatus buildStatus = BuildStatus.Completed,
             BuildResult buildResult = BuildResult.Succeeded,
-            string branch = "master"
+            string branch = null
         )
         {
             BuildEntity build = Build.GenerateBuildEntity(buildId, buildStatus, buildResult);
