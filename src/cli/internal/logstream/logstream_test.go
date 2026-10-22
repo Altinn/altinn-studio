@@ -43,6 +43,40 @@ func TestStreamTailsNewestLinesAcrossFiles(t *testing.T) {
 	}
 }
 
+func TestStreamTailSkipsFileDeletedAfterListing(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	newPath := writeLog(t, dir, "2026-04-20-1.log", "new\n")
+	deleted := logstream.File{
+		ModTime: time.Date(2026, 4, 19, 1, 0, 0, 0, time.UTC),
+		Path:    filepath.Join(dir, "2026-04-19-1.log"),
+		Size:    4,
+	}
+
+	var out bytes.Buffer
+	err := logstream.Streamer{
+		ListFiles: func() ([]logstream.File, error) {
+			files, err := listFiles(dir)()
+			return append([]logstream.File{deleted}, files...), err
+		},
+		Emit: func(_ string, line string) error {
+			out.WriteString(line)
+			out.WriteString(osutil.LineBreak)
+			return nil
+		},
+	}.Stream(context.Background(), logstream.Options{
+		Tail:   2,
+		Follow: false,
+	})
+	if err != nil {
+		t.Fatalf("Stream() error = %v", err)
+	}
+	if out.String() != "new"+osutil.LineBreak {
+		t.Fatalf("output = %q, want lines from %s", out.String(), newPath)
+	}
+}
+
 func TestStreamFollowsAppendedCompleteLines(t *testing.T) {
 	t.Parallel()
 

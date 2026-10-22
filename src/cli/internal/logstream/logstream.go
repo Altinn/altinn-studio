@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"time"
 )
@@ -226,6 +227,10 @@ func readTailSnapshot(paths []string, tail int) (tailSnapshot, error) {
 	for i := len(paths) - 1; i >= 0 && remaining > 0; i-- {
 		path := paths[i]
 		fileTail, err := readFileTail(path, remaining)
+		if errors.Is(err, fs.ErrNotExist) {
+			// Retention may delete an old file between listing and reading it.
+			continue
+		}
 		if err != nil {
 			return tailSnapshot{}, err
 		}
