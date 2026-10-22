@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` removes `AppSettings:EnforceDataTypeTaskId` from the appsettings files, and points out when it was off, since the app APIs now always refuse writes to a data type outside the tasks it is bound to. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
 - `studioctl app upgrade v9` replaces `taskId` with `taskIds` on the data types in `applicationmetadata.json`, so each data type stays bound to its task in v9. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
+- `studioctl app upgrade v9` removes code in `ProcessDataRead` that unlocks, writes and locks the form being read, which v9 refuses while it creates the payment receipt. Changes the method makes to the form are still shown, but no longer saved. ([#21480](https://github.com/Altinn/altinn-studio/pull/21480))
 
 ### Changed
 
