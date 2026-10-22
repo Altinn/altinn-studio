@@ -8,7 +8,7 @@ on:
       - 'Cargo.toml'
       - 'rust-toolchain.toml'
       - 'src/AI/assistant-runner/**'
-      - 'src/common/rust/sandbox-host/**'
+      - 'src/ci/sandbox-host/**'
       - '.github/workflows/deploy-assistant-runner.yaml'
   workflow_dispatch:
     inputs:
