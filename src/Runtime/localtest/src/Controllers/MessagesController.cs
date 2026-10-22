@@ -123,6 +123,10 @@ public class MessagesController(LocalCorrespondenceRepository repository, IOptio
             {
                 // A file that is not an order is not ours to show.
             }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // The Notifications API may be writing the file right now, or it is gone; the rest still shows.
+            }
         }
 
         return [.. orders.OrderByDescending(order => order.Created)];

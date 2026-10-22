@@ -132,6 +132,24 @@ public sealed class MessagesControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Index_NotificationOrderFileThatCannotBeRead_IsSkipped()
+    {
+        WriteNotificationOrder();
+        var locked = Path.Join(_storagePath, "notifications", "orders", "being-written.json");
+        await File.WriteAllTextAsync(locked, """{ "id": "00000000-0000-0000-0000-000000000001" }""");
+
+        // As if the Notifications API held the file open while writing it
+        IActionResult result;
+        using (new FileStream(locked, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            result = await _controller.Index();
+        }
+
+        var model = Assert.IsType<MessagesViewModel>(Assert.IsType<ViewResult>(result).Model);
+        Assert.Equal("Email", Assert.Single(model.NotificationOrders).Channel);
+    }
+
+    [Fact]
     public async Task Details_UnknownCorrespondence_IsNotFound()
     {
         Assert.IsType<NotFoundResult>(await _controller.Details(Guid.NewGuid()));
