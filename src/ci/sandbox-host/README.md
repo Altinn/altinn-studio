@@ -30,8 +30,7 @@ pod spec of each workload mounts two folders from it, and `ProviderArguments` on
   it, with a throwaway Provider home in the pod's `/tmp`.
 
 `clear_home` empties the Provider home when a run ends, also after a failed run, so that nothing carries over to the
-next run. It keeps the folder itself, because the folder is a mount point. Nothing removes the empty folder from the
-node afterwards, or the state of a pod that is killed before `clear_home` runs.
+next run.
 
 The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/AGENTS.md) uses this crate.
 
