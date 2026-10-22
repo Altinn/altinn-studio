@@ -576,6 +576,66 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
     }
 
+    [Fact]
+    public async Task Perform_returns_instance_with_app_self_links()
+    {
+        var org = "tdd";
+        var app = "task-action";
+        Guid instanceGuid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        int instanceOwner = 1337;
+        TestData.PrepareInstance(org, app, instanceOwner, instanceGuid);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, FillAction>();
+        };
+        try
+        {
+            var client = GetRootedUserClient(org, app, userId: 1001, authenticationLevel: 3);
+            string actionsUrl = $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions";
+
+            // The frontend replaces its instance with the one in the response, so the app self links
+            // must be set, both on a successful action and on the error responses
+            using var addContent = JsonContent.Create(new { action = "fill", buttonId = "add" });
+            using HttpResponseMessage addResponse = await client.PostAsync(actionsUrl, addContent);
+            var parsedAddResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+                addResponse,
+                HttpStatusCode.OK
+            );
+            AssertAppSelfLinks(parsedAddResponse.Instance, org, app);
+
+            using var failContent = JsonContent.Create(new { action = "fill", buttonId = "fail" });
+            using HttpResponseMessage failResponse = await client.PostAsync(actionsUrl, failContent);
+            var parsedFailResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+                failResponse,
+                HttpStatusCode.Conflict
+            );
+            AssertAppSelfLinks(parsedFailResponse.Instance, org, app);
+
+            using var notFoundContent = JsonContent.Create(new { action = "notfound" });
+            using HttpResponseMessage notFoundResponse = await client.PostAsync(actionsUrl, notFoundContent);
+            var parsedNotFoundResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+                notFoundResponse,
+                HttpStatusCode.NotFound
+            );
+            AssertAppSelfLinks(parsedNotFoundResponse.Instance, org, app);
+        }
+        finally
+        {
+            TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+        }
+    }
+
+    private static void AssertAppSelfLinks(Instance instance, string org, string app)
+    {
+        string instanceSelfLink = $"https://localhost/{org}/{app}/instances/{instance.Id}";
+        Assert.Equal(instanceSelfLink, instance.SelfLinks?.Apps);
+        Assert.NotEmpty(instance.Data);
+        Assert.All(
+            instance.Data,
+            dataElement => Assert.Equal($"{instanceSelfLink}/data/{dataElement.Id}", dataElement.SelfLinks?.Apps)
+        );
+    }
+
     //TODO: replace this assertion with a proper one once fluentassertions has a json compare feature scheduled for v7 https://github.com/fluentassertions/fluentassertions/issues/2205
     private void CompareResult<T>(string expectedString, string actualString, Action<T?>? mutator = null)
     {
