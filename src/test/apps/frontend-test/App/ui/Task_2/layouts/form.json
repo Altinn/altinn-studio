@@ -818,7 +818,7 @@
         "textResourceBindings": {
           "title": "Referanser"
         },
-        "children": ["sources", "reference", "reference2", "fail-reference-options"]
+        "children": ["sources", "reference", "reference2"]
       },
       {
         "id": "sources",
