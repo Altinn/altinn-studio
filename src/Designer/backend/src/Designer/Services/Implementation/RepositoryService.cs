@@ -679,7 +679,7 @@ public class RepositoryService : IRepository
     {
         if (updatedResource != null && id == updatedResource.Identifier)
         {
-            string repository = string.Format("{0}-resources", org);
+            string repository = RepositoryNames.Resources(org);
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
             string repopath = _settings.GetServicePath(
                 org,
@@ -731,7 +731,7 @@ public class RepositoryService : IRepository
             {
                 return new StatusCodeResult(400);
             }
-            string repository = $"{org}-resources";
+            string repository = RepositoryNames.Resources(org);
             if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
             {
                 string repopath = _settings.GetServicePath(
@@ -827,7 +827,7 @@ public class RepositoryService : IRepository
                     policyFileContent = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(
                         policyFileContent,
                         org,
-                        $"{org}-resources"
+                        RepositoryNames.Resources(org)
                     );
                     policyContent = Encoding.UTF8.GetBytes(policyFileContent);
                 }
