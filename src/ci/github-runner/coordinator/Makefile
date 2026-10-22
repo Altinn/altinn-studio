@@ -41,7 +41,7 @@ deps: ## Print the coordinator dependency graph
 	@cargo tree -p github-runner-coordinator --locked
 
 deps-check: ## Check for unused direct dependencies and the Microsandbox runtime pin
-	@cargo machete --with-metadata .
+	@cargo machete --with-metadata . ../../../common/rust/sandbox-host
 	@git diff --exit-code -- ':(top)Cargo.lock'
 	@../../../common/rust/sandbox-host/check-runtime-pin.sh ../Dockerfile.coordinator
 
