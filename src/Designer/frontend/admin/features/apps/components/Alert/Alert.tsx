@@ -34,7 +34,7 @@ export const Alert = ({ color, count, title, url, children, className, ...rest }
             rel='noopener noreferrer'
             target='_blank'
             className={classes.link}
-            icon={<ExternalLinkIcon title={t('general.open_app_in_new_window')} />}
+            icon={<ExternalLinkIcon title={t('general.link_opens_in_new_tab')} />}
             iconPlacement={'right'}
           >
             {t('admin.metrics.errors.link')}

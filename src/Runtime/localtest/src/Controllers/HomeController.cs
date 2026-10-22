@@ -243,7 +243,7 @@ namespace LocalTest.Controllers
                 var cancellationToken = timeoutCancellationTokenSource.Token;
                 var model = new TokensViewModel
                 {
-                    AuthenticationLevels = GetAuthenticationLevels(2),
+                    AuthenticationLevels = GetAuthenticationLevels(TestAuthenticationService.DefaultUserAuthenticationLevel),
                     TestUsers = await GetUsersSelectList(cancellationToken),
                     TestSystemUsers = await GetSystemUsersSelectList(cancellationToken),
                     DefaultOrg = (await GetAppsList(cancellationToken)).FirstOrDefault()?.Value?.Split("/").FirstOrDefault(),
@@ -257,7 +257,7 @@ namespace LocalTest.Controllers
                 return View(
                     new TokensViewModel
                     {
-                        AuthenticationLevels = GetAuthenticationLevels(2),
+                        AuthenticationLevels = GetAuthenticationLevels(TestAuthenticationService.DefaultUserAuthenticationLevel),
                         TestUsers = [],
                         TestSystemUsers = [],
                         DefaultOrg = string.Empty,
@@ -275,7 +275,7 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/GetTestUserToken/{userId?}")]
         public async Task<ActionResult> GetTestUserToken(
             int userId,
-            [FromQuery] int authenticationLevel = 2
+            [FromQuery] int authenticationLevel = TestAuthenticationService.DefaultUserAuthenticationLevel
         )
         {
             UserProfile profile = await _userProfileService.GetUser(userId);
@@ -446,7 +446,7 @@ namespace LocalTest.Controllers
         {
             if (string.IsNullOrWhiteSpace(appId))
             {
-                return 2;
+                return TestAuthenticationService.DefaultUserAuthenticationLevel;
             }
             try
             {
@@ -464,7 +464,7 @@ namespace LocalTest.Controllers
             catch (Exception)
             {
                 // Return default auth level if Single app auth level can't be found.
-                return 2;
+                return TestAuthenticationService.DefaultUserAuthenticationLevel;
             }
         }
 
