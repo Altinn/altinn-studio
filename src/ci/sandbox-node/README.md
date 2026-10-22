@@ -22,4 +22,5 @@ before the runner workload is enabled.
 
 The slots are scheduler capacity, not distinct physical devices: every slot injects the same
 shareable `/dev/kvm`. Each coordinator requests one slot and creates one Sandbox. CPU and memory
-requests normally limit packing before the eight-slot ceiling of a node.
+requests normally limit packing before the eight-slot ceiling on the homogeneous
+`Standard_D32ds_v6` Sandbox pool.
