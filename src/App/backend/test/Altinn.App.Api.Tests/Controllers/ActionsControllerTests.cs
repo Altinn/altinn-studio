@@ -593,8 +593,8 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             var client = GetRootedUserClient(org, app, userId: 1001, authenticationLevel: 3);
             string actionsUrl = $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions";
 
-            // The frontend replaces its instance with the one in the response, so the app self links
-            // must be set, both on a successful action and on the error responses
+            // The frontend replaces its instance with the one in a successful response, and the error
+            // responses that return the instance should have the same self links
             using var addContent = JsonContent.Create(new { action = "fill", buttonId = "add" });
             using HttpResponseMessage addResponse = await client.PostAsync(actionsUrl, addContent);
             var parsedAddResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
