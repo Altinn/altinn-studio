@@ -339,6 +339,8 @@ export function en() {
     'payment.summary': 'Summary',
     'payment.alert.paid': 'You have paid!',
     'payment.alert.failed': 'Your payment has failed',
+    'payment.alert.processing':
+      'Your payment is being processed. This page will update when the payment is complete.',
     'payment.receipt.title': 'Payment receipt',
     'payment.receipt.payment_id': 'Payment ID',
     'payment.receipt.altinn_ref': 'Altinn reference',
