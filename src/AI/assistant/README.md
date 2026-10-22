@@ -77,7 +77,7 @@ X-Developer: <developer username>
 
 **Headers:**
 
-- `X-Api-Key`: The Designer API key. The agent uses it to clone and push through the Gitea proxy. This header is necessary. Without it, the response is `401`.
+- `X-Api-Key`: The Designer API key. The agent uses it to clone and push through the Gitea proxy, and to generate data model files with the Designer API. This header is necessary. Without it, the response is `401`.
 - `X-Developer`: The developer who owns the session. This header is necessary. Without it, the response is `400`. There is a rate limit of 5 for each developer and 30 in total.
 
 **Parameters:**
@@ -146,6 +146,10 @@ AZURE_API_KEY=your-key
 # header of each request, so you do not set a Gitea token here.
 GITEA_BASE_URL=http://host.docker.internal/repos
 
+# Optional: the Designer API, which generates the data model files.
+# The default is http://host.docker.internal.
+# DESIGNER_BASE_URL=http://host.docker.internal
+
 # Optional: Langfuse for traces and prompt management.
 # Set LANGFUSE_ENABLED=false to run without Langfuse. The default is true.
 LANGFUSE_SECRET_KEY=sk-lf-...
@@ -181,11 +185,11 @@ src/AI/assistant/
 │   │   ├── runner.py     # Builds the graph and runs the pre-graph gates
 │   │   └── state.py      # AgentState
 │   ├── core/             # Engine of the agentic loop (loop, tool registry, skills, tools/)
-│   ├── altinn/           # Altinn domain library (app_version, datamodel, layout, resources)
+│   ├── altinn/           # Altinn domain library (app_version, layout, resources)
 │   ├── schemas/          # Plan schema for intake
 │   ├── skills/           # Skills with domain knowledge, loaded when necessary
 │   ├── prompts/          # Gate and pipeline prompts, and the loader. Langfuse overrides these.
-│   ├── services/         # git, llm, events, preview, repo
+│   ├── services/         # git, llm, events, designer, preview, repo
 │   └── workflows/        # Pipeline steps before the loop (intake, spec)
 ├── services/             # token_usage and traces, used by the api routes with the same names
 ├── shared/               # Configuration, models, utilities

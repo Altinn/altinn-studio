@@ -20,6 +20,7 @@ class BaseConfig:
     API_PORT = int(os.getenv("API_PORT", "8071"))
 
     GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://host.docker.internal/repos")
+    DESIGNER_BASE_URL = os.getenv("DESIGNER_BASE_URL", "http://host.docker.internal")
 
     CORS_ORIGINS: ClassVar[list[str]] = [
         "http://localhost:3000",  # React dev server

@@ -10,8 +10,10 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Authorization;
@@ -141,6 +143,35 @@ public class DatamodelsController : ControllerBase
         await _schemaModelService.UpdateSchema(editingContext, modelPath, content, saveOnly, cancellationToken);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Generates the files that saving a data model writes, from app files in the request instead of
+    /// from the developer's repository. Nothing is saved. This lets a caller that edits the app in its
+    /// own clone, such as Studio Assistant, write the same files as Designer.
+    /// </summary>
+    /// <param name="request">The data model's JSON schema and the app files that the generation reads.</param>
+    [HttpPost]
+    [AllowApiKey]
+    // The order of the controller's AutoValidateAntiforgeryToken, so that this filter is the antiforgery
+    // policy that applies and an API key caller needs no antiforgery token.
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter), Order = 1000)]
+    [UseSystemTextJson]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [Route("datamodel/generate")]
+    public async Task<ActionResult<GeneratedDatamodel>> GenerateDatamodel([FromBody] GenerateDatamodelRequest request)
+    {
+        GeneratedDatamodel generatedDatamodel = await _schemaModelService.GenerateDatamodel(
+            request.ModelName,
+            request.Schema.ToJsonString(),
+            request.ApplicationMetadata.ToJsonString(),
+            request.UseNullableReferenceTypes,
+            request.IsV9OrNewer
+        );
+
+        return Ok(generatedDatamodel);
     }
 
     /// <summary>
