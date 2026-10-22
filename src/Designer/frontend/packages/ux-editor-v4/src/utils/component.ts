@@ -163,10 +163,12 @@ export const isComponentDeprecated = (type: ComponentType) => {
   return deprecatedComponents.includes(type);
 };
 
-export const numberOfAttachmentsErrorCodes = [
-  'minNumberOfAttachments_above_max',
-  'maxNumberOfAttachments_below_min',
-];
+export enum NumberOfAttachmentsErrorCode {
+  MinAboveMax = 'minNumberOfAttachments_above_max',
+  MaxBelowMin = 'maxNumberOfAttachments_below_min',
+}
+
+export const numberOfAttachmentsErrorCodes: string[] = Object.values(NumberOfAttachmentsErrorCode);
 
 /**
  * Validates a new minimum or maximum number of attachments against the other one,
@@ -188,7 +190,7 @@ export const validateNumberOfAttachments = (
     typeof component.maxNumberOfAttachments === 'number' &&
     value > component.maxNumberOfAttachments
   ) {
-    return 'minNumberOfAttachments_above_max';
+    return NumberOfAttachmentsErrorCode.MinAboveMax;
   }
   if (
     propertyKey === 'maxNumberOfAttachments' &&
@@ -196,7 +198,7 @@ export const validateNumberOfAttachments = (
     typeof component.minNumberOfAttachments === 'number' &&
     value < component.minNumberOfAttachments
   ) {
-    return 'maxNumberOfAttachments_below_min';
+    return NumberOfAttachmentsErrorCode.MaxBelowMin;
   }
   return '';
 };
