@@ -42,7 +42,7 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 
 ### Monitoring
 
-The engine — on the host or in the `core` profile — exports its telemetry over OTLP to a collector on the host, at port 4317. Any collector works; `studioctl env up --monitoring` runs one, with Grafana and the _Workflow Engine_ dashboard. See [Monitoring](docs/docker.md#monitoring) for how, for where only an engine on the host reaches it, for the two settings that turn on the dashboard's trace links, and for the studioctl flag that clashes with this stack.
+The engine — on the host or in the `core` profile — exports its telemetry over OTLP to a collector on the host, at port 4317. Any collector works; `studioctl env up --monitoring` runs one, with Grafana and the _Workflow Engine_ dashboard. On Docker Engine for Linux, the `core` profile's engine cannot reach a collector published on the host's loopback, as studioctl's is: there, run the engine on the host, as above. See [Monitoring](docs/docker.md#monitoring) for how, for the two settings that turn on the dashboard's trace links, and for the studioctl flag that clashes with this stack.
 
 ### Ports & URLs
 
