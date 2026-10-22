@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:altinn="http://altinn.no/process" id="Altinn_Payment_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="PaymentProcess" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_start</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Utfylling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_start</bpmn:incoming>
+      <bpmn:incoming>Flow_reject</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_payment</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="Betaling">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>payment</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>pay</altinn:action>
+            <altinn:action>confirm</altinn:action>
+            <altinn:action>reject</altinn:action>
+          </altinn:actions>
+          <altinn:paymentConfig>
+            <altinn:paymentDataType>paymentInformation</altinn:paymentDataType>
+            <altinn:paymentReceiptPdfDataType>paymentReceiptPdf</altinn:paymentReceiptPdfDataType>
+          </altinn:paymentConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_to_payment</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_gateway</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_1">
+      <bpmn:incoming>Flow_to_gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_confirm</bpmn:outgoing>
+      <bpmn:outgoing>Flow_reject</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_confirm</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_to_payment" sourceRef="Task_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_to_gateway" sourceRef="Task_2" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_confirm" sourceRef="Gateway_1" targetRef="EndEvent_1">
+      <bpmn:conditionExpression>["equals",["gatewayAction"],"confirm"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_reject" sourceRef="Gateway_1" targetRef="Task_1">
+      <bpmn:conditionExpression>["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+</bpmn:definitions>

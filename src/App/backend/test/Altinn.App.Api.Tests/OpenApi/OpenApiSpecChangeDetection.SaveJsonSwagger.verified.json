@@ -11273,6 +11273,10 @@
           },
           "paymentDetails": {
             "$ref": "#/components/schemas/PaymentDetails"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -11349,7 +11353,8 @@
           "Paid",
           "Failed",
           "Cancelled",
-          "Skipped"
+          "Skipped",
+          "Authorized"
         ],
         "type": "string"
       },

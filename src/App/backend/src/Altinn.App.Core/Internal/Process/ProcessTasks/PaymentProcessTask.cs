@@ -1,30 +1,32 @@
-using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Payment.Exceptions;
+using Altinn.App.Core.Features.Payment;
 using Altinn.App.Core.Features.Payment.Models;
-using Altinn.App.Core.Features.Payment.Processors;
+using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Process.ProcessTasks;
 
 /// <summary>
 /// Represents the process task responsible for collecting user payment.
 /// </summary>
-internal sealed class PaymentProcessTask : IProcessTask
+internal sealed class PaymentProcessTask : IProcessTask, IProcessTaskAbandonPreparer
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
-
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
-    private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IPaymentService _paymentService;
+    private readonly ITranslationService _translationService;
 
     private const string PdfContentType = "application/pdf";
     private const string ReceiptFileName = "Betalingskvittering.pdf";
@@ -35,12 +37,14 @@ internal sealed class PaymentProcessTask : IProcessTask
     public PaymentProcessTask(
         IPdfService pdfService,
         IProcessReader processReader,
-        AppImplementationFactory appImplementationFactory
+        IPaymentService paymentService,
+        ITranslationService translationService
     )
     {
         _pdfService = pdfService;
         _processReader = processReader;
-        _appImplementationFactory = appImplementationFactory;
+        _paymentService = paymentService;
+        _translationService = translationService;
     }
 
     /// <inheritdoc/>
@@ -68,15 +72,48 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <inheritdoc/>
-    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
-        pipeline.Stage(CleanupAnyExistingPayment).Build();
+    public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(RemoveClosedPayment).Build();
 
     /// <inheritdoc/>
     public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Stage(StoreReceipt).Build();
 
     /// <inheritdoc/>
-    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
-        pipeline.Stage(CleanupAnyExistingPayment).Build();
+    /// <remarks>
+    /// <see cref="PrepareAbandon"/> has settled the payment with the payment processor before the transition.
+    /// </remarks>
+    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Stage(RemoveClosedPayment).Build();
+
+    /// <inheritdoc/>
+    public async Task<ProcessChangeResult?> PrepareAbandon(
+        IInstanceDataMutator dataMutator,
+        string taskId,
+        CancellationToken cancellationToken
+    )
+    {
+        ValidAltinnPaymentConfiguration paymentConfiguration = GetAltinnPaymentConfiguration(taskId).Validate();
+        bool alreadyPaid = await _paymentService.PrepareAbandon(dataMutator, paymentConfiguration, cancellationToken);
+        if (!alreadyPaid)
+            return null;
+
+        List<ValidationIssueWithSource> validationIssues =
+        [
+            ValidationIssueWithSource.FromIssue(
+                BuiltInValidationIssues.PaymentAlreadyCompleted(paymentConfiguration.PaymentDataType),
+                source: GetType().FullName ?? nameof(PaymentProcessTask),
+                noIncrementalUpdates: true
+            ),
+        ];
+        await _translationService.TranslateValidationIssues(validationIssues, dataMutator.Language);
+        return new ProcessChangeResult
+        {
+            Success = false,
+            ErrorType = ProcessErrorType.Conflict,
+            ErrorTitle = "The payment is already completed.",
+            ErrorMessage =
+                $"Task {LogSanitizer.Sanitize(taskId)} cannot be rejected, because the payment has gone through at the payment processor.",
+            ValidationIssues = validationIssues,
+        };
+    }
 
     /// <summary>
     /// Stores the receipt of a completed payment. One stage: whether a receipt is due is read from the stored
@@ -89,16 +126,17 @@ internal sealed class PaymentProcessTask : IProcessTask
         string taskId = GetTaskId(dataMutator);
         ValidAltinnPaymentConfiguration configuration = GetAltinnPaymentConfiguration(taskId).Validate();
 
-        DataElement? paymentDataElement = dataMutator
-            .GetDataElementsForType(configuration.PaymentDataType)
-            .SingleOrDefault();
-        if (paymentDataElement is null)
+        StoredPaymentInformation? storedPayment = await StoredPaymentInformation.Read(
+            dataMutator,
+            configuration.PaymentDataType
+        );
+        // PaymentTaskValidator refuses the transition before it starts; this is a safety net.
+        if (storedPayment is null)
         {
-            // The user may still start and complete the payment while the engine retries, within its budget.
             return StageResult.FailedRetryable("Payment information not found.");
         }
 
-        PaymentInformation payment = await ReadPaymentInformation(dataMutator, paymentDataElement);
+        PaymentInformation payment = storedPayment.PaymentInformation;
         if (payment.Status == PaymentStatus.Skipped)
         {
             return StageResult.Completed();
@@ -112,7 +150,8 @@ internal sealed class PaymentProcessTask : IProcessTask
             return StageResult.Completed();
         }
 
-        // The actor's language, the one the user chose for the transition, or nb if it has none
+        // The actor's language: the one the user chose for the transition, or for the payment processor's webhook, the
+        // language the user paid in
         byte[] pdf = await _pdfService.GeneratePdf(
             dataMutator.Instance,
             taskId,
@@ -130,53 +169,24 @@ internal sealed class PaymentProcessTask : IProcessTask
     }
 
     /// <summary>
-    /// Cancels a payment that was started but not completed and removes what was stored about it, so the task
-    /// starts, or is left, with no payment pending. A paid payment is kept.
+    /// Removes the stored payment record when the payment can no longer complete. Any other record stays, so that a
+    /// later pay action, which runs before any transition, can terminate or verify the payment with the processor.
     /// </summary>
-    private async Task<StageResult> CleanupAnyExistingPayment(StageContext context)
+    private async Task<StageResult> RemoveClosedPayment(StageContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         ValidAltinnPaymentConfiguration configuration = GetAltinnPaymentConfiguration(GetTaskId(dataMutator))
             .Validate();
 
-        DataElement? paymentDataElement = dataMutator
-            .GetDataElementsForType(configuration.PaymentDataType)
-            .SingleOrDefault();
-        if (paymentDataElement is null)
+        StoredPaymentInformation? storedPayment = await StoredPaymentInformation.Read(
+            dataMutator,
+            configuration.PaymentDataType
+        );
+
+        if (storedPayment is not null && storedPayment.PaymentInformation.Status.IsClosed())
         {
-            return StageResult.Completed();
+            dataMutator.RemoveDataElement(storedPayment.DataElement);
         }
-
-        PaymentInformation payment = await ReadPaymentInformation(dataMutator, paymentDataElement);
-        if (payment.Status == PaymentStatus.Paid)
-        {
-            return StageResult.Completed();
-        }
-
-        if (payment.Status != PaymentStatus.Skipped)
-        {
-            string paymentProcessorId = payment.OrderDetails.PaymentProcessorId;
-            IPaymentProcessor paymentProcessor =
-                _appImplementationFactory
-                    .GetAll<IPaymentProcessor>()
-                    .FirstOrDefault(pp => pp.PaymentProcessorId == paymentProcessorId)
-                ?? throw new PaymentException($"Payment processor with ID '{paymentProcessorId}' not found.");
-
-            bool success = await paymentProcessor.TerminatePayment(
-                dataMutator.Instance,
-                payment,
-                context.CancellationToken
-            );
-            if (!success)
-            {
-                string paymentId = payment.PaymentDetails?.PaymentId ?? "missing";
-                return StageResult.FailedRetryable(
-                    $"Unable to cancel existing {paymentProcessorId} payment with ID: {paymentId}."
-                );
-            }
-        }
-
-        dataMutator.RemoveDataElement(paymentDataElement);
         return StageResult.Completed();
     }
 
@@ -184,16 +194,6 @@ internal sealed class PaymentProcessTask : IProcessTask
         dataAccessor.TaskId
         ?? dataAccessor.Instance.Process?.CurrentTask?.ElementId
         ?? throw new InvalidOperationException("Process task requires a current task id.");
-
-    private static async Task<PaymentInformation> ReadPaymentInformation(
-        IInstanceDataAccessor dataAccessor,
-        DataElement paymentDataElement
-    )
-    {
-        ReadOnlyMemory<byte> paymentData = await dataAccessor.GetBinaryData(paymentDataElement);
-        return JsonSerializer.Deserialize<PaymentInformation>(paymentData.Span, _jsonSerializerOptions)
-            ?? throw new InvalidOperationException("Unable to deserialize stored payment information.");
-    }
 
     /// <summary>
     /// Whether the instance already holds a receipt this task generated. Receipts from earlier visits to the task
