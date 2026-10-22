@@ -120,6 +120,24 @@ runs one upgrade through the job host in a real microVM, on a GitHub runner with
 
 ## Deploy
 
-The assistant creates one Job for each run, in the namespace `assistant-runners`. The pod runs on a node with the
-label `purpose=sandbox`, and gets `/dev/kvm` from the [sandbox node plugin](../../ci/sandbox-node/README.md). The
-Kubernetes manifests and the deploy workflow are not in this folder yet.
+[`infra/kustomize`](infra/kustomize) has the namespace `assistant-runners`, and what the assistant needs to start runs
+in it:
+
+- `podtemplate.yaml`: the pod of each runner Job.
+- `role.yaml` and `rolebinding.yaml`: the ServiceAccount of the assistant can read the PodTemplate, and create, follow
+  and delete Jobs. It cannot create pods or change Jobs.
+- `admission-policy.yaml`: a Job from the assistant must have the pod of the PodTemplate, `backoffLimit: 0`, an
+  `activeDeadlineSeconds` of at most 1200 seconds, and a TTL.
+- `resourcequota.yaml`: the cap on runs at the same time, 2 in dev and 4 in prod. The Job of a run over the cap gets
+  its pod when a run ends.
+- `networkpolicy.yaml`: only the assistant pods can reach a runner pod, and a runner pod can reach only DNS and the
+  internet on port 443.
+
+[`deploy-assistant-runner.yaml`](../../../.github/workflows/deploy-assistant-runner.yaml) builds the guest image, the
+job host image and the prepared guest image, pins them by digest in the PodTemplate, and pushes `infra/kustomize` as an
+OCI artifact. Flux applies it in dev and prod, from
+[`altinn-assistant-runner.yaml`](../../../infra/studio/syncroot/base/altinn-assistant-runner.yaml). Staging has no
+sandbox node, so it has no runner.
+
+The pod runs on a node with the label `purpose=sandbox`, and gets `/dev/kvm` from
+[`sandbox-node`](../../ci/sandbox-node/README.md).
