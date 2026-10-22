@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Option } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import type { OptionDirection } from '@app/form-component';
 
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -10,21 +9,10 @@ import { useComponentStructureData } from 'src/utils/layout/useComponentStructur
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-type OptionComponentProps = Pick<PropsFromGenericComponent<'Option'>, 'baseComponentId'> & {
-  isSummary?: boolean;
-  direction?: OptionDirection;
-  emptyFieldText?: string;
-};
-
-export const OptionComponent = ({ baseComponentId, isSummary, direction, emptyFieldText }: OptionComponentProps) => {
-  const summaryId = React.useId();
+export const OptionComponent = ({ baseComponentId }: PropsFromGenericComponent<'Option'>) => {
   const config = useComponentConfig(baseComponentId, 'Option');
   const value = useEvalExpression(config.value, Expressions.Option.value);
   const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Option.textResourceBindings.title);
-  const summaryTitle = useEvalOptionalText(
-    config.textResourceBindings?.summaryTitle,
-    Expressions.Option.textResourceBindings.summaryTitle,
-  );
   const description = useEvalOptionalText(
     config.textResourceBindings?.description,
     Expressions.Option.textResourceBindings.description,
@@ -36,18 +24,16 @@ export const OptionComponent = ({ baseComponentId, isSummary, direction, emptyFi
   const selectedOption = options.find((option) => option.value === value);
   return (
     <Option
-      componentId={isSummary ? `${componentId}-${summaryId}` : componentId}
-      title={isSummary ? summaryTitle || title : title}
+      componentId={componentId}
+      title={title}
       description={description}
       help={help}
       icon={config.icon}
-      direction={direction ?? config.direction ?? 'horizontal'}
+      direction={config.direction ?? 'horizontal'}
       labelGrid={config.grid?.labelGrid}
       innerGrid={innerGrid}
       isLoading={isFetching}
-      optionLabel={
-        selectedOption?.label ?? (isSummary ? value || emptyFieldText || 'general.empty_summary' : undefined)
-      }
+      optionLabel={selectedOption?.label}
       optionHelp={selectedOption?.helpText}
       optionDescription={selectedOption?.description}
     />
