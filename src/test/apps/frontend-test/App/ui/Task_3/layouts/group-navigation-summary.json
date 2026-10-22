@@ -1,0 +1,54 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["notEquals", ["dataModel", "ShowGroupNavigation"], true],
+    "layout": [
+      {
+        "id": "nav-group-navigation-summary",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "navigation-link-group",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Lenker til statiske rader"
+        },
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        },
+        "children": ["navigation-links"],
+        "tableHeaders": ["navigation-links"],
+        "tableColumns": {
+          "navigation-links": {
+            "editInTable": true
+          }
+        },
+        "edit": {
+          "mode": "onlyTable",
+          "addButton": false,
+          "deleteButton": false
+        }
+      },
+      {
+        "id": "navigation-links",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            ["linkToComponent", "Før tabellen", "navigation-before"],
+            " ",
+            ["linkToComponent", "Etter tabellen", "navigation-after"]
+          ]
+        }
+      },
+      {
+        "id": "navigation-summary",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "navigation-group"
+        }
+      }
+    ]
+  }
+}
