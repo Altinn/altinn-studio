@@ -15,8 +15,6 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using LibGit2Sharp;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -29,17 +27,14 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <param name="repositorySettings">The settings for the service repository.</param>
 /// <param name="giteaClient">The gitea client.</param>
 /// <param name="authHeadersProvider">The git server auth headers provider.</param>
-/// <param name="httpContextAccessor">The HTTP context accessor.</param>
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
-    IGitServerAuthHeadersProvider authHeadersProvider,
-    IHttpContextAccessor? httpContextAccessor = null
+    IGitServerAuthHeadersProvider authHeadersProvider
 ) : ISourceControl
 {
     private readonly ServiceRepositorySettings _repositorySettings = repositorySettings;
     private readonly IGiteaClient _giteaClient = giteaClient;
-    private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor;
 
     private const string DefaultBranch = General.DefaultBranch;
 
@@ -73,10 +68,9 @@ public class SourceControlService(
     )
     {
         using var activity = StartActivity(authenticatedContext);
-        activity?.SetTag("destination.path", destinationPath);
         if (!string.IsNullOrEmpty(branchName))
         {
-            activity?.SetTag("branch", branchName);
+            activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
         }
 
         return ExecuteWithTelemetry(
@@ -172,22 +166,18 @@ public class SourceControlService(
                 finally
                 {
                     SetRepositoryStatusTag(ctx.activity, status.RepositoryStatus);
-                    ctx.activity?.SetTag("pull.merge_status", mergeStatus);
-                    self.AddActivityEvent(
-                        "pull.summary",
-                        new ActivityTagsCollection
-                        {
-                            { "head_branch_before", headBranchBefore },
-                            { "head_branch_after", repo.Head.FriendlyName },
-                            { "is_dirty_before", isDirtyBefore },
-                            { "conflict_count_before", conflictCountBefore },
-                            { "content_status_count", status.ContentStatus.Count },
-                            { "merge_conflict", mergeConflict },
-                            { "checkout_conflict", checkoutConflict },
-                            { "merge_conflict_count", mergeConflictCount },
-                            { "repo.path", repo.Info.WorkingDirectory },
-                        }
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullMergeStatus, mergeStatus);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullHeadBranchBefore, headBranchBefore);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullHeadBranchAfter, repo.Head.FriendlyName);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullIsDirtyBefore, isDirtyBefore);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullConflictCountBefore, conflictCountBefore);
+                    ctx.activity?.SetTag(
+                        ServiceTelemetry.Attributes.Git.ContentStatusCount,
+                        status.ContentStatus.Count
                     );
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullMergeConflict, mergeConflict);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullCheckoutConflict, checkoutConflict);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PullMergeConflictCount, mergeConflictCount);
                 }
                 return status;
             }
@@ -229,8 +219,7 @@ public class SourceControlService(
     )
     {
         using var activity = StartActivity(authenticatedContext);
-        activity?.SetTag("branch", branchName);
-        activity?.SetTag("local.path", localPath);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
 
         ExecuteWithTelemetry(
             activity,
@@ -253,8 +242,11 @@ public class SourceControlService(
             static (self, ctx) =>
             {
                 bool branchSupplied = !string.IsNullOrWhiteSpace(ctx.commitInfo.BranchName);
-                ctx.activity?.SetTag("branch.supplied", branchSupplied);
-                ctx.activity?.SetTag("commit.message.empty", string.IsNullOrWhiteSpace(ctx.commitInfo.Message));
+                ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.BranchSupplied, branchSupplied);
+                ctx.activity?.SetTag(
+                    ServiceTelemetry.Attributes.Git.CommitMessageEmpty,
+                    string.IsNullOrWhiteSpace(ctx.commitInfo.Message)
+                );
                 string branchName = string.Empty;
                 string localServiceRepoFolder = string.Empty;
                 try
@@ -280,7 +272,7 @@ public class SourceControlService(
                 }
                 finally
                 {
-                    ctx.activity?.SetTag("branch.resolved", branchName);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
                 }
             }
         );
@@ -345,16 +337,22 @@ public class SourceControlService(
                 }
                 finally
                 {
-                    ctx.activity?.SetTag("push.success", pushCompleted && pushSuccess);
-                    ActivityTagsCollection summaryTags = new()
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PushSuccess, pushCompleted && pushSuccess);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PushErrorCount, pushErrorCount);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PushRemote, remoteName);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PushRemoteUrlUpdated, remoteUrlUpdated);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.PushCompleted, pushCompleted);
+                    if (pushErrors.Count > 0)
                     {
-                        { "push_error_count", pushErrorCount },
-                        { "remote", remoteName },
-                        { "remote_url_updated", remoteUrlUpdated },
-                        { "push_completed", pushCompleted },
-                    };
-                    AddIndexedPushErrors(summaryTags, pushErrors);
-                    self.AddActivityEvent("push.summary", summaryTags);
+                        ctx.activity?.SetTag(
+                            ServiceTelemetry.Attributes.Git.PushErrorReferences,
+                            pushErrors.Select(error => error.Reference).ToArray()
+                        );
+                        ctx.activity?.SetTag(
+                            ServiceTelemetry.Attributes.Git.PushErrorMessages,
+                            pushErrors.Select(error => error.Message).ToArray()
+                        );
+                    }
                 }
             }
         );
@@ -478,17 +476,13 @@ public class SourceControlService(
                 finally
                 {
                     SetRepositoryStatusTag(ctx.activity, repoStatus.RepositoryStatus);
-                    self.AddActivityEvent(
-                        "repo_status.summary",
-                        new ActivityTagsCollection
-                        {
-                            { "current_branch", repoStatus.CurrentBranch },
-                            { "content_status_count", repoStatus.ContentStatus.Count },
-                            { "ahead_by", repoStatus.AheadBy ?? -1 },
-                            { "behind_by", repoStatus.BehindBy ?? -1 },
-                            { "repo.path", repo.Info.WorkingDirectory },
-                        }
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, repoStatus.CurrentBranch);
+                    ctx.activity?.SetTag(
+                        ServiceTelemetry.Attributes.Git.ContentStatusCount,
+                        repoStatus.ContentStatus.Count
                     );
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.AheadBy, repoStatus.AheadBy);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.BehindBy, repoStatus.BehindBy);
                 }
             }
         );
@@ -605,7 +599,6 @@ public class SourceControlService(
     public void StoreAppTokenForUser(string token, string developer)
     {
         using var activity = StartActivity();
-        activity?.SetTag("developer", developer);
         ExecuteWithTelemetry(
             activity,
             (token, developer),
@@ -632,20 +625,12 @@ public class SourceControlService(
         }
     }
 
-    public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext)
-    {
-        using var activity = StartActivity(editingContext);
-        return ExecuteWithTelemetry(
-            activity,
-            editingContext,
-            static (self, editingContext) =>
-                Path.Join(
-                    Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
-                        ?? self._repositorySettings.RepositoryLocation,
-                    editingContext.Path
-                )
+    public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) =>
+        Path.Join(
+            Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
+                ?? _repositorySettings.RepositoryLocation,
+            editingContext.Path
         );
-    }
 
     /// <inheritdoc />
     public void CloneIfNotExists(AltinnAuthenticatedRepoEditingContext authenticatedContext)
@@ -681,16 +666,9 @@ public class SourceControlService(
                 }
                 finally
                 {
-                    ctx.activity?.SetTag("cloned", cloned);
-                    ctx.activity?.SetTag("clone.failed_handled", cloneFailedHandled);
-                    self.AddActivityEvent(
-                        "clone_if_not_exists.summary",
-                        new ActivityTagsCollection
-                        {
-                            { "repo.path", repoLocation },
-                            { "repo_exists_before", repoExistsBefore },
-                        }
-                    );
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.CloneCloned, cloned);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.CloneFailureHandled, cloneFailedHandled);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.CloneRepoExisted, repoExistsBefore);
                 }
             }
         );
@@ -759,18 +737,18 @@ public class SourceControlService(
         }
         finally
         {
-            activity?.SetTag("commit.is_dirty", isDirty);
-            activity?.SetTag("commit.created", commitCreated);
+            activity?.SetTag(ServiceTelemetry.Attributes.Git.CommitIsDirty, isDirty);
+            activity?.SetTag(ServiceTelemetry.Attributes.Git.CommitCreated, commitCreated);
             activity?.SetTag(
-                "commit.push_target",
+                ServiceTelemetry.Attributes.Git.CommitPushTarget,
                 pushedDefaultBranch ? "default"
                     : pushedFeatureBranch ? "feature"
                     : "none"
             );
-            AddActivityEvent(
-                "commit_and_push_to_branch.summary",
-                new ActivityTagsCollection { { "created_commit_sha", createdCommitSha }, { "local.path", localPath } }
-            );
+            if (createdCommitSha.Length > 0)
+            {
+                activity?.SetTag(ServiceTelemetry.Attributes.Git.CommitSha, createdCommitSha);
+            }
         }
     }
 
@@ -778,7 +756,7 @@ public class SourceControlService(
     public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
     {
         using var activity = StartActivity(authenticatedContext);
-        activity?.SetTag("branch", branchName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
         ExecuteWithTelemetry(
             activity,
             (authenticatedContext, branchName),
@@ -835,7 +813,7 @@ public class SourceControlService(
                 string developer = ctx.editingContext.Developer;
 
                 var status = repo.RetrieveStatus();
-                ctx.activity?.SetTag("is_dirty", status.IsDirty);
+                ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.IsDirty, status.IsDirty);
                 if (status.IsDirty)
                 {
                     string commitMessage = ctx.message ?? string.Empty;
@@ -898,16 +876,9 @@ public class SourceControlService(
                 }
                 finally
                 {
-                    ctx.activity?.SetTag("rebase.status", rebaseStatus.ToString());
-                    self.AddActivityEvent(
-                        "rebase.summary",
-                        new ActivityTagsCollection
-                        {
-                            { "working_directory", repo.Info.WorkingDirectory },
-                            { "conflicts_aborted", conflictsAborted },
-                            { "stop_aborted", stopAborted },
-                        }
-                    );
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStatus, rebaseStatus.ToString());
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseConflictsAborted, conflictsAborted);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStopAborted, stopAborted);
                 }
             }
         );
@@ -917,8 +888,8 @@ public class SourceControlService(
     public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null!)
     {
         using var activity = StartActivity(editingContext);
-        activity?.SetTag("branch", branchName);
-        activity?.SetTag("commit.sha", commitSha);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.CommitSha, commitSha);
         ExecuteWithTelemetry(
             activity,
             (editingContext, branchName, commitSha),
@@ -958,7 +929,7 @@ public class SourceControlService(
     )
     {
         using var activity = StartActivity(authenticatedContext);
-        activity?.SetTag("branch", branchName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
         ExecuteWithTelemetry(
             activity,
             (activity, authenticatedContext, branchName),
@@ -969,7 +940,7 @@ public class SourceControlService(
                 using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
                 if (RemoteBranchExists(ctx.branchName, repo) is false)
                 {
-                    ctx.activity?.SetTag("branch.deleted", false);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.BranchDeleted, false);
                     return;
                 }
 
@@ -981,7 +952,7 @@ public class SourceControlService(
                 };
                 string pushRefSpec = $":refs/heads/{ctx.branchName}";
                 repo.Network.Push(remote, pushRefSpec, options);
-                ctx.activity?.SetTag("branch.deleted", true);
+                ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.BranchDeleted, true);
             }
         );
     }
@@ -990,7 +961,7 @@ public class SourceControlService(
     public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName)
     {
         using var activity = StartActivity(editingContext);
-        activity?.SetTag("branch", branchName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
         ExecuteWithTelemetry(
             activity,
             (activity, editingContext, branchName),
@@ -1009,11 +980,11 @@ public class SourceControlService(
                 if (LocalBranchExists(repo, ctx.branchName))
                 {
                     repo.Branches.Remove(ctx.branchName);
-                    ctx.activity?.SetTag("branch.deleted", true);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.BranchDeleted, true);
                     return;
                 }
 
-                ctx.activity?.SetTag("branch.deleted", false);
+                ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.BranchDeleted, false);
             }
         );
     }
@@ -1022,7 +993,7 @@ public class SourceControlService(
     public void CheckoutRepoOnBranch(AltinnRepoEditingContext editingContext, string branchName)
     {
         using var activity = StartActivity(editingContext);
-        activity?.SetTag("branch", branchName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
         ExecuteWithTelemetry(
             activity,
             (editingContext, branchName),
@@ -1063,7 +1034,7 @@ public class SourceControlService(
     public void MergeBranchIntoHead(AltinnRepoEditingContext editingContext, string featureBranch)
     {
         using var activity = StartActivity(editingContext);
-        activity?.SetTag("feature.branch", featureBranch);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.FeatureBranch, featureBranch);
         ExecuteWithTelemetry(
             activity,
             (editingContext, featureBranch),
@@ -1112,13 +1083,170 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
+    public Dictionary<string, FolderHistory> GetTopLevelFolderHistory(AltinnRepoEditingContext editingContext)
+    {
+        using var activity = StartActivity(editingContext);
+        return ExecuteWithTelemetry(
+            activity,
+            editingContext,
+            static (self, editingContext) =>
+                ReadTopLevelFolderHistory(
+                    self._repositorySettings.GetServicePath(
+                        editingContext.Org,
+                        editingContext.Repo,
+                        editingContext.Developer
+                    )
+                )
+        );
+    }
+
+    private static Dictionary<string, FolderHistory> ReadTopLevelFolderHistory(string localPath)
+    {
+        if (!LibGit2Sharp.Repository.IsValid(localPath))
+        {
+            return [];
+        }
+
+        using LibGit2Sharp.Repository repo = new(localPath);
+        LibGit2Sharp.Commit? remoteDefaultBranchTip = repo.Branches[$"origin/{General.DefaultBranch}"]?.Tip;
+        if (remoteDefaultBranchTip is null)
+        {
+            return [];
+        }
+
+        // Children before parents, so each commit is handled after every child that leads to it.
+        List<LibGit2Sharp.Commit> commits = repo
+            .Commits.QueryBy(
+                new CommitFilter
+                {
+                    IncludeReachableFrom = remoteDefaultBranchTip,
+                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
+                }
+            )
+            .ToList();
+        Dictionary<ObjectId, HashSet<string>[]> changedFoldersByCommit = commits.ToDictionary(
+            commit => commit.Id,
+            commit => GetTopLevelFoldersChangedFromEachParent(repo, commit)
+        );
+
+        // Follows the history of each folder like `git log -- <folder>` does by default: a merge that left the
+        // folder identical to one of its parents is skipped, and only that parent's history is followed.
+        Dictionary<ObjectId, HashSet<string>> foldersToFollow = new()
+        {
+            [remoteDefaultBranchTip.Id] = changedFoldersByCommit
+                .Values.SelectMany(changed => changed)
+                .SelectMany(folders => folders)
+                .ToHashSet(),
+        };
+        Dictionary<string, FolderHistory> history = [];
+        Dictionary<string, DateTimeOffset> firstCommitTimes = [];
+        foreach (LibGit2Sharp.Commit commit in commits)
+        {
+            if (!foldersToFollow.Remove(commit.Id, out HashSet<string>? folders))
+            {
+                continue;
+            }
+
+            LibGit2Sharp.Commit[] parents = commit.Parents.ToArray();
+            HashSet<string>[] changedFromParents = changedFoldersByCommit[commit.Id];
+            foreach (string folder in folders)
+            {
+                int unchangedParentIndex = Array.FindIndex(changedFromParents, changed => !changed.Contains(folder));
+                if (parents.Length > 1 && unchangedParentIndex >= 0)
+                {
+                    FollowFolder(foldersToFollow, parents[unchangedParentIndex], folder);
+                    continue;
+                }
+
+                if (unchangedParentIndex < 0)
+                {
+                    RecordFolderCommit(history, firstCommitTimes, folder, commit);
+                }
+
+                foreach (LibGit2Sharp.Commit parent in parents)
+                {
+                    FollowFolder(foldersToFollow, parent, folder);
+                }
+            }
+        }
+
+        return history;
+    }
+
+    private static void FollowFolder(
+        Dictionary<ObjectId, HashSet<string>> foldersToFollow,
+        LibGit2Sharp.Commit commit,
+        string folder
+    )
+    {
+        if (!foldersToFollow.TryGetValue(commit.Id, out HashSet<string>? folders))
+        {
+            folders = [];
+            foldersToFollow[commit.Id] = folders;
+        }
+
+        folders.Add(folder);
+    }
+
+    private static void RecordFolderCommit(
+        Dictionary<string, FolderHistory> history,
+        Dictionary<string, DateTimeOffset> firstCommitTimes,
+        string folder,
+        LibGit2Sharp.Commit commit
+    )
+    {
+        DateTimeOffset commitTime = commit.Committer.When;
+        if (!history.TryGetValue(folder, out FolderHistory? folderHistory))
+        {
+            history[folder] = new FolderHistory(commit.Author.Name, commitTime);
+            firstCommitTimes[folder] = commitTime;
+            return;
+        }
+
+        if (commitTime > folderHistory.LastCommitTime)
+        {
+            folderHistory = folderHistory with { LastCommitTime = commitTime };
+        }
+
+        if (commitTime < firstCommitTimes[folder])
+        {
+            folderHistory = folderHistory with { FirstCommitAuthorName = commit.Author.Name };
+            firstCommitTimes[folder] = commitTime;
+        }
+
+        history[folder] = folderHistory;
+    }
+
+    /// <returns>The top-level folders changed from each parent, in parent order; for a root commit, the folders
+    /// changed from the empty tree.</returns>
+    private static HashSet<string>[] GetTopLevelFoldersChangedFromEachParent(
+        LibGit2Sharp.Repository repo,
+        LibGit2Sharp.Commit commit
+    )
+    {
+        Tree?[] parentTrees = commit.Parents.Any() ? [.. commit.Parents.Select(parent => parent.Tree)] : [null];
+        return parentTrees
+            .Select(parentTree =>
+            {
+                using TreeChanges changes = repo.Diff.Compare<TreeChanges>(parentTree, commit.Tree);
+                return changes
+                    .SelectMany(change => new[] { change.Path, change.OldPath })
+                    .Select(path => path.Split('/', 2))
+                    .Where(pathSegments => pathSegments.Length == 2)
+                    .Select(pathSegments => pathSegments[0])
+                    .ToHashSet();
+            })
+            .ToArray();
+    }
+
+    /// <inheritdoc/>
     public RepoStatus CheckoutBranchWithValidation(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     )
     {
         using var activity = StartActivity(authenticatedContext);
-        activity?.SetTag("target.branch", branchName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.TargetBranch, branchName);
         return ExecuteWithTelemetry(
             activity,
             (activity, authenticatedContext, branchName),
@@ -1151,7 +1279,7 @@ public class SourceControlService(
                         TargetBranch = ctx.branchName,
                     };
 
-                    ctx.activity?.SetTag("checkout.blocked", true);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.CheckoutBlocked, true);
                     throw new Exceptions.UncommittedChangesException(error);
                 }
 
@@ -1207,7 +1335,7 @@ public class SourceControlService(
     public void StageChange(AltinnRepoEditingContext editingContext, string fileName)
     {
         using var activity = StartActivity(editingContext);
-        activity?.SetTag("file.path", fileName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.FilePath, fileName);
         ExecuteWithTelemetry(
             activity,
             (activity, editingContext, fileName),
@@ -1222,7 +1350,7 @@ public class SourceControlService(
                 var matchingFile = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == ctx.fileName);
                 if (matchingFile is null)
                 {
-                    ctx.activity?.SetTag("file.staged", false);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.FileStaged, false);
                     return;
                 }
 
@@ -1234,11 +1362,11 @@ public class SourceControlService(
                 )
                 {
                     Commands.Stage(repo, ctx.fileName);
-                    ctx.activity?.SetTag("file.staged", true);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.FileStaged, true);
                     return;
                 }
 
-                ctx.activity?.SetTag("file.staged", false);
+                ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.FileStaged, false);
             }
         );
     }
@@ -1250,7 +1378,7 @@ public class SourceControlService(
     )
     {
         using var activity = StartActivity(editingContext);
-        activity?.SetTag("branch", branchName);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
         return await ExecuteWithTelemetryAsync(
             activity,
             (editingContext, branchName),
@@ -1268,8 +1396,8 @@ public class SourceControlService(
     )
     {
         using var activity = StartActivity(editingContext);
-        activity?.SetTag("target.branch", target);
-        activity?.SetTag("source.branch", source);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.TargetBranch, target);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.SourceBranch, source);
 
         return await ExecuteWithTelemetryAsync(
             activity,
@@ -1420,7 +1548,7 @@ public class SourceControlService(
     )
     {
         var activity = StartActivityCore(methodName);
-        SetCommonTags(activity, editingContext.Org, editingContext.Repo, editingContext.Developer);
+        SetCommonTags(activity, editingContext.Org, editingContext.Repo);
         return activity;
     }
 
@@ -1430,16 +1558,13 @@ public class SourceControlService(
     )
     {
         var activity = StartActivityCore(methodName);
-        SetCommonTags(activity, authenticatedContext.Org, authenticatedContext.Repo, authenticatedContext.Developer);
+        SetCommonTags(activity, authenticatedContext.Org, authenticatedContext.Repo);
         return activity;
     }
 
-    private static void SetCommonTags(Activity? activity, string org, string repository, string developer)
-    {
-        activity?.SetTag("org", org);
-        activity?.SetTag("repository", repository);
-        activity?.SetTag("developer", developer);
-    }
+    // The service owner, app and user are on the root span. Only the repository can differ from the request's.
+    private static void SetCommonTags(Activity? activity, string owner, string repository) =>
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Repository, $"{owner}/{repository}");
 
     private static void SetErrorStatus(Activity? activity, string description) =>
         activity?.SetStatus(ActivityStatusCode.Error, description);
@@ -1451,26 +1576,7 @@ public class SourceControlService(
     }
 
     private static void SetRepositoryStatusTag(Activity? activity, Enums.RepositoryStatus repositoryStatus) =>
-        activity?.SetTag("repository_status", repositoryStatus.ToString());
-
-    private void AddActivityEvent(string eventName, ActivityTagsCollection? tags = null)
-    {
-        var activity =
-            _httpContextAccessor?.HttpContext?.Features.Get<IHttpActivityFeature>()?.Activity ?? Activity.Current;
-        activity?.AddEvent(new ActivityEvent(eventName, tags: tags));
-    }
-
-    private static void AddIndexedPushErrors(
-        ActivityTagsCollection tags,
-        IReadOnlyList<(string Reference, string Message)> pushErrors
-    )
-    {
-        for (int i = 0; i < pushErrors.Count; i++)
-        {
-            tags.Add($"push_error_{i}_reference", pushErrors[i].Reference);
-            tags.Add($"push_error_{i}_message", pushErrors[i].Message);
-        }
-    }
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.RepositoryStatus, repositoryStatus.ToString());
 
     private TReturn ExecuteWithTelemetry<TContext, TReturn>(
         Activity? activity,

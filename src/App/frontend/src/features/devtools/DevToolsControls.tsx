@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs } from '@digdir/designsystemet-react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
+import { DevFontSelector } from 'src/features/devtools/components/DevFontSelector/DevFontSelector';
 import { DevHiddenFunctionality } from 'src/features/devtools/components/DevHiddenFunctionality/DevHiddenFunctionality';
 import { DevLanguageSelector } from 'src/features/devtools/components/DevLanguageSelector/DevLanguageSelector';
 import { DevNavigationButtons } from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons';
@@ -59,6 +60,7 @@ export const DevToolsControls = () => {
           <DevHiddenFunctionality />
           <PermissionsEditor />
           <DevLanguageSelector />
+          <DevFontSelector />
           <DownloadXMLButton />
           <ReactQueryDevtools initialIsOpen={false} />
         </div>

@@ -123,7 +123,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "code": "The field RangeProperty must be between 1 and 10.",
                         "description": "The field RangeProperty must be between 1 and 10.",
                         "source": null,
-                        "customTextKey": null
+                        "customTextKey": "The field RangeProperty must be between 1 and 10."
                       },
                       {
                         "severity": 1,
@@ -133,7 +133,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "code": "The RequiredProperty field is required.",
                         "description": "The RequiredProperty field is required.",
                         "source": null,
-                        "customTextKey": null
+                        "customTextKey": "The RequiredProperty field is required."
                       },
                       {
                         "severity": 1,
@@ -143,7 +143,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "code": "The field RangeProperty must be between 1 and 10.",
                         "description": "The field RangeProperty must be between 1 and 10.",
                         "source": null,
-                        "customTextKey": null
+                        "customTextKey": "The field RangeProperty must be between 1 and 10."
                       },
                       {
                         "severity": 1,
@@ -153,7 +153,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                         "code": "The RequiredProperty field is required.",
                         "description": "The RequiredProperty field is required.",
                         "source": null,
-                        "customTextKey": null
+                        "customTextKey": "The RequiredProperty field is required."
                       }
                     ]
                     """

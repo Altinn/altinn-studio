@@ -19,6 +19,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 
+	"altinn.studio/pdf3/internal/config"
+	"altinn.studio/pdf3/internal/telemetry/attr"
 	"altinn.studio/pdf3/internal/types"
 )
 
@@ -67,7 +69,11 @@ func TestGeneratePdfHandler_ErrorType(t *testing.T) {
 			spans := tracetest.NewSpanRecorder()
 			var logs bytes.Buffer
 			handler := otelhttp.NewHandler(
-				generatePdfHandler(slog.New(slog.NewTextHandler(&logs, nil)), stubGenerator{err: tt.err}),
+				generatePdfHandler(
+					slog.New(slog.NewTextHandler(&logs, nil)),
+					stubGenerator{err: tt.err},
+					&config.Config{},
+				),
 				"POST /generate",
 				otelhttp.WithMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))),
 				otelhttp.WithTracerProvider(sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spans))),
@@ -95,9 +101,9 @@ func TestGeneratePdfHandler_ErrorType(t *testing.T) {
 			}
 			assertEntrySpanOutcome(t, spans, tt.wantErrorType)
 			if tt.invalidJSON {
-				assertEntrySpanAttribute(t, spans, "pdf.response.rejection_reason", "invalid_json")
+				assertEntrySpanAttribute(t, spans, attr.ResponseRejectionReason, "invalid_json")
 			} else {
-				assertEntrySpanAttribute(t, spans, "pdf.request.wait_for.type", "load_event")
+				assertEntrySpanAttribute(t, spans, attr.RequestWaitForType, "load_event")
 			}
 			failedLogged := strings.Contains(logs.String(), `level=ERROR msg="PDF generation failed"`) &&
 				strings.Contains(logs.String(), " error.type="+tt.wantErrorType+" ")

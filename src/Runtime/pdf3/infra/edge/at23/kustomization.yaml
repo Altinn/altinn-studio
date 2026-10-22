@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+patches:
+  - target:
+      group: gateway.envoyproxy.io
+      kind: Backend
+      name: pdf-dis-upstream
+    patch: |-
+      - op: replace
+        path: /spec/endpoints/0/fqdn/hostname
+        value: pdf3.at23.dis-core.altinn.cloud
+  - target:
+      group: gateway.networking.k8s.io
+      kind: BackendTLSPolicy
+      name: pdf-dis-upstream-tls
+    patch: |-
+      - op: replace
+        path: /spec/validation/hostname
+        value: pdf3.at23.dis-core.altinn.cloud
+  - target:
+      group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: studio-pdf
+    patch: |-
+      - op: replace
+        path: /spec/hostnames
+        value:
+          - studio.platform.at23.altinn.cloud
+      - op: replace
+        path: /spec/rules/0/filters/0/urlRewrite/hostname
+        value: pdf3.at23.dis-core.altinn.cloud

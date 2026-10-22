@@ -56,7 +56,7 @@ export const getDataElementIdUrl = (instanceId: string, dataElementId: string) =
   `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 
 export const getDataModelTypeUrl = (instanceId: string, dataType: string) =>
-  `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
+  `${appPath}/instances/${instanceId}/data/type/${encodeURIComponent(dataType)}`;
 
 export const getDataElementUrl = (instanceId: string, dataElementId: string, language: string) =>
   `${appPath}/instances/${instanceId}/data/${dataElementId}?language=${language}`;
@@ -71,8 +71,19 @@ export const getCreateInstancesUrl = (partyId: number, language?: string) => {
   return `${appPath}/instances${queryString}`;
 };
 
-export const getPdfPreviewUrl = (instanceId: string, language: string) => {
-  const queryString = getQueryStringFromObject({ language });
+export const getLayoutsUrl = (uiFolder: string) => `${appPath}/api/layouts/${uiFolder}`;
+
+export interface PdfPreviewTarget {
+  taskId?: string;
+  dataElementId?: string;
+}
+
+export const getPdfPreviewUrl = (instanceId: string, language: string, target?: PdfPreviewTarget) => {
+  const queryString = getQueryStringFromObject({
+    language,
+    taskId: target?.taskId,
+    dataElementId: target?.dataElementId,
+  });
   return `${appPath}/instances/${instanceId}/pdf/preview${queryString}`;
 };
 
@@ -98,22 +109,6 @@ export const getEnvironmentLoginUrl = (oidcProvider: string | null): string | un
     return loginUrl;
   }
   return `${loginUrl}${loginUrl.includes('?') ? '&' : '?'}iss=${oidcProvider}`;
-};
-
-export const getHostname = () => {
-  // First split away the protocol 'https://' and take the last part. Then split on dots.
-  const domainSplit: string[] = window.location.host.split('.');
-  if (domainSplit.length === 5) {
-    return `${domainSplit[2]}.${domainSplit[3]}.${domainSplit[4]}`;
-  }
-  if (domainSplit.length === 4) {
-    return `${domainSplit[2]}.${domainSplit[3]}`;
-  }
-  if (domainSplit[0] === 'altinn3local' || domainSplit[0] === 'local') {
-    // Local test, needs to be backward compat with users who uses old local test
-    return window.location.host;
-  }
-  throw new Error('Unknown domain');
 };
 
 export const redirectToUpgrade = () => {

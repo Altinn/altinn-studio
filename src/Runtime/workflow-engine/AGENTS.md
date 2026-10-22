@@ -40,6 +40,7 @@ Reusable class library for async workflow processing. Provides the core engine, 
     - **One closure routine**: `DELETE` and the deadline sweep run the same code, making racing closures first-writer-wins no-ops. The sweep's per-mailbox transaction isolation is load-bearing rather than defensive (a close that threw and escaped would lead every subsequent batch and wedge the sweep), and a tick drains — `SweepBatchSize` bounds the statement, not the tick.
     - **`MailboxSweepInterval` is a term in the callback-token lifetime bound** derived on `MaxMailboxTimeout` and pinned by `CallbackTokenLifetimeInvariantTests` — never retune either alone.
     - **Retention takes only closed mailboxes, children first** — enforced by `ON DELETE RESTRICT`, the schema's only non-cascade FKs; `mailbox_receivers.workflow_id` deliberately carries no FK (the registry row of a purged receiver records a rendezvous that already happened). An overdue **open** mailbox belongs to the sweep, and `engine.mailboxes.open.overdue` reading anything but zero is an alert, not a GC gap.
+- **Primary and auxiliary workflows**: a workflow enqueued with `isHead` `true` or unset is _primary_, one with `isHead = false` is _auxiliary_. Use that vocabulary for the concept in code, docs and UI, as defined in [`docs/technical-guide.md#primary-and-auxiliary-workflows`](docs/technical-guide.md#primary-and-auxiliary-workflows).
 - **Heartbeat & stale recovery**: `HeartbeatService` proves worker liveness. Stale workflows (expired heartbeat) are automatically reclaimed by another worker. Poisoned workflow protection after configurable max reclaim attempts.
 - **Cancellation**: Cross-pod cancellation propagation via DB polling. `CancellationWatcherService` detects pending cancellations for in-flight workflows. For workflows nobody is executing, the fetch gate claims any row with a pending cancellation regardless of its backoff timer (the handler cancels before executing anything), so a cancel that races a retry/deferral write-back never sits out the timer — unsettled dependencies still gate the fetch.
 - **Write buffers**: `WorkflowWriteBuffer` batches enqueue operations via a channel-based work queue with configurable batch size, queue depth, and flush concurrency. The three mailbox write paths batch the same way, through the shared `BatchBuffer<TItem, TResult>` base — `MailboxMintBuffer`, `MailboxCloseBuffer`, `MailboxDeliveryBuffer`, configured under `mailboxBuffers` — with the semantics recorded in the mailbox invariants above and in [the guide](docs/technical-guide.md#the-three-write-paths-are-batched). The mailbox queues are bounded and **wait** when full — a caller is delayed, never refused.
@@ -88,6 +89,14 @@ folder. `make dev` / `make run` / `make stop` / `make reset` wrap the compose in
 
 CSharpier formatting enforced at build time. See [`docs/format.md`](docs/format.md) for details and
 commands.
+
+Configuration is read once at startup (`IOptions<T>`, never `IOptionsMonitor`) on purpose: the
+settings worth tuning (semaphore sizes, pool sizes, buffer capacities, telemetry) cannot change while
+the process runs. Tune a deployment through environment variables in its overlay
+(`EngineSettings__Concurrency__MaxWorkers`) and restart it.
+
+Response models use `init` setters. System.Text.Json skips an `internal set`, so a client that
+deserializes the model silently reads `null`.
 
 Use docstrings to document all public types and members. Extend this to private members where necessary to explain complex logic or add clarity.
 

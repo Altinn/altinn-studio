@@ -106,6 +106,8 @@ public record DeployEvent
 public enum DeployEventType
 {
     PipelineScheduled,
+
+    // Retained for deserializing historical deployment events.
     DeprecatedPipelineScheduled,
     PipelineSucceeded,
     PipelineFailed,

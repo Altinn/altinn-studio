@@ -89,7 +89,7 @@ def _provenance_from(metadata: dict) -> Provenance:
             return {}
         try:
             return json.loads(raw)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return {}
 
     code = str(metadata.get("code") or "unknown")

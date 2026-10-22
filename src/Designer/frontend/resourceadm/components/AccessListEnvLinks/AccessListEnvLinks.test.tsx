@@ -13,7 +13,6 @@ const org = 'ttd';
 
 const resourcePublishStatus = {
   policyVersion: null,
-  resourceVersion: '1',
   publishedVersions: [
     {
       version: '1',

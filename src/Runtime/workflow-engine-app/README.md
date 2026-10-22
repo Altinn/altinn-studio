@@ -34,13 +34,13 @@ The database is migrated automatically on startup.
 
 ### Ports & URLs
 
-| Service    | URL                               | Notes                       |
-| ---------- | --------------------------------- | --------------------------- |
-| Engine API | http://localhost:9090             | Swagger UI at `/swagger`    |
-| Dashboard  | http://localhost:9090             | Real-time monitoring at `/` |
-| Localtest  | http://local.altinn.cloud:8000    | Platform and app callbacks  |
-| PostgreSQL | localhost:9543                    | Localtest workflow database |
-| Public API | http://workflow-engine.local.altinn.cloud:8000 | Proxied through localtest |
+| Service    | URL                                            | Notes                       |
+| ---------- | ---------------------------------------------- | --------------------------- |
+| Engine API | http://localhost:9090                          | Swagger UI at `/swagger`    |
+| Dashboard  | http://localhost:9090                          | Real-time monitoring at `/` |
+| Localtest  | http://local.altinn.cloud:8000                 | Platform and app callbacks  |
+| PostgreSQL | localhost:9543                                 | Localtest workflow database |
+| Public API | http://workflow-engine.local.altinn.cloud:8000 | Proxied through localtest   |
 
 ### Running tests
 

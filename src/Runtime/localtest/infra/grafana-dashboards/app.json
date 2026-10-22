@@ -86,7 +86,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -151,7 +151,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -217,7 +217,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__range]) / increase(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__range])) / sum(increase_pure(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -282,7 +282,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\"}[$__range])) by (le))",
+          "expr": "histogram_quantile(0.5, sum(increase_pure(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\"}[$__range])) by (le))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -348,7 +348,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_data_patched{\"service.name\"=\"$app\", result=\"success\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_data_patched{\"service.name\"=\"$app\", result=\"success\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -417,7 +417,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "sum(increase({\"http.server.request.duration_count\", \"service.name\"=\"$app\", \"http.response.status_code\"=~\"5..\"}[$__range]))",
+          "expr": "sum(increase_pure({\"http.server.request.duration_count\", \"service.name\"=\"$app\", \"http.response.status_code\"=~\"5..\"}[$__range])) or sum(increase_pure({\"http.server.request.duration_count\", \"service.name\"=\"$app\"}[$__range])) * 0",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -513,7 +513,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "rate(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__rate_interval]) * 60",
+          "expr": "sum(increase_pure(altinn_app_lib_processes_started{\"service.name\"=\"$app\"}[$__rate_interval])) / ($__rate_interval_ms / 60000)",
           "hide": false,
           "legendFormat": "Skjemaer startet",
           "range": true,
@@ -525,7 +525,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "rate(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__rate_interval]) * 60",
+          "expr": "sum(increase_pure(altinn_app_lib_processes_ended{\"service.name\"=\"$app\"}[$__rate_interval])) / ($__rate_interval_ms / 60000)",
           "hide": false,
           "instant": false,
           "legendFormat": "Skjemaer fullført",
@@ -606,7 +606,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\", le!=\"+Inf\", le!=\"0\"}[$__range])",
+          "expr": "sum by (le) (increase_pure(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\", le!=\"+Inf\", le!=\"0\"}[$__range]))",
           "format": "heatmap",
           "instant": false,
           "legendFormat": "{{ le }}",
@@ -699,7 +699,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, sum(rate(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\"}[10m])) by (le))",
+          "expr": "histogram_quantile(0.5, sum(increase_pure(altinn_app_lib_processes_duration_bucket{\"service.name\"=\"$app\"}[10m])) by (le))",
           "legendFormat": "Tidsbruk",
           "range": true,
           "refId": "A"
@@ -777,7 +777,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"email\", result=\"success\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"email\", result=\"success\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -847,7 +847,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"email\", result!=\"success\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"email\", result!=\"success\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -943,7 +943,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "sum by(type) (rate(altinn_app_lib_notification_orders{\"service.name\"=\"$app\"}[10m]) * 60)",
+          "expr": "sum by (type) (increase_pure(altinn_app_lib_notification_orders{\"service.name\"=\"$app\"}[10m])) / 10",
           "hide": false,
           "legendFormat": "{{ type }}",
           "range": true,
@@ -1009,7 +1009,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"sms\", result=\"success\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"sms\", result=\"success\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1079,7 +1079,7 @@
             "uid": "altinn-studio-metrics"
           },
           "editorMode": "code",
-          "expr": "increase(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"sms\", result!=\"success\"}[$__range])",
+          "expr": "sum(increase_pure(altinn_app_lib_notification_orders{\"service.name\"=\"$app\", type=\"sms\", result!=\"success\"}[$__range]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,

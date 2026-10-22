@@ -55,7 +55,7 @@ internal class Altinn2CodeListProvider : IAppOptionsProvider
     }
 
     /// <inheritdoc/>
-    public Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
+    public Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
     {
         var codelist = GetRawAltinn2Codelist(language);
 

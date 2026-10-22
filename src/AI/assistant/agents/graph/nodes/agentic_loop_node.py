@@ -42,7 +42,7 @@ from agents.core import (
     format_skill_listing,
     run_loop,
 )
-from agents.core.tools.git_tool import unverified_changed_files
+from agents.core.tools.commit_session_branch_tool import unverified_changed_files
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, permission_broker, sink
 from agents.services.llm.recent_turns import truncate_to_history_limit
@@ -205,7 +205,6 @@ async def handle(state: AgentState) -> AgentState:
         allow_app_changes=state.allow_app_changes,
         form_spec_summary=state.form_spec.to_summary() if state.form_spec else None,
         developer=state.developer,
-        org=state.org,
         app_version_profile=app_version_profile,
     )
     skills = discover_skills()
@@ -223,7 +222,7 @@ async def handle(state: AgentState) -> AgentState:
         repo_path=state.repo_path,
         allow_app_changes=state.allow_app_changes,
         developer=state.developer,
-        org=state.org,
+        repo_owner=state.repo_owner,
         designer_api_key=state.designer_api_key,
         permission_requester=(
             None if state.allow_app_changes else lambda action: permission_broker.request(state.session_id, action)

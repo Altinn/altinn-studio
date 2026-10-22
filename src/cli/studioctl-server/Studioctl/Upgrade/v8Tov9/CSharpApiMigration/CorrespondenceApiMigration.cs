@@ -11,7 +11,7 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </summary>
 /// <remarks>
 /// <p>Every rewrite is reported, so a developer can review what changed — the same contract as
-/// <see cref="EFormidlingReceiversSignatureMigration"/>. Anything this migration cannot rewrite safely is
+/// <see cref="EFormidlingHookSignatureMigration"/>. Anything this migration cannot rewrite safely is
 /// left in place for <see cref="LegacyCorrespondenceCodeDetector"/> to report, which makes the detector
 /// the fallback rather than a duplicate: a usage is either fixed here or warned about there, never both.</p>
 /// <p>Two shapes are deliberately left alone because removing the call would produce code that does not

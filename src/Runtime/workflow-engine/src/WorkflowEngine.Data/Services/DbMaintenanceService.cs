@@ -423,10 +423,10 @@ internal sealed class DbMaintenanceService(
 
         var staleDeadline = now - settings.StaleWorkflowThreshold;
 
-        // Bucketed by the head-visibility directive so poisoned finalization feeds the same
-        // is_head alert dimension as the execution failure paths: an is_head=false workflow
-        // (e.g. a fire-and-forget side chain) that dies poisoned gates nothing and is otherwise
-        // silent, so it must be visible to the is_head="false" failure alert.
+        // Bucketed by the head directive so poisoned finalization feeds the same is_head alert
+        // dimension as the execution failure paths: an auxiliary (is_head=false) workflow that
+        // dies poisoned gates nothing and is otherwise silent, so it must reach the
+        // is_head="false" failure alert.
         var failedByIsHead = new Dictionary<string, int>(StringComparer.Ordinal);
         int failed = 0;
         using (await concurrencyLimiter.AcquireDbSlot(cancellationToken: ct))

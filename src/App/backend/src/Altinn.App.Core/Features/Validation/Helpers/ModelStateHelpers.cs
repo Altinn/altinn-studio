@@ -49,6 +49,7 @@ public static class ModelStateHelpers
                             Field = ModelKeyToField(modelKey, objectType),
                             Severity = severityAndMessage.Severity,
                             Description = severityAndMessage.Message,
+                            CustomTextKey = severityAndMessage.Message,
                         }
                     );
                 }
@@ -185,6 +186,7 @@ public static class ModelStateHelpers
                             Code = severityAndMessage.Message,
                             Severity = severityAndMessage.Severity,
                             Description = severityAndMessage.Message,
+                            CustomTextKey = severityAndMessage.Message,
                         }
                     );
                 }

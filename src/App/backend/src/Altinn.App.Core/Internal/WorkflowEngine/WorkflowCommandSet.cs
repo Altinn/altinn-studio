@@ -34,29 +34,31 @@ internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<StepRequest> Steps, 
 internal sealed class WorkflowCommandSet
 {
     private readonly List<StepRequest> _commands = [];
-    private readonly List<StepRequest> _criticalPostCommitCommands = [];
-    private readonly List<StepRequest> _sideEffectCommands = [];
+    private readonly List<StepRequest> _primaryPostCommitCommands = [];
+    private readonly List<StepRequest> _auxiliaryCommands = [];
 
     /// <summary>
-    /// Gets the main commands for this event. CommitProcessState will be added after these.
+    /// Gets the pre-commit commands for this event. CommitProcessState will be added after these.
     /// </summary>
     public IReadOnlyList<StepRequest> Commands => _commands;
 
     /// <summary>
     /// Gets the post-commit commands that must complete before the transition is considered done
-    /// (e.g., ExecuteServiceTask). These stay in the Main workflow and gate the next transition.
+    /// (e.g., ExecuteServiceTask). These run in the transition's primary workflow and gate the next
+    /// transition.
     /// </summary>
-    public IReadOnlyList<StepRequest> CriticalPostCommitCommands => _criticalPostCommitCommands;
+    public IReadOnlyList<StepRequest> PrimaryPostCommitCommands => _primaryPostCommitCommands;
 
     /// <summary>
-    /// Gets the non-critical, fire-and-forget post-commit commands (e.g., MovedToAltinnEvent).
-    /// These run in a separate side-effects workflow that never gates the next transition.
+    /// Gets the post-commit commands that run in auxiliary workflows (e.g., MovedToAltinnEvent), one
+    /// workflow per command. An auxiliary workflow runs beside the process and never gates the next
+    /// transition.
     /// </summary>
-    public IReadOnlyList<StepRequest> SideEffectCommands => _sideEffectCommands;
+    public IReadOnlyList<StepRequest> AuxiliaryCommands => _auxiliaryCommands;
 
     /// <summary>
-    /// Whether this command set schedules a service-task command after CommitProcessState.
-    /// The factory copies this exact sequence fact into the commit payload.
+    /// Whether this command set schedules a service-task command after CommitProcessState. The service task's
+    /// continuation then owns the release, so the factory adds no <see cref="ReleaseProcessingStatus"/>.
     /// </summary>
     public bool ServiceTaskFollowsCommit { get; private set; }
 
@@ -77,7 +79,7 @@ internal sealed class WorkflowCommandSet
 
         if (context.RegisterEvents)
         {
-            group.AddSideEffectCommand(MovedToAltinnEvent.Key);
+            group.AddAuxiliaryCommand(MovedToAltinnEvent.Key);
         }
 
         if (context.ServiceTask is { } serviceTask)
@@ -85,20 +87,20 @@ internal sealed class WorkflowCommandSet
             group.ServiceTaskFollowsCommit = true;
 
             // Segment 0 always has at least one step (a handler can only answer an already-composed stage, so
-            // item 0 is never one), and Main therefore always ends on a step of its own: the stage whose
-            // completion starts the rest of the pipeline, or the pipeline's conclusion.
+            // item 0 is never one), and the primary workflow therefore always ends on a step of its own: the
+            // stage whose completion starts the rest of the pipeline, or the pipeline's conclusion.
             ServiceTaskSegmentPlan segment = PlanSegment(serviceTask.Type, serviceTask.Pipeline);
-            group.AddCriticalPostCommitSteps(segment.Steps);
+            group.AddPrimaryPostCommitSteps(segment.Steps);
         }
 
         if (context.IsInstantiation && context.RegisterEvents)
         {
-            group.AddSideEffectCommand(InstanceCreatedAltinnEvent.Key);
+            group.AddAuxiliaryCommand(InstanceCreatedAltinnEvent.Key);
         }
 
         if (context.IsInstantiation && context.Notification is not null)
         {
-            group.AddSideEffectCommand(
+            group.AddAuxiliaryCommand(
                 NotifyInstanceOwnerOnInstantiation.Key,
                 new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
             );
@@ -132,18 +134,20 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     public static WorkflowCommandSet GetProcessEndSteps(ProcessEndContext context)
     {
-        var group = new WorkflowCommandSet().AddCommand(OnProcessEndingHook.Key).AddCommand(EndProcessLegacyHook.Key);
+        var group = new WorkflowCommandSet()
+            .AddPrimaryPostCommitCommand(OnProcessEndedHook.Key)
+            .AddPrimaryPostCommitCommand(DeleteDataOnProcessEnd.Key);
 
         if (context.RegisterEvents)
         {
-            group.AddSideEffectCommand(CompletedAltinnEvent.Key);
+            group.AddAuxiliaryCommand(CompletedAltinnEvent.Key);
         }
 
         return group;
     }
 
     /// <summary>
-    /// Adds a command to the main sequence.
+    /// Adds a command to the pre-commit sequence.
     /// </summary>
     private WorkflowCommandSet AddCommand(string commandKey, CommandRequestPayload? payload = null)
     {
@@ -157,40 +161,40 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     /// <param name="commandKey">The command's registered key.</param>
     /// <param name="payload">Optional command payload.</param>
-    private WorkflowCommandSet AddCriticalPostCommitCommand(string commandKey, CommandRequestPayload? payload = null)
+    private WorkflowCommandSet AddPrimaryPostCommitCommand(string commandKey, CommandRequestPayload? payload = null)
     {
-        _criticalPostCommitCommands.Add(CreateCommand(commandKey, payload));
+        _primaryPostCommitCommands.Add(CreateCommand(commandKey, payload));
         return this;
     }
 
-    private WorkflowCommandSet AddCriticalPostCommitSteps(IEnumerable<StepRequest> steps)
+    private WorkflowCommandSet AddPrimaryPostCommitSteps(IEnumerable<StepRequest> steps)
     {
-        _criticalPostCommitCommands.AddRange(steps);
+        _primaryPostCommitCommands.AddRange(steps);
         return this;
     }
 
     /// <summary>
-    /// Adds a non-critical post-commit command that runs in the fire-and-forget side-effects workflow.
+    /// Adds a post-commit command that runs in its own auxiliary workflow, beside the process.
     /// </summary>
-    private WorkflowCommandSet AddSideEffectCommand(string commandKey, CommandRequestPayload? payload = null)
+    private WorkflowCommandSet AddAuxiliaryCommand(string commandKey, CommandRequestPayload? payload = null)
     {
-        _sideEffectCommands.Add(CreateCommand(commandKey, payload));
+        _auxiliaryCommands.Add(CreateCommand(commandKey, payload));
         return this;
     }
 
     /// <summary>
     /// Plans one pipeline segment — one workflow's whole step run — walking the items in composition order
     /// from the one after <paramref name="afterItemIndex"/> (from the first item when it is null, which is the
-    /// run Main carries). A <strong>plain stage</strong> becomes one <c>ExecuteServiceTask</c> step and the
-    /// walk carries on. A <strong>mailbox-opening stage</strong> becomes a <c>MintMailbox</c> step plus its
-    /// own and ends the run: its work may conclude the whole task, which a step's verdict can only do while no
-    /// later step of that workflow exists to run past it. A <strong>reply handler</strong> is alone in its
-    /// workflow — as the run's only step when the walk starts on it, and otherwise ending the run before
-    /// itself. The <strong>conclusion's</strong> step ends the run with nothing after it. Segments are
-    /// therefore the items split at each reply handler and at each opening stage: segment 0 rides Main, and
-    /// every later segment rides the workflow its predecessor's last step enqueues — which that step derives
-    /// from the pipeline when it runs, since nothing planned here is carried in a payload. Options are left
-    /// unresolved.
+    /// run the transition's primary workflow carries). A <strong>plain stage</strong> becomes one
+    /// <c>ExecuteServiceTask</c> step and the walk carries on. A <strong>mailbox-opening stage</strong> becomes a
+    /// <c>MintMailbox</c> step plus its own and ends the run: its work may conclude the whole task, which a
+    /// step's verdict can only do while no later step of that workflow exists to run past it. A
+    /// <strong>reply handler</strong> is alone in its workflow — as the run's only step when the walk starts on
+    /// it, and otherwise ending the run before itself. The <strong>conclusion's</strong> step ends the run with
+    /// nothing after it. Segments are therefore the items split at each reply handler and at each opening stage:
+    /// segment 0 rides the transition's primary workflow, and every later segment rides the workflow its
+    /// predecessor's last step enqueues — which that step derives from the pipeline when it runs, since nothing
+    /// planned here is carried in a payload. Options are left unresolved.
     /// </summary>
     /// <returns>
     /// The plan, with no steps only when <paramref name="afterItemIndex"/> is the pipeline's last item: every

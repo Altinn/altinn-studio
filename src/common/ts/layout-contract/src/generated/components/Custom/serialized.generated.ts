@@ -3,7 +3,6 @@ import {
   ComponentBase,
   FormComponentProps,
   IRawDataModelBinding,
-  SummarizableComponentProps,
   TRBFormComp,
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
@@ -19,6 +18,8 @@ export type CompCustomSerialized = {
     [key: string]: ExprValToActualOrExpr<ExprVal.String> | undefined;
   } & TRBFormComp &
     TRBSummarizable;
+  renderAsSummary?: boolean;
+  forceShowInSummary?: ExprValToActualOrExpr<ExprVal.Boolean>;
   required?: ExprValToActualOrExpr<ExprVal.Boolean>;
   readOnly?: ExprValToActualOrExpr<ExprVal.Boolean>;
   removeWhenHidden?: ExprValToActualOrExpr<ExprVal.Boolean>;
@@ -26,7 +27,6 @@ export type CompCustomSerialized = {
   tagName: string;
   [key: string]: unknown;
 } & ComponentBase &
-  FormComponentProps &
-  SummarizableComponentProps;
+  FormComponentProps;
 
-// Source hash: 107b19df934f6e9c4238335039fc35d287b3b5a3b2c9b989d27a7f1436a71a14
+// Source hash: e42100369833dfa23515b9e0dee34f918006b4f36e05e59c13c5108e536bb927

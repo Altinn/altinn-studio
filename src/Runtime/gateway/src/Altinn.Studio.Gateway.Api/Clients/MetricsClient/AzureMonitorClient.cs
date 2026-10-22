@@ -19,6 +19,9 @@ internal sealed class AzureMonitorClient(
 ) : IMetricsClient
 {
     private const int MaxRange = 10080;
+
+    // Periodic reports cover up to a calendar month: 31 days, plus the hour gained when daylight saving time ends.
+    internal static readonly TimeSpan MaxReportPeriod = TimeSpan.FromDays(31) + TimeSpan.FromHours(1);
     private const int MaxActivityWindowDays = 30;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
@@ -41,7 +44,14 @@ internal sealed class AzureMonitorClient(
         },
     };
 
+    private static readonly IReadOnlyDictionary<string, string> _operationNameReverseMap = _operationNames
+        .SelectMany(kvp => kvp.Value.Select(v => (Key: kvp.Key, Value: v)))
+        .ToDictionary(t => t.Value, t => t.Key);
+
     internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
+
+    internal static IReadOnlyCollection<string> MetricNames { get; } =
+    ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
 
     internal static int GetBucketSize(int range)
     {
@@ -49,11 +59,24 @@ internal sealed class AzureMonitorClient(
         return (int)Math.Max(1, Math.Ceiling((double)range / maxPoints));
     }
 
+    internal static bool IsValidReportPeriod(DateTimeOffset from, DateTimeOffset to) =>
+        from < to && to - from <= MaxReportPeriod;
+
+    internal static int GetPeriodMinutes(DateTimeOffset from, DateTimeOffset to) =>
+        (int)Math.Ceiling((to - from).TotalMinutes);
+
     private static string GetInterval(int range)
     {
         var bucketSize = GetBucketSize(range);
         return $"{bucketSize}m";
     }
+
+    // Several operation names map to the same metric, so a metric can have more than one row per bucket.
+    // Sum them so that each bucket appears once in the series.
+    private static (long Timestamp, double Count)[] SumCountsPerBucket(IEnumerable<LogsTableRow> rows) =>
+        rows.GroupBy(row => row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0)
+            .Select(bucket => (bucket.Key, bucket.Sum(row => row.GetDouble("Count") ?? 0)))
+            .ToArray();
 
     private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
     {
@@ -193,6 +216,67 @@ internal sealed class AzureMonitorClient(
         }
     }
 
+    public async Task<AppActivitySignalsResult> GetAppActivitySignals(
+        int windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(windowDays, MaxActivityWindowDays);
+
+        try
+        {
+            var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+            Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+                logAnalyticsWorkspaceId,
+                AppActivitySignalQueries.BuildQuery(windowDays),
+                new LogsQueryTimeRange(TimeSpan.FromDays(windowDays)),
+                cancellationToken: cancellationToken
+            );
+
+            var signals = response
+                .Value.Table.Rows.Select(row => new AppActivitySignalRow(
+                    row.GetString("AppRoleName") ?? string.Empty,
+                    row.GetString("Category") ?? string.Empty,
+                    row.GetDouble("Count") ?? 0,
+                    row.GetDateTimeOffset("LastSeenAt") ?? DateTimeOffset.MinValue
+                ))
+                .Where(static row => row.App.Length > 0)
+                .ToArray();
+
+            return new AppActivitySignalsResult { Status = ActivityStatus.Ok, Signals = signals };
+        }
+        catch (CredentialUnavailableException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor credentials are unavailable while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (AuthenticationFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor authentication failed while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor request failed while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor request timed out while getting app activity signals.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Unavailable, Signals = [] };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while getting app activity signals from Azure Monitor.");
+            return new AppActivitySignalsResult { Status = ActivityStatus.Error, Signals = [] };
+        }
+    }
+
     public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
         string app,
         int range,
@@ -225,16 +309,16 @@ internal sealed class AzureMonitorClient(
         );
 
         var metrics = response
-            .Value.Table.Rows.GroupBy(row =>
-                _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key
-            )
-            .Select(group => new AppFailedRequest
+            .Value.Table.Rows.GroupBy(row => _operationNameReverseMap[row.GetString("OperationName")])
+            .Select(group =>
             {
-                Name = group.Key,
-                Timestamps = group.Select(row =>
-                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
-                ),
-                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+                var buckets = SumCountsPerBucket(group);
+                return new AppFailedRequest
+                {
+                    Name = group.Key,
+                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
+                    Counts = buckets.Select(bucket => bucket.Count),
+                };
             });
 
         return _operationNames.Select(name =>
@@ -248,12 +332,114 @@ internal sealed class AzureMonitorClient(
         );
     }
 
+    public async Task<IEnumerable<Metric>> GetMetrics(
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken
+    )
+    {
+        ThrowIfInvalidReportPeriod(from, to);
+
+        var names = MetricNames;
+
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+
+        var interval = GetInterval(GetPeriodMinutes(from, to));
+
+        var query =
+            $@"
+                AppMetrics
+                | where Name in ('{string.Join("','", names)}')
+                | summarize Count = sum(Sum) by Name, AppRoleName, DateTimeOffset = bin(TimeGenerated, {interval})
+                | order by DateTimeOffset desc";
+
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new LogsQueryTimeRange(from, to),
+            cancellationToken: cancellationToken
+        );
+
+        return response
+            .Value.Table.Rows.GroupBy(row => (AppName: row.GetString("AppRoleName"), Name: row.GetString("Name")))
+            .Select(group => new Metric
+            {
+                AppName = group.Key.AppName,
+                Name = group.Key.Name,
+                Timestamps = group.Select(row =>
+                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
+                ),
+                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
+            });
+    }
+
+    public async Task<IEnumerable<AllAppsFailedRequest>> GetAllAppsFailedRequests(
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken
+    )
+    {
+        ThrowIfInvalidReportPeriod(from, to);
+
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+
+        var interval = GetInterval(GetPeriodMinutes(from, to));
+
+        var query =
+            $@"
+                AppRequests
+                | where Success == false
+                | where ClientType != 'Browser'
+                | where toint(ResultCode) >= 500
+                | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
+                | summarize Count = count() by AppRoleName, OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
+                | order by DateTimeOffset desc";
+
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new LogsQueryTimeRange(from, to),
+            cancellationToken: cancellationToken
+        );
+
+        return response
+            .Value.Table.Rows.GroupBy(row =>
+                (
+                    AppName: row.GetString("AppRoleName"),
+                    OpName: _operationNameReverseMap[row.GetString("OperationName")]
+                )
+            )
+            .Select(group =>
+            {
+                var buckets = SumCountsPerBucket(group);
+                return new AllAppsFailedRequest
+                {
+                    AppName = group.Key.AppName,
+                    Name = group.Key.OpName,
+                    Timestamps = buckets.Select(bucket => bucket.Timestamp),
+                    Counts = buckets.Select(bucket => bucket.Count),
+                };
+            });
+    }
+
+    private static void ThrowIfInvalidReportPeriod(DateTimeOffset from, DateTimeOffset to)
+    {
+        if (!IsValidReportPeriod(from, to))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(to),
+                to,
+                $"The report period must start before it ends and last at most {MaxReportPeriod}."
+            );
+        }
+    }
+
     public async Task<IEnumerable<AppMetric>> GetAppMetrics(string app, int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
+        var names = MetricNames;
 
         var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 

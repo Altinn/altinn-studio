@@ -14,6 +14,7 @@ import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { DisplayData } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
+import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Number extends NumberDef implements DisplayData {
@@ -43,6 +44,10 @@ export class Number extends NumberDef implements DisplayData {
       return <NumberComponent {...props} />;
     },
   );
+
+  renderSummary({ targetBaseComponentId }: SummaryRendererProps): JSX.Element | null {
+    return <NumberComponent baseComponentId={targetBaseComponentId} />;
+  }
 
   renderSummary2(props: Summary2Props): JSX.Element | null {
     return <NumberSummary {...props} />;
