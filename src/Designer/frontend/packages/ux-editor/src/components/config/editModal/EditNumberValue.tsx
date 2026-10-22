@@ -3,8 +3,9 @@ import { FormField } from 'app-shared/components/FormField';
 import type { PropertyDefinition } from '@app/layout-contract';
 import { validateCatalogValue } from '../../../data/componentCatalog';
 import {
-  getNumberOfAttachmentsBounds,
+  numberOfAttachmentsErrorCodes,
   setComponentProperty,
+  validateNumberOfAttachments,
 } from '@altinn/ux-editor/utils/component';
 import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
@@ -48,11 +49,6 @@ export const EditNumberValue = <T extends ComponentType>({
     );
   };
 
-  const boundedDefinition = definition && {
-    ...definition,
-    ...getNumberOfAttachmentsBounds(component, propertyKey),
-  };
-
   return (
     <FormField
       id={component.id}
@@ -60,13 +56,16 @@ export const EditNumberValue = <T extends ComponentType>({
       value={component[propertyKey as keyof FormItem<T>] as number | undefined}
       onChange={handleValueChange}
       customRequired={definition?.required}
-      customValidationRules={(value) => validateCatalogValue(boundedDefinition, value)}
+      customValidationRules={(value) =>
+        validateCatalogValue(definition, value) ||
+        validateNumberOfAttachments(component, propertyKey, value)
+      }
       customValidationMessages={(errorCode) => {
+        if (numberOfAttachmentsErrorCodes.includes(errorCode))
+          return t(`ux_editor.component_properties.${errorCode}`);
         if (definition?.type === 'number' || definition?.type === 'integer') {
-          if (errorCode === 'min')
-            return t('validation_errors.min', { 0: boundedDefinition.minimum });
-          if (errorCode === 'max')
-            return t('validation_errors.max', { 0: boundedDefinition.maximum });
+          if (errorCode === 'min') return t('validation_errors.min', { 0: definition.minimum });
+          if (errorCode === 'max') return t('validation_errors.max', { 0: definition.maximum });
         }
       }}
       helpText={componentPropertyHelpText(String(propertyKey))}

@@ -163,32 +163,40 @@ export const isComponentDeprecated = (type: ComponentType) => {
   return deprecatedComponents.includes(type);
 };
 
-type NumberBounds = { minimum?: number; maximum?: number };
+export const numberOfAttachmentsErrorCodes = [
+  'minNumberOfAttachments_above_max',
+  'maxNumberOfAttachments_below_min',
+];
 
 /**
- * Gets the bounds that the other attachment count sets for the given property,
- * so that the minimum number of attachments cannot be set above the maximum.
+ * Validates a new minimum or maximum number of attachments against the other one,
+ * so that the minimum cannot be set above the maximum.
  * @param component The component the property belongs to.
  * @param propertyKey The property being edited.
- * @returns The bounds for the property, or an empty object if it has none.
+ * @param value The new value of the property.
+ * @returns One of numberOfAttachmentsErrorCodes, or an empty string if the value is valid.
  */
-export const getNumberOfAttachmentsBounds = (
+export const validateNumberOfAttachments = (
   component: FormItem,
   propertyKey: string,
-): NumberBounds => {
+  value: unknown,
+): string => {
+  if (typeof value !== 'number') return '';
   if (
     propertyKey === 'minNumberOfAttachments' &&
     'maxNumberOfAttachments' in component &&
-    typeof component.maxNumberOfAttachments === 'number'
+    typeof component.maxNumberOfAttachments === 'number' &&
+    value > component.maxNumberOfAttachments
   ) {
-    return { maximum: component.maxNumberOfAttachments };
+    return 'minNumberOfAttachments_above_max';
   }
   if (
     propertyKey === 'maxNumberOfAttachments' &&
     'minNumberOfAttachments' in component &&
-    typeof component.minNumberOfAttachments === 'number'
+    typeof component.minNumberOfAttachments === 'number' &&
+    value < component.minNumberOfAttachments
   ) {
-    return { minimum: component.minNumberOfAttachments };
+    return 'maxNumberOfAttachments_below_min';
   }
-  return {};
+  return '';
 };

@@ -8,7 +8,7 @@ import type { FormComponent } from '../types/FormComponent';
 import { componentMocks } from '../testing/componentMocks';
 import {
   generateFormItem,
-  getNumberOfAttachmentsBounds,
+  validateNumberOfAttachments,
   isComponentDeprecated,
   setComponentProperty,
 } from './component';
@@ -73,46 +73,81 @@ describe('isComponentDeprecated', () => {
   });
 });
 
-describe('getNumberOfAttachmentsBounds', () => {
+describe('validateNumberOfAttachments', () => {
   it.each([
     {
       propertyKey: 'minNumberOfAttachments',
-      numberOfAttachments: { minNumberOfAttachments: 0, maxNumberOfAttachments: 3 },
-      expected: { maximum: 3 },
-    },
-    {
-      propertyKey: 'maxNumberOfAttachments',
-      numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
-      expected: { minimum: 2 },
+      value: 2,
+      minNumberOfAttachments: 1,
+      maxNumberOfAttachments: 1,
+      expected: 'minNumberOfAttachments_above_max',
     },
     {
       propertyKey: 'minNumberOfAttachments',
-      numberOfAttachments: { maxNumberOfAttachments: undefined },
-      expected: {},
+      value: 1,
+      minNumberOfAttachments: 0,
+      maxNumberOfAttachments: 0,
+      expected: 'minNumberOfAttachments_above_max',
+    },
+    {
+      propertyKey: 'minNumberOfAttachments',
+      value: 1,
+      minNumberOfAttachments: 0,
+      maxNumberOfAttachments: 1,
+      expected: '',
     },
     {
       propertyKey: 'maxNumberOfAttachments',
-      numberOfAttachments: { minNumberOfAttachments: undefined },
-      expected: {},
+      value: 1,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 3,
+      expected: 'maxNumberOfAttachments_below_min',
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      value: 2,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 3,
+      expected: '',
+    },
+    {
+      propertyKey: 'minNumberOfAttachments',
+      value: 5,
+      minNumberOfAttachments: 1,
+      maxNumberOfAttachments: undefined,
+      expected: '',
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      value: undefined,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 3,
+      expected: '',
     },
     {
       propertyKey: 'maxFileSizeInMB',
-      numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
-      expected: {},
+      value: 5,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 1,
+      expected: '',
     },
   ])(
-    'returns $expected for $propertyKey when the attachment counts are $numberOfAttachments',
-    ({ propertyKey, numberOfAttachments, expected }) => {
-      const component = { ...componentMocks[ComponentType.FileUpload], ...numberOfAttachments };
-      expect(getNumberOfAttachmentsBounds(component, propertyKey)).toEqual(expected);
+    'returns "$expected" for $propertyKey $value when the minimum is $minNumberOfAttachments and the maximum is $maxNumberOfAttachments',
+    ({ propertyKey, value, minNumberOfAttachments, maxNumberOfAttachments, expected }) => {
+      const component = {
+        ...componentMocks[ComponentType.FileUpload],
+        minNumberOfAttachments,
+        maxNumberOfAttachments,
+      };
+      expect(validateNumberOfAttachments(component, propertyKey, value)).toBe(expected);
     },
   );
 
-  it('returns no bounds when the other attachment count is an expression', () => {
+  it('accepts any minimum when the maximum is an expression', () => {
     const component = {
       ...componentMocks[ComponentType.FileUpload],
       maxNumberOfAttachments: ['if', true, 3, 1],
     } satisfies FormComponent<ComponentType.FileUpload>;
-    expect(getNumberOfAttachmentsBounds(component, 'minNumberOfAttachments')).toEqual({});
+    expect(validateNumberOfAttachments(component, 'minNumberOfAttachments', 5)).toBe('');
   });
 });

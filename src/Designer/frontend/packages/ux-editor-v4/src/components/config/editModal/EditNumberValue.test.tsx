@@ -158,81 +158,90 @@ describe('EditNumberValue', () => {
       propertyPath: 'definitions/inputComponent',
     });
   });
-});
 
-describe('EditNumberValue for the number of attachments', () => {
-  it.each([
-    {
-      propertyKey: 'minNumberOfAttachments' as const,
-      value: '2',
-      otherKey: 'maxNumberOfAttachments',
-      otherValue: 1,
-      message: textMock('validation_errors.max', { 0: 1 }),
-    },
-    {
-      propertyKey: 'minNumberOfAttachments' as const,
-      value: '1',
-      otherKey: 'maxNumberOfAttachments',
-      otherValue: 0,
-      message: textMock('validation_errors.max', { 0: 0 }),
-    },
-    {
-      propertyKey: 'maxNumberOfAttachments' as const,
-      value: '1',
-      otherKey: 'minNumberOfAttachments',
-      otherValue: 2,
-      message: textMock('validation_errors.min', { 0: 2 }),
-    },
-  ])(
-    'shows an error and does not save $propertyKey $value when $otherKey is $otherValue',
-    async ({ propertyKey, value, otherKey, otherValue, message }) => {
+  describe('for the number of attachments', () => {
+    it.each([
+      {
+        propertyKey: 'minNumberOfAttachments' as const,
+        value: '2',
+        numberOfAttachments: { minNumberOfAttachments: 1, maxNumberOfAttachments: 1 },
+        errorCode: 'minNumberOfAttachments_above_max',
+      },
+      {
+        propertyKey: 'maxNumberOfAttachments' as const,
+        value: '1',
+        numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 2 },
+        errorCode: 'maxNumberOfAttachments_below_min',
+      },
+    ])(
+      'shows an error and does not save $propertyKey $value when it breaks the other count',
+      async ({ propertyKey, value, numberOfAttachments, errorCode }) => {
+        const user = userEvent.setup();
+        const handleComponentChange = vi.fn();
+        await renderNumberOfAttachments({
+          propertyKey,
+          numberOfAttachments,
+          handleComponentChange,
+        });
+
+        await user.clear(screen.getByRole('textbox'));
+        await user.type(screen.getByRole('textbox'), value);
+
+        expect(
+          screen.getByText(textMock(`ux_editor.component_properties.${errorCode}`)),
+        ).toBeInTheDocument();
+        expect(handleComponentChange).not.toHaveBeenCalledWith(
+          expect.objectContaining({ [propertyKey]: Number(value) }),
+          expect.anything(),
+        );
+      },
+    );
+
+    it.each([
+      {
+        propertyKey: 'minNumberOfAttachments' as const,
+        value: '2',
+        numberOfAttachments: { minNumberOfAttachments: 1, maxNumberOfAttachments: 2 },
+      },
+      {
+        propertyKey: 'maxNumberOfAttachments' as const,
+        value: '2',
+        numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
+      },
+    ])(
+      'saves $propertyKey $value when it does not break the other count',
+      async ({ propertyKey, value, numberOfAttachments }) => {
+        const user = userEvent.setup();
+        const handleComponentChange = vi.fn();
+        await renderNumberOfAttachments({
+          propertyKey,
+          numberOfAttachments,
+          handleComponentChange,
+        });
+
+        await user.clear(screen.getByRole('textbox'));
+        await user.type(screen.getByRole('textbox'), value);
+
+        expect(handleComponentChange).toHaveBeenCalledWith(
+          expect.objectContaining({ [propertyKey]: Number(value) }),
+          expect.anything(),
+        );
+      },
+    );
+
+    it('keeps the default message for other errors', async () => {
       const user = userEvent.setup();
-      const handleComponentChange = vi.fn();
       await renderNumberOfAttachments({
-        propertyKey,
-        numberOfAttachments: { [propertyKey]: undefined, [otherKey]: otherValue },
-        handleComponentChange,
+        propertyKey: 'minNumberOfAttachments',
+        numberOfAttachments: { propertyPath: 'definitions/fileUploadComponent' },
+        handleComponentChange: vi.fn(),
       });
 
-      await user.type(screen.getByRole('textbox'), value);
+      await user.clear(screen.getByRole('textbox'));
 
-      expect(screen.getByText(message)).toBeInTheDocument();
-      expect(handleComponentChange).not.toHaveBeenCalled();
-    },
-  );
-
-  it.each([
-    {
-      propertyKey: 'minNumberOfAttachments' as const,
-      value: '1',
-      otherKey: 'maxNumberOfAttachments',
-      otherValue: 1,
-    },
-    {
-      propertyKey: 'maxNumberOfAttachments' as const,
-      value: '2',
-      otherKey: 'minNumberOfAttachments',
-      otherValue: 2,
-    },
-  ])(
-    'saves $propertyKey $value when $otherKey is $otherValue',
-    async ({ propertyKey, value, otherKey, otherValue }) => {
-      const user = userEvent.setup();
-      const handleComponentChange = vi.fn();
-      await renderNumberOfAttachments({
-        propertyKey,
-        numberOfAttachments: { [propertyKey]: undefined, [otherKey]: otherValue },
-        handleComponentChange,
-      });
-
-      await user.type(screen.getByRole('textbox'), value);
-
-      expect(handleComponentChange).toHaveBeenCalledWith(
-        expect.objectContaining({ [propertyKey]: Number(value) }),
-        expect.anything(),
-      );
-    },
-  );
+      expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+    });
+  });
 });
 
 type RenderNumberOfAttachmentsProps = {
