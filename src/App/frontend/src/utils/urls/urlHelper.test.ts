@@ -26,10 +26,6 @@ describe('Shared urlHelper.ts', () => {
   test('returnUrlToMessageBox() returning correct environemnts', () => {
     vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostTT } as Location);
     expect(getMessageBoxUrl()).toBe('https://af.tt02.altinn.no/');
-    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostDocker } as Location);
-    expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud/');
-    vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostPodman } as Location);
-    expect(getMessageBoxUrl()).toBe('http://local.altinn.cloud:8000/');
     vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudio } as Location);
     expect(getMessageBoxUrl()).toBe(undefined);
     vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host: hostStudioDev } as Location);
@@ -40,9 +36,6 @@ describe('Shared urlHelper.ts', () => {
 
   test('returnUrlTProfile() returning correct environments', () => {
     expect(returnUrlToProfile(hostTT)).toBe('https://af.tt02.altinn.no/profile');
-    // localtest has no profile page, so it gets the front page like returnUrlToArchive does
-    expect(returnUrlToProfile(hostDocker)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToProfile(hostStudio)).toBe(undefined);
     expect(returnUrlToProfile(hostStudioDev)).toBe(undefined);
     expect(returnUrlToProfile(hostUnknown)).toBe(undefined);
@@ -50,8 +43,6 @@ describe('Shared urlHelper.ts', () => {
 
   test('returnUrlAllForms() returning correct environments', () => {
     expect(returnUrlToAllForms(hostTT)).toBe('https://tt02.altinn.no/skjemaoversikt');
-    expect(returnUrlToAllForms(hostDocker)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToAllForms(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToAllForms(hostStudio)).toBe(undefined);
     expect(returnUrlToAllForms(hostStudioDev)).toBe(undefined);
     expect(returnUrlToAllForms(hostUnknown)).toBe(undefined);
@@ -75,8 +66,6 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToArchive(hostTT, partyId)).toBe(
       'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.tt02.altinn.no%2F',
     );
-    expect(returnUrlToArchive(hostDocker, partyId)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToArchive(hostPodman, partyId)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToArchive(hostStudio, partyId)).toBe(undefined);
     expect(returnUrlToArchive(hostStudioDev, partyId)).toBe(undefined);
     expect(returnUrlToArchive(hostUnknown, partyId)).toBe(undefined);
@@ -88,14 +77,10 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToArchive(hostTT, partyId, dialogId)).toBe(
       'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.tt02.altinn.no%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
     );
-    expect(returnUrlToArchive(hostDocker, partyId, dialogId)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToArchive(hostPodman, partyId, dialogId)).toBe('http://local.altinn.cloud:8000/');
   });
 
   test('returnUrlToArchive() returning correct environments without partyId', () => {
     expect(returnUrlToArchive(hostTT, undefined)).toBe('https://af.tt02.altinn.no/');
-    expect(returnUrlToArchive(hostDocker, undefined)).toBe('http://local.altinn.cloud/');
-    expect(returnUrlToArchive(hostPodman, undefined)).toBe('http://local.altinn.cloud:8000/');
     expect(returnUrlToArchive(hostStudio, undefined)).toBe(undefined);
     expect(returnUrlToArchive(hostStudioDev, undefined)).toBe(undefined);
     expect(returnUrlToArchive(hostUnknown, undefined)).toBe(undefined);
@@ -166,15 +151,6 @@ describe('Shared urlHelper.ts', () => {
       );
     });
 
-    test('localtest ignores the configured URLs', () => {
-      configureArbeidsflate({
-        arbeidsflateInboxUrl: 'https://af.yt01.altinn.cloud/',
-        arbeidsflateProfileUrl: 'https://af.yt01.altinn.cloud/profile',
-      });
-
-      expect(returnUrlToProfile(hostPodman)).toBe('http://local.altinn.cloud:8000/');
-      expect(returnUrlToArchive(hostPodman, 12345, dialogId)).toBe('http://local.altinn.cloud:8000/');
-    });
 
     test('no arbeidsflate link in environments where it is not deployed', () => {
       configureArbeidsflate({});
@@ -223,8 +199,6 @@ describe('Shared urlHelper.ts', () => {
 
   test('logoutUrlAltinn() returning correct environments', () => {
     expect(logoutUrlAltinn(hostTT)).toBe('https://platform.tt02.altinn.no/authentication/api/v1/logout');
-    expect(logoutUrlAltinn(hostDocker)).toBe('http://local.altinn.cloud/');
-    expect(logoutUrlAltinn(hostPodman)).toBe('http://local.altinn.cloud:8000/');
     expect(logoutUrlAltinn(hostStudio)).toBe(undefined);
     expect(logoutUrlAltinn(hostStudioDev)).toBe(undefined);
     expect(logoutUrlAltinn(hostUnknown)).toBe(undefined);
@@ -303,11 +277,6 @@ describe('Shared urlHelper.ts', () => {
       expect(returnUrlToPartiesSettings(hostProd)).toBe('https://ny.altinn.no/profil/aktorer');
     });
 
-    test('localtest links to its front page', () => {
-      for (const helpUrl of helpUrls) {
-        expect(helpUrl(hostPodman)).toBe('http://local.altinn.cloud:8000/');
-      }
-    });
 
     test('no link on unknown hosts or when not configured', () => {
       for (const helpUrl of helpUrls) {
@@ -323,6 +292,107 @@ describe('Shared urlHelper.ts', () => {
       };
       for (const helpUrl of helpUrls) {
         expect(helpUrl(hostTT)).toBe(undefined);
+      }
+    });
+  });
+
+  describe('localtest uses the configured URLs when set, otherwise its front page', () => {
+    const dialogId = '123e4567-e89b-12d3-a456-426614174000';
+    const localHosts = [hostDocker, hostPodman];
+
+    function configureLocalPlatform() {
+      window.altinnAppGlobalData.platformFrontendSettings = {
+        ...window.altinnAppGlobalData.platformFrontendSettings,
+        arbeidsflateInboxUrl: 'http://af.local.altinn.cloud/',
+        arbeidsflateDialogUrl: 'http://af.local.altinn.cloud/inbox/{dialogId}',
+        arbeidsflateProfileUrl: 'http://af.local.altinn.cloud/profile',
+        accessManagementChangeAndRedirectUrl:
+          'http://am.local.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId={partyId}&goTo={goTo}',
+        allFormsUrl: 'http://af.local.altinn.cloud/skjemaoversikt',
+        accessManagementUrl: 'http://am.local.altinn.cloud/accessmanagement/ui',
+        rolesAndRightsHelpUrl: 'http://af.local.altinn.cloud/hjelp/roller',
+        arbeidsflatePartiesUrl: 'http://af.local.altinn.cloud/profile/parties',
+        logoutUrl: 'http://local.altinn.cloud/authentication/api/v1/logout',
+      };
+    }
+
+    test.each(localHosts)('the configured URLs are used on %s', (host) => {
+      configureLocalPlatform();
+
+      expect(returnUrlToArchive(host)).toBe('http://af.local.altinn.cloud/');
+      expect(returnUrlToArchive(host, undefined, dialogId)).toBe(
+        'http://af.local.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
+      );
+      expect(returnUrlToArchive(host, 12345)).toBe(
+        'http://am.local.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=http%3A%2F%2Faf.local.altinn.cloud%2F',
+      );
+      expect(returnUrlToArchive(host, 12345, dialogId)).toBe(
+        'http://am.local.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=http%3A%2F%2Faf.local.altinn.cloud%2Finbox%2F123e4567-e89b-12d3-a456-426614174000',
+      );
+      vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host } as Location);
+      expect(getMessageBoxUrl(12345)).toBe(
+        'http://am.local.altinn.cloud/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=http%3A%2F%2Faf.local.altinn.cloud%2F',
+      );
+      expect(returnUrlToProfile(host)).toBe('http://af.local.altinn.cloud/profile');
+      expect(returnUrlToAllForms(host)).toBe('http://af.local.altinn.cloud/skjemaoversikt');
+      expect(returnUrlToAccessManagement(host)).toBe('http://am.local.altinn.cloud/accessmanagement/ui');
+      expect(returnUrlToRolesAndRightsHelp(host)).toBe('http://af.local.altinn.cloud/hjelp/roller');
+      expect(returnUrlToPartiesSettings(host)).toBe('http://af.local.altinn.cloud/profile/parties');
+      expect(logoutUrlAltinn(host)).toBe('http://local.altinn.cloud/authentication/api/v1/logout');
+    });
+
+    test('without the party switch the target URL is used', () => {
+      configureLocalPlatform();
+      window.altinnAppGlobalData.platformFrontendSettings.accessManagementChangeAndRedirectUrl = undefined;
+
+      expect(returnUrlToArchive(hostPodman, 12345)).toBe('http://af.local.altinn.cloud/');
+      expect(returnUrlToArchive(hostPodman, 12345, dialogId)).toBe(
+        'http://af.local.altinn.cloud/inbox/123e4567-e89b-12d3-a456-426614174000',
+      );
+    });
+
+    test.each([
+      ['not set', undefined],
+      ['empty', ''],
+    ])('the front page is used when the settings are %s', (_, value) => {
+      window.altinnAppGlobalData.platformFrontendSettings = {
+        ...window.altinnAppGlobalData.platformFrontendSettings,
+        arbeidsflateInboxUrl: value,
+        arbeidsflateDialogUrl: value,
+        arbeidsflateProfileUrl: value,
+        accessManagementChangeAndRedirectUrl: value,
+        allFormsUrl: value,
+        accessManagementUrl: value,
+        rolesAndRightsHelpUrl: value,
+        arbeidsflatePartiesUrl: value,
+        logoutUrl: value,
+      };
+
+      for (const host of localHosts) {
+        const frontPage = `http://${host}/`;
+        expect(returnUrlToArchive(host)).toBe(frontPage);
+        expect(returnUrlToArchive(host, 12345, dialogId)).toBe(frontPage);
+        vi.spyOn(window, 'location', 'get').mockReturnValueOnce({ host } as Location);
+        expect(getMessageBoxUrl(12345, dialogId)).toBe(frontPage);
+        expect(returnUrlToProfile(host)).toBe(frontPage);
+        expect(returnUrlToAllForms(host)).toBe(frontPage);
+        expect(returnUrlToAccessManagement(host)).toBe(frontPage);
+        expect(returnUrlToRolesAndRightsHelp(host)).toBe(frontPage);
+        expect(returnUrlToPartiesSettings(host)).toBe(frontPage);
+        expect(logoutUrlAltinn(host)).toBe(frontPage);
+      }
+    });
+
+    // local.altinn.cloud is the only host outside the recognized Altinn hosts that gets a settings link
+    test('unrecognized hosts still get no link with the settings set', () => {
+      configureLocalPlatform();
+
+      for (const host of ['localhost', 'localhost:8000', hostStudio, hostUnknown]) {
+        expect(returnUrlToArchive(host, 12345, dialogId)).toBe(undefined);
+        expect(returnUrlToProfile(host)).toBe(undefined);
+        expect(returnUrlToAllForms(host)).toBe(undefined);
+        expect(returnUrlToAccessManagement(host)).toBe(undefined);
+        expect(logoutUrlAltinn(host)).toBe(undefined);
       }
     });
   });
