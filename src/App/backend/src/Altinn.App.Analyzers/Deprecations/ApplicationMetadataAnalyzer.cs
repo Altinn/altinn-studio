@@ -16,6 +16,8 @@ public sealed class ApplicationMetadataAnalyzer : DiagnosticAnalyzer
         [
             Diagnostics.Deprecations.EnablePdfCreation,
             Diagnostics.Deprecations.LegacyEFormidling,
+            Diagnostics.Deprecations.TaskId,
+            Diagnostics.Deprecations.TaskIdNextToTaskIds,
             Diagnostics.Metadata.DuplicateFieldId,
             Diagnostics.Metadata.UnknownFieldDataType,
             Diagnostics.Metadata.AutoDeleteWithDeletionPrevention,
@@ -59,6 +61,7 @@ public sealed class ApplicationMetadataAnalyzer : DiagnosticAnalyzer
             compilationContext.CancellationToken,
             diagnostics
         );
+        DataTypeTaskIdsUtils.CollectDiagnostics(appMetadataFiles[0], compilationContext.CancellationToken, diagnostics);
 
         foreach (var diagnostic in diagnostics)
         {

@@ -830,8 +830,10 @@ public class InstancesController_CopyInstanceTests
         fixture.Mock<IInstantiationValidator>().VerifyAll();
     }
 
-    [Fact]
-    public async Task CopyInstance_WithBinaryData_CopiesBothFormAndBinaryData()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CopyInstance_WithBinaryData_CopiesBothFormAndBinaryData(bool severalTasks)
     {
         // Arrange
         const int instanceOwnerPartyId = 343234;
@@ -879,6 +881,13 @@ public class InstancesController_CopyInstanceTests
         // Create app metadata with IncludeAttachments = true to enable binary data copying
         var appMetadata = CreateApplicationMetadata(Org, AppName, true);
         appMetadata.CopyInstanceSettings.IncludeAttachments = true;
+        if (severalTasks)
+        {
+            foreach (var dataType in appMetadata.DataTypes)
+            {
+                dataType.TaskIds = ["Earlier", "First"];
+            }
+        }
         fixture.Mock<IAppMetadata>().Setup(a => a.ApplicationMetadata).Returns(appMetadata);
         fixture
             .Mock<IPDP>()
@@ -2062,20 +2071,20 @@ public class InstancesController_CopyInstanceTests
                 {
                     Id = "data_type_1",
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema" },
-                    TaskId = "First",
+                    TaskIds = ["First"],
                 },
                 // Binary data types (no AppLogic.ClassRef)
                 new DataType
                 {
                     Id = "attachment",
-                    TaskId = "First",
+                    TaskIds = ["First"],
                     MaxSize = 25 * 1024 * 1024,
                     MaxCount = 10,
                 },
                 new DataType
                 {
                     Id = "sensitive-attachment",
-                    TaskId = "First",
+                    TaskIds = ["First"],
                     MaxSize = 10 * 1024 * 1024,
                     MaxCount = 5,
                 },

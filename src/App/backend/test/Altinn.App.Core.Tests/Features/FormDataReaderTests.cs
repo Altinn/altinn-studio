@@ -1,6 +1,8 @@
 using System.Net;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -14,6 +16,7 @@ public class FormDataReaderTests
 {
     private readonly Mock<IDataProcessor> _dataProcessor = new();
     private readonly Mock<ILogger<FormDataReader>> _logger = new();
+    private DataType _dataType = new() { Id = "model" };
 
     private IFormDataReader CreateService()
     {
@@ -21,7 +24,11 @@ public class FormDataReaderTests
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddSingleton(_dataProcessor.Object);
         var appImplementationFactory = new AppImplementationFactory(services.BuildServiceProvider());
-        return new FormDataReader(appImplementationFactory, _logger.Object);
+        var appMetadata = new Mock<IAppMetadata>();
+        appMetadata
+            .Setup(x => x.ApplicationMetadata)
+            .Returns(() => new ApplicationMetadata("ttd/app") { DataTypes = [_dataType] });
+        return new FormDataReader(appImplementationFactory, appMetadata.Object, _logger.Object);
     }
 
     [Fact]
@@ -71,6 +78,66 @@ public class FormDataReaderTests
         );
 
         Assert.Same(model, persistedModel);
+    }
+
+    public static TheoryData<string[]?, string?, bool, bool> PersistCases =>
+        new()
+        {
+            { null, "Task_2", false, true },
+            { [], "Task_2", false, true },
+            { ["Task_1", "Task_2"], "Task_2", false, true },
+            // Storage refuses a change outside the data type's tasks.
+            { ["Task_1"], "Task_2", false, false },
+            { ["Task_1"], null, false, false },
+            // Storage refuses every change to a locked element.
+            { null, "Task_2", true, false },
+            { ["Task_1"], "Task_1", true, false },
+        };
+
+    [Theory]
+    [MemberData(nameof(PersistCases))]
+    public async Task ReadFormData_PersistsMutationsFromProcessDataReadOnlyWhereStorageAcceptsThem(
+        string[]? taskIds,
+        string? currentTask,
+        bool locked,
+        bool persisted
+    )
+    {
+        _dataType = new DataType { Id = "model", TaskIds = taskIds?.ToList() };
+        var instance = new Instance
+        {
+            Process = new ProcessState
+            {
+                CurrentTask = currentTask is null ? null : new ProcessElementInfo { ElementId = currentTask },
+            },
+        };
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "model",
+            Locked = locked,
+        };
+        var model = new TestModel { Name = "before" };
+        _dataProcessor
+            .Setup(x => x.ProcessDataRead(instance, It.IsAny<Guid?>(), model, It.IsAny<string?>()))
+            .Callback(() => model.Name = "after")
+            .Returns(Task.CompletedTask);
+        int persistCount = 0;
+
+        var service = CreateService();
+        await service.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            model,
+            persistFormData: (_, _) =>
+            {
+                persistCount++;
+                return Task.CompletedTask;
+            }
+        );
+
+        Assert.Equal("after", model.Name);
+        Assert.Equal(persisted ? 1 : 0, persistCount);
     }
 
     public static TheoryData<Instance> IdleInstances =>

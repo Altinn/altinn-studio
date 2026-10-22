@@ -410,7 +410,7 @@ public sealed partial class ProcessEngineTest
                         {
                             Id = "payment",
                             AllowedContentTypes = ["application/json"],
-                            TaskId = "Task_2",
+                            TaskIds = ["Task_2"],
                         },
                     ],
                 }
@@ -1555,7 +1555,7 @@ public sealed partial class ProcessEngineTest
     {
         // The user was authorized and the task validated as them. Carrying out the transition is the app's, and the
         // gateways that decide where it goes are its first part.
-        var dataType = new DataType { Id = "model", TaskId = "Task_1" };
+        var dataType = new DataType { Id = "model", TaskIds = ["Task_1"] };
         var workflowService = new Mock<IWorkflowEngineService>(MockBehavior.Strict);
         workflowService
             .Setup(s =>

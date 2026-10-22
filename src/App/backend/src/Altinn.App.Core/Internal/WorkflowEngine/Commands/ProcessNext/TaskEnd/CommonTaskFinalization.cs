@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -56,7 +57,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
             List<Task> tasks = [];
             foreach (
                 var dataType in applicationMetadata.DataTypes.Where(dt =>
-                    dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
+                    dt.IsBoundToTask(taskId) && dt.AppLogic?.ClassRef is not null
                 )
             )
             {

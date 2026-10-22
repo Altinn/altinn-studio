@@ -318,7 +318,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
                     MaxCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -893,7 +893,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -2077,7 +2077,7 @@ public sealed class InstanceDataUnitOfWorkTests
         var committedVersions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 5);
         var appMetadata = new ApplicationMetadata(instance.AppId)
         {
-            DataTypes = [new DataType { Id = "task-data", TaskId = "Task_1" }],
+            DataTypes = [new DataType { Id = "task-data", TaskIds = ["Task_1"] }],
         };
         var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
         StorageInstanceMutationRequest? capturedMutation = null;
@@ -2215,7 +2215,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "task-data",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -2434,7 +2434,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "payment",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -3658,7 +3658,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = dataElement.DataType,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = [dataElement.ContentType],
                 },
             ],
@@ -3779,7 +3779,7 @@ public sealed class InstanceDataUnitOfWorkTests
         new()
         {
             Id = id,
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AllowedContentTypes = ["application/json"],
         };
 
@@ -4072,7 +4072,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -4182,7 +4182,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = dataTypeId,
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
             services.AddDataType(
@@ -4191,7 +4191,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "receipt",
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
 

@@ -167,7 +167,7 @@ public sealed class PatchServiceTests : IDisposable
     {
         Id = "dataTypeId",
         AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel" },
-        TaskId = "Task_1",
+        TaskIds = ["Task_1"],
     };
 
     private static readonly DataElement _dataElement = new()

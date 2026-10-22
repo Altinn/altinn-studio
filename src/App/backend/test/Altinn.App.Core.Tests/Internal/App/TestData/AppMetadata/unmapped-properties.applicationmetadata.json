@@ -9,13 +9,13 @@
       "id": "vedlegg",
       "allowedContentTypes": [ "application/pdf", "image/png", "image/jpeg" ],
       "minCount": 0,
-      "taskId":  "Task_1"
+      "taskIds":  ["Task_1"]
     },
     {
       "id": "ref-data-as-pdf",
       "allowedContentTypes": [ "application/pdf" ],
       "minCount":  1,
-      "taskId":  "Task_1"
+      "taskIds":  ["Task_1"]
     }
   ],
   "partyTypesAllowed": {

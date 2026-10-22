@@ -67,7 +67,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -95,7 +95,7 @@
         "application/rtf",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       ],
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxSize": 25,
       "maxCount": 5,
       "minCount": 0,
@@ -114,7 +114,7 @@
       ],
       "actionRequiredToRead": "signature-access",
       "actionRequiredToWrite": "signature-access",
-      "taskId": "SigningTask_Founders",
+      "taskIds": ["SigningTask_Founders"],
       "maxCount": 10,
       "minCount": 1
     },
@@ -128,7 +128,7 @@
       ],
       "actionRequiredToRead": "signature-access",
       "actionRequiredToWrite": "signature-access",
-      "taskId": "SigningTask_Founders",
+      "taskIds": ["SigningTask_Founders"],
       "maxCount": 1,
       "minCount": 1
     },
@@ -142,7 +142,7 @@
       ],
       "actionRequiredToRead": "signature-access",
       "actionRequiredToWrite": "signature-access",
-      "taskId": "SigningTask_Auditor",
+      "taskIds": ["SigningTask_Auditor"],
       "maxCount": 1,
       "minCount": 0
     },
@@ -156,7 +156,7 @@
       ],
       "actionRequiredToRead": "signature-access",
       "actionRequiredToWrite": "signature-access",
-      "taskId": "SigningTask_Auditor",
+      "taskIds": ["SigningTask_Auditor"],
       "maxCount": 1,
       "minCount": 1
     }
