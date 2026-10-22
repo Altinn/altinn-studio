@@ -818,7 +818,7 @@
         "textResourceBindings": {
           "title": "Referanser"
         },
-        "children": ["sources", "reference", "reference2"]
+        "children": ["sources", "reference", "reference2", "fail-reference-options"]
       },
       {
         "id": "sources",
@@ -856,8 +856,25 @@
           "md": 4
         },
         "queryParameters": {
-          "source": ["dataModel", "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"]
+          "source": ["dataModel", "Innledning-grp-9309.Signerer-grp-9320.SignererEkstraReferanseAltinn-datadef-34751.value"],
+          "fail": ["dataModel", "FailReferenceOptions"]
         }
+      },
+      {
+        "id": "fail-reference-options",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Feil ved lasting av alternativer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FailReferenceOptions"
+        },
+        "options": [
+          {
+            "label": "La lasting av referanser feile",
+            "value": true
+          }
+        ]
       },
       {
         "id": "reference2",
