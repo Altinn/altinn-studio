@@ -5,7 +5,7 @@ import { SelectDataFieldBinding } from './SelectDataFieldBinding';
 import {
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
-  getXsdDataTypeFromDataModelFields,
+  getTimeStampFromDataModelFields,
 } from '@altinn/ux-editor-v4/utils/dataModelUtils';
 import { useAppContext } from '@altinn/ux-editor-v4/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor-v4/containers/FormItemContext';
@@ -62,7 +62,7 @@ export const EditBinding = ({
         ...component,
         dataModelBindings: Object.keys(dataModelBindings).length ? dataModelBindings : undefined,
         required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
-        timeStamp: getXsdDataTypeFromDataModelFields(
+        timeStamp: getTimeStampFromDataModelFields(
           component.type,
           selectedDataFieldElement,
           dataModelMetadata,

@@ -7,7 +7,7 @@ import {
   getDataModelFields,
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
-  getXsdDataTypeFromDataModelFields,
+  getTimeStampFromDataModelFields,
   validateSelectedDataField,
   validateSelectedDataModel,
 } from './dataModelUtils';
@@ -77,25 +77,25 @@ describe('getMaxOccursFromDataModelFields', () => {
   });
 });
 
-describe('getXsdDataTypeFromDataModelFields', () => {
-  it('should return "DateTime" when selected data model field is a datepicker', () => {
+describe('getTimeStampFromDataModelFields', () => {
+  it('should return true when the selected data model field of a datepicker is "DateTime"', () => {
     const selectedDataField = 'datePickerField';
-    const xsdDataType = getXsdDataTypeFromDataModelFields(
+    const timeStamp = getTimeStampFromDataModelFields(
       ComponentType.Datepicker,
       selectedDataField,
       dataModelMetadataMock,
     );
-    expect(xsdDataType).toEqual('DateTime');
+    expect(timeStamp).toBe(true);
   });
 
   it('should return undefined when selected data model field is not a datepicker', () => {
     const selectedDataField = 'field1';
-    const xsdDataType = getXsdDataTypeFromDataModelFields(
+    const timeStamp = getTimeStampFromDataModelFields(
       ComponentType.Input,
       selectedDataField,
       dataModelMetadataMock,
     );
-    expect(xsdDataType).toEqual(undefined);
+    expect(timeStamp).toEqual(undefined);
   });
 
   it('should return undefined when selected data model field is a datepicker but xsd value type is not "DateTime"', () => {
@@ -105,12 +105,12 @@ describe('getXsdDataTypeFromDataModelFields', () => {
       ...testDataModelMetadataMock[3],
       xsdValueType: 'SomethingElse',
     };
-    const xsdDataType = getXsdDataTypeFromDataModelFields(
+    const timeStamp = getTimeStampFromDataModelFields(
       ComponentType.Datepicker,
       selectedDataField,
       testDataModelMetadataMock,
     );
-    expect(xsdDataType).toEqual(undefined);
+    expect(timeStamp).toEqual(undefined);
   });
 });
 

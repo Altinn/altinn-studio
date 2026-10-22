@@ -27,16 +27,16 @@ export const getMaxOccursFromDataModelFields = (
   return undefined;
 };
 
-export const getXsdDataTypeFromDataModelFields = (
+export const getTimeStampFromDataModelFields = (
   componentType: ComponentType,
   dataBindingName: string,
   dataModelFields: DataModelFieldElement[],
-): string | undefined => {
+): boolean | undefined => {
   if (componentType === ComponentType.Datepicker) {
     const element = dataModelFields.find(
       (e: DataModelFieldElement) => e.dataBindingName === dataBindingName,
     );
-    return element?.xsdValueType === 'DateTime' ? 'DateTime' : undefined;
+    return element?.xsdValueType === 'DateTime' || undefined;
   }
 
   return undefined;

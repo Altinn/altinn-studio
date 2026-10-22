@@ -285,6 +285,44 @@ describe('EditBinding', () => {
     );
   });
 
+  it.each([
+    { field: 'datePickerField', timeStamp: true },
+    { field: defaultDataModelField, timeStamp: undefined },
+  ])(
+    'should set timeStamp to $timeStamp when a Datepicker is bound to $field',
+    async ({ field, timeStamp }) => {
+      const user = userEvent.setup();
+      const handleComponentChange = vi.fn();
+      renderEditBinding({
+        editBindingProps: {
+          ...defaultEditBinding,
+          component: componentMocks[ComponentType.Datepicker],
+          handleComponentChange,
+          internalBindingFormat: { field: '', dataType: defaultDataModel },
+        },
+        queries: {
+          getAppMetadataModelIds: getAppMetadataModelIdsMock,
+          getDataModelMetadata: getDataModelMetadataMock,
+        },
+      });
+      await waitForLoadingToFinish();
+
+      const dataModelFieldSelector = screen.getByRole('combobox', {
+        name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+      });
+      await user.selectOptions(dataModelFieldSelector, screen.getByRole('option', { name: field }));
+      const saveButton = screen.getByRole('button', {
+        name: textMock('right_menu.data_model_bindings_save_button'),
+      });
+      await user.click(saveButton);
+
+      expect(handleComponentChange).toHaveBeenCalledWith(
+        expect.objectContaining({ timeStamp }),
+        expect.any(Object),
+      );
+    },
+  );
+
   it('should call handleComponentChange with new binding format when data model is changed and saved', async () => {
     const user = userEvent.setup();
     const handleComponentChange = vi.fn();
