@@ -308,10 +308,72 @@ Note: If B joining the heads is not desired, it can be marked `IsHead = false`, 
 
 ---
 
+## Primary and Auxiliary Workflows
+
+A workflow enqueued with `isHead = false` is an auxiliary workflow; every other workflow is primary.
+The vocabulary and its mapping onto the `isHead` directive are defined in
+[technical-guide.md](technical-guide.md#primary-and-auxiliary-workflows). The collections API applies
+it in three places: the `role` field on workflow status reads, the `?role=Primary|Auxiliary` filter
+on `GET /workflows`, and the per-role `workflowCounts` rollup and `failures=Primary|Auxiliary`
+discovery filter on `GET /collections`. A collection with `auxiliary.failed > 0` has lost work that
+nothing else reports: an auxiliary workflow's failure gates nothing, so no head status or frontier
+read will show it.
+
+---
+
 ## Query Endpoints
 
-**`GET /api/v1/{namespace}/collections/{key}`**
-Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns 404 if not found.
+**`GET /api/v1/{namespace}/collections`** — the *health* view.
+Cursor-paginated list — a stable, collation-defined key order; treat the cursor as opaque — where
+every entry carries a `workflowCounts` rollup across
+**all** of the collection's workflows, split by role:
+
+```json
+"workflowCounts": {
+    "total": 12,
+    "primary": { "active": 2, "failed": 0, "requeued": 1, "waiting": 0, "held": 0 },
+    "auxiliary": { "active": 1, "failed": 1, "requeued": 0, "waiting": 0, "held": 0 }
+}
+```
+
+`primary` and `auxiliary` carry the same counts, each over the workflows of that role:
+
+- `active` = the engine's non-terminal (`Incomplete`) status set: `Enqueued | Processing | Requeued | Waiting | Held`.
+  A `Held` mailbox receiver is active — parked, but consuming admission budget and gating its dependents
+- `failed` = `Failed | Canceled | DependencyFailed`. `Abandoned` is excluded — it is the engine's
+  adjudication marker for a written-off failure
+- `requeued`, `waiting`, `held` = the workflows in `Requeued`, `Waiting` and `Held`. Subsets of `active`,
+  not buckets of their own: they let a reader say why an instance is not moving — retrying, waiting on
+  an outcome, or waiting on a message — instead of only that work is in flight
+
+`total` counts every workflow in the collection. There is deliberately no named "settled" bucket —
+successful, abandoned, and any future status appear as the remainder of `total` after both roles'
+`active` and `failed`, so a new status can never be silently misfiled.
+
+Three mutually exclusive modes:
+
+| Mode     | Parameters                              | Use                                                        |
+| -------- | --------------------------------------- | ---------------------------------------------------------- |
+| list     | `cursor`, `pageSize`                    | enumerate the namespace's collections                      |
+| annotate | `key` (repeatable)                      | health for a set of keys the caller already holds          |
+| discover | `failures=Any\|Primary\|Auxiliary`, `cursor` | the errors view                                       |
+
+`key` × `cursor` → 400. `key` × `failures` → 400. More distinct keys than `pagination.maxAnnotateKeys` → 400 — the
+request is **rejected, never truncated**, because silently dropping keys from a health read is the
+exact failure class this endpoint exists to fix. Annotate mode additionally returns
+`unmatchedKeys: [...]` for requested keys with no collection row; absence must not collapse into
+"healthy" — it can equally mean the collection was purged by retention. List and discover mode
+return 204 No Content when nothing matches; annotate mode always returns 200 so `unmatchedKeys`
+stays explicit.
+
+**`GET /api/v1/{namespace}/collections/{key}`** — the *frontier* view.
+Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns
+404 if not found. This endpoint is a frontier view **by contract**: it reports only the current head
+workflows, so auxiliary workflows never appear in it, and it carries no
+`workflowCounts` rollup — it sits on the app's page-view-scale hot path and stays cheap. For health,
+use the list endpoint's rollup; to enumerate a collection's failures, use
+`GET /workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed`
+(drop the `role` filter for all of them).
 
 ---
 

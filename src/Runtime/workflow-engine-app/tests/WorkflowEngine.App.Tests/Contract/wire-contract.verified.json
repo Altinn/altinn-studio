@@ -339,6 +339,26 @@
       }
     ]
   },
+  "CollectionWorkflowCounts": {
+    "Name": "CollectionWorkflowCounts",
+    "Fields": [
+      {
+        "Name": "auxiliary",
+        "Kind": "object<WorkflowRoleCounts>",
+        "Nullable": false
+      },
+      {
+        "Name": "primary",
+        "Kind": "object<WorkflowRoleCounts>",
+        "Nullable": false
+      },
+      {
+        "Name": "total",
+        "Kind": "int",
+        "Nullable": false
+      }
+    ]
+  },
   "CommandDefinition": {
     "Name": "CommandDefinition",
     "Fields": [
@@ -824,6 +844,71 @@
       }
     ]
   },
+  "WorkflowCollectionListResponse": {
+    "Name": "WorkflowCollectionListResponse",
+    "Fields": [
+      {
+        "Name": "data",
+        "Kind": "array<object<WorkflowCollectionResponse>>",
+        "Nullable": false
+      },
+      {
+        "Name": "nextCursor",
+        "Kind": "string",
+        "Nullable": true
+      },
+      {
+        "Name": "pageSize",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "totalCount",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "unmatchedKeys",
+        "Kind": "array<string>",
+        "Nullable": true
+      }
+    ]
+  },
+  "WorkflowCollectionResponse": {
+    "Name": "WorkflowCollectionResponse",
+    "Fields": [
+      {
+        "Name": "createdAt",
+        "Kind": "datetimeoffset",
+        "Nullable": false
+      },
+      {
+        "Name": "heads",
+        "Kind": "array<guid>",
+        "Nullable": false
+      },
+      {
+        "Name": "key",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "namespace",
+        "Kind": "string",
+        "Nullable": false
+      },
+      {
+        "Name": "updatedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "workflowCounts",
+        "Kind": "object<CollectionWorkflowCounts>",
+        "Nullable": true
+      }
+    ]
+  },
   "WorkflowEnqueueRequest": {
     "Name": "WorkflowEnqueueRequest",
     "Fields": [
@@ -919,6 +1004,36 @@
       }
     ]
   },
+  "WorkflowRoleCounts": {
+    "Name": "WorkflowRoleCounts",
+    "Fields": [
+      {
+        "Name": "active",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "failed",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "held",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "requeued",
+        "Kind": "int",
+        "Nullable": false
+      },
+      {
+        "Name": "waiting",
+        "Kind": "int",
+        "Nullable": false
+      }
+    ]
+  },
   "WorkflowStatusResponse": {
     "Name": "WorkflowStatusResponse",
     "Fields": [
@@ -1001,6 +1116,11 @@
         "Name": "overallStatus",
         "Kind": "enum<string>{Enqueued=0,Processing=1,Requeued=2,Completed=3,Failed=4,Canceled=5,DependencyFailed=6,Abandoned=7,Waiting=8,Held=9}",
         "Nullable": false
+      },
+      {
+        "Name": "role",
+        "Kind": "enum<string>{Primary=0,Auxiliary=1}",
+        "Nullable": true
       },
       {
         "Name": "startAt",

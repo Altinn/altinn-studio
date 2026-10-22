@@ -168,6 +168,98 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         Assert.True(doc.RootElement.GetProperty("totalCount").GetInt32() >= 3);
     }
 
+    [Fact]
+    public async Task Query_StatusFilter_RecognizesDependencyFailedAndAbandoned()
+    {
+        // Arrange — a failing workflow with a dependent: the head fails, the dependent lands in
+        // DependencyFailed, and abandoning the head moves it to Abandoned. Both statuses used to be
+        // silently dropped by the query status parser.
+        fixture.FailPaths("/dash-fail");
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("wf-fail", [_testHelpers.CreateWebhookStep("/dash-fail")]),
+            _testHelpers.CreateWorkflow(
+                "wf-dep",
+                [_testHelpers.CreateWebhookStep("/hook")],
+                dependsOn: [(WorkflowRef)"wf-fail"]
+            ),
+        ]);
+        var enqueueResponse = await _client.Enqueue(request);
+        var failedId = enqueueResponse.Workflows[0].DatabaseId;
+        var dependentId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus(failedId, PersistentItemStatus.Failed);
+        await _client.WaitForWorkflowStatus(dependentId, PersistentItemStatus.DependencyFailed);
+        await _client.AbandonWorkflow(failedId);
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var depResponse = await client.GetAsync(
+            "/dashboard/query?status=DEPENDENCYFAILED",
+            TestContext.Current.CancellationToken
+        );
+        using var abandonedResponse = await client.GetAsync(
+            "/dashboard/query?status=ABANDONED",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, depResponse.StatusCode);
+        var depJson = await depResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var depDoc = JsonDocument.Parse(depJson);
+        var depWorkflow = Assert.Single(depDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(dependentId, depWorkflow.GetProperty("databaseId").GetGuid());
+
+        Assert.Equal(HttpStatusCode.OK, abandonedResponse.StatusCode);
+        var abandonedJson = await abandonedResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var abandonedDoc = JsonDocument.Parse(abandonedJson);
+        var abandonedWorkflow = Assert.Single(abandonedDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(failedId, abandonedWorkflow.GetProperty("databaseId").GetGuid());
+    }
+
+    [Fact]
+    public async Task Query_RoleFacet_FiltersByRole()
+    {
+        // Arrange — a primary (null directive) and an auxiliary workflow, both completing.
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("wf-primary", [_testHelpers.CreateWebhookStep("/hook")]),
+            _testHelpers.CreateWorkflow("wf-auxiliary", [_testHelpers.CreateWebhookStep("/hook")], isHead: false),
+        ]);
+        var enqueueResponse = await _client.Enqueue(request);
+        var primaryId = enqueueResponse.Workflows[0].DatabaseId;
+        var auxiliaryId = enqueueResponse.Workflows[1].DatabaseId;
+        await _client.WaitForWorkflowStatus([primaryId, auxiliaryId], PersistentItemStatus.Completed);
+
+        using var client = fixture.CreateEngineClient();
+
+        // Act
+        using var primaryResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&role=Primary",
+            TestContext.Current.CancellationToken
+        );
+        using var auxiliaryResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&role=Auxiliary",
+            TestContext.Current.CancellationToken
+        );
+        using var invalidResponse = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&role=bogus",
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert — the facet carries the same role semantics as the public list endpoint.
+        var primaryJson = await primaryResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var primaryDoc = JsonDocument.Parse(primaryJson);
+        var primaryWorkflow = Assert.Single(primaryDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(primaryId, primaryWorkflow.GetProperty("databaseId").GetGuid());
+
+        var auxiliaryJson = await auxiliaryResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var auxiliaryDoc = JsonDocument.Parse(auxiliaryJson);
+        var auxiliaryWorkflow = Assert.Single(auxiliaryDoc.RootElement.GetProperty("workflows").EnumerateArray());
+        Assert.Equal(auxiliaryId, auxiliaryWorkflow.GetProperty("databaseId").GetGuid());
+
+        Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
+    }
+
     // ── /dashboard/scheduled ───────────────────────────────────────────
 
     [Fact]

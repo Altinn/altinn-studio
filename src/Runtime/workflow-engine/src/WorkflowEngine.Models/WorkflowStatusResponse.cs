@@ -127,13 +127,24 @@ public sealed record WorkflowStatusResponse
     public string? InitialState { get; init; }
 
     /// <summary>
-    /// The head directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>).
-    /// <c>false</c> marks an auxiliary workflow, <c>true</c> or <c>null</c>/omitted a primary one;
-    /// <c>null</c> means natural leaf detection applied.
+    /// The raw <c>isHead</c> directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>);
+    /// <c>null</c>/omitted when none was given. Read <see cref="Role"/> instead to tell primary from
+    /// auxiliary workflows.
     /// </summary>
     [JsonPropertyName("isHead")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IsHead { get; init; }
+
+    /// <summary>
+    /// Whether the process waits on this workflow, derived from <see cref="IsHead"/>:
+    /// <see cref="WorkflowRole.Auxiliary"/> when the directive is <c>false</c>, otherwise
+    /// <see cref="WorkflowRole.Primary"/>. This is the field clients should read. Nullable so the wire
+    /// contract stays additive for consumers that do not model it yet; the engine always populates it.
+    /// </summary>
+    [JsonPropertyName("role")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public WorkflowRole? Role { get; init; }
 
     /// <summary>
     /// Details about each step in the workflow.
@@ -142,9 +153,12 @@ public sealed record WorkflowStatusResponse
     public required IReadOnlyList<StepStatusResponse> Steps { get; init; }
 
     /// <summary>
-    /// Projects a <see cref="Workflow"/> to its public response representation.
+    /// Projects a <see cref="Workflow"/> to its public response representation. With
+    /// <paramref name="includeState"/> false, the initial state and every step's state out are left
+    /// off: they are the app's own payload — instance data, not workflow status — and a status
+    /// reader such as Studio's admin panel has no business receiving them.
     /// </summary>
-    public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
+    public static WorkflowStatusResponse FromWorkflow(Workflow workflow, bool includeState = true) =>
         new()
         {
             DatabaseId = workflow.DatabaseId,
@@ -160,11 +174,12 @@ public sealed record WorkflowStatusResponse
             CancellationRequestedAt = workflow.CancellationRequestedAt,
             Labels = workflow.Labels,
             OverallStatus = workflow.Status,
-            InitialState = workflow.InitialState,
+            InitialState = includeState ? workflow.InitialState : null,
             IsHead = workflow.IsHead,
+            Role = workflow.IsHead == false ? WorkflowRole.Auxiliary : WorkflowRole.Primary,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Dependents = workflow.Dependents?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
-            Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),
+            Steps = workflow.Steps.Select(step => StepStatusResponse.FromStep(step, includeState)).ToList(),
         };
 }

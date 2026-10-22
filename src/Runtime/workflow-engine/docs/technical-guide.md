@@ -1352,6 +1352,9 @@ Same shape. The original workflow is returned, no new workflow is created. This 
 GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 ```
 
+Pass `includeState=false` to leave the app's state payloads (`initialState` and every step's `stateOut`) out of the
+response. The default is `true`.
+
 **Response (200 OK):**
 
 ```json
@@ -1365,6 +1368,7 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
     "updatedAt": "2026-03-19T10:00:05+00:00",
     "executionStartedAt": "2026-03-19T10:00:01+00:00",
     "overallStatus": "Completed",
+    "role": "Primary",
     "labels": {
         "org": "ttd",
         "app": "my-app",
@@ -1412,6 +1416,10 @@ GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
 }
 ```
 
+`role` is `Primary` or `Auxiliary` (see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)),
+derived from the workflow's `isHead` directive and always present. `isHead` is the raw directive, returned
+only when the enqueue request set one; read `role` instead.
+
 `executionStartedAt` — on the workflow and on each step — is the start of the **most recent attempt**,
 stamped by the worker as the attempt begins and persisted by that attempt's write-backs. It is absent
 while the workflow is `Enqueued` — before the first attempt, and again after `resume`, a stale reclaim or
@@ -1434,13 +1442,15 @@ GET /api/v1/{namespace}/workflows
 
 Supports the following optional query parameters (all repeatable params can be supplied multiple times):
 
-| Parameter       | Repeatable | Description                                                                                                                                                                                                                                 |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
-| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                               |
-| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                              |
-| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                                |
-| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                                 |
+| Parameter       | Repeatable | Description                                                                                                                                                                                                                    |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`, `Waiting`, `Held`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
+| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                  |
+| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                 |
+| `role`          | No         | Filter by workflow role: `Primary` or `Auxiliary` (case-insensitive; see [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)). Omit to return both; an unrecognized value returns `400 Bad Request`. |
+| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                   |
+| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                    |
+| `includeState`  | No         | Include the app's own state payloads (`initialState` and every step's `stateOut`). Defaults to `true`; a status reader with no use for them, such as Studio's admin panel, passes `false`.                                     |
 
 Filter by status — e.g. all failed workflows (combine values to widen the set):
 
@@ -1464,6 +1474,14 @@ Or combine filters — e.g. all failed workflows for a specific instance owner:
 
 ```http
 GET /api/v1/ttd:my-app/workflows?status=Failed&label=instanceOwnerPartyId:50001234
+```
+
+The ops worklist for a collection's failed auxiliary workflows is one call, drained to zero by the existing
+`resume` / `abandon` verbs (`Abandoned` is deliberately absent from the status set — it is the
+engine's adjudication marker for a written-off failure):
+
+```http
+GET /api/v1/ttd:my-app/workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed
 ```
 
 **Response (200 OK):** a cursor-paginated `PaginatedResponse` wrapping `WorkflowStatusResponse` items (each the same shape as the single workflow GET above). Returns `204 No Content` when no workflows match.
@@ -1611,24 +1629,50 @@ POST /api/v1/{namespace}/throttle/clear
 
 ### List Collections
 
-Lists all collections in the namespace, ordered by most recently updated. Each entry carries its head workflow IDs as bare GUIDs (not status-enriched — use **Get Collection** below for head statuses).
+The per-collection **health** view: a cursor-paginated list (stable, collation-defined key order;
+the cursor is opaque) where every entry
+carries its head workflow IDs as bare GUIDs (not status-enriched — use **Get Collection** below for
+head statuses) plus a `workflowCounts` rollup across **all** of the collection's workflows, split
+into primary and auxiliary workflows. See
+[workflow-collections.md](workflow-collections.md#query-endpoints) for the mode matrix and bucket
+definitions.
 
 ```http
 GET /api/v1/{namespace}/collections
 ```
 
-**Response (200 OK):** an array of collection summaries. Returns `204 No Content` when the namespace has no collections.
+| Parameter  | Repeatable | Description                                                                                                                                                                             |
+| ---------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key`      | Yes        | Annotate mode: report health for these collection keys. Mutually exclusive with `cursor` and `failures` (400). More distinct keys than `pagination.maxAnnotateKeys` (default 100) → 400 (rejected, never truncated — a dropped key would read as healthy). That cap is deliberately separate from `maxPageSize`: a page size is clamped, a key list is refused. |
+| `failures` | No         | Discover mode: only collections with at least one failed workflow (`Failed`, `Canceled`, `DependencyFailed`; `Abandoned` never matches). `Any`, `Primary`, or `Auxiliary` (case-insensitive). |
+| `cursor`   | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                            |
+| `pageSize` | No         | Items per page. Defaults to 25, clamped to the range 1–100. Ignored in annotate (`key`) mode.                                                                                           |
+
+**Response (200 OK):** a cursor-paginated envelope of collection summaries. Returns `204 No Content`
+when nothing matches in list or discover mode; annotate mode always returns 200 so `unmatchedKeys`
+(requested keys with no collection row — not to be read as healthy, retention may have purged them)
+stays explicit.
 
 ```json
-[
-    {
-        "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "namespace": "ttd:my-app",
-        "heads": ["f47ac10b-58cc-4372-a567-0e02b2c3d479"],
-        "createdAt": "2026-03-19T10:00:00+00:00",
-        "updatedAt": "2026-03-19T10:00:05+00:00"
-    }
-]
+{
+    "data": [
+        {
+            "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "namespace": "ttd:my-app",
+            "heads": ["f47ac10b-58cc-4372-a567-0e02b2c3d479"],
+            "createdAt": "2026-03-19T10:00:00+00:00",
+            "updatedAt": "2026-03-19T10:00:05+00:00",
+            "workflowCounts": {
+                "total": 12,
+                "primary": { "active": 2, "failed": 0, "requeued": 1, "waiting": 0, "held": 0 },
+                "auxiliary": { "active": 1, "failed": 1, "requeued": 0, "waiting": 0, "held": 0 }
+            }
+        }
+    ],
+    "pageSize": 25,
+    "totalCount": 1,
+    "nextCursor": null
+}
 ```
 
 ### Get Collection
@@ -1638,6 +1682,11 @@ GET /api/v1/{namespace}/collections/{key}
 ```
 
 **Response (200 OK):** a single collection with its head workflow statuses, or `404 Not Found` when the key is unknown in the namespace.
+
+This is a **frontier view by contract**: it reports only the current head workflows, so auxiliary
+workflows never appear in it, and it deliberately carries no `workflowCounts` rollup — it sits on
+the app's page-view-scale hot path. For health reads use **List Collections** above; to enumerate a
+collection's failures use **List Workflows** with `collectionKey`, `status`, and `role` filters.
 
 ```json
 {

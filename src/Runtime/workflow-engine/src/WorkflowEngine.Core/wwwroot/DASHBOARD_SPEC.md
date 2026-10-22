@@ -26,9 +26,10 @@ On-demand paginated search against the database. Not SSE-driven — user clicks 
 
 **Controls:**
 
-- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
+- Status checkboxes: Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled, Dep. failed, Abandoned. The checked set is sent explicitly as the `status` param (all checked sends the full set); zero checked omits the param, which the backend defaults to Completed/Failed/Requeued.
 - Time range dropdown: All time (default), 5m, 15m, 30m, 1h, 6h, 24h, 7d, custom (datetime pickers)
 - "Has retries" checkbox
+- Role checkboxes: "Primary" / "Auxiliary" (both checked by default = no filter; exactly one checked sends `role=Primary|Auxiliary`). Primary workflows are the ones the process waits on (`isHead` directive `true` or unset); auxiliary workflows run beside the process (`isHead=false`).
 - Text search (triggers on Enter)
 - Auto-refresh interval: Off, 5s, 10s, 30s, 1m, 5m
 - Pagination: 100 per page, cursor-based (uses `updatedAt` as cursor). Page boundary cursors are stored in an array (`queryPageCursors[pageIndex]`) so prev/next can navigate without re-querying all pages.
@@ -103,8 +104,11 @@ Paginated workflow search.
 | `retried`       | bool     | Only workflows with step retries                     |
 | `labels`        | string   | Comma-separated key:value pairs                      |
 | `collectionKey` | string   | Collection key filter                                |
+| `role`          | string   | `Primary` (directive true or unset) or `Auxiliary` (directive false); anything else is 400 |
 
 Response: `{ totalCount: int, workflows: Workflow[] }`
+
+The `status` parser recognizes every persistent status, including `DependencyFailed` and `Abandoned`.
 
 **Default statuses** (when `status` param is omitted): `Completed`, `Failed`, `Requeued`. `Waiting` is
 recognized but not on by default — parked pollers would otherwise crowd out the terminal outcomes the
@@ -697,7 +701,7 @@ Per-section chip bars. Only one status active per section at a time. Chips show 
 - **Scheduled**: All, 10s, 1m, 5m, Later (time-to-start buckets)
 - **Inbox**: All, Processing, Retrying
 - **Recent**: All, Completed, Failed, Abandoned
-- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled
+- **Query**: (uses checkboxes, not chips) Enqueued, Processing, Requeued, Waiting, Held, Completed, Failed, Canceled, Dep. failed, Abandoned — plus the Primary / Auxiliary role pair
 
 ### Text Filter
 
@@ -726,6 +730,7 @@ All dashboard state is encoded in the URL query string via `syncUrl()` / `restor
 | `qtf`   | Custom time range "from" (ISO)                           |
 | `qtt`   | Custom time range "to" (ISO)                             |
 | `qr`    | "Has retries" checkbox (1/0)                             |
+| `qrole` | Role facet (`Primary` or `Auxiliary`; absent = both)    |
 | `lf`    | Label filters (comma-separated key:value pairs)          |
 | `c`     | Collapsed sections (comma-separated: sched,inbox,recent) |
 | `e`     | Expanded sections (inverse of collapsed)                 |
