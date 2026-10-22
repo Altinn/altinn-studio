@@ -14,11 +14,26 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.ProcessAdvisories;
 /// pattern can be legitimate when the feedback task models a separate decision gate (e.g. a
 /// service-owner review) rather than the service task's own outcome. Only the app team can tell
 /// those apart. Runs after the PDF/eFormidling migrations so service tasks they insert are seen.
+///
+/// Every feedback task also gets deploy-window advice: v9 no longer moves an instance out of a
+/// feedback task when a receipt arrives, so instances already waiting there at the first v9 deploy
+/// may stay put. Behind a service task the advice is part of its to-do; otherwise it is a warning,
+/// since most such tasks are closed by the service owner's own system and need no change.
 /// </summary>
 internal sealed class FeedbackAfterServiceTaskAdvisor
 {
     private readonly string _projectFolder;
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
+
+    // The built-in service task types. v9 requires a <bpmn:serviceTask> for them, but a v8 process may
+    // still declare one on a <bpmn:task>, and the upgrade does not rewrite the element.
+    private static readonly HashSet<string> _builtInServiceTaskTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "pdf",
+        "subformPdf",
+        "eFormidling",
+        "fiksArkiv",
+    };
 
     public FeedbackAfterServiceTaskAdvisor(string projectFolder)
     {
@@ -26,8 +41,9 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
     }
 
     /// <summary>
-    /// Scans process.bpmn and returns one to-do per feedback task that follows a service task: each one
-    /// names the task and what to weigh up. Never modifies anything - only the app team can decide.
+    /// Scans process.bpmn and returns one to-do per feedback task that follows a service task, naming
+    /// the task and what to weigh up, and one warning per other feedback task. Every message carries
+    /// the deploy-window advice. Never modifies anything - only the app team can decide.
     /// </summary>
     public MigrationResult Analyze()
     {
@@ -79,7 +95,14 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
 
         foreach (var feedbackTaskId in feedbackTasks)
         {
-            foreach (var serviceTaskId in FindUpstreamServiceTasks(feedbackTaskId, elementsById, flows))
+            var serviceTaskIds = FindUpstreamServiceTasks(feedbackTaskId, elementsById, flows);
+            if (serviceTaskIds.Count == 0)
+            {
+                messages.Warn(DeployWindowAdvice($"the feedback task '{feedbackTaskId}'"));
+                continue;
+            }
+
+            foreach (var serviceTaskId in serviceTaskIds)
             {
                 var serviceTaskType = elementsById.TryGetValue(serviceTaskId, out var serviceTask)
                     ? GetAltinnTaskType(serviceTask)
@@ -98,7 +121,8 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
                             + "the Altinn Events reminder that used to move the process past the feedback task is "
                             + "gone, so nothing will advance it. Instances would wait there indefinitely. Keep it "
                             + "only if it models a decision gate of its own (e.g. a service-owner review), in "
-                            + "which case something must advance it."
+                            + "which case something must advance it. "
+                            + DeployWindowAdvice($"'{feedbackTaskId}'")
                     );
                     continue;
                 }
@@ -109,18 +133,29 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
                         + "a waiting step automatically, so the feedback task may be a redundant v8 waiting "
                         + "pattern that now needs a separate out-of-band process/next to clear. Review it: "
                         + "remove the feedback task if the wait belongs to the service task's own outcome, or "
-                        + "keep it if it models a separate decision gate (e.g. a service-owner review)."
+                        + "keep it if it models a separate decision gate (e.g. a service-owner review). "
+                        + DeployWindowAdvice($"'{feedbackTaskId}'")
                 );
             }
         }
     }
 
     /// <summary>
-    /// Walks incoming sequence flows from the given node, looking through gateways, and returns the
-    /// ids of any service tasks found as the effective predecessor. Other element kinds (tasks,
-    /// events) end their path: a feedback task behind a data task is the normal v8/v9 pattern.
+    /// The advice for instances already waiting in a feedback task when the first v9 version is
+    /// deployed, with <paramref name="subject"/> naming the task.
     /// </summary>
-    private static IEnumerable<string> FindUpstreamServiceTasks(
+    private static string DeployWindowAdvice(string subject) =>
+        $"Instances already waiting in {subject} when the first v9 version is deployed may not move on by "
+        + "themselves if they are waiting for a receipt: deploy that version in a quiet period and check for "
+        + "instances left in the feedback task afterwards.";
+
+    /// <summary>
+    /// Walks incoming sequence flows from the given node, looking through gateways, and returns the
+    /// ids of any service tasks found as the effective predecessor: a <c>serviceTask</c> element, or
+    /// a <c>task</c> element with a built-in service task type. Other element kinds (tasks, events)
+    /// end their path: a feedback task behind a data task is the normal v8/v9 pattern.
+    /// </summary>
+    private static List<string> FindUpstreamServiceTasks(
         string startId,
         IReadOnlyDictionary<string, XElement> elementsById,
         IReadOnlyList<(string Source, string Target)> flows
@@ -139,7 +174,7 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
                 if (!visited.Add(source) || !elementsById.TryGetValue(source, out var sourceElement))
                     continue;
 
-                if (sourceElement.Name.LocalName == "serviceTask")
+                if (IsServiceTask(sourceElement))
                 {
                     hits.Add(source);
                 }
@@ -152,6 +187,14 @@ internal sealed class FeedbackAfterServiceTaskAdvisor
 
         return hits;
     }
+
+    private static bool IsServiceTask(XElement element) =>
+        element.Name.LocalName == "serviceTask"
+        || (
+            element.Name.LocalName == "task"
+            && GetAltinnTaskType(element) is { } taskType
+            && _builtInServiceTaskTypes.Contains(taskType)
+        );
 
     private static string? GetAltinnTaskType(XElement task) =>
         task.Element(XName.Get("extensionElements", task.Name.NamespaceName))

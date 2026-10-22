@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
+- `studioctl app upgrade v9` warns about every feedback task: instances waiting in one when the first v9 version is deployed may not move on by themselves, so deploy it in a quiet period. Feedback tasks behind eFormidling or Fiks Arkiv `<bpmn:task>` steps are now flagged too. ([#21261](https://github.com/Altinn/altinn-studio/pull/21261))
 
 ### Changed
 
