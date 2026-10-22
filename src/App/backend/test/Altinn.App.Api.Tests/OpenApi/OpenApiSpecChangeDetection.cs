@@ -1,8 +1,11 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.EFormidling.Interface;
 using Argon;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
+using Moq;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.OpenApi;
@@ -30,6 +33,17 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
         // The test project exposes swagger.json at /swagger/v1/swagger.json not /{org}/{app}/swagger/v1/swagger.json
         using HttpResponseMessage response = await client.GetAsync($"/{org}/{app}/v1/customOpenapi.json");
         await Snapshot(response);
+    }
+
+    [Fact]
+    public async Task CustomOpenApiSpec_DocumentsAnAppWithUiAndADataTypeWithoutTask()
+    {
+        // The app has a UI folder and a data type bound to no task, ref-data-as-pdf. Its eFormidling task needs the
+        // service to start.
+        OverrideServicesForThisTest = services => services.AddSingleton(Mock.Of<IEFormidlingService>());
+        using HttpClient client = GetRootedClient("ttd", "service-tasks");
+        using HttpResponseMessage response = await client.GetAsync("/ttd/service-tasks/v1/customOpenapi.json");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]

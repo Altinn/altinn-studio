@@ -28,6 +28,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `studioctl doctor --json` names the studioctl server checks `server_binary` and `server_state` instead of `appmgr_binary` and `appmgr_state`. Update scripts that look for the old names. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - `studioctl doctor` shows the _Disk_ checks by name, such as _Home_ and _Server state_, without their paths. `studioctl doctor --json` still has the paths, and `studioctl -v doctor` shows those of failing checks. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - studioctl keeps 30 days of logs, so they no longer grow without limit on disk: the studioctl server deletes its older log files when it starts and once a day, and `studioctl run` deletes app logs not written to for 30 days, for all your apps. ([#21435](https://github.com/Altinn/altinn-studio/pull/21435), [#21438](https://github.com/Altinn/altinn-studio/pull/21438))
+- Localtest refuses, with `409 Conflict`, a change to a data type's data outside the tasks in its `taskIds`, as Altinn Storage does, unless it is part of a process transition. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 
 ### Fixed
 

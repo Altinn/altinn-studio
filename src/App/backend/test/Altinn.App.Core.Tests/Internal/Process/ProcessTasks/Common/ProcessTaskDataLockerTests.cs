@@ -39,8 +39,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType2", TaskId = taskId },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType2", TaskIds = [taskId] },
             ],
         };
 
@@ -79,8 +79,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType2", TaskId = taskId },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType2", TaskIds = [taskId] },
             ],
         };
 
@@ -119,8 +119,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType3", TaskId = "task2" },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType3", TaskIds = ["task2"] },
             ],
         };
 
@@ -159,8 +159,8 @@ public class ProcessTaskDataLockerTests
         {
             DataTypes =
             [
-                new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType3", TaskId = "task2" },
+                new DataType { Id = "dataType1", TaskIds = [taskId] },
+                new DataType { Id = "dataType3", TaskIds = ["task2"] },
             ],
         };
 
@@ -180,6 +180,44 @@ public class ProcessTaskDataLockerTests
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task Lock_ShouldLockDataElementsOfDataTypesThatListTheTaskInTaskIds()
+    {
+        // Arrange
+        Instance instance = CreateInstance();
+        string taskId = instance.Process.CurrentTask.ElementId;
+        var dataElement1 = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType1" };
+        var dataElement2 = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" };
+        instance.Data = [dataElement1, dataElement2];
+
+        var applicationMetadata = new ApplicationMetadata(instance.AppId)
+        {
+            DataTypes =
+            [
+                new DataType { Id = "dataType1", TaskIds = ["task0", taskId] },
+                new DataType { Id = "dataType2", TaskIds = ["task2"] },
+            ],
+        };
+
+        _appMetadataMock.Setup(x => x.ApplicationMetadata).Returns(applicationMetadata);
+
+        // Act
+        await _processTaskDataLocker.Lock(taskId, instance);
+
+        // Assert
+        _dataClientMock.Verify(
+            x =>
+                x.LockDataElement(
+                    It.IsAny<InstanceIdentifier>(),
+                    Guid.Parse(dataElement1.Id),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _dataClientMock.VerifyNoOtherCalls();
     }
 
     private static Instance CreateInstance()

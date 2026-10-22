@@ -45,14 +45,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = new List<string>() { "application/pdf" },
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -92,14 +92,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -163,14 +163,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -221,14 +221,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -278,14 +278,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
@@ -336,14 +336,14 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()

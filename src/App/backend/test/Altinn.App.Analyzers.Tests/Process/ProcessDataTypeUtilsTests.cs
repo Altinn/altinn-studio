@@ -21,7 +21,7 @@ public class ProcessDataTypeUtilsTests
     private const string GatewayUnknownDataType = "ALTINNAPP1019";
 
     private const string Model =
-        """{ "id": "model", "appLogic": { "classRef": "App.Models.Model" }, "taskId": "Task_1" }""";
+        """{ "id": "model", "appLogic": { "classRef": "App.Models.Model" }, "taskIds": ["Task_1"] }""";
     private const string RefDataAsPdf = """{ "id": "ref-data-as-pdf", "allowedContentTypes": ["application/pdf"] }""";
 
     /// <summary>The id of a task, service task or exclusive gateway that an element passed to a process opens with.</summary>
@@ -85,10 +85,10 @@ public class ProcessDataTypeUtilsTests
         var metadata = Metadata(
             Model,
             RefDataAsPdf,
-            """{ "id": "signatures", "allowedContributors": ["app:owned"], "taskId": "Task_Sign" }""",
-            """{ "id": "signeeStates", "allowedContentTypes": ["application/json"], "allowedContributors": ["app:owned"], "taskId": "Task_Sign" }""",
+            """{ "id": "signatures", "allowedContributors": ["app:owned"], "taskIds": ["Task_Sign"] }""",
+            """{ "id": "signeeStates", "allowedContentTypes": ["application/json"], "allowedContributors": ["app:owned"], "taskIds": ["Task_Sign"] }""",
             """{ "id": "signingPdf", "allowedContentTypes": ["application/pdf"] }""",
-            """{ "id": "paymentInformation", "allowedContributors": ["app:owned"], "taskId": "Task_Pay" }""",
+            """{ "id": "paymentInformation", "allowedContributors": ["app:owned"], "taskIds": ["Task_Pay"] }""",
             """{ "id": "paymentReceipt", "allowedContentTypes": ["application/pdf"] }"""
         );
 
@@ -758,11 +758,13 @@ public class ProcessDataTypeUtilsTests
 
     [Theory]
     [InlineData(null, true)]
-    [InlineData("", true)]
-    [InlineData("Task_Sign", true)]
-    [InlineData("Task_1", false)]
-    [InlineData("task_sign", false)]
-    public void Storage_Accepts_Signatures_Only_In_A_Data_Type_Of_The_Signing_Task(string? taskId, bool valid)
+    [InlineData("null", true)]
+    [InlineData("[]", true)]
+    [InlineData("""["Task_Sign"]""", true)]
+    [InlineData("""["Task_1", "Task_Sign"]""", true)]
+    [InlineData("""["Task_1"]""", false)]
+    [InlineData("""["task_sign"]""", false)]
+    public void Storage_Accepts_Signatures_Only_In_A_Data_Type_Of_The_Signing_Task(string? taskIds, bool valid)
     {
         var process = Process(
             SigningTask(
@@ -770,13 +772,13 @@ public class ProcessDataTypeUtilsTests
                 "<altinn:signatureConfig><altinn:signatureDataType>signatures</altinn:signatureDataType></altinn:signatureConfig>"
             )
         );
-        var taskIdJson = taskId is null ? "" : $""", "taskId": "{taskId}" """;
+        var taskIdsJson = taskIds is null ? "" : $""", "taskIds": {taskIds}""";
         var metadata = Metadata(
             Model,
-            $$"""{ "id": "signatures", "allowedContributors": ["app:owned"]{{taskIdJson}} }"""
+            $$"""{ "id": "signatures", "allowedContributors": ["app:owned"]{{taskIdsJson}} }"""
         );
 
-        // A taskId that names no task, an empty one included, is reported by ALTINNAPP1017 as well.
+        // An entry that names no task is reported by ALTINNAPP1017 as well.
         var diagnostics = Collect(process, metadata).Where(d => d.Id != TaskNotFound).ToList();
 
         if (valid)
@@ -787,8 +789,8 @@ public class ProcessDataTypeUtilsTests
 
         var diagnostic = Assert.Single(diagnostics);
         Assert.Equal(CannotHold, diagnostic.Id);
-        Assert.Contains($"the data type's taskId is '{taskId}'", diagnostic.GetMessage());
-        Assert.Contains("Set its taskId to 'Task_Sign'", diagnostic.GetMessage());
+        Assert.Contains("the data type's taskIds does not list 'Task_Sign'", diagnostic.GetMessage());
+        Assert.Contains("Add 'Task_Sign' to its taskIds", diagnostic.GetMessage());
     }
 
     [Theory]
@@ -809,11 +811,11 @@ public class ProcessDataTypeUtilsTests
                 "<altinn:signatureConfig><altinn:signatureDataType>signatures</altinn:signatureDataType></altinn:signatureConfig>"
             )
         );
-        var secondTaskIdJson = secondTaskId is null ? "" : $""", "taskId": "{secondTaskId}" """;
+        var secondTaskIdsJson = secondTaskId is null ? "" : $""", "taskIds": ["{secondTaskId}"]""";
         var metadata = Metadata(
             Model,
-            $$"""{ "id": "signatures", "allowedContributors": ["app:owned"], "taskId": "{{firstTaskId}}" }""",
-            $$"""{ "id": "signatures", "allowedContributors": ["app:owned"]{{secondTaskIdJson}} }"""
+            $$"""{ "id": "signatures", "allowedContributors": ["app:owned"], "taskIds": ["{{firstTaskId}}"] }""",
+            $$"""{ "id": "signatures", "allowedContributors": ["app:owned"]{{secondTaskIdsJson}} }"""
         );
 
         var diagnostics = Collect(process, metadata).Where(d => d.Id != TaskNotFound).ToList();
@@ -948,7 +950,7 @@ public class ProcessDataTypeUtilsTests
             </altinn:signatureConfig>
             """,
         """
-            { "id": "signatures", "allowedContributors": ["app:owned"], "taskId": "Task_1" },
+            { "id": "signatures", "allowedContributors": ["app:owned"], "taskIds": ["Task_1"] },
             { "id": "states", "allowedContentTypes": ["application/pdf"], "allowedContributors": ["app:owned"] },
             { "id": "pdfType", "appLogic": { "classRef": "App.Models.Model" } }
             """,
@@ -1099,12 +1101,12 @@ public class ProcessDataTypeUtilsTests
               <altinn:signingPdfDataType>X</altinn:signingPdfDataType>
             </altinn:signatureConfig>
             """;
-        var metadata = Metadata(Model, """{ "id": "signatures", "taskId": "Task_1" }""");
+        var metadata = Metadata(Model, """{ "id": "signatures", "taskIds": ["Task_1"] }""");
 
         var signing = Collect(Process(Task("Task_Sign", "signing", config, actions: ["sign", "reject"])), metadata);
         var rejecting = Collect(Process(Task("Task_Sign", "signing", config, actions: ["reject"])), metadata);
 
-        // The data types to sign, the signature data type's taskId and the signatures to be unique from.
+        // The data types to sign, the signature data type's taskIds and the signatures to be unique from.
         Assert.Equal(
             [UnknownDataType, UnknownDataType, CannotHold, NotAppOwned, Skipped],
             signing.Select(d => d.Id).Order()
@@ -1169,14 +1171,16 @@ public class ProcessDataTypeUtilsTests
     [Fact]
     public void A_Data_Type_For_A_Task_That_Does_Not_Exist_Is_Reported_On_Its_Task_Id()
     {
-        var metadata = Metadata(Model, """{ "id": "attachments", "taskId": "Task_2" }""");
+        var metadata = Metadata(Model, """{ "id": "attachments", "taskIds": ["Task_2"] }""");
 
         var diagnostic = Assert.Single(Collect(Process(), metadata));
 
         Assert.Equal(TaskNotFound, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-        Assert.StartsWith(
-            "Data type 'attachments' has the taskId 'Task_2', but process.bpmn has no task with that id.",
+        Assert.Equal(
+            "Data type 'attachments' has 'Task_2' in its taskIds, but process.bpmn has no task with that id. The "
+                + "process never stops there, so users cannot change the data type's data through the app, and its "
+                + "minCount and validation never apply. Correct the entry, or remove it from taskIds.",
             diagnostic.GetMessage()
         );
         Assert.Equal(MetadataPath, diagnostic.Location.GetLineSpan().Path);
@@ -1192,7 +1196,7 @@ public class ProcessDataTypeUtilsTests
     [InlineData("StartEvent_1", "<bpmn:startEvent>")]
     public void A_Task_Id_That_Names_Another_Element_Says_What_It_Names(string taskId, string element)
     {
-        var metadata = Metadata(Model, $$"""{ "id": "attachments", "taskId": "{{taskId}}" }""");
+        var metadata = Metadata(Model, $$"""{ "id": "attachments", "taskIds": ["{{taskId}}"] }""");
 
         var diagnostic = Assert.Single(Collect(Process(Gateway("Gateway_1", "model")), metadata));
 
@@ -1206,29 +1210,59 @@ public class ProcessDataTypeUtilsTests
         var process = Process(Task("Task_Pdf", "pdf", element: "bpmn:serviceTask"));
         var metadata = Metadata(
             Model,
-            """{ "id": "ref-data-as-pdf", "allowedContentTypes": ["application/pdf"], "taskId": "Task_Pdf" }""",
-            """{ "id": "nullTask", "taskId": null }"""
+            """{ "id": "ref-data-as-pdf", "allowedContentTypes": ["application/pdf"], "taskIds": ["Task_Pdf"] }""",
+            """{ "id": "nullTask", "taskIds": null }""",
+            """{ "id": "noTask", "taskIds": [] }"""
         );
 
         Assert.Empty(Collect(process, metadata));
     }
 
-    [Fact]
-    public void An_Empty_Task_Id_Is_A_Task_Id_No_Task_Has()
+    [Theory]
+    // ALTINNAPP0602 and ALTINNAPP0603 report a taskId.
+    [InlineData("Task_Gone", null, new string[0])]
+    [InlineData("", null, new string[0])]
+    [InlineData("Task_Gone", """["Task_1"]""", new string[0])]
+    [InlineData("Task_1", """["Task_Gone"]""", new[] { "\"Task_Gone\"" })]
+    public void A_Task_Id_Is_Not_Checked(string taskId, string? taskIds, string[] reported)
     {
-        // The app compares the taskId with the current task exactly, so the data type belongs to no task.
-        var metadata = Metadata(Model, """{ "id": "attachments", "taskId": "" }""");
+        var taskIdsJson = taskIds is null ? "" : $""", "taskIds": {taskIds}""";
+        var metadata = Metadata(Model, $$"""{ "id": "attachments", "taskId": "{{taskId}}"{{taskIdsJson}} }""");
 
-        var diagnostic = Assert.Single(Collect(Process(), metadata));
+        var diagnostics = Collect(Process(), metadata);
 
-        Assert.Equal(TaskNotFound, diagnostic.Id);
-        Assert.StartsWith(
-            "Data type 'attachments' has the taskId '', but no task has an empty id.",
-            diagnostic.GetMessage()
+        Assert.All(diagnostics, d => Assert.Equal(TaskNotFound, d.Id));
+        Assert.Equal(
+            reported,
+            diagnostics.Select(d => metadata.Substring(d.Location.SourceSpan.Start, d.Location.SourceSpan.Length))
+        );
+    }
+
+    [Fact]
+    public void Every_Entry_In_Task_Ids_Is_Checked_And_Reported_On_Itself()
+    {
+        // The app cannot read a taskIds with a number in it, so that is not a task id to check.
+        var metadata = Metadata(Model, """{ "id": "model2", "taskIds": ["Task_1", "Task_Gone", "", null, 1] }""");
+
+        var diagnostics = Collect(Process(), metadata);
+
+        Assert.All(diagnostics, d => Assert.Equal(TaskNotFound, d.Id));
+        Assert.Equal(
+            ["\"Task_Gone\"", "\"\"", "null"],
+            diagnostics.Select(d => metadata.Substring(d.Location.SourceSpan.Start, d.Location.SourceSpan.Length))
         );
         Assert.Equal(
-            "\"\"",
-            metadata.Substring(diagnostic.Location.SourceSpan.Start, diagnostic.Location.SourceSpan.Length)
+            "Data type 'model2' has 'Task_Gone' in its taskIds, but process.bpmn has no task with that id. The process "
+                + "never stops there, so that entry has no effect. Correct the entry, or remove it from taskIds.",
+            diagnostics[0].GetMessage()
+        );
+        Assert.StartsWith(
+            "Data type 'model2' has '' in its taskIds, but no task has an empty id.",
+            diagnostics[1].GetMessage()
+        );
+        Assert.StartsWith(
+            "Data type 'model2' has null in its taskIds, but null names no task.",
+            diagnostics[2].GetMessage()
         );
     }
 
@@ -1243,7 +1277,7 @@ public class ProcessDataTypeUtilsTests
 
             """
         );
-        var metadata = Metadata(Model, """{ "id": "attachments", "taskId": "Task_Sub" }""");
+        var metadata = Metadata(Model, """{ "id": "attachments", "taskIds": ["Task_Sub"] }""");
 
         var diagnostic = Assert.Single(Collect(process, metadata));
 
@@ -1255,7 +1289,7 @@ public class ProcessDataTypeUtilsTests
     }
 
     [Theory]
-    // A stateless app finds the data model of the folder it shows by a taskId that names the folder.
+    // A stateless app finds the data model of the folder it shows by a task id that names the folder.
     [InlineData("stateless", true, false)]
     [InlineData("stateless", false, true)]
     [InlineData("new-instance", true, true)]
@@ -1270,7 +1304,7 @@ public class ProcessDataTypeUtilsTests
               "onEntry": {{(show is null ? "null" : onEntry)}},
               "dataTypes": [
                 {{Model}},
-                { "id": "statelessModel", "taskId": "stateless"{{appLogic}} }
+                { "id": "statelessModel", "taskIds": ["stateless"]{{appLogic}} }
               ]
             }
             """;
@@ -1281,10 +1315,10 @@ public class ProcessDataTypeUtilsTests
     }
 
     [Fact]
-    public void The_Last_Task_Id_Property_Is_The_One_The_Runtime_Reads()
+    public void The_Last_Task_Ids_Property_Is_The_One_The_Runtime_Reads()
     {
         // System.Text.Json keeps the last of two properties whose names differ only in case.
-        var metadata = Metadata(Model, """{ "id": "attachments", "taskId": "Task_1", "TaskId": "Task_Gone" }""");
+        var metadata = Metadata(Model, """{ "id": "attachments", "taskIds": ["Task_1"], "TaskIds": ["Task_Gone"] }""");
 
         var diagnostic = Assert.Single(Collect(Process(), metadata));
 
@@ -1309,10 +1343,10 @@ public class ProcessDataTypeUtilsTests
         var metadata = """
             {
               "DataTypes": [
-                { "ID": "model", "AppLogic": { "ClassRef": "App.Models.Model" }, "TaskID": "Task_1" },
+                { "ID": "model", "AppLogic": { "ClassRef": "App.Models.Model" }, "TaskIDs": ["Task_1"] },
                 { "Id": "ref-data-as-pdf", "AllowedContentTypes": ["image/png"] },
-                { "id": "signatures", "AllowedContributors": ["org:ttd"], "TaskId": "Task_Sign" },
-                { "id": "other", "TASKID": "Task_Gone" }
+                { "id": "signatures", "AllowedContributors": ["org:ttd"], "TaskIds": ["Task_Sign"] },
+                { "id": "other", "TASKIDS": ["Task_Gone"] }
               ]
             }
             """;
@@ -1333,8 +1367,8 @@ public class ProcessDataTypeUtilsTests
         var metadata = """
             {
               "dataTypes": [
-                { "id": "model", "appLogic": { "classRef": "App.Models.Model", }, "taskId": "Task_1", },
-                { "id": "other", "taskId": "Task_Gone", },
+                { "id": "model", "appLogic": { "classRef": "App.Models.Model", }, "taskIds": ["Task_1"], },
+                { "id": "other", "taskIds": ["Task_Gone"], },
               ],
             }
             """;

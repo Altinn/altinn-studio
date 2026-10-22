@@ -28,7 +28,7 @@ public class LegacyIValidationFormDataTests
             new DataType()
             {
                 Id = "test",
-                TaskId = "Task_1",
+                TaskIds = ["Task_1"],
                 AppLogic = new() { ClassRef = typeof(TestModel).FullName },
             },
         },

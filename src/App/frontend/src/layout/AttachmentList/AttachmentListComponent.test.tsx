@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
 import { CompExternal } from 'src/layout/layout';
 import { DataTypeReference } from 'src/utils/attachmentsUtils';
@@ -13,17 +14,17 @@ import type { IData, IDataType } from 'src/types/shared';
 const mockDataTypes = [
   {
     id: 'dataType1',
-    taskId: 'Task_1',
+    taskIds: ['Task_1'],
     grouping: 'group1',
   },
   {
     id: 'dataType2',
-    taskId: 'Task_1',
+    taskIds: ['Task_1'],
     grouping: 'group2',
   },
   {
     id: 'dataType3',
-    taskId: 'Task_2',
+    taskIds: ['Task_2'],
     grouping: 'group3',
   },
 ] as unknown as IDataType[];
@@ -266,6 +267,49 @@ describe('AttachmentListComponent', () => {
     );
 
     expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('2');
+  });
+
+  it('should include attachments of data types that list the current task in taskIds when dataTypeIds includes FromTask', () => {
+    window.altinnAppGlobalData.applicationMetadata = {
+      ...window.altinnAppGlobalData.applicationMetadata,
+      dataTypes: [mockDataTypes[0], mockDataTypes[1], { ...mockDataTypes[2], taskIds: ['Task_1', 'Task_2'] }],
+    };
+    setupMockComponentConfig({
+      groupByDataTypeGrouping: false,
+      dataTypeIds: [DataTypeReference.FromTask],
+    });
+
+    render(
+      <AttachmentListComponent
+        baseComponentId='whatever'
+        containerDivRef={React.createRef<HTMLDivElement>()}
+      />,
+    );
+
+    expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('3');
+  });
+
+  it('should include no attachments for FromTask without a current task, not even of unbound data types', () => {
+    window.altinnAppGlobalData.applicationMetadata = {
+      ...window.altinnAppGlobalData.applicationMetadata,
+      dataTypes: [{ ...mockDataTypes[0], taskIds: undefined }, mockDataTypes[1], mockDataTypes[2]],
+    };
+    vi.mocked(useProcessQuery).mockReturnValueOnce({ data: { currentTask: undefined } } as unknown as ReturnType<
+      typeof useProcessQuery
+    >);
+    setupMockComponentConfig({
+      groupByDataTypeGrouping: false,
+      dataTypeIds: [DataTypeReference.FromTask],
+    });
+
+    render(
+      <AttachmentListComponent
+        baseComponentId='whatever'
+        containerDivRef={React.createRef<HTMLDivElement>()}
+      />,
+    );
+
+    expect(screen.getByTestId('attachment-list-count')).toHaveTextContent('0');
   });
 
   it('should pass showDescription=false by default', () => {

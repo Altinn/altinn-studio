@@ -201,7 +201,7 @@ public sealed class MockedServiceCollection
             AppLogic = new() { ClassRef = classRef },
             MaxCount = maxCount,
             AllowedContentTypes = allowedContentTypes?.ToList() ?? ["application/xml"],
-            TaskId = taskId ?? "Task_1",
+            TaskIds = [taskId ?? "Task_1"],
         };
 
         Mock<IAppModel>().Setup(a => a.GetModelType(classRef)).Returns(typeof(T));
@@ -234,18 +234,29 @@ public sealed class MockedServiceCollection
     private readonly ConcurrentBag<UiFolderComponent> _uiFolderComponents = new();
 
     /// <summary>
+    /// The one task a fixture data type is bound to, which also names its layout set.
+    /// </summary>
+    internal static string SingleTaskId(DataType dataType) =>
+        dataType.TaskIds is [{ Length: > 0 } taskId]
+            ? taskId
+            : throw new ArgumentException(
+                $"Data type {dataType.Id} is not bound to exactly one task",
+                nameof(dataType)
+            );
+
+    /// <summary>
     /// Add single page layout set from JSON definition
     /// </summary>
     public void AddLayoutSet(DataType dataType, [StringSyntax("json")] string pageJson)
     {
         using var document = JsonDocument.Parse(pageJson);
-        var page = PageComponent.Parse(document.RootElement, "page1", dataType.TaskId);
+        var page = PageComponent.Parse(document.RootElement, "page1", SingleTaskId(dataType));
         AddLayoutSet(dataType, [page]);
     }
 
     public void AddLayoutSet(DataType dataType, IEnumerable<PageComponent> pages)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(dataType.TaskId);
+        var taskId = SingleTaskId(dataType);
         ArgumentException.ThrowIfNullOrWhiteSpace(dataType.Id);
 
         // All pages will likely have the same LayoutId, but group by to be sure
@@ -255,7 +266,7 @@ public sealed class MockedServiceCollection
             {
                 Id = grouping.Key,
                 DataType = dataType.Id,
-                Tasks = [dataType.TaskId],
+                Tasks = [taskId],
             };
 
             var layoutComponent = new UiFolderComponent(
@@ -358,6 +369,7 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
     )
         where T : class, new()
     {
+        var taskId = MockedServiceCollection.SingleTaskId(dataType);
         var serializer = _serviceProvider.GetRequiredService<ModelSerializationService>();
         var instanceGuid = Guid.NewGuid();
         var dataGuid = Guid.NewGuid();
@@ -375,7 +387,7 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
             AppId = $"{MockedServiceCollection.Org}/{MockedServiceCollection.App}",
             InstanceOwner = new InstanceOwner() { PartyId = partyId.ToString() },
             Data = [data],
-            Process = new() { CurrentTask = new() { ElementId = dataType.TaskId } },
+            Process = new() { CurrentTask = new() { ElementId = taskId } },
         };
 
         _serviceCollection.Storage.AddInstance(instance);
@@ -387,7 +399,7 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
         var instanceCopy = JsonSerializer.Deserialize<Instance>(JsonSerializer.SerializeToUtf8Bytes(instance))!;
 
         var initializer = _serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
-        return await initializer.Init(instanceCopy, StorageVersionMetadata.Empty, dataType.TaskId, language);
+        return await initializer.Init(instanceCopy, StorageVersionMetadata.Empty, taskId, language);
     }
 
     internal async Task<InstanceDataUnitOfWork> CreateInstanceDataMutatorWithDataAndLayout<T>(
@@ -398,7 +410,7 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
         where T : class, new()
     {
         DataType defaultDataType = _serviceCollection.AddDataType<T>();
-        var layoutSetName = defaultDataType.TaskId!;
+        var layoutSetName = MockedServiceCollection.SingleTaskId(defaultDataType);
         var pages = components
             .GroupBy(c => c.PageId)
             .Select(group =>

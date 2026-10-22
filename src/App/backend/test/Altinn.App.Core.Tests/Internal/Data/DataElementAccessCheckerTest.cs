@@ -361,6 +361,76 @@ public class DataElementAccessCheckerTest
         Assert.False(canDelete);
     }
 
+    [Theory]
+    [InlineData(null, "Task_1", null)]
+    [InlineData(null, null, null)]
+    [InlineData(new string[0], "Task_2", null)]
+    [InlineData(new[] { "Task_1" }, "Task_1", null)]
+    [InlineData(new[] { "Task_1" }, "Task_2", "Task_1")]
+    [InlineData(new[] { "Task_1" }, null, "Task_1")]
+    [InlineData(new[] { "Task_1" }, "task_1", "Task_1")]
+    [InlineData(new[] { "Task_1", "Task_2" }, "Task_2", null)]
+    [InlineData(new[] { "Task_1", "Task_2" }, "Task_3", "Task_1, Task_2")]
+    [InlineData(new[] { "Task_1", "Task_2" }, null, "Task_1, Task_2")]
+    public async Task Mutators_AreAllowedOnlyInTheTasksTheDataTypeBelongsTo(
+        string[]? taskIds,
+        string? currentTaskId,
+        string? expectedTasksInProblem
+    )
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var instance = fixture.Data.DefaultInstance;
+        var dataType = fixture.Data.DataTypeA;
+        dataType.TaskIds = taskIds?.ToList();
+        instance.Process = new ProcessState
+        {
+            CurrentTask = currentTaskId is null ? null : new ProcessElementInfo { ElementId = currentTaskId },
+        };
+
+        // Act
+        var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(instance, dataType);
+        var updateResult = await fixture.DataElementAccessChecker.GetUpdateProblem(instance, dataType);
+        var deleteResult = await fixture.DataElementAccessChecker.GetDeleteProblem(instance, dataType, Guid.Empty);
+
+        // Assert
+        if (expectedTasksInProblem is null)
+        {
+            Assert.Null(createResult);
+            Assert.Null(updateResult);
+            Assert.Null(deleteResult);
+            return;
+        }
+
+        foreach (var problem in new[] { createResult, updateResult, deleteResult })
+        {
+            Assert.NotNull(problem);
+            Assert.Equal(StatusCodes.Status409Conflict, problem.Status);
+            Assert.Equal(
+                $"Data element of type {dataType.Id} can only be modified in {expectedTasksInProblem} (current task {currentTaskId})",
+                problem.Detail
+            );
+        }
+    }
+
+    [Fact]
+    public async Task Mutators_IgnoreTheTasksWhenEnforceDataTypeTaskIdIsOff()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        fixture.Data.AppSettings.EnforceDataTypeTaskId = false;
+        var instance = fixture.Data.DefaultInstance;
+        var dataType = fixture.Data.DataTypeA;
+        dataType.TaskIds = ["Task_1"];
+        instance.Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } };
+
+        // Act
+        var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(instance, dataType);
+
+        // Assert
+        Assert.Null(createResult);
+    }
+
     [Fact]
     public async Task Mutators_BlockPdfDataType()
     {
