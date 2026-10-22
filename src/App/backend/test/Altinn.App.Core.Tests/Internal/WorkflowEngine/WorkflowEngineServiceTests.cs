@@ -454,6 +454,218 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
+    public async Task EnqueueAndWaitForAcquire_SubmitsTheAcquireAsTheActorUnderProcessNextsKey_AndWaitsForItOnly()
+    {
+        var instance = CreateInstance(Guid.NewGuid());
+        var versions = new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3);
+        var actor = new Actor { OrgId = Org, Language = "en" };
+        Guid acquireId = Guid.NewGuid();
+        string? submittedKey = null;
+        WorkflowEnqueueRequest? submittedRequest = null;
+        int polls = 0;
+        // Strict, with only the enqueue and the workflow read set up: the wait must not read the collection.
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    Namespace,
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<string, string, string?, WorkflowEnqueueRequest, CancellationToken>(
+                (_, key, _, request, _) =>
+                {
+                    submittedKey = key;
+                    submittedRequest = request;
+                }
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = acquireId, Namespace = Namespace }],
+                }
+            );
+        client
+            .Setup(c => c.GetWorkflow(Namespace, acquireId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+                CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    ++polls == 1 ? PersistentItemStatus.Processing : PersistentItemStatus.Completed,
+                    databaseId: acquireId
+                )
+            );
+        var fresh = new InstanceWithStorageMetadata(
+            CreateInstance(Guid.NewGuid()),
+            versions with
+            {
+                InstanceVersion = 8,
+            }
+        );
+        StorageAuthenticationMethod? refetchAuthentication = null;
+        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
+        instanceClient
+            .Setup(c =>
+                c.GetInstanceWithStorageMetadata(
+                    instance,
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, StorageAuthenticationMethod?, CancellationToken>(
+                (_, authentication, _) => refetchAuthentication = authentication
+            )
+            .ReturnsAsync(fresh);
+        var timeProvider = new TimeSkippingTimeProvider();
+        var service = CreateService(client, instanceClient.Object, timeProvider: timeProvider);
+
+        AcquireWorkflowResult result = await service
+            .EnqueueAndWaitForAcquire(instance, versions, "state", CreateProcessStateChange(instance), actor)
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        Assert.Same(fresh, Assert.IsType<AcquireWorkflowResult.Completed>(result).Instance);
+        Assert.Equal(2, polls);
+        Assert.Equivalent(StorageAuthenticationMethod.ServiceOwner(), refetchAuthentication);
+        Assert.Equal(WorkflowEngineService.CreateProcessNextIdempotencyKey(instance, versions), submittedKey);
+        WorkflowEnqueueRequest request = Assert.IsType<WorkflowEnqueueRequest>(submittedRequest);
+        Assert.Equal(ProcessingStatusAcquirer.Key, Assert.Single(Assert.Single(request.Workflows).Steps).OperationId);
+        AppWorkflowContext context = Assert.IsType<AppWorkflowContext>(
+            request.Context?.Deserialize<AppWorkflowContext>()
+        );
+        Assert.Equal(actor, context.Actor);
+    }
+
+    [Fact]
+    public async Task EnqueueAndWaitForAcquire_ReportsATimeout_WhenTheAcquireHasNotFinishedInThePollingTimeout()
+    {
+        var instance = CreateInstance(Guid.NewGuid());
+        Guid acquireId = Guid.NewGuid();
+        int polls = 0;
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    Namespace,
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = acquireId, Namespace = Namespace }],
+                }
+            );
+        client
+            .Setup(c => c.GetWorkflow(Namespace, acquireId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                // The skipping clock never yields, so a wait with no end would spin here rather than time out.
+                Assert.True(++polls < 1_000, "The wait did not end at the polling timeout.");
+                return CreateWorkflowStatus(
+                    DateTimeOffset.UtcNow,
+                    PersistentItemStatus.Enqueued,
+                    databaseId: acquireId
+                );
+            });
+        // Strict without setups: an acquire that has not finished is not followed by a read of the instance.
+        var timeProvider = new TimeSkippingTimeProvider();
+        var service = CreateService(
+            client,
+            Mock.Of<IInstanceClientWithStorageMetadata>(MockBehavior.Strict),
+            timeProvider: timeProvider
+        );
+        service.WorkflowPollingTimeoutMs = 3_000;
+
+        AcquireWorkflowResult result = await service
+            .EnqueueAndWaitForAcquire(
+                instance,
+                new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+                "state",
+                CreateProcessStateChange(instance),
+                new Actor { OrgId = Org, Language = "nb" }
+            )
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        WorkflowFailure failure = Assert.IsType<AcquireWorkflowResult.NotCompleted>(result).Failure;
+        Assert.Equal(WorkflowFailureKind.Timeout, failure.Kind);
+        Assert.True(polls > 1);
+    }
+
+    [Theory]
+    [InlineData(false, WorkflowFailureKind.StepFailed)]
+    [InlineData(true, WorkflowFailureKind.DependencyFailed)]
+    public async Task EnqueueAndWaitForAcquire_ReportsHowTheAcquireFailed_WithoutReadingTheInstance(
+        bool condemnedByAnEarlierFailure,
+        WorkflowFailureKind expectedKind
+    )
+    {
+        var instance = CreateInstance(Guid.NewGuid());
+        Guid acquireId = Guid.NewGuid();
+        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
+        client
+            .Setup(c =>
+                c.EnqueueWorkflows(
+                    Namespace,
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                new WorkflowEnqueueResponse.Accepted
+                {
+                    Workflows = [new WorkflowResult { DatabaseId = acquireId, Namespace = Namespace }],
+                }
+            );
+        // Rejected by the acquirer, or condemned by an earlier failed workflow: either way the instance stays idle on
+        // the same task, as after an acquire that lost to a change.
+        client
+            .Setup(c => c.GetWorkflow(Namespace, acquireId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                condemnedByAnEarlierFailure
+                    ? CreateWorkflowStatus(
+                        DateTimeOffset.UtcNow,
+                        PersistentItemStatus.DependencyFailed,
+                        databaseId: acquireId
+                    )
+                    : CreateFailedWorkflow(
+                        acquireId,
+                        ProcessingStatusAcquirer.Key,
+                        processingOrder: 0,
+                        httpStatusCode: 422,
+                        wasRetryable: false
+                    )
+            );
+        var timeProvider = new TimeSkippingTimeProvider();
+        // Strict without setups: a failed acquire is not followed by a read of the instance.
+        var service = CreateService(
+            client,
+            Mock.Of<IInstanceClientWithStorageMetadata>(MockBehavior.Strict),
+            timeProvider: timeProvider
+        );
+
+        AcquireWorkflowResult result = await service
+            .EnqueueAndWaitForAcquire(
+                instance,
+                new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
+                "state",
+                CreateProcessStateChange(instance),
+                new Actor { OrgId = Org, Language = "nb" }
+            )
+            .WaitAsync(TimeSpan.FromSeconds(10));
+
+        WorkflowFailure failure = Assert.IsType<AcquireWorkflowResult.NotCompleted>(result).Failure;
+        Assert.Equal(expectedKind, failure.Kind);
+        Assert.Equal(acquireId, failure.WorkflowId);
+    }
+
+    [Fact]
     public async Task EnqueueAndWaitForInitialProcessState_SameVersionReusesKeyWhileTransitionAndActorRemainInBody()
     {
         var instance = CreateInstance(Guid.NewGuid());

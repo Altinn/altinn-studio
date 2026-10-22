@@ -9,8 +9,10 @@ using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -18,6 +20,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Notifications.Future;
 using Altinn.App.Core.Models.Process;
+using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -239,6 +242,65 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <inheritdoc/>
+    public async Task<ProcessChangeResult> EnqueueNextForApp(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string action,
+        Actor actor,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using Activity? activity = _telemetry?.StartProcessNextActivity(instance, action);
+
+        if (
+            !TryGetCurrentTaskIdAndAltinnTaskType(
+                instance,
+                out CurrentTaskIdAndAltinnTaskType? currentTaskIdAndAltinnTaskType,
+                out ProcessChangeResult? invalidProcessStateError
+            )
+        )
+        {
+            activity?.SetProcessChangeResult(invalidProcessStateError);
+            return invalidProcessStateError;
+        }
+
+        (string currentTaskId, string altinnTaskType) = currentTaskIdAndAltinnTaskType;
+
+        if (await GetProcessStatusBlockedResult(instance, cancellationToken) is { } processStatusBlockedResult)
+        {
+            activity?.SetProcessChangeResult(processStatusBlockedResult);
+            return processStatusBlockedResult;
+        }
+
+        ServiceResult<PreparedTransition, ProcessChangeResult> preparedTransition = await PrepareTransition(
+            instance,
+            instanceVersions,
+            currentTaskId,
+            altinnTaskType,
+            action,
+            actor.Language,
+            actor.Language ?? LanguageConst.Nb,
+            StorageAuthenticationMethod.ServiceOwner(),
+            cancellationToken
+        );
+        if (!preparedTransition.Success)
+        {
+            activity?.SetProcessChangeResult(preparedTransition.Error);
+            return preparedTransition.Error;
+        }
+
+        ProcessChangeResult enqueuedResult = await EnqueueTransitionForApp(
+            preparedTransition.Ok.TransitionData,
+            action,
+            preparedTransition.Ok.ProcessStateChange,
+            actor,
+            cancellationToken
+        );
+        activity?.SetProcessChangeResult(enqueuedResult);
+        return enqueuedResult;
+    }
+
+    /// <inheritdoc/>
     public async Task<ProcessChangeResult> ResumeCurrentTask(
         ProcessNextRequest request,
         CancellationToken cancellationToken = default
@@ -398,26 +460,10 @@ internal class ProcessEngine : IProcessEngine
             LogSanitizer.Sanitize(request.Action ?? "none")
         );
 
-        string checkedAction = request.Action ?? ConvertTaskTypeToAction(altinnTaskType);
-        bool isServiceTask = CheckIfServiceTask(altinnTaskType) is not null;
-        string? processNextAction = request.Action;
-
-        // A reject abandons the task; it is only honored when the bpmn allows it for this task.
-        bool rejectAllowedForTask =
-            checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
-
-        // Collection dependencies fence earlier workflows; checking them here would race the enqueue.
-        // Only the process status refuses up front, and the task's workflow says whether to wait or resume.
-        ProcessStatus? blockingProcessStatus = ProcessStatusHelper.GetBlockingStatus(instance);
-        if (blockingProcessStatus is not null)
+        if (await GetProcessStatusBlockedResult(instance, cancellationToken) is { } processStatusBlockedResult)
         {
-            ProcessChangeResult blockedResult = await CreateProcessStatusBlockedResult(
-                instance,
-                blockingProcessStatus.Value,
-                cancellationToken
-            );
-            activity?.SetProcessChangeResult(blockedResult);
-            return blockedResult;
+            activity?.SetProcessChangeResult(processStatusBlockedResult);
+            return processStatusBlockedResult;
         }
 
         if (request.Action is not "reject")
@@ -456,65 +502,31 @@ internal class ProcessEngine : IProcessEngine
                     }
 
                     (currentTaskId, altinnTaskType) = refreshedTask;
-                    isServiceTask = CheckIfServiceTask(altinnTaskType) is not null;
                 }
             }
         }
 
-        if (rejectAllowedForTask)
-        {
-            _logger.LogInformation(
-                "Skipping validation during process next because the action is 'reject' and the task is being abandoned."
-            );
-        }
-        else if (isServiceTask)
-        {
-            _logger.LogInformation("Skipping validation during process next because the task is a service task.");
-        }
-        else
-        {
-            if (await GetValidationError(instance, versions, currentTaskId, request.Language) is { } validationError)
-            {
-                activity?.SetProcessChangeResult(validationError);
-                return validationError;
-            }
-        }
-
-        // The authorized action is complete; gateways now read data as ServiceOwner.
-        InstanceDataUnitOfWork transitionData = await _instanceDataUnitOfWorkInitializer.Init(
+        ServiceResult<PreparedTransition, ProcessChangeResult> preparedTransition = await PrepareTransition(
             instance,
             versions,
             currentTaskId,
+            altinnTaskType,
+            request.Action,
+            request.Language,
             await _authenticationContext.Current.GetLanguage(request.Language),
-            StorageAuthenticationMethod.ServiceOwner()
+            dataAuthentication: null,
+            cancellationToken
         );
-        ProcessStateChange processStateChange;
-        try
+        if (!preparedTransition.Success)
         {
-            processStateChange = await ComputeNextTransition(transitionData, processNextAction);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            _logger.LogError(
-                exception,
-                "Could not prepare the process transition from task {CurrentTaskId}. Action: {ProcessNextAction}.",
-                LogSanitizer.Sanitize(currentTaskId),
-                LogSanitizer.Sanitize(processNextAction ?? "none")
-            );
-            var transitionFailedResult = new ProcessChangeResult
-            {
-                Success = false,
-                ErrorType = ProcessErrorType.Internal,
-                ErrorTitle = "The process could not move on from the current task.",
-                ErrorMessage = "Could not prepare the next process transition.",
-            };
-            activity?.SetProcessChangeResult(transitionFailedResult);
-            return transitionFailedResult;
+            activity?.SetProcessChangeResult(preparedTransition.Error);
+            return preparedTransition.Error;
         }
 
+        (InstanceDataUnitOfWork transitionData, ProcessStateChange processStateChange) = preparedTransition.Ok;
         ProcessNextWorkflowResult workflowResult = await HandleMoveToNext(
             transitionData,
-            processNextAction,
+            request.Action,
             processStateChange,
             request.Language,
             cancellationToken
@@ -544,20 +556,12 @@ internal class ProcessEngine : IProcessEngine
 
         // A superseded acquire succeeds without moving the process; check task identity as well.
         ProcessState? newProcessState = workflowResult.Instance.Process;
-        if (!HasAdvanced(instance.Process, newProcessState))
+        if (!HasAdvanced(transitionData.Instance.Process, newProcessState))
         {
-            var instanceChangedResult = new ProcessChangeResult(
+            ProcessChangeResult instanceChangedResult = CreateInstanceChangedResult(
                 workflowResult.Instance,
                 workflowResult.InstanceVersions
-            )
-            {
-                Success = false,
-                ErrorType = ProcessErrorType.Conflict,
-                ErrorTitle = "The instance changed before the transition started.",
-                ErrorMessage =
-                    "The instance changed after this request read it, so the process did not move on. Refresh the instance and try again.",
-                ProcessNextState = ProcessNextState.InstanceChanged,
-            };
+            );
             activity?.SetProcessChangeResult(instanceChangedResult);
             return instanceChangedResult;
         }
@@ -567,7 +571,7 @@ internal class ProcessEngine : IProcessEngine
             Success = true,
             ProcessStateChange = new ProcessStateChange
             {
-                OldProcessState = instance.Process,
+                OldProcessState = transitionData.Instance.Process,
                 NewProcessState = newProcessState,
             },
         };
@@ -575,6 +579,20 @@ internal class ProcessEngine : IProcessEngine
         activity?.SetProcessChangeResult(changeResult);
         return changeResult;
     }
+
+    private static ProcessChangeResult CreateInstanceChangedResult(
+        Instance instance,
+        StorageVersionMetadata instanceVersions
+    ) =>
+        new(instance, instanceVersions)
+        {
+            Success = false,
+            ErrorType = ProcessErrorType.Conflict,
+            ErrorTitle = "The instance changed before the transition started.",
+            ErrorMessage =
+                "The instance changed after this request read it, so the process did not move on. Refresh the instance and try again.",
+            ProcessNextState = ProcessNextState.InstanceChanged,
+        };
 
     // Flow distinguishes a new visit when a gateway returns to the same task.
     private static bool HasAdvanced(ProcessState? oldProcessState, ProcessState? newProcessState)
@@ -588,18 +606,133 @@ internal class ProcessEngine : IProcessEngine
         return oldTask?.ElementId != newTask?.ElementId || (oldTask?.Flow ?? 0) != (newTask?.Flow ?? 0);
     }
 
+    /// <summary>
+    /// The part of process/next that also runs when the app moves the process on itself: validation, the gateways'
+    /// choice of transition and, for a reject, the abandoned task's preparation.
+    /// </summary>
+    private async Task<ServiceResult<PreparedTransition, ProcessChangeResult>> PrepareTransition(
+        Instance instance,
+        StorageVersionMetadata versions,
+        string currentTaskId,
+        string altinnTaskType,
+        string? action,
+        string? language,
+        string transitionLanguage,
+        StorageAuthenticationMethod? dataAuthentication,
+        CancellationToken cancellationToken
+    )
+    {
+        string checkedAction = action ?? ConvertTaskTypeToAction(altinnTaskType);
+        bool isServiceTask = CheckIfServiceTask(altinnTaskType) is not null;
+
+        // A reject abandons the task; it is only honored when the bpmn allows it for this task.
+        bool rejectAllowedForTask =
+            checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction);
+
+        if (rejectAllowedForTask)
+        {
+            _logger.LogInformation(
+                "Skipping validation during process next because the action is 'reject' and the task is being abandoned."
+            );
+        }
+        else if (isServiceTask)
+        {
+            _logger.LogInformation("Skipping validation during process next because the task is a service task.");
+        }
+        else
+        {
+            if (
+                await GetValidationError(instance, versions, currentTaskId, language, dataAuthentication) is
+                { } validationError
+            )
+            {
+                return validationError;
+            }
+        }
+
+        // The authorized action is complete; gateways now read data as ServiceOwner.
+        InstanceDataUnitOfWork transitionData = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            versions,
+            currentTaskId,
+            transitionLanguage,
+            StorageAuthenticationMethod.ServiceOwner()
+        );
+        ProcessStateChange processStateChange;
+        try
+        {
+            processStateChange = await ComputeNextTransition(transitionData, action);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _logger.LogError(
+                exception,
+                "Could not prepare the process transition from task {CurrentTaskId}. Action: {ProcessNextAction}.",
+                LogSanitizer.Sanitize(currentTaskId),
+                LogSanitizer.Sanitize(action ?? "none")
+            );
+            var transitionFailedResult = new ProcessChangeResult
+            {
+                Success = false,
+                ErrorType = ProcessErrorType.Internal,
+                ErrorTitle = "The process could not move on from the current task.",
+                ErrorMessage = "Could not prepare the next process transition.",
+            };
+            return transitionFailedResult;
+        }
+
+        // The transition is known before the task settles anything outside the app for a reject, so a process that
+        // cannot move on never costs the user their payment.
+        if (action is "reject")
+        {
+            (ProcessChangeResult? abandonRefusal, InstanceWithStorageMetadata? preparedInstance) = await PrepareAbandon(
+                instance,
+                versions,
+                currentTaskId,
+                altinnTaskType,
+                language,
+                dataAuthentication,
+                cancellationToken
+            );
+
+            if (abandonRefusal is not null)
+            {
+                return abandonRefusal;
+            }
+
+            if (preparedInstance is not null)
+            {
+                // The transition stays the one the gateways chose from the data the user rejected. Only the snapshot
+                // the workflow starts from is refreshed, so its versions include what the task saved.
+                instance = preparedInstance.Instance;
+                versions = preparedInstance.Metadata;
+                transitionData = await _instanceDataUnitOfWorkInitializer.Init(
+                    instance,
+                    versions,
+                    currentTaskId,
+                    transitionLanguage,
+                    StorageAuthenticationMethod.ServiceOwner()
+                );
+            }
+        }
+
+        return new PreparedTransition(transitionData, processStateChange);
+    }
+
     private async Task<ProcessChangeResult?> GetValidationError(
         Instance instance,
         StorageVersionMetadata versions,
         string currentTaskId,
-        string? language
+        string? language,
+        StorageAuthenticationMethod? dataAuthentication
     )
     {
         InstanceDataUnitOfWork dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
             versions,
             currentTaskId,
-            language
+            language,
+            dataAuthentication
         );
         List<ValidationIssueWithSource> validationIssues = await _validationService.ValidateInstanceAtTask(
             dataAccessor,
@@ -685,6 +818,54 @@ internal class ProcessEngine : IProcessEngine
         );
 
         return (actionResult, refreshedInstance);
+    }
+
+    /// <summary>
+    /// Lets the task a reject abandons settle what it depends on outside the app, while the instance is still idle, and
+    /// saves what it staged, also when it refuses the reject. Returns the instance and versions the save left, which the
+    /// transition must start from: with the versions read before the save, its acquire would find the instance changed.
+    /// </summary>
+    private async Task<(ProcessChangeResult? Refusal, InstanceWithStorageMetadata? PreparedInstance)> PrepareAbandon(
+        Instance instance,
+        StorageVersionMetadata versions,
+        string currentTaskId,
+        string altinnTaskType,
+        string? language,
+        StorageAuthenticationMethod? dataAuthentication,
+        CancellationToken cancellationToken
+    )
+    {
+        if (
+            _appImplementationFactory.GetAll<IProcessTask>().ResolveByTaskType(altinnTaskType)
+            is not IProcessTaskAbandonPreparer abandonPreparer
+        )
+        {
+            return (null, null);
+        }
+
+        InstanceDataUnitOfWork dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+            instance,
+            versions,
+            currentTaskId,
+            language,
+            dataAuthentication
+        );
+        ProcessChangeResult? refusal = await abandonPreparer.PrepareAbandon(
+            dataMutator,
+            currentTaskId,
+            cancellationToken
+        );
+
+        DataElementChanges changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        if (changes.AllChanges.Count == 0)
+        {
+            return (refusal, null);
+        }
+
+        await dataMutator.SaveChanges(changes);
+        return refusal is not null
+            ? (refusal, null)
+            : (null, new InstanceWithStorageMetadata(dataMutator.Instance, dataMutator.StorageVersions));
     }
 
     /// <summary>
@@ -968,6 +1149,66 @@ internal class ProcessEngine : IProcessEngine
         );
     }
 
+    /// <summary>
+    /// Hands a transition the app starts to the workflow engine, and returns once the transition has started, or once
+    /// its acquire workflow has ended without starting it.
+    /// </summary>
+    private async Task<ProcessChangeResult> EnqueueTransitionForApp(
+        InstanceDataUnitOfWork transitionData,
+        string? action,
+        ProcessStateChange processStateChange,
+        Actor appActor,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = _telemetry?.StartProcessMoveToNextActivity(transitionData.Instance, action);
+
+        string state = await _workflowCallbackStateService.CaptureState(transitionData);
+        AcquireWorkflowResult acquireResult = await _workflowEngineService.EnqueueAndWaitForAcquire(
+            transitionData.Instance,
+            transitionData.StorageVersions,
+            state,
+            processStateChange,
+            appActor,
+            cancellationToken
+        );
+
+        switch (acquireResult)
+        {
+            case AcquireWorkflowResult.NotCompleted { Failure: var failure }:
+                // It failed, or has not ended yet, so it says nothing about whether the instance changed.
+                return new ProcessChangeResult
+                {
+                    Success = false,
+                    ErrorType = ProcessErrorType.Internal,
+                    ErrorTitle = "The transition has not started.",
+                    ErrorMessage = CreateWorkflowFailureMessage(failure),
+                    WorkflowFailure = failure,
+                };
+
+            case AcquireWorkflowResult.Completed { Instance: var afterAcquire }:
+                // An acquire that lost to a change after the snapshot was read completes too, and leaves the instance
+                // idle on the same task. A processing instance, or one that has moved on, has a transition under way
+                // or done.
+                if (
+                    ProcessStatusHelper.IsIdle(afterAcquire.Instance)
+                    && !HasAdvanced(transitionData.Instance.Process, afterAcquire.Instance.Process)
+                )
+                {
+                    return CreateInstanceChangedResult(afterAcquire.Instance, afterAcquire.Metadata);
+                }
+
+                return new ProcessChangeResult(afterAcquire.Instance, afterAcquire.Metadata)
+                {
+                    Success = true,
+                    ProcessStateChange = processStateChange,
+                };
+
+            default:
+                throw new UnreachableException($"Unknown acquire workflow result type: {acquireResult.GetType().Name}");
+        }
+    }
+
     /// <inheritdoc/>
     public async Task EnqueueProcessNext(
         IInstanceDataAccessor dataAccessor,
@@ -1118,12 +1359,18 @@ internal class ProcessEngine : IProcessEngine
             _ => throw new ArgumentOutOfRangeException(nameof(blockedState), blockedState, null),
         };
 
-    private async Task<ProcessChangeResult> CreateProcessStatusBlockedResult(
+    // Collection dependencies fence earlier workflows; checking them here would race the enqueue.
+    // Only the process status refuses up front, and the task's workflow says whether to wait or resume.
+    private async Task<ProcessChangeResult?> GetProcessStatusBlockedResult(
         Instance instance,
-        ProcessStatus currentStatus,
         CancellationToken cancellationToken
     )
     {
+        if (ProcessStatusHelper.GetBlockingStatus(instance) is not { } currentStatus)
+        {
+            return null;
+        }
+
         WorkflowTaskStatus workflowStatus = await _workflowEngineService.ResolveWorkflowTaskStatus(
             instance,
             cancellationToken
@@ -1159,4 +1406,9 @@ internal class ProcessEngine : IProcessEngine
     }
 
     private sealed record CurrentTaskIdAndAltinnTaskType(string CurrentTaskId, string AltinnTaskType);
+
+    private sealed record PreparedTransition(
+        InstanceDataUnitOfWork TransitionData,
+        ProcessStateChange ProcessStateChange
+    );
 }

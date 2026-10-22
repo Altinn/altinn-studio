@@ -6,10 +6,10 @@ using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Processors.Nets.Models;
 using Altinn.App.Core.Features.Payment.Services;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +25,7 @@ namespace Altinn.App.Api.Controllers;
 public class PaymentController : ControllerBase
 {
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IProcessReader _processReader;
     private readonly IPaymentService _paymentService;
     private readonly AppImplementationFactory _appImplementationFactory;
@@ -46,6 +47,7 @@ public class PaymentController : ControllerBase
         _logger = logger;
         _netsWebhookSecretProvider = serviceProvider.GetService<INetsWebhookSecretProvider>();
         _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
@@ -73,14 +75,16 @@ public class PaymentController : ControllerBase
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            cancellationToken
-        );
+        InstanceWithStorageMetadata fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                cancellationToken
+            );
+        Instance instance = fetchedInstance.Instance;
 
         string? finalTaskId = taskId ?? instance.Process?.CurrentTask?.ElementId;
         AltinnPaymentConfiguration? paymentConfiguration = finalTaskId is null
@@ -102,61 +106,12 @@ public class PaymentController : ControllerBase
         PaymentInformation paymentInformation;
         if (isCurrentTask && ProcessStatusHelper.IsIdle(instance))
         {
-            try
-            {
-                paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
-                    instance,
-                    validPaymentConfiguration,
-                    language,
-                    cancellationToken
-                );
-            }
-            catch (PlatformHttpException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.Conflict)
-            {
-                // The legacy per-data-element Storage endpoint uses an untyped 409 for both process-status
-                // conflicts and unrelated failures. Re-read the instance once and classify only from the
-                // authoritative snapshot instead of interpreting the response body.
-                Instance refreshed = await _instanceClient.GetInstance(
-                    app,
-                    org,
-                    instanceOwnerPartyId,
-                    instanceGuid,
-                    authenticationMethod: null,
-                    cancellationToken
-                );
-                bool currentTaskMoved = !string.Equals(
-                    refreshed.Process?.CurrentTask?.ElementId,
-                    finalTaskId,
-                    StringComparison.Ordinal
-                );
-                DataElement? paymentDataElement = refreshed.Data?.SingleOrDefault(dataElement =>
-                    string.Equals(
-                        dataElement.DataType,
-                        validPaymentConfiguration.PaymentDataType,
-                        StringComparison.Ordinal
-                    )
-                );
-                bool paymentDataElementLocked = paymentDataElement?.Locked is true;
-                if (ProcessStatusHelper.IsIdle(refreshed) && !currentTaskMoved && !paymentDataElementLocked)
-                {
-                    // An idle instance with the same current task and no locked target does not prove the
-                    // known webhook race. Preserve unrelated blob/version/idempotency conflicts exactly.
-                    throw;
-                }
-
-                _logger.LogInformation(
-                    ex,
-                    "Storing payment status failed for task {TaskId} (the process likely advanced and locked the data concurrently). Returning read-only status.",
-                    LogSanitizer.Sanitize(finalTaskId)
-                );
-                paymentInformation = await _paymentService.CheckPaymentStatus(
-                    refreshed,
-                    validPaymentConfiguration,
-                    finalTaskId,
-                    language,
-                    cancellationToken
-                );
-            }
+            paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
+                fetchedInstance,
+                validPaymentConfiguration,
+                language,
+                cancellationToken
+            );
         }
         else
         {
@@ -277,22 +232,26 @@ public class PaymentController : ControllerBase
             webhookPayload.Data.PaymentId
         );
 
-        var instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            StorageAuthenticationMethod.ServiceOwner(),
-            cancellationToken
-        );
-
-        if (instance.Process?.CurrentTask?.ElementId == null)
-        {
-            _logger.LogWarning(
-                "Instance has no current task. Cannot process Nets webhook callback for instance {InstanceGuid}",
-                instanceGuid
+        InstanceWithStorageMetadata fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                StorageAuthenticationMethod.ServiceOwner(),
+                cancellationToken
             );
-            return BadRequest("Instance has no current task");
+        Instance instance = fetchedInstance.Instance;
+
+        if (instance.Process?.CurrentTask?.ElementId is null)
+        {
+            // Nets calls more than once for a payment, and an earlier call often ended the process, since the payment
+            // task is commonly the last one. Answer OK, as for a task that is not a payment task, so Nets stops calling.
+            _logger.LogInformation(
+                "The process of instance {InstanceId} has ended. Ignoring the Nets webhook callback.",
+                instance.Id
+            );
+            return Ok(new ProblemDetails() { Detail = "The process of the instance has ended" });
         }
 
         AltinnPaymentConfiguration? paymentConfiguration = _processReader
@@ -318,11 +277,9 @@ public class PaymentController : ControllerBase
 
         var validPaymentConfiguration = paymentConfiguration.Validate();
 
-        // Update payment status using ServiceOwner authentication
         var responseText = await _paymentService.HandlePaymentCompletedWebhook(
-            instance,
+            fetchedInstance,
             validPaymentConfiguration,
-            StorageAuthenticationMethod.ServiceOwner(),
             cancellationToken
         );
 
