@@ -25,7 +25,7 @@ commands of a job in the guest image as a container, and one upgrade through the
 - The job host serves one job request and then exits. Do not add a queue or a second job; each run gets a new Job.
 - A job reaches only the hosts in `ALLOWED_HOSTS`. Change the list only in code, with a test.
 - Start a new VM for each job, and delete it when the job ends, also after an error.
-- Use the shared [`sandbox-host`](../../common/rust/sandbox-host/README.md) crate for the Provider and the image
+- Use the shared [`sandbox-host`](../../ci/sandbox-host/README.md) crate for the Provider and the image
   checks.
 - Each Dockerfile that builds a workspace crate copies every workspace member. Add a new member to
   `Dockerfile.dockerignore` here and in `src/ci/github-runner`.

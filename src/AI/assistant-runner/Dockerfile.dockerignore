@@ -4,5 +4,5 @@
 !Cargo.toml
 !src/AI/assistant-runner
 !src/ci/github-runner/coordinator
-!src/common/rust/sandbox-host
+!src/ci/sandbox-host
 **/target/
