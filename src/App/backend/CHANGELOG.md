@@ -72,7 +72,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
 - Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
-- After a `CustomButton` runs a server action, attachments in `AttachmentList` no longer lose their links until the page is reloaded, and files the action adds, such as a generated PDF, can be opened too. ([#17706](https://github.com/Altinn/altinn-studio/issues/17706))
+- Attachments in `AttachmentList` no longer show as plain text until the page is reloaded after the user changes a field or a `CustomButton` runs a server action. Files the action adds, such as a generated PDF, can be opened too. ([#17706](https://github.com/Altinn/altinn-studio/issues/17706))
 
 ### Removed
 

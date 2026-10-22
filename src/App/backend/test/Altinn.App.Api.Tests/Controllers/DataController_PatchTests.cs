@@ -318,6 +318,50 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
+    public async Task Patch_ReturnsInstanceWithAppSelfLinks()
+    {
+        _dataProcessorMock
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object?>(),
+                    null
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        // The frontend replaces its instance's data elements with the ones in the response on every save,
+        // so the app self links must be set, also on the obsolete single-element endpoint
+        var patch = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
+        );
+        var (_, _, parsedResponse) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+        AssertAppSelfLinks(parsedResponse.Instance);
+
+        var patchMultiple = new JsonPatch(
+            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Kari Olsen\""))
+        );
+        var (_, _, parsedMultipleResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(
+            new DataPatchRequestMultiple() { Patches = [new(_dataGuid, patchMultiple)], IgnoredValidators = [] },
+            HttpStatusCode.OK
+        );
+        AssertAppSelfLinks(parsedMultipleResponse.Instance);
+    }
+
+    private static void AssertAppSelfLinks(Instance instance)
+    {
+        string instanceSelfLink = $"https://localhost/{Org}/{App}/instances/{instance.Id}";
+        Assert.Equal(instanceSelfLink, instance.SelfLinks?.Apps);
+        Assert.NotEmpty(instance.Data);
+        Assert.All(
+            instance.Data,
+            dataElement => Assert.Equal($"{instanceSelfLink}/data/{dataElement.Id}", dataElement.SelfLinks?.Apps)
+        );
+    }
+
+    [Fact]
     public async Task MultiplePatches_AppliesCorrectly()
     {
         const string prefillDataType = "prefill-data-type";
