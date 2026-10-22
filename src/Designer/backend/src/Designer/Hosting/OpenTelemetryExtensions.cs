@@ -27,9 +27,17 @@ internal static class TelemetryExtensions
         builder
             .Services.AddOpenTelemetry()
             .ConfigureResource(resource =>
-                resource.AddAttributes([
-                    new KeyValuePair<string, object>(ServiceTelemetry.Attributes.ServiceVersion, serviceVersion),
-                ])
+                resource
+                    .AddAttributes([
+                        new KeyValuePair<string, object>(
+                            ServiceTelemetry.Attributes.ServiceInstanceId,
+                            InstanceTelemetry.ServiceInstanceId
+                        ),
+                    ])
+                    .AddEnvironmentVariableDetector()
+                    .AddAttributes([
+                        new KeyValuePair<string, object>(ServiceTelemetry.Attributes.ServiceVersion, serviceVersion),
+                    ])
             )
             .WithTracing(tracing =>
             {
@@ -57,6 +65,8 @@ internal static class TelemetryExtensions
             .WithMetrics(metrics =>
             {
                 metrics
+                    .AddMeter(InstanceTelemetry.MeterName)
+                    .AddInstrumentation<InstanceTelemetry>()
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()

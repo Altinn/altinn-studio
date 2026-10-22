@@ -409,6 +409,190 @@ public class SourceControlServiceTest : IDisposable
         return service;
     }
 
+    [Fact]
+    public void GetTopLevelFolderHistory_ReturnsFirstAuthorAndLastChangePerFolder()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first/first_resource.json", "README.md");
+            CommitFiles(repo, "bob", HistoryTime(2), "second/second_resource.json");
+            CommitFiles(repo, "carol", HistoryTime(3), "first/first_policy.xml");
+            SetRemoteDefaultBranch(repo, repo.Head.Tip);
+        }
+
+        // Act
+        Dictionary<string, FolderHistory> history = _sourceControlService.GetTopLevelFolderHistory(context);
+
+        // Assert
+        Assert.Equal(2, history.Count);
+        Assert.Equal(new FolderHistory("alice", HistoryTime(3)), history["first"]);
+        Assert.Equal(new FolderHistory("bob", HistoryTime(2)), history["second"]);
+    }
+
+    [Fact]
+    public void GetTopLevelFolderHistory_IgnoresCommitsThatAreNotOnTheRemoteDefaultBranch()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first/first_resource.json");
+            SetRemoteDefaultBranch(repo, repo.Head.Tip);
+            CommitFiles(repo, "bob", HistoryTime(2), "first/first_policy.xml", "second/second_resource.json");
+        }
+
+        // Act
+        Dictionary<string, FolderHistory> history = _sourceControlService.GetTopLevelFolderHistory(context);
+
+        // Assert
+        Assert.Equal(new FolderHistory("alice", HistoryTime(1)), Assert.Single(history).Value);
+    }
+
+    [Fact]
+    public void GetTopLevelFolderHistory_AttributesMergedChangesToTheCommitsThatMadeThem()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first/first_resource.json", "second/second_resource.json");
+            Branch featureBranch = repo.CreateBranch("feature");
+            Commands.Checkout(repo, featureBranch);
+            CommitFiles(repo, "bob", HistoryTime(2), "second/second_policy.xml");
+            Commands.Checkout(repo, repo.Branches[General.DefaultBranch]);
+            CommitFiles(repo, "carol", HistoryTime(3), "first/first_policy.xml");
+            LibGit2Sharp.Signature merger = new("dave", "dave@test.com", HistoryTime(4));
+            repo.Merge(
+                featureBranch,
+                merger,
+                new MergeOptions { FastForwardStrategy = FastForwardStrategy.NoFastForward }
+            );
+            SetRemoteDefaultBranch(repo, repo.Head.Tip);
+        }
+
+        // Act
+        Dictionary<string, FolderHistory> history = _sourceControlService.GetTopLevelFolderHistory(context);
+
+        // Assert
+        Assert.Equal(new FolderHistory("alice", HistoryTime(3)), history["first"]);
+        Assert.Equal(new FolderHistory("alice", HistoryTime(2)), history["second"]);
+    }
+
+    [Fact]
+    public void GetTopLevelFolderHistory_SkipsChangesAMergeDiscardedAndCountsMergesThatChangedAFolder()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first/first_resource.json", "second/second_resource.json");
+            Branch featureBranch = repo.CreateBranch("feature");
+            Commands.Checkout(repo, featureBranch);
+            CommitFiles(repo, "bob", HistoryTime(2), "first/first_resource.json", "second/second_resource.json");
+            LibGit2Sharp.Commit featureTip = repo.Head.Tip;
+            Commands.Checkout(repo, repo.Branches[General.DefaultBranch]);
+            CommitFiles(repo, "carol", HistoryTime(3), "third/third_resource.json");
+            LibGit2Sharp.Commit defaultBranchTip = repo.Head.Tip;
+
+            // The merge keeps the default branch's version of "first" and resolves "second" to new content.
+            TreeDefinition mergedTree = TreeDefinition.From(defaultBranchTip.Tree);
+            using MemoryStream resolvedContent = new("resolved"u8.ToArray());
+            mergedTree.Add(
+                "second/second_resource.json",
+                repo.ObjectDatabase.CreateBlob(resolvedContent),
+                Mode.NonExecutableFile
+            );
+            LibGit2Sharp.Signature merger = new("dave", "dave@test.com", HistoryTime(4));
+            LibGit2Sharp.Commit merge = repo.ObjectDatabase.CreateCommit(
+                merger,
+                merger,
+                "Merge feature",
+                repo.ObjectDatabase.CreateTree(mergedTree),
+                [defaultBranchTip, featureTip],
+                prettifyMessage: true
+            );
+            SetRemoteDefaultBranch(repo, merge);
+        }
+
+        // Act
+        Dictionary<string, FolderHistory> history = _sourceControlService.GetTopLevelFolderHistory(context);
+
+        // Assert
+        Assert.Equal(new FolderHistory("alice", HistoryTime(1)), history["first"]);
+        Assert.Equal(new FolderHistory("alice", HistoryTime(4)), history["second"]);
+        Assert.Equal(new FolderHistory("carol", HistoryTime(3)), history["third"]);
+    }
+
+    [Fact]
+    public void GetTopLevelFolderHistory_WithoutRemoteDefaultBranch_ReturnsEmpty()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first/first_resource.json");
+        }
+
+        // Act
+        Dictionary<string, FolderHistory> history = _sourceControlService.GetTopLevelFolderHistory(context);
+
+        // Assert
+        Assert.Empty(history);
+    }
+
+    [Fact]
+    public void GetTopLevelFolderHistory_FolderIsNotAGitRepository_ReturnsEmpty()
+    {
+        // Arrange
+        Setup();
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        Directory.CreateDirectory(Path.Join(_repoDir, "first"));
+        AltinnRepoEditingContext context = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
+
+        // Act
+        Dictionary<string, FolderHistory> history = _sourceControlService.GetTopLevelFolderHistory(context);
+
+        // Assert
+        Assert.Empty(history);
+    }
+
+    private static DateTimeOffset HistoryTime(int hour) => new(2026, 1, 1, hour, 0, 0, TimeSpan.Zero);
+
+    private AltinnRepoEditingContext CreateEmptyTestRepository()
+    {
+        Setup();
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+        Directory.CreateDirectory(_repoDir);
+        Repository.Init(_repoDir);
+        // Independent of the machine's init.defaultBranch setting.
+        File.WriteAllText(Path.Join(_repoDir, ".git", "HEAD"), $"ref: refs/heads/{General.DefaultBranch}\n");
+
+        return AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
+    }
+
+    private void CommitFiles(Repository repo, string author, DateTimeOffset when, params string[] relativePaths)
+    {
+        foreach (string relativePath in relativePaths)
+        {
+            string filePath = Path.Join(_repoDir, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            File.WriteAllText(filePath, $"{relativePath} by {author}");
+            Commands.Stage(repo, relativePath);
+        }
+
+        LibGit2Sharp.Signature signature = new(author, $"{author}@test.com", when);
+        repo.Commit($"Change by {author}", signature, signature);
+    }
+
+    private static void SetRemoteDefaultBranch(Repository repo, LibGit2Sharp.Commit commit)
+    {
+        repo.Refs.Add($"refs/remotes/origin/{General.DefaultBranch}", commit.Id, allowOverwrite: true);
+    }
+
     private AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)
     {
         Setup();

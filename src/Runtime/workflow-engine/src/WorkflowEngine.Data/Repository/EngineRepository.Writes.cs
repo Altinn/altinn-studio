@@ -1214,9 +1214,9 @@ internal sealed partial class EngineRepository
     /// <summary>
     /// Computes the new collection heads after processing a request. Merges previous heads with new leaves:
     /// <list type="bullet">
-    ///   <item>A previous head is "consumed" (removed) if a <em>visible</em> workflow depends on it — either via
+    ///   <item>A previous head is "consumed" (removed) if a primary workflow depends on it — either via
     ///         injected head dependency edges or via an explicit DependsOn by database ID.</item>
-    ///   <item>Workflows with <c>IsHead == false</c> are "invisible" — they are excluded from heads and their
+    ///   <item>Workflows with <c>IsHead == false</c> are auxiliary — they are excluded from heads and their
     ///         dependency edges do not consume existing heads.</item>
     ///   <item>Unconsumed previous heads are retained.</item>
     ///   <item>New leaf workflows (not depended-on by other batch workflows) and <c>IsHead == true</c> overrides
@@ -1252,7 +1252,7 @@ internal sealed partial class EngineRepository
             var req = workflowRequests[i];
             var wfId = workflows[i].DatabaseId;
 
-            // IsHead == false: force-exclude — invisible to collection head tracking
+            // IsHead == false: force-exclude — an auxiliary workflow never joins the heads
             if (req.IsHead == false)
                 continue;
 
@@ -1266,7 +1266,7 @@ internal sealed partial class EngineRepository
         if (currentHeads.Length == 0)
             return [.. newLeaves];
 
-        // 2. Build set of invisible workflow IDs (IsHead == false)
+        // 2. Build set of auxiliary workflow IDs (IsHead == false)
         var invisibleIds = new HashSet<Guid>();
         for (int i = 0; i < workflowRequests.Count; i++)
         {
@@ -1274,18 +1274,18 @@ internal sealed partial class EngineRepository
                 invisibleIds.Add(workflows[i].DatabaseId);
         }
 
-        // 3. Compute consumed heads - heads that any visible workflow depends on
+        // 3. Compute consumed heads - heads that any primary workflow depends on
         var currentHeadSet = new HashSet<Guid>(currentHeads);
         var consumedHeads = new HashSet<Guid>();
 
-        // From injected head dependency edges (skip invisible workflows)
+        // From injected head dependency edges (skip auxiliary workflows)
         foreach (var (workflowId, dependsOnId) in headDepEdges)
         {
             if (!invisibleIds.Contains(workflowId) && currentHeadSet.Contains(dependsOnId))
                 consumedHeads.Add(dependsOnId);
         }
 
-        // From explicit DependsOn by database ID (skip invisible workflows)
+        // From explicit DependsOn by database ID (skip auxiliary workflows)
         for (int i = 0; i < workflowRequests.Count; i++)
         {
             var req = workflowRequests[i];

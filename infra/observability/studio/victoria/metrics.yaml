@@ -55,6 +55,13 @@ spec:
     # at most 8 queries at a time, 1GiB each, inside the 16Gi memory limit.
     search.maxConcurrentRequests: "8"
     search.maxMemoryPerQuery: 1GiB
+    # Results newer than this are always computed from raw data, and a sample
+    # arriving older than this clears the whole query result cache, every 5s
+    # while such samples keep coming. Delivery buffers and retries at every hop
+    # (the sources' Collector queues, vmagent's disk queue), so data minutes late
+    # is routine rather than an error, and the 5m default turned each late batch
+    # into a full cache reset.
+    search.cacheTimestampOffset: 30m
     # Every admin endpoint is open unless its auth key is set, so without these
     # anything that can reach this port in the cluster could delete series or
     # take snapshots. All of them use the same key, read from the mounted Secret
@@ -130,6 +137,7 @@ spec:
     dedup.minScrapeInterval: 1ms
     search.maxConcurrentRequests: "8"
     search.maxMemoryPerQuery: 1GiB
+    search.cacheTimestampOffset: 30m
     deleteAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     snapshotAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key
     forceMergeAuthKey: file:///etc/vm/secrets/observability-backend-auth-key/key

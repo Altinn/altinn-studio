@@ -15,10 +15,11 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class ReportService(
     IRuntimeGatewayClient runtimeGatewayClient,
     IAppResourcesService appResourcesService,
-    INotificationService notificationService
+    INotificationService notificationService,
+    TimeProvider timeProvider
 ) : IReportService
 {
-    private const int MinutesPerDay = 24 * 60;
+    private const int DaysPerWeek = 7;
     private const int MaxConcurrentAppMetadataRequests = 4;
 
     private const string FailedProcessNextMetric = "failed_process_next_requests";
@@ -56,15 +57,15 @@ public class ReportService(
         CancellationToken cancellationToken = default
     )
     {
-        var rangeMinutes = GetRangeMinutes(frequency);
         var altinnEnvironment = AltinnEnvironment.FromName(environment);
-        var to = DateTimeOffset.UtcNow;
-        var from = to.Subtract(TimeSpan.FromMinutes(rangeMinutes));
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        ReportPeriod period = GetPeriod(frequency, now);
 
         var reportMetrics = await runtimeGatewayClient.GetReportMetricsAsync(
             org,
             altinnEnvironment,
-            rangeMinutes,
+            period.From,
+            period.To,
             cancellationToken
         );
         IReadOnlyDictionary<string, string?> appLibVersions = await GetAppLibVersionsAsync(
@@ -101,9 +102,9 @@ public class ReportService(
 
         string frequencyName = frequency.ToString().ToLowerInvariant();
         var payload = new NotificationPayload(
-            $"report-{org}-{environment}-{frequencyName}-{to:yyyyMMdd_HHmmss}",
+            $"report-{org}-{environment}-{frequencyName}-{now:yyyyMMdd_HHmmss}",
             $"Altinn Studio - {GetReportName(frequency)}",
-            [("Organisasjon", org), ("Miljø", environment), ("Periode", FormatPeriod(from, to))],
+            [("Organisasjon", org), ("Miljø", environment), ("Periode", FormatPeriod(frequency, period))],
             [],
             Body: appSummaries.Count == 0 ? NoAppsText : FormatSummary(appSummaries),
             Table: appSummaries.Count == 0
@@ -165,24 +166,46 @@ public class ReportService(
         return Version.TryParse(altinnNugetVersion, out var version) ? version.ToString(3) : null;
     }
 
-    private static int GetRangeMinutes(ReportFrequency frequency) =>
-        frequency switch
+    // A report covers the last complete calendar period in Norwegian time before it is sent: yesterday, last week
+    // from Monday to Sunday, or last month. A report that is sent late still covers the period it was due for.
+    private static ReportPeriod GetPeriod(ReportFrequency frequency, DateTimeOffset now)
+    {
+        DateTime today = TimeZoneInfo.ConvertTime(now, s_norwegianTimeZone).Date;
+        DateTime startOfWeek = today.AddDays(
+            -(((int)today.DayOfWeek - (int)DayOfWeek.Monday + DaysPerWeek) % DaysPerWeek)
+        );
+        DateTime startOfMonth = new(today.Year, today.Month, 1);
+        return frequency switch
         {
-            ReportFrequency.Daily => MinutesPerDay,
-            ReportFrequency.Weekly => MinutesPerDay * 7,
-            ReportFrequency.Monthly => MinutesPerDay * 30,
+            ReportFrequency.Daily => new ReportPeriod(today.AddDays(-1), today),
+            ReportFrequency.Weekly => new ReportPeriod(startOfWeek.AddDays(-DaysPerWeek), startOfWeek),
+            ReportFrequency.Monthly => new ReportPeriod(startOfMonth.AddMonths(-1), startOfMonth),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(frequency),
                 frequency,
                 "Report frequency must be Daily, Weekly, or Monthly"
             ),
         };
+    }
 
-    private static string FormatPeriod(DateTimeOffset from, DateTimeOffset to) =>
-        $"{FormatDateTime(from)} – {FormatDateTime(to)}";
+    private static string FormatPeriod(ReportFrequency frequency, ReportPeriod period) =>
+        frequency switch
+        {
+            ReportFrequency.Daily => FormatDate(period.FirstDay),
+            ReportFrequency.Weekly =>
+                $"uke {ISOWeek.GetWeekOfYear(period.FirstDay)}, {FormatDate(period.FirstDay)} – {FormatDate(period.LastDay)}",
+            // ICU versions differ in whether they capitalize Norwegian month names. Norwegian writes them in lowercase.
+            ReportFrequency.Monthly => period
+                .FirstDay.ToString("MMMM yyyy", s_norwegianCulture)
+                .ToLower(s_norwegianCulture),
+            _ => throw new ArgumentOutOfRangeException(nameof(frequency), frequency, null),
+        };
 
-    private static string FormatDateTime(DateTimeOffset value) =>
-        TimeZoneInfo.ConvertTime(value, s_norwegianTimeZone).ToString("d.M.yyyy, HH:mm:ss", s_norwegianCulture);
+    private static string FormatDate(DateTime date) => date.ToString("d.M.yyyy", s_norwegianCulture);
+
+    // Midnight exists exactly once in Norway, because daylight saving time starts and ends at night.
+    private static DateTimeOffset AtNorwegianMidnight(DateTime date) =>
+        new(date, s_norwegianTimeZone.GetUtcOffset(date));
 
     private static string GetReportName(ReportFrequency frequency) =>
         frequency switch
@@ -212,6 +235,14 @@ public class ReportService(
         );
 
     private static string FormatCount(double count) => count.ToString("#,0.##", s_norwegianCulture);
+
+    // The days a report covers in Norwegian time, from the start of FirstDay up to the start of EndDay.
+    private sealed record ReportPeriod(DateTime FirstDay, DateTime EndDay)
+    {
+        public DateTime LastDay => EndDay.AddDays(-1);
+        public DateTimeOffset From => AtNorwegianMidnight(FirstDay);
+        public DateTimeOffset To => AtNorwegianMidnight(EndDay);
+    }
 
     private sealed record AppSummary(
         string Name,

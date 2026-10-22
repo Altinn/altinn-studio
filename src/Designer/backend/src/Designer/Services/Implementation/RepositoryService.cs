@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -39,6 +40,9 @@ public class RepositoryService : IRepository
     // Using Norwegian name of initial page to be consistent
     // with automatic naming from frontend when adding new page
     private const string InitialLayout = "Side1";
+
+    private const string ResourceFileSearchPattern = "*_resource.json";
+    private const int MaxConcurrentResourceFileOperations = 50;
 
     private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
@@ -616,7 +620,7 @@ public class RepositoryService : IRepository
             AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
         );
 
-        using SemaphoreSlim semaphore = new(50); // Limit to 50 concurrent tasks
+        using SemaphoreSlim semaphore = new(MaxConcurrentResourceFileOperations);
 
         async Task<ServiceResource> ReadResourceAsync(FileSystemObject resourceFile)
         {
@@ -675,7 +679,7 @@ public class RepositoryService : IRepository
     {
         if (updatedResource != null && id == updatedResource.Identifier)
         {
-            string repository = string.Format("{0}-resources", org);
+            string repository = RepositoryNames.Resources(org);
             List<FileSystemObject> resourceFiles = GetResourceFiles(org, repository);
             string repopath = _settings.GetServicePath(
                 org,
@@ -727,7 +731,7 @@ public class RepositoryService : IRepository
             {
                 return new StatusCodeResult(400);
             }
-            string repository = $"{org}-resources";
+            string repository = RepositoryNames.Resources(org);
             if (!CheckIfResourceFileAlreadyExists(newResource.Identifier, org, repository))
             {
                 string repopath = _settings.GetServicePath(
@@ -823,7 +827,7 @@ public class RepositoryService : IRepository
                     policyFileContent = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(
                         policyFileContent,
                         org,
-                        $"{org}-resources"
+                        RepositoryNames.Resources(org)
                     );
                     policyContent = Encoding.UTF8.GetBytes(policyFileContent);
                 }
@@ -844,36 +848,46 @@ public class RepositoryService : IRepository
 
     private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
     {
-        List<FileSystemObject> contents = GetContents(org, repository, path);
-        List<FileSystemObject> resourceFiles = new List<FileSystemObject>();
-
-        if (contents != null)
+        string repositoryPath = Path.GetFullPath(
+            _settings.GetServicePath(
+                org,
+                repository,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+            )
+        );
+        string searchPath = ResolvePathWithinParentDirectory(repositoryPath, path);
+        if (searchPath is null || !Directory.Exists(searchPath))
         {
-            foreach (FileSystemObject resourceFile in contents)
-            {
-                if (resourceFile.Type.Equals("Dir") && !resourceFile.Name.StartsWith("."))
-                {
-                    List<FileSystemObject> contentsInFolder = GetContents(org, repository, resourceFile.Name);
-
-                    if (contentsInFolder != null)
-                    {
-                        foreach (FileSystemObject content in contentsInFolder)
-                        {
-                            if (content.Name.EndsWith("_resource.json"))
-                            {
-                                resourceFiles.Add(content);
-                            }
-                        }
-                    }
-                }
-                if (resourceFile.Name.EndsWith("_resource.json"))
-                {
-                    resourceFiles.Add(resourceFile);
-                }
-            }
+            return [];
         }
 
-        return resourceFiles;
+        ConcurrentBag<string> resourceFilePaths = new(Directory.EnumerateFiles(searchPath, ResourceFileSearchPattern));
+        IEnumerable<string> resourceFolders = Directory
+            .EnumerateDirectories(searchPath)
+            .Where(folder => !Path.GetFileName(folder).StartsWith('.'));
+
+        // Each folder listing is a round trip to the repository storage, which is a network share in production.
+        Parallel.ForEach(
+            resourceFolders,
+            new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrentResourceFileOperations },
+            folder =>
+            {
+                foreach (string resourceFilePath in Directory.EnumerateFiles(folder, ResourceFileSearchPattern))
+                {
+                    resourceFilePaths.Add(resourceFilePath);
+                }
+            }
+        );
+
+        return resourceFilePaths
+            .Order(StringComparer.Ordinal)
+            .Select(resourceFilePath => new FileSystemObject
+            {
+                Type = FileSystemObjectType.File.ToString(),
+                Name = Path.GetFileName(resourceFilePath),
+                Path = Path.GetRelativePath(repositoryPath, resourceFilePath).Replace("\\", "/"),
+            })
+            .ToList();
     }
 
     private string GetResourceFileName(string identifier)

@@ -140,7 +140,8 @@ class AgentState(BaseModel):
     app_name: str
     developer: str
     experiment: ExperimentContext | None = None
-    org: str
+    repo_owner: str  # An organization, or the developer for the developer's own repository
+    cost_org: str  # The organization that the LLM usage is recorded on. This is the Langfuse user_id.
     designer_api_key: str | None = None  # Designer API key for git operations through Gitea proxy
     trace_id: str | None = None  # Langfuse trace id, captured once at the root span
     # Hard permission gate: when False the loop runs read-only (write tools

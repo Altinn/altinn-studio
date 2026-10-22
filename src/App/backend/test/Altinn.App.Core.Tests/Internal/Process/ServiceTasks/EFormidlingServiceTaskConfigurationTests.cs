@@ -66,6 +66,7 @@ public class EFormidlingServiceTaskConfigurationTests
     {
         var processReader = new Mock<IProcessReader>();
         processReader.Setup(x => x.GetProcessTasks()).Returns([.. tasks]);
+        processReader.Setup(x => x.GetExclusiveGateways()).Returns([]);
         processReader
             .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns((string taskId) => tasks.Single(task => task.Id == taskId).ExtensionElements?.TaskExtension);

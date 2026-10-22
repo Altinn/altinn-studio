@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { StudioProperty } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';
 import { useComponentPropertyLabel } from '@altinn/ux-editor/hooks';

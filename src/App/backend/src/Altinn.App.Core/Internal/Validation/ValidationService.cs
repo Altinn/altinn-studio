@@ -209,8 +209,9 @@ internal sealed class ValidationService : IValidationService
 
         foreach (var change in changes.AllChanges)
         {
-            // Clean FormDataChange updates but keep other changes as is
-            if (change is FormDataChange { DataElement: not null } fdc)
+            // Clean FormDataChange updates but keep other changes as is. A deleted element is no longer
+            // available to the accessors, so there is nothing to clean.
+            if (change is FormDataChange { DataElement: not null, Type: not ChangeType.Deleted } fdc)
             {
                 cleanedChangeList.Add(
                     new FormDataChange(

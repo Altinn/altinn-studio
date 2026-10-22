@@ -104,30 +104,38 @@ internal sealed class XsdValidator : IValidator
             {
                 parsedSchema.Add(null, xsdReader);
             }
-            var settings = new XmlReaderSettings
+            var readerSettings = new XmlReaderSettings
             {
-                ValidationType = ValidationType.Schema,
-                Schemas = parsedSchema,
                 DtdProcessing = DtdProcessing.Prohibit,
                 XmlResolver = null,
                 CloseInput = true,
             };
-            settings.ValidationEventHandler += (sender, e) =>
-            {
-                validationIssues.Add(
-                    BuiltInValidationIssues.XsdValidation(
-                        dataElementId: dataElement.Id,
-                        schema: dataType.Id,
-                        message: e.Message
-                    )
-                );
-            };
 
             try
             {
-                var xmlStream = new MemoryAsStream(serializedFormData);
-                using var reader = XmlReader.Create(xmlStream, settings);
-                while (reader.Read()) { }
+                // Validate a DOM instead of a streaming reader so that the validation events carry the
+                // offending node (SourceObject), which lets us report the full path of the invalid field.
+                // Whitespace-only text must be kept, otherwise values like "   " would validate as empty strings.
+                var document = new XmlDocument { XmlResolver = null, PreserveWhitespace = true };
+                using (var reader = XmlReader.Create(new MemoryAsStream(serializedFormData), readerSettings))
+                {
+                    document.Load(reader);
+                }
+                document.Schemas = parsedSchema;
+                document.Validate(
+                    (sender, e) =>
+                    {
+                        var node = (e.Exception as XmlSchemaValidationException)?.SourceObject as XmlNode;
+                        validationIssues.Add(
+                            BuiltInValidationIssues.XsdValidation(
+                                dataElementId: dataElement.Id,
+                                schema: dataType.Id,
+                                message: e.Message,
+                                path: XmlNodePath.Get(node)
+                            )
+                        );
+                    }
+                );
             }
             catch (XmlException ex)
             {
@@ -135,7 +143,8 @@ internal sealed class XsdValidator : IValidator
                     BuiltInValidationIssues.XsdValidation(
                         dataElementId: dataElement.Id,
                         schema: dataType.Id,
-                        message: ex.Message
+                        message: ex.Message,
+                        path: null
                     )
                 );
             }

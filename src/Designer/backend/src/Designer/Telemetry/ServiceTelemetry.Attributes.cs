@@ -10,6 +10,7 @@ internal static partial class ServiceTelemetry
     public static class Attributes
     {
         public const string ServiceVersion = "service.version";
+        public const string ServiceInstanceId = "service.instance.id";
         public const string UrlFull = "url.full";
         public const string EndUserId = "enduser.id";
         public const string ErrorType = "error.type";

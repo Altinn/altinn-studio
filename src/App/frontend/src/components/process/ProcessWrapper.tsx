@@ -152,7 +152,8 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // classifies and renders as a Data task) is followed the same way as the default waiting view.
   const isParkedOnServiceTask =
     process?.currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK && (workflow?.status ?? 'idle') === 'idle';
-  useFollowProcess(!isPdfMode && isParkedOnServiceTask);
+  // Follow feedback here as well, so observing a new task cannot unmount the component owning navigation.
+  useFollowProcess(!isPdfMode && (isParkedOnServiceTask || taskType === ProcessTaskType.Feedback));
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
@@ -381,6 +382,7 @@ function useIsWrongTask(taskId: string | undefined) {
   const { data: process } = useProcessQuery();
   const currentTaskId = process?.currentTask?.elementId;
   const waitForQueries = useWaitForQueries();
+  const isPdfMode = usePdfModeActive();
 
   const [isWrongTask, setIsWrongTask] = useState<boolean | null>(null);
   const isCurrentTask =
@@ -390,7 +392,7 @@ function useIsWrongTask(taskId: string | undefined) {
   // does not show up while we're navigating. Without this, the message will flash over the screen shortly
   // in-between all the <Loader /> components.
   useEffect(() => {
-    if (isCurrentTask) {
+    if (isCurrentTask || isPdfMode) {
       setIsWrongTask(false);
     } else {
       let cancelled = false;
@@ -407,7 +409,7 @@ function useIsWrongTask(taskId: string | undefined) {
         cancelled = true;
       };
     }
-  }, [isCurrentTask, waitForQueries]);
+  }, [isCurrentTask, isPdfMode, waitForQueries]);
 
-  return isWrongTask && !isCurrentTask && !isNavigating;
+  return isWrongTask && !isCurrentTask && !isPdfMode && !isNavigating;
 }

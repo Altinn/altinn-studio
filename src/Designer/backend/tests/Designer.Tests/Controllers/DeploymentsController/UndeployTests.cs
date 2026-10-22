@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -32,7 +31,7 @@ public class UndeployTests
     private readonly MockServerFixture _mockServerFixture;
     private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManagerMock;
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock;
-    private const int DecommissionDefinitionId = 297;
+    private const int GitOpsManagerDefinitionId = 298;
 
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/deployments";
@@ -46,19 +45,9 @@ public class UndeployTests
     {
         _mockServerFixture = mockServerFixture;
         _gitOpsConfigurationManagerMock = new Mock<IGitOpsConfigurationManager>();
-        _runtimeGatewayClientMock = new Mock<IRuntimeGatewayClient>();
+        _runtimeGatewayClientMock = new Mock<IRuntimeGatewayClient>(MockBehavior.Strict);
         _gitOpsConfigurationManagerMock
             .Setup(manager => manager.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
-            .ReturnsAsync(false);
-        _runtimeGatewayClientMock
-            .Setup(client =>
-                client.IsAppDeployedWithGitOpsAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
             .ReturnsAsync(false);
         JsonConfigOverrides.Add(
             $$"""
@@ -66,7 +55,7 @@ public class UndeployTests
                "Integrations": {
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
-                        "DecommissionDefinitionId": {{DecommissionDefinitionId}}
+                        "GitOpsManagerDefinitionId": {{GitOpsManagerDefinitionId}}
                     }
                }
             }
@@ -93,7 +82,7 @@ public class UndeployTests
     )
     {
         // Arrange
-        _mockServerFixture.PrepareQueueBuildResponse(DecommissionDefinitionId, azureDevopsMockQueueBuildResponse);
+        _mockServerFixture.PrepareQueueBuildResponse(GitOpsManagerDefinitionId, azureDevopsMockQueueBuildResponse);
 
         // Ensure that the deployment entity exists in the database
         var entity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: environment);

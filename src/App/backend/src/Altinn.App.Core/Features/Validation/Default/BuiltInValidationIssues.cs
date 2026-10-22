@@ -311,20 +311,24 @@ internal static class BuiltInValidationIssues
         {
             Key = "validation_errors.xsd",
             Texts = new LocalizedText(
-                nb: "Et felt bryter reglene satt av XSD. Melding: {message}",
-                nn: "Eit felt bryt reglane sette av XSD. Melding: {message}",
-                en: "A field is in violation of the rules set by the XSD schema. Message: {message}"
+                nb: "Feltet {path} bryter reglene satt av XSD. Melding: {message}",
+                nn: "Feltet {path} bryt reglane sette av XSD. Melding: {message}",
+                en: "The field {path} is in violation of the rules set by the XSD schema. Message: {message}"
             ),
             Variables =
             [
                 CustomTextParameter("schema", "Id of the data type whose schema was violated."),
                 CustomTextParameter("message", "The message from the XML schema validation."),
+                CustomTextParameter(
+                    "path",
+                    "XML path of the invalid field, such as /Skjema/melding/gruppe[2]/felt. / when the field is unknown, such as for malformed XML."
+                ),
             ],
         },
     };
 
-    public static ValidationIssue XsdValidation(string dataElementId, string schema, string message) =>
-        XsdValidationDefinition.Create(dataElementId, field: null, [schema, message]);
+    public static ValidationIssue XsdValidation(string dataElementId, string schema, string message, string? path) =>
+        XsdValidationDefinition.Create(dataElementId, field: null, [schema, message, path ?? "/"]);
 
     // Last, because static fields are initialized in the order they appear in the file
 
