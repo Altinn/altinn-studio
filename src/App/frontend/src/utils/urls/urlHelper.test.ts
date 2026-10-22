@@ -151,7 +151,6 @@ describe('Shared urlHelper.ts', () => {
       );
     });
 
-
     test('no arbeidsflate link in environments where it is not deployed', () => {
       configureArbeidsflate({});
 
@@ -276,7 +275,6 @@ describe('Shared urlHelper.ts', () => {
       expect(returnUrlToRolesAndRightsHelp(hostProd)).toBe('https://ny.altinn.no/hjelp/roller');
       expect(returnUrlToPartiesSettings(hostProd)).toBe('https://ny.altinn.no/profil/aktorer');
     });
-
 
     test('no link on unknown hosts or when not configured', () => {
       for (const helpUrl of helpUrls) {
