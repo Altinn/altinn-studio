@@ -8,6 +8,7 @@ import type { HeadingLevel } from '@app/layout-contract/generated/common.generat
 
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
+import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { EmptyChildrenBoundary, useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import {
   ComponentSummary,
@@ -91,12 +92,17 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
         data-testid={dataTestId}
       >
         {(summaryTitle || title) && (
-          <Heading
-            data-size={config.headingLevel ? headingSizes[config.headingLevel] : isNestedGroup ? 'xs' : 'sm'}
-            level={headingLevel}
+          <SummaryLabel
+            baseComponentId={targetBaseComponentId}
+            title={<Lang id={title} />}
           >
-            <Lang id={summaryTitle ?? title} />
-          </Heading>
+            <Heading
+              data-size={config.headingLevel ? headingSizes[config.headingLevel] : isNestedGroup ? 'xs' : 'sm'}
+              level={headingLevel}
+            >
+              <Lang id={summaryTitle ?? title} />
+            </Heading>
+          </SummaryLabel>
         )}
         <Flex
           container

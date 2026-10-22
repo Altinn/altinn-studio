@@ -3,6 +3,7 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { PaymentReceiptDetails } from 'src/layout/Payment/PaymentReceiptDetails/PaymentReceiptDetails';
+import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -20,13 +21,17 @@ export function PaymentSummary({ targetBaseComponentId }: Summary2Props) {
   );
 
   const title = summaryTitle || resolvedTitle;
+  const labelText = useSummaryLabelText(targetBaseComponentId);
 
   return (
     <SummaryFlex
       targetBaseId={targetBaseComponentId}
       content={SummaryContains.Presentational}
     >
-      <PaymentReceiptDetails title={title} />
+      <PaymentReceiptDetails
+        title={title}
+        {...labelText}
+      />
     </SummaryFlex>
   );
 }

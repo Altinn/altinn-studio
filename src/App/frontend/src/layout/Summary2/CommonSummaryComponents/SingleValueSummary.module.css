@@ -19,11 +19,15 @@
 }
 
 .labelValueWrapper.compact {
-  display: inline-block;
+  display: grid;
+  grid-template-columns: fit-content(70%) minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--ds-size-2);
+  row-gap: var(--ds-size-2);
 }
 
-.labelValueWrapper.compact label {
-  margin-right: var(--ds-size-2);
+.labelValueWrapper.compact > :last-child {
+  grid-area: 1 / 2;
 }
 
 .formValue {
