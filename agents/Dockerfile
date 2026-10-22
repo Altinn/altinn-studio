@@ -3,7 +3,7 @@
 # Neovim and the boot settings a Sandbox needs, and offers the browser and desktop as features:
 # https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base
 # Renovate moves the digest, and with it the harness versions.
-FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:d6728be9e9972c1c36b6a637ee1a3e984f32f022048e05d39daf498dfe75bc40 AS minimal
+FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:ecaa7a1926dfff3d635b7819d94b62faeb3e857f17260fde2dcdc8c4002d3a9e AS minimal
 
 # The base ends as the unprivileged Agent user; installing packages needs root again.
 USER root
@@ -193,6 +193,7 @@ ENV DISPLAY=:1
 ENV DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 ENV ACCESSIBILITY_ENABLED=1
 ENV PLAYWRIGHT_MCP_EXECUTABLE_PATH=/usr/local/libexec/agent-playwright-chromium
+ENV XDG_CURRENT_DESKTOP=X-Openbox:XFCE
 
 # The repository's rust-toolchain.toml selects the toolchain inside a checkout, and Renovate moves
 # this ARG together with it. The agent user owns RUSTUP_HOME, so a checkout pinned ahead of this
