@@ -1,100 +1,102 @@
 import React from 'react';
 
-import { act, render, waitFor } from '@testing-library/react';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- This test needs an isolated real query cache and provider.
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, waitFor } from '@testing-library/react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { useQuery } from 'src/core/queries/reactQuery';
+import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
-const query = vi.hoisted(() => ({ fetching: 0, listeners: new Set<() => void>() }));
-vi.mock('src/core/queries/reactQuery', () => {
-  const client = {
-    isFetching: () => query.fetching,
-    getQueryCache: () => ({
-      subscribe: (listener: () => void) => {
-        query.listeners.add(listener);
-        return () => query.listeners.delete(listener);
-      },
-    }),
-  };
-  return { useQueryClient: () => client };
-});
-vi.mock('src/utils/waitForAnimationFrames', () => ({ waitForAnimationFrames: () => Promise.resolve() }));
+function QueryResult({ load, attribute }: { load: () => Promise<string>; attribute?: string }) {
+  const { data, isPending } = useQuery({ queryKey: ['options'], queryFn: load, retry: false });
+  if (isPending) {
+    return <div data-loading />;
+  }
+  return attribute ? <div {...{ [attribute]: true }} /> : <div>{data}</div>;
+}
+
+function renderWithQueries(children: React.ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const view = render(<QueryClientProvider client={client}>{children}</QueryClientProvider>);
+  return { ...view, client };
+}
 
 describe('ReadyForPrint', () => {
-  beforeEach(() => {
-    query.fetching = 0;
-  });
-
   it.each(['data-fatal-error', 'data-loading'])(
-    'never publishes readiness when %s appears as a query settles',
+    'never publishes readiness when a query result renders %s',
     async (attribute) => {
-      query.fetching = 1;
-      const view = render(<ReadyForPrint type='print' />);
-      await act(async () => {});
-
-      const exposed: string[] = [];
-      const originalSetAttribute = Element.prototype.setAttribute;
-      const idDescriptor = Object.getOwnPropertyDescriptor(Element.prototype, 'id')!;
-      const recordId = (id: string) => {
-        if (id === 'readyForPrint') {
-          exposed.push(id);
+      const result = Promise.withResolvers<string>();
+      const published: string[] = [];
+      const setAttribute = Element.prototype.setAttribute;
+      const spy = vi.spyOn(Element.prototype, 'setAttribute').mockImplementation(function (name, value) {
+        if (name === 'id' && value === 'readyForPrint') {
+          published.push(value);
         }
-      };
-      const attributeSpy = vi.spyOn(Element.prototype, 'setAttribute').mockImplementation(function (name, value) {
-        if (name === 'id') {
-          recordId(value);
-        }
-        originalSetAttribute.call(this, name, value);
-      });
-      const idSpy = vi.spyOn(Element.prototype, 'id', 'set').mockImplementation(function (value) {
-        recordId(value);
-        idDescriptor.set!.call(this, value);
+        setAttribute.call(this, name, value);
       });
       try {
-        query.fetching = 0;
-        query.listeners.forEach((notify) => notify());
-        view.rerender(
+        renderWithQueries(
           <>
+            <QueryResult
+              load={() => result.promise}
+              attribute={attribute}
+            />
             <ReadyForPrint type='print' />
-            <div {...{ [attribute]: true }} />
           </>,
         );
         await act(async () => {
-          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          await waitForAnimationFrames(2);
         });
-        expect(exposed).toEqual([]);
-        expect(document.getElementById('readyForPrint')).toBeNull();
+        await act(async () => result.resolve('Options loaded'));
+        await waitFor(() => expect(document.querySelector(`[${attribute}]`)).not.toBeNull());
+        await act(async () => {
+          await waitForAnimationFrames(2);
+        });
+        expect(published).toEqual([]);
       } finally {
-        attributeSpy.mockRestore();
-        idSpy.mockRestore();
+        spy.mockRestore();
       }
     },
   );
 
-  it('withdraws readiness synchronously when another query starts', async () => {
-    render(<ReadyForPrint type='print' />);
-    await waitFor(() => expect(document.getElementById('readyForPrint')).not.toBeNull());
-    query.fetching = 1;
-    query.listeners.forEach((notify) => notify());
-    expect(document.getElementById('readyForPrint')).toBeNull();
-    query.fetching = 0;
-    query.listeners.forEach((notify) => notify());
-    await waitFor(() => expect(document.getElementById('readyForPrint')).not.toBeNull());
+  it('publishes readiness after the query result has rendered', async () => {
+    const result = Promise.withResolvers<string>();
+    const { container } = renderWithQueries(
+      <>
+        <QueryResult load={() => result.promise} />
+        <ReadyForPrint type='print' />
+      </>,
+    );
+    const marker = container.lastElementChild;
+    expect(marker).toHaveStyle({ display: 'none' });
+    expect(marker).not.toHaveAttribute('id');
+    await act(async () => result.resolve('Options loaded'));
+    await waitFor(() => expect(marker).toHaveAttribute('id', 'readyForPrint'));
+    expect(container.lastElementChild).toBe(marker);
+    expect(screen.getByText('Options loaded')).toBeInTheDocument();
   });
 
-  it('withdraws readiness for DOM errors and restores it when they are removed', async () => {
-    render(<ReadyForPrint type='print' />);
-    await waitFor(() => expect(document.getElementById('readyForPrint')).not.toBeNull());
-    const error = document.createElement('div');
-    error.setAttribute('data-fatal-error', 'true');
-    document.body.append(error);
-    await act(async () => {});
+  it('waits for another request that starts before readiness is published', async () => {
+    const { client } = renderWithQueries(<ReadyForPrint type='print' />);
+    const result = Promise.withResolvers<string>();
+    let request: Promise<string>;
+    await act(async () => {
+      request = client.fetchQuery({ queryKey: ['later'], queryFn: () => result.promise });
+    });
+    await act(async () => {
+      await waitForAnimationFrames(2);
+    });
     expect(document.getElementById('readyForPrint')).toBeNull();
-    error.remove();
+    await act(async () => {
+      result.resolve('Done');
+      await request;
+    });
     await waitFor(() => expect(document.getElementById('readyForPrint')).not.toBeNull());
   });
 
   it('allows the loading marker while displaying a fatal error', async () => {
-    render(
+    renderWithQueries(
       <>
         <ReadyForPrint type='load' />
         <div data-fatal-error />
