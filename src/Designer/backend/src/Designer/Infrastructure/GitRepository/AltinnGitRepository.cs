@@ -244,7 +244,11 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
         return await SaveXsd(xsd, fileName);
     }
 
-    private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
+    /// <summary>
+    /// Writes an XSD the way it is saved to the repository.
+    /// </summary>
+    /// <param name="xmlSchema">The XSD to write.</param>
+    public static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
     {
         string xsd;
         await using (var sw = new Utf8StringWriter())

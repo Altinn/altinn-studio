@@ -171,11 +171,75 @@ public class SchemaModelService : ISchemaModelService
             return;
         }
 
+        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+        AltinnStudioSettings altinnStudioSettings = await altinnAppGitRepository.GetAltinnStudioSettings();
+        bool isV9OrNewer = _appVersionService.IsV9App(altinnRepoEditingContext);
+        (string csharpClasses, XmlSchema xsd) = GenerateAppModelFiles(
+            schemaFileName,
+            jsonSchema,
+            serializedJsonContent,
+            applicationMetadata,
+            altinnStudioSettings.UseNullableReferenceTypes,
+            isV9OrNewer
+        );
+
+        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
+        await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        await altinnAppGitRepository.SaveXsd(xsd, Path.ChangeExtension(schemaFileName, "xsd"));
+    }
+
+    /// <inheritdoc/>
+    public async Task<GeneratedDatamodel> GenerateDatamodel(
+        string modelName,
+        string jsonContent,
+        string applicationMetadataJson,
+        bool useNullableReferenceTypes,
+        bool isV9OrNewer
+    )
+    {
+        var jsonSchema = JsonSchemaKeywords.FromText(jsonContent);
+        string serializedJsonContent = SerializeJson(jsonSchema);
+        ApplicationMetadata applicationMetadata = AltinnAppGitRepository.DeserializeApplicationMetadata(
+            applicationMetadataJson
+        );
+        (string csharpClasses, XmlSchema xsd) = GenerateAppModelFiles(
+            modelName,
+            jsonSchema,
+            serializedJsonContent,
+            applicationMetadata,
+            useNullableReferenceTypes,
+            isV9OrNewer
+        );
+
+        return new GeneratedDatamodel(
+            serializedJsonContent,
+            csharpClasses,
+            await AltinnGitRepository.SerializeXsdToString(xsd),
+            AltinnAppGitRepository.SerializeApplicationMetadata(applicationMetadata)
+        );
+    }
+
+    /// <summary>
+    /// Generates the C# classes and the XSD of an app data model, and adds the data model's data type to
+    /// the application metadata or updates its class reference. This reads and writes no repository.
+    /// </summary>
+    private (string CsharpClasses, XmlSchema Xsd) GenerateAppModelFiles(
+        string schemaFileName,
+        JsonSchema jsonSchema,
+        string serializedJsonContent,
+        ApplicationMetadata applicationMetadata,
+        bool useNullableReferenceTypes,
+        bool isV9OrNewer
+    )
+    {
         ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
-        await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaFileName);
-        await UpdateApplicationMetadata(altinnAppGitRepository, schemaFileName, csharpModelName);
-        await UpdateXsdFromJsonSchema(altinnAppGitRepository, jsonSchema, schemaFileName);
+        string csharpClasses = CreateCSharpClasses(modelMetadata, applicationMetadata, useNullableReferenceTypes);
+        XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
+        string fullTypeName = GetFullTypeName(applicationMetadata, csharpModelName);
+        UpdateApplicationWithAppLogicModel(applicationMetadata, schemaFileName, fullTypeName, isV9OrNewer);
+
+        return (csharpClasses, xsd);
     }
 
     private async Task UpdateXsdFromJsonSchema(
@@ -617,16 +681,6 @@ public class SchemaModelService : ISchemaModelService
         return convertedJsonSchema;
     }
 
-    private async Task UpdateCSharpClasses(
-        AltinnAppGitRepository altinnAppGitRepository,
-        ModelMetadata modelMetadata,
-        string schemaFileName
-    )
-    {
-        string csharpClasses = await GenerateCSharpClasses(altinnAppGitRepository, modelMetadata);
-        await altinnAppGitRepository.SaveCSharpClasses(csharpClasses, schemaFileName);
-    }
-
     private async Task<string> GenerateCSharpClasses(
         AltinnAppGitRepository altinnAppGitRepository,
         ModelMetadata modelMetadata
@@ -634,13 +688,23 @@ public class SchemaModelService : ISchemaModelService
     {
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         AltinnStudioSettings altinnStudioSettings = await altinnAppGitRepository.GetAltinnStudioSettings();
+
+        return CreateCSharpClasses(modelMetadata, applicationMetadata, altinnStudioSettings.UseNullableReferenceTypes);
+    }
+
+    private string CreateCSharpClasses(
+        ModelMetadata modelMetadata,
+        ApplicationMetadata applicationMetadata,
+        bool useNullableReferenceTypes
+    )
+    {
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
         bool separateNamespace = NamespaceNeedsToBeSeparated(applicationMetadata, csharpModelName);
 
         return _modelMetadataToCsharpConverter.CreateModelFromMetadata(
             modelMetadata,
             separateNamespace,
-            altinnStudioSettings.UseNullableReferenceTypes
+            useNullableReferenceTypes
         );
     }
 

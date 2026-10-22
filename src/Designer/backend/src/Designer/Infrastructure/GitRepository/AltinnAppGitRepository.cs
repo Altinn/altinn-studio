@@ -137,12 +137,26 @@ public class AltinnAppGitRepository : AltinnGitRepository
         cancellationToken.ThrowIfCancellationRequested();
         string appMetadataRelativeFilePath = Path.Combine(ConfigFolderPath, AppMetadataFilename);
         string fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath, cancellationToken);
-        ApplicationMetadata applicationMetaData = JsonSerializer.Deserialize<ApplicationMetadata>(
-            fileContent,
-            s_jsonOptions
-        );
 
-        return applicationMetaData;
+        return DeserializeApplicationMetadata(fileContent);
+    }
+
+    /// <summary>
+    /// Reads application metadata the way it is read from the repository.
+    /// </summary>
+    /// <param name="applicationMetadataJson">The contents of an application metadata file.</param>
+    public static ApplicationMetadata DeserializeApplicationMetadata(string applicationMetadataJson)
+    {
+        return JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataJson, s_jsonOptions);
+    }
+
+    /// <summary>
+    /// Writes application metadata the way it is saved to the repository.
+    /// </summary>
+    /// <param name="applicationMetadata">The application metadata to write.</param>
+    public static string SerializeApplicationMetadata(ApplicationMetadata applicationMetadata)
+    {
+        return JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
     }
 
     public async Task<ServiceConfiguration> GetServiceConfiguration(CancellationToken cancellationToken = default)
@@ -176,7 +190,7 @@ public class AltinnAppGitRepository : AltinnGitRepository
     /// <param name="applicationMetadata">The updated application metadata to persist.</param>
     public async Task SaveApplicationMetadata(ApplicationMetadata applicationMetadata)
     {
-        string metadataAsJson = JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);
+        string metadataAsJson = SerializeApplicationMetadata(applicationMetadata);
         string appMetadataRelativeFilePath = Path.Combine(ConfigFolderPath, AppMetadataFilename);
         await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
     }
