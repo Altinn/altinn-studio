@@ -53,7 +53,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - waits for an earlier call that has not started yet, or that made the same choice on the same version
 - Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `Filter` gets instead, which reads as the app.
 - Breaking: `PUT .../process/next` now records the `Process.GenerateChangeEvent` and `Process.End` spans in its own trace, not the workflow callback's, even if the transition is not carried out. Update dashboards, alerts and queries that use them or count `Process.End` as ended processes. ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
-- Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow's condition holds. The app does not start: ([#21105](https://github.com/Altinn/altinn-studio/pull/21105))
+- Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow is valid. The app does not start: ([#21105](https://github.com/Altinn/altinn-studio/pull/21105))
     - if the default has a condition, which the app never evaluates; remove it
     - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
 
