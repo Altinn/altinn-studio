@@ -1,0 +1,20 @@
+# The assistant starts one Job for each run, follows its pod until the pod is Ready, and deletes the Job after the run.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: assistant-runner-launcher
+  namespace: assistant-runners
+rules:
+  # Read the pod spec of the runner Jobs.
+  - apiGroups: [""]
+    resources: [podtemplates]
+    resourceNames: [assistant-runner]
+    verbs: [get]
+  # Start, follow and remove a run. The policy in admission-policy.yaml limits what a created Job can contain.
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [create, get, list, watch, delete]
+  # Find the pod of a Job, its phase and its IP address.
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch]

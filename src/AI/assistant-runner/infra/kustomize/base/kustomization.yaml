@@ -1,0 +1,44 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# Every namespaced object sets its namespace, and the Flux Kustomization has no targetNamespace. A namespace transform
+# would add a namespace to the cluster-scoped admission policy, because kustomize does not know its scope.
+resources:
+  - namespace.yaml
+  - podtemplate.yaml
+  - role.yaml
+  - rolebinding.yaml
+  - admission-policy.yaml
+  - resourcequota.yaml
+  - networkpolicy.yaml
+replacements:
+  - source:
+      kind: PodTemplate
+      name: assistant-runner
+      fieldPath: metadata.annotations.[altinn.studio/image]
+    targets:
+      - select:
+          kind: PodTemplate
+          name: assistant-runner
+        fieldPaths:
+          - template.spec.containers.[name=job-host].image
+  - source:
+      kind: PodTemplate
+      name: assistant-runner
+      fieldPath: metadata.annotations.[altinn.studio/prepared-image]
+    targets:
+      - select:
+          kind: PodTemplate
+          name: assistant-runner
+        fieldPaths:
+          - template.spec.initContainers.[name=prepare-image].image
+  - source:
+      kind: PodTemplate
+      name: assistant-runner
+      fieldPath: metadata.annotations.[altinn.studio/guest-image]
+    targets:
+      - select:
+          kind: PodTemplate
+          name: assistant-runner
+        fieldPaths:
+          - template.spec.initContainers.[name=prepare-image].env.[name=SANDBOX_IMAGE].value
+          - template.spec.containers.[name=job-host].env.[name=SANDBOX_IMAGE].value

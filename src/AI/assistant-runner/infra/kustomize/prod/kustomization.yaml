@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+# Four runs at the same time. Tune this after measuring how the assistant uses the runner.
+patches:
+  - target:
+      kind: ResourceQuota
+      name: assistant-runners
+    patch: |-
+      - op: replace
+        path: /spec/hard
+        value:
+          requests.devices.altinn.studio/kvm: "4"
+          requests.cpu: "12"
+          requests.memory: 22Gi
+          count/jobs.batch: "20"

@@ -1,0 +1,13 @@
+# Caps the runs at the same time, so that the assistant cannot take the sandbox nodes from CI. One run requests one KVM
+# slot, 3 CPU and 5632Mi memory. A finished Job counts until the assistant or its TTL removes it.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: assistant-runners
+  namespace: assistant-runners
+spec:
+  hard:
+    requests.devices.altinn.studio/kvm: "2"
+    requests.cpu: "6"
+    requests.memory: 11Gi
+    count/jobs.batch: "10"

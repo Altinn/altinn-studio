@@ -22,6 +22,8 @@ says what CI runs with one.
 - Do not give the job host, the guest image or a VM a secret or a token. The runner is safe because it has nothing
   to steal.
 - The job host serves one job request and then exits. Do not add a queue or a second job; each run gets a new Job.
+- Change the runner pod only in `infra/kustomize/base/podtemplate.yaml`. The assistant copies its pod spec into each
+  Job, and the admission policy refuses a Job with any other pod spec.
 - Use the shared [`sandbox-host`](../../ci/sandbox-host/README.md) crate for the Provider and the image
   checks.
 - Each Dockerfile that builds a workspace crate copies every workspace member. Add a new member to
