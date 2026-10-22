@@ -9,7 +9,7 @@ help: ## Show this help message
 
 build: ## Build the assistant runner
 	@echo "Building assistant runner..."
-	@cargo build -p assistant-runner -p sandbox-host --all-targets --locked
+	@cargo build -p assistant-runner --all-targets --locked
 	@echo "✓ Build successful"
 
 clean: ## Clean the build artifacts
@@ -19,22 +19,22 @@ clean: ## Clean the build artifacts
 
 fmt: ## Format Rust code
 	@echo "Formatting assistant runner..."
-	@cargo fmt -p assistant-runner -p sandbox-host
+	@cargo fmt -p assistant-runner
 	@echo "✓ Code formatted"
 
 lint: ## Run strict Clippy analysis
 	@echo "Linting assistant runner..."
-	@cargo clippy -p assistant-runner -p sandbox-host --all-targets --all-features --locked
+	@cargo clippy -p assistant-runner --all-targets --all-features --locked
 	@echo "✓ Lint passed"
 
 lint-fix: ## Apply safe Clippy fixes
 	@echo "Applying Clippy fixes to assistant runner..."
-	@cargo clippy -p assistant-runner -p sandbox-host --all-targets --all-features --fix --allow-dirty --locked
+	@cargo clippy -p assistant-runner --all-targets --all-features --fix --allow-dirty --locked
 	@echo "✓ Lint fixes applied"
 
 test: ## Run all tests
 	@echo "Testing assistant runner..."
-	@cargo test -p assistant-runner -p sandbox-host --all-targets --locked
+	@cargo test -p assistant-runner --all-targets --locked
 	@echo "✓ Tests passed"
 
 deps: ## Print the dependency graph
@@ -43,7 +43,7 @@ deps: ## Print the dependency graph
 deps-check: ## Check for unused direct dependencies and the Microsandbox runtime pin
 	@cargo machete --with-metadata .
 	@git diff --exit-code -- ':(top)Cargo.lock'
-	@../../common/rust/sandbox-host/check-runtime-pin.sh Dockerfile
+	@../../ci/sandbox-host/check-runtime-pin.sh Dockerfile
 
 check: fmt build lint test deps-check ## Run all local checks
 	@echo "✓ All checks passed"
