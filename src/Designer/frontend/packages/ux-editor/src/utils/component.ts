@@ -58,3 +58,33 @@ export const setComponentProperty = <T extends FormItem, K extends keyof T>(
 export const isComponentDeprecated = (type: ComponentType) => {
   return getComponentDefinition(type)?.metadata.lifecycle?.status === 'deprecated';
 };
+
+type NumberBounds = { minimum?: number; maximum?: number };
+
+/**
+ * Gets the bounds that the other attachment count sets for the given property,
+ * so that the minimum number of attachments cannot be set above the maximum.
+ * @param component The component the property belongs to.
+ * @param propertyKey The property being edited.
+ * @returns The bounds for the property, or an empty object if it has none.
+ */
+export const getNumberOfAttachmentsBounds = (
+  component: FormItem,
+  propertyKey: string,
+): NumberBounds => {
+  if (
+    propertyKey === 'minNumberOfAttachments' &&
+    'maxNumberOfAttachments' in component &&
+    typeof component.maxNumberOfAttachments === 'number'
+  ) {
+    return { maximum: component.maxNumberOfAttachments };
+  }
+  if (
+    propertyKey === 'maxNumberOfAttachments' &&
+    'minNumberOfAttachments' in component &&
+    typeof component.minNumberOfAttachments === 'number'
+  ) {
+    return { minimum: component.minNumberOfAttachments };
+  }
+  return {};
+};

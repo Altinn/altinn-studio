@@ -5,7 +5,13 @@ import { containerComponentTypes, isContainerComponentType } from '../data/conta
 import { componentPresetConfigs } from '../data/formItemConfig';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormComponent } from '../types/FormComponent';
-import { generateFormItem, isComponentDeprecated, setComponentProperty } from './component';
+import { componentMocks } from '../testing/componentMocks';
+import {
+  generateFormItem,
+  getNumberOfAttachmentsBounds,
+  isComponentDeprecated,
+  setComponentProperty,
+} from './component';
 
 describe('generateFormItem', () => {
   it.each(
@@ -64,5 +70,49 @@ describe('isComponentDeprecated', () => {
     expect(isComponentDeprecated(ComponentType.Summary)).toBe(true);
     expect(isComponentDeprecated(ComponentType.PrintButton)).toBe(true);
     expect(isComponentDeprecated(ComponentType.Input)).toBe(false);
+  });
+});
+
+describe('getNumberOfAttachmentsBounds', () => {
+  it.each([
+    {
+      propertyKey: 'minNumberOfAttachments',
+      numberOfAttachments: { minNumberOfAttachments: 0, maxNumberOfAttachments: 3 },
+      expected: { maximum: 3 },
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
+      expected: { minimum: 2 },
+    },
+    {
+      propertyKey: 'minNumberOfAttachments',
+      numberOfAttachments: { maxNumberOfAttachments: undefined },
+      expected: {},
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      numberOfAttachments: { minNumberOfAttachments: undefined },
+      expected: {},
+    },
+    {
+      propertyKey: 'maxFileSizeInMB',
+      numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
+      expected: {},
+    },
+  ])(
+    'returns $expected for $propertyKey when the attachment counts are $numberOfAttachments',
+    ({ propertyKey, numberOfAttachments, expected }) => {
+      const component = { ...componentMocks[ComponentType.FileUpload], ...numberOfAttachments };
+      expect(getNumberOfAttachmentsBounds(component, propertyKey)).toEqual(expected);
+    },
+  );
+
+  it('returns no bounds when the other attachment count is an expression', () => {
+    const component = {
+      ...componentMocks[ComponentType.FileUpload],
+      maxNumberOfAttachments: ['if', true, 3, 1],
+    } satisfies FormComponent<ComponentType.FileUpload>;
+    expect(getNumberOfAttachmentsBounds(component, 'minNumberOfAttachments')).toEqual({});
   });
 });

@@ -1,6 +1,9 @@
 import type { IGenericEditComponent } from '../componentConfig';
 import { FormField } from '../../FormField';
-import { setComponentProperty } from '@altinn/ux-editor-v4/utils/component';
+import {
+  getNumberOfAttachmentsBounds,
+  setComponentProperty,
+} from '@altinn/ux-editor-v4/utils/component';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
@@ -48,6 +51,8 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
     );
   };
 
+  const { minimum, maximum } = getNumberOfAttachmentsBounds(component, String(propertyKey));
+
   const schemaPropertyPath = component.propertyPath
     ? `${component.propertyPath}/properties/${String(propertyKey)}`
     : undefined;
@@ -59,6 +64,15 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={schemaPropertyPath}
+      customValidationRules={(value: number) => {
+        if (minimum !== undefined && value < minimum) return 'min';
+        if (maximum !== undefined && value > maximum) return 'max';
+        return '';
+      }}
+      customValidationMessages={(errorCode) => {
+        if (errorCode === 'min') return t('validation_errors.min', { 0: minimum });
+        if (errorCode === 'max') return t('validation_errors.max', { 0: maximum });
+      }}
       helpText={componentPropertyHelpText(String(propertyKey))}
       renderField={({ fieldProps }) =>
         enumValues ? (

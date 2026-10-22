@@ -9,12 +9,14 @@ import {
   propertyTypeMatcher,
   getSupportedPropertyKeysForPropertyType,
   isComponentDeprecated,
+  getNumberOfAttachmentsBounds,
 } from './component';
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { containerComponentTypes } from '../data/containerComponentTypes';
 import { formItemConfigs } from '../data/formItemConfig';
+import { componentMocks } from '../testing/componentMocks';
 
 describe('Component utils', () => {
   describe('generateFormItem', () => {
@@ -342,4 +344,40 @@ describe('isComponentDeprecated', () => {
   it('should return false if component is not deprecated', () => {
     expect(isComponentDeprecated(ComponentType.Input)).toBe(false);
   });
+});
+
+describe('getNumberOfAttachmentsBounds', () => {
+  it.each([
+    {
+      propertyKey: 'minNumberOfAttachments',
+      numberOfAttachments: { minNumberOfAttachments: 0, maxNumberOfAttachments: 3 },
+      expected: { maximum: 3 },
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
+      expected: { minimum: 2 },
+    },
+    {
+      propertyKey: 'minNumberOfAttachments',
+      numberOfAttachments: { maxNumberOfAttachments: undefined },
+      expected: {},
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      numberOfAttachments: { minNumberOfAttachments: undefined },
+      expected: {},
+    },
+    {
+      propertyKey: 'maxFileSizeInMB',
+      numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
+      expected: {},
+    },
+  ])(
+    'returns $expected for $propertyKey when the attachment counts are $numberOfAttachments',
+    ({ propertyKey, numberOfAttachments, expected }) => {
+      const component = { ...componentMocks[ComponentType.FileUpload], ...numberOfAttachments };
+      expect(getNumberOfAttachmentsBounds(component, propertyKey)).toEqual(expected);
+    },
+  );
 });

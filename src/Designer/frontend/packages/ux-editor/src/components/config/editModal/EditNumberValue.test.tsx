@@ -7,6 +7,8 @@ import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../../testing/appContextMock';
 import { useMutation } from '@tanstack/react-query';
+import { componentMocks } from '../../../testing/componentMocks';
+import type { FormItem } from '../../../types/FormItem';
 import type { PropertyDefinition } from '@app/layout-contract';
 
 const renderEditNumberValue = async ({
@@ -160,3 +162,99 @@ describe('EditNumberValue', () => {
     });
   });
 });
+
+describe('EditNumberValue for the number of attachments', () => {
+  it.each([
+    {
+      propertyKey: 'minNumberOfAttachments' as const,
+      value: '2',
+      otherKey: 'maxNumberOfAttachments',
+      otherValue: 1,
+      message: textMock('validation_errors.max', { 0: 1 }),
+    },
+    {
+      propertyKey: 'minNumberOfAttachments' as const,
+      value: '1',
+      otherKey: 'maxNumberOfAttachments',
+      otherValue: 0,
+      message: textMock('validation_errors.max', { 0: 0 }),
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments' as const,
+      value: '1',
+      otherKey: 'minNumberOfAttachments',
+      otherValue: 2,
+      message: textMock('validation_errors.min', { 0: 2 }),
+    },
+  ])(
+    'shows an error and does not save $propertyKey $value when $otherKey is $otherValue',
+    async ({ propertyKey, value, otherKey, otherValue, message }) => {
+      const user = userEvent.setup();
+      const handleComponentChange = vi.fn();
+      await renderNumberOfAttachments({
+        propertyKey,
+        numberOfAttachments: { [propertyKey]: undefined, [otherKey]: otherValue },
+        handleComponentChange,
+      });
+
+      await user.type(screen.getByRole('textbox'), value);
+
+      expect(screen.getByText(message)).toBeInTheDocument();
+      expect(handleComponentChange).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    {
+      propertyKey: 'minNumberOfAttachments' as const,
+      value: '1',
+      otherKey: 'maxNumberOfAttachments',
+      otherValue: 1,
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments' as const,
+      value: '2',
+      otherKey: 'minNumberOfAttachments',
+      otherValue: 2,
+    },
+  ])(
+    'saves $propertyKey $value when $otherKey is $otherValue',
+    async ({ propertyKey, value, otherKey, otherValue }) => {
+      const user = userEvent.setup();
+      const handleComponentChange = vi.fn();
+      await renderNumberOfAttachments({
+        propertyKey,
+        numberOfAttachments: { [propertyKey]: undefined, [otherKey]: otherValue },
+        handleComponentChange,
+      });
+
+      await user.type(screen.getByRole('textbox'), value);
+
+      expect(handleComponentChange).toHaveBeenCalledWith(
+        expect.objectContaining({ [propertyKey]: Number(value) }),
+        expect.anything(),
+      );
+    },
+  );
+});
+
+type RenderNumberOfAttachmentsProps = {
+  propertyKey: 'minNumberOfAttachments' | 'maxNumberOfAttachments';
+  numberOfAttachments: Partial<FormItem<ComponentType.FileUpload>>;
+  handleComponentChange: () => void;
+};
+
+const renderNumberOfAttachments = async ({
+  propertyKey,
+  numberOfAttachments,
+  handleComponentChange,
+}: RenderNumberOfAttachmentsProps) => {
+  return renderWithProviders(
+    <EditNumberValue
+      handleComponentChange={handleComponentChange}
+      propertyKey={propertyKey}
+      definition={{ type: 'number', required: false }}
+      component={{ ...componentMocks[ComponentType.FileUpload], ...numberOfAttachments }}
+    />,
+  );
+};
