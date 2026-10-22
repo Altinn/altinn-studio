@@ -20,6 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. Localtest checks requests against selected rules of the real API, with the same error codes. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
 - `studioctl env up --monitoring` shows the workflow engine's traces, metrics and logs, as service `workflow-engine-app`, and adds a Workflow Engine dashboard to Grafana.
 - `studioctl doctor` shows how much disk space studioctl uses for logs, localtest data and the studioctl server, and in total. `studioctl env reset` deletes the localtest data. ([#21447](https://github.com/Altinn/altinn-studio/pull/21447))
+- `studioctl app upgrade v9` removes code in `ProcessDataRead` that unlocks, writes and locks the form being read, which v9 refuses while it creates the payment receipt. Changes the method makes to the form are still shown, but no longer saved. ([#21480](https://github.com/Altinn/altinn-studio/pull/21480))
 
 ### Changed
 
