@@ -121,6 +121,33 @@ describe('ReleaseContainer', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('informs the user that the branch must be shared when it is removed from the remote repository before a build is started', async () => {
+    const user = userEvent.setup();
+    const createRelease = vi.fn();
+    renderReleaseContainer({
+      getRepoStatus: vi.fn().mockImplementation(() => Promise.resolve(repoStatus)),
+      getCurrentBranch: getCurrentBranchMock(featureBranchName),
+      getBranchStatus: vi
+        .fn()
+        .mockResolvedValueOnce(createBranchStatus(featureCommitId))
+        .mockResolvedValueOnce(null),
+      createRelease,
+    });
+
+    await user.type(
+      await screen.findByLabelText(textMock('app_create_release.release_version_number')),
+      'v1',
+    );
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
+    );
+
+    expect(
+      await screen.findByText(textMock('app_create_release.branch_not_shared')),
+    ).toBeInTheDocument();
+    expect(createRelease).not.toHaveBeenCalled();
+  });
+
   it('renders an error instead of a spinner when the current branch cannot be fetched', async () => {
     const getBranchStatus = vi.fn();
     renderReleaseContainer({

@@ -131,6 +131,50 @@ public class GiteaClientTest
     }
 
     [Fact]
+    public async Task GetBranch_Successful_BranchReturned()
+    {
+        GiteaClient sut = GetServiceForTest(
+            CreateHttpClient(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(
+                        JsonSerializer.Serialize(new Branch { Name = "feature/new-layout" }),
+                        Encoding.UTF8,
+                        "application/json"
+                    ),
+                }
+            )
+        );
+
+        Branch actual = await sut.GetBranch("ttd", "apps-test-2021", "feature/new-layout");
+
+        Assert.Equal("feature/new-layout", actual.Name);
+    }
+
+    [Fact]
+    public async Task GetBranch_NotFoundFromGitea_ReturnsNull()
+    {
+        GiteaClient sut = GetServiceForTest(
+            CreateHttpClient(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound })
+        );
+
+        Branch actual = await sut.GetBranch("ttd", "apps-test-2021", "not-shared");
+
+        Assert.Null(actual);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    public async Task GetBranch_OtherErrorFromGitea_ThrowsException(HttpStatusCode statusCode)
+    {
+        GiteaClient sut = GetServiceForTest(CreateHttpClient(new HttpResponseMessage { StatusCode = statusCode }));
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => sut.GetBranch("ttd", "apps-test-2021", "master"));
+    }
+
+    [Fact]
     public async Task Search_Successful_Repo_Returned_One_Page()
     {
         // Arrange
@@ -1098,6 +1142,21 @@ public class GiteaClientTest
         CodeListSource source = new(Name: "test-data-files");
         CodeList codeList = new(Source: source, Codes: listOfCodes, TagNames: ["test-data-category"]);
         return codeList;
+    }
+
+    private static HttpClient CreateHttpClient(HttpResponseMessage response)
+    {
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(response);
+
+        return new HttpClient(handlerMock.Object) { BaseAddress = new Uri("http://studio.localhost/repos/api/v1/") };
     }
 
     private static GiteaClient GetServiceForTest(

@@ -85,7 +85,8 @@ public interface IGiteaClient
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branch">Name of branch</param>
-    /// <returns>The branch info</returns>
+    /// <returns>The branch info, or null if the branch does not exist in Gitea.</returns>
+    /// <exception cref="System.Net.Http.HttpRequestException">Gitea returned an error other than not found.</exception>
     Task<Branch> GetBranch(string org, string repository, string branch);
 
     /// <summary>
