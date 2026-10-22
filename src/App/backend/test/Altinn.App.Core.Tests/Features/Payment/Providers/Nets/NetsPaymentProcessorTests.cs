@@ -284,6 +284,131 @@ public class NetsPaymentProcessorTests
         _fixture.VerifyMocks();
     }
 
+    [Theory]
+    [InlineData(null, null, null, false, PaymentStatus.Created)]
+    [InlineData(0, 0, 0, false, PaymentStatus.Created)]
+    [InlineData(10000, 0, 0, false, PaymentStatus.Authorized)]
+    [InlineData(10000, 0, 5000, false, PaymentStatus.Authorized)]
+    [InlineData(10000, 0, 10000, false, PaymentStatus.Cancelled)]
+    [InlineData(10000, 10000, 0, false, PaymentStatus.Paid)]
+    [InlineData(null, null, null, true, PaymentStatus.Cancelled)]
+    public async Task GetPaymentStatus_MapsTheNetsPaymentToAStatus(
+        int? reservedAmount,
+        int? chargedAmount,
+        int? cancelledAmount,
+        bool terminated,
+        PaymentStatus expectedStatus
+    )
+    {
+        // Arrange
+        Instance instance = CreateInstance();
+        const string paymentReference = "12345";
+
+        _fixture.FakeHttpMessageHandler.RegisterJsonEndpoint(
+            HttpMethod.Get,
+            $"https://api.nets.eu/v1/payments/{paymentReference}",
+            new NetsPaymentFull
+            {
+                Payment = new NetsPayment
+                {
+                    Summary = new NetsSummary
+                    {
+                        ReservedAmount = reservedAmount,
+                        ChargedAmount = chargedAmount,
+                        CancelledAmount = cancelledAmount,
+                    },
+                    Terminated = terminated ? "2026-10-22T08:00:00.0000+00:00" : null,
+                    Checkout = new() { Url = "https://redirect-url.com", CancelUrl = "https://cancel-url.com" },
+                },
+            }
+        );
+
+        // Act
+        await using var serviceProvider = _fixture.BuildServiceProvider();
+        var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
+        (PaymentStatus result, _) = await processor.GetPaymentStatus(instance, paymentReference, 100, null);
+
+        // Assert
+        Assert.Equal(expectedStatus, result);
+    }
+
+    [Fact]
+    public async Task StartPayment_SubscribesToCheckoutAndChargeWebhooks()
+    {
+        // Arrange
+        Instance instance = CreateInstance();
+        var orderDetails = new OrderDetails
+        {
+            PaymentProcessorId = "paymentProcessorId",
+            Currency = "NOK",
+            OrderLines = [],
+            Receiver = new PaymentReceiver(),
+        };
+        _fixture.FakeHttpMessageHandler.RegisterJsonEndpoint(
+            HttpMethod.Post,
+            "https://api.nets.eu/v1/payments",
+            new NetsCreatePaymentSuccess { HostedPaymentPageUrl = "https://payment-url.com", PaymentId = "12345" }
+        );
+
+        // Act
+        await using var serviceProvider = _fixture.BuildServiceProvider();
+        var processor = serviceProvider.GetRequiredService<NetsPaymentProcessor>();
+        await processor.StartPayment(instance, orderDetails, LanguageConst.Nb);
+
+        // Assert
+        var request = Assert.Single(_fixture.FakeHttpMessageHandler.RequestResponses);
+        Assert.NotNull(request.RequestContent);
+        var capturedNetsCreatePayment = JsonSerializer.Deserialize<NetsCreatePayment>(
+            request.RequestContent,
+            _jsonSerializerOptions
+        );
+        List<NetsWebHook> webHooks = capturedNetsCreatePayment?.Notifications?.WebHooks ?? [];
+        Assert.Equal(
+            ["payment.checkout.completed", "payment.charge.created.v2"],
+            webHooks.Select(webHook => webHook.EventName)
+        );
+        Assert.All(
+            webHooks,
+            webHook =>
+            {
+                Assert.EndsWith($"/instances/{instance.Id}/payment/nets-webhook-listener", webHook.Url);
+                Assert.False(string.IsNullOrEmpty(webHook.Authorization));
+            }
+        );
+    }
+
+    [Fact]
+    public void ChargeCreatedWebhookPayload_DeserializesForTheListener()
+    {
+        // Fields and types from the payment.charge.created.v2 schema in Nets' payment webhooks reference. The
+        // listener reads only data.paymentId, and asks Nets for the status.
+        const string payload = """
+            {
+              "id": "01ba0a0a7b2b4d6f9e2b2d0d6c4f7e8a",
+              "timestamp": "2026-10-22T08:00:00.0000+00:00",
+              "merchantNumber": 100242833,
+              "merchantId": 0,
+              "event": "payment.charge.created.v2",
+              "data": {
+                "chargeId": "01d4000064f9a3b2c1e8d7f6a5b4c3d2",
+                "paymentMethod": "Visa",
+                "paymentType": "CARD",
+                "amount": { "amount": 10000, "currency": "NOK" },
+                "paymentId": "025400006091b1ef6937598058c4e487"
+              }
+            }
+            """;
+
+        NetsCompleteWebhookPayload? webhookPayload = JsonSerializer.Deserialize<NetsCompleteWebhookPayload>(
+            payload,
+            _jsonSerializerOptions
+        );
+
+        Assert.NotNull(webhookPayload);
+        Assert.Equal("payment.charge.created.v2", webhookPayload.EventName);
+        Assert.Equal("025400006091b1ef6937598058c4e487", webhookPayload.Data.PaymentId);
+    }
+
     [Fact]
     public async Task GetPaymentStatus_WithInvalidPaymentReference_ThrowsPaymentException()
     {

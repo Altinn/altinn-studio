@@ -1,4 +1,3 @@
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -10,17 +9,17 @@ using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Fixtures;
-using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit.Abstractions;
@@ -76,6 +75,7 @@ public class PaymentControllerTests
         _services.OutputHelper = outputHelper;
         // Ensure common mocks that are dependencies of payment controller/service is registered
         _services.Mock<IProcessReader>();
+        _services.Mock<IProcessEngine>();
 
         // Register tested services as singletons
         _services.Services.AddSingleton<IPaymentService, PaymentService>();
@@ -324,9 +324,11 @@ public class PaymentControllerTests
     }
 
     [Fact]
-    public async Task PaymentWebhookListener_NoCurrentTask_ReturnsBadRequest()
+    public async Task PaymentWebhookListener_ProcessHasEnded_ReturnsOk()
     {
+        // Nets' other webhook for the payment, after the first one moved the process on from its last task.
         _instance.Process.CurrentTask = null;
+        _instance.Process.Ended = DateTime.UtcNow;
         var callbackKey = AddPaymentsCallbackCode("validkey");
 
         await using var sp = _services.BuildServiceProvider();
@@ -341,14 +343,16 @@ public class PaymentControllerTests
             {
                 Id = Guid.NewGuid().ToString(),
                 Data = new() { PaymentId = Guid.NewGuid().ToString() },
-                EventName = "PaymentCreated",
+                EventName = "payment.charge.created.v2",
                 Timestamp = DateTime.UtcNow,
                 MerchantId = 222,
             },
             callbackKey,
             CancellationToken.None
         );
-        Assert.IsType<BadRequestObjectResult>(result);
+        // Anything else makes Nets call again for days.
+        var response = Assert.IsType<OkObjectResult>(result);
+        Assert.Contains("has ended", Assert.IsType<ProblemDetails>(response.Value).Detail);
 
         _services.VerifyMocks();
     }
@@ -438,13 +442,20 @@ public class PaymentControllerTests
             )
         );
 
-        // The callback currently triggers a process advance, so we need to mock that endpoint
-        // In the future we might want to call the process engine directly instead of via HTTP
-        _services.FakeHttpMessageHandler.RegisterJsonEndpoint(
-            HttpMethod.Put,
-            $"/{_instance.AppId}/instances/{_instance.Id}/process/next",
-            new AppProcessState()
-        );
+        // A paid payment moves the process on in the app itself, as the service owner
+        _services
+            .Mock<IProcessEngine>()
+            .Setup(engine =>
+                engine.EnqueueNextForApp(
+                    It.Is<Instance>(instance => instance.Id == _instance.Id),
+                    It.IsAny<StorageVersionMetadata>(),
+                    "confirm",
+                    It.Is<Actor>(actor => actor.OrgId != null && actor.UserId == null),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() })
+            .Verifiable(Times.Once());
 
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
@@ -509,446 +520,11 @@ public class PaymentControllerTests
     }
 
     [Fact]
-    public async Task GetPaymentInformation_LegacyConflictAndTaskMoved_FallsBackToReadOnly()
-    {
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
-        );
-
-        // Replace the real PaymentService with a mock that simulates the race: the persisting call throws,
-        // and at the same moment the underlying instance's process advances past the requested task.
-        _services.Services.RemoveAll<IPaymentService>();
-        var fallbackResult = new PaymentInformation
-        {
-            TaskId = "currentTask",
-            Status = PaymentStatus.Paid,
-            OrderDetails = _orderDetails,
-        };
-
-        _services
-            .Mock<IPaymentService>()
-            .Setup(s =>
-                s.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    It.IsAny<string?>()
-                )
-            )
-            .Callback(() =>
-            {
-                // Simulate a webhook callback advancing the process during our request.
-                _instance.Process.CurrentTask.ElementId = "Task_next";
-            })
-            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.Conflict, "409 - Conflict"));
-
-        _services
-            .Mock<IPaymentService>()
-            .Setup(s =>
-                s.CheckPaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    "currentTask",
-                    It.IsAny<string?>()
-                )
-            )
-            .ReturnsAsync(fallbackResult);
-
-        await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-
-        var result = await controller.GetPaymentInformation(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            CancellationToken.None
-        );
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        var info = Assert.IsType<PaymentInformation>(ok.Value);
-        Assert.Equal(PaymentStatus.Paid, info.Status);
-
-        Assert.Equal(2, InstanceGetRequestCount());
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckPaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        "currentTask",
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task GetPaymentInformation_GenericFailureAndTaskMoved_PropagatesWithoutRefetchOrReadOnlyFallback()
-    {
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
-        );
-
-        _services.Services.RemoveAll<IPaymentService>();
-        var processorException = new InvalidOperationException("unrelated processor failure");
-        _services
-            .Mock<IPaymentService>()
-            .Setup(s =>
-                s.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    It.IsAny<string?>()
-                )
-            )
-            .Callback(() => _instance.Process.CurrentTask.ElementId = "Task_next")
-            .ThrowsAsync(processorException);
-
-        await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-
-        InvalidOperationException actual = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid, CancellationToken.None)
-        );
-
-        Assert.Same(processorException, actual);
-        Assert.Equal(1, InstanceGetRequestCount());
-        Assert.All(_services.Storage.RequestsResponses, request => Assert.Equal(HttpMethod.Get, request.RequestMethod));
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckPaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Never
-            );
-        _services.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task GetPaymentInformation_LegacyConflictAndRefreshedProcessing_FallsBackToReadOnly()
-    {
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
-        );
-
-        _services.Services.RemoveAll<IPaymentService>();
-        var fallbackResult = new PaymentInformation
-        {
-            TaskId = "currentTask",
-            Status = PaymentStatus.Paid,
-            OrderDetails = _orderDetails,
-        };
-        _services
-            .Mock<IPaymentService>()
-            .Setup(service =>
-                service.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    It.IsAny<string?>()
-                )
-            )
-            .Callback(() => _instance.Process.Status = ProcessStatus.Processing)
-            .ThrowsAsync(new PlatformHttpException(HttpStatusCode.Conflict, "409 - Conflict"));
-        _services
-            .Mock<IPaymentService>()
-            .Setup(service =>
-                service.CheckPaymentStatus(
-                    It.Is<Instance>(instance => instance.Process.Status == ProcessStatus.Processing),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    "currentTask",
-                    It.IsAny<string?>()
-                )
-            )
-            .ReturnsAsync(fallbackResult);
-
-        await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-
-        IActionResult result = await controller.GetPaymentInformation(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            CancellationToken.None
-        );
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        Assert.Same(fallbackResult, ok.Value);
-        Assert.Equal(2, InstanceGetRequestCount());
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckPaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        "currentTask",
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task GetPaymentInformation_PersistFailsWithLockedDataElement_FallsBackToReadOnly()
-    {
-        // Reproduces the production race: a concurrent webhook advanced the process and locked the payment
-        // data element, so the persisting write fails with 409/Conflict — yet this request still reads the
-        // payment task as current (the locked state becomes visible before the current-task change does).
-        // The endpoint must degrade to a read-only result, not surface a 500. The current task is left
-        // unchanged here on purpose, so the refreshed locked state — not a moved task or response text —
-        // proves the benign race.
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
-        );
-
-        _services.Services.RemoveAll<IPaymentService>();
-
-        _services
-            .Mock<IPaymentService>()
-            .Setup(s =>
-                s.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    It.IsAny<string?>()
-                )
-            )
-            .Callback(() =>
-            {
-                _instance.Data =
-                [
-                    new DataElement
-                    {
-                        Id = "00000000-0000-0000-0000-000000000abc",
-                        DataType = "paymentDataType",
-                        Locked = true,
-                    },
-                ];
-            })
-            .ThrowsAsync(
-                new PlatformHttpException(
-                    HttpStatusCode.Conflict,
-                    "409 - Conflict - data element is locked and cannot be updated"
-                )
-            );
-
-        var fallbackResult = new PaymentInformation
-        {
-            TaskId = "currentTask",
-            Status = PaymentStatus.Paid,
-            OrderDetails = _orderDetails,
-        };
-        _services
-            .Mock<IPaymentService>()
-            .Setup(s =>
-                s.CheckPaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    "currentTask",
-                    It.IsAny<string?>()
-                )
-            )
-            .ReturnsAsync(fallbackResult);
-
-        await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-
-        var result = await controller.GetPaymentInformation(
-            "org",
-            "app",
-            PartyId,
-            _instanceGuid,
-            CancellationToken.None
-        );
-
-        var ok = Assert.IsType<OkObjectResult>(result);
-        var info = Assert.IsType<PaymentInformation>(ok.Value);
-        Assert.Equal(PaymentStatus.Paid, info.Status);
-
-        Assert.Equal(2, InstanceGetRequestCount());
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckPaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        "currentTask",
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services.VerifyMocks();
-    }
-
-    [Fact]
-    public async Task GetPaymentInformation_LegacyConflictWithIdleCurrentTaskAndUnlockedData_RethrowsConflict()
-    {
-        SetupAltinnTaskExtensionMock(
-            "currentTask",
-            new AltinnTaskExtension
-            {
-                PaymentConfiguration = new()
-                {
-                    PaymentDataType = "paymentDataType",
-                    PaymentReceiptPdfDataType = "paymentPdfDataType",
-                },
-            },
-            Times.Once()
-        );
-
-        _services.Services.RemoveAll<IPaymentService>();
-        var storageException = new PlatformHttpException(HttpStatusCode.Conflict, "409 - Conflict");
-        _services
-            .Mock<IPaymentService>()
-            .Setup(service =>
-                service.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
-                    It.IsAny<ValidAltinnPaymentConfiguration>(),
-                    It.IsAny<string?>()
-                )
-            )
-            .Callback(() =>
-            {
-                _instance.Data =
-                [
-                    new DataElement
-                    {
-                        Id = "00000000-0000-0000-0000-000000000abc",
-                        DataType = "paymentDataType",
-                        Locked = false,
-                    },
-                ];
-            })
-            .ThrowsAsync(storageException);
-
-        await using var sp = _services.BuildServiceProvider();
-        var controller = sp.GetRequiredService<PaymentController>();
-
-        PlatformHttpException actual = await Assert.ThrowsAsync<PlatformHttpException>(() =>
-            controller.GetPaymentInformation("org", "app", PartyId, _instanceGuid, CancellationToken.None)
-        );
-
-        Assert.Same(storageException, actual);
-        Assert.Equal(2, InstanceGetRequestCount());
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Once
-            );
-        _services
-            .Mock<IPaymentService>()
-            .Verify(
-                service =>
-                    service.CheckPaymentStatus(
-                        It.IsAny<Instance>(),
-                        It.IsAny<ValidAltinnPaymentConfiguration>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string?>()
-                    ),
-                Times.Never
-            );
-        _services.VerifyMocks();
-    }
-
-    [Fact]
     public void Constructor_NetsWebhookSecretProviderNotRegistered_DoesNotThrow()
     {
         var services = new MockedServiceCollection();
         services.Mock<IProcessReader>();
+        services.Mock<IProcessEngine>();
         services.Services.AddSingleton<IPaymentService, PaymentService>();
         services.Services.AddSingleton<PaymentController>();
         // Deliberately not registering INetsWebhookSecretProvider
@@ -966,6 +542,7 @@ public class PaymentControllerTests
     {
         var services = new MockedServiceCollection();
         services.Mock<IProcessReader>();
+        services.Mock<IProcessEngine>();
         services.Services.AddSingleton<IPaymentService, PaymentService>();
         services.Services.AddSingleton<PaymentController>();
         // Deliberately not registering INetsWebhookSecretProvider
@@ -1023,14 +600,5 @@ public class PaymentControllerTests
             )
             .ReturnsAsync(orderDetails)
             .Verifiable(times);
-    }
-
-    private int InstanceGetRequestCount()
-    {
-        string instancePath = $"/instances/{PartyId}/{_instanceGuid}";
-        return _services.Storage.RequestsResponses.Count(request =>
-            request.RequestMethod == HttpMethod.Get
-            && request.RequestUrl?.AbsolutePath.EndsWith(instancePath, StringComparison.Ordinal) is true
-        );
     }
 }

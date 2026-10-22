@@ -24,4 +24,10 @@ public class PaymentInformation
     /// Contains details about the payment, set by the payment processor implementation.
     /// </summary>
     public PaymentDetails? PaymentDetails { get; set; }
+
+    /// <summary>
+    /// The language the user paid in, if known. When the payment processor's webhook moves the process on, it does so
+    /// in this language, so the payment receipt is in it too.
+    /// </summary>
+    public string? Language { get; set; }
 }
