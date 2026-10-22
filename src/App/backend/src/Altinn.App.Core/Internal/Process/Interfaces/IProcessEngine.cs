@@ -39,6 +39,29 @@ internal interface IProcessEngine
     Task<ProcessChangeResult> Next(ProcessNextRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Moves the process on for the app itself, from code that has already decided that the transition is due, and
+    /// returns once the transition has started, without waiting for it to finish.
+    /// </summary>
+    /// <remarks>
+    /// Runs what <see cref="Next"/> runs before the transition, such as the process status check, validation and the
+    /// gateways, but as the app rather than a caller: there is no policy check and no user action, data is read as the
+    /// service owner, and the workflow runs as <paramref name="actor"/>, in its language. Must never be reachable with
+    /// input a caller controls. Like <see cref="Next"/>, it answers <see cref="ProcessNextState.InstanceChanged"/> when
+    /// the instance changed after <paramref name="instanceVersions"/> was read, so the transition did not start, with
+    /// the instance as it is now. It answers a workflow failure when the workflow engine failed to start the transition,
+    /// and a <see cref="WorkflowFailureKind.Timeout"/> failure when it has not finished starting it by
+    /// <paramref name="startDeadline"/>.
+    /// </remarks>
+    Task<ProcessChangeResult> EnqueueNextForApp(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string action,
+        Actor actor,
+        DateTimeOffset startDeadline,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Attempts to resume the workflow that established the instance's current task.
     /// </summary>
     Task<ProcessChangeResult> ResumeCurrentTask(

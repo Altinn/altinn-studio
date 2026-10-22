@@ -11,6 +11,8 @@
 | `TooFewDataElementsOfType` | Error | `validation_errors.too_few_data_elements` | `minCount`, `dataType` |
 | `MissingSignatures` | Error | `validation_errors.missing_signatures` | `signedCount`, `signeeCount`, `minCount`, `dataType` |
 | `InvalidSignatureHash` | Error | `validation_errors.invalid_signature_hash` | `dataElementId`, `filename`, `dataType` |
+| `PaymentNotCompleted` | Error | `validation_errors.payment_not_completed` | `dataType` |
+| `PaymentAlreadyCompleted` | Error | `validation_errors.payment_already_completed` | `dataType` |
 | `required` | Error | `validation_errors.required` | `field`, `layoutId`, `pageId`, `componentId`, `bindingName`, `pageName`, `componentTitle` |
 | `Xsd` | Error | `validation_errors.xsd` | `schema`, `message`, `path` |
 
@@ -171,6 +173,38 @@ Code `InvalidSignatureHash`, severity Error.
 |---|---|
 | `dataElementId` | Id of the signed data element that has changed. |
 | `filename` | Name of the file. Empty if the name is unknown. |
+| `dataType` | Id of the data type. |
+
+## `validation_errors.payment_not_completed`
+
+The stored status of a payment task's payment is neither paid nor skipped, so the task cannot be completed.
+
+Code `PaymentNotCompleted`, severity Error.
+
+| Language | Default text |
+|---|---|
+| nb | Betalingen er ikke fullført. |
+| nn | Betalinga er ikkje fullført. |
+| en | The payment has not been completed. |
+
+| Custom text parameter | Description |
+|---|---|
+| `dataType` | Id of the data type. |
+
+## `validation_errors.payment_already_completed`
+
+Raised by `PUT …/process/next` with `reject` on a payment task when the payment has already gone through at the payment processor.
+
+Code `PaymentAlreadyCompleted`, severity Error.
+
+| Language | Default text |
+|---|---|
+| nb | Betalingen er allerede gjennomført, så du kan ikke gå tilbake. |
+| nn | Betalinga er allereie gjennomført, så du kan ikkje gå tilbake. |
+| en | The payment has already gone through, so you cannot go back. |
+
+| Custom text parameter | Description |
+|---|---|
 | `dataType` | Id of the data type. |
 
 ## `validation_errors.required`

@@ -27,6 +27,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
+- `PaymentStatus` and `GET .../payment` have a new status `Authorized`: reserved but not yet charged. The form shows it as being processed, and a custom `IPaymentProcessor` can return it. If charging fails at Nets, the app logs a warning; charge or cancel the payment in the Nets portal. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
 
 ### Changed
 
@@ -58,6 +59,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - if the default has a condition, which the app never evaluates; remove it
     - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
 - Long text in Paragraph, Alert and Panel components and in field descriptions now wraps at about 70 characters per line, so it is easier to read on wide screens. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+- `PUT .../process/next` with `reject` on a payment task cancels the payment at Nets first. It answers `409 Conflict` with the validation issue `PaymentAlreadyCompleted` when the payment has gone through, and `500` when Nets cannot cancel it right now; try again. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- `GET .../payment` reports `Cancelled` for a payment that was cancelled at Nets. For a cancelled or failed payment, the form offers to pay again or go back. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
 
 ### Fixed
 
@@ -72,6 +75,12 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
+- A payment task no longer leaves the instance stuck in `processing` when `PUT .../process/next` confirms before the payment is paid, or rejects just after the user paid. An early `confirm` answers `409 Conflict` with the validation issue `PaymentNotCompleted`. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- The `pay` action no longer fails when a payment the user started earlier has since been paid at Nets. It answers `409` with `PaymentAlreadyCompleted`, as for any paid payment. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- A Nets payment charged after the checkout completed now moves the process on. A Nets webhook that arrives after the process has ended no longer fails with `400`, so Nets does not keep retrying it. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- A payment the Nets webhook confirms no longer stays on the payment task when `config/authorization/policy.xml` does not give the app owner `confirm` on it. The webhook needs no rule, and records its process events as the app owner with authentication level 0. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- A payment's stored status, such as `Paid`, no longer goes back to an earlier one when a Nets webhook arrives at the same time as another webhook, the form's status check (`GET .../payment`) or the `pay` action. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
+- The payment receipt PDF is now in the language of the user who paid when the Nets webhook moves the process on. ([#21478](https://github.com/Altinn/altinn-studio/pull/21478))
 - Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
 
 ### Removed
