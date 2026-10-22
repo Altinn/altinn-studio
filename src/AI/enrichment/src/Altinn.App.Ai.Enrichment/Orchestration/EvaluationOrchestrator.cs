@@ -41,14 +41,14 @@ public sealed partial class EvaluationOrchestrator(
         var wallSw = Stopwatch.StartNew();
         var sem = new SemaphoreSlim(Math.Max(1, options.Concurrency));
 
-        var serialisedApplication = SerializeApplicationOnce(application);
+        var serializedApplication = SerializeApplicationOnce(application);
 
         var tasks = rules.Select(async rule =>
         {
             await sem.WaitAsync(cancellationToken);
             try
             {
-                return await RunSingleItemAsync(rule, application, serialisedApplication, options, cancellationToken);
+                return await RunSingleItemAsync(rule, application, serializedApplication, options, cancellationToken);
             }
             finally
             {
@@ -73,7 +73,7 @@ public sealed partial class EvaluationOrchestrator(
     private async Task<ItemTrace> RunSingleItemAsync(
         RuleEntry rule,
         JsonDocument application,
-        string serialisedApplication,
+        string serializedApplication,
         OrchestratorOptions options,
         CancellationToken ct)
     {
@@ -81,7 +81,7 @@ public sealed partial class EvaluationOrchestrator(
         var userPrompt =
             $"# Item: {rule.Key}\n\n" +
             $"## Rule\n\n{rule.Markdown}\n\n" +
-            $"## Application (JSON)\n\n```json\n{serialisedApplication}\n```\n";
+            $"## Application (JSON)\n\n```json\n{serializedApplication}\n```\n";
 
         var messages = new List<ChatMessage>
         {

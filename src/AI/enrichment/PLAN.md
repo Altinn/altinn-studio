@@ -1,143 +1,143 @@
-# Plan: KI Beriking som 1st-party prosess-steg i Altinn-apper
+# Plan: AI enrichment as a first-party process step in Altinn apps
 
-> Status: fase 1 + 2 ferdig (2026-07-09) — 106/106 tester grønne, inkl. ende-til-ende
-> med demo-fixturen/typst og service task-kjøring mot mocket IInstanceDataMutator.
-> Biblioteket pakkes som NuGet (`dotnet pack`) for konsum fra app-repoer.
-> Neste: fase 3 — integrasjon i den eksisterende appen **ttd/sjenk** (eget arbeidspunkt).
-> Referanseimplementasjon (v0.4, frittstående mikrotjeneste) ligger på
-> branchen `feat/augmenter-agent-v0.4-direct-tools` (`src/AI/augmenter-agent/`).
+> Status: phases 1 + 2 done (2026-07-09) — 106/106 tests green, incl. end to end
+> with the demo fixture/typst and service task execution against a mocked IInstanceDataMutator.
+> The library is packed as NuGet (`dotnet pack`) for consumption from app repos.
+> Next: phase 3 — integration into the existing app **ttd/sjenk** (separate work item).
+> Reference implementation (v0.4, standalone microservice) is on
+> the branch `feat/augmenter-agent-v0.4-direct-tools` (`src/AI/augmenter-agent/`).
 
-## Mål
+## Goal
 
-Augmenter-kapabilitetene (per-punkt LLM-evaluering med deterministiske verktøy, mapping og
-PDF-rendring) skal bli en førsteklasses egenskap i en standard Altinn-app, eksponert som et
-eget prosess-steg **`ai`**. En app konfigurerer alt gjennom en `App/agents/`-mappe
-med én undermappe per steg/agent.
+The augmenter capabilities (per-item LLM evaluation with deterministic tools, mapping and
+PDF rendering) become a first-class feature of a standard Altinn app, exposed as a
+separate process step **`ai`**. An app configures everything through an `App/agents/` folder
+with one subfolder per step/agent.
 
-## Vedtatte retningsvalg
+## Decided direction
 
-1. **Bibliotek-varianten.** Alt bor i klassebiblioteket `Altinn.App.Ai.Enrichment`
-   (net8.0, refererer `Altinn.App.Core` >= 8.12). Appen skal ha **minst mulig custom kode**:
-   NuGet-referanse + én DI-linje (`services.AddAiEnrichment(...)`) + `App/agents/`-mappe +
-   bpmn-task + policy-action + dataTypes. Selve `IServiceTask`-implementasjonen bor i
-   biblioteket, ikke i appen. Presedens: `Altinn.App.Clients.Fiks`.
-   Eventuell upstreaming til app-lib-dotnet er et senere, separat løp (fase 5).
-2. **Rendring er pluggbar.** Berikelses-JSON skrives alltid som data-element (kjerneverdien).
-   Typst-PDF er opsjonelt tillegg som krever `typst` i appens image (dokumentert
-   Dockerfile-snippet). DOCX/Pandoc droppes i v1.
-3. **Kjøremodell v1: inline service task.** Kjører i `process/next`-requesten med stramt
-   timeout-budsjett og `FailedAbortProcessNext` som retry-mekanisme. Datakontrakten designes
-   slik at bytte til feedback-task-mønsteret (for lange kjøringer) ikke endrer output.
+1. **The library variant.** Everything lives in the class library `Altinn.App.Ai.Enrichment`
+   (net8.0, references `Altinn.App.Core` >= 8.12). The app should have **as little custom code as possible**:
+   a NuGet reference + one DI line (`services.AddAiEnrichment(...)`) + an `App/agents/` folder +
+   a BPMN task + a policy action + dataTypes. The `IServiceTask` implementation itself lives in
+   the library, not in the app. Precedent: `Altinn.App.Clients.Fiks`.
+   Any upstreaming to app-lib-dotnet is a later, separate track (phase 5).
+2. **Rendering is pluggable.** The enrichment JSON is always written as a data element (the core value).
+   Typst PDF is an optional extra that requires `typst` in the app's image (documented
+   Dockerfile snippet). DOCX/Pandoc is dropped in v1.
+3. **Execution model v1: inline service task.** Runs in the `process/next` request with a tight
+   timeout budget and `FailedAbortProcessNext` as the retry mechanism. The data contract is designed
+   so that switching to the feedback task pattern (for long runs) does not change the output.
 
-## Nøkkelfakta fra research (2026-07-09)
+## Key facts from research (2026-07-09)
 
-- app-lib >= 8.9.0 støtter egendefinerte service tasks: `IServiceTask`
+- app-lib >= 8.9.0 supports custom service tasks: `IServiceTask`
   (`Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks`, `[ImplementableByApps]`).
-  Dispatch er strengmatch `Type` == `<altinn:taskType>` mot DI-registrerte implementasjoner.
-  `Execute(ServiceTaskContext)` får `IInstanceDataMutator` med `AddFormDataElement` /
-  `AddBinaryDataElement`; motoren lagrer selv etterpå. Data fra tidligere tasks er låst (les-only).
-- Autorisasjon: `policy.xml` må gi en action med **nøyaktig samme navn som task-typen**
-  (`ai`) til relevante roller.
-- Egendefinert `<altinn:...Config>`-XML i bpmn er IKKE utvidbart fra app-kode → all config
-  ligger i `App/agents/` + appsettings. Kobling task → agent-mappe: mappenavn = task-id,
-  med overstyring `AiEnrichment:Tasks:<taskId>:Agent` i appsettings.
-- Designer/Studio: håndredigert bpmn med egen task-type lagres verbatim og deployer fint.
-  `App/agents/` brytes ikke av noen validering. Full Designer-støtte (palett, config-panel,
-  ikon, i18n — ~8 endringspunkter i process-editor + backend-enum) er valgfritt (fase 5).
-- Secrets: `ISecretsClient` (Key Vault i TT02/prod, `secrets.json` lokalt). HTTP: typed
+  Dispatch is a string match of `Type` == `<altinn:taskType>` against DI-registered implementations.
+  `Execute(ServiceTaskContext)` gets an `IInstanceDataMutator` with `AddFormDataElement` /
+  `AddBinaryDataElement`; the engine saves afterwards by itself. Data from earlier tasks is locked (read-only).
+- Authorization: `policy.xml` must grant an action with **exactly the same name as the task type**
+  (`ai`) to the relevant roles.
+- Custom `<altinn:...Config>` XML in BPMN is NOT extensible from app code → all config
+  lives in `App/agents/` + appsettings. Mapping task → agent folder: folder name = task ID,
+  overridable with `AiEnrichment:Tasks:<taskId>:Agent` in appsettings.
+- Designer/Studio: hand-edited BPMN with a custom task type is saved verbatim and deploys fine.
+  `App/agents/` is not broken by any validation. Full Designer support (palette, config panel,
+  icon, i18n — ~8 change points in the process editor + backend enum) is optional (phase 5).
+- Secrets: `ISecretsClient` (Key Vault in TT02/prod, `secrets.json` locally). HTTP: typed
   clients via `IHttpClientFactory`.
 
-## Config-kontrakten (`App/agents/`)
+## The config contract (`App/agents/`)
 
 ```
 App/agents/
-└── <agent-navn>/            # én mappe per KI-steg (navn = task-id, ev. appsettings-mapping)
-    ├── agent.yaml           # pipeline-steg for agenten: modell-overrides, concurrency,
-    │                        #   maxToolIterations, output-navn, rendring på/av
-    ├── system-prompt.md     # orkestratorens systemprompt
-    ├── rules/               # per-punkt *.md (uendret format fra v0.4)
-    ├── tools/               # OpenAI tool-definisjoner, <tool_name>.json (uendret)
-    ├── registries/          # oppslagstabeller + output-schema (uendret)
-    ├── mappings/            # JsonPathMapper-spec, <mapper>.json (uendret)
-    └── templates/           # *.typ (bare hvis PDF-rendring)
+└── <agent-name>/            # one folder per AI step (name = task ID, or an appsettings mapping)
+    ├── agent.yaml           # pipeline steps for the agent: model overrides, concurrency,
+    │                        #   maxToolIterations, output names, rendering on/off
+    ├── system-prompt.md     # the orchestrator's system prompt
+    ├── rules/               # per-item *.md (format unchanged from v0.4)
+    ├── tools/               # OpenAI tool definitions, <tool_name>.json (unchanged)
+    ├── registries/          # lookup tables + output schema (unchanged)
+    ├── mappings/            # JsonPathMapper spec, <mapper>.json (unchanged)
+    └── templates/           # *.typ (only for PDF rendering)
 ```
 
-Input: skjemadata via `IInstanceDataAccessor.GetFormData()` (erstatter multipart-upload av
-`{FlatData: ...}`). Output: verdicts-JSON (+ ev. PDF) som data-elementer definert i
+Input: form data via `IInstanceDataAccessor.GetFormData()` (replaces the multipart upload of
+`{FlatData: ...}`). Output: verdicts JSON (+ optional PDF) as data elements defined in
 `applicationmetadata.json`.
 
-## Porteringskart fra v0.4
+## Porting map from v0.4
 
-| v0.4 (mikrotjeneste) | v0.5 (bibliotek) |
-|---|---|
-| Orkestrator, chat-klient, 10 verktøy, JsonPathMapper, registries, aggregator, Typst-renderer | Porteres tilnærmet uendret (~70 % av koden) |
-| Web-host, endpoints, multipart, callback, kø/background service, KeyVault-bootstrap, upload-options | Erstattes av app-lib (`IServiceTask`, `IInstanceDataMutator`, `ISecretsClient`, `IHttpClientFactory`) |
-| `ContentPathsOptions` (globale roots under `/etc/augmenter`) | Per-agent mappeoppløsning fra `App/agents/<agent>/` |
-| `pipeline.yaml` (global) | `agent.yaml` per agent (samme steg-schema) |
-| `ConfigValidator` (fail-fast på mount) | Fail-fast-validering av `App/agents` ved oppstart |
-| DOCX-generering (Pandoc) | Droppes i v1 |
+| v0.4 (microservice)                                                                                    | v0.5 (library)                                                                                       |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Orchestrator, chat client, 10 tools, JsonPathMapper, registries, aggregator, Typst renderer            | Ported nearly unchanged (~70 % of the code)                                                          |
+| Web host, endpoints, multipart, callback, queue/background service, KeyVault bootstrap, upload options | Replaced by app-lib (`IServiceTask`, `IInstanceDataMutator`, `ISecretsClient`, `IHttpClientFactory`) |
+| `ContentPathsOptions` (global roots under `/etc/augmenter`)                                            | Per-agent folder resolution from `App/agents/<agent>/`                                               |
+| `pipeline.yaml` (global)                                                                               | `agent.yaml` per agent (same step schema)                                                            |
+| `ConfigValidator` (fail-fast on mount)                                                                 | Fail-fast validation of `App/agents` at startup                                                      |
+| DOCX generation (Pandoc)                                                                               | Dropped in v1                                                                                        |
 
-## Faser
+## Phases
 
-- **Fase 1 — biblioteket** *(ferdig)*: `src/AI/enrichment/` med `Altinn.App.Ai.Enrichment`
-  + testprosjekt. Kjernen portert fra worktree-referansen; per-agent config-modell
-  (`AgentFolder`/`AgentRuntimeFactory`); enhetstester portert + nye factory-tester.
-  Bevisste avvik fra v0.4: steg-feil propagerer (var logg-og-fortsett), `template`
-  valgfri for orchestrated-steg (JSON-only mulig), aggregator-rootKey schema-styrt,
-  DOCX droppet, `publishTo` defaulter til steg-navnet.
-- **Fase 2 — service task** *(ferdig)*: `AiServiceTask : IServiceTask`
-  (`Type => "ai"`), agent-oppslag fra task-id (overstyrbart via
-  `AiEnrichment:Tasks`), input = eneste dataType med appLogic (ellers config),
-  output = JSON/PDF som binære data-elementer. `AddAiEnrichment()` registrerer alt;
-  API-nøkkel via `ISecretsClient` (`ApiKeySecretName`) med direkte `ApiKey` som
-  lokal-dev-override. Agent-validering skjer ved første kjøring (cachet per mappe) —
-  egen oppstartsvalidering utsatt til fase 4 om ønskelig.
-- **Fase 3 — integrasjon i ttd/soknad-bevillinger** *(ferdig 2026-07-09, eget repo)*:
-  gjennomført på branch `feat/ki-beriking` i appens eget repo (fagreglene og
-  agent-konfigurasjonen bor der, ikke her). Den gamle augmenter-integrasjonen
-  (callback-controller, HTTP-klient, egen service task) er fjernet og erstattet med
-  `ai` + `AddAiEnrichment()`; app-lib oppgradert 8.9.2 → 8.12.7; lokal
-  NuGet-feed i `packages/`.
-  **E2E verifisert i app-localtest** med LM Studio som lokal OpenAI-kompatibel gateway:
-  prosess `data → ai → End`, alle 39 punkter fikk ekte LLM-verdicts,
-  verktøybruk bekreftet (registry-lookup), berikelses-JSON + begge PDF-ene lagret som
-  data-elementer, norske tegn intakte.
-  **Kjente forhold**: (1) KI-gatewayen krever nå JWT-bearer — gammel API-nøkkel avvises;
-  ny nøkkel må skaffes før kjøring mot den. (2) Lokale småmodeller trenger
-  `concurrency: 1` i agent.yaml (5-veis parallellitet ga 500/400 fra LM Studio) —
-  vurder appsettings-override av concurrency i fase 4. (3) Appens datamodell har
-  FlatData som rotproperty; service tasken unwrapper (preview.2).
-- **Fase 4 — herding + dokumentasjon**: timeout-/retry-budsjett, telemetri (app-libs
-  OpenTelemetry), README med `App/agents`-kontrakten og Dockerfile-oppskrift.
-  - **Steg-budsjett på workflow-engine** *(ferdig 2026-07-29, preview.6)*: PR #19571
-    (main, 2026-07-21) gir service tasks per-steg `MaxExecutionTime`/retry via
-    `IProcessStepConfigurable.StepOptions`, med **10 min default** for
-    `ExecuteServiceTask` — for knapt for lange agent-kjøringer (observert ~13 min
-    ved concurrency 4). Løst ved å multi-targete biblioteket: `net8.0` mot
-    Altinn.App.Core 8.12.7 (uendret, klassisk synkron `process/next`) og `net10.0`
-    mot 9.0.0-preview.3, der `AiServiceTask.StepOptions` gir 1 t `MaxExecutionTime`
-    og maks 2 retries (konstant 1 min intervall), konfigurerbart via
-    `AiEnrichment:Step`. På v9 mappes config-/kontraktsfeil til `FailedPermanent`
-    (ingen retry-brenning) og øvrige feil til `FailedRetryable`.
-    KI-gatewayens eget tak: 30 min per non-streaming-request (streaming:
-    ubegrenset) — hold `TimeoutSeconds` under dette.
-  - **Replay-vern (ferdig 2026-07-30, preview.7, kun net10/v9)**: motoren leverer
-    callbacks at-least-once; mistes suksess-svaret re-kjøres steget under samme
-    workflow-id. Outputs tagges nå med `aiEnrichmentWorkflowId` i element-metadata,
-    og `AiServiceTask` sjekker (mot ferskhentet instans — state-blobbet er per
-    definisjon foreldet) om outputs for workflow-id-en alt finnes: i så fall hoppes
-    agent-kjøringen over og suksess rapporteres på nytt. Hindrer dupliserte
-    dataelementer og bortkastede LLM-kjøringer. Rest-problemet (409 idempotency-
-    konflikt på auto-advance-enqueue ved replay) ligger hos app-lib/motor-teamet.
-- **Fase 5 — senere/valgfritt**: Designer-støtte i process-editor; upstreaming til
-  app-lib-dotnet / publisering som NuGet-pakke.
+- **Phase 1 — the library** _(done)_: `src/AI/enrichment/` with `Altinn.App.Ai.Enrichment`
+  - a test project. The core is ported from the worktree reference; per-agent config model
+    (`AgentFolder`/`AgentRuntimeFactory`); unit tests ported + new factory tests.
+    Deliberate deviations from v0.4: step errors propagate (was log-and-continue), `template`
+    optional for orchestrated steps (JSON-only possible), aggregator rootKey driven by the schema,
+    DOCX dropped, `publishTo` defaults to the step name.
+- **Phase 2 — service task** _(done)_: `AiServiceTask : IServiceTask`
+  (`Type => "ai"`), agent lookup from the task ID (overridable via
+  `AiEnrichment:Tasks`), input = the only dataType with appLogic (otherwise config),
+  output = JSON/PDF as binary data elements. `AddAiEnrichment()` registers everything;
+  API key via `ISecretsClient` (`ApiKeySecretName`) with a direct `ApiKey` as a
+  local-dev override. Agent validation happens on the first run (cached per folder) —
+  separate startup validation postponed to phase 4 if wanted.
+- **Phase 3 — integration into ttd/soknad-bevillinger** _(done 2026-07-09, separate repo)_:
+  carried out on the branch `feat/ki-beriking` in the app's own repo (the domain rules and
+  the agent configuration live there, not here). The old augmenter integration
+  (callback controller, HTTP client, its own service task) is removed and replaced with
+  `ai` + `AddAiEnrichment()`; app-lib upgraded 8.9.2 → 8.12.7; local
+  NuGet feed in `packages/`.
+  **E2E verified in app-localtest** with LM Studio as a local OpenAI-compatible gateway:
+  process `data → ai → End`, all 39 items got real LLM verdicts,
+  tool use confirmed (registry lookup), enrichment JSON + both PDFs stored as
+  data elements, Norwegian characters intact.
+  **Known issues**: (1) the AI gateway now requires a JWT bearer — the old API key is rejected;
+  a new key must be obtained before running against it. (2) Small local models need
+  `concurrency: 1` in agent.yaml (5-way parallelism gave 500/400 from LM Studio) —
+  consider an appsettings override of concurrency in phase 4. (3) The app's data model has
+  FlatData as its root property; the service task unwraps it (preview.2).
+- **Phase 4 — hardening + documentation**: timeout/retry budget, telemetry (app-lib's
+  OpenTelemetry), README with the `App/agents` contract and a Dockerfile recipe.
+  - **Step budget on the workflow engine** _(done 2026-07-29, preview.6)_: PR #19571
+    (main, 2026-07-21) gives service tasks a per-step `MaxExecutionTime`/retry via
+    `IProcessStepConfigurable.StepOptions`, with a **10 min default** for
+    `ExecuteServiceTask` — too short for long agent runs (observed ~13 min
+    at concurrency 4). Solved by multi-targeting the library: `net8.0` against
+    Altinn.App.Core 8.12.7 (unchanged, classic synchronous `process/next`) and `net10.0`
+    against 9.0.0-preview.3, where `AiServiceTask.StepOptions` gives a 1 h `MaxExecutionTime`
+    and at most 2 retries (constant 1 min interval), configurable via
+    `AiEnrichment:Step`. On v9, config/contract errors map to `FailedPermanent`
+    (no retries burned) and other errors to `FailedRetryable`.
+    The AI gateway's own limit: 30 min per non-streaming request (streaming:
+    unlimited) — keep `TimeoutSeconds` below this.
+  - **Replay guard (done 2026-07-30, preview.7, net10/v9 only)**: the engine delivers
+    callbacks at least once; if the success response is lost, the step is re-run under the same
+    workflow ID. Outputs are now tagged with `aiEnrichmentWorkflowId` in the element metadata,
+    and `AiServiceTask` checks (against a freshly fetched instance — the state blob is by
+    definition stale) whether outputs for the workflow ID already exist: if so, the
+    agent run is skipped and success is reported again. Prevents duplicate
+    data elements and wasted LLM runs. The remaining problem (409 idempotency
+    conflict on the auto-advance enqueue on replay) lies with the app-lib/engine team.
+- **Phase 5 — later/optional**: Designer support in the process editor; upstreaming to
+  app-lib-dotnet / publishing as a NuGet package.
 
-## Risikoer
+## Risks
 
-1. **Latens** inline i `process/next` (LLM-kjøring kan ta minutter) → concurrency + budsjett,
-   exit til feedback-task-mønsteret finnes.
-2. **Datamodell-adapter**: regler/tool-paths i v0.4 er skrevet mot FlatData-formen — må
-   valideres mot appens faktiske datamodell i fase 3.
-3. **Typst i app-image** → pluggbar rendring; JSON-output er uavhengig av typst.
-4. **Task-type-kollisjon**: `Type` som kolliderer med innebygde (`pdf`, `eFormidling`, …)
-   overstyres ikke — `ai` er unik.
+1. **Latency** inline in `process/next` (an LLM run can take minutes) → concurrency + budget,
+   an exit to the feedback task pattern exists.
+2. **Data model adapter**: rules/tool paths in v0.4 are written against the FlatData shape — must
+   be validated against the app's actual data model in phase 3.
+3. **Typst in the app image** → pluggable rendering; the JSON output is independent of typst.
+4. **Task type collision**: a `Type` that collides with built-in ones (`pdf`, `eFormidling`, …)
+   is not overridden — `ai` is unique.

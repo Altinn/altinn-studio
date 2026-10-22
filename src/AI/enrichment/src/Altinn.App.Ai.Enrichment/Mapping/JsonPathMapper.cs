@@ -548,7 +548,7 @@ public sealed class JsonPathMapper : IDataMapper
 
     private static IEnumerable<PathSegment> EnumerateSegments(string path)
     {
-        // Splits "Arrangement.ArrangementPeriode[0].StartDato" into name segments + array indices.
+        // Splits "Booking.Periods[0].StartDate" into name segments + array indices.
         foreach (var part in path.Split('.', StringSplitOptions.RemoveEmptyEntries))
         {
             var bracketStart = part.IndexOf('[');
