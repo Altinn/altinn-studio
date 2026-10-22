@@ -25,7 +25,6 @@ public class OrgCodeListService : IOrgCodeListService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly ISharedContentClient _sharedContentClient;
 
-    private const string Repo = "content";
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         WriteIndented = true,
@@ -99,7 +98,7 @@ public class OrgCodeListService : IOrgCodeListService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -122,7 +121,7 @@ public class OrgCodeListService : IOrgCodeListService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -164,7 +163,7 @@ public class OrgCodeListService : IOrgCodeListService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         string codeListId = Path.GetFileNameWithoutExtension(payload.FileName);
 
         List<Option>? deserializedCodeList = await JsonSerializer.DeserializeAsync<List<Option>>(
@@ -203,7 +202,7 @@ public class OrgCodeListService : IOrgCodeListService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -241,7 +240,7 @@ public class OrgCodeListService : IOrgCodeListService
     public List<string> GetCodeListIds(string org, string developer, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -255,7 +254,7 @@ public class OrgCodeListService : IOrgCodeListService
     /// <inheritdoc />
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId)
     {
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -273,7 +272,7 @@ public class OrgCodeListService : IOrgCodeListService
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
             org,
             repo,
@@ -298,15 +297,5 @@ public class OrgCodeListService : IOrgCodeListService
     {
         var validationContext = new ValidationContext(option);
         Validator.ValidateObject(option, validationContext, validateAllProperties: true);
-    }
-
-    /// <summary>
-    /// Get the name of the static content repository for the given org.
-    /// </summary>
-    /// <param name="org"></param>
-    /// <returns>The full repository name.</returns>
-    private static string GetStaticContentRepo(string org)
-    {
-        return $"{org}-{Repo}";
     }
 }

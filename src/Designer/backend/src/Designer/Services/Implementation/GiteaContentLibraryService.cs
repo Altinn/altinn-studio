@@ -39,7 +39,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     /// <inheritdoc />
     public async Task<bool> OrgContentRepoExists(string orgName)
     {
-        string contentRepositoryName = GetContentRepoName(orgName);
+        string contentRepositoryName = RepositoryNames.Content(orgName);
         SearchOptions searchOptions = new() { Keyword = contentRepositoryName };
         SearchResults searchResults = await _giteaClient.SearchRepo(searchOptions);
         return searchResults.Data.Select(repository => repository.Name).Contains(contentRepositoryName);
@@ -91,7 +91,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     /// <inheritdoc />
     public async Task<string> GetShaForCodeListFile(string orgName, string codeListId)
     {
-        string repoName = GetContentRepoName(orgName);
+        string repoName = RepositoryNames.Content(orgName);
         string filePath = CodeListUtils.FilePathWithTextResources(codeListId);
         FileSystemObject file = await _giteaClient.GetFileAsync(orgName, repoName, filePath, string.Empty);
         return file.Sha ?? string.Empty;
@@ -129,7 +129,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
 
     private async Task<List<FileSystemObject>> GetDirectoryFromGitea(string orgName, string directoryPath)
     {
-        string repoName = GetContentRepoName(orgName);
+        string repoName = RepositoryNames.Content(orgName);
         try
         {
             return await _giteaClient.GetDirectoryAsync(orgName, repoName, directoryPath, string.Empty);
@@ -148,7 +148,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
 
     private async Task<string> GetFileFromGitea(string orgName, string filePath)
     {
-        string repoName = GetContentRepoName(orgName);
+        string repoName = RepositoryNames.Content(orgName);
         FileSystemObject file = await _giteaClient.GetFileAsync(orgName, repoName, filePath, string.Empty);
         if (string.IsNullOrEmpty(file?.Content))
         {
@@ -162,10 +162,5 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     private static string StaticContentTextResourceFilePath(string languageCode)
     {
         return Path.Join(TextResourceFolderPath, $"resource.{languageCode}.json");
-    }
-
-    private static string GetContentRepoName(string orgName)
-    {
-        return $"{orgName}-content";
     }
 }

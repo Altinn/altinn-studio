@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Telemetry;
 
@@ -9,8 +11,6 @@ internal static partial class ServiceTelemetry
     private const string AppRepoType = "app";
     private const string ProductionEnvironment = "production";
     private const string RuntimeProductionEnvironment = "prod";
-
-    private static readonly string[] s_sharedRepoTypes = ["datamodels", "content", "resources"];
 
     public static readonly ActivitySource Source = new("studio-designer");
 
@@ -50,22 +50,14 @@ internal static partial class ServiceTelemetry
     public static void SetEndUser(this Activity? activity, string userName) =>
         activity?.SetTag(Attributes.EndUserId, userName);
 
-    /// <summary>
-    /// The type of a Studio repository. Each service owner's shared repositories are {org}-datamodels, {org}-content
-    /// and {org}-resources, and every other repository is an app. An app's name may end in the same suffixes, so only
-    /// the full name decides.
-    /// </summary>
-    private static string RepoTypeOf(string serviceOwner, string repository)
-    {
-        foreach (string repoType in s_sharedRepoTypes)
+    private static string RepoTypeOf(string serviceOwner, string repository) =>
+        RepositoryNames.KindOf(serviceOwner, repository) switch
         {
-            if (repository.Equals($"{serviceOwner}-{repoType}", StringComparison.OrdinalIgnoreCase))
-            {
-                return repoType;
-            }
-        }
-        return AppRepoType;
-    }
+            RepositoryKind.DataModels => "datamodels",
+            RepositoryKind.Content => "content",
+            RepositoryKind.Resources => "resources",
+            _ => AppRepoType,
+        };
 
     /// <summary>
     /// The runtime's name for an environment: Designer calls the production environment production, and the
