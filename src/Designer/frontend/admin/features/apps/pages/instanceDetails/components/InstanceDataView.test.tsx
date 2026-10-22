@@ -13,6 +13,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { ProcessTaskMetadata } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
 
 vi.mock('axios', async () => {
   const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
@@ -37,6 +38,27 @@ const appMetadataMock: ApplicationMetadata = {
   id: `${org}/${app}`,
   org,
 };
+
+const dataTypeId = 'model';
+
+const instanceWithDataMock: SimpleInstanceDetails = {
+  ...instanceMock,
+  data: [
+    {
+      id: 'bd1c7d5e-0d3f-4f6e-8a4c-2d1f0e9b7a61',
+      dataType: dataTypeId,
+      contentType: 'application/xml',
+      size: 1000,
+      locked: false,
+      isRead: true,
+    },
+  ],
+};
+
+const processMetadataMock: ProcessTaskMetadata[] = [
+  { id: 'Task_1', name: 'Utfylling', dataTypeTags: [] },
+  { id: 'Task_2', dataTypeTags: [] },
+];
 
 describe('InstanceDataView', () => {
   it('shows a spinner while loading', () => {
@@ -109,17 +131,72 @@ describe('InstanceDataView', () => {
 
     expect(axios.delete).not.toHaveBeenCalled();
   });
+
+  it('shows the task a data type is bound to with taskId', () => {
+    renderInstanceDataView({
+      instance: instanceWithDataMock,
+      appMetadata: { ...appMetadataMock, dataTypes: [{ id: dataTypeId, taskId: 'Task_1' }] },
+      processMetadata: processMetadataMock,
+    });
+
+    expect(screen.getByText('Utfylling')).toBeInTheDocument();
+  });
+
+  it('shows every task a data type is bound to with taskIds, by name where the task has one', () => {
+    renderInstanceDataView({
+      instance: instanceWithDataMock,
+      appMetadata: {
+        ...appMetadataMock,
+        dataTypes: [{ id: dataTypeId, taskIds: ['Task_1', 'Task_2'] }],
+      },
+      processMetadata: processMetadataMock,
+    });
+
+    expect(screen.getByText('Utfylling')).toBeInTheDocument();
+    expect(screen.getByText('Task_2')).toBeInTheDocument();
+  });
+
+  it('shows the task whose configuration names a data type that is bound to no task', () => {
+    renderInstanceDataView({
+      instance: instanceWithDataMock,
+      appMetadata: { ...appMetadataMock, dataTypes: [{ id: dataTypeId }] },
+      processMetadata: [
+        processMetadataMock[0],
+        { id: 'Task_2', dataTypeTags: [{ dataTypeId, tag: 'signatureDataType' }] },
+      ],
+    });
+
+    expect(screen.getByText('Task_2')).toBeInTheDocument();
+    expect(screen.queryByText('Utfylling')).not.toBeInTheDocument();
+  });
+
+  it('shows no task when taskIds is empty, even when taskId is set', () => {
+    renderInstanceDataView({
+      instance: instanceWithDataMock,
+      appMetadata: {
+        ...appMetadataMock,
+        dataTypes: [{ id: dataTypeId, taskId: 'Task_1', taskIds: [] }],
+      },
+      processMetadata: processMetadataMock,
+    });
+
+    expect(screen.queryByText('Utfylling')).not.toBeInTheDocument();
+  });
 });
 
 const getDeleteButton = () => screen.getByRole('button', { name: textMock('general.delete') });
 
 type RenderInstanceDataViewOptions = {
   instance?: SimpleInstanceDetails | null;
+  appMetadata?: ApplicationMetadata;
+  processMetadata?: ProcessTaskMetadata[];
   queryClient?: QueryClient;
 };
 
 function renderInstanceDataView({
   instance = instanceMock,
+  appMetadata = appMetadataMock,
+  processMetadata = [],
   queryClient = createQueryClientMock(),
 }: RenderInstanceDataViewOptions = {}) {
   if (instance) {
@@ -127,8 +204,8 @@ function renderInstanceDataView({
       [QueryKey.AppInstanceDetails, org, environment, app, instanceId],
       instance,
     );
-    queryClient.setQueryData([QueryKey.AppMetadata, org, environment, app], appMetadataMock);
-    queryClient.setQueryData([QueryKey.AppProcessMetadata, org, environment, app], []);
+    queryClient.setQueryData([QueryKey.AppMetadata, org, environment, app], appMetadata);
+    queryClient.setQueryData([QueryKey.AppProcessMetadata, org, environment, app], processMetadata);
   }
   return renderWithProviders(
     <InstanceDataView org={org} environment={environment} app={app} id={instanceId} />,

@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -105,6 +106,46 @@ public class AddMetadataForAttachmentTests
 
         var attachmentDataType = applicationMetadata.DataTypes.Single(x => x.Id == "testId");
         Assert.Equal(expectedEnableFileScan, attachmentDataType.EnableFileScan);
+    }
+
+    [Theory]
+    [InlineData("9.0.0", @"{ ""id"": ""testId"", ""taskId"": ""Task_1"" }", null, new[] { "Task_1" })]
+    [InlineData("9.0.0-preview.9", @"{ ""id"": ""testId"", ""taskId"": ""Task_1"" }", null, new[] { "Task_1" })]
+    [InlineData(
+        "9.0.0",
+        @"{ ""id"": ""testId"", ""taskId"": ""Task_2"", ""taskIds"": [""Task_1"", ""Task_2""] }",
+        null,
+        new[] { "Task_1", "Task_2" }
+    )]
+    [InlineData("9.0.0", @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""taskIds"": [] }", null, new string[0])]
+    [InlineData("9.0.0", @"{ ""id"": ""testId"" }", null, null)]
+    [InlineData("9.0.0-preview.8", @"{ ""id"": ""testId"", ""taskId"": ""Task_1"" }", "Task_1", null)]
+    [InlineData("8.12.10", @"{ ""id"": ""testId"", ""taskId"": ""Task_1"" }", "Task_1", null)]
+    [InlineData(
+        "8.12.10",
+        @"{ ""id"": ""testId"", ""taskId"": ""Task_1"", ""taskIds"": [""Task_2""] }",
+        "Task_1",
+        new[] { "Task_2" }
+    )]
+    public async Task AddMetadataForAttachment_ShouldMoveTaskIdToTaskIdsOnlyWhenAppReadsTaskIds(
+        string appLibVersion,
+        string payload,
+        string expectedTaskId,
+        string[] expectedTaskIds
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        TestDataHelper.WriteAppLibVersion(TestRepoPath, appLibVersion);
+
+        string url = $"{VersionPrefix("ttd", targetRepository)}/attachment-component";
+        using var payloadContent = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json);
+        using var response = await HttpClient.PostAsync(url, payloadContent);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JsonObject attachmentDataType = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "testId");
+        Assert.Equal(expectedTaskId, (string)attachmentDataType["taskId"]);
+        Assert.Equal(expectedTaskIds, DataTypeTaskBindingTestHelper.ReadTaskIds(attachmentDataType));
     }
 
     /// <summary>

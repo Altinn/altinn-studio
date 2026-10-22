@@ -11,6 +11,11 @@ public class AppVersionService : IAppVersionService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
+    // Adjust it if the first release that reads taskIds gets another number.
+    private static readonly SemanticVersion s_firstAppLibVersionReadingDataTypeTaskIds = SemanticVersion.Parse(
+        "9.0.0-preview.9"
+    );
+
     public AppVersionService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
@@ -38,5 +43,11 @@ public class AppVersionService : IAppVersionService
         {
             return true;
         }
+    }
+
+    public bool UsesDataTypeTaskIds(AltinnRepoEditingContext altinnRepoEditingContext)
+    {
+        SemanticVersion version = GetAppLibVersion(altinnRepoEditingContext);
+        return version != null && version >= s_firstAppLibVersionReadingDataTypeTaskIds;
     }
 }
