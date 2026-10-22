@@ -74,6 +74,7 @@ public class ElementMetadata
     /// Gets or sets the <see cref="ElementType"/>
     /// </summary>
     [Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
     [JsonProperty(PropertyName = "type")]
     [JsonPropertyName("type")]
     public ElementType Type { get; set; }
@@ -82,6 +83,7 @@ public class ElementMetadata
     /// Gets or sets the <see cref="BaseValueType">xsd value type</see> of this element
     /// </summary>
     [Newtonsoft.Json.JsonConverter(typeof(StringEnumConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(JsonStringEnumConverter))]
     [JsonProperty(PropertyName = "xsdValueType")]
     [JsonPropertyName("xsdValueType")]
     public BaseValueType? XsdValueType { get; set; }
