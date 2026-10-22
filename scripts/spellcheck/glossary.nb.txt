@@ -31,6 +31,7 @@ applikasjonsmetrikker
 applikasjonsnavnet
 appstyrt
 appversjon
+arbeidsflytmotoren
 arbeidslagsnavn
 arbeidstidsdata
 autentiseringer
@@ -109,6 +110,7 @@ handlingsknapp
 handlingstype
 headerne
 hjemmelserklæring
+hovedflyten
 infoside
 innboks
 innboksen
