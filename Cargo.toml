@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "src/ci/github-runner/coordinator",
-  "src/common/rust/sandbox-host",
+  "src/ci/sandbox-host",
 ]
 resolver = "3"
 
@@ -21,7 +21,7 @@ reqwest = { version = "0.13.4", features = ["json"] }
 # in step with it. `make deps-check` of each such crate checks this.
 sandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
 sandbox-microsandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
-sandbox-host = { path = "src/common/rust/sandbox-host" }
+sandbox-host = { path = "src/ci/sandbox-host" }
 serde = { version = "1.0.229", features = ["derive"] }
 tempfile = "3.27.0"
 tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }

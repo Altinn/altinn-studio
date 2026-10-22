@@ -11,7 +11,7 @@ on:
       - 'rustfmt.toml'
       - 'src/ci/github-runner/Dockerfile.coordinator'
       - 'src/ci/github-runner/coordinator/**'
-      - 'src/common/rust/sandbox-host/**'
+      - 'src/ci/sandbox-host/**'
       - '.github/workflows/github-runner-build.yaml'
       - '!**/AGENTS.md'
       - '!**/README.md'

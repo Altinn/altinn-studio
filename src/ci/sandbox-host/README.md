@@ -11,4 +11,4 @@ Host setup for Sandbox SDK workloads on the Altinn sandbox nodes:
 - [`check-runtime-pin.sh`](check-runtime-pin.sh) checks that a Dockerfile downloads the Microsandbox runtime that
   matches `Cargo.lock`. Each crate that downloads the runtime runs it in `make deps-check`.
 
-The GitHub runner coordinator in [`src/ci/github-runner`](../../../ci/github-runner/AGENTS.md) uses this crate.
+The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/AGENTS.md) uses this crate.

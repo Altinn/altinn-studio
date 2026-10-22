@@ -5,7 +5,7 @@ This directory contains the GitHub Actions runner image, the host coordinator an
 ## Design constraints
 
 - Keep runner lifecycle code backend-neutral. Provider construction belongs in the shared
-  [`sandbox-host`](../../common/rust/sandbox-host/README.md) crate; do not expose provider cache formats or directory
+  [`sandbox-host`](../sandbox-host/README.md) crate; do not expose provider cache formats or directory
   layouts to the coordinator, runner scripts or deployment workflow.
 - Prepared images are immutable, provider-owned derivatives of OCI image identities. They are both a cold-start
   optimization and the way runtime runner Pods avoid receiving registry credentials.

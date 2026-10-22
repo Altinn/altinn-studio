@@ -3,5 +3,5 @@
 !Cargo.lock
 !Cargo.toml
 !src/ci/github-runner/coordinator
-!src/common/rust/sandbox-host
+!src/ci/sandbox-host
 **/target/

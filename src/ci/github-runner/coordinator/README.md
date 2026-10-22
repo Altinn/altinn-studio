@@ -2,7 +2,7 @@
 
 This package coordinates one ephemeral GitHub Actions runner through the backend-neutral Sandbox SDK. The Provider
 setup and the `sandbox-image` helper, which exports and imports prepared images, are in the shared
-[`sandbox-host`](../../../common/rust/sandbox-host/README.md) crate. See the directory-level
+[`sandbox-host`](../../sandbox-host/README.md) crate. See the directory-level
 [`AGENTS.md`](../AGENTS.md) for design constraints.
 
 See the [`Makefile`](Makefile) for available development commands.
