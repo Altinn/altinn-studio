@@ -54,7 +54,11 @@ public sealed class StepDefinition
     /// <summary>Hard cap on tool-call iterations per item. Default: 5.</summary>
     public int? MaxToolIterations { get; set; }
 
-    /// <summary>Max parallel per-item LLM loops. Default: 5.</summary>
+    /// <summary>
+    /// Max parallel per-item LLM loops. Deprecated: agent.yaml is shared by every
+    /// environment, so set <c>AiEnrichment:Agent:Concurrency</c> per environment
+    /// instead — that value wins when both are set. Default: 5.
+    /// </summary>
     public int? Concurrency { get; set; }
 
     /// <summary>

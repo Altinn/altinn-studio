@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Altinn.App.Ai.Enrichment.Agents;
+using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Mapping;
 using Altinn.App.Ai.Enrichment.Models;
 using Altinn.App.Ai.Enrichment.Orchestration;
@@ -20,7 +21,11 @@ namespace Altinn.App.Ai.Enrichment.Pipeline;
 public sealed class AgentOrchestratedStep : IEnrichmentStep
 {
     private const int DefaultMaxToolIterations = 5;
-    private const int DefaultConcurrency = 5;
+    internal const int DefaultConcurrency = 5;
+    internal const string ConcurrencySettingName = AgentOptions.SectionName + ":Concurrency";
+    internal const string ConcurrencyFromAppSettings = "appsettings";
+    internal const string ConcurrencyFromAgentYaml = "agent.yaml";
+    internal const string ConcurrencyFromDefault = "default";
     private const string DefaultSchemaFile = "sjekkliste.json";
 
     private readonly StepDefinition _definition;
@@ -31,6 +36,7 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
     private readonly string _rulesFolderAbsolutePath;
     private readonly string _schemaFilePath;
     private readonly string? _templatePath;
+    private readonly ResolvedConcurrency _concurrency;
     private readonly ILogger _logger;
 
     public string Name => _definition.Name;
@@ -42,6 +48,7 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
         IRulesLoader rulesLoader,
         ITypstRenderer renderer,
         AgentFolder folder,
+        int? configuredConcurrency,
         ILogger logger)
     {
         if (!string.IsNullOrEmpty(definition.Template) && string.IsNullOrEmpty(definition.Output))
@@ -57,6 +64,9 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
         _templatePath = string.IsNullOrEmpty(definition.Template)
             ? null
             : Path.Combine(folder.TemplatesDirectory, definition.Template);
+
+        _concurrency = ResolveConcurrency(configuredConcurrency, definition.Concurrency);
+        WarnAboutYamlConcurrency(definition, _concurrency, logger);
 
         _definition = definition;
         _mapper = mapper;
@@ -84,12 +94,12 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
         var options = new OrchestratorOptions
         {
             MaxToolIterations = _definition.MaxToolIterations ?? DefaultMaxToolIterations,
-            Concurrency = _definition.Concurrency ?? DefaultConcurrency,
+            Concurrency = _concurrency.Value,
         };
 
         _logger.LogInformation(
-            "Orchestrator {StepName}: {RuleCount} rules, concurrency={Concurrency}, maxIter={MaxIter}",
-            Name, rules.Count, options.Concurrency, options.MaxToolIterations);
+            "Orchestrator {StepName}: {RuleCount} rules, concurrency={Concurrency} (from {ConcurrencySource}), maxIter={MaxIter}",
+            Name, rules.Count, options.Concurrency, _concurrency.Source, options.MaxToolIterations);
 
         var result = await _orchestrator.RunAsync(application, rules, options, cancellationToken);
 
@@ -108,6 +118,43 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
 
         var pdfBytes = await _renderer.RenderPdfAsync(merged, _templatePath, cancellationToken);
         return [new GeneratedFile(_definition.Output!, "application/pdf", pdfBytes)];
+    }
+
+    /// <summary>
+    /// Picks the step's concurrency. The environment wins: how many requests the
+    /// gateway can take at once differs between a local LLM server and the
+    /// deployed gateway, and agent.yaml is shared by every environment, so a
+    /// value meant for one would otherwise reach all of them.
+    /// <c>AiEnrichment:Agent:Concurrency</c>, then agent.yaml, then
+    /// <see cref="DefaultConcurrency"/>.
+    /// </summary>
+    internal static ResolvedConcurrency ResolveConcurrency(int? configured, int? fromAgentYaml)
+    {
+        if (configured is int fromAppSettings)
+            return new ResolvedConcurrency(fromAppSettings, ConcurrencyFromAppSettings);
+        if (fromAgentYaml is int fromYaml)
+            return new ResolvedConcurrency(fromYaml, ConcurrencyFromAgentYaml);
+        return new ResolvedConcurrency(DefaultConcurrency, ConcurrencyFromDefault);
+    }
+
+    private static void WarnAboutYamlConcurrency(
+        StepDefinition definition, ResolvedConcurrency resolved, ILogger logger)
+    {
+        if (definition.Concurrency is null)
+            return;
+
+        if (resolved.Source == ConcurrencyFromAppSettings)
+        {
+            logger.LogInformation(
+                "Step {StepName}: {Setting}={Concurrency} overrides concurrency: {YamlConcurrency} in agent.yaml",
+                definition.Name, ConcurrencySettingName, resolved.Value, definition.Concurrency);
+            return;
+        }
+
+        logger.LogWarning(
+            "Step {StepName}: concurrency in agent.yaml is deprecated — the file is shared by every environment. " +
+            "Set {Setting} in each environment's appsettings and remove it from agent.yaml",
+            definition.Name, ConcurrencySettingName);
     }
 
     /// <summary>
@@ -136,3 +183,6 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 }
+
+/// <summary>The concurrency a step runs with, and which setting it came from.</summary>
+internal sealed record ResolvedConcurrency(int Value, string Source);
