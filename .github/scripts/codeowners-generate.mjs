@@ -65,6 +65,10 @@ const GROUPS = [
     title: 'AI',
     owner: '@ErlingHauan',
     roots: ['src/AI/assistant', 'src/AI/assistant-runner', 'src/AI/augmenter-agent'],
+    extraPaths: [
+      '.github/workflows/assistant-runner-build-test.yaml',
+      '.github/workflows/deploy-assistant-runner.yaml',
+    ],
   },
   {
     title: 'Squad Kjøring',

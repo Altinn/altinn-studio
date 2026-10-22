@@ -1,0 +1,150 @@
+# The pod of each runner Job. The assistant reads this template and creates a Job with exactly this pod spec, and the
+# policy in admission-policy.yaml refuses any other pod spec. The deploy workflow pins the images by digest in the
+# annotations, and the replacements in kustomization.yaml copy them into the pod spec.
+apiVersion: v1
+kind: PodTemplate
+metadata:
+  name: assistant-runner
+  namespace: assistant-runners
+  annotations:
+    altinn.studio/image: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner:latest
+    altinn.studio/image-tag: latest
+    altinn.studio/guest-image: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner-guest:latest
+    altinn.studio/guest-image-tag: latest
+    altinn.studio/prepared-image: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner-prepared:latest
+    altinn.studio/prepared-image-tag: latest
+template:
+  metadata:
+    labels:
+      app: altinn-assistant-runner
+    annotations:
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+  spec:
+    restartPolicy: Never
+    # The job host does not call the Kubernetes API.
+    automountServiceAccountToken: false
+    enableServiceLinks: false
+    nodeSelector:
+      purpose: sandbox
+      kubernetes.io/arch: amd64
+    tolerations:
+      - key: purpose
+        operator: Equal
+        value: sandbox
+        effect: NoSchedule
+    # On SIGTERM, the job host cancels a running job and deletes its VM, which takes at most one minute.
+    terminationGracePeriodSeconds: 90
+    # The job host starts a VM, which needs root and /dev/kvm. The app code runs in the VM, not in this pod.
+    securityContext:
+      runAsNonRoot: false
+      runAsUser: 0
+      runAsGroup: 0
+      seccompProfile:
+        type: RuntimeDefault
+    initContainers:
+      # Imports the guest image into the image cache, so that the pod needs no registry credentials.
+      - name: prepare-image
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner-prepared:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        env:
+          - name: SANDBOX_PROVIDER_HOME
+            value: /tmp/sandbox-provider
+          - name: SANDBOX_CACHE_HOME
+            value: /var/cache/altinn/sandbox
+          - name: PREPARED_IMAGE_DIRECTORY
+            value: /opt/altinn/prepared-image
+          - name: SANDBOX_IMAGE
+            value: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner-guest:latest
+        resources:
+          requests:
+            cpu: "1"
+            memory: 2Gi
+          limits:
+            memory: 2Gi
+        volumeMounts:
+          - name: provider-cache
+            mountPath: /var/cache/altinn/sandbox
+            subPath: assistant-runner
+          - name: tmp
+            mountPath: /tmp
+    containers:
+      - name: job-host
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+        env:
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          - name: SANDBOX_PROVIDER_HOME
+            value: /var/lib/altinn/sandbox-provider
+          - name: SANDBOX_CACHE_HOME
+            value: /var/cache/altinn/sandbox
+          - name: SANDBOX_IMAGE
+            value: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner-guest:latest
+          - name: SANDBOX_CPUS
+            value: "2"
+          - name: SANDBOX_MEMORY
+            value: 4Gi
+          - name: SANDBOX_ROOT_FILESYSTEM
+            value: 20Gi
+          - name: REQUEST_TIMEOUT_SECONDS
+            value: "120"
+        # The assistant sends the job request when the pod is Ready. The pod lives for one run, so it has no liveness
+        # probe.
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          periodSeconds: 1
+        # The VM and its runtime are processes of this container, so the requests hold the VM size and the job host.
+        resources:
+          requests:
+            cpu: "3"
+            memory: 5632Mi
+            ephemeral-storage: 1Gi
+            devices.altinn.studio/kvm: "1"
+          limits:
+            memory: 6Gi
+            ephemeral-storage: 2Gi
+            devices.altinn.studio/kvm: "1"
+        volumeMounts:
+          - name: provider-home
+            mountPath: /var/lib/altinn/sandbox-provider
+            subPathExpr: $(POD_UID)
+          - name: provider-cache
+            mountPath: /var/cache/altinn/sandbox
+            subPath: assistant-runner
+          - name: tmp
+            mountPath: /tmp
+    # The sandbox node keeps the VM disks on its local NVMe disk.
+    volumes:
+      - name: provider-home
+        hostPath:
+          path: /var/lib/altinn/sandbox/homes
+          type: Directory
+      - name: provider-cache
+        hostPath:
+          path: /var/lib/altinn/sandbox/cache
+          type: Directory
+      - name: tmp
+        emptyDir:
+          sizeLimit: 1Gi

@@ -1,0 +1,297 @@
+name: Deploy assistant runner
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'rust-toolchain.toml'
+      - 'src/AI/assistant-runner/**'
+      - 'src/common/rust/sandbox-host/**'
+      - '.github/workflows/deploy-assistant-runner.yaml'
+  workflow_dispatch:
+    inputs:
+      environments:
+        description: 'Environments to deploy to. Multiple environments can be specified by separating them with a comma.'
+        required: false
+        default: 'dev,preapproved-prod'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # Staging has no sandbox node, so the runner runs in dev and prod only.
+  construct-environments-array:
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
+    with:
+      use-preapproved: true
+      inputs: ${{ toJSON(github.event.inputs) }}
+      override-default-studio-environments: dev,preapproved-prod
+
+  build-images:
+    name: Build assistant runner images
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      config_repo: ${{ steps.vars.outputs.config-repo }}
+      job_host_digest: ${{ steps.job-host-image.outputs.digest }}
+      job_host_repository: ${{ steps.vars.outputs.job-host-repository }}
+      guest_digest: ${{ steps.guest-image.outputs.digest }}
+      guest_repository: ${{ steps.vars.outputs.guest-repository }}
+      image_tag: ${{ steps.vars.outputs.short-sha }}
+      prepared_image: ${{ steps.vars.outputs.prepared-image }}
+      prepared_image_repository: ${{ steps.vars.outputs.prepared-image-repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA="${GITHUB_SHA::10}"
+          REGISTRY="altinntjenestercontainerregistry.azurecr.io"
+          {
+            echo "short-sha=${SHA}"
+            echo "job-host-repository=${REGISTRY}/altinn-assistant-runner"
+            echo "guest-repository=${REGISTRY}/altinn-assistant-runner-guest"
+            echo "prepared-image-repository=${REGISTRY}/altinn-assistant-runner-prepared"
+            echo "prepared-image=${REGISTRY}/altinn-assistant-runner-prepared:${SHA}"
+            echo "config-repo=${REGISTRY}/configs/altinn-assistant-runner-repo:${SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name "${REGISTRY_NAME}"
+
+      - name: Build and publish the guest image
+        id: guest-image
+        working-directory: src/AI/assistant-runner
+        env:
+          REPOSITORY: ${{ steps.vars.outputs.guest-repository }}
+          SHA: ${{ steps.vars.outputs.short-sha }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/guest-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --file Dockerfile.guest \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${REPOSITORY}:${SHA}" \
+            --tag "${REPOSITORY}:latest" \
+            .
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected guest image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish the job host image
+        id: job-host-image
+        env:
+          REPOSITORY: ${{ steps.vars.outputs.job-host-repository }}
+          SHA: ${{ steps.vars.outputs.short-sha }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/job-host-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --file src/AI/assistant-runner/Dockerfile \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${REPOSITORY}:${SHA}" \
+            --tag "${REPOSITORY}:latest" \
+            .
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected job host image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+  # The pod imports this image in its init container, so that it needs no registry credentials.
+  build-prepared-image:
+    name: Build the prepared guest image
+    needs: build-images
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      digest: ${{ steps.prepared-image.outputs.digest }}
+    defaults:
+      run:
+        working-directory: src/AI/assistant-runner
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name "${REGISTRY_NAME}"
+
+      - name: Export the prepared guest image
+        env:
+          JOB_HOST_IMAGE: ${{ needs.build-images.outputs.job_host_repository }}@${{ needs.build-images.outputs.job_host_digest }}
+          GUEST_IMAGE: ${{ needs.build-images.outputs.guest_repository }}@${{ needs.build-images.outputs.guest_digest }}
+        run: |
+          REGISTRY_PASSWORD="$(az acr login --name "${REGISTRY_NAME}" --expose-token --query accessToken --output tsv)"
+          test -n "${REGISTRY_PASSWORD}"
+          echo "::add-mask::${REGISTRY_PASSWORD}"
+          export REGISTRY_PASSWORD
+
+          test ! -e prepared-image
+          mkdir prepared-image
+          CACHE_DIRECTORY="$(mktemp -d "${RUNNER_TEMP}/sandbox-cache.XXXXXX")"
+          docker run --rm \
+            --entrypoint /usr/local/bin/sandbox-image \
+            --env SANDBOX_CACHE_HOME=/cache \
+            --env PREPARED_IMAGE_DIRECTORY=/output \
+            --env REGISTRY_PASSWORD \
+            --env REGISTRY_USERNAME=00000000-0000-0000-0000-000000000000 \
+            --env "SANDBOX_IMAGE=${GUEST_IMAGE}" \
+            --volume "${CACHE_DIRECTORY}:/cache" \
+            --volume "${PWD}/prepared-image:/output" \
+            "${JOB_HOST_IMAGE}" \
+            export
+
+      - name: Build and publish the prepared guest image
+        id: prepared-image
+        env:
+          JOB_HOST_IMAGE: ${{ needs.build-images.outputs.job_host_repository }}@${{ needs.build-images.outputs.job_host_digest }}
+          REPOSITORY: ${{ needs.build-images.outputs.prepared_image_repository }}
+          IMAGE: ${{ needs.build-images.outputs.prepared_image }}
+        run: |
+          METADATA_FILE="${RUNNER_TEMP}/prepared-build.json"
+          docker buildx build \
+            --provenance=false --sbom=false \
+            --build-arg "COORDINATOR_IMAGE=${JOB_HOST_IMAGE}" \
+            --file Dockerfile.prepared-image \
+            --metadata-file "${METADATA_FILE}" \
+            --platform linux/amd64 \
+            --push \
+            --tag "${IMAGE}" \
+            --tag "${REPOSITORY}:latest" \
+            .
+          IMAGE_DIGEST="$(jq -er '."containerimage.digest"' "${METADATA_FILE}")"
+          case "${IMAGE_DIGEST}" in
+            sha256:*) ;;
+            *) echo "Unexpected prepared image digest: ${IMAGE_DIGEST}" >&2; exit 1 ;;
+          esac
+          echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+  push-artifact:
+    name: Push the assistant runner as an OCI artifact
+    needs: [build-images, build-prepared-image]
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      REGISTRY_NAME: altinntjenestercontainerregistry
+    outputs:
+      CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
+    defaults:
+      run:
+        working-directory: src/AI/assistant-runner/infra/kustomize
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name "${REGISTRY_NAME}"
+
+      - name: flux install
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: Pin the images by digest
+        env:
+          JOB_HOST_IMAGE: ${{ needs.build-images.outputs.job_host_repository }}@${{ needs.build-images.outputs.job_host_digest }}
+          GUEST_IMAGE: ${{ needs.build-images.outputs.guest_repository }}@${{ needs.build-images.outputs.guest_digest }}
+          PREPARED_IMAGE: ${{ needs.build-images.outputs.prepared_image_repository }}@${{ needs.build-prepared-image.outputs.digest }}
+          IMAGE_TAG: ${{ needs.build-images.outputs.image_tag }}
+        run: |
+          yq -i '
+            .metadata.annotations["altinn.studio/image"] = strenv(JOB_HOST_IMAGE) |
+            .metadata.annotations["altinn.studio/image-tag"] = strenv(IMAGE_TAG) |
+            .metadata.annotations["altinn.studio/guest-image"] = strenv(GUEST_IMAGE) |
+            .metadata.annotations["altinn.studio/guest-image-tag"] = strenv(IMAGE_TAG) |
+            .metadata.annotations["altinn.studio/prepared-image"] = strenv(PREPARED_IMAGE) |
+            .metadata.annotations["altinn.studio/prepared-image-tag"] = strenv(IMAGE_TAG)
+          ' base/podtemplate.yaml
+
+          for environment in dev prod; do
+            RENDERED="$(kubectl kustomize "${environment}")"
+            POD="$(yq -er 'select(.kind == "PodTemplate") | .template.spec' <<< "${RENDERED}")"
+            test "$(yq -er '.containers[] | select(.name == "job-host") | .image' <<< "${POD}")" = "${JOB_HOST_IMAGE}"
+            test "$(yq -er '.containers[] | select(.name == "job-host") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${POD}")" = "${GUEST_IMAGE}"
+            test "$(yq -er '.initContainers[] | select(.name == "prepare-image") | .image' <<< "${POD}")" = "${PREPARED_IMAGE}"
+            test "$(yq -er '.initContainers[] | select(.name == "prepare-image") | .env[] | select(.name == "SANDBOX_IMAGE") | .value' <<< "${POD}")" = "${GUEST_IMAGE}"
+          done
+
+      - name: push artifact
+        env:
+          CONFIG_REPO: ${{ needs.build-images.outputs.config_repo }}
+        run: |
+          flux push artifact "oci://${CONFIG_REPO}" \
+            --provider=azure \
+            --reproducible \
+            --path="." \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="$(git branch --show-current)/$(git rev-parse HEAD)"
+
+  tag:
+    name: Tag artifact
+    needs: [push-artifact, construct-environments-array]
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    env:
+      CONFIG_REPO: ${{ needs.push-artifact.outputs.CONFIG_REPO }}
+      REGISTRY_NAME: altinntjenestercontainerregistry
+      ARTIFACT_TAG: ${{ matrix.environment == 'preapproved-prod' && 'prod' || matrix.environment }}
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
+    steps:
+      - name: az login
+        uses: azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2.3.1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
+      - name: az acr login
+        run: az acr login --name "${REGISTRY_NAME}"
+
+      - name: flux install
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+
+      - name: tag artifact
+        run: |
+          flux tag artifact "oci://${CONFIG_REPO}" \
+            --tag "${ARTIFACT_TAG}"

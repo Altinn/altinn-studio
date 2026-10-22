@@ -1,0 +1,46 @@
+# The Role lets the assistant create Jobs, but RBAC cannot limit what a Job contains. This policy accepts a Job from the
+# assistant only when its pod is the pod of the PodTemplate assistant-runner, so the assistant can start runner pods
+# and nothing else.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: assistant-runner-jobs
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: v1
+    kind: PodTemplate
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [batch]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [jobs]
+  matchConditions:
+    - name: from-the-assistant
+      expression: request.userInfo.username == "system:serviceaccount:default:altinn-altinity-agents-sa"
+  validations:
+    - expression: object.spec.template.spec == params.template.spec
+      message: The pod spec of the Job must be the pod spec of the PodTemplate assistant-runner.
+    - expression: >-
+        (has(object.spec.template.metadata.annotations) ? object.spec.template.metadata.annotations : {}) ==
+        (has(params.template.metadata.annotations) ? params.template.metadata.annotations : {})
+      message: The pod annotations of the Job must be the pod annotations of the PodTemplate assistant-runner.
+    - expression: has(object.spec.backoffLimit) && object.spec.backoffLimit == 0
+      message: A runner Job must not retry its pod.
+    - expression: has(object.spec.activeDeadlineSeconds) && object.spec.activeDeadlineSeconds <= 1200
+      message: A runner Job must stop within 1200 seconds.
+    - expression: has(object.spec.ttlSecondsAfterFinished)
+      message: A runner Job must have a TTL, so that Kubernetes removes it when the assistant does not.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: assistant-runner-jobs
+spec:
+  policyName: assistant-runner-jobs
+  validationActions: [Deny]
+  paramRef:
+    name: assistant-runner
+    namespace: assistant-runners
+    parameterNotFoundAction: Deny
