@@ -77,7 +77,7 @@ public sealed class AiEnrichmentStepOptions
     /// <summary>
     /// How long the yield parks the transition before the agent run starts.
     ///
-    /// This is a window, not a delay to minimise. app-lib only releases the
+    /// This is a window, not a delay to minimize. app-lib only releases the
     /// caller if one of its polls lands while the transition is parked, and
     /// those polls slow to one every two seconds once a transition is a few
     /// seconds old. A yield shorter than that interval falls between two polls:
