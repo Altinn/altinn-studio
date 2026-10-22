@@ -23,6 +23,12 @@ namespace LocalTest.Configuration
         public string AuthorizationAuditFolder { get; set; } = "authorization/";
 
         /// <summary>
+        /// How many of the newest authorization decisions to keep in <see cref="AuthorizationAuditFolder"/>, one file each.
+        /// 0 turns the audit off.
+        /// </summary>
+        public int AuthorizationAuditMaxFiles { get; set; } = 1000;
+
+        /// <summary>
         /// Folder where static test data like profile, authorization, and register data is available for local testing.
         /// </summary>
         public string LocalTestingStaticTestDataPath
