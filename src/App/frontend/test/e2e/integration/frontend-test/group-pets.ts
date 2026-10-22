@@ -190,7 +190,7 @@ describe('Group (Pets)', () => {
     });
     cy.get('[data-summary-target="option-test4"]')
       .should('contain.text', 'Svømmedyr')
-      .and('contain.text', 'Dyr som svømmer');
+      .and('not.contain.text', 'Dyr som svømmer');
 
     for (const isCompact of [undefined, false, true]) {
       if (isCompact !== undefined) {
@@ -200,21 +200,26 @@ describe('Group (Pets)', () => {
           }
         });
       }
-      for (const [id, direction] of [
-        ['option-test1', 'row'],
-        ['option-test3', 'row'],
-        ['option-test4', 'column'],
+      for (const [id, direction, defaultSummaryDirection] of [
+        ['option-test1', 'row', 'column'],
+        ['option-test3', 'row', 'row'],
+        ['option-test4', 'column', 'column'],
       ]) {
         cy.get(`#form-content-${id}`).parent().should('have.css', 'flex-direction', direction);
         cy.get(`[data-summary-target="${id}"]`).within(() => {
-          const summaryDirection = isCompact === undefined ? direction : isCompact ? 'row' : 'column';
-          cy.get(`[id^="form-content-${id}-"]`).parent().should('have.css', 'flex-direction', summaryDirection);
-          cy.get(`[id^="label-${id}-"]`)
-            .should('have.length', 1)
-            .then(($label) => {
-              cy.get('[aria-labelledby]').should('have.attr', 'aria-labelledby', $label.attr('id'));
-              expect($label[0].ownerDocument.querySelectorAll(`[id="${$label.attr('id')}"]`)).to.have.length(1);
+          const compact = isCompact === undefined ? defaultSummaryDirection === 'row' : isCompact;
+          cy.get('[data-testid="summary-single-value-component"] label').then(($label) => {
+            cy.contains('span', id === 'option-test3' ? /^Katt$/ : /^Fisk$/).should(($value) => {
+              const labelRect = $label[0].getBoundingClientRect();
+              const valueRect = $value[0].getBoundingClientRect();
+              if (compact) {
+                expect(valueRect.left).to.be.greaterThan(labelRect.right);
+                expect(Math.abs(valueRect.top - labelRect.top)).to.be.lessThan(5);
+              } else {
+                expect(valueRect.top).to.be.at.least(labelRect.bottom);
+              }
             });
+          });
         });
       }
     }
