@@ -105,6 +105,15 @@ describe('Group summary test', () => {
   });
 
   it('Displays a summary for a filled repeating group in table', () => {
+    cy.interceptLayout('Task_1', (component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.tableColumns = {
+          'RepeatingGroup-Input-Name': { width: '10%' },
+          'RepeatingGroup-Input-Points': { width: '70%' },
+          'RepeatingGroup-Input-Date': { width: '20%' },
+        };
+      }
+    });
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Repeterende gruppe');
     const inputValue = 'Test input for group';
@@ -130,6 +139,11 @@ describe('Group summary test', () => {
       cy.findByRole('columnheader', { name: /Navn/ }).should('exist');
       cy.findAllByRole('cell', { name: inputValue }).should('exist');
       cy.findAllByRole('cell', { name: inputValue2 }).should('exist');
+      cy.findAllByRole('columnheader').should(($headers) => {
+        const nameWidth = $headers[0].getBoundingClientRect().width;
+        const pointsWidth = $headers[1].getBoundingClientRect().width;
+        expect(pointsWidth, 'the 70% column is wider than the 10% column').to.be.greaterThan(nameWidth * 3);
+      });
     });
   });
 

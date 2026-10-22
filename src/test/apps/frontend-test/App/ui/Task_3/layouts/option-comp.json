@@ -104,6 +104,11 @@
         "grid": { "md": 6 }
       },
       {
+        "id": "option-summary",
+        "type": "Summary2",
+        "target": { "type": "page", "id": "option-comp" }
+      },
+      {
         "id": "nav-page-option-comp",
         "type": "NavigationButtons",
         "textResourceBindings": {

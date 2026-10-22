@@ -16,6 +16,42 @@ Part of the [Runtime services](../AGENTS.md). Full details: [`README.md`](README
   rebuilding (`STUDIOCTL_INTERNAL_DEV=true studioctl env up`). See `README.md` for how the two combine.
 - k6 sample load test (`k6/loadtest.sample.js`) that can be adapted to run against a local app.
 
+## Correspondence
+
+Localtest emulates the Correspondence API apps use to send messages, such as the signing call to action each
+signee receives and the receipt with the signed documents. `studioctl` points
+`PlatformSettings__ApiCorrespondenceEndpoint` at it. The wire models in `Controllers/Correspondence` mirror what
+the app libraries send and read; a field the app client marks `required` must be in every response.
+
+- `POST correspondence/api/v1/correspondence` creates one correspondence per recipient and publishes it at once.
+  `GET …/correspondence/{id}/details` returns it with its attachments and notifications.
+- **Validation mirrors selected rules of the real API, with its error codes.** It is not a contract test: the real
+  API can refuse more. `CorrespondenceRequestValidator` makes checks that need only the request (recipient format,
+  content, field lengths, dates, notification texts, custom recipients, the property list, reply links, and
+  attachment names, types and expiry), with the messages and `errorCode`s from the Correspondence API's error
+  catalog.
+  Recipients are looked up among the test data's parties (`1029`). Where a real check can't be repeated exactly,
+  such as markdown in a title, the local one is more lenient: Localtest must never refuse what a deployed
+  environment accepts, so add a case to the accepted-requests test whenever you tighten a rule.
+- **Not checked locally:** the resource registry, access to the resource, the service owner agreement, the
+  contact reservation register (KRR), confidentiality and Dialogporten. Test those in TT02.
+- **`idempotentKey` is load-bearing:** a reused key answers 409 Conflict, which apps treat as "already sent"
+  when they retry. As in the real API, the key is looked up after the model validation and before the other
+  checks, so a retry that has since become invalid, such as one whose due date has passed, still gets 409.
+  Duplicate detection runs under a lock, so concurrent sends with one key create one message.
+- Attachments go through `POST …/attachment`, `POST …/attachment/{id}/upload` and `GET …/attachment/{id}`, as
+  the app client sends them. An upload is streamed to a temporary file and published once it is all written (no
+  malware scan), up to the real API's 50 GB, and a correspondence may only reference published attachments.
+- **Notifications are worked out, not sent.** `CorrespondenceNotificationBuilder` applies the requested channel
+  and template to the recipient's contact information in the test data and to the custom recipients (only those,
+  with `overrideRegisteredContactInformation`), and orders a reminder a week later when asked. As in the real API,
+  the channel chooses once per registered person or organization, not per address, and an email address or mobile
+  number given as a custom recipient is notified whatever the channel. The result is
+  stored with the correspondence. A generic template's text is a stand-in for the real API's wording.
+- Each correspondence is stored as `{correspondenceId}.json` in the `correspondence` folder under the storage
+  path, with the request body the app sent, so you can see exactly what went out. Attachments are stored in
+  its `attachments` subfolder, as `{attachmentId}.json` with their data in `{attachmentId}.bin`.
+
 ## Build & run
 
 `LocalTest.sln` / `src/LocalTest.csproj` is a normal .NET project:
