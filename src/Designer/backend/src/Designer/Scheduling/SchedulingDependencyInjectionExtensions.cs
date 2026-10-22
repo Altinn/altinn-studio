@@ -5,6 +5,7 @@ using Altinn.Studio.Designer.Models.ContactPoints;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
+using Quartz.Impl;
 
 namespace Altinn.Studio.Designer.Scheduling;
 
@@ -120,6 +121,8 @@ public static class SchedulingDependencyInjectionExtensions
                 PostgreSQLSettings postgresSettings = configuration
                     .GetSection(nameof(PostgreSQLSettings))
                     .Get<PostgreSQLSettings>();
+                // Each pod needs a unique instance id: a dead pod's jobs are recovered when its id stops checking in.
+                configure.SchedulerId = StdSchedulerFactory.AutoGenerateInstanceId;
                 configure.UsePersistentStore(s =>
                 {
                     s.UseSystemTextJsonSerializer();
