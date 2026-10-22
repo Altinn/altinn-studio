@@ -15,12 +15,11 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Constants;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Storage.Repository;
-using LocalTest.Configuration;
 using LocalTest.Services.AccessManagement;
+using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.TestData;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
@@ -37,7 +36,7 @@ namespace Altinn.Platform.Authorization.Controllers
         private readonly IContextHandler _contextHandler;
         private readonly IPolicyRetrievalPoint _prp;
         private readonly TestDataService _testDataService;
-        private readonly IOptions<LocalPlatformSettings> _localPlatformSettings;
+        private readonly AuthorizationAuditLog _authorizationAuditLog;
         private readonly LocalInstanceDelegationsRepository _instanceDelegationsRepository;
         private readonly IInstanceRepository _instanceRepository;
 
@@ -51,7 +50,7 @@ namespace Altinn.Platform.Authorization.Controllers
             IContextHandler contextHandler, 
             IPolicyRetrievalPoint policyRetrievalPoint,
             TestDataService testDataService,
-            IOptions<LocalPlatformSettings> localPlatformSettings,
+            AuthorizationAuditLog authorizationAuditLog,
             LocalInstanceDelegationsRepository instanceDelegationsRepository,
             IInstanceRepository instanceRepository
         )
@@ -60,7 +59,7 @@ namespace Altinn.Platform.Authorization.Controllers
             _contextHandler = contextHandler;
             _prp = policyRetrievalPoint;
             _testDataService = testDataService;
-            _localPlatformSettings = localPlatformSettings;
+            _authorizationAuditLog = authorizationAuditLog;
             _instanceDelegationsRepository = instanceDelegationsRepository;
             _instanceRepository = instanceRepository;
         }
@@ -574,12 +573,6 @@ namespace Altinn.Platform.Authorization.Controllers
         {
             try 
             {
-                var settings = _localPlatformSettings.Value;
-                var directory = settings.LocalTestingStorageBasePath + settings.AuthorizationAuditFolder;
-                if (!Directory.Exists(directory))
-                    Directory.CreateDirectory(directory);
-
-                    
                 var actionCategory = new Uri(XacmlConstants.MatchAttributeCategory.Action);
                 var actionAttrId = new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId);
                 var actionAttr = decisionRequest.Attributes.SingleOrDefault(a => a.Category == actionCategory);
@@ -590,18 +583,16 @@ namespace Altinn.Platform.Authorization.Controllers
                     .ToArray() ?? [];
                 Array.Sort(actions);
 
-                var timestamp = DateTimeOffset.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.fff");
-                var actionsStr = string.Join("+", actions);
-                var fileName = $"{timestamp}_{actionsStr}.json";
-                var filePath = Path.Combine(directory, fileName);
                 var log = new 
                 {
                     Request = decisionRequest,
                     AppPolicyResponse = appPolicyResponse,
                     DelegationResponse = delegationResponse
                 };
-                await using var file = System.IO.File.OpenWrite(filePath);
-                await System.Text.Json.JsonSerializer.SerializeAsync(file, log, _jsonSerializerOptions);
+                await _authorizationAuditLog.Write(
+                    actions,
+                    System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(log, _jsonSerializerOptions)
+                );
             }
             catch (Exception e)
             {
