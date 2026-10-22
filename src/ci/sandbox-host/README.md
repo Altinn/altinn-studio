@@ -24,9 +24,10 @@ pod spec of each workload mounts two folders from it, and `ProviderArguments` on
 - The Provider home holds the state of the pod's running VM, so each pod gets its own. The pod mounts the subfolder of
   `/var/lib/altinn/sandbox/homes` that is named after its pod UID (`subPathExpr: $(POD_UID)`) at
   `SANDBOX_PROVIDER_HOME`. No two pods use the same folder, even on the same node.
-- The image cache holds the prepared images that the VMs start from. The GitHub runner pods on a node share one cache,
-  `/var/lib/altinn/sandbox/cache`, mounted at `SANDBOX_CACHE_HOME`. The init container imports the prepared image into
-  it, with a throwaway Provider home in the pod's `/tmp`.
+- The image cache holds the prepared images that the VMs start from. The pods of each workload on a node share one
+  cache, mounted at `SANDBOX_CACHE_HOME`: the GitHub runner pods use `/var/lib/altinn/sandbox/cache`, and the assistant
+  runner pods use its `assistant-runner` subfolder. The init container imports the prepared image into the cache,
+  with a throwaway Provider home in the pod's `/tmp`.
 
 `clear_home` empties the Provider home when a run ends, also after a failed run, so that nothing carries over to the
 next run.
