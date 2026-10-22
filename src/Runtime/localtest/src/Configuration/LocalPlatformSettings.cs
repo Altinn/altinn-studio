@@ -1,5 +1,6 @@
 #nullable disable
 
+using System;
 using System.IO;
 
 namespace LocalTest.Configuration
@@ -67,5 +68,12 @@ namespace LocalTest.Configuration
         public string TenorDataFolder { get; set; } = "tenorUsers";
 
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
+
+        /// <summary>
+        /// How long a request proxied to a service in the environment may go without activity
+        /// before it is cancelled. The default matches the workflow engine's longest step command
+        /// timeout, so a long-running service task is not cut off by YARP's 100-second default.
+        /// </summary>
+        public TimeSpan ProxyActivityTimeout { get; set; } = TimeSpan.FromHours(2);
     }
 }

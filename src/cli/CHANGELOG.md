@@ -24,6 +24,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Requests to an app started with `studioctl run`, such as a long-running service task, no longer fail with 502 Bad Gateway after 100 seconds. They can now take up to 2 hours. ([#21382](https://github.com/Altinn/altinn-studio/issues/21382))
 - `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` lists `using Altinn.App.Core.Internal.Maskinporten` directives among the removed Maskinporten APIs to replace. ([#19188](https://github.com/Altinn/altinn-studio/issues/19188))

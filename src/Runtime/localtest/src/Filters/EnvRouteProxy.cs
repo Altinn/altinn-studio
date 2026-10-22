@@ -3,6 +3,8 @@
 using System.Diagnostics;
 using System.Net;
 using System.Web;
+using LocalTest.Configuration;
+using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Forwarder;
 
 namespace LocalTest.Filters;
@@ -25,12 +27,23 @@ public sealed class EnvRouteProxy
     );
 
     private readonly IHttpForwarder _forwarder;
+    private readonly ForwarderRequestConfig _requestConfig;
     private readonly ILogger<EnvRouteProxy> _logger;
 
-    public EnvRouteProxy(IHttpForwarder forwarder, ILogger<EnvRouteProxy> logger)
+    public EnvRouteProxy(
+        IHttpForwarder forwarder,
+        IOptions<LocalPlatformSettings> localPlatformSettings,
+        ILogger<EnvRouteProxy> logger
+    )
     {
         _forwarder = forwarder;
+        _requestConfig = CreateRequestConfig(localPlatformSettings.Value);
         _logger = logger;
+    }
+
+    internal static ForwarderRequestConfig CreateRequestConfig(LocalPlatformSettings settings)
+    {
+        return new ForwarderRequestConfig { ActivityTimeout = settings.ProxyActivityTimeout };
     }
 
     public async Task Proxy(HttpContext context, string targetHost)
@@ -41,7 +54,7 @@ public sealed class EnvRouteProxy
             context,
             targetHost,
             HttpClient,
-            ForwarderRequestConfig.Empty,
+            _requestConfig,
             transformer
         );
 

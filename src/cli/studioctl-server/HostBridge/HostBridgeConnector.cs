@@ -14,22 +14,7 @@ namespace Altinn.Studio.StudioctlServer.HostBridge;
 
 internal sealed class HostBridgeConnector : BackgroundService
 {
-    private static readonly HttpClient HttpClient = new(
-        new SocketsHttpHandler
-        {
-            UseProxy = false,
-            AllowAutoRedirect = false,
-            AutomaticDecompression = DecompressionMethods.None,
-            UseCookies = false,
-            EnableMultipleHttp2Connections = true,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(2),
-            ConnectTimeout = TimeSpan.FromSeconds(5),
-        }
-    )
-    {
-        DefaultRequestHeaders = { UserAgent = { ProductInfoHeaderValue.Parse(StudioctlUserAgent.Value) } },
-    };
-
+    private readonly HttpClient _httpClient;
     private readonly HostBridgeOptions _options;
     private readonly HostBridgeState _state;
     private readonly ILogger<HostBridgeConnector> _logger;
@@ -46,6 +31,38 @@ internal sealed class HostBridgeConnector : BackgroundService
         _state = state;
         _logger = logger;
         _boundTopologyIndex = boundTopologyIndex;
+        _httpClient = CreateHttpClient(_options.RequestTimeout);
+    }
+
+    /// <summary>
+    /// The client that forwards bridged requests to host targets. Its timeout is the request
+    /// timeout from <see cref="HostBridgeOptions"/>, not <see cref="HttpClient"/>'s 100-second default,
+    /// which would cut off a long-running service task before the workflow engine gives up on it.
+    /// </summary>
+    internal static HttpClient CreateHttpClient(TimeSpan requestTimeout)
+    {
+        return new HttpClient(
+            new SocketsHttpHandler
+            {
+                UseProxy = false,
+                AllowAutoRedirect = false,
+                AutomaticDecompression = DecompressionMethods.None,
+                UseCookies = false,
+                EnableMultipleHttp2Connections = true,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+                ConnectTimeout = TimeSpan.FromSeconds(5),
+            }
+        )
+        {
+            Timeout = requestTimeout,
+            DefaultRequestHeaders = { UserAgent = { ProductInfoHeaderValue.Parse(StudioctlUserAgent.Value) } },
+        };
+    }
+
+    public override void Dispose()
+    {
+        _httpClient.Dispose();
+        base.Dispose();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -305,7 +322,7 @@ internal sealed class HostBridgeConnector : BackgroundService
         var request = pendingRequest.BuildHttpRequest(ResolveTargetUri(pendingRequest));
         try
         {
-            return await HttpClient.SendAsync(
+            return await _httpClient.SendAsync(
                 request,
                 HttpCompletionOption.ResponseHeadersRead,
                 pendingRequest.CancellationTokenSource.Token
