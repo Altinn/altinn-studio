@@ -680,6 +680,33 @@ public class ProcessFlowUtilsTests
         }
     }
 
+    // Startup rejects mixed conditions on any gateway, but a flow to nowhere fails only when an instance leaves it.
+    [Fact]
+    public void An_Unreachable_Gateway_Is_Checked_For_Mixed_Conditions_But_Not_For_Its_Targets()
+    {
+        var process =
+            ValidProcess
+            + """
+                <bpmn:exclusiveGateway id="Detached">
+                  <bpmn:outgoing>DetachedFlow_1</bpmn:outgoing>
+                  <bpmn:outgoing>DetachedFlow_2</bpmn:outgoing>
+                </bpmn:exclusiveGateway>
+                <bpmn:sequenceFlow id="DetachedFlow_1" sourceRef="Detached" targetRef="EndEvent_1">
+                  <bpmn:conditionExpression>["equals", 1, 1]</bpmn:conditionExpression>
+                </bpmn:sequenceFlow>
+                <bpmn:sequenceFlow id="DetachedFlow_2" sourceRef="Detached" targetRef="Nowhere" />
+                """;
+
+        var diagnostics = Collect(Process(process));
+
+        AssertIds(diagnostics, "ALTINNAPP1010");
+        Assert.StartsWith(
+            "Exclusive gateway 'Detached' has a condition on some outgoing sequence flows, but none on "
+                + "'DetachedFlow_2'.",
+            diagnostics[0].GetMessage()
+        );
+    }
+
     // The default's condition is the gateway's only one, so the other flow is not mixed in with conditions.
     [Fact]
     public void A_Condition_Only_On_The_Default_Is_Reported_Once()
