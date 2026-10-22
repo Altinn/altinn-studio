@@ -212,6 +212,9 @@ public class ISourceControlMock : ISourceControl
     public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext) =>
         throw new NotImplementedException();
 
+    public Dictionary<string, FolderHistory> GetTopLevelFolderHistory(AltinnRepoEditingContext editingContext) =>
+        throw new NotImplementedException();
+
     public RepoStatus CheckoutBranchWithValidation(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
