@@ -216,6 +216,22 @@ public class InstanceMutationsController(
             return NotFound($"Cannot find application {instance.AppId} in storage");
         }
 
+        Dictionary<Guid, DataElement> existingDataElements = (instance.Data ?? []).ToDictionary(
+            e => new Guid(e.Id),
+            e => e
+        );
+        ActionResult dataTypeAuthorizationError = await AuthorizeDataTypeWrites(
+            mutationRequest,
+            instance,
+            existingDataElements,
+            application,
+            cancellationToken
+        );
+        if (dataTypeAuthorizationError is not null)
+        {
+            return dataTypeAuthorizationError;
+        }
+
         if (mutationRequest.DeleteInstance is not null)
         {
             instance.Status ??= new InstanceStatus();
@@ -240,10 +256,9 @@ public class InstanceMutationsController(
             return ProcessStatusConflict(exception);
         }
 
-        Dictionary<Guid, DataElement> existingDataElements = (instance.Data ?? []).ToDictionary(
-            e => new Guid(e.Id),
-            e => e
-        );
+        // Only a process transition asserts Processing, and EnsureExpectedStatus has checked the assertion.
+        bool isPartOfProcessTransition = mutationRequest.ExpectedProcessStatus == ProcessStatus.Processing;
+
         ActionResult duplicateDataElementIdError = ValidateDuplicateDataElementMutationIds(
             mutationRequest
         );
@@ -324,10 +339,10 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
+                if (dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
-                    return Forbid();
+                    return Conflict(taskBindingConflict);
                 }
 
                 Guid dataElementId = Guid.NewGuid();
@@ -426,10 +441,10 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
+                if (dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
-                    return Forbid();
+                    return Conflict(taskBindingConflict);
                 }
 
                 Dictionary<string, object> propertyList = BuildMetadataPropertyList(update);
@@ -576,10 +591,10 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
+                if (dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
-                    return Forbid();
+                    return Conflict(taskBindingConflict);
                 }
 
                 dataElement.LastChanged = mutationLastChanged;
@@ -1226,6 +1241,41 @@ public class InstanceMutationsController(
         );
 
         return authorizationResult.Succeeded ? null : Forbid();
+    }
+
+    // As Storage does, a caller who may not write one of the data types gets 403 before the deletion-period, process
+    // status and task-binding checks. Data types and data elements that don't resolve are refused per element later.
+    private async Task<ActionResult> AuthorizeDataTypeWrites(
+        InstanceMutationRequest request,
+        Instance instance,
+        Dictionary<Guid, DataElement> existingDataElements,
+        Application application,
+        CancellationToken cancellationToken
+    )
+    {
+        IEnumerable<string> dataTypeIds = (request.CreateDataElements ?? [])
+            .Select(create => create.DataType)
+            .Concat(
+                (request.UpdateDataElements ?? [])
+                    .Select(update => update.DataElementId)
+                    .Concat((request.DeleteDataElements ?? []).Select(delete => delete.DataElementId))
+                    .Select(dataElementId => existingDataElements.GetValueOrDefault(dataElementId)?.DataType)
+            )
+            .Distinct(StringComparer.Ordinal);
+
+        foreach (string dataTypeId in dataTypeIds)
+        {
+            DataType dataType = application.DataTypes.FirstOrDefault(e => e.Id == dataTypeId);
+            if (
+                dataType is not null
+                && await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true
+            )
+            {
+                return Forbid();
+            }
+        }
+
+        return null;
     }
 
     private static InstanceStatus BuildHardDeleteStatus(InstanceStatus currentStatus, DateTime now)

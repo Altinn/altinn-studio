@@ -23,12 +23,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+- Build check `ALTINNAPP1017` reports each `taskIds` entry that names no task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: a data type in `applicationmetadata.json` is bound to tasks with `taskIds`, so it can belong to several tasks; `taskId` is no longer read. `studioctl app upgrade v9` rewrites it, and build checks `ALTINNAPP0603` and `ALTINNAPP0604` report any that remain. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: Altinn Storage refuses writes to a data type in tasks its `taskIds` does not list, including those your code makes with the app's own token, such as through `IDataClient`; only process transitions are exempt. Add those tasks to `taskIds`. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 
 ### Fixed
 
 - Fixed a loading screen that could stay visible after a task transition finished if the destination task opened while the transition was still in progress. ([#21696](https://github.com/Altinn/altinn-studio/pull/21696))
 - When switching submissions, tasks or languages without reloading the app frontend, payment pages now load the corresponding payment and order details instead of reusing details from the previous selection. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
 - Payment status now refreshes after a successful payment that does not redirect to an external payment page. ([#21683](https://github.com/Altinn/altinn-studio/pull/21683))
+- The app's OpenAPI document at `/{org}/{app}/v1/customOpenapi.json` no longer fails with a server error when a data type, such as `ref-data-as-pdf`, is not bound to a task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 
 ### Removed
 

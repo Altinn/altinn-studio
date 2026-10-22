@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
@@ -113,20 +114,18 @@ internal class DataElementAccessChecker : IDataElementAccessChecker
             };
         }
 
-        // TODO: v9 remove setting and make this check the default (along with making dataType.TaskId into a list)
-        if (_appSettings.Value.EnforceDataTypeTaskId && dataType.TaskId is { } expectedTaskId)
+        if (_appSettings.Value.EnforceDataTypeTaskId && !dataType.IsWritableInCurrentTask(instance))
         {
-            var currentTaskId = instance.Process?.CurrentTask?.ElementId;
-            if (!expectedTaskId.Equals(currentTaskId, StringComparison.Ordinal))
+            string boundTasks = string.Join(", ", dataType.TaskIds ?? []);
+            string? currentTaskId = instance.Process?.CurrentTask?.ElementId;
+            return new ProblemDetails
             {
-                return new ProblemDetails
-                {
-                    Title = "Conflict with Current Task",
-                    Detail =
-                        $"Data element of type {dataType.Id} can only be modified in {expectedTaskId} (current task {currentTaskId})",
-                    Status = StatusCodes.Status409Conflict,
-                };
-            }
+                Title = "Conflict with Current Task",
+                Detail = currentTaskId is null
+                    ? $"Data element of type {dataType.Id} can only be modified in {boundTasks} (no current task)"
+                    : $"Data element of type {dataType.Id} can only be modified in {boundTasks} (current task {currentTaskId})",
+                Status = StatusCodes.Status409Conflict,
+            };
         }
 
         if (await HasRequiredActionAuthorization(instance, dataType.ActionRequiredToWrite) is false)

@@ -2062,20 +2062,20 @@ public class InstancesController_CopyInstanceTests
                 {
                     Id = "data_type_1",
                     AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema" },
-                    TaskId = "First",
+                    TaskIds = ["First"],
                 },
                 // Binary data types (no AppLogic.ClassRef)
                 new DataType
                 {
                     Id = "attachment",
-                    TaskId = "First",
+                    TaskIds = ["First"],
                     MaxSize = 25 * 1024 * 1024,
                     MaxCount = 10,
                 },
                 new DataType
                 {
                     Id = "sensitive-attachment",
-                    TaskId = "First",
+                    TaskIds = ["First"],
                     MaxSize = 10 * 1024 * 1024,
                     MaxCount = 5,
                 },
