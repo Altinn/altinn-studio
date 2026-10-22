@@ -93,9 +93,11 @@ public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFacto
         Application applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
         if (applicationMetadata.DataTypes is { Count: > 0 })
         {
+#pragma warning disable CS0618 // The task comes from layout-sets.json, which only v8 apps have
             DataType dataType = applicationMetadata.DataTypes.Find(element =>
                 !string.IsNullOrEmpty(element.AppLogic?.ClassRef) && element.TaskId == task
             );
+#pragma warning restore CS0618
             return dataType;
         }
         return null;

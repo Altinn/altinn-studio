@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -56,5 +57,28 @@ public class CreateApplicationMetadataTests
         // explicit null.
         string metadataContent = await File.ReadAllTextAsync(metadataPath);
         Assert.DoesNotContain("enablePdfCreation", metadataContent, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData("9.0.0", null, new[] { "Task_1" })]
+    [InlineData("8.12.10", "Task_1", null)]
+    public async Task CreateApplicationMetadata_ShouldBindModelWithTaskIdOrTaskIdsByAppLibVersion(
+        string appLibVersion,
+        string expectedTaskId,
+        string[] expectedTaskIds
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", targetRepository);
+        File.Delete(Path.Combine(TestRepoPath, "App", "config", "applicationmetadata.json"));
+        TestDataHelper.WriteAppLibVersion(TestRepoPath, appLibVersion);
+
+        using HttpRequestMessage request = new(HttpMethod.Post, VersionPrefix("ttd", targetRepository));
+        using var response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        JsonObject model = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, "model");
+        Assert.Equal(expectedTaskId, (string)model["taskId"]);
+        Assert.Equal(expectedTaskIds, DataTypeTaskBindingTestHelper.ReadTaskIds(model));
     }
 }

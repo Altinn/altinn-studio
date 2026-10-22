@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Platform.Storage.Interface.Models;
@@ -13,6 +14,8 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
+
+#pragma warning disable CS0618 // empty-app has no app-lib version, so Designer treats it as a v8 app
 
 namespace Designer.Tests.Controllers.ProcessModelingController;
 
@@ -68,6 +71,32 @@ public class AddDataTypeToApplicationMetadataTests
     }
 
     [Theory]
+    [InlineData("9.0.0", null, new[] { "Task_1" })]
+    [InlineData("8.12.10", "Task_1", null)]
+    public async Task AddDataType_BindsTaskWithTaskIdOrTaskIdsByAppLibVersion(
+        string appLibVersion,
+        string expectedTaskId,
+        string[] expectedTaskIds
+    )
+    {
+        const string dataTypeId = "signatureInformation";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
+        TestDataHelper.WriteAppLibVersion(TestRepoPath, appLibVersion);
+        using var content = new StringContent("[]", Encoding.UTF8, "application/json");
+
+        using var response = await HttpClient.PostAsync(
+            VersionPrefix("ttd", targetRepository, dataTypeId, "Task_1"),
+            content
+        );
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        JsonObject dataType = DataTypeTaskBindingTestHelper.ReadDataType(TestRepoPath, dataTypeId);
+        Assert.Equal(expectedTaskId, (string)dataType["taskId"]);
+        Assert.Equal(expectedTaskIds, DataTypeTaskBindingTestHelper.ReadTaskIds(dataType));
+    }
+
+    [Theory]
     [InlineData("ttd", "empty-app", "testUser", "paymentInformation-1234", "task_1")]
     public async Task AddDataTypeToApplicationMetadata_ShouldAddDataTypeAndReturnOK(
         string org,
@@ -103,9 +132,7 @@ public class AddDataTypeToApplicationMetadataTests
             MaxCount = 1,
             MinCount = 0,
             TaskId = taskId,
-#pragma warning disable CS0618 // V8 still uses this flag
             EnablePdfCreation = false,
-#pragma warning restore CS0618
             EnableFileScan = false,
             ValidationErrorOnPendingFileScan = false,
             EnabledFileAnalysers = new List<string>(),
@@ -161,9 +188,7 @@ public class AddDataTypeToApplicationMetadataTests
             MaxCount = 1,
             MinCount = 0,
             TaskId = taskId,
-#pragma warning disable CS0618 // V8 still uses this flag
             EnablePdfCreation = false,
-#pragma warning restore CS0618
             EnableFileScan = false,
             ValidationErrorOnPendingFileScan = false,
             EnabledFileAnalysers = new List<string>(),
