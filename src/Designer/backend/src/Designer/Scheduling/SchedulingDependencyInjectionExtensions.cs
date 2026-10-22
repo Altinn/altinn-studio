@@ -121,7 +121,8 @@ public static class SchedulingDependencyInjectionExtensions
                 PostgreSQLSettings postgresSettings = configuration
                     .GetSection(nameof(PostgreSQLSettings))
                     .Get<PostgreSQLSettings>();
-                // Each pod needs a unique instance id: a dead pod's jobs are recovered when its id stops checking in.
+                // Every start gets a new instance id, as a killed scheduler's jobs are recovered only once its id
+                // stops checking in. Quartz warns that node affinity needs a stable id; it is not used here.
                 configure.SchedulerId = StdSchedulerFactory.AutoGenerateInstanceId;
                 configure.UsePersistentStore(s =>
                 {
