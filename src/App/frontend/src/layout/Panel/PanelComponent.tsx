@@ -6,6 +6,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import classes from 'src/layout/Panel/PanelComponent.module.css';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -47,7 +48,9 @@ export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'P
           variant={config.variant ?? 'info'}
           forceMobileLayout={!fullWidth}
         >
-          <Lang id={body} />
+          <div className={classes.body}>
+            <Lang id={body} />
+          </div>
         </Panel>
       </ConditionalWrapper>
     </ComponentStructureWrapper>
