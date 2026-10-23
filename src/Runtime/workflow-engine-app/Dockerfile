@@ -4,7 +4,7 @@ WORKDIR /app
 ENV ASPNETCORE_HTTP_PORTS=9090
 EXPOSE 9090
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:747cbade5bfd918a175ac32f8f1d931edec2c7d0d5397a3de72eaef1ac1f66d2 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG BUILD_VERSION=dev
 WORKDIR /build
