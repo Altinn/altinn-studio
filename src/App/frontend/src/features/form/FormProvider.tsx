@@ -27,7 +27,10 @@ import {
 } from 'src/features/form/FormContext';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
-import { createPageNavigationSlice, PageNavigationEffects } from 'src/features/form/layout/PageNavigationContext';
+import {
+  ClearHiddenSummaryReturnState,
+  createPageNavigationSlice,
+} from 'src/features/form/layout/PageNavigationContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { TaskTransitionBoundary } from 'src/features/form/TaskTransitionBoundary';
 import { getUiFolderSettings } from 'src/features/form/ui';
@@ -134,7 +137,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <LayoutRevisionBoundary>
         <LayoutPropertiesValidation>
           <TaskTransitionBoundary>
-            <PageNavigationEffects />
+            <ClearHiddenSummaryReturnState />
             <RunOptionsEffects />
             {window.Cypress && <UpdateAttachmentsForCypress />}
             <AttachmentEffects />

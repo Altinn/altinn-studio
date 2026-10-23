@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore, type FormStoreSet, type FormStoreState } from 'src/features/form/FormContext';
-import { useHiddenPages } from 'src/utils/layout/hidden';
+import { useIsHiddenPage } from 'src/utils/layout/hidden';
 
 export type PageNavigationSliceState = {
   /**
@@ -56,18 +56,27 @@ export const pageNavigationHooks = {
   },
 };
 
-export function PageNavigationEffects() {
+export function ClearHiddenSummaryReturnState() {
   const returnToView = FormStore.pageNavigation.useReturnToView();
+  return returnToView ? (
+    <ClearReturnStateForHiddenPage
+      key={returnToView}
+      pageId={returnToView}
+    />
+  ) : null;
+}
+
+function ClearReturnStateForHiddenPage({ pageId }: { pageId: string }) {
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
   const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
-  const hiddenPages = useHiddenPages({ respectPageOrder: true, respectDevTools: false });
+  const hidden = useIsHiddenPage(pageId, { respectPageOrder: true, respectDevTools: false });
 
   useEffect(() => {
-    if (returnToView && hiddenPages.has(returnToView)) {
+    if (hidden) {
       setReturnToView?.(undefined);
       setSummaryNodeOfOrigin?.(undefined);
     }
-  }, [hiddenPages, returnToView, setReturnToView, setSummaryNodeOfOrigin]);
+  }, [hidden, setReturnToView, setSummaryNodeOfOrigin]);
 
   return null;
 }
