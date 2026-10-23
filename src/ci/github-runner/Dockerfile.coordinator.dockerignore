@@ -1,6 +1,7 @@
 **
 !Cargo.lock
 !Cargo.toml
+!rust-toolchain.toml
 !src/
 !src/ci/github-runner/
 !src/ci/github-runner/coordinator/
