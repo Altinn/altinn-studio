@@ -28,10 +28,10 @@ RUN apt-get update \
 RUN ln -sf /usr/share/zoneinfo/Europe/Oslo /etc/localtime
 
 ARG TARGETARCH
-ARG DOTNET_VERSION=10.0.302
+ARG DOTNET_VERSION=10.0.402
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
-ARG GO_VERSION=1.26.4
+ARG GO_VERSION=1.26.10
 
 RUN case "${TARGETARCH}" in \
         amd64) PORTABLE_ARCH=amd64; DOTNET_ARCH=x64 ;; \
@@ -61,7 +61,7 @@ RUN case "${TARGETARCH}" in \
     && printf '%s\n' "${DOTNET_ROOT}" >/etc/dotnet/install_location \
     && rm -f /tmp/dotnet-install.sh /tmp/go.tar.gz
 
-ARG YARN_VERSION=4.18.0
+ARG YARN_VERSION=4.18.1
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
@@ -85,13 +85,13 @@ RUN git config --system credential.https://dev.azure.com.helper '!/usr/local/bin
 # The repository spell check (scripts/spellcheck, run by `yarn spell:*` and the pre-commit hook)
 # drives typos for code and English text and hunspell for Norwegian text. The version and x86_64
 # digest match .github/workflows/spellcheck.yaml and must move together with it.
-ARG TYPOS_VERSION=1.49.0
+ARG TYPOS_VERSION=1.51.1
 
 RUN case "${TARGETARCH}" in \
         amd64) RUST_ARCH=x86_64; \
-            TYPOS_SHA256=48bd2d58e02ce713b8c0f1aa239e68ee4f7d8c551013135806e6aed3938d9e10 ;; \
+            TYPOS_SHA256=93c301fd4120ff076e2cc2a6d6a61cab4a4bdb81899287c0938b452e56d1f454 ;; \
         arm64) RUST_ARCH=aarch64; \
-            TYPOS_SHA256=85c8b87b22a0fb1da130cd4d495e0beba7f1225eb580933184509e146ec4c509 ;; \
+            TYPOS_SHA256=2ac5e37b3236b3c07dec5cdf1527acf143aec4674a6089b0bf424d021b35e099 ;; \
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
     && curl -fsSL \
@@ -120,22 +120,18 @@ RUN set -eu; \
     find /usr/local/share/dotnet-tools/.store -name '*.nupkg' -delete; \
     rm -rf "${scratch}" /tmp/dotnet-tools.json
 
-ARG STUDIOCTL_VERSION=v0.1.0-preview.26
-ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=41654173a78f09fdb9ed8bfc0e223169fba7158ef5e5a8401201133b5b1bad51
+ARG STUDIOCTL_VERSION=v0.1.0-preview.29
+ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=9a723f023a4e9625c0a5d8be262f54b25c52f563b2e8ca06fe9c5c1e1e575959
 
 # The released installer verifies the studioctl binary and its matching resource archive against
 # the release checksum file. Run it as the Agent user so self-updates and runtime state remain
-# writable after the home directory is mounted and synchronized by the Agent platform. A pristine
-# image has no legacy data to migrate; seed the migrations belonging to this pinned release so the
-# installer does not require the container runtime that is intentionally absent from minimal. The
-# directories exist first: BuildKit would give a parent directory that COPY creates the file's mode.
-# TODO: Remove common/studioctl-migrations.json when STUDIOCTL_VERSION includes fresh-install baseline migrations.
+# writable after the home directory is mounted and synchronized by the Agent platform. Fresh
+# installations baseline legacy migrations without requiring a container runtime in minimal.
 RUN install -d -m 0755 -o agent -g agent \
         /home/agent/.config \
         /home/agent/.config/altinn-studio \
         /home/agent/.local/bin \
         /home/agent/code/apps
-COPY --chown=agent:agent --chmod=0644 common/studioctl-migrations.json /home/agent/.config/altinn-studio/migrations.json
 RUN curl -fsSL \
         "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
         -o /tmp/studioctl-install.sh \
@@ -270,10 +266,10 @@ RUN case "${TARGETARCH}" in \
     && rm -rf /tmp/cargo-machete.tar.gz "/tmp/${CARGO_MACHETE_NAME}" \
     && test "$(cargo-machete --version)" = "${CARGO_MACHETE_VERSION}"
 
-ARG FLUX_VERSION=2.9.4
-ARG HELM_VERSION=3.21.1
-ARG KIND_VERSION=0.32.0
-ARG KUBECTL_VERSION=1.35.7
+ARG FLUX_VERSION=2.9.6
+ARG HELM_VERSION=3.22.1
+ARG KIND_VERSION=0.33.0
+ARG KUBECTL_VERSION=1.35.9
 
 RUN case "${TARGETARCH}" in \
         amd64) PORTABLE_ARCH=amd64 ;; \
