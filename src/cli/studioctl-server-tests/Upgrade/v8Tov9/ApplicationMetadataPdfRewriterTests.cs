@@ -78,15 +78,107 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
         var json = """
             {
               "title": { "nb": "\"enablePdfCreation\": true" },
-              "enablePdfCreation": false
+              "enablePdfCreation": true
             }
             """;
 
         var (_, after) = await Strip(json);
 
         Assert.Contains("\"nb\": \"\\\"enablePdfCreation\\\": true\"", after, StringComparison.Ordinal);
-        Assert.DoesNotContain("\"enablePdfCreation\": false", after, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"enablePdfCreation\": true", after, StringComparison.Ordinal);
         using var _ = JsonDocument.Parse(after);
+    }
+
+    [Theory]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    public async Task FalseFlag_IsKept_WhileTrueOnANeighbouringLineIsRemoved(string lineEnding)
+    {
+        var json = """
+            {
+              "dataTypes": [
+                {
+                  "id": "model",
+                  "enablePdfCreation": true
+                },
+                {
+                  "id": "receipt",
+                  "enablePdfCreation": false,
+                  "taskId": "Task_2"
+                },
+                {
+                  "id": "file",
+                  "enablePdfCreation": false
+                }
+              ]
+            }
+            """.ReplaceLineEndings(lineEnding);
+
+        var (rewriter, after) = await Strip(json);
+
+        Assert.Equal(
+            """
+            {
+              "dataTypes": [
+                {
+                  "id": "model"
+                },
+                {
+                  "id": "receipt",
+                  "enablePdfCreation": false,
+                  "taskId": "Task_2"
+                },
+                {
+                  "id": "file",
+                  "enablePdfCreation": false
+                }
+              ]
+            }
+            """.ReplaceLineEndings(lineEnding),
+            after
+        );
+        Assert.Empty(rewriter.GetWarnings());
+        Assert.False(rewriter.ManualActionRequired);
+    }
+
+    [Fact]
+    public async Task OddlyCasedOrCompactFalseFlag_IsKeptWithoutWarning()
+    {
+        var json = """
+            {
+              "dataTypes": [
+                {
+                  "id": "model",
+                  "EnablePdfCreation": false
+                },
+                { "id": "file", "enablePdfCreation": false, "maxCount": 1 }
+              ]
+            }
+            """;
+
+        var (rewriter, after) = await Strip(json);
+
+        Assert.Equal(json, after);
+        Assert.Empty(rewriter.GetWarnings());
+        Assert.False(rewriter.ManualActionRequired);
+    }
+
+    [Fact]
+    public async Task LineWithFalseAndTrue_IsLeftInPlaceWithWarning()
+    {
+        var json = """
+            {
+              "dataTypes": [
+                { "id": "file", "enablePdfCreation": false }, { "id": "model", "enablePdfCreation": true }
+              ]
+            }
+            """;
+
+        var (rewriter, after) = await Strip(json);
+
+        Assert.Equal(json, after);
+        Assert.True(rewriter.ManualActionRequired);
+        Assert.Contains(rewriter.GetWarnings(), w => w.Contains("unexpected formatting", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -157,6 +249,34 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
             second.ReadBytes("config/applicationmetadata.json") is [0xEF, 0xBB, 0xBF, ..],
             "expected no UTF-8 BOM to be introduced"
         );
+    }
+
+    [Fact]
+    public void PdfDisabledDataTypes_AreTheFormDataTypesWithFalseOnTasksWithoutAPdf()
+    {
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            """
+            {
+              "dataTypes": [
+                { "id": "offNextToOn", "taskId": "Task_1", "enablePdfCreation": false, "appLogic": { "classRef": "F" } },
+                { "id": "on", "taskId": "Task_1", "appLogic": { "classRef": "A" } },
+                { "id": "off", "taskId": "Task_2", "enablePdfCreation": false, "appLogic": { "classRef": "B" } },
+                { "id": "offOddCase", "taskId": "Task_3", "EnablePdfCreation": false, "appLogic": { "classRef": "C" } },
+                { "id": "offString", "taskId": "Task_4", "enablePdfCreation": "false", "appLogic": { "classRef": "D" } },
+                { "id": "attachment", "taskId": "Task_1", "enablePdfCreation": false },
+                { "id": "stateless", "enablePdfCreation": false, "appLogic": { "classRef": "E" } }
+              ]
+            }
+            """
+        );
+        var rewriter = new ApplicationMetadataPdfRewriter(file);
+
+        var tasks = rewriter.GetTasksRequiringPdf();
+
+        Assert.Equal<(string TaskId, string? DataTypeId)>([("Task_1", "on")], tasks);
+        Assert.Equal(["off", "offOddCase"], rewriter.GetPdfDisabledDataTypes());
+        Assert.Empty(rewriter.GetWarnings());
     }
 
     [Theory]

@@ -7,8 +7,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 
 /// <summary>
 /// Coordinates the migration away from the deprecated <c>enablePdfCreation</c> flag: adds a <c>pdf</c>
-/// service task to the process for each task that relied on it, then strips the flag from
-/// applicationmetadata.json. See <see cref="ApplicationMetadataPdfRewriter"/> for the legacy semantics.
+/// service task to the process for each task that relied on it, then removes the flag from
+/// applicationmetadata.json where it is <c>true</c>. See <see cref="ApplicationMetadataPdfRewriter"/> for
+/// the legacy semantics and why a <c>false</c> stays.
 ///
 /// A task whose settings name a custom PDF layout (<c>pages.pdfLayoutName</c>) had its legacy PDF
 /// rendered from that layout, which a service task in automatic mode (<c>autoPdfTaskIds</c>) ignores.
@@ -187,7 +188,7 @@ internal sealed class PdfServiceTaskMigrator
             // and the analyzer error is what tells the developer the migration needs manual work. A task
             // that relied on the flag's implicit default has no flag to keep, so the to-do is its only
             // signal. Successful insertions are kept; a re-run treats them as already migrated, so the
-            // flag is stripped once the remaining task(s) have been handled manually.
+            // true flags are stripped once the remaining task(s) have been handled manually.
             var skippedTasks = tasks
                 .Select(t => t.TaskId)
                 .Where(taskId => blockedTasks.Contains(taskId) || processRewriter.GetSkippedTasks().Contains(taskId))
@@ -204,11 +205,22 @@ internal sealed class PdfServiceTaskMigrator
             }
         }
 
-        // Strip the flag last, so a failure inserting service tasks above leaves metadata untouched.
+        // Strip the true flags last, so a failure inserting service tasks above leaves metadata untouched.
         await metadataRewriter.StripEnablePdfCreation();
+        if (metadataRewriter.GetPdfDisabledDataTypes() is { Count: > 0 } pdfDisabled)
+        {
+            messages.Add(
+                new UpgradeMessage(
+                    "Kept enablePdfCreation: false, which v9 ignores: on data type(s) "
+                        + $"[{string.Join(", ", pdfDisabled)}] it stops a re-run of the upgrade from adding a PDF "
+                        + "service task for their task",
+                    UpgradeMessageStatus.Ok
+                )
+            );
+        }
         messages.WarnRange(metadataRewriter.GetWarnings());
 
-        // The rewriter leaves the flag in place when it can't strip it safely (unusual formatting, or
+        // The rewriter leaves a true flag in place when it can't strip it safely (unusual formatting, or
         // a result that would not parse); that too is manual follow-up.
         if (metadataRewriter.ManualActionRequired)
         {

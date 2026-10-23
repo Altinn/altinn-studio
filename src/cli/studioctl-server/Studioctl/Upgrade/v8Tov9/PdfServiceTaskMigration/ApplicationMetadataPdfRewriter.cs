@@ -1,10 +1,14 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 
 /// <summary>
-/// Reads applicationmetadata.json to determine which tasks need a PDF service task, and strips the
-/// deprecated <c>enablePdfCreation</c> property from every dataType.
+/// Reads applicationmetadata.json to determine which tasks need a PDF service task, and removes the
+/// deprecated <c>enablePdfCreation</c> property where it is <c>true</c>.
+///
+/// A <c>false</c> stays: v9 ignores it, and it is the only record that the dataType generated no PDF in
+/// v8, so without it a re-run of the upgrade would add a PDF service task the app never had.
 ///
 /// Legacy semantics (app-lib-dotnet v8): a PDF was generated at the end of a task only for dataTypes
 /// that had <c>appLogic.classRef</c> set, <c>enablePdfCreation == true</c>, and were bound to that
@@ -13,12 +17,13 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 /// attachment dataTypes (no classRef) or without a taskId (e.g. stateless) was a no-op. We therefore
 /// group qualifying datamodels by taskId; each distinct task gets one pdf task.
 /// </summary>
-internal sealed class ApplicationMetadataPdfRewriter
+internal sealed partial class ApplicationMetadataPdfRewriter
 {
     private const string PropertyName = "enablePdfCreation";
 
     private readonly string _metadataFile;
     private readonly List<string> _warnings = new();
+    private IReadOnlyList<string> _pdfDisabledDataTypes = [];
 
     public ApplicationMetadataPdfRewriter(string metadataFile)
     {
@@ -28,8 +33,14 @@ internal sealed class ApplicationMetadataPdfRewriter
     public IReadOnlyList<string> GetWarnings() => _warnings;
 
     /// <summary>
-    /// True when <see cref="StripEnablePdfCreation"/> could not remove the flag safely and left it in
-    /// the file, so a human must remove it manually.
+    /// The ids of the form dataTypes whose <c>enablePdfCreation</c> is <c>false</c> and whose task has no
+    /// other dataType that needs a PDF, in document order. Filled by <see cref="GetTasksRequiringPdf"/>.
+    /// </summary>
+    public IReadOnlyList<string> GetPdfDisabledDataTypes() => _pdfDisabledDataTypes;
+
+    /// <summary>
+    /// True when <see cref="StripEnablePdfCreation"/> could not remove a <c>true</c> flag safely and left
+    /// it in the file, so a human must remove it manually.
     /// </summary>
     public bool ManualActionRequired { get; private set; }
 
@@ -53,6 +64,7 @@ internal sealed class ApplicationMetadataPdfRewriter
         }
 
         var tasks = new List<(string TaskId, string? DataTypeId)>();
+        var pdfDisabled = new List<(string DataTypeId, string TaskId)>();
         foreach (var dataType in dataTypes.EnumerateArray())
         {
             if (dataType.ValueKind != JsonValueKind.Object)
@@ -62,8 +74,7 @@ internal sealed class ApplicationMetadataPdfRewriter
             // property names case-insensitively, so a hand-edited e.g. "EnablePdfCreation" generated PDFs
             // under v8 and must not be missed here. A missing flag is v8's default, true.
             var hasFlag = TryGetPropertyIgnoreCase(dataType, PropertyName, out var flag);
-            if (hasFlag && flag.ValueKind != JsonValueKind.True)
-                continue;
+            var pdfEnabled = !hasFlag || flag.ValueKind == JsonValueKind.True;
 
             var hasClassRef =
                 dataType.TryGetProperty("appLogic", out var appLogic)
@@ -89,7 +100,7 @@ internal sealed class ApplicationMetadataPdfRewriter
             {
                 // Legacy no-op: without a taskId (e.g. stateless data) there is no task-end to trigger on.
                 // Only an explicit flag is worth a warning; the implicit default is on every such dataType.
-                if (hasFlag)
+                if (hasFlag && pdfEnabled)
                     _warnings.Add(
                         $"DataType '{dataTypeId ?? "<unknown>"}' has enablePdfCreation but no taskId; this was a no-op in "
                             + "the legacy backend, so no PDF service task was added."
@@ -97,16 +108,28 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
+            if (!pdfEnabled)
+            {
+                // StripEnablePdfCreation keeps only a false; any other value becomes a to-do there.
+                if (flag.ValueKind == JsonValueKind.False)
+                    pdfDisabled.Add((dataTypeId ?? "<unknown>", task));
+                continue;
+            }
+
             if (!tasks.Exists(t => t.TaskId == task))
                 tasks.Add((task, dataTypeId));
         }
 
+        _pdfDisabledDataTypes =
+        [
+            .. pdfDisabled.Where(d => !tasks.Exists(t => t.TaskId == d.TaskId)).Select(d => d.DataTypeId),
+        ];
         return tasks;
     }
 
     /// <summary>
-    /// Removes every <c>enablePdfCreation</c> property (true and false) from the file, preserving the
-    /// surrounding formatting. No-op if the property is absent. Verifies the result still parses.
+    /// Removes every <c>enablePdfCreation</c> property whose value is <c>true</c> from the file, preserving
+    /// the surrounding formatting. Verifies the result still parses.
     /// </summary>
     public async Task StripEnablePdfCreation()
     {
@@ -117,19 +140,19 @@ internal sealed class ApplicationMetadataPdfRewriter
         for (var i = 0; i < lines.Length; i++)
         {
             var line = lines[i];
-            if (!IsEnablePdfCreationLine(line))
+            if (!IsEnablePdfCreationTrueLine(line))
             {
-                // Only remove lines holding the property and its literal value and nothing else. A line
-                // that mentions the property but carries other content too (e.g. compact formatting with
-                // several properties per line) would lose that content if removed wholesale - and the
+                // Only remove lines holding the property and the literal value true and nothing else. A
+                // line that mentions the property but carries other content too (e.g. compact formatting
+                // with several properties per line) would lose that content if removed wholesale - and the
                 // result could still be valid JSON, defeating the parse check below.
-                if (line.Contains($"\"{PropertyName}\"", StringComparison.OrdinalIgnoreCase))
+                if (MentionsFlagOtherThanFalse(line))
                 {
                     ManualActionRequired = true;
                     _warnings.Add(
                         $"Found enablePdfCreation on a line with unexpected formatting in "
                             + $"{Path.GetFileName(_metadataFile)} (line {i + 1}); left it in place - please remove "
-                            + "the property manually."
+                            + "the property manually unless it is false."
                     );
                 }
                 kept.Add(line);
@@ -159,8 +182,8 @@ internal sealed class ApplicationMetadataPdfRewriter
         {
             ManualActionRequired = true;
             _warnings.Add(
-                $"Removing enablePdfCreation from {Path.GetFileName(_metadataFile)} would produce invalid JSON "
-                    + $"({ex.Message}). Left the file unchanged - please remove the property manually."
+                $"Removing enablePdfCreation: true from {Path.GetFileName(_metadataFile)} would produce invalid "
+                    + $"JSON ({ex.Message}). Left the file unchanged - please remove it manually."
             );
             return;
         }
@@ -169,10 +192,10 @@ internal sealed class ApplicationMetadataPdfRewriter
             await Utf8TextFile.Write(_metadataFile, result, withBom: hadBom);
     }
 
-    private static bool IsEnablePdfCreationLine(string line)
+    private static bool IsEnablePdfCreationTrueLine(string line)
     {
-        // Match a whole line of the form `"enablePdfCreation": true,` (value true/false, comma optional)
-        // and nothing else, so removing the line cannot take any other content with it.
+        // Match a whole line of the form `"enablePdfCreation": true,` (comma optional) and nothing else,
+        // so removing the line cannot take any other content with it.
         var trimmed = line.Trim();
         var quotedName = $"\"{PropertyName}\"";
         if (!trimmed.StartsWith(quotedName, StringComparison.OrdinalIgnoreCase))
@@ -183,8 +206,14 @@ internal sealed class ApplicationMetadataPdfRewriter
             return false;
 
         rest = rest[1..].TrimStart().TrimEnd(',').TrimEnd();
-        return rest is "true" or "false";
+        return rest is "true";
     }
+
+    private static bool MentionsFlagOtherThanFalse(string line) =>
+        FalseFlag().Replace(line, string.Empty).Contains($"\"{PropertyName}\"", StringComparison.OrdinalIgnoreCase);
+
+    [GeneratedRegex(@"""(?i:enablePdfCreation)""\s*:\s*false\b")]
+    private static partial Regex FalseFlag();
 
     private static bool TryGetPropertyIgnoreCase(JsonElement element, string name, out JsonElement value)
     {

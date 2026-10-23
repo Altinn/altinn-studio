@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
+using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
@@ -33,10 +34,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     [Fact]
     public async Task PdfEnabledFormData_GetsPdfServiceTaskAndFlagStripped()
     {
-        _app.Write(
-            "config/applicationmetadata.json",
-            Metadata(FormDataType("model", "Task_1", enablePdfCreation: true), AttachmentDataType("file", false))
+        var metadata = Metadata(
+            FormDataType("model", "Task_1", enablePdfCreation: true),
+            AttachmentDataType("file", false)
         );
+        _app.Write("config/applicationmetadata.json", metadata);
         _app.Write(
             "config/process/process.bpmn",
             Process(
@@ -64,10 +66,9 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         var newFlow = ElementById(process, "Flow_PdfTask_Task_1_to_EndEvent_1");
         Assert.Equal("EndEvent_1", newFlow?.Attribute("targetRef")?.Value);
 
-        Assert.DoesNotContain(
-            "enablePdfCreation",
-            _app.Read("config/applicationmetadata.json"),
-            StringComparison.Ordinal
+        Assert.Equal(
+            metadata.Split('\n').Where(line => !line.Contains("\"enablePdfCreation\": true", StringComparison.Ordinal)),
+            _app.Read("config/applicationmetadata.json").Split('\n')
         );
     }
 
@@ -130,6 +131,26 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             result.Todos,
             t => t.Contains("Could not insert the PDF service task", StringComparison.Ordinal)
         );
+    }
+
+    [Fact]
+    public async Task SkippedTask_KeepsTrueAndFalse_WithoutOkMessage()
+    {
+        var metadata = Metadata(
+            FormDataType("model", "Task_Ghost", enablePdfCreation: true),
+            FormDataType("confirmation", "Task_2", enablePdfCreation: false)
+        );
+        _app.Write("config/applicationmetadata.json", metadata);
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_2", "data"), Flow("Flow_end", "Task_2", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+
+        var result = await MigrateResult();
+
+        Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
+        Assert.NotEmpty(result.Todos);
+        Assert.DoesNotContain(result.Messages, m => m.Status == UpgradeMessageStatus.Ok);
     }
 
     [Fact]
@@ -313,6 +334,51 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         Assert.Equal(processAfterFirst, _app.Read("config/process/process.bpmn"));
         Assert.Equal(metadataAfterFirst, _app.Read("config/applicationmetadata.json"));
+    }
+
+    [Fact]
+    public async Task SecondRun_WithAFalseFlag_InsertsAndWritesNothing()
+    {
+        var metadataFile = _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(
+                FormDataType("model", "Task_1", enablePdfCreation: true),
+                FormDataType("confirmation", "Task_2", enablePdfCreation: false)
+            )
+        );
+        var processFile = _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                Task("Task_1", "data"),
+                Task("Task_2", "data"),
+                EndEvent("EndEvent_1"),
+                Flow("Flow_next", "Task_1", "Task_2"),
+                Flow("Flow_end", "Task_2", "EndEvent_1")
+            )
+        );
+
+        await Migrate();
+
+        string[] files = [metadataFile, processFile];
+        var bytesAfterFirst = files.Select(File.ReadAllBytes).ToList();
+        // Writing unchanged content still moves the timestamp, so backdate it to see whether anything is written.
+        var backdated = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        foreach (var file in files)
+            File.SetLastWriteTimeUtc(file, backdated);
+
+        var second = await MigrateResult();
+
+        Assert.Equal(bytesAfterFirst, files.Select(File.ReadAllBytes));
+        Assert.All(files, file => Assert.Equal(backdated, File.GetLastWriteTimeUtc(file)));
+        Assert.Empty(second.Todos);
+        Assert.Equal(
+            ["An element with id 'PdfTask_Task_1' already exists; treating task 'Task_1' as already migrated."],
+            second.Warnings
+        );
+        Assert.Contains(
+            second.Messages,
+            m => m.Status == UpgradeMessageStatus.Ok && m.Text.Contains("[confirmation]", StringComparison.Ordinal)
+        );
     }
 
     [Fact]
@@ -644,11 +710,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task DefaultTemplateMetadata_GetsNoPdfTaskAndFlagStripped()
+    public async Task DefaultTemplateMetadata_GetsNoPdfTaskAndFlagKept()
     {
         // A freshly-scaffolded app's form data type sets enablePdfCreation to false, so the migrator
-        // adds no PDF service task (there is no process file, which would otherwise be a to-do) and only
-        // removes the flag. The fixture is a verbatim copy of
+        // adds no PDF service task (there is no process file, which would otherwise be a to-do). The
+        // fixture is a verbatim copy of
         // src/App/template/v8/src/App/config/applicationmetadata.json; its [ORG]/[APP] placeholders are
         // valid JSON string values and irrelevant to this migrator.
         var metadata = await File.ReadAllTextAsync(
@@ -661,12 +727,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
-        Assert.Equal(
-            metadata
-                .Split('\n')
-                .Where(line => !line.Contains("\"enablePdfCreation\": false,", StringComparison.Ordinal)),
-            _app.Read("config/applicationmetadata.json").Split('\n')
+        Assert.Contains(
+            result.Messages,
+            m => m.Status == UpgradeMessageStatus.Ok && m.Text.Contains("[model]", StringComparison.Ordinal)
         );
+        Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
     }
 
     [Fact]
@@ -702,12 +767,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task ExplicitFalseOnFormData_GetsNoPdfTaskAndFlagStripped()
+    public async Task ExplicitFalseOnFormData_GetsNoPdfTaskAndFlagKept()
     {
-        _app.Write(
-            "config/applicationmetadata.json",
-            Metadata(FormDataType("model", "Task_1", enablePdfCreation: false))
-        );
+        var metadata = Metadata(FormDataType("model", "Task_1", enablePdfCreation: false));
+        _app.Write("config/applicationmetadata.json", metadata);
         _app.Write(
             "config/process/process.bpmn",
             Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
@@ -717,12 +780,16 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         var result = await MigrateResult();
 
         Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
-        Assert.Empty(result.Warnings);
-        Assert.Empty(result.Todos);
-        Assert.DoesNotContain(
-            "enablePdfCreation",
-            _app.Read("config/applicationmetadata.json"),
-            StringComparison.Ordinal
+        Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
+        Assert.Equal(
+            [
+                new UpgradeMessage(
+                    "Kept enablePdfCreation: false, which v9 ignores: on data type(s) [model] it stops a re-run of "
+                        + "the upgrade from adding a PDF service task for their task",
+                    UpgradeMessageStatus.Ok
+                ),
+            ],
+            result.Messages
         );
     }
 

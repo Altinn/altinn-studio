@@ -35,6 +35,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` lists `using Altinn.App.Core.Internal.Maskinporten` directives among the removed Maskinporten APIs to replace. ([#19188](https://github.com/Altinn/altinn-studio/issues/19188))
 - `studioctl app upgrade v9` quotes the `dotnet restore` error when restore fails, instead of a line of dashes or the "Failed to restore" summary. ([#21404](https://github.com/Altinn/altinn-studio/pull/21404))
+- Running `studioctl app upgrade v9` again no longer adds a PDF service task for data types with `enablePdfCreation: false`. Before you run it again, restore those `false` values from git history and revert any re-run that added such a task. ([#21477](https://github.com/Altinn/altinn-studio/pull/21477))
 - Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 - Payment, signing and PDF tasks no longer fail to store the file they generate, such as the receipt after the user has paid, in apps upgraded with `studioctl app upgrade v9`. Run it again to fix an upgraded app. ([#21119](https://github.com/Altinn/altinn-studio/pull/21119))
 
