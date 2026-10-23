@@ -4,7 +4,7 @@ using Acornima.Ast;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
 
 /// <summary>
-/// Parses JavaScript function bodies and extracts return expressions for conversion to expression language
+/// Lowers pure conditional functions to one expression, preserving assignments and return paths.
 /// </summary>
 public class JavaScriptExpressionParser
 {
@@ -12,348 +12,310 @@ public class JavaScriptExpressionParser
     {
         try
         {
-            var parser = new Parser();
-            var program = parser.ParseScript(functionCode);
-
-            // Try to extract function from the parsed AST
-            if (program.Body.Count == 0)
+            var program = new Parser().ParseScript("(" + functionCode.Trim().TrimEnd(';') + "\n)");
+            if (program.Body.Count != 1)
+                throw new NotSupportedException("Expected one function");
+            IFunction? function = program.Body[0] switch
             {
-                return new ParseResult
-                {
-                    Success = false,
-                    ErrorMessage = "Empty program body",
-                    OriginalCode = functionCode,
-                };
+                FunctionDeclaration declaration => declaration,
+                ExpressionStatement { Expression: FunctionExpression expression } => expression,
+                ExpressionStatement { Expression: ArrowFunctionExpression arrow } => arrow,
+                _ => null,
+            };
+            if (function == null || function.Async || function.Generator)
+                throw new NotSupportedException("Expected a synchronous, non-generator function");
+            if (function.Params.Count > 1 || (function.Params.Count == 1 && function.Params[0] is not Identifier))
+                throw new NotSupportedException("Only one plain object parameter is supported");
+            var parameter = function.Params.Count == 1 ? ((Identifier)function.Params[0]).Name : "obj";
+            var statements = function.Body switch
+            {
+                BlockStatement block => block.Body.ToList(),
+                Expression expression => [new ReturnStatement(expression)],
+                _ => throw new NotSupportedException("Unsupported function body"),
+            };
+            var declarations = new HashSet<string>(StringComparer.Ordinal);
+            CollectDeclarations(statements, declarations, parameter);
+            var evaluated = new List<Expression>();
+            var loweredStatements = 0;
+            var expressionResult = Lower(statements, new Dictionary<string, Expression>(StringComparer.Ordinal));
+            EnsureExpressionSize(expressionResult);
+            foreach (var initializer in evaluated)
+                EnsureExpressionSize(initializer);
+            return new ParseResult
+            {
+                Success = true,
+                ReturnExpression = expressionResult,
+                ObjectParameterName = parameter,
+                OriginalCode = functionCode,
+                AllStatements = statements,
+                EvaluatedExpressions = evaluated,
+            };
+
+            Expression Resolve(
+                Expression expression,
+                Dictionary<string, Expression> values,
+                bool validateEvaluation = false
+            )
+            {
+                var resolved =
+                    new ValueSubstitution(values, declarations, parameter).Visit(expression) as Expression
+                    ?? throw new NotSupportedException("Could not substitute expression");
+                if (validateEvaluation)
+                    evaluated.Add(resolved);
+                return resolved;
             }
 
-            var firstStatement = program.Body[0];
-            List<Statement>? functionStatements = null;
-
-            // Case 1: ExpressionStatement containing a function
-            if (firstStatement is ExpressionStatement exprStmt)
+            Expression Lower(List<Statement> remaining, Dictionary<string, Expression> values)
             {
-                // Arrow function expression: (obj) => { ... } or (obj) => expr
-                if (exprStmt.Expression is ArrowFunctionExpression arrowFunc)
+                for (var index = 0; index < remaining.Count; index++)
                 {
-                    functionStatements = ExtractStatementsFromArrowFunction(arrowFunc);
+                    if (++loweredStatements > 2000)
+                        throw new NotSupportedException("Conditional rule has too many control-flow paths");
+                    var statement = remaining[index];
+                    switch (statement)
+                    {
+                        case EmptyStatement:
+                            break;
+                        case ReturnStatement result:
+                            return result.Argument == null
+                                ? new Identifier("undefined")
+                                : Resolve(result.Argument, values);
+                        case VariableDeclaration declaration:
+                            foreach (var binding in declaration.Declarations)
+                            {
+                                if (binding.Id is Identifier identifier)
+                                {
+                                    if (binding.Init != null)
+                                        values[identifier.Name] = Resolve(binding.Init, values, true);
+                                }
+                                else if (
+                                    binding.Id is ObjectPattern pattern
+                                    && binding.Init is Identifier source
+                                    && source.Name == parameter
+                                )
+                                {
+                                    foreach (var property in pattern.Properties)
+                                    {
+                                        if (
+                                            property
+                                            is not Property
+                                            {
+                                                Computed: false,
+                                                Key: Identifier key,
+                                                Value: Identifier local
+                                            }
+                                        )
+                                            throw new NotSupportedException(
+                                                "Only plain object destructuring is supported"
+                                            );
+                                        values[local.Name] = Resolve(
+                                            new MemberExpression(source, key, false, false),
+                                            values
+                                        );
+                                    }
+                                }
+                                else
+                                    throw new NotSupportedException("Unsupported variable declaration");
+                            }
+                            break;
+                        case ExpressionStatement { Expression: AssignmentExpression assignment }:
+                            if (assignment.Operator != Operator.Assignment)
+                                throw new NotSupportedException(
+                                    "Compound assignments in conditional rules are not supported"
+                                );
+                            var assignmentKey = AssignmentKey(assignment.Left, parameter);
+                            if (
+                                assignmentKey == null
+                                || (assignment.Left is Identifier && !declarations.Contains(assignmentKey))
+                            )
+                                throw new NotSupportedException(
+                                    "Conditional rules cannot assign to global variables or replace their object parameter"
+                                );
+                            values[assignmentKey] = Resolve(assignment.Right, values, true);
+                            break;
+                        case IfStatement branch:
+                            var test = Resolve(branch.Test, values);
+                            var tail = remaining.Skip(index + 1).ToList();
+                            var whenTrue = Lower(
+                                BranchStatements(branch.Consequent).Concat(tail).ToList(),
+                                new(values, StringComparer.Ordinal)
+                            );
+                            var whenFalse = Lower(
+                                BranchStatements(branch.Alternate).Concat(tail).ToList(),
+                                new(values, StringComparer.Ordinal)
+                            );
+                            return new ConditionalExpression(test, whenTrue, whenFalse);
+                        case BlockStatement block:
+                            return Lower(block.Body.Concat(remaining.Skip(index + 1)).ToList(), values);
+                        default:
+                            throw new NotSupportedException(
+                                $"Unsupported conditional-rule statement: {statement.Type}"
+                            );
+                    }
                 }
-                // Regular function expression: function(obj) { ... }
-                else if (exprStmt.Expression is FunctionExpression funcExpr)
-                {
-                    functionStatements = funcExpr.Body.Body.ToList();
-                }
+                // The caller converts the result to a boolean, so implicit undefined remains falsy.
+                return new Identifier("undefined");
             }
-            // Case 2: Function declaration: function foo(obj) { ... }
-            else if (firstStatement is FunctionDeclaration funcDecl)
-            {
-                functionStatements = funcDecl.Body.Body.ToList();
-            }
-
-            if (functionStatements == null)
-            {
-                return new ParseResult
-                {
-                    Success = false,
-                    ErrorMessage = "Could not extract function body from parsed code",
-                    OriginalCode = functionCode,
-                };
-            }
-
-            return AnalyzeFunctionBody(functionStatements, functionCode);
         }
-        catch (Exception ex)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             return new ParseResult
             {
                 Success = false,
-                ErrorMessage = $"Failed to parse JavaScript: {ex.Message}",
+                ErrorMessage = $"Could not lower conditional function: {exception.Message}",
                 OriginalCode = functionCode,
             };
         }
     }
 
-    /// <summary>
-    /// Extract statements from an arrow function, handling both block and expression bodies
-    /// </summary>
-    private List<Statement> ExtractStatementsFromArrowFunction(ArrowFunctionExpression arrowFunc)
-    {
-        // Arrow function with block body: (obj) => { statements }
-        if (arrowFunc.Body is BlockStatement blockBody)
+    private static IEnumerable<Statement> BranchStatements(Statement? statement) =>
+        statement switch
         {
-            return blockBody.Body.ToList();
-        }
-
-        // Arrow function with expression body: (obj) => expression
-        // Wrap the expression in a return statement
-        if (arrowFunc.Body is Expression expr)
-        {
-            var returnStmt = new ReturnStatement(expr);
-            return new List<Statement> { returnStmt };
-        }
-
-        return new List<Statement>();
-    }
-
-    private ParseResult AnalyzeFunctionBody(List<Statement> statements, string originalCode)
-    {
-        if (statements.Count == 0)
-        {
-            return new ParseResult
-            {
-                Success = false,
-                ErrorMessage = "Empty function body",
-                OriginalCode = originalCode,
-            };
-        }
-
-        // Extract variable mappings from destructuring and other declarations
-        var variableMappings = ExtractVariableMappings(statements);
-
-        // Try to build a single conditional expression from all statements
-        var expression = BuildConditionalExpression(statements);
-        if (expression == null)
-        {
-            return new ParseResult
-            {
-                Success = false,
-                ErrorMessage = "No return statement found",
-                OriginalCode = originalCode,
-            };
-        }
-
-        return new ParseResult
-        {
-            Success = true,
-            ReturnExpression = expression,
-            OriginalCode = originalCode,
-            AllStatements = statements,
-            VariableMappings = variableMappings,
+            null => [],
+            BlockStatement block => block.Body,
+            _ => [statement],
         };
+
+    private static void EnsureExpressionSize(Expression expression)
+    {
+        var pending = new Stack<(Node Node, int Depth)>();
+        pending.Push((expression, 0));
+        var count = 0;
+        while (pending.TryPop(out var current))
+        {
+            // Substituted locals can share an expression DAG. Count its expanded size,
+            // since a short series of x = x || x doubles the eventual JSON each time.
+            if (++count > 8000 || current.Depth > 48)
+                throw new NotSupportedException("Expanded conditional expression exceeds the size limit");
+            foreach (var child in current.Node.ChildNodes)
+                pending.Push((child, current.Depth + 1));
+        }
     }
 
-    /// <summary>
-    /// Extract variable mappings from destructuring assignments and variable declarations
-    /// </summary>
-    private Dictionary<string, string> ExtractVariableMappings(List<Statement> statements)
+    private static void CollectDeclarations(IEnumerable<Statement> statements, HashSet<string> names, string parameter)
     {
-        var mappings = new Dictionary<string, string>();
-
-        foreach (var stmt in statements)
+        foreach (var statement in statements)
         {
-            if (stmt is not VariableDeclaration varDecl)
-                continue;
-
-            foreach (var declarator in varDecl.Declarations)
+            switch (statement)
             {
-                // Handle destructuring: const { prop } = obj
-                if (declarator.Id is ObjectPattern objPattern && declarator.Init is Identifier source)
-                {
-                    foreach (var prop in objPattern.Properties)
+                case VariableDeclaration declaration:
+                    foreach (var binding in declaration.Declarations)
                     {
-                        if (prop is Property property)
+                        var locals = binding.Id switch
                         {
-                            var propName = property.Key switch
-                            {
-                                Identifier id => id.Name,
-                                _ => null,
-                            };
-
-                            var valueName = property.Value switch
-                            {
-                                Identifier id => id.Name,
-                                _ => null,
-                            };
-
-                            if (propName != null && valueName != null)
-                            {
-                                // Map variable name to source.property
-                                mappings[valueName] = $"{source.Name}.{propName}";
-                            }
-                        }
+                            Identifier identifier => new[] { identifier.Name },
+                            ObjectPattern pattern => pattern
+                                .Properties.OfType<Property>()
+                                .Select(property => (property.Value as Identifier)?.Name),
+                            _ => throw new NotSupportedException("Unsupported variable binding"),
+                        };
+                        foreach (var local in locals)
+                            if (local == null || local == parameter || !names.Add(local))
+                                throw new NotSupportedException(
+                                    "Shadowed or repeated variable declarations require manual conversion"
+                                );
                     }
-                }
+                    break;
+                case IfStatement branch:
+                    CollectDeclarations(BranchStatements(branch.Consequent), names, parameter);
+                    CollectDeclarations(BranchStatements(branch.Alternate), names, parameter);
+                    break;
+                case BlockStatement block:
+                    CollectDeclarations(block.Body, names, parameter);
+                    break;
             }
         }
-
-        return mappings;
     }
 
-    private ReturnStatement? FindReturnStatement(List<Statement> statements)
+    private static string? AssignmentKey(Node node, string parameter) =>
+        node switch
+        {
+            Identifier identifier when identifier.Name != parameter => identifier.Name,
+            MemberExpression { Object: Identifier source, Computed: false, Property: Identifier property }
+                when source.Name == parameter => parameter + "." + property.Name,
+            MemberExpression { Object: Identifier source, Computed: true, Property: StringLiteral property }
+                when source.Name == parameter => parameter + "." + property.Value,
+            _ => null,
+        };
+
+    private sealed class ValueSubstitution(
+        Dictionary<string, Expression> values,
+        HashSet<string> declarations,
+        string parameter
+    ) : AstRewriter
     {
-        // Check each statement
-        foreach (var stmt in statements)
+        protected override object VisitIdentifier(Identifier node)
         {
-            if (stmt is ReturnStatement returnStmt)
-            {
-                return returnStmt;
-            }
-
-            // Check inside if statements
-            if (stmt is IfStatement ifStmt)
-            {
-                var returnInConsequent = FindReturnInStatement(ifStmt.Consequent);
-                if (returnInConsequent != null)
-                    return returnInConsequent;
-
-                if (ifStmt.Alternate != null)
-                {
-                    var returnInAlternate = FindReturnInStatement(ifStmt.Alternate);
-                    if (returnInAlternate != null)
-                        return returnInAlternate;
-                }
-            }
-
-            // Check inside block statements
-            if (stmt is BlockStatement block)
-            {
-                var returnInBlock = FindReturnStatement(block.Body.ToList());
-                if (returnInBlock != null)
-                    return returnInBlock;
-            }
+            if (values.TryGetValue(node.Name, out var value))
+                return value;
+            if (declarations.Contains(node.Name))
+                throw new NotSupportedException($"Variable '{node.Name}' is read before assignment");
+            return node;
         }
 
-        return null;
-    }
-
-    private ReturnStatement? FindReturnInStatement(Statement statement)
-    {
-        if (statement is ReturnStatement returnStmt)
-            return returnStmt;
-
-        if (statement is BlockStatement block)
-            return FindReturnStatement(block.Body.ToList());
-
-        return null;
-    }
-
-    /// <summary>
-    /// Build a single conditional expression from a list of statements that may contain multiple return paths
-    /// This converts early returns into nested conditional (ternary-like) expressions
-    /// </summary>
-    private Expression? BuildConditionalExpression(List<Statement> statements)
-    {
-        if (statements.Count == 0)
-            return null;
-
-        // Handle single statement case first
-        if (statements.Count == 1)
+        protected override object VisitMemberExpression(MemberExpression node)
         {
-            var stmt = statements[0];
-
-            // Direct return statement
-            if (stmt is ReturnStatement returnStmt)
-            {
-                return returnStmt.Argument;
-            }
-
-            // If statement that contains all the logic
-            if (stmt is IfStatement singleIfStmt)
-            {
-                return BuildIfExpression(singleIfStmt, new List<Statement>());
-            }
+            var key = AssignmentKey(node, parameter);
+            if (key != null && values.TryGetValue(key, out var value))
+                return value;
+            var resolved = new MemberExpression(
+                Visit(node.Object) as Expression
+                    ?? throw new NotSupportedException("Could not substitute member object"),
+                node.Computed
+                    ? Visit(node.Property) as Expression
+                        ?? throw new NotSupportedException("Could not substitute computed property")
+                    : node.Property,
+                node.Computed,
+                node.Optional
+            );
+            // An alias of the input object keeps its reference when a property changes.
+            // Scalar aliases were already replaced above, so they keep their earlier value.
+            key = AssignmentKey(resolved, parameter);
+            return key != null && values.TryGetValue(key, out value) ? value : resolved;
         }
 
-        // Process multiple statements in order
-        for (int i = 0; i < statements.Count; i++)
+        protected override object VisitCallExpression(CallExpression node)
         {
-            var stmt = statements[i];
-
-            // Direct return statement
-            if (stmt is ReturnStatement returnStmt)
-            {
-                return returnStmt.Argument;
-            }
-
-            // If statement with potential early returns
-            if (stmt is IfStatement ifStmt)
-            {
-                // Get the remaining statements after this if statement
-                var remainingStatements = statements.Skip(i + 1).ToList();
-
-                // Build a conditional expression: if (condition) then consequent else (rest of code)
-                return BuildIfExpression(ifStmt, remainingStatements);
-            }
+            if (
+                node.Callee is not MemberExpression { Computed: false, Property: Identifier method }
+                || (
+                    method.Name is not ("includes" or "indexOf" or "endsWith")
+                    && node.Callee
+                        is not MemberExpression { Object: Identifier { Name: "conditionalRuleHandlerObject" } }
+                )
+            )
+                throw new NotSupportedException("Only pure string searches and conditional helper calls are supported");
+            if (
+                node.Callee is MemberExpression { Object: Identifier { Name: "conditionalRuleHandlerObject" } }
+                && values.Keys.Any(key => key.StartsWith(parameter + ".", StringComparison.Ordinal))
+            )
+                throw new NotSupportedException(
+                    "A helper called after changing its input object requires manual conversion"
+                );
+            return base.VisitCallExpression(node)
+                ?? throw new NotSupportedException("Could not substitute call expression");
         }
 
-        // No return statement found - this could be an implicit return undefined
-        // which is typically used in conditional rendering rules
-        return null;
-    }
+        protected override object VisitAssignmentExpression(AssignmentExpression node) =>
+            throw new NotSupportedException("Assignments inside expressions are not supported");
 
-    /// <summary>
-    /// Build a conditional expression from an if statement
-    /// This handles the conversion: if (cond) { return X; } ... → cond ? X : (rest)
-    /// </summary>
-    private Expression? BuildIfExpression(IfStatement ifStmt, List<Statement> remainingStatements)
-    {
-        // Get the condition
-        var condition = ifStmt.Test;
+        protected override object VisitUnaryExpression(UnaryExpression node) =>
+            node is UpdateExpression
+                ? throw new NotSupportedException("Updates inside expressions are not supported")
+                : base.VisitUnaryExpression(node)
+                    ?? throw new NotSupportedException("Could not substitute unary expression");
 
-        // Process the consequent (if branch)
-        var consequentExpression = ExtractExpressionFromStatement(ifStmt.Consequent, new List<Statement>());
-        if (consequentExpression == null)
-            return null;
+        protected override object VisitNewExpression(NewExpression node) =>
+            throw new NotSupportedException("Object construction is not supported");
 
-        // Process the alternate (else branch) or remaining statements
-        Expression? alternateExpression;
+        protected override object VisitSequenceExpression(SequenceExpression node) =>
+            throw new NotSupportedException("Sequence expressions are not supported");
 
-        if (ifStmt.Alternate != null)
-        {
-            // There's an explicit else clause
-            alternateExpression = ExtractExpressionFromStatement(ifStmt.Alternate, remainingStatements);
-        }
-        else
-        {
-            // No else clause - continue with remaining statements
-            alternateExpression = BuildConditionalExpression(remainingStatements);
-        }
+        protected override object VisitFunctionExpression(FunctionExpression node) =>
+            throw new NotSupportedException("Local functions are not supported in conditional rules");
 
-        // If there's no alternate expression (no else, no remaining statements),
-        // this means an implicit return false/undefined
-        // For conditional rendering, if (condition) { return true; } with no else means:
-        // condition ? true : false, which simplifies to just the condition
-        if (alternateExpression == null)
-        {
-            // Check if the consequent is a literal true
-            if (consequentExpression is Literal literal && literal.Value is true)
-            {
-                // if (cond) return true; (no else) → just use the condition
-                return condition;
-            }
-
-            // Otherwise, use false as the alternate
-            alternateExpression = new BooleanLiteral(false, "false");
-        }
-
-        // Create a ConditionalExpression (ternary operator: condition ? consequent : alternate)
-        return new ConditionalExpression(condition, consequentExpression, alternateExpression);
-    }
-
-    /// <summary>
-    /// Extract an expression from a statement (handles blocks, returns, and nested ifs)
-    /// </summary>
-    private Expression? ExtractExpressionFromStatement(Statement statement, List<Statement> fallbackStatements)
-    {
-        // Direct return statement
-        if (statement is ReturnStatement returnStmt)
-        {
-            return returnStmt.Argument;
-        }
-
-        // Block statement - process the statements inside
-        if (statement is BlockStatement block)
-        {
-            var blockStatements = block.Body.ToList();
-            return BuildConditionalExpression(blockStatements);
-        }
-
-        // Nested if statement
-        if (statement is IfStatement nestedIf)
-        {
-            return BuildIfExpression(nestedIf, fallbackStatements);
-        }
-
-        return null;
+        protected override object VisitArrowFunctionExpression(ArrowFunctionExpression node) =>
+            throw new NotSupportedException("Local functions are not supported in conditional rules");
     }
 }
 
@@ -361,13 +323,10 @@ public class ParseResult
 {
     public bool Success { get; set; }
     public Expression? ReturnExpression { get; set; }
+    public string ObjectParameterName { get; set; } = "obj";
     public string? ErrorMessage { get; set; }
     public string OriginalCode { get; set; } = string.Empty;
     public List<Statement>? AllStatements { get; set; }
-
-    /// <summary>
-    /// Maps variable names to their source property paths
-    /// For example: { "summertRisiko" => "obj.summertRisiko" }
-    /// </summary>
+    public List<Expression> EvaluatedExpressions { get; set; } = [];
     public Dictionary<string, string> VariableMappings { get; set; } = new();
 }
