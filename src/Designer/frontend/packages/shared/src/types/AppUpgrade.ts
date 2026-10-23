@@ -66,24 +66,3 @@ export type AppUpgradeRun = {
   currentStep: string | null;
   result: AppUpgradeResult | null;
 };
-
-export type AppUpgradeMergeRequest = {
-  pullRequestNumber: number;
-  branchName: string | null;
-};
-
-export type AppUpgradeMergeResult = {
-  isMerged: boolean;
-  message: string;
-  baseBranch: string | null;
-};
-
-export type AppUpgradeDiscardRequest = {
-  branchName: string;
-  pullRequestNumber: number | null;
-};
-
-export type AppUpgradeDiscardResult = {
-  isDiscarded: boolean;
-  message: string;
-};

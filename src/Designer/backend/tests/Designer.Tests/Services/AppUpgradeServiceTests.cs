@@ -65,6 +65,22 @@ public class AppUpgradeServiceTests
     }
 
     [Fact]
+    public void Render_ChecksThatTheAppBuildsBeforeSavingTheChanges()
+    {
+        string workflow = AppUpgradeWorkflow.Render(
+            new AppUpgradeWorkflow.Parameters(BranchName, "main", 9, "Upgrade", "https://example.com/install", "w.yaml")
+        );
+
+        int upgrade = workflow.IndexOf("- name: Upgrade the app", StringComparison.Ordinal);
+        int build = workflow.IndexOf("- name: Check that the app builds", StringComparison.Ordinal);
+        int save = workflow.IndexOf("- name: Save the changes", StringComparison.Ordinal);
+        Assert.True(upgrade >= 0 && upgrade < build && build < save);
+        Assert.Contains("dotnet build App/App.csproj", workflow[build..save]);
+        Assert.Contains($"{AppUpgradeWorkflow.ReportLogMarker}$(base64", workflow[build..save]);
+        Assert.Contains("git commit", workflow[save..]);
+    }
+
+    [Fact]
     public async Task StartAsync_WhenTheBaseBranchAlreadyHasTheWorkflow_UpdatesItInstead()
     {
         SetupRepositoryWithDefaultBranch("main");

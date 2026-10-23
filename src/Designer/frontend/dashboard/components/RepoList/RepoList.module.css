@@ -19,10 +19,6 @@
   font-size: 0;
 }
 
-.notificationsHeaderCell {
+.upgradeHeaderCell {
   width: 12rem;
-}
-
-.versionsHeaderCell {
-  width: 10rem;
 }

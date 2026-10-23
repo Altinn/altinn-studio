@@ -15,8 +15,6 @@ export type UserInputProps = {
   onCancelWorkflow?: () => void;
   cancelledMessageContent?: string | null;
   onCancelledMessageConsumed?: () => void;
-  initialMessageContent?: string | null;
-  onInitialMessageConsumed?: () => void;
   workflowIsActive?: boolean;
   enableCompactInterface: boolean;
 };
@@ -27,8 +25,6 @@ export function UserInput({
   onCancelWorkflow,
   cancelledMessageContent,
   onCancelledMessageConsumed,
-  initialMessageContent,
-  onInitialMessageConsumed,
   workflowIsActive = false,
   enableCompactInterface,
 }: UserInputProps): ReactElement {
@@ -43,13 +39,6 @@ export function UserInput({
       onCancelledMessageConsumed?.();
     }
   }, [cancelledMessageContent, onCancelledMessageConsumed]);
-
-  useEffect(() => {
-    if (initialMessageContent) {
-      setMessageContent(initialMessageContent);
-      onInitialMessageConsumed?.();
-    }
-  }, [initialMessageContent, onInitialMessageConsumed]);
 
   const hasTextContent = messageContent.trim().length > 0;
 

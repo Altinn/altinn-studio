@@ -1,13 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { StudioButton } from '@studio/components';
+import { StudioLink } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { Repository } from 'app-shared/types/Repository';
-import { useAppUpgradeStatusQuery } from '../../hooks/queries/useAppUpgradeStatusQuery';
-import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { useSubroute } from '../../hooks/useSubRoute';
+import type { AppUpgradeStatus } from 'app-shared/types/AppUpgrade';
+import { useAppUpgradeStatusQuery } from 'app-shared/hooks/queries/useAppUpgradeStatusQuery';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { useIsOrganizationRepo } from '../../hooks/useIsOrganizationRepo';
-import { getAppUpgradePath } from '../../utils/urlUtils';
 import classes from './UpgradeNotice.module.css';
 
 type UpgradeNoticeProps = {
@@ -20,40 +18,28 @@ export const UpgradeNotice = ({ repo }: UpgradeNoticeProps): React.ReactElement 
   const isOrganizationRepo = useIsOrganizationRepo(org);
   const canUpgrade = isOrganizationRepo && Boolean(repo.permissions?.push);
   const { data: status } = useAppUpgradeStatusQuery(org, app, canUpgrade);
-  const navigate = useNavigate();
-  const selectedContext = useSelectedContext();
-  const subroute = useSubroute();
 
-  if (!canUpgrade || !status?.isAutomaticUpgradeSupported) return null;
+  if (!canUpgrade || !status) return null;
 
-  const branch = status.activeUpgradeBranch;
-  const textKey = branch
-    ? status.activeUpgradeHasPullRequest
-      ? 'app_upgrade.notice_view_report'
-      : 'app_upgrade.notice_in_progress'
-    : 'app_upgrade.notice_available';
+  if (isUpgraded(status)) {
+    return <span className={classes.upgraded}>{t('app_upgrade.notice_upgraded')}</span>;
+  }
+
+  if (!status.isAutomaticUpgradeSupported) return null;
 
   return (
-    <StudioButton
-      variant='tertiary'
-      data-size='sm'
-      className={classes.noticeButton}
-      onClick={() => navigate(getAppUpgradePath({ subroute, selectedContext, org, app, branch }))}
-    >
-      {t(textKey)}
-    </StudioButton>
+    <StudioLink href={`${APP_DEVELOPMENT_BASENAME}/${org}/${app}/app-upgrade`}>
+      {t(noticeTextKey(status), { version: status.targetMajorVersion })}
+    </StudioLink>
   );
 };
 
-export const AppVersions = ({ repo }: UpgradeNoticeProps): React.ReactElement | null => {
-  const { t } = useTranslation();
-  const [org, app] = repo.full_name.split('/');
-  const { data: status } = useAppUpgradeStatusQuery(org, app);
+const isUpgraded = (status: AppUpgradeStatus): boolean =>
+  status.backendVersion !== null && !status.isUpgradeAvailable;
 
-  if (!status?.backendVersion) return null;
-
-  const frontend = status.frontendVersion
-    ? `v${status.frontendVersion}`
-    : t('app_upgrade.versions_unknown');
-  return <span className={classes.versions}>{`${frontend} / v${status.backendVersion}`}</span>;
+const noticeTextKey = (status: AppUpgradeStatus): string => {
+  if (!status.activeUpgradeBranch) return 'app_upgrade.notice_available';
+  return status.activeUpgradeHasPullRequest
+    ? 'app_upgrade.notice_ready_for_testing'
+    : 'app_upgrade.notice_in_progress';
 };

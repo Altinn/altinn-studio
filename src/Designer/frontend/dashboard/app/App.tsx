@@ -16,7 +16,6 @@ import {
   ORG_LIBRARY_BASENAME,
 } from 'app-shared/constants';
 import { OrgContentLibraryPage } from '../pages/OrgContentLibraryPage';
-import { AppUpgradePage } from '../pages/AppUpgrade';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import type { User } from 'app-shared/types/Repository';
@@ -88,10 +87,6 @@ function AppWithData(props: AppWithDataProps): React.ReactElement {
           <Route
             path={`${APP_DASHBOARD_BASENAME}/:selectedContext/new`}
             element={<CreateService {...props} />}
-          />
-          <Route
-            path={`${APP_DASHBOARD_BASENAME}/:selectedContext/:org/:app/upgrade`}
-            element={<AppUpgradePage />}
           />
           <Route
             path={`${ORG_LIBRARY_BASENAME}/:selectedContext?/:elementType?`}

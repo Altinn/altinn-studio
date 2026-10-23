@@ -9,6 +9,12 @@ export const altinnDocsUrl = (props: { relativeUrl?: string; language?: 'nb' | '
     : `https://docs.altinn.studio/${relativeUrl}`;
 };
 
+export const appUpgradeDocsUrl = altinnDocsUrl({ relativeUrl: 'altinn-studio/v9/' });
+
+export const studioctlUpgradeDocsUrl = altinnDocsUrl({
+  relativeUrl: 'altinn-studio/v9/guides/development/studioctl/',
+});
+
 export const giteaEditLink = (org: string, app: string, location: string) =>
   `/repos/${org}/${app}/_edit/master/${location}`;
 

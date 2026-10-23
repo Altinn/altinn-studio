@@ -2,7 +2,8 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 /// <summary>
 /// Renders the Gitea Actions workflow that performs an automatic app upgrade on a runner. The workflow is pushed to
-/// a fresh branch, runs studioctl there, removes itself from the result, and opens the pull request.
+/// a fresh branch, runs studioctl there, checks that the upgraded app builds, removes itself from the result, and
+/// opens the pull request. A build that fails is reported as a manual task, like the tasks studioctl leaves.
 /// </summary>
 public static class AppUpgradeWorkflow
 {
@@ -60,8 +61,10 @@ public static class AppUpgradeWorkflow
               - name: Install tools
                 run: |
                   set -eu
-                  if ! command -v dotnet >/dev/null 2>&1; then
-                    curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 10.0 --install-dir "$HOME/.dotnet"
+                  if ! dotnet --list-sdks 2>/dev/null | grep -q '^11\.'; then
+                    curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+                    bash dotnet-install.sh --channel 11.0 --install-dir "$HOME/.dotnet" \
+                      || bash dotnet-install.sh --channel 11.0 --quality preview --install-dir "$HOME/.dotnet"
                     echo "$HOME/.dotnet" >> "$GITHUB_PATH"
                     echo "DOTNET_ROOT=$HOME/.dotnet" >> "$GITHUB_ENV"
                   fi
@@ -106,8 +109,8 @@ public static class AppUpgradeWorkflow
                               message["text"] = text
                   json.dump(report, open(path, "w"))
                   PY
-                  echo "__REPORT_MARKER__$(base64 -w0 "$report")"
                   if [ "$exit_code" != "0" ] && [ "$exit_code" != "3" ]; then
+                    echo "__REPORT_MARKER__$(base64 -w0 "$report")"
                     echo "The upgrade did not apply (exit code $exit_code); nothing was pushed."
                     if git -C app push --quiet origin --delete "$UPGRADE_BRANCH"; then
                       echo "Deleted the upgrade branch $UPGRADE_BRANCH."
@@ -116,7 +119,38 @@ public static class AppUpgradeWorkflow
                     fi
                     exit "$exit_code"
                   fi
-                  set -e
+              - name: Check that the app builds
+                run: |
+                  set -u
+                  report="$PWD/upgrade-report.json"
+                  build_log="$PWD/build.log"
+                  build_exit_code=0
+                  (cd app && dotnet build App/App.csproj -nologo -consoleLoggerParameters:NoSummary --artifacts-path "$PWD/../build-output" > "$build_log" 2>&1) || build_exit_code=$?
+                  cat "$build_log"
+                  BUILD_EXIT_CODE="$build_exit_code" APP_DIR="$(cd app && pwd -P)" python3 - "$report" "$build_log" <<'PY'
+                  import json, os, sys
+
+                  report_path, log_path = sys.argv[1], sys.argv[2]
+                  report = json.load(open(report_path))
+                  if os.environ["BUILD_EXIT_CODE"] != "0":
+                      errors = []
+                      for line in open(log_path, errors="replace"):
+                          line = line.strip().replace(os.environ["APP_DIR"] + "/", "")
+                          if ": error " in line and line not in errors:
+                              errors.append(line)
+                      messages = [{"status": "FAIL", "text": error} for error in errors[:20]]
+                      if not messages:
+                          messages = [{"status": "FAIL", "text": "The app does not build. See the build output in the run log."}]
+                      report.setdefault("steps", []).append({"name": "Build", "messages": messages})
+                      if report.get("exitCode") == 0:
+                          report["exitCode"] = 3
+                  json.dump(report, open(report_path, "w"))
+                  PY
+                  echo "__REPORT_MARKER__$(base64 -w0 "$report")"
+              - name: Save the changes
+                run: |
+                  set -eu
+                  report="$PWD/upgrade-report.json"
                   cd app
                   git rm --quiet "$WORKFLOW_PATH"
                   git add -A

@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Route, Routes, useLocation } from 'react-router-dom';
 import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appUpgradeStatus, organization, repository } from 'app-shared/mocks/mocks';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { AppUpgradeStatus } from 'app-shared/types/AppUpgrade';
 import type { Repository } from 'app-shared/types/Repository';
 import { UpgradeNotice } from './UpgradeNotice';
@@ -18,12 +17,13 @@ const repo = {
   owner: { ...repository.owner, login: 'ttd' },
   permissions: { ...repository.permissions, push: true },
 };
-const upgradePageText = 'upgrade page';
+const upgradeUrl = `${APP_DEVELOPMENT_BASENAME}/ttd/my-app/app-upgrade`;
+const version = appUpgradeStatus.targetMajorVersion;
 
 describe('UpgradeNotice', () => {
   it('renders nothing for apps that are not owned by an organization', () => {
     renderUpgradeNotice(appUpgradeStatus, []);
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('renders nothing when the user cannot push to the repository', () => {
@@ -31,59 +31,54 @@ describe('UpgradeNotice', () => {
       ...repo,
       permissions: { ...repo.permissions, push: false },
     });
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
-  });
-
-  it('renders nothing when no upgrade is available', () => {
-    renderUpgradeNotice({
-      ...appUpgradeStatus,
-      isUpgradeAvailable: false,
-      isAutomaticUpgradeSupported: false,
-    });
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('renders nothing for apps on versions the automatic upgrade does not support', () => {
     renderUpgradeNotice({ ...appUpgradeStatus, isAutomaticUpgradeSupported: false });
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('navigates to the upgrade page when an upgrade is available', async () => {
-    const user = userEvent.setup();
+  it('says that the app is upgraded when it is already on the target version', () => {
+    renderUpgradeNotice({
+      ...appUpgradeStatus,
+      backendVersion: '9.0.0',
+      isUpgradeAvailable: false,
+      isAutomaticUpgradeSupported: false,
+    });
+    expect(screen.getByText(textMock('app_upgrade.notice_upgraded'))).toBeInTheDocument();
+  });
+
+  it('links to the upgrade page when an upgrade is available', () => {
     renderUpgradeNotice(appUpgradeStatus);
-    await user.click(
-      screen.getByRole('button', { name: textMock('app_upgrade.notice_available') }),
-    );
-    expect(screen.getByText(upgradePageText)).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: textMock('app_upgrade.notice_available', { version }) }),
+    ).toHaveAttribute('href', upgradeUrl);
   });
 
-  it('links to the running upgrade when one is already in progress', async () => {
-    const user = userEvent.setup();
-    const branch = 'upgrade/altinn-app-v9-20260914-061154';
-    renderUpgradeNotice({ ...appUpgradeStatus, activeUpgradeBranch: branch });
-    await user.click(
-      screen.getByRole('button', { name: textMock('app_upgrade.notice_in_progress') }),
-    );
-    expect(screen.getByText(upgradePageText)).toBeInTheDocument();
-    expect(screen.getByText(`?branch=${encodeURIComponent(branch)}`)).toBeInTheDocument();
+  it('links to the running upgrade when one is in progress', () => {
+    renderUpgradeNotice({
+      ...appUpgradeStatus,
+      activeUpgradeBranch: 'upgrade/altinn-app-v9-20260914-061154',
+    });
+    expect(
+      screen.getByRole('link', { name: textMock('app_upgrade.notice_in_progress', { version }) }),
+    ).toHaveAttribute('href', upgradeUrl);
   });
 
-  it('offers the report when the finished upgrade has an open pull request', () => {
+  it('says that the upgrade is ready for testing when its pull request is open', () => {
     renderUpgradeNotice({
       ...appUpgradeStatus,
       activeUpgradeBranch: 'upgrade/altinn-app-v9-20260914-061154',
       activeUpgradeHasPullRequest: true,
     });
     expect(
-      screen.getByRole('button', { name: textMock('app_upgrade.notice_view_report') }),
-    ).toBeInTheDocument();
+      screen.getByRole('link', {
+        name: textMock('app_upgrade.notice_ready_for_testing', { version }),
+      }),
+    ).toHaveAttribute('href', upgradeUrl);
   });
 });
-
-const LocationSearch = () => {
-  const { search } = useLocation();
-  return <div>{search}</div>;
-};
 
 const renderUpgradeNotice = (
   status: AppUpgradeStatus,
@@ -96,19 +91,5 @@ const renderUpgradeNotice = (
     [QueryKey.Organizations],
     organizationNames.map((username) => ({ ...organization, username })),
   );
-  return renderWithProviders(
-    <Routes>
-      <Route path='/:subroute/:selectedContext' element={<UpgradeNotice repo={repoToRender} />} />
-      <Route
-        path='/:subroute/:selectedContext/:org/:app/upgrade'
-        element={
-          <div>
-            {upgradePageText}
-            <LocationSearch />
-          </div>
-        }
-      />
-    </Routes>,
-    { queryClient, initialEntries: ['/app-dashboard/ttd'] },
-  );
+  return renderWithProviders(<UpgradeNotice repo={repoToRender} />, { queryClient });
 };

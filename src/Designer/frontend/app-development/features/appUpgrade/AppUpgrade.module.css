@@ -1,3 +1,83 @@
-.container {
-  padding: var(--ds-size-6);
+.page {
+  min-height: 100vh;
+  background: var(--ds-color-neutral-background-default);
+}
+
+.header {
+  padding: var(--ds-size-4) var(--ds-size-6);
+  border-bottom: 1px solid var(--ds-color-neutral-border-subtle);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-6);
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--ds-size-10) var(--ds-size-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-5);
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+}
+
+.progressTrack {
+  height: var(--ds-size-2);
+  border-radius: var(--ds-border-radius-full);
+  background: var(--ds-color-neutral-surface-tinted);
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--ds-color-accent-base-default);
+  transition: width 0.3s ease;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-3);
+}
+
+.step[data-state='pending'] {
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.step[data-state='current'] {
+  font-weight: 500;
+}
+
+.stepIcon {
+  font-size: var(--ds-size-6);
+  color: var(--ds-color-success-text-default);
+}
+
+.pendingIcon {
+  display: inline-block;
+  width: var(--ds-size-5);
+  height: var(--ds-size-5);
+  border: 2px solid var(--ds-color-neutral-border-default);
+  border-radius: var(--ds-border-radius-full);
+}
+
+.failureMessage {
+  white-space: pre-line;
 }

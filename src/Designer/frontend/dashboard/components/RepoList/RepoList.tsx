@@ -13,7 +13,7 @@ import { ActionLinks } from './ActionLinks';
 import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
-import { AppVersions, UpgradeNotice } from './UpgradeNotice';
+import { UpgradeNotice } from './UpgradeNotice';
 import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
@@ -87,16 +87,10 @@ export const RepoList = ({
     ...(isUpgradeHelperEnabled
       ? [
           {
-            accessor: 'versions',
-            heading: t('app_upgrade.column_frontend_backend'),
+            accessor: 'upgrade',
+            heading: t('app_upgrade.column_upgrade'),
             sortable: false,
-            headerCellClass: classes.versionsHeaderCell,
-          },
-          {
-            accessor: 'notifications',
-            heading: t('app_upgrade.column_notifications'),
-            sortable: false,
-            headerCellClass: classes.notificationsHeaderCell,
+            headerCellClass: classes.upgradeHeaderCell,
           },
         ]
       : []),
@@ -115,8 +109,7 @@ export const RepoList = ({
     createdBy: repo.owner.full_name || repo.owner.login,
     updated: repo.updated_at,
     description: repo.description,
-    versions: isUpgradeHelperEnabled ? <AppVersions repo={repo} /> : null,
-    notifications: isUpgradeHelperEnabled ? <UpgradeNotice repo={repo} /> : null,
+    upgrade: isUpgradeHelperEnabled ? <UpgradeNotice repo={repo} /> : null,
     actionIcons: <ActionLinks repo={repo} />,
   }));
 

@@ -5,6 +5,7 @@ import { Navigation } from './Navigation';
 import { News } from './News';
 import { Deployments } from './Deployments';
 import { Header } from './Header';
+import { UpgradeAlert } from './UpgradeAlert';
 import { StudioLink, StudioPageImageBackgroundContainer } from '@studio/components';
 
 export default function Overview() {
@@ -20,6 +21,7 @@ export default function Overview() {
         <div className={classes.panel}>
           <div className={classes.content}>
             <div className={classes.main}>
+              <UpgradeAlert />
               <Deployments className={classes.mainSection} />
               <section className={classes.mainSection}>
                 <Navigation />
