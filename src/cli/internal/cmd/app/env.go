@@ -94,6 +94,13 @@ func (e appEnv) addRunDefaults(
 	e.setDefault("PlatformSettings__ApiCorrespondenceEndpoint", endpoints.platform+"/correspondence/api/v1/")
 	e.setDefault("PlatformSettings__ApiAccessManagementEndpoint", endpoints.platform+"/accessmanagement/api/v1/")
 	e.setDefault("PlatformSettings__ApiWorkflowEngineEndpoint", endpoints.workflowEngine)
+	// The app frontend shows a platform link only when PlatformFrontendSettings configures it. Localtest has no
+	// Arbeidsflate and no logout page of its own, so the inbox and logout links go to localtest's start page - the
+	// fallback the frontend used to derive from the page's host (http://<host>/). The dialog link falls back to the
+	// inbox link in the frontend; the profile and parties links stay unset, so they are hidden.
+	localtestStartPage := topology.LocaltestURL() + "/"
+	e.setDefault("PlatformFrontendSettings__ArbeidsflateInboxUrl", localtestStartPage)
+	e.setDefault("PlatformFrontendSettings__LogoutUrl", localtestStartPage)
 }
 
 func (e appEnv) setDefault(key, value string) {
