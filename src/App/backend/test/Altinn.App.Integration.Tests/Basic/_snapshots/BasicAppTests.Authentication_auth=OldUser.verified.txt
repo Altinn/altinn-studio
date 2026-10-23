@@ -4,7 +4,7 @@
   username: SophieDDG,
   userPartyId: 501337,
   selectedPartyId: 501337,
-  authenticationLevel: 2,
+  authenticationLevel: 3,
   authenticationMethod: localtest,
   inAltinnPortal: true,
   isSelfIdentified: false,

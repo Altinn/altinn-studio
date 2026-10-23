@@ -1,4 +1,4 @@
-.PHONY: help run start dev run-deps stop reset db-reset test playground playground-stop
+.PHONY: help run start dev run-deps stop reset db-reset test playground playground-stop playground-host
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
@@ -21,6 +21,10 @@ playground: ## Run the observability playground (full stack + throttling ON, fas
 
 playground-stop: ## Stop the observability playground
 	docker compose -f docker-compose.yaml -f .k6/docker-compose.playground.yaml --profile core down
+
+playground-host: ## Run the observability playground with the engine on the host (Ctrl+C, then make stop)
+	docker compose up -d
+	set -a; . .k6/playground.env; set +a; dotnet run --project tests/WorkflowEngine.TestApp
 
 reset db-reset: ## Stop all services and delete the database volume
 	docker compose --profile core down

@@ -284,7 +284,7 @@ internal sealed class EngineDbContext : DbContext
             entity.ToTable(table =>
                 // One of the two stamps is always set at insert: a row with neither would read as parked forever.
                 table.HasCheckConstraint(
-                    "ck_mailbox_receivers_birth_is_recorded",
+                    "ck_mailbox_receivers_enqueue_outcome_is_recorded",
                     "held_at IS NOT NULL OR released_at IS NOT NULL"
                 )
             );

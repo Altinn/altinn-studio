@@ -1,4 +1,4 @@
-FROM docker.io/library/nginx:1.30.4@sha256:d5792f71a9496b833bc08ea834a758c46e2b6a6306c10f4be926f38a656cdc1c
+FROM docker.io/library/nginx:1.30.6@sha256:a7675fcee220f59b4a99f7098c06a0d5d999c2c0ee37c0211efb780536e5cb20
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl gnupg2 ca-certificates \

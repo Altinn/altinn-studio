@@ -39,8 +39,10 @@ describe('MissingRolesError', () => {
     );
   });
 
-  it('links to the localtest front page in localtest', async () => {
+  it('links to the localtest front page in localtest without configured URLs', async () => {
     mockHost('local.altinn.cloud:8000');
+    window.altinnAppGlobalData.platformFrontendSettings.accessManagementUrl = undefined;
+    window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = undefined;
 
     await render();
 

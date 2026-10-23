@@ -27,6 +27,8 @@ const orgListWithTestOrg: OrgList = {
   },
 };
 
+const branchName = 'feature/new-page';
+
 const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
   const allQueries: ServicesContextProps = {
     ...queriesMock,
@@ -37,7 +39,7 @@ const renderCreateRelease = (queries?: Partial<ServicesContextProps>) => {
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <TestAppRouter>
         <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-          <CreateRelease />
+          <CreateRelease branchName={branchName} />
         </ServicesContextProvider>
       </TestAppRouter>
     </FeatureFlagsContextProvider>,
@@ -152,7 +154,7 @@ describe('CreateRelease', () => {
     expect(inputVersionNumber).toHaveValue(newVersionNumber);
   });
 
-  it('calls mutation on valid form submission', async () => {
+  it('creates a release from the latest commit on the current branch', async () => {
     const user = userEvent.setup();
     const newVersionNumber = 'v1';
     const newVersionDescription = 'test version';
@@ -179,15 +181,36 @@ describe('CreateRelease', () => {
     });
     await user.click(buildVersionButton);
 
-    expect(mockGetBranchStatus).toHaveBeenCalled();
+    expect(mockGetBranchStatus).toHaveBeenCalledWith(org, app, branchName);
     await waitFor(() => {
       expect(mockCreateRelease).toHaveBeenCalledWith(org, app, {
         tagName: newVersionNumber,
         name: newVersionNumber,
         body: newVersionDescription,
         targetCommitish: mockCommitId,
+        branch: branchName,
       });
     });
+  });
+
+  it('does not create a release when the latest commit on the branch cannot be fetched', async () => {
+    const user = userEvent.setup();
+    const mockCreateRelease = vi.fn();
+    renderCreateRelease({
+      getBranchStatus: vi.fn().mockImplementation(() => Promise.reject(new Error())),
+      createRelease: mockCreateRelease,
+    });
+
+    const inputVersionNumber = screen.getByLabelText(
+      textMock('app_create_release.release_version_number'),
+    );
+    await user.type(inputVersionNumber, 'v1');
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_create_release.build_version') }),
+    );
+
+    expect(mockCreateRelease).not.toHaveBeenCalled();
+    expect(inputVersionNumber).toHaveValue('v1');
   });
 
   it('disables build version button when tag name is invalid', async () => {

@@ -104,7 +104,7 @@ public class HttpContextDataExtractor
 
         if (isResourceAdmin && TryResolveOrg(httpContext, out string org))
         {
-            app = $"{org}-resources";
+            app = RepositoryNames.Resources(org);
             return true;
         }
 

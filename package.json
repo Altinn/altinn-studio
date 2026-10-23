@@ -8,6 +8,8 @@
   "packageManager": "yarn@4.18.0",
   "private": true,
   "scripts": {
+    "format:markdown:check": "prettier '**/*.md' --check",
+    "format:markdown:fix": "prettier '**/*.md' --write",
     "codeowners:generate": "node .github/scripts/codeowners-generate.mjs",
     "codeowners:validate": "node .github/scripts/codeowners-generate.mjs --check",
     "docs:validate": "node .github/scripts/agents-docs-validate.mjs",

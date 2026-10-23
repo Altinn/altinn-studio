@@ -3,6 +3,7 @@
 Vurder ledetekst-/hjelpetekst-settene nedenfor.
 
 For hvert sett, sjekk:
+
 1. Sier ledeteksten tydelig hva feltet ber om?
 2. Gjentar hjelpeteksten bare ledeteksten – eller gir den noe mer?
 3. Er plassholderteksten et eksempel (ikke en instruksjon)?

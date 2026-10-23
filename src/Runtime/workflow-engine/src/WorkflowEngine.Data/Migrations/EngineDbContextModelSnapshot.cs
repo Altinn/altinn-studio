@@ -18,7 +18,7 @@ namespace WorkflowEngine.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("engine")
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -217,7 +217,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.ToTable("mailbox_receivers", "engine", t =>
                         {
-                            t.HasCheckConstraint("ck_mailbox_receivers_birth_is_recorded", "held_at IS NOT NULL OR released_at IS NOT NULL");
+                            t.HasCheckConstraint("ck_mailbox_receivers_enqueue_outcome_is_recorded", "held_at IS NOT NULL OR released_at IS NOT NULL");
                         });
                 });
 

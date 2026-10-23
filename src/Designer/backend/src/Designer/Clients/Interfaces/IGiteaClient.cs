@@ -85,7 +85,8 @@ public interface IGiteaClient
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branch">Name of branch</param>
-    /// <returns>The branch info</returns>
+    /// <returns>The branch info, or null if the branch does not exist in Gitea.</returns>
+    /// <exception cref="System.Net.Http.HttpRequestException">Gitea returned an error other than not found.</exception>
     Task<Branch> GetBranch(string org, string repository, string branch);
 
     /// <summary>
@@ -122,19 +123,11 @@ public interface IGiteaClient
     );
 
     /// <summary>
-    /// Takes in a ServiceResource-object and uses it to create a ListviewServiceResource-object that contains some additional fields not stored in the resourceregistry
+    /// Gets the full name of a Gitea user, cached in memory.
     /// </summary>
-    /// <param name="org">The org</param>
-    /// <param name="repo">The repository</param>
-    /// <param name="serviceResource">The ServiceResource that is to be converted into a ListviewServiceResource</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Returns the ListviewServiceResource based on the information from input and additional fields</returns>
-    Task<ListviewServiceResource> MapServiceResourceToListViewResource(
-        string org,
-        string repo,
-        ServiceResource serviceResource,
-        CancellationToken cancellationToken
-    );
+    /// <param name="username">The username</param>
+    /// <returns>The full name, or the username when the user has no full name</returns>
+    Task<string> GetUserFullName(string username);
 
     /// <summary>
     /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.

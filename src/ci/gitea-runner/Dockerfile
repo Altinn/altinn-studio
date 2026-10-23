@@ -2,7 +2,11 @@ FROM docker.io/gitea/runner:3.5.0@sha256:66b7da94dc7dcadb2e076bec6928221336a9a63
 
 FROM ghcr.io/renovatebot/renovate:42.34.1@sha256:76265a40295d41facff1967a60e893fbce7de39e4975bc2b63884a8482170e39 AS renovate
 
-FROM docker.io/gitea/runner-images:ubuntu-latest@sha256:0e62e56b382ebf485bff1e51a05cbe27c708545a2e91425467fd31eb3e249521 AS final
+# Service owners' Gitea Actions jobs run directly in this image (`ubuntu-latest:host`),
+# so pin the Ubuntu release instead of following upstream's `ubuntu-latest`.
+# Renovate updates the digest within this release and offers a newer Ubuntu
+# release as a separate PR that needs Dependency Dashboard approval (renovate.json).
+FROM docker.io/gitea/runner-images:ubuntu-24.04@sha256:30ad0c51af70f33f852a760ed9b94fc01a537d4eb8d57258ae94be5aae7ceefd AS final
 
 # Install required packages for the runner
 RUN apt update && \

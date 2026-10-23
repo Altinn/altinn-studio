@@ -145,7 +145,7 @@ internal sealed class FiksArkivMessageSender : IFiksArkivMessageSender
 
         dataMutator.AddBinaryDataElement(
             _fiksArkivSettings.Receipt.ArchiveRecord.DataType,
-            "application/xml",
+            FiksArkivConstants.RecordContentType,
             _fiksArkivSettings.Receipt.ArchiveRecord.GetFilenameOrDefault(),
             archiveRecordData,
             generatedFromTask: taskId

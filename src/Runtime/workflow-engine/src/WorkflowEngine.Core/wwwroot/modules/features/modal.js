@@ -12,6 +12,7 @@ import {
     fmtTime,
     fmtDuration,
     fmtAgo,
+    grafanaTraceUrl,
 } from '../core/helpers.js';
 
 /**
@@ -200,7 +201,10 @@ const buildDetailsContent = (data) => {
         statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="nudgeWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">${skipLabel}</a>`;
     }
     if (status === 'Requeued' || status === 'Waiting') {
-        const failTitle = status === 'Waiting' ? 'Stop waiting and mark the step Failed' : 'Stop retrying and mark the step Failed';
+        const failTitle =
+            status === 'Waiting'
+                ? 'Stop waiting and mark the step Failed'
+                : 'Stop retrying and mark the step Failed';
         statusParts += `<a class="step-retry-badge fail" style="${showNudge ? '' : 'margin-left:auto'}" title="${failTitle}" onclick="failWorkflow(event,'${escJsArg(_openWfId)}','${escJsArg(_openWfNamespace)}')">&#10005; Fail</a>`;
     }
     html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
@@ -269,25 +273,9 @@ const buildDetailsContent = (data) => {
         }
         html += `</div></div>`;
     }
-    if (data.traceId) {
-        const tempoUrl = `http://localhost:7070/explore?schemaVersion=1&panes=${encodeURIComponent(
-            JSON.stringify({
-                t: {
-                    datasource: 'tempo',
-                    queries: [
-                        {
-                            refId: 'trace',
-                            query: data.traceId,
-                            datasource: { type: 'tempo', uid: 'tempo' },
-                            queryType: 'traceql',
-                        },
-                    ],
-                    range: { from: 'now-24h', to: 'now' },
-                    compact: false,
-                },
-            }),
-        )}&orgId=1`;
-        html += `<a class="modal-grafana-link" href="${tempoUrl}" target="_blank">Open Grafana</a>`;
+    const traceUrl = data.traceId ? grafanaTraceUrl(/** @type {string} */ (data.traceId)) : null;
+    if (traceUrl) {
+        html += `<a class="modal-grafana-link" href="${escAttr(traceUrl)}" target="_blank">Open Grafana</a>`;
     }
 
     return html;

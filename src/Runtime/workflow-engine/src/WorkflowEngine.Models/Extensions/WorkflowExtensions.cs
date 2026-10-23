@@ -46,23 +46,6 @@ public static class WorkflowExtensions
         }
 
         /// <summary>
-        /// Workflow metadata useful for enriching telemetry activities.
-        /// </summary>
-        public (string key, object? value)[] GetActivityTags() =>
-            [
-                ("workflow.database.id", workflow.DatabaseId),
-                ("workflow.collection.key", workflow.CollectionKey),
-                ("workflow.idempotency.key", workflow.IdempotencyKey),
-                ("workflow.operation.id", workflow.OperationId),
-                ("workflow.namespace", workflow.Namespace),
-            ];
-
-        /// <summary>
-        /// Step metadata useful for enriching telemetry histograms.
-        /// </summary>
-        public (string key, object? value)[] GetHistogramTags() => [("workflow.operation.id", workflow.OperationId)];
-
-        /// <summary>
         /// Low-cardinality metric tag value for the workflow's head directive. "false" identifies
         /// auxiliary workflows, whose terminal failures gate nothing and surface nowhere else.
         /// </summary>
@@ -70,8 +53,8 @@ public static class WorkflowExtensions
     }
 
     /// <summary>
-    /// The <c>is_head</c> metric tag value for a head directive, for callers holding the
-    /// directive but not the workflow.
+    /// The <c>altinn.workflow_engine.workflow.is_head</c> metric tag value for a head directive, for
+    /// callers holding the directive but not the workflow.
     /// </summary>
     public static string IsHeadTagValue(bool? isHead) =>
         isHead switch

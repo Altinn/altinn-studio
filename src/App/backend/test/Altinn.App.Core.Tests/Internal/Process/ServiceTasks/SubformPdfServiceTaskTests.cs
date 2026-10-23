@@ -706,6 +706,7 @@ public class SubformPdfServiceTaskTests
             },
         ];
         _processReaderMock.Setup(x => x.GetProcessTasks()).Returns(tasks);
+        _processReaderMock.Setup(x => x.GetExclusiveGateways()).Returns([]);
         _processReaderMock
             .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns((string taskId) => tasks.Single(task => task.Id == taskId).ExtensionElements?.TaskExtension);

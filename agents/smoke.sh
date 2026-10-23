@@ -2,18 +2,18 @@
 # Smoke-tests the shared developer and pull request evidence tooling inside a freshly built Agent image.
 #
 #   docker run --rm --init --ipc=host --security-opt seccomp=unconfined --entrypoint bash \
-#     -v "$PWD/agents/smoke.sh:/smoke.sh:ro" <image> /smoke.sh <minimal|full|desktop> [KEEP_DIR]
+#     -v "$PWD/agents/smoke.sh:/smoke.sh:ro" <image> /smoke.sh <minimal|desktop> [KEEP_DIR]
 #
 # With KEEP_DIR (a writable mount), the produced media is copied there for inspection.
 #
 # Runs as the image's `agent` user. Every variant records a terminal fixture with colors, cursor
-# movement and Norwegian characters and renders it to a GIF. The full variant also drives
+# movement and Norwegian characters and renders it to a GIF. The desktop variant also drives
 # Chromium through playwright-cli, converts the recording and inspects it with the helpers, in a
 # directory whose name contains a space. Chromium needs the host IPC namespace and an unconfined
 # seccomp profile under Docker; inside a Sandbox it runs on a real kernel and needs neither.
 set -euo pipefail
 
-variant="${1:?usage: smoke.sh <minimal|full|desktop> [KEEP_DIR]}"
+variant="${1:?usage: smoke.sh <minimal|desktop> [KEEP_DIR]}"
 keep="${2:-}"
 work="$(mktemp -d "${TMPDIR:-/tmp}/smoke with space.XXXXXX")"
 cd "$work"
@@ -76,7 +76,9 @@ test -f /home/agent/.config/altinn-studio/data/infra/otel-collector.yaml \
 doctor="$(studioctl doctor --json)"
 jq -e '.cli.version | startswith("v")' <<<"$doctor" >/dev/null \
     || fail "studioctl doctor did not report a CLI version"
-jq -e '.disk.checks[] | select(.id == "appmgr_binary" and .level == "ok")' <<<"$doctor" >/dev/null \
+# studioctl releases up to v0.1.0-preview.29, which STUDIOCTL_VERSION pins, name this check appmgr_binary.
+jq -e '.disk.checks[] | select((.id == "server_binary" or .id == "appmgr_binary") and .level == "ok")' \
+    <<<"$doctor" >/dev/null \
     || fail "studioctl doctor did not find studioctl-server"
 
 systemctl is-enabled agent-studioctl-auth-init.service >/dev/null \
@@ -145,7 +147,7 @@ test -d "$XDG_RUNTIME_DIR" || fail "$XDG_RUNTIME_DIR does not exist"
 test "$(stat -c '%U:%G %a' "$XDG_RUNTIME_DIR")" = "agent:agent 700" \
     || fail "$XDG_RUNTIME_DIR is $(stat -c '%U:%G %a' "$XDG_RUNTIME_DIR"), expected agent:agent 700"
 sudo -n rm -rf "$XDG_RUNTIME_DIR"
-sudo -n systemd-tmpfiles --create /usr/lib/tmpfiles.d/agent.conf
+sudo -n systemd-tmpfiles --create /usr/lib/tmpfiles.d/agent-base.conf
 test "$(stat -c '%U:%G %a' "$XDG_RUNTIME_DIR")" = "agent:agent 700" \
     || fail "the tmpfiles rule does not recreate $XDG_RUNTIME_DIR for a booted Agent"
 touch "$XDG_RUNTIME_DIR/probe" && rm -f "$XDG_RUNTIME_DIR/probe"
@@ -199,11 +201,11 @@ venv/bin/pip --version
 printf 'a: 1\n' | yq '.a' | grep -qx 1 || fail "yq did not read YAML"
 
 echo "## local development hosts"
-systemctl is-enabled agent-full-hosts-init.service >/dev/null \
-    || fail "the full-image hosts service is not enabled"
+systemctl is-enabled agent-dev-hosts-init.service >/dev/null \
+    || fail "the local development hosts service is not enabled"
 grep -qxF 'ExecStart=/home/agent/.local/bin/studioctl env hosts add' \
-    /etc/systemd/system/agent-full-hosts-init.service \
-    || fail "the full-image hosts service does not prepare studioctl hostnames"
+    /etc/systemd/system/agent-dev-hosts-init.service \
+    || fail "the local development hosts service does not prepare studioctl hostnames"
 
 echo "## container tooling"
 # `podman run --init` looks this up by name; without it the flag fails instead of running.
@@ -277,7 +279,6 @@ video-to-gif --fps 10 browser.webm interaction.gif
 media-preview before.png interaction.gif
 test -s interaction.gif.preview.png || fail "media-preview wrote no contact sheet"
 media-preview "$work/missing.png" && fail "media-preview accepted a missing file"
-[ "$variant" = desktop ] || finish
 
 # The desktop image boots this stack from systemd units; CI runs the image under Docker, where
 # there is no init, so the same three processes are started here from the same configuration.
@@ -317,7 +318,7 @@ grep -qxF "ExecStart=/usr/lib/systemd/systemd-socket-proxyd \${AGENT_DESKTOP_SOC
 sudo -n install -d -m 0755 -o agent -g agent "$(dirname "$AGENT_DESKTOP_SOCKET")"
 Xtigervnc "$AGENT_DESKTOP_DISPLAY" -geometry "$AGENT_DESKTOP_GEOMETRY" -depth 24 \
     -rfbport -1 -rfbunixpath "$AGENT_DESKTOP_SOCKET" -rfbunixmode 0600 \
-    -SecurityTypes None -AlwaysShared -desktop Altinn-Agent >xvnc.log 2>&1 &
+    -SecurityTypes None -AlwaysShared -desktop Agent >xvnc.log 2>&1 &
 display_server=$!
 trap 'kill "$server" "$display_server" ${session:-} ${bus:-} 2>/dev/null' EXIT
 for _ in $(seq 1 100); do xdpyinfo >/dev/null 2>&1 && break; sleep 0.1; done
