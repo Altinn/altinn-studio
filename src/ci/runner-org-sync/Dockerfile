@@ -1,9 +1,7 @@
 # syntax=docker/dockerfile:1.26@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
 
-ARG GO_VERSION=1.26.4
-
 # --- build ------------------------------------------------------------------
-FROM golang:${GO_VERSION}-alpine AS build
+FROM golang:1.26.4-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS build
 
 WORKDIR /src
 
