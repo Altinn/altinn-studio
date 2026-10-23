@@ -20,6 +20,7 @@ import (
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/localtestv2"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
 	"altinn.studio/studioctl/internal/ui/resourcegraph"
@@ -35,6 +36,11 @@ var (
 
 	// ErrLegacyLocaltestRunning is returned when legacy localtest containers are detected.
 	ErrLegacyLocaltestRunning = errors.New("legacy localtest is running (started outside this CLI)")
+
+	// ErrLocaltestV2Running is returned when the localtest-v2 runtime holds the public origin's port.
+	ErrLocaltestV2Running = errors.New(
+		"the localtest-v2 runtime is running; stop it first with 'env down -r localtest-v2'",
+	)
 
 	errResetTargetOutsideDataDir = errors.New("reset target outside data directory")
 	errResetCleanupFailed        = errors.New("workflow-engine data cleanup helper failed")
@@ -95,6 +101,11 @@ func (e *Env) OnInstall(_ context.Context) error {
 func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
 	if err := e.applyScheduledWorkflowEngineDataReset(ctx); err != nil {
 		return err
+	}
+	if _, v2Up, err := localtestv2.ReadState(e.cfg); err != nil {
+		return fmt.Errorf("read localtest-v2 state: %w", err)
+	} else if v2Up {
+		return ErrLocaltestV2Running
 	}
 	return CheckForLegacyLocaltest(ctx, e.client)
 }
@@ -393,7 +404,7 @@ func (e *Env) runForeground(
 	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
 	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	streamer := newLogStreamer(e.client, e.out, components.EnabledContainerNames(resources))
+	streamer := NewLogStreamer(e.client, e.out, components.EnabledContainerNames(resources))
 	if err := streamer.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
@@ -415,9 +426,9 @@ func (e *Env) runForeground(
 	return nil
 }
 
-func (e *Env) logStreamer() *logStreamer {
+func (e *Env) logStreamer() *LogStreamer {
 	manifest := components.NewManifest(e.releaseOptions(true, true, e.devWorkflowEngineFromEnvironmentTopology()))
-	return newLogStreamer(e.client, e.out, components.EnabledContainerNames(manifest.Resources))
+	return NewLogStreamer(e.client, e.out, components.EnabledContainerNames(manifest.Resources))
 }
 
 func (e *Env) applyResources(ctx context.Context, resources []resource.Resource, imageMode components.ImageMode) error {

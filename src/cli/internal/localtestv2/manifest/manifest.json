@@ -1,0 +1,280 @@
+{
+  "groups": [
+    { "name": "default", "containers": ["postgres", "register", "profile", "authentication", "authorization", "storage", "access-management", "events", "resource-registry", "notifications", "localtest", "pdf3", "workflow-engine"] },
+    { "name": "dialogporten", "containers": ["dialogporten-graphql", "dialogporten-service", "dialogporten-adapter"] },
+    { "name": "receipt", "containers": ["receipt"] },
+    { "name": "correspondence", "containers": ["correspondence"] },
+    { "name": "arbeidsflate", "containers": ["arbeidsflate"] }
+  ],
+  "containers": {
+    "postgres": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres",
+      "tag": "sha-6d928ad",
+      "port": 5432,
+      "health": "tcp",
+      "envs": {
+        "POSTGRES_PASSWORD": "postgres",
+        "POSTGRES_USER": "postgres",
+        "TZ": "UTC"
+      },
+      "volumes": {
+        "postgres-data": "/var/lib/postgresql"
+      }
+    },
+    "register": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-register",
+      "tag": "sha-6d928ad",
+      "port": 5020,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "GeneralSettings__OpenIdWellKnownEndpoint": "http://local.altinn.cloud:8000/authentication/api/v1/openid/",
+        "PlatformSettings__ApiAuthorizationEndpoint": "http://local.altinn.cloud:8000/authorization/api/v1/"
+      }
+    },
+    "profile": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-profile",
+      "tag": "sha-6d928ad",
+      "port": 5030,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Profile__PlatformEndpoint": "http://local.altinn.cloud:8000/",
+        "PostgreSqlSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_profile_admin;Password={0};Database=profiledb",
+        "PostgreSqlSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_profile;Password={0};Database=profiledb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "register"]
+    },
+    "authentication": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication",
+      "tag": "sha-6d928ad",
+      "port": 5101,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "GeneralSettings__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["register", "profile"]
+    },
+    "authorization": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization",
+      "tag": "sha-6d928ad",
+      "port": 5070,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Authorization__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["register", "profile"],
+      "volumes": {
+        "policy-store": "/policy-store"
+      }
+    },
+    "storage": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-storage",
+      "tag": "sha-6d928ad",
+      "port": 5010,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "GeneralSettings__PlatformEndpoint": "http://local.altinn.cloud:8000/",
+        "PostgreSqlSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_storage_admin;Password={0};Database=storagedb",
+        "PostgreSqlSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_storage;Password={0};Database=storagedb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres"],
+      "volumes": {
+        "storage-blobs": "/data/blobs"
+      }
+    },
+    "access-management": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management",
+      "tag": "sha-6d928ad",
+      "port": 5080,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__AccessManagement__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["postgres", "register", "resource-registry", "profile"],
+      "volumes": {
+        "policy-store": "/policy-store"
+      }
+    },
+    "events": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-events",
+      "tag": "sha-6d928ad",
+      "port": 5080,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Events__PlatformEndpoint": "http://local.altinn.cloud:8000/",
+        "PostgreSQLSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_events_admin;Password={0};Database=eventsdb",
+        "PostgreSQLSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_events;Password={0};Database=eventsdb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "register", "authorization"]
+    },
+    "resource-registry": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry",
+      "tag": "sha-6d928ad",
+      "port": 5100,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__ResourceRegistry__PlatformEndpoint": "http://local.altinn.cloud:8000/",
+        "PostgreSQLSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_authorization_admin;Password={0};Database=resourceregistrydb",
+        "PostgreSQLSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_authorization;Password={0};Database=resourceregistrydb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "storage"],
+      "volumes": {
+        "policy-store": "/policy-store"
+      }
+    },
+    "notifications": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications",
+      "tag": "sha-6d928ad",
+      "port": 5090,
+      "envs": {
+        "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__Notifications__PlatformEndpoint": "http://local.altinn.cloud:8000/",
+        "PostgreSQLSettings__AdminConnectionString": "Host=postgres;Port=5432;Username=platform_notifications_admin;Password={0};Database=notificationsdb",
+        "PostgreSQLSettings__ConnectionString": "Host=postgres;Port=5432;Username=platform_notifications;Password={0};Database=notificationsdb;Include Error Detail=True"
+      },
+      "dependsOn": ["postgres", "register", "profile", "authorization", "authentication"]
+    },
+    "localtest": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest",
+      "tag": "sha-6d928ad",
+      "envs": {
+        "Localtest__AccessTokenCertificatePath": "/certs/localtest-accesstoken.pfx",
+        "Localtest__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "volumes": {
+        "localtest-data": "/data"
+      }
+    },
+    "pdf3": {
+      "registry": "ghcr.io/altinn/altinn-studio/runtime-pdf3-worker",
+      "tag": "tt02",
+      "port": 5031,
+      "health": "/health/ready",
+      "envs": {
+        "PDF3_ENVIRONMENT": "localtest",
+        "PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://local.altinn.cloud:8000",
+        "PDF3_QUEUE_SIZE": "3",
+        "TZ": "Europe/Oslo"
+      }
+    },
+    "workflow-engine": {
+      "registry": "ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app",
+      "tag": "tt02",
+      "port": 9090,
+      "health": "/api/v1/health/ready",
+      "envs": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_HTTP_PORTS": "9090",
+        "AppCommandSettings__CommandEndpoint": "http://local.altinn.cloud:8000/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
+        "ConnectionStrings__WorkflowEngine": "Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres",
+        "EngineSettings__EnableTelemetry": "false"
+      },
+      "dependsOn": ["postgres"]
+    },
+    "redis": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-redis",
+      "tag": "sha-6d928ad",
+      "port": 6379,
+      "health": "tcp"
+    },
+    "dialogporten-webapi": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-webapi",
+      "tag": "sha-6d928ad",
+      "health": "/health/readiness",
+      "envs": {
+        "Localtest__Dialogporten__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["postgres", "redis", "register", "authentication", "authorization", "access-management", "events", "resource-registry"]
+    },
+    "dialogporten-graphql": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-graphql",
+      "tag": "sha-6d928ad",
+      "health": "/health/readiness",
+      "envs": {
+        "Localtest__Dialogporten__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["dialogporten-webapi"]
+    },
+    "dialogporten-service": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-service",
+      "tag": "sha-6d928ad",
+      "health": "/health/readiness",
+      "envs": {
+        "Localtest__Dialogporten__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["dialogporten-webapi"]
+    },
+    "dialogporten-adapter": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-adapter",
+      "tag": "sha-6d928ad",
+      "port": 5011,
+      "envs": {
+        "Localtest__Adapter__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["storage", "register", "authentication", "dialogporten-webapi"]
+    },
+    "receipt": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-receipt",
+      "tag": "sha-6d928ad",
+      "port": 5060,
+      "envs": {
+        "GeneralSettings__Hostname": "local.altinn.cloud",
+        "GeneralSettings__OpenIdWellKnownEndpoint": "http://local.altinn.cloud:8000/authentication/api/v1/openid/",
+        "Localtest__Receipt__PlatformEndpoint": "http://local.altinn.cloud:8000/",
+        "PlatformSettings__ApiAuthenticationEndpoint": "http://local.altinn.cloud:8000/authentication/api/v1/",
+        "PlatformSettings__ApiProfileEndpoint": "http://local.altinn.cloud:8000/profile/api/v1/",
+        "PlatformSettings__ApiRegisterEndpoint": "http://local.altinn.cloud:8000/register/api/v1/",
+        "PlatformSettings__ApiStorageEndpoint": "http://local.altinn.cloud:8000/storage/api/v1/"
+      },
+      "dependsOn": ["register", "profile", "authentication", "storage"]
+    },
+    "correspondence": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-correspondence",
+      "tag": "sha-6d928ad",
+      "port": 2525,
+      "envs": {
+        "DatabaseOptions__ConnectionString": "Host=postgres;Port=5432;Database=correspondence;Username=correspondence;Password=localtest",
+        "GeneralSettings__RedisConnectionString": "redis:6379,defaultDatabase=1",
+        "Localtest__Correspondence__PlatformEndpoint": "http://local.altinn.cloud:8000/"
+      },
+      "dependsOn": ["postgres", "register", "profile", "authorization", "resource-registry", "notifications", "events", "redis", "dialogporten-webapi"],
+      "volumes": {
+        "correspondence-blobs": "/mnt/storage"
+      }
+    },
+    "arbeidsflate-bff": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-arbeidsflate-bff",
+      "tag": "sha-6d928ad",
+      "port": 80,
+      "health": "/api/readiness",
+      "envs": {
+        "AUTH_CONTEXT_COOKIE_DOMAIN": "local.altinn.cloud",
+        "DB_CONNECTION_STRING": "postgres://arbeidsflate:localtest@postgres:5432/arbeidsflate",
+        "DIALOGPORTEN_URL": "http://local.altinn.cloud:8000/dialogporten",
+        "ENABLE_GRAPHIQL": "true",
+        "ENABLE_INIT_SESSION_ENDPOINT": "true",
+        "ENVIRONMENT": "test",
+        "HOSTNAME": "http://af.local.altinn.cloud:8000",
+        "MASKINPORTEN_CLIENT_ID": "991825827",
+        "MASKINPORTEN_ISSUER": "http://local.altinn.cloud:8000/localtest/api/maskinporten/",
+        "NODE_ENV": "production",
+        "OIDC_CLIENT_ID": "arbeidsflate-localtest",
+        "OIDC_CLIENT_SECRET": "arbeidsflate-localtest-secret",
+        "OIDC_PLATFORM_URL": "http://local.altinn.cloud:8000/authentication/api/v1/openid",
+        "PLATFORM_BASEURL": "http://local.altinn.cloud:8000",
+        "REDIS_CONNECTION_STRING": "redis://redis:6379/2",
+        "SESSION_SECRET": "localtest-arbeidsflate-session-secret-not-a-secret"
+      },
+      "dependsOn": ["postgres", "redis", "register", "profile", "authentication", "dialogporten-graphql"]
+    },
+    "arbeidsflate": {
+      "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-arbeidsflate",
+      "tag": "sha-6d928ad",
+      "port": 80,
+      "health": "/",
+      "envs": {
+        "DIALOGPORTEN_STREAM_URL": "http://local.altinn.cloud:8000/dialogporten/graphql/stream"
+      },
+      "dependsOn": ["arbeidsflate-bff"]
+    }
+  }
+}
