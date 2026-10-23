@@ -107,6 +107,7 @@ func (c *DoctorCommand) renderDoctorText(report doctorsvc.Report) {
 	c.renderDoctorPrerequisitesSection(table, report.Prerequisites)
 	c.renderDoctorAuthSection(table, report.Auth)
 	c.renderDoctorDiskSection(table, report.Disk)
+	c.renderDoctorDiskUsageSection(table, report.Disk)
 	c.renderDoctorLocaltestEnvSection(table, report.LocaltestEnv)
 	c.renderDoctorAppSection(table, report.App)
 	c.out.RenderTable(table)
@@ -316,6 +317,46 @@ func (c *DoctorCommand) renderDoctorDiskSection(table *ui.Table, disk *doctorsvc
 		default:
 			doctorKeyValue(table, check.ID, value)
 		}
+	}
+}
+
+// renderDoctorDiskUsageSection states sizes only. Localtest data names `env reset`, the command that
+// deletes it, unless there is none: an unknown size can come from data a container wrote, which the
+// command clears all the same. The other areas have no command that shrinks them.
+func (c *DoctorCommand) renderDoctorDiskUsageSection(table *ui.Table, disk *doctorsvc.Disk) {
+	if disk == nil || len(disk.Usage) == 0 {
+		return
+	}
+
+	table.Section("Disk usage")
+	defer table.Spacer()
+
+	for _, usage := range disk.Usage {
+		value := unknownValue
+		if usage.Bytes != nil {
+			value = formatBytes(*usage.Bytes)
+		}
+		doctorKeyValue(table, doctorDiskUsageLabel(usage.ID), value)
+
+		empty := usage.Bytes != nil && *usage.Bytes == 0
+		if usage.ID == doctorsvc.DiskUsageLocaltestData && !empty {
+			table.Row(ui.Empty(), ui.Empty(), ui.Dim("cleared by '"+osutil.CurrentBin()+" env reset'"))
+		}
+	}
+}
+
+func doctorDiskUsageLabel(id string) string {
+	switch id {
+	case doctorsvc.DiskUsageLogs:
+		return "Logs"
+	case doctorsvc.DiskUsageLocaltestData:
+		return "Localtest data"
+	case doctorsvc.DiskUsageServer:
+		return "Server"
+	case doctorsvc.DiskUsageTotal:
+		return "Total"
+	default:
+		return id
 	}
 }
 
