@@ -149,6 +149,17 @@
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
+      "description": "Keep the version-pinned .NET images of kubernetes-wrapper and localtest on the latest patch. Docker versioning reads -alpine3.23 as a compatibility suffix and never leaves it, but new .NET patches ship only for the newest Alpine, so read the Alpine release as part of the version. MCR publishes no release timestamps, so minimumReleaseAge would hold these updates pending forever",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": [
+        "src/Runtime/kubernetes-wrapper/src/Dockerfile",
+        "src/Runtime/localtest/Dockerfile"
+      ],
+      "matchPackageNames": ["mcr.microsoft.com/dotnet/aspnet", "mcr.microsoft.com/dotnet/sdk"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-alpine(?<build>\\d+)\\.(?<revision>\\d+)$",
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
       "description": "Move uv in the Studio Assistant CI and image, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
       "matchFileNames": [
         ".github/workflows/altinity-build-test.yaml",

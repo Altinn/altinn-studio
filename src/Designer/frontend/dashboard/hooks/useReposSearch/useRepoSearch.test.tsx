@@ -103,4 +103,26 @@ describe('useRepoSearch', () => {
     const pageTwoRequests = searchRepos.mock.calls.filter(([filter]) => filter.page === 2);
     expect(pageTwoRequests).toHaveLength(1);
   });
+
+  it('should prefetch the next page while the search has one, also when the total count fits on fewer pages', async () => {
+    const searchRepos = vi.fn().mockResolvedValue({
+      data: reposSortedByName,
+      ok: true,
+      totalCount: 10,
+      totalPages: 3,
+    });
+    const { result } = renderHookWithProviders(
+      () => useReposSearch({ defaultPageSize: 5, excludeNonAppRepos: true }),
+      { queries: { searchRepos } },
+    );
+
+    await waitFor(() => expect(result.current.searchResults).toBeDefined());
+    await waitFor(() => result.current.setPageNumber(2));
+
+    await waitFor(() =>
+      expect(searchRepos).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 3, excludeNonAppRepos: true }),
+      ),
+    );
+  });
 });

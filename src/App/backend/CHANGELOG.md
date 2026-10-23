@@ -30,6 +30,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Grid shows all the text in its cells instead of cutting it off with an ellipsis after two lines. `textOverflow` on Grid cells is deprecated: it has no effect, and you can remove it from your layouts. ([#21379](https://github.com/Altinn/altinn-studio/pull/21379))
 - `GET .../pdf/preview` now allows 20 previews per minute across all instances by default; further requests return 429 with `Retry-After`. Configure `PdfGeneratorSettings:PreviewRateLimit` using `PermitLimit` (0 disables the limit), `Window` and `QueueLimit` (requests queued for the next window). ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: `IPdfService.GeneratePdf` now has one overload requiring a language, with optional `autoGeneratePdfForTaskIds`, `isPreview` and `authenticationMethod` parameters. Pass `isPreview` and cancellation tokens by name; custom `IPdfService` implementations must implement every method, including the new `GenerateSubformPdf`. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: `IPdfGeneratorClient.GeneratePdf` returns the PDF as `byte[]` instead of `Stream`. Use the bytes directly, or wrap them in a `MemoryStream` where you need a stream. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
