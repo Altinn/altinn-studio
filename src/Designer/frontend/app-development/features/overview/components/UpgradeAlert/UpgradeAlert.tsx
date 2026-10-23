@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioAlert, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useAppUpgradeStatusQuery } from 'app-shared/hooks/queries/useAppUpgradeStatusQuery';
@@ -12,16 +11,11 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 export const UpgradeAlert = (): ReactElement | null => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const isUpgradeHelperEnabled = useFeatureFlag(FeatureFlag.AppUpgradeHelper);
   const { data: user } = useUserQuery();
   const isOrganizationRepo = user !== undefined && user.login !== org;
-  const { data: status } = useAppUpgradeStatusQuery(
-    org,
-    app,
-    isUpgradeHelperEnabled && isOrganizationRepo,
-  );
+  const { data: status } = useAppUpgradeStatusQuery(org, app, isOrganizationRepo);
 
-  if (!isUpgradeHelperEnabled || !status?.isAutomaticUpgradeSupported) return null;
+  if (!status?.isAutomaticUpgradeSupported) return null;
 
   const version = status.targetMajorVersion;
   return (

@@ -72,14 +72,14 @@ describe('AppUpgrade', () => {
   it('shows the step the upgrade run is on', async () => {
     renderAppUpgrade({
       getAppUpgradeStatus: () => Promise.resolve(withActiveBranch()),
-      getAppUpgradeRun: () => Promise.resolve(running('Check that the app builds')),
+      getAppUpgradeRun: () => Promise.resolve(running('Save the changes')),
     });
 
     expect(
-      await screen.findByText(textMock('app_upgrade.progress.step_count', { step: 3, count: 4 })),
+      await screen.findByText(textMock('app_upgrade.progress.step_count', { step: 3, count: 3 })),
     ).toBeInTheDocument();
     expect(screen.getByRole('listitem', { current: 'step' })).toHaveTextContent(
-      textMock('app_upgrade.progress.step.build'),
+      textMock('app_upgrade.progress.step.save', { version }),
     );
   });
 

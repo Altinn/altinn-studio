@@ -55,7 +55,7 @@ export const UpgradeProgress = ({
             data-state={stepState(index, currentStepIndex)}
           >
             <StepIcon state={stepState(index, currentStepIndex)} />
-            <span>{t(textKey)}</span>
+            <span>{t(textKey, { version })}</span>
           </li>
         ))}
       </ol>

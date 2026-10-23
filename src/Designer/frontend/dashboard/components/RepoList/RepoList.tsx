@@ -14,7 +14,6 @@ import { FavoriteButton } from './FavoriteButton';
 import classes from './RepoList.module.css';
 import { RepoNameWithLink } from './RepoNameWithLink';
 import { UpgradeNotice } from './UpgradeNotice';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { TableSortStorageKey } from '../../types/TableSortStorageKey';
 
 export type RepoListProps = {
@@ -49,7 +48,6 @@ export const RepoList = ({
   sortColumn,
 }: RepoListProps): React.ReactElement => {
   const { t } = useTranslation();
-  const isUpgradeHelperEnabled = useFeatureFlag(FeatureFlag.AppUpgradeHelper);
 
   const columns: Columns = [
     {
@@ -84,16 +82,12 @@ export const RepoList = ({
       heading: t('general.description'),
       sortable: true,
     },
-    ...(isUpgradeHelperEnabled
-      ? [
-          {
-            accessor: 'upgrade',
-            heading: t('app_upgrade.column_upgrade'),
-            sortable: false,
-            headerCellClass: classes.upgradeHeaderCell,
-          },
-        ]
-      : []),
+    {
+      accessor: 'upgrade',
+      heading: t('app_upgrade.column_upgrade'),
+      sortable: false,
+      headerCellClass: classes.upgradeHeaderCell,
+    },
     {
       accessor: 'actionIcons',
       heading: t('general.actions'),
@@ -109,7 +103,7 @@ export const RepoList = ({
     createdBy: repo.owner.full_name || repo.owner.login,
     updated: repo.updated_at,
     description: repo.description,
-    upgrade: isUpgradeHelperEnabled ? <UpgradeNotice repo={repo} /> : null,
+    upgrade: <UpgradeNotice repo={repo} />,
     actionIcons: <ActionLinks repo={repo} />,
   }));
 

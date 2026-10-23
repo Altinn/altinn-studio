@@ -2,7 +2,6 @@ export enum FeatureFlag {
   AddComponentModal = 'addComponentModal',
   AiAssistant = 'aiAssistant',
   AppTemplates = 'appTemplates',
-  AppUpgradeHelper = 'appUpgradeHelper',
   ComponentConfigBeta = 'componentConfigBeta',
   CustomTemplates = 'customTemplates',
   NewCodeLists = 'newCodeLists',
