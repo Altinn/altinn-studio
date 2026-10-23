@@ -25,6 +25,11 @@ const getBotAccountsTab = () =>
     name: textMock('settings.orgs.bot_accounts.menu.bot_accounts'),
   });
 
+const getRunTab = () =>
+  screen.getByRole('tab', {
+    name: textMock('settings.orgs.run.menu.run'),
+  });
+
 describe('Menu', () => {
   it('renders the bot accounts tab', () => {
     renderMenu();
@@ -34,6 +39,11 @@ describe('Menu', () => {
   it('renders the contact points tab', () => {
     renderMenu();
     expect(getContactPointsTab()).toBeInTheDocument();
+  });
+
+  it('renders the run tab', () => {
+    renderMenu();
+    expect(getRunTab()).toBeInTheDocument();
   });
 
   it('navigates when a tab is clicked', async () => {
