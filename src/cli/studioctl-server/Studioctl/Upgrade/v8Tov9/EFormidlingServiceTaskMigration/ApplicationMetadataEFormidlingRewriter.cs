@@ -96,52 +96,6 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
     }
 
     /// <summary>
-    /// Returns the id of the first dataType with <c>appLogic.classRef</c> bound to the given task -
-    /// the task's form data model. Used to pin <c>connectedDataTypeId</c> on downstream gateways
-    /// whose expressions previously inferred their data model from that task (see
-    /// <see cref="EFormidlingProcessRewriter"/>).
-    /// </summary>
-    public string? GetFormDataTypeForTask(string taskId)
-    {
-        using var doc = JsonDocument.Parse(File.ReadAllText(_metadataFile));
-        if (
-            doc.RootElement.ValueKind != JsonValueKind.Object
-            || !doc.RootElement.TryGetProperty("dataTypes", out var dataTypes)
-            || dataTypes.ValueKind != JsonValueKind.Array
-        )
-        {
-            return null;
-        }
-
-        foreach (var dataType in dataTypes.EnumerateArray())
-        {
-            if (dataType.ValueKind != JsonValueKind.Object)
-                continue;
-
-            var hasClassRef =
-                dataType.TryGetProperty("appLogic", out var appLogic)
-                && appLogic.ValueKind == JsonValueKind.Object
-                && appLogic.TryGetProperty("classRef", out var classRef)
-                && classRef.ValueKind == JsonValueKind.String
-                && !string.IsNullOrWhiteSpace(classRef.GetString());
-
-            if (
-                hasClassRef
-                && dataType.TryGetProperty("taskId", out var boundTask)
-                && boundTask.ValueKind == JsonValueKind.String
-                && boundTask.GetString() == taskId
-                && dataType.TryGetProperty("id", out var id)
-                && id.ValueKind == JsonValueKind.String
-            )
-            {
-                return id.GetString();
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Removes the whole <c>eFormidling</c> property (including a multi-line object value) from the
     /// file, preserving the surrounding formatting byte-for-byte. The property's exact span is
     /// located with <see cref="Utf8JsonReader"/> (so string content elsewhere can never be

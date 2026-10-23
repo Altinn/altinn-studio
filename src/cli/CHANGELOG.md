@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` removes appsettings keys v9 no longer reads, and points out when one was off:
     - `JsonObjectInDataResponse`: clients of the data API get validation issues as JSON instead of text ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
     - `AppSettings:EnforceDataTypeTaskId`: the app APIs refuse writes to a data type outside the tasks it is bound to ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
+- `studioctl app upgrade v9` replaces `taskId` with `taskIds` on the data types in `applicationmetadata.json`, so each data type stays bound to its task in v9. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
 - Localtest has a _Messages_ page that shows the messages apps have sent, with their attachments, and the emails and SMS messages that would have gone out. A button clears them without resetting the rest of your data. ([#21224](https://github.com/Altinn/altinn-studio/pull/21224))
 - Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. Localtest checks requests against selected rules of the real API, with the same error codes. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
 - `studioctl env up --monitoring` shows the workflow engine's traces, metrics and logs, as service `workflow-engine-app`, and adds a Workflow Engine dashboard to Grafana.
@@ -45,6 +46,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 - Payment, signing and PDF tasks no longer fail to store the file they generate, such as the receipt after the user has paid, in apps upgraded with `studioctl app upgrade v9`. Run it again to fix an upgraded app. ([#21119](https://github.com/Altinn/altinn-studio/pull/21119))
 - After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. ([#21207](https://github.com/Altinn/altinn-studio/pull/21207))
+- `studioctl app upgrade v9` points the gateways after an eFormidling service task it adds at the data model of the task's layout set, as v8 evaluated them, instead of the task's first form in `applicationmetadata.json`. A gateway the PDF service task step already pinned keeps its value; without a layout-set data model it asks you to set it. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
 
 ## [0.1.0-preview.29] - 2026-10-14
 

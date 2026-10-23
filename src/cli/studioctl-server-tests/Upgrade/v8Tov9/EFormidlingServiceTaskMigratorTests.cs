@@ -87,6 +87,49 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
             """
         );
 
+    /// <summary>
+    /// An app whose eFormidling block sends after Task_1, which a gateway with conditions follows, and whose
+    /// applicationmetadata.json binds the form data types <paramref name="formDataTypes"/> to Task_1, in that order.
+    /// </summary>
+    private void WriteAppWithGatewayAfterTask1(params string[] formDataTypes)
+    {
+        _app.Write(
+            "config/applicationmetadata.json",
+            $$"""
+            {
+              "id": "ttd/myapp",
+              "eFormidling": {
+            {{string.Join(",\n", _fullConfig)}}
+              },
+              "dataTypes": [
+            {{string.Join(",\n", formDataTypes.Select(id => FormDataType(id, "Task_1", enablePdfCreation: false)))}}
+              ]
+            }
+            """
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(
+                Task("Task_1", "data"),
+                Gateway("Gateway_1"),
+                EndEvent("EndEvent_1"),
+                EndEvent("EndEvent_2"),
+                Flow("Flow_to_gw", "Task_1", "Gateway_1"),
+                ConditionalFlow("Flow_yes", "Gateway_1", "EndEvent_1", "[\"equals\", [\"dataModel\", \"done\"], true]"),
+                ConditionalFlow("Flow_no", "Gateway_1", "EndEvent_2", "[\"equals\", [\"dataModel\", \"done\"], false]")
+            )
+        );
+    }
+
+    private string? PinnedDataType() =>
+        RequireById(ProcessAfter(), "Gateway_1")
+            .Descendants()
+            .SingleOrDefault(e => e.Name.LocalName == "connectedDataTypeId")
+            ?.Value;
+
+    private static string GatewayWarning(IReadOnlyList<string> warnings) =>
+        Assert.Single(warnings, w => w.StartsWith("Gateway 'Gateway_1'", StringComparison.Ordinal));
+
     [Fact]
     public async Task LegacyConfig_WithGateEnabled_GetsServiceTaskAndBlockStripped()
     {
@@ -339,5 +382,57 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
         Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
         Assert.Null(ElementById(ProcessAfter(), "EFormidlingTask_Task_1"));
+    }
+
+    /// <summary>
+    /// v8 evaluated a gateway after the task against the data model of the task's layout set, which the layout-set
+    /// migration moves to defaultDataType in the task folder, not against the task's first form in
+    /// applicationmetadata.json ("first").
+    /// </summary>
+    [Theory]
+    [InlineData("""{ "defaultDataType": "second" }""", null)]
+    [InlineData(null, """{ "sets": [{ "id": "form", "dataType": "second", "tasks": ["Task_1"] }] }""")]
+    [InlineData(
+        """{ "defaultDataType": "second" }""",
+        """{ "sets": [{ "id": "form", "dataType": "first", "tasks": ["Task_1"] }] }"""
+    )]
+    [InlineData("{}", """{ "sets": [{ "id": "form", "dataType": "second", "tasks": ["Task_1"] }] }""")]
+    [InlineData("{ not json", """{ "sets": [{ "id": "form", "dataType": "second", "tasks": ["Task_1"] }] }""")]
+    public async Task Gateway_IsPinnedToTheDataModelOfTheTasksUiSettings(string? taskFolderSettings, string? layoutSets)
+    {
+        WriteAppWithGatewayAfterTask1("first", "second");
+        if (taskFolderSettings is not null)
+            _app.Write("ui/Task_1/Settings.json", taskFolderSettings);
+        if (layoutSets is not null)
+            _app.Write("ui/layout-sets.json", layoutSets);
+
+        var warnings = await Migrate();
+
+        Assert.Equal("second", PinnedDataType());
+        Assert.Contains("the data model of the task's UI settings", GatewayWarning(warnings), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("ui/Task_1/Settings.json")]
+    [InlineData("ui/layout-sets.json")]
+    public async Task UnreadableUiSettingsFile_IsReportedWithItsPath(string file)
+    {
+        WriteAppWithGatewayAfterTask1("first", "second");
+        _app.Write(file, "{ not json");
+
+        var warnings = await Migrate();
+
+        Assert.Contains(warnings, w => w.StartsWith($"App/{file} is not valid JSON", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Gateway_WithNoDataModelInTheTasksUiSettings_IsLeftToTheDeveloper()
+    {
+        WriteAppWithGatewayAfterTask1("first", "second");
+
+        var warnings = await Migrate();
+
+        Assert.Null(PinnedDataType());
+        Assert.Contains("so nothing was pinned", GatewayWarning(warnings), StringComparison.Ordinal);
     }
 }
