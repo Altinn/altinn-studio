@@ -9,10 +9,7 @@ export type StudioCallToActionBarProps = {
   title: string;
   onClick: () => void;
   actionBarClassName?: string;
-  placement?: StudioCallToActionBarPlacement;
 } & HTMLAttributes<HTMLDivElement>;
-
-export type StudioCallToActionBarPlacement = 'top' | 'bottom';
 
 export const StudioCallToActionBar = ({
   title,
@@ -20,16 +17,11 @@ export const StudioCallToActionBar = ({
   children,
   onClick,
   actionBarClassName,
-  placement = 'bottom',
   className: givenClassName,
   ...rest
 }: StudioCallToActionBarProps): ReactElement => {
   const classNames: string = cn(classes.root, givenClassName);
-  const actionContainerClassNames = cn(
-    classes.actionContainer,
-    classes[placement],
-    actionBarClassName,
-  );
+  const actionContainerClassNames = cn(classes.actionContainer, actionBarClassName);
   return (
     <div {...rest} className={classNames}>
       {children}

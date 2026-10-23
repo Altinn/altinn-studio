@@ -10,10 +10,6 @@
   right: 0;
 }
 
-.top {
-  bottom: 100%;
-}
-
 .isVisible {
   display: flex;
   align-items: center;

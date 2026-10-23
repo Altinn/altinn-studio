@@ -1915,7 +1915,6 @@
   "ux_editor.add_item.favorite_component_label": "{{component}} (favoritt)",
   "ux_editor.add_item.favorites_header": "Dine favoritter",
   "ux_editor.add_item.new_component": "Ny komponent",
-  "ux_editor.add_item.new_component_above": "Ny komponent over",
   "ux_editor.add_item.no_favorites_message": "Du har ingen favoritter ennå. Åpne Vis alle, velg en komponent og merk den som favoritt.",
   "ux_editor.add_item.remove_from_favorites": "Fjern fra dine favoritter",
   "ux_editor.add_item.select_component_header": "Velg komponent",

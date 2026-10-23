@@ -86,24 +86,6 @@ describe('WithHoverAddButton', () => {
     expect(queryAddItemInlineHeading()).not.toBeInTheDocument();
   });
 
-  it('renders the inline item adder below the child by default', async () => {
-    const user = userEvent.setup();
-    renderWithHoverAddButton();
-    await user.click(getClickableActionBar());
-    expect(getChild().compareDocumentPosition(getAddItemInlineHeading())).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-  });
-
-  it('renders the inline item adder above the child when placement is top', async () => {
-    const user = userEvent.setup();
-    renderWithHoverAddButton({ placement: 'top' });
-    await user.click(getClickableActionBar());
-    expect(getAddItemInlineHeading().compareDocumentPosition(getChild())).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-  });
-
   it('should apply lastChild class when isLastChild is true and parent is RepeatingGroup', () => {
     const layout = createLayoutWithContainer(repeatingGroupId, 'RepeatingGroup');
     renderWithHoverAddButton({
@@ -162,19 +144,13 @@ describe('WithHoverAddButton', () => {
 
 function renderWithHoverAddButton(
   props?: Partial<WithHoverAddButtonProps>,
-  children: React.ReactNode = <div>{childText}</div>,
+  children: React.ReactNode = <div>Test Child</div>,
 ) {
   return renderWithProviders(
     <WithHoverAddButton {...defaultProps} {...props}>
       {children}
     </WithHoverAddButton>,
   );
-}
-
-const childText = 'Test Child';
-
-function getChild(): HTMLElement {
-  return screen.getByText(childText);
 }
 
 function getClickableActionBar(): HTMLButtonElement {

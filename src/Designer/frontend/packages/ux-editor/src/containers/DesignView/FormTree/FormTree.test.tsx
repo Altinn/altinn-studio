@@ -15,7 +15,6 @@ import type { IInternalLayout } from '../../../types/global';
 import type { FormComponent } from '../../../types/FormComponent';
 import type { FormContainer } from '../../../types/FormContainer';
 import { app, org } from '@studio/testing/testids';
-import { FeatureFlag } from '@studio/feature-flags';
 
 const user = userEvent.setup();
 
@@ -161,41 +160,9 @@ describe('FormTree', () => {
       }),
     ).toBeInTheDocument();
   });
-
-  it('Renders a button to add a component above the first item of each visible container when the add component modal flag is enabled', async () => {
-    render(layoutMock, [FeatureFlag.AddComponentModal]);
-    expect(screen.getAllByRole('button', { name: addAboveButtonName })).toHaveLength(1);
-
-    await user.click(
-      screen.getByRole('treeitem', { name: (name) => name.startsWith(rootContainerName) }),
-    );
-    expect(screen.getAllByRole('button', { name: addAboveButtonName })).toHaveLength(2);
-  });
-
-  it('Opens the component selection above the first item when the add above button is clicked', async () => {
-    render(layoutMock, [FeatureFlag.AddComponentModal]);
-    await user.click(screen.getAllByRole('button', { name: addAboveButtonName })[0]);
-    const componentSelectionHeading = screen.getByRole('heading', {
-      level: 4,
-      name: componentSelectionHeadingName,
-    });
-    expect(
-      componentSelectionHeading.compareDocumentPosition(
-        screen.getByRole('treeitem', { name: rootComponentName }),
-      ),
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  });
-
-  it('Does not render a button to add a component above the first item by default', () => {
-    render();
-    expect(screen.queryByRole('button', { name: addAboveButtonName })).not.toBeInTheDocument();
-  });
 });
 
-const addAboveButtonName = textMock('ux_editor.add_item.new_component_above');
-const componentSelectionHeadingName = textMock('ux_editor.add_item.components_header');
-
-const render = (layout: IInternalLayout = layoutMock, featureFlags: FeatureFlag[] = []) => {
+const render = (layout: IInternalLayout = layoutMock) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return renderWithProviders(
@@ -206,7 +173,6 @@ const render = (layout: IInternalLayout = layoutMock, featureFlags: FeatureFlag[
     </FormItemContext.Provider>,
     {
       queryClient,
-      featureFlags,
     },
   );
 };
