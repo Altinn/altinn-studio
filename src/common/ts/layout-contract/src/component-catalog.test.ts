@@ -3,7 +3,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import { componentCatalog } from './component-catalog.generated';
 import type { ConfigurableComponent } from './generated/components.generated';
 import type { SerializedComponent } from './generated/serialized-components.generated';
-import type { IDataModelReference } from './generated/common.generated';
+import type { AnySummaryOverride, IDataModelReference } from './generated/common.generated';
 
 describe('componentCatalog', () => {
   it('only exposes components that may be authored in layout files', () => {
@@ -23,6 +23,23 @@ describe('componentCatalog', () => {
     expectTypeOf<SerializedMap['dataModelBindings']['simpleBinding']>().toEqualTypeOf<
       string | IDataModelReference | undefined
     >();
+  });
+
+  it('types summary overrides according to the renderer that consumes them', () => {
+    type ParagraphOverride = Extract<AnySummaryOverride, { componentType: 'Paragraph' }>;
+    type OptionOverride = Extract<AnySummaryOverride, { componentType: 'Option' }>;
+    type SubformOverride = Extract<AnySummaryOverride, { componentType: 'Subform' }>;
+    type InputOverride = Extract<AnySummaryOverride, { componentType: 'Input' }>;
+
+    expectTypeOf<ParagraphOverride>().toHaveProperty('hidden');
+    expectTypeOf<ParagraphOverride>().not.toHaveProperty('emptyFieldText');
+    expectTypeOf<ParagraphOverride>().not.toHaveProperty('showNextButton');
+    expectTypeOf<OptionOverride>().toHaveProperty('emptyFieldText');
+    expectTypeOf<OptionOverride>().not.toHaveProperty('showNextButton');
+    expectTypeOf<SubformOverride>().toHaveProperty('showNextButton');
+    expectTypeOf<SubformOverride>().not.toHaveProperty('emptyFieldText');
+    expectTypeOf<InputOverride>().toHaveProperty('emptyFieldText');
+    expectTypeOf<InputOverride>().toHaveProperty('showNextButton');
   });
 
   it('includes component lifecycle metadata', () => {

@@ -68,6 +68,42 @@ describe('published schemas', () => {
     expect(() => ajv.compile(schema)).not.toThrow();
   });
 
+  it.each([
+    [
+      'editable field',
+      { componentType: 'Input', showNextButton: true, emptyFieldText: 'empty' },
+      true,
+    ],
+    ['presentation visibility', { componentType: 'Paragraph', hidden: true }, true],
+    ['presentation editing', { componentType: 'Paragraph', showNextButton: true }, false],
+    ['presentation empty text', { componentType: 'Paragraph', emptyFieldText: 'empty' }, false],
+    ['computed value empty text', { componentType: 'Text', emptyFieldText: 'empty' }, true],
+    ['computed value editing', { componentType: 'Text', showNextButton: true }, false],
+    ['option empty text', { componentType: 'Option', emptyFieldText: 'empty' }, true],
+    ['option editing', { componentType: 'Option', showNextButton: true }, false],
+    ['container visibility', { componentType: 'Group', hidden: true }, true],
+    ['container editing', { componentType: 'Group', showNextButton: true }, false],
+    ['grid settings', { componentType: 'Grid', hideEmptyRows: true }, true],
+    ['grid empty text', { componentType: 'Grid', emptyFieldText: 'empty' }, false],
+    ['subform editing', { componentType: 'Subform', showNextButton: true, display: 'table' }, true],
+    ['subform empty text', { componentType: 'Subform', emptyFieldText: 'empty' }, false],
+    ['image editing', { componentType: 'ImageUpload', showNextButton: true }, true],
+    ['image empty text', { componentType: 'ImageUpload', emptyFieldText: 'empty' }, false],
+    [
+      'empty repeating group',
+      {
+        componentType: 'RepeatingGroup',
+        emptyFieldText: 'empty',
+        showNextButton: true,
+        display: 'full',
+      },
+      true,
+    ],
+  ])('validates summary override support for %s', (_name, override, valid) => {
+    const schemaId = 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json';
+    expect(ajv.validate(`${schemaId}#/definitions/AnySummaryOverride`, override)).toBe(valid);
+  });
+
   it('default values are valid according to their own schemas', () => {
     const invalidDefaults = schemas.flatMap(({ schema }) =>
       findDefaults(schema)
