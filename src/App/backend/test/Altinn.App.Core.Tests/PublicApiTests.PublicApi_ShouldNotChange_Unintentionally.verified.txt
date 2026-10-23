@@ -11,7 +11,6 @@ namespace Altinn.App.Core.Configuration
         public int CacheResourceLifeTimeInSeconds { get; set; }
         public bool DisableCsrfCheck { get; set; }
         public string EFormidlingSender { get; set; }
-        public bool EnforceDataTypeTaskId { get; set; }
         public bool ExpressionValidation { get; set; }
         public string FormLayoutJSONFileName { get; set; }
         public string OpenIdWellKnownEndpoint { get; set; }
