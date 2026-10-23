@@ -8,6 +8,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	envlocaltestv2 "altinn.studio/studioctl/internal/cmd/env/localtestv2"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/ui"
 )
@@ -66,5 +67,6 @@ func Envs(opts ...Option) ([]envtypes.Env, error) {
 
 	return []envtypes.Env{
 		envlocaltest.NewEnv(resolved.cfg, resolved.out, resolved.containerClient),
+		envlocaltestv2.NewEnv(resolved.cfg, resolved.out, resolved.containerClient),
 	}, nil
 }
