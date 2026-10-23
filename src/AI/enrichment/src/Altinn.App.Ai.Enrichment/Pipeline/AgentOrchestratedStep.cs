@@ -31,7 +31,6 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
     private readonly string _rulesFolderAbsolutePath;
     private readonly string _schemaFilePath;
     private readonly string? _templatePath;
-    private readonly string? _traceDirAbsolutePath;
     private readonly ILogger _logger;
 
     public string Name => _definition.Name;
@@ -58,8 +57,6 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
         _templatePath = string.IsNullOrEmpty(definition.Template)
             ? null
             : Path.Combine(folder.TemplatesDirectory, definition.Template);
-
-        _traceDirAbsolutePath = ResolveTraceDir(definition.TraceDir);
 
         _definition = definition;
         _mapper = mapper;
@@ -88,7 +85,6 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
         {
             MaxToolIterations = _definition.MaxToolIterations ?? DefaultMaxToolIterations,
             Concurrency = _definition.Concurrency ?? DefaultConcurrency,
-            TraceDirAbsolutePath = _traceDirAbsolutePath,
         };
 
         _logger.LogInformation(
@@ -130,14 +126,6 @@ public sealed class AgentOrchestratedStep : IEnrichmentStep
         return JsonDocument.Parse(node.ToJsonString());
     }
 
-    private static string? ResolveTraceDir(string? configured)
-    {
-        if (string.IsNullOrWhiteSpace(configured))
-            return null;
-        return Path.IsPathRooted(configured)
-            ? configured
-            : Path.Combine(Path.GetTempPath(), configured);
-    }
 
     private static string SerializeJson(JsonDocument doc)
     {
