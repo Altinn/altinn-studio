@@ -20,7 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
     - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
 
-- Build checks `ALTINNAPP1004`–`ALTINNAPP1012` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element or a task with two outgoing flows. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023))
+- Build checks `ALTINNAPP1004`–`ALTINNAPP1012` and `ALTINNAPP1023` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element, a task with two outgoing flows or a condition on a gateway's default. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023), [#21105](https://github.com/Altinn/altinn-studio/pull/21105))
 
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
 
@@ -39,6 +39,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - An app no longer starts when more than one `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandonHandler` runs for the same task, or more than one `IOnProcessEndedHandler` is registered. Combine them into one. ([#21069](https://github.com/Altinn/altinn-studio/pull/21069))
+- An app that uses Fiks Arkiv no longer starts when `allowedContentTypes` on the data type for the archive record or the confirmation record leaves out `application/xml`. The Fiks Arkiv task failed instead, for the confirmation record after the archive had already received the message. Add `application/xml` to the list, or remove the list. ([#21415](https://github.com/Altinn/altinn-studio/pull/21415))
 - With `RemoveHiddenData` enabled, as it is by default, data annotation validation no longer reports errors in hidden fields, whose data is removed when the task ends anyway. ([Altinn/app-lib-dotnet#1865](https://github.com/Altinn/app-lib-dotnet/issues/1865))
 - XSD validation errors point to the field that failed, such as `/Skjema/melding/gruppe[2]/felt`. ([Altinn/app-lib-dotnet#1859](https://github.com/Altinn/app-lib-dotnet/pull/1859))
 - When a copy validator rejects copying an instance from the inbox, the user sees a page with the message instead of JSON. ([Altinn/app-lib-dotnet#1869](https://github.com/Altinn/app-lib-dotnet/pull/1869))
@@ -53,6 +54,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - waits for an earlier call that has not started yet, or that made the same choice on the same version
 - Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `Filter` gets instead, which reads as the app.
 - Breaking: `PUT .../process/next` now records the `Process.GenerateChangeEvent` and `Process.End` spans in its own trace, not the workflow callback's, even if the transition is not carried out. Update dashboards, alerts and queries that use them or count `Process.End` as ended processes. ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
+- Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow is valid. The app does not start: ([#21105](https://github.com/Altinn/altinn-studio/pull/21105))
+    - if the default has a condition, which the app never evaluates; remove it
+    - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
+- Long text in Paragraph, Alert and Panel components and in field descriptions now wraps at about 70 characters per line, so it is easier to read on wide screens. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
 ### Fixed
 
@@ -67,6 +72,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
+- Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
 
 ### Removed
 

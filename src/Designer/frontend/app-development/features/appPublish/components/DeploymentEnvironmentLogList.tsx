@@ -145,7 +145,7 @@ export const DeploymentEnvironmentLogList = ({
                                     target='_blank'
                                     icon={
                                       <ExternalLinkIcon
-                                        title={t('general.open_app_in_new_window')}
+                                        title={t('general.link_opens_in_new_tab')}
                                       />
                                     }
                                     iconPlacement={'right'}
@@ -160,7 +160,7 @@ export const DeploymentEnvironmentLogList = ({
                                   rel='noopener noreferrer'
                                   target='_blank'
                                   icon={
-                                    <ExternalLinkIcon title={t('general.open_app_in_new_window')} />
+                                    <ExternalLinkIcon title={t('general.link_opens_in_new_tab')} />
                                   }
                                   iconPlacement={'right'}
                                 >

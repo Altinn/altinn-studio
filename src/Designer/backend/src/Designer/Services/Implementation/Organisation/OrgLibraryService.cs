@@ -39,7 +39,7 @@ public class OrgLibraryService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string repository = GetStaticContentRepo(org);
+        string repository = RepositoryNames.Content(org);
         return await giteaClient.GetLatestCommitOnBranch(org, repository, branchName, cancellationToken);
     }
 
@@ -53,7 +53,7 @@ public class OrgLibraryService(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string repository = GetStaticContentRepo(org);
+        string repository = RepositoryNames.Content(org);
         ConcurrentBag<LibraryFile> libraryFiles = [];
         ParallelOptions options = new() { MaxDegreeOfParallelism = 25, CancellationToken = cancellationToken };
         string baseCommitSha = await giteaClient.GetLatestCommitOnBranch(org, repository, reference, cancellationToken);
@@ -121,7 +121,7 @@ public class OrgLibraryService(
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repository = GetStaticContentRepo(org);
+        string repository = RepositoryNames.Content(org);
         AltinnAuthenticatedRepoEditingContext authenticatedContext =
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
 
@@ -221,7 +221,7 @@ public class OrgLibraryService(
     {
         cancellationToken.ThrowIfCancellationRequested();
         List<FileSystemObject> files = [];
-        string repository = GetStaticContentRepo(org);
+        string repository = RepositoryNames.Content(org);
 
         List<FileSystemObject> directoryContent = await giteaClient.GetDirectoryAsync(
             org,
@@ -281,7 +281,7 @@ public class OrgLibraryService(
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string repo = GetStaticContentRepo(org);
+        string repo = RepositoryNames.Content(org);
         AltinnGitRepository altinnOrgGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(
             org,
             repo,
@@ -376,10 +376,5 @@ public class OrgLibraryService(
     {
         string contentType = Path.GetExtension(otherFile.Name);
         return new LibraryFile(path: otherFile.Path, contentType: contentType, url: otherFile.HtmlUrl);
-    }
-
-    internal static string GetStaticContentRepo(string org)
-    {
-        return $"{org}-content";
     }
 }

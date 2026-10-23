@@ -6,6 +6,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// <c>IMaskinportenTokenProvider</c>/<c>MaskinportenJwkTokenProvider</c> pair, the
 /// <c>AddMaskinportenJwkTokenProvider</c> registration, the <c>IX509CertificateProvider</c> abstraction,
 /// and the <c>EformidlingStatusCheckEventHandler</c> that consumed them. All of these are gone in v9.
+/// So is the <c>Altinn.App.Core.Internal.Maskinporten</c> namespace the Maskinporten types lived in: a
+/// <c>using</c> of it is a compile error of its own, so those directives are reported with the usages.
 /// The Maskinporten types are replaced by the built-in <c>IMaskinportenClient</c>; the eFormidling handler
 /// has no replacement at all - the v9 eFormidling service task waits for the delivery confirmation itself -
 /// so it is reported separately with its own guidance.
@@ -19,6 +21,10 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// </summary>
 internal sealed class RemovedMaskinportenShimDetector
 {
+    // A using of this namespace fails to compile in v9 even once nothing in the file uses it, which is what
+    // removing the usages below leaves behind - so the directive is a usage to report like the rest.
+    private const string MaskinportenShimNamespace = "Altinn.App.Core.Internal.Maskinporten";
+
     private static readonly IReadOnlySet<string> _removedMaskinportenTypes = new HashSet<string>(StringComparer.Ordinal)
     {
         "IMaskinportenTokenProvider",
@@ -48,9 +54,10 @@ internal sealed class RemovedMaskinportenShimDetector
     };
 
     private const string MaskinportenSummary =
-        "The obsolete Maskinporten types in Altinn.App.Core are removed in v9 "
-        + "(IMaskinportenTokenProvider, MaskinportenJwkTokenProvider, AddMaskinportenJwkTokenProvider, "
-        + "IX509CertificateProvider). Use the built-in IMaskinportenClient instead: inject it and call "
+        "The obsolete Maskinporten types in Altinn.App.Core (IMaskinportenTokenProvider, "
+        + "MaskinportenJwkTokenProvider, AddMaskinportenJwkTokenProvider, IX509CertificateProvider) are removed "
+        + "in v9, together with their namespace Altinn.App.Core.Internal.Maskinporten, so its using directives "
+        + "must go as well. Use the built-in IMaskinportenClient instead: inject it and call "
         + "GetAccessToken(scopes)/GetAltinnExchangedToken(scopes), or attach authorization to an HttpClient "
         + "registration with UseMaskinportenAuthorization(scopes)/UseMaskinportenAltinnAuthorization(scopes). "
         + "It needs no configuration: an app has one Maskinporten identity, and Studio provisions its "
@@ -86,6 +93,7 @@ internal sealed class RemovedMaskinportenShimDetector
                 .TypesImplementing(file, _removedMaskinportenTypes)
                 .Concat(CSharpSyntaxQueries.TypeReferences(file, _removedMaskinportenTypes))
                 .Concat(CSharpSyntaxQueries.InvokedMethods(file, _removedMaskinportenMethods))
+                .Concat(CSharpSyntaxQueries.UsingNamespaces(file, MaskinportenShimNamespace))
         );
 
         var eformidlingMatches = _scanner.Files.SelectMany(file =>

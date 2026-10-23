@@ -504,7 +504,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
     }
 
     [Fact]
-    public async Task FetchAndLock_LeavesAReceiverBornRunnableUnmeasured()
+    public async Task FetchAndLock_LeavesAReceiverCreatedRunnableUnmeasured()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -787,7 +787,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
                 WHERE id = (SELECT id FROM locked)
                 RETURNING next_seq - 1 AS seq
             ),
-            born AS (
+            created AS (
                 INSERT INTO engine.workflows (
                     id, operation_id, idempotency_key, namespace, status, created_at, reclaim_count, mailbox_id
                 )
@@ -795,7 +795,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
                 RETURNING id
             )
             INSERT INTO engine.mailbox_receivers (mailbox_id, seq, workflow_id, held_at, released_at)
-            SELECT @id, bumped.seq, born.id, now(), NULL FROM bumped, born
+            SELECT @id, bumped.seq, created.id, now(), NULL FROM bumped, created
             """,
             conn,
             tx
@@ -832,7 +832,7 @@ public sealed class MailboxRendezvousTests(PostgresFixture fixture) : IAsyncLife
         public void Dispose() => _listener.Dispose();
     }
 
-    private const string WakeLatencyInstrument = "engine.mailboxes.receivers.wake_latency";
+    private const string WakeLatencyInstrument = "altinn.workflow_engine.mailbox.receiver.wake.duration";
 
     #endregion
 }

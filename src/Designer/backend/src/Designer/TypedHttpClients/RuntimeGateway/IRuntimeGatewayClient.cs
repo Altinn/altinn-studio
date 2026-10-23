@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,8 @@ public interface IRuntimeGatewayClient
     Task<ReportMetrics> GetReportMetricsAsync(
         string org,
         AltinnEnvironment environment,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     );
     Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(

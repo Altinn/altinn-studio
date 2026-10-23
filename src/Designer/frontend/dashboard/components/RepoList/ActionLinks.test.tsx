@@ -13,6 +13,7 @@ const repoName = 'test-repo';
 const repoFullName = 'test-org/test-repo';
 const repoUrl = `/repos/${repoFullName}`;
 const editUrl = `/editor/${repoFullName}`;
+const resourcesRepoName = 'test-org-resources';
 
 const repo: Repository = {
   ...repository,
@@ -52,6 +53,25 @@ describe('ActionLinks', () => {
     await user.click(getOpenInNewOption());
     expect(window.open).toHaveBeenCalledWith(editUrl, '_blank');
     expect(window.open).toHaveBeenCalledTimes(1);
+  });
+
+  it('should open the resource dashboard instead of app development for the resources repository', async () => {
+    const user = userEvent.setup();
+    window.open = vi.fn();
+    const queryClient = createQueryClientMock();
+    mockUserAndOrganizationsQueries(queryClient);
+    const resourcesRepo: Repository = {
+      ...repo,
+      name: resourcesRepoName,
+      full_name: `test-org/${resourcesRepoName}`,
+    };
+    renderWithProviders(<ActionLinks repo={resourcesRepo} />, { queryClient });
+    await user.click(getButton(textMock('dashboard.app_dropdown', { appName: resourcesRepoName })));
+    await user.click(getOpenInNewOption());
+    expect(window.open).toHaveBeenCalledWith(
+      `/resourceadm/test-org/${resourcesRepoName}`,
+      '_blank',
+    );
   });
 
   const getGiteaButton = () => getButton(giteaButtonName);

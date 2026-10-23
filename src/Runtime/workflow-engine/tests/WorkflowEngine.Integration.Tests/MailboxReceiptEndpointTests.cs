@@ -84,15 +84,15 @@ public sealed class MailboxReceiptEndpointTests(EngineAppFixture<Program> fixtur
     }
 
     [Fact]
-    public async Task Receiver_BornOntoABacklogDelivery_IsHandedThatMessage()
+    public async Task Receiver_EnqueuedOntoABacklogDelivery_IsHandedThatMessage()
     {
         var mailbox = await MintMailbox();
         await _client.DeliverToMailbox(mailbox.Id, "source-msg-1", payload: """{"status":"confirmed"}""");
 
-        var receiver = await EnqueueReceiver(mailbox.Id, "born-runnable");
+        var receiver = await EnqueueReceiver(mailbox.Id, "created-runnable");
         await _client.WaitForWorkflowStatus(receiver, PersistentItemStatus.Completed);
 
-        var received = Assert.Single(ReceivingCommand.Received("born-runnable"));
+        var received = Assert.Single(ReceivingCommand.Received("created-runnable"));
         Assert.Equal(0L, received.Seq);
         Assert.Equal("""{"status":"confirmed"}""", received.Payload);
         Assert.Null(received.DisposedReason);

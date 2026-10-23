@@ -15,7 +15,7 @@ Core conventions (architecture, command pattern, code style, tests, dashboard) a
 ## Projects
 
 | Project                    | Purpose                                                        |
-|----------------------------|----------------------------------------------------------------|
+| -------------------------- | -------------------------------------------------------------- |
 | `WorkflowEngine.App`       | Web host: `Program.cs`, config files, Dockerfile               |
 | `WorkflowEngine.App.Tests` | Unit + integration tests for AppCommand, config, enqueue flows |
 
@@ -37,6 +37,7 @@ The Altinn-specific command that calls back into Altinn apps via HTTP POST.
 - **Mailbox rendezvous**: On a receive workflow's first step the callback carries a `mailbox` block — `{ id, seq, delivery?, disposedReason? }` — projected verbatim from what the engine's executor read. `delivery` and `disposedReason` are exclusive: exactly one is present, and an absent `delivery` means the mailbox is closed and no message will ever reach this step. `null` on every other callback.
 - **Validation**: All context fields validated at enqueue time — invalid requests never enter the queue
 - **Error classification**: 4xx (except 408/418/429) → critical, 5xx/408/418/429 → retryable
+- **Telemetry**: `GetTelemetryAttributes` names the app instance a step works on, in the shared Altinn vocabulary — `altinn.service_owner` (`Org`), `altinn.app` (`App`) and `altinn.instance.guid` (`InstanceGuid`, lowercase `D` format) — and the engine sets them on the step's `WorkflowHandler.ProcessStep` span and the workflow's `WorkflowHandler.Handle` entry span, so one trace search by instance finds the engine's work on it — `{span.altinn.instance.guid="<guid>"}` in TraceQL. **Never the instance owner's party ID or the actor**: whether those may go on telemetry is undecided in the team's observability standard, so add neither to an attribute. (The party ID still reaches telemetry in two places — the callback URL's path, which the HttpClient span records as `url.full`, and the _Sending AppCommand_ log — and both are left for that decision.) The callback's own `AppCommand.Execute` span, kind Client, carries the command key as `altinn.workflow_engine.app_command.key`. All four keys are this host's own, the `AppTelemetryAttributes` constants beside `AppCommand`: the engine defines only its own keys, in `TelemetryAttributes`, and a host defines the keys it sets itself. The command key is this host's too; it lives under `altinn.workflow_engine.` because this host is the workflow engine's Altinn-app deployment, not because the engine defines it. Use the constants rather than spelling a key — see [Telemetry & Observability](../workflow-engine/docs/technical-guide.md#telemetry--observability)
 
 Configuration via `appsettings.json` under `AppCommandSettings`:
 
@@ -118,8 +119,10 @@ Run with `dotnet test`.
 
 Use `studioctl env up --dev-workflow-engine` to start localtest with the workflow-engine route bound to the host, then run `dotnet run --project src/WorkflowEngine.App`.
 
-| Service           | Port       | Purpose                      |
-|-------------------|------------|------------------------------|
-| `workflow-engine` | 9090       | Host app runtime             |
+The launch profiles point the dashboard's trace links (`EngineSettings__Dashboard__GrafanaUrl` and `EngineSettings__Dashboard__GrafanaTracesDatasourceUid`) at studioctl's Grafana and its traces datasource, so the links resolve only while `studioctl env up --monitoring` runs. studioctl sets the same two on the engine container it runs with monitoring.
+
+| Service           | Port | Purpose          |
+| ----------------- | ---- | ---------------- |
+| `workflow-engine` | 9090 | Host app runtime |
 
 The app project does not own a Docker Compose harness.

@@ -311,6 +311,92 @@ public class DeploymentServiceTest
         );
     }
 
+    [Fact]
+    public async Task CreateAsync_TwoDeploysAtTheSameTime_CreateApiKeysWithDifferentNames()
+    {
+        // Arrange
+        DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+        _releaseRepository
+            .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(GetReleases("updatedRelease.json").First());
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .ReturnsAsync((DeploymentEntity entity) => entity);
+
+        List<string> apiKeyNames = [];
+        _apiKeyService
+            .Setup(s =>
+                s.CreateAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    string _,
+                    string name,
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType _,
+                    DateTimeOffset _,
+                    string _,
+                    CancellationToken _
+                ) => apiKeyNames.Add(name)
+            )
+            .ReturnsAsync(("generated-api-key", new Altinn.Studio.Designer.Models.ApiKey.ApiKey()));
+
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
+        );
+
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
+                "ttd",
+                "apps-test-tba",
+                "testUser",
+                "dummyToken"
+            );
+
+        // Act
+        await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+        await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+        // Assert
+        Assert.Equal(2, apiKeyNames.Count);
+        Assert.All(apiKeyNames, name => Assert.StartsWith("deploy-", name));
+        Assert.NotEqual(apiKeyNames[0], apiKeyNames[1]);
+    }
+
     [Theory]
     [InlineData("ttd", "apps-test-tba")]
     public async Task CreateAsync_WhenResourceRegistryPublishFails_ContinuesPipelineAndRecordsFailedEvent(

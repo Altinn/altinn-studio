@@ -28,11 +28,26 @@ public abstract class Command<TData, TContext> : ICommand
     Task<ExecutionResult> ICommand.Execute(CommandExecutionContext context, CancellationToken cancellationToken) =>
         Execute(context, cancellationToken);
 
+    IReadOnlyList<KeyValuePair<string, object?>> ICommand.GetTelemetryAttributes(
+        object? commandData,
+        object? workflowContext
+    ) => GetTelemetryAttributes(commandData as TData, workflowContext as TContext);
+
     /// <summary>
     /// Validates the deserialized command data and workflow context.
     /// Called at enqueue time before the workflow is persisted.
     /// </summary>
     protected abstract CommandValidationResult Validate(TData? commandData, TContext? workflowContext);
+
+    /// <summary>
+    /// Describes the domain object a step works on, as telemetry attributes the engine sets on the step's span
+    /// and the workflow's entry span. None by default.
+    /// </summary>
+    /// <remarks>See <see cref="ICommand.GetTelemetryAttributes"/> for when it is called and what it may return.</remarks>
+    protected virtual IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(
+        TData? commandData,
+        TContext? workflowContext
+    ) => [];
 
     /// <summary>
     /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>
@@ -68,11 +83,23 @@ public abstract class Command<TData> : ICommand
     Task<ExecutionResult> ICommand.Execute(CommandExecutionContext context, CancellationToken cancellationToken) =>
         Execute(context, cancellationToken);
 
+    IReadOnlyList<KeyValuePair<string, object?>> ICommand.GetTelemetryAttributes(
+        object? commandData,
+        object? workflowContext
+    ) => GetTelemetryAttributes(commandData as TData);
+
     /// <summary>
     /// Validates the deserialized command data.
     /// Called at enqueue time before the workflow is persisted.
     /// </summary>
     protected abstract CommandValidationResult Validate(TData? commandData);
+
+    /// <summary>
+    /// Describes the domain object a step works on, as telemetry attributes the engine sets on the step's span
+    /// and the workflow's entry span. None by default.
+    /// </summary>
+    /// <remarks>See <see cref="ICommand.GetTelemetryAttributes"/> for when it is called and what it may return.</remarks>
+    protected virtual IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(TData? commandData) => [];
 
     /// <summary>
     /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>

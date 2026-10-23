@@ -12,8 +12,8 @@ namespace WorkflowEngine.Repository.Tests;
 
 /// <summary>
 /// Tests that <see cref="EngineRepository"/>'s <c>ExecuteWithRetry</c> correctly emits
-/// telemetry counters (<c>engine.db.operations.success</c>, <c>engine.db.operations.requeued</c>,
-/// <c>engine.db.operations.failed</c>) when database operations encounter transient or permanent failures.
+/// telemetry counters (<c>altinn.workflow_engine.db.operation.success</c>, <c>altinn.workflow_engine.db.operation.requeued</c>,
+/// <c>altinn.workflow_engine.db.operation.failed</c>) when database operations encounter transient or permanent failures.
 /// Uses a <see cref="FaultInjectionInterceptor"/> to simulate real connection issues at the ADO.NET layer.
 /// </summary>
 [Collection(PostgresCollection.Name)]
@@ -44,14 +44,14 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
 
         // Assert — 2 transient failures → 2 requeued, then 1 success
         Assert.True(
-            collector.GetCounterTotal("engine.db.operations.requeued") >= 2,
-            $"Expected at least 2 DbOperationsRequeued, got {collector.GetCounterTotal("engine.db.operations.requeued")}"
+            collector.GetCounterTotal("altinn.workflow_engine.db.operation.requeued") >= 2,
+            $"Expected at least 2 DbOperationsRequeued, got {collector.GetCounterTotal("altinn.workflow_engine.db.operation.requeued")}"
         );
         Assert.True(
-            collector.GetCounterTotal("engine.db.operations.success") >= 1,
-            $"Expected at least 1 DbOperationsSucceeded, got {collector.GetCounterTotal("engine.db.operations.success")}"
+            collector.GetCounterTotal("altinn.workflow_engine.db.operation.success") >= 1,
+            $"Expected at least 1 DbOperationsSucceeded, got {collector.GetCounterTotal("altinn.workflow_engine.db.operation.success")}"
         );
-        Assert.Equal(0, collector.GetCounterTotal("engine.db.operations.failed"));
+        Assert.Equal(0, collector.GetCounterTotal("altinn.workflow_engine.db.operation.failed"));
     }
 
     [Fact]
@@ -74,10 +74,10 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
         );
 
         Assert.True(
-            collector.GetCounterTotal("engine.db.operations.failed") >= 1,
-            $"Expected at least 1 DbOperationsFailed, got {collector.GetCounterTotal("engine.db.operations.failed")}"
+            collector.GetCounterTotal("altinn.workflow_engine.db.operation.failed") >= 1,
+            $"Expected at least 1 DbOperationsFailed, got {collector.GetCounterTotal("altinn.workflow_engine.db.operation.failed")}"
         );
-        Assert.Equal(0, collector.GetCounterTotal("engine.db.operations.success"));
+        Assert.Equal(0, collector.GetCounterTotal("altinn.workflow_engine.db.operation.success"));
     }
 
     [Fact]
@@ -101,10 +101,10 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
 
         // Each failed attempt triggers the error handler which increments DbOperationsRequeued
         Assert.True(
-            collector.GetCounterTotal("engine.db.operations.requeued") >= 2,
-            $"Expected at least 2 DbOperationsRequeued for exhausted retries, got {collector.GetCounterTotal("engine.db.operations.requeued")}"
+            collector.GetCounterTotal("altinn.workflow_engine.db.operation.requeued") >= 2,
+            $"Expected at least 2 DbOperationsRequeued for exhausted retries, got {collector.GetCounterTotal("altinn.workflow_engine.db.operation.requeued")}"
         );
-        Assert.Equal(0, collector.GetCounterTotal("engine.db.operations.success"));
+        Assert.Equal(0, collector.GetCounterTotal("altinn.workflow_engine.db.operation.success"));
     }
 
     private async Task<Workflow> InsertWorkflow()
