@@ -1,6 +1,8 @@
 [workspace]
 members = [
+  "src/AI/assistant-runner",
   "src/ci/github-runner/coordinator",
+  "src/ci/sandbox-host",
 ]
 resolver = "3"
 
@@ -11,18 +13,29 @@ rust-version = "1.97.1"
 version = "0.1.0"
 
 [workspace.dependencies]
+base64 = "0.22.1"
+bytes = "1.12.1"
 clap = { version = "4.6.6", features = ["derive"] }
 futures-util = "0.3.34"
+http-body-util = "0.1.5"
+hyper = { version = "1.11.0", features = ["http1", "server"] }
+hyper-util = { version = "0.1.20", features = ["tokio"] }
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 reqwest = { version = "0.13.4", features = ["json"] }
 # The Sandbox crates from digdir/digdir-agents, at the commit tagged `agentctl/v0.1.0-preview.10`.
-# They pin the Microsandbox version; keep MICROSANDBOX_RUNTIME_VERSION in
-# src/ci/github-runner/Dockerfile.coordinator in step with it.
+# They pin the Microsandbox version; keep MICROSANDBOX_RUNTIME_VERSION in every Dockerfile that sets it
+# in step with it. `make deps-check` of each such crate checks this.
 sandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
+sandbox-authorization = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
 sandbox-microsandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
+sandbox-host = { path = "src/ci/sandbox-host" }
 serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
 tempfile = "3.27.0"
 tokio = { version = "1.53.1", features = ["fs", "io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
+tokio-util = "0.7.19"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
