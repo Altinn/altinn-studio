@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import cn from 'classnames';
 import { StudioCallToActionBar, type StudioCallToActionBarPlacement } from '@studio/components';
 import type { IInternalLayout } from '../../types/global';
 import classes from './WithHoverAddButton.module.css';
@@ -50,7 +51,10 @@ export const WithHoverAddButton = ({
         isVisible={isOpen || hovered}
         placement={placement}
         actionBarClassName={classes.hoverCallToAction}
-        className={isLastChildInRepGroup ? classes.lastChild : undefined}
+        className={cn({
+          [classes.lastChild]: isLastChildInRepGroup,
+          [classes.top]: placement === 'top',
+        })}
         data-testid='with-hover-add-button-root'
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
