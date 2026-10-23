@@ -994,6 +994,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -1026,6 +1027,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -1073,6 +1075,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -1105,6 +1108,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -1278,6 +1282,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -1310,6 +1315,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -1377,6 +1383,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -1409,6 +1416,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -1568,6 +1576,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentId": true
               },
@@ -1601,6 +1610,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentType": true
               },
@@ -8007,6 +8017,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8039,6 +8050,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -8076,6 +8088,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8108,6 +8121,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -8145,6 +8159,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8177,6 +8192,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -8214,6 +8230,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8246,6 +8263,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -8523,6 +8541,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "hideEmptyRows": true,
                 "componentId": true
               },
@@ -8556,6 +8575,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "hideEmptyRows": true,
                 "componentType": true
               },
@@ -8594,6 +8614,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8626,6 +8647,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -8673,6 +8695,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8705,6 +8728,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -9372,6 +9396,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -9404,6 +9429,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -9871,6 +9897,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -9903,6 +9930,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -9940,6 +9968,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -9972,6 +10001,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10009,6 +10039,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10041,6 +10072,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10078,6 +10110,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10110,6 +10143,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10443,6 +10477,11 @@
         },
         "emptyFieldText": {
           "type": "string"
+        },
+        "showNextButton": {
+          "title": "Show next button after editing",
+          "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+          "type": "boolean"
         }
       }
     },
@@ -10568,6 +10607,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10600,6 +10640,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10637,6 +10678,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10669,6 +10711,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10715,6 +10758,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10747,6 +10791,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10813,6 +10858,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10845,6 +10891,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11015,6 +11062,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentId": true
               },
@@ -11048,6 +11096,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentType": true
               },
@@ -11194,6 +11243,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11226,6 +11276,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11263,6 +11314,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11295,6 +11347,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11332,6 +11385,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11364,6 +11418,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11424,6 +11479,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11456,6 +11512,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11503,6 +11560,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11535,6 +11593,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11604,6 +11663,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11636,6 +11696,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11673,6 +11734,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11705,6 +11767,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11742,6 +11805,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11774,6 +11838,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11831,6 +11896,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11863,6 +11929,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11922,6 +11989,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentId": true
               },
@@ -11955,6 +12023,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentType": true
               },
@@ -12049,6 +12118,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentId": true
               },
@@ -12082,6 +12152,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentType": true
               },
@@ -12271,6 +12342,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12303,6 +12375,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12340,6 +12413,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12372,6 +12446,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12409,6 +12484,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12441,6 +12517,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12478,6 +12555,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12510,6 +12588,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12668,6 +12747,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12700,6 +12780,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
