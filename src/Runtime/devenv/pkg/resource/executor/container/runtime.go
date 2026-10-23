@@ -229,5 +229,14 @@ func (b Backend) waitForContainerReadyIfEnabled(ctx context.Context, c *resource
 	if !c.Lifecycle.WaitForReady {
 		return nil
 	}
-	return b.waitForContainerReady(ctx, c.Name)
+	if err := b.waitForContainerReady(ctx, c.Name); err != nil {
+		return err
+	}
+	if c.Lifecycle.ReadinessProbe == nil {
+		return nil
+	}
+	if err := c.Lifecycle.ReadinessProbe(ctx); err != nil {
+		return fmt.Errorf("container %s not ready: %w", c.Name, err)
+	}
+	return nil
 }
