@@ -27,6 +27,9 @@ src/Designer/frontend/**/package.json                                     @altin
 src/Designer/frontend/resourceadm/**/package.json                         @altinn/team-access-info
 
 # AI
+.github/workflows/assistant-runner-build-test.yaml                        @ErlingHauan
+.github/workflows/deploy-assistant-runner.yaml                            @ErlingHauan
+src/AI/assistant-runner/**/Dockerfile*                                    @ErlingHauan
 src/AI/assistant/**/.python-version                                       @ErlingHauan
 src/AI/assistant/**/docker-compose.yaml                                   @ErlingHauan
 src/AI/assistant/**/dockerfile*                                           @ErlingHauan
