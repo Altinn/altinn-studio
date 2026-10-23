@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using AltinnCore.Authentication.Constants;
+using LocalTest.Helpers.Authorization;
 using LocalTest.Models.Authentication;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.TestData;
@@ -190,7 +191,9 @@ public class TestAuthenticationService
     {
         var testData = await _testDataService.GetTestData();
         var actualOrgNumber = ValidateAndResolveOrgNumber(testData, orgNumber);
-        var actualOrg = org ?? throw new InvalidOperationException("Org code must be provided for service owner tokens");
+        var actualOrg = ServiceOwnerOrg.AuthenticatedOrg(
+            org ?? throw new InvalidOperationException("Org code must be provided for service owner tokens")
+        );
         var payload = GetServiceOwnerPayload(actualOrgNumber, scope, actualOrg);
         return _authenticationService.GenerateToken(payload);
     }
