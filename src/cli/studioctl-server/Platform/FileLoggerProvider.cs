@@ -8,23 +8,29 @@ internal sealed class FileLoggerProvider : ILoggerProvider
 {
     // Keep the queue bounded so a noisy process cannot grow log buffering without limit.
     private const int Capacity = 1024;
+
+    // Each file holds one UTC day, so the date in its name is the last day it was written to.
+    private const int RetentionDays = 30;
+    private const string DateFormat = "yyyy-MM-dd";
     private readonly Channel<LogEntry> _channel;
     private readonly string _directory;
     private readonly string _logId;
+    private readonly TimeProvider _timeProvider;
     private readonly Task _writerTask;
     private StreamWriter _writer;
     private string _currentDate;
     private volatile bool _failed;
 
-    public FileLoggerProvider(string directory)
+    public FileLoggerProvider(string directory, TimeProvider timeProvider)
     {
         if (string.IsNullOrWhiteSpace(directory))
             throw new InvalidOperationException("studioctl-server log directory is required");
 
         Directory.CreateDirectory(directory);
         _directory = directory;
+        _timeProvider = timeProvider;
         _logId = NextLogId(directory);
-        _currentDate = UtcDate();
+        _currentDate = UtcDate(timeProvider.GetUtcNow());
         _writer = OpenWriter(_currentDate);
         _channel = Channel.CreateBounded<LogEntry>(
             new BoundedChannelOptions(Capacity)
@@ -51,6 +57,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
     {
         try
         {
+            DeleteExpiredLogs();
             await foreach (var entry in _channel.Reader.ReadAllAsync())
             {
                 RotateIfNeeded(entry.Date);
@@ -79,6 +86,43 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         _writer.Dispose();
         _currentDate = date;
         _writer = OpenWriter(date);
+        DeleteExpiredLogs();
+    }
+
+    private void DeleteExpiredLogs()
+    {
+        var cutoff = DateOnly
+            .ParseExact(_currentDate, DateFormat, CultureInfo.InvariantCulture)
+            .AddDays(-RetentionDays);
+        var currentPath = LogPath(_currentDate);
+        try
+        {
+            foreach (var path in Directory.GetFiles(_directory, "*.log"))
+            {
+                if (
+                    path == currentPath
+                    || !TryParseLogName(Path.GetFileName(path), out var date, out _)
+                    || date >= cutoff
+                )
+                {
+                    continue;
+                }
+
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    // A file locked by another process is retried on the next rotation.
+                    Trace.TraceError($"studioctl-server could not delete expired log {path}: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceError($"studioctl-server could not list expired logs: {ex.Message}");
+        }
     }
 
     private StreamWriter OpenWriter(string date)
@@ -97,15 +141,16 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         var maxId = 0;
         foreach (var path in Directory.EnumerateFiles(directory, "*" + ".log"))
         {
-            if (TryParseLogId(Path.GetFileName(path), out var id) && id > maxId)
+            if (TryParseLogName(Path.GetFileName(path), out _, out var id) && id > maxId)
                 maxId = id;
         }
 
         return (maxId + 1).ToString(CultureInfo.InvariantCulture);
     }
 
-    private static bool TryParseLogId(string? fileName, out int id)
+    private static bool TryParseLogName(string? fileName, out DateOnly date, out int id)
     {
+        date = default;
         id = 0;
         const int dateLength = 10;
         if (
@@ -119,12 +164,12 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         }
 
         if (
-            !DateTime.TryParseExact(
+            !DateOnly.TryParseExact(
                 fileName[..dateLength],
-                "yyyy-MM-dd",
+                DateFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
-                out _
+                out date
             )
         )
         {
@@ -135,7 +180,7 @@ internal sealed class FileLoggerProvider : ILoggerProvider
         return int.TryParse(idValue, NumberStyles.None, CultureInfo.InvariantCulture, out id) && id > 0;
     }
 
-    private static string UtcDate() => DateTimeOffset.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    private static string UtcDate(DateTimeOffset utcNow) => utcNow.ToString(DateFormat, CultureInfo.InvariantCulture);
 
     private readonly record struct LogEntry(string Date, string Prefix, string Message, Exception? Exception);
 
@@ -165,10 +210,10 @@ internal sealed class FileLoggerProvider : ILoggerProvider
             if (provider._failed)
                 return;
 
-            var utcNow = DateTimeOffset.UtcNow;
+            var utcNow = provider._timeProvider.GetUtcNow();
             var localNow = utcNow.ToLocalTime();
             var entry = new LogEntry(
-                utcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                UtcDate(utcNow),
                 string.Create(
                     CultureInfo.InvariantCulture,
                     $"{localNow:yyyy-MM-dd HH:mm:ss.fff} {GetLevelName(logLevel)}: {categoryName}[{eventId.Id}] "
