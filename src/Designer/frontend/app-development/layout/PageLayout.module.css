@@ -1,0 +1,5 @@
+.focusMode {
+  /* Pages size themselves by the header height, which is zero when the header is hidden. */
+  --header-height: 0px;
+  grid-row: 1 / -1;
+}

@@ -9,4 +9,5 @@ export enum RoutePaths {
   ContentLibrary = 'content-library',
   AppSettings = 'app-settings',
   AiAssistant = 'ai-assistant',
+  AppUpgrade = 'app-upgrade',
 }
