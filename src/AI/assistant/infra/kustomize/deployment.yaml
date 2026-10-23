@@ -39,6 +39,8 @@ spec:
                   key: AZURE_API_KEY
             - name: GITEA_BASE_URL
               value: "http://altinn-repositories-public"
+            - name: DESIGNER_BASE_URL
+              value: "http://altinn-designer:3000"
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
