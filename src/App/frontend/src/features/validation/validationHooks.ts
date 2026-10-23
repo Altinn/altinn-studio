@@ -6,6 +6,7 @@ import { useExpressionDataSourcesBaseForStoreSelector } from 'src/features/expre
 import { FormStore } from 'src/features/form/FormContext';
 import {
   processLayoutSettings,
+  usePdfExclusions,
   usePdfLayoutName,
   useRawPageOrder,
 } from 'src/features/form/layoutSettings/processLayoutSettings';
@@ -22,6 +23,7 @@ import {
   getValidationsForNode,
 } from 'src/features/validation/deriveValidationState';
 import { useAllNavigationParams } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import type { AnyValidation, NodeRefValidation, NodeVisibility, ValidationSeverity } from 'src/features/validation';
 import type {
@@ -36,12 +38,22 @@ const emptyArray: never[] = [];
 function useDerivedValidationStateInputs(): DerivedValidationStateInputs {
   const pageOrder = useRawPageOrder();
   const pdfLayoutName = usePdfLayoutName();
+  const isPdf = useIsPdf();
+  const pdfExclusions = usePdfExclusions();
   const hiddenDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'hidden expressions' });
   const evalDataSources = useExpressionDataSourcesBaseForStoreSelector({ errorSuffix: 'validation expressions' });
   const instanceData = useInstanceDataQuery({ select: (instance) => instance.data }).data ?? emptyArray;
   const taskId = useProcessTaskId();
 
-  return { pageOrder, pdfLayoutName, hiddenDataSources, evalDataSources, instanceData, taskId };
+  return {
+    pageOrder,
+    pdfLayoutName,
+    pdfExcludedComponents: isPdf ? pdfExclusions.components : emptyArray,
+    hiddenDataSources,
+    evalDataSources,
+    instanceData,
+    taskId,
+  };
 }
 
 function useValidationStateDeriver() {
@@ -95,6 +107,7 @@ function usePageScopedNodeValidationSelection<T>(
  */
 function useFreshDerivedStateBuilder() {
   const store = FormStore.raw.useStore();
+  const isPdf = useIsPdf();
   const getCachedInstanceData = useGetCachedInstanceData();
   const taskOverrides = useTaskOverrides();
   const { instanceOwnerPartyId, instanceGuid, taskId: urlTaskId } = useAllNavigationParams();
@@ -108,6 +121,7 @@ function useFreshDerivedStateBuilder() {
     return {
       pageOrder: layoutSettings.order,
       pdfLayoutName: layoutSettings.pdfLayoutName,
+      pdfExcludedComponents: isPdf ? layoutSettings.pdfExclusions.components : emptyArray,
       hiddenDataSources,
       evalDataSources,
       instanceData: instance?.data ?? emptyArray,
@@ -119,6 +133,7 @@ function useFreshDerivedStateBuilder() {
     hiddenDataSources,
     instanceGuid,
     instanceOwnerPartyId,
+    isPdf,
     store,
     taskOverrides,
     urlTaskId,

@@ -10,6 +10,7 @@ import type { GridCell, GridRows, ITableColumnFormatting } from '@app/layout-con
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
+import { usePdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -56,12 +57,18 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const title = summaryTitle || resolvedTitle;
   const tableIds = useTableComponentIds(baseComponentId);
   const hiddenColumns = useHiddenColumns(config.tableColumns);
+  const pdfExclusions = usePdfExclusions();
   const columnSettings = Object.fromEntries(
     Object.entries(config.tableColumns ?? {}).map(([id, column]) => [
       id,
       { ...column, hidden: hiddenColumns.includes(id) },
     ]),
   );
+  if (pdfModeActive) {
+    for (const id of pdfExclusions.components) {
+      columnSettings[id] = { ...columnSettings[id], hidden: true };
+    }
+  }
   const showEditColumn = !pdfModeActive && !isSmall;
   return (
     <div
