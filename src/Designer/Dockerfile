@@ -62,7 +62,7 @@ COPY . .
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:496914451b05ac5a24592024362ec370c3a2d3c3fe817f864e4aa55c4c194a56 AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
