@@ -42,7 +42,7 @@ func renderDoctorDiskUsage(t *testing.T, disk *doctorsvc.Disk) []string {
 }
 
 func resetHintLine() string {
-	return "                    run '" + osutil.CurrentBin() + " env reset' to clear it"
+	return "                    cleared by '" + osutil.CurrentBin() + " env reset'"
 }
 
 func TestRenderDoctorDiskUsageSection_StatesSizesAndTheResetCommand(t *testing.T) {

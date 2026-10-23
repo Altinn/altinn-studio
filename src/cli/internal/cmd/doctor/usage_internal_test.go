@@ -123,3 +123,18 @@ func TestBuildDisk_UnmeasurableAreaIsUnknownWithoutReportingIssues(t *testing.T)
 		t.Errorf("HasIssues = true, checks: %+v", disk.Checks)
 	}
 }
+
+// A root that is not a directory reports just the cause, like any other walk error.
+func TestMeasureDiskUsage_RootThatIsAFileReportsOnlyTheCause(t *testing.T) {
+	t.Parallel()
+
+	service := newServiceWithConfiguredHome(t)
+	file := filepath.Join(service.cfg.Home, "not-a-dir")
+	seedFile(t, file, 1)
+
+	usage := service.measureDiskUsage(DiskUsageLogs, file)
+
+	if usage.Bytes != nil || usage.Error != "not a directory" {
+		t.Errorf("usage = %+v, want unknown with error %q", usage, "not a directory")
+	}
+}

@@ -340,7 +340,7 @@ func (c *DoctorCommand) renderDoctorDiskUsageSection(table *ui.Table, disk *doct
 
 		empty := usage.Bytes != nil && *usage.Bytes == 0
 		if usage.ID == doctorsvc.DiskUsageLocaltestData && !empty {
-			table.Row(ui.Empty(), ui.Empty(), ui.Dim("run '"+osutil.CurrentBin()+" env reset' to clear it"))
+			table.Row(ui.Empty(), ui.Empty(), ui.Dim("cleared by '"+osutil.CurrentBin()+" env reset'"))
 		}
 	}
 }

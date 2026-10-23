@@ -29,7 +29,8 @@ func DirSize(root string) (int64, error) {
 		case err != nil:
 			record(err)
 		case path == root && !entry.IsDir():
-			record(errDirSizeRootNotDir)
+			// A PathError like the walk's own errors, so callers can report the cause alone.
+			record(&fs.PathError{Op: "measure", Path: root, Err: errDirSizeRootNotDir})
 		case entry.Type().IsRegular():
 			info, infoErr := entry.Info()
 			if infoErr != nil {
