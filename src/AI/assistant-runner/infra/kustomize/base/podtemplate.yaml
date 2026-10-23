@@ -1,6 +1,6 @@
-# The pod of each runner Job. The assistant reads this template and creates a Job with exactly this pod spec, and the
-# policy in admission-policy.yaml refuses any other pod spec. The deploy workflow pins the images by digest in the
-# annotations, and the replacements in kustomization.yaml copy them into the pod spec.
+# This is the pod of each runner Job. The assistant reads this template and creates a Job with exactly this pod spec.
+# The policy in admission-policy.yaml does not accept a different pod spec. The deploy workflow pins the images by
+# digest in the annotations. The replacements in kustomization.yaml copy the images into the pod spec.
 apiVersion: v1
 kind: PodTemplate
 metadata:
@@ -32,9 +32,9 @@ template:
         operator: Equal
         value: sandbox
         effect: NoSchedule
-    # On SIGTERM, the job host cancels a running job and deletes its VM, which takes at most one minute.
+    # On SIGTERM, the job host stops a job that runs and deletes its VM. The maximum time for this is one minute.
     terminationGracePeriodSeconds: 90
-    # The job host starts a VM, which needs root and /dev/kvm. The app code runs in the VM, not in this pod.
+    # To start a VM, the job host must have root and /dev/kvm. The app code runs in the VM, not in this pod.
     securityContext:
       runAsNonRoot: false
       runAsUser: 0
@@ -42,7 +42,8 @@ template:
       seccompProfile:
         type: RuntimeDefault
     initContainers:
-      # Imports the guest image into the image cache, so that the pod needs no registry credentials.
+      # This init container imports the guest image into the image cache, so that registry credentials are not necessary
+      # for the pod.
       - name: prepare-image
         image: altinntjenestercontainerregistry.azurecr.io/altinn-assistant-runner-prepared:latest
         imagePullPolicy: IfNotPresent
@@ -108,14 +109,15 @@ template:
             value: 20Gi
           - name: REQUEST_TIMEOUT_SECONDS
             value: "120"
-        # The assistant sends the job request when the pod is Ready. The pod lives for one run, so it has no liveness
-        # probe.
+        # The assistant sends the job request when the pod is Ready. The pod has no liveness probe, because it is for
+        # one run only.
         readinessProbe:
           httpGet:
             path: /health
             port: http
           periodSeconds: 1
-        # The VM and its runtime are processes of this container, so the requests hold the VM size and the job host.
+        # The requests include the VM size and the job host, because the VM and its runtime are processes of this
+        # container.
         resources:
           requests:
             cpu: "3"

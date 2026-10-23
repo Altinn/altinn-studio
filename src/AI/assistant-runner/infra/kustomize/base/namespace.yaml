@@ -1,6 +1,6 @@
-# The assistant creates one Job here for each run of app code. The Job pods start a microVM on a sandbox node, so they
-# mount hostPath folders and request /dev/kvm. The Pod Security level baseline forbids hostPath, so the namespace
-# allows privileged pods, and the policy in admission-policy.yaml limits what the assistant can create.
+# The assistant creates one Job here for each run of app code. The Job pods mount hostPath folders and request /dev/kvm,
+# because they start a microVM on a sandbox node. The namespace allows privileged pods, because the Pod Security level
+# baseline does not allow hostPath. The policy in admission-policy.yaml limits what the assistant can create.
 apiVersion: v1
 kind: Namespace
 metadata:

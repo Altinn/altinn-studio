@@ -8,7 +8,7 @@ roleRef:
   kind: Role
   name: assistant-runner-launcher
 subjects:
-  # The ServiceAccount of the assistant, in src/AI/assistant/infra/kustomize.
+  # This is the ServiceAccount of the assistant. Its manifest is in src/AI/assistant/infra/kustomize.
   - kind: ServiceAccount
     name: altinn-altinity-agents-sa
     namespace: default

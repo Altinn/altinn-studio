@@ -1,13 +1,13 @@
-# The job host runs app code in a microVM, so the namespace denies all traffic, except:
+# The namespace denies all traffic, because the job host runs app code in a microVM. These are the exceptions:
 #
-# - Ingress from the assistant pods in the default namespace, which send the job request. The pod has no token, so this
-#   rule is the only check of the caller.
-# - Egress to cluster DNS, and to the internet on port 443 for NuGet. The ipBlock leaves out the private ranges, so a
-#   job cannot reach other pods or Services (Designer, Gitea), the Azure instance metadata service or the Azure host.
-#   The allowlist in the job host is the first layer. This rule is the second.
+# - Ingress from the assistant pods in the default namespace, which send the job request. This rule is the only check of
+#   the caller, because the pod has no token.
+# - Egress to cluster DNS, and to the internet on port 443 for NuGet. The ipBlock does not include the private ranges.
+#   Because of this, a job cannot reach other pods or Services (Designer, Gitea), the Azure instance metadata service or
+#   the Azure host. The allowlist in the job host is the first layer. This rule is the second.
 #
-# Kubelet probes need no rule: Azure Network Policy Manager filters only forwarded traffic, and the kubelet connects
-# from the node itself.
+# A rule for the kubelet probes is not necessary, because Azure Network Policy Manager filters only forwarded traffic.
+# The kubelet connects from the node itself.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

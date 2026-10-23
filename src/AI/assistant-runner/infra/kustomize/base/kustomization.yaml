@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# Every namespaced object sets its namespace, and the Flux Kustomization has no targetNamespace. A namespace transform
-# would add a namespace to the cluster-scoped admission policy, because kustomize does not know its scope.
+# Each namespaced object sets its namespace. The Flux Kustomization has no targetNamespace. A namespace transform also
+# adds a namespace to the cluster-scoped admission policy, because kustomize does not know the scope of the policy.
 resources:
   - namespace.yaml
   - podtemplate.yaml

@@ -1,5 +1,6 @@
-# Caps the runs at the same time, so that the assistant cannot take the sandbox nodes from CI. One run requests one KVM
-# slot, 3 CPU and 5632Mi memory. A finished Job counts until the assistant or its TTL removes it.
+# This quota limits the number of runs at the same time, so that the assistant cannot take the sandbox nodes from CI.
+# One run requests one KVM slot, 3 CPU and 5632Mi memory. The quota counts a Job that stopped until the assistant or its
+# TTL removes the Job.
 apiVersion: v1
 kind: ResourceQuota
 metadata:

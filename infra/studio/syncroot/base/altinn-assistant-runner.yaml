@@ -17,8 +17,8 @@ metadata:
   name: altinn-assistant-runner
   namespace: default
 spec:
-  # No targetNamespace: every namespaced object in the artifact sets its namespace, and the admission policy in it is
-  # cluster-scoped.
+  # This Kustomization has no targetNamespace. Each namespaced object in the artifact sets its namespace. The admission
+  # policy in the artifact is cluster-scoped.
   interval: 5m
   retryInterval: 5m
   timeout: 5m
