@@ -68,26 +68,21 @@ internal sealed class ClassificationsHttpClient : IClassificationsClient
 
         using var response = await _httpClient.GetAsync($"{url}{query}");
 
-        if (response.IsSuccessStatusCode)
-        {
-            var responseJson = await response.Content.ReadAsStringAsync();
-            var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);
-            return classificationCodes ?? new ClassificationCodes();
-        }
         // If we get a 404 we try to get the codes in the fallback language (nb)
-        else if (response.StatusCode == HttpStatusCode.NotFound && language != "nb")
+        if (response.StatusCode == HttpStatusCode.NotFound && language != "nb")
         {
             string fallbackQuery = BuildQuery("language=nb", selectDate, selectLevel, selectVariant, selectedCodes);
             using var fallbackResponse = await _httpClient.GetAsync($"{url}{fallbackQuery}");
-            if (fallbackResponse.IsSuccessStatusCode)
-            {
-                var fallbackResponseJson = await fallbackResponse.Content.ReadAsStringAsync();
-                var fallbackClassificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(fallbackResponseJson);
-                return fallbackClassificationCodes ?? new ClassificationCodes();
-            }
+            fallbackResponse.EnsureSuccessStatusCode();
+            var fallbackResponseJson = await fallbackResponse.Content.ReadAsStringAsync();
+            var fallbackClassificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(fallbackResponseJson);
+            return fallbackClassificationCodes ?? new ClassificationCodes();
         }
 
-        return new ClassificationCodes();
+        response.EnsureSuccessStatusCode();
+        var responseJson = await response.Content.ReadAsStringAsync();
+        var classificationCodes = JsonSerializer.Deserialize<ClassificationCodes>(responseJson);
+        return classificationCodes ?? new ClassificationCodes();
     }
 
     private static string BuildQuery(
