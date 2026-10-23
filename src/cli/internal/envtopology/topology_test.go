@@ -72,6 +72,7 @@ func TestHostFileHostnames(t *testing.T) {
 		"workflow-engine.local.altinn.cloud",
 		"pgadmin.local.altinn.cloud",
 		"app-frontend.local.altinn.cloud",
+		"af.local.altinn.cloud",
 		"otel.local.altinn.cloud",
 	}
 	if !slices.Equal(got, want) {
