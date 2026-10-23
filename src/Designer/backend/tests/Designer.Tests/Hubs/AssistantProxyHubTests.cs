@@ -318,7 +318,7 @@ public class AssistantProxyHubTests
 
         JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
         Assert.Equal("nfk", forwarded.GetProperty("cost_org").GetString());
-        Assert.Equal(TestDeveloper, forwarded.GetProperty("org").GetString());
+        Assert.Equal($"http://test-repos/{TestDeveloper}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)

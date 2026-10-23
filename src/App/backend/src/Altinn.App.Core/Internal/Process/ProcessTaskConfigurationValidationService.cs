@@ -13,11 +13,11 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.Process;
 
 /// <summary>
-/// Validates BPMN task types, the BPMN element each task uses, task configuration, and that at most one process
-/// hook of each kind runs for each task, at startup.
+/// Validates BPMN task types, the BPMN element each task uses, task configuration, exclusive gateway flows, and
+/// that at most one process hook of each kind runs for each task, at startup.
 /// </summary>
 /// <remarks>
-/// Creates a dependency injection scope so task implementations can use scoped services.
+/// Creates a dependency injection scope so task and gateway implementations can use scoped services.
 /// Stops startup if configuration cannot be read. Each task hook registration is created on its own: one that
 /// cannot be created at startup, for example because it needs request state, is skipped with a warning while the
 /// others are still checked, and the hook step checks for duplicates when it runs. Process-ended hooks are counted
@@ -35,6 +35,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
         await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
         IServiceProvider services = scope.ServiceProvider;
 
+        IProcessReader processReader;
         List<ProcessTask> bpmnTasks;
         List<IProcessTask> processTasks;
         List<IPipelineServiceTask> serviceTasks;
@@ -43,7 +44,8 @@ internal sealed class ProcessTaskConfigurationValidationService(
         var factory = new AppImplementationFactory(services);
         try
         {
-            bpmnTasks = services.GetRequiredService<IProcessReader>().GetProcessTasks();
+            processReader = services.GetRequiredService<IProcessReader>();
+            bpmnTasks = processReader.GetProcessTasks();
             appMetadata = services.GetRequiredService<IAppMetadata>().ApplicationMetadata;
             environment = AltinnEnvironments.GetHostingEnvironment(services.GetRequiredService<IHostEnvironment>());
             serviceTasks = factory.GetServiceTasks().ToList();
@@ -127,6 +129,25 @@ internal sealed class ProcessTaskConfigurationValidationService(
             }
         }
 
+        HashSet<string>? gatewaysWithCode = null;
+        try
+        {
+            // Same lookup as ExclusiveGatewayFactory, but request-dependent implementations may not exist yet.
+            gatewaysWithCode = factory
+                .GetAll<IProcessExclusiveGateway>()
+                .Select(gateway => gateway.GatewayId)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+        catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(
+                e,
+                "Could not resolve gateway implementations at startup. Validation that requires knowing which "
+                    + "gateways have custom code is deferred until navigation. Expression gateways are still checked."
+            );
+        }
+        findings.AddRange(ValidateExclusiveGateways(processReader, gatewaysWithCode));
+
         await AddMultipleTaskHooksFindings<IOnTaskStartingHandler>(
             services,
             bpmnTasks,
@@ -175,7 +196,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
         if (findings.Count > 0)
         {
             throw new ApplicationConfigException(
-                "Process task configuration is not valid:"
+                "Process configuration is not valid:"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine, findings.Select(finding => "  - " + finding))
             );
@@ -183,6 +204,71 @@ internal sealed class ProcessTaskConfigurationValidationService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <summary>
+    /// Reports a condition on an exclusive gateway's default flow, and outgoing flows that have no condition and are
+    /// not its default.
+    /// </summary>
+    /// <remarks>
+    /// The gateway takes its default only when no other flow is valid, and never evaluates the default's own
+    /// condition, so a condition there decides nothing even when it seems to work in a test.
+    /// A flow without a condition is always valid. Such a flow fails the gateway whenever another flow's condition
+    /// holds, and keeps it from ever taking its default. A gateway without conditions is left alone when it has a
+    /// single flow and no default, or when the app's own <see cref="IProcessExclusiveGateway"/> chooses its flow. If
+    /// implementations cannot be resolved at startup, their gateway IDs are unknown, so checks for gateways without
+    /// expressions are deferred to navigation.
+    /// </remarks>
+    private static IEnumerable<string> ValidateExclusiveGateways(
+        IProcessReader processReader,
+        HashSet<string>? gatewaysWithCode
+    )
+    {
+        foreach (ExclusiveGateway gateway in processReader.GetExclusiveGateways())
+        {
+            List<SequenceFlow> outgoingFlows = processReader.GetOutgoingSequenceFlows(gateway);
+            // Same lookup as ProcessNavigator.
+            SequenceFlow? defaultFlow = outgoingFlows.Find(flow => flow.Id == gateway.Default);
+            if (defaultFlow?.ConditionExpression is not null)
+            {
+                yield return $"Exclusive gateway '{gateway.Id}' has a condition on its default, sequence flow "
+                    + $"'{defaultFlow.Id}'. The gateway takes its default only when no other flow's condition holds, "
+                    + "and never evaluates the default's own condition. Remove the condition from "
+                    + $"'{defaultFlow.Id}', or remove default=\"{defaultFlow.Id}\" from the gateway so the condition "
+                    + "is evaluated.";
+            }
+
+            if (
+                !outgoingFlows.Exists(flow => flow.ConditionExpression is not null)
+                && (
+                    gatewaysWithCode is null
+                    || gatewaysWithCode.Contains(gateway.Id)
+                    || (gateway.Default is null && outgoingFlows.Count == 1)
+                )
+            )
+            {
+                continue;
+            }
+
+            string[] unconditioned = outgoingFlows
+                .Where(flow => flow.Id != gateway.Default && flow.ConditionExpression is null)
+                .Select(flow => flow.Id)
+                .ToArray();
+            if (unconditioned.Length == 0)
+            {
+                continue;
+            }
+
+            yield return $"Exclusive gateway '{gateway.Id}' has outgoing sequence flows without a condition that are "
+                + $"not its default: {string.Join(", ", unconditioned.Select(id => $"'{id}'"))}. Only the default "
+                + "flow may leave out the condition, and the gateway takes it only when no other flow's condition "
+                + "holds. Give each of them a condition"
+                + (
+                    gateway.Default is null && unconditioned.Length == 1
+                        ? $", or make it the default with default=\"{unconditioned[0]}\" on the gateway."
+                        : "."
+                );
+        }
+    }
 
     /// <summary>
     /// Returns the registrations the service provider returns for <typeparamref name="THook"/>, in registration
