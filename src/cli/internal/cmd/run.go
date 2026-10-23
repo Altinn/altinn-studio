@@ -183,6 +183,7 @@ func (c *RunCommand) RunWithCommandPath(ctx context.Context, args []string, comm
 	if err := c.printResolvedRunTarget(target); err != nil {
 		return err
 	}
+	c.deleteExpiredAppLogs()
 
 	runErr := c.runTarget(ctx, target, dotnetArgs, flags)
 	if errors.Is(runErr, errAppRunStopped) {
@@ -662,17 +663,21 @@ func (c *RunCommand) openAppLog(appID string) (*os.File, string, error) {
 		return nil, "", errStudioctlConfigRequired
 	}
 	logDir := c.cfg.AppLogDir(appsupport.SanitizeAppID(appID))
-	if err := os.MkdirAll(logDir, osutil.DirPermOwnerOnly); err != nil {
-		return nil, "", fmt.Errorf("create app log directory: %w", err)
-	}
 	for range maxAppLogCreateAttempts {
+		// Create the directory on each attempt: another run's log retention removes empty app log directories.
+		if err := os.MkdirAll(logDir, osutil.DirPermOwnerOnly); err != nil {
+			return nil, "", fmt.Errorf("create app log directory: %w", err)
+		}
 		logPath, err := appsupport.NextLogPath(logDir, time.Now().UTC())
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
 		if err != nil {
 			return nil, "", fmt.Errorf("resolve app log path: %w", err)
 		}
 		//nolint:gosec // G304: log path stays under the configured studioctl log directory; app ID is path-sanitized.
 		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, osutil.FilePermOwnerOnly)
-		if errors.Is(err, os.ErrExist) {
+		if errors.Is(err, os.ErrExist) || errors.Is(err, os.ErrNotExist) {
 			continue
 		}
 		if err != nil {
@@ -682,6 +687,17 @@ func (c *RunCommand) openAppLog(appID string) (*os.File, string, error) {
 	}
 
 	return nil, "", fmt.Errorf("create app log: %w", errAppLogCreateCollision)
+}
+
+// deleteExpiredAppLogs deletes old app run logs before this run creates its own,
+// so a run never deletes the log it writes to. Failure does not stop the run.
+func (c *RunCommand) deleteExpiredAppLogs() {
+	if c.cfg == nil {
+		return
+	}
+	if err := appsupport.DeleteExpiredLogs(c.cfg.AppLogsDir(), time.Now()); err != nil {
+		c.out.Verbosef("failed to delete expired app logs: %v", err)
+	}
 }
 
 func closeAppLog(out *ui.Output, logFile *os.File) {
