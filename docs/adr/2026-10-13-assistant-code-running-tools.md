@@ -84,7 +84,7 @@ The assistant pod is not a safe place for this code. The pod runs as root, and i
 - Good, because no runner pod exists while nobody runs a job (B5).
 - Bad, because each run waits for a pod to start. If no sandbox node is free, the run also waits for a new node.
 
-## Consequences
+## Draft of technical design
 
 The assistant service runs the agent loop, which calls the model and runs the tools that the model asks for. It holds
 all keys and is the only part that pushes to Gitea. The runner holds no keys. It gets a copy of the app and gives back a
