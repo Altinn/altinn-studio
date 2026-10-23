@@ -133,6 +133,165 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         _dataProcessor.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData("application/json", """{"melding":{"tag-with-attribute":{"orid":1,"value":"test"}}}""")]
+    [InlineData(
+        "application/xml",
+        """<Skjema><melding><tag-with-attribute orid="1">test</tag-with-attribute></melding></Skjema>"""
+    )]
+    public async Task PutDataElement_ChangedFixedValue_ReturnsBadRequest(string contentType, string body)
+    {
+        // orid has [BindNever] and a literal initializer in the model, so it is a fixed value that clients can't change
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _dataWriteProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DataElementChanges>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            null
+        );
+        var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
+        var instanceId = createResponseParsed.Id;
+        var getInstanceResponse = await client.GetAsync($"{org}/{app}/instances/{instanceId}");
+        var instanceWithData = await VerifyStatusAndDeserialize<Instance>(getInstanceResponse, HttpStatusCode.OK);
+        var dataGuid = instanceWithData.Data.First(x => x.DataType.Equals("default")).Id;
+
+        using var updateDataElementContent = new StringContent(body, System.Text.Encoding.UTF8, contentType);
+        var response = await client.PutAsync(
+            $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
+            updateDataElementContent
+        );
+        var problemDetails = await VerifyStatusAndDeserialize<ProblemDetails>(response, HttpStatusCode.BadRequest);
+
+        problemDetails.Title.Should().Be("Fixed value mismatch");
+        problemDetails
+            .Detail.Should()
+            .Be("Property \"melding.tag-with-attribute.orid\" has the fixed value \"34730\", but was \"1\"");
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
+    [Fact]
+    public async Task PutDataElement_StoredFixedValueMismatch_IsRestoredOnReadAndCorrectedOnSave()
+    {
+        // An instance stored before the fixed value changed in the model still has the old value in storage.
+        // Reading gives the correct value, and saving with the correct value corrects the stored data.
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        HttpClient client = GetRootedClient(org, app);
+        string token = TestAuthentication.GetUserToken(1337, instanceOwnerPartyId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthorizationSchemes.Bearer, token);
+
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<string?>())
+            )
+            .Returns(Task.CompletedTask);
+        _dataWriteProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DataElementChanges>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask);
+
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            null
+        );
+        var createResponseParsed = await VerifyStatusAndDeserialize<Instance>(createResponse, HttpStatusCode.Created);
+        var instanceId = createResponseParsed.Id;
+        var getInstanceResponse = await client.GetAsync($"{org}/{app}/instances/{instanceId}");
+        var instanceWithData = await VerifyStatusAndDeserialize<Instance>(getInstanceResponse, HttpStatusCode.OK);
+        var dataGuid = instanceWithData.Data.First(x => x.DataType.Equals("default")).Id;
+
+        // Replace the stored data with data that has another fixed value
+        var blobPath = TestData.GetDataBlobPath(
+            org,
+            app,
+            instanceOwnerPartyId,
+            Guid.Parse(instanceId.Split('/')[1]),
+            Guid.Parse(dataGuid)
+        );
+        await File.WriteAllTextAsync(
+            blobPath,
+            """<Skjema><melding><name>Ola Nordmann</name><tag-with-attribute orid="1">old</tag-with-attribute></melding></Skjema>"""
+        );
+
+        // Reading the data gives the correct fixed value
+        var readResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
+        var readSkjema = await VerifyStatusAndDeserialize<Skjema>(readResponse, HttpStatusCode.OK);
+        readSkjema.Melding!.TagWithAttribute!.orid.Should().Be(34730);
+
+        // A client that still has the stored value is rejected
+        using var staleContent = new StringContent(
+            """{"melding":{"name":"Kari Nordmann","tag-with-attribute":{"orid":1,"value":"old"}}}""",
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+        var staleResponse = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", staleContent);
+        var problemDetails = await VerifyStatusAndDeserialize<ProblemDetails>(staleResponse, HttpStatusCode.BadRequest);
+        problemDetails.Title.Should().Be("Fixed value mismatch");
+        (await File.ReadAllTextAsync(blobPath)).Should().Contain("orid=\"1\"");
+
+        // Saving with the value the client read corrects the stored data
+        using var updateContent = new StringContent(
+            """{"melding":{"name":"Kari Nordmann","tag-with-attribute":{"orid":34730,"value":"old"}}}""",
+            System.Text.Encoding.UTF8,
+            "application/json"
+        );
+        var response = await client.PutAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}", updateContent);
+        OutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        (await File.ReadAllTextAsync(blobPath))
+            .Should()
+            .Contain("<tag-with-attribute orid=\"34730\">old</tag-with-attribute>")
+            .And.Contain("<name>Kari Nordmann</name>");
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+    }
+
     [Fact]
     public async Task PutDataElement_TestMultiPartUpdateWithCustomDataProcessor_ReturnsOk()
     {
