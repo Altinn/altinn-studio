@@ -316,6 +316,34 @@ func TestContainerBackend_WaitForContainerReady_FailsOnUnhealthy(t *testing.T) {
 	}
 }
 
+var errNotYet = errors.New("not yet")
+
+func TestContainerBackend_WaitForContainerReady_RunsTheReadinessProbeOnceReady(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}, nil
+	}
+	probed := 0
+	ctr := &resource.Container{Name: "storage", Image: resource.RefID("image:unused")}
+	ctr.Lifecycle.WaitForReady = true
+	ctr.Lifecycle.ReadinessProbe = func(context.Context) error {
+		probed++
+		return errNotYet
+	}
+
+	err := New(client).waitForContainerReadyIfEnabled(t.Context(), ctr)
+	if !errors.Is(err, errNotYet) || probed != 1 {
+		t.Fatalf("waitForContainerReadyIfEnabled() error = %v after %d probes, want errNotYet after 1", err, probed)
+	}
+
+	ctr.Lifecycle.WaitForReady = false
+	if err := New(client).waitForContainerReadyIfEnabled(t.Context(), ctr); err != nil || probed != 1 {
+		t.Fatalf("without WaitForReady: error = %v, %d probes; want no probe", err, probed)
+	}
+}
+
 func TestExecutor_ContainerStatus_UsesHealth(t *testing.T) {
 	t.Parallel()
 

@@ -1,6 +1,8 @@
 //nolint:revive // ResourceID and ResourceRef are core domain names used throughout the resource package.
 package resource
 
+import "context"
+
 // ResourceID is a unique identifier for a resource within a graph.
 type ResourceID string
 
@@ -137,10 +139,19 @@ type LifecycleOptions struct {
 }
 
 // ContainerLifecycleOptions customizes container-specific lifecycle behavior.
+//
+//nolint:govet // The embedded options come first (embeddedstructfieldcheck), which fieldalignment cannot have.
 type ContainerLifecycleOptions struct {
 	LifecycleOptions
 
 	WaitForReady bool
+	// ReadinessProbe, when set, is called on every apply, also of a container that already ran, once the container
+	// counts as ready (running, and healthy when it has a health check) and before the resources that depend on it
+	// are applied. It is for a readiness the container runtime cannot observe, such as an HTTP endpoint in an image
+	// without a shell for a health check. The executor calls it once and does not retry: the probe waits for the
+	// container itself, bounded by its own timeout and by ctx, and returns nil when the container is ready; an error
+	// fails the apply. Ignored unless WaitForReady is set, and by Status and Destroy.
+	ReadinessProbe func(ctx context.Context) error
 }
 
 // LifecycleOptionsProvider exposes resource lifecycle options.
