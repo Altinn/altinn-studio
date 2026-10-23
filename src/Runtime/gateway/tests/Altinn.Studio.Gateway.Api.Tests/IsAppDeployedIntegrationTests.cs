@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using Altinn.Studio.Gateway.Api.Tests.Models;
 using k8s;
 using k8s.Models;
@@ -11,7 +10,6 @@ namespace Altinn.Studio.Gateway.Api.Tests;
 [Trait("Category", "Kubernetes")]
 public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
 {
-    private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
     private const string PodInfoRepoName = "podinfo-test";
     private const string PodInfoRepoUrl = "https://stefanprodan.github.io/podinfo";
@@ -23,15 +21,7 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
 
     public IsAppDeployedIntegrationTests()
     {
-        KubernetesJson.AddJsonOptions(options =>
-        {
-#pragma warning disable NX0003
-            options.TypeInfoResolver = JsonTypeInfoResolver.Combine(TestJsonContext.Default, options.TypeInfoResolver!);
-#pragma warning restore NX0003
-        });
-
-        var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(currentContext: KindContextName);
-        _k8sClient = new Kubernetes(config);
+        _k8sClient = KindKubernetesClient.Create();
         _httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:8020") };
     }
 
