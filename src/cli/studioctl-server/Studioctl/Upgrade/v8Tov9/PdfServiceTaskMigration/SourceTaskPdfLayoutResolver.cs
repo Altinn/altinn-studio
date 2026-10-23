@@ -37,39 +37,24 @@ internal abstract record SourceTaskPdfLayout
 /// </summary>
 internal sealed class SourceTaskPdfLayoutResolver
 {
-    private const string LayoutSetsFileName = "layout-sets.json";
-    private const string SettingsFileName = "Settings.json";
-
-    private static readonly JsonDocumentOptions _jsonOptions = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-    };
-
-    private readonly string _projectFolder;
-    private readonly string? _uiFolder;
+    private readonly TaskUiSettings _taskUiSettings;
 
     public SourceTaskPdfLayoutResolver(string projectFolder)
     {
-        _projectFolder = projectFolder;
-        // The same two locations the layout-set migration accepts.
-        _uiFolder = Array.Find(
-            [Path.Combine(projectFolder, "App", "ui"), Path.Combine(projectFolder, "ui")],
-            Directory.Exists
-        );
+        _taskUiSettings = new TaskUiSettings(projectFolder);
     }
 
     /// <summary>A path as the upgrade reports it: relative to the project folder, with forward slashes.</summary>
-    public string DisplayPath(string path) => Path.GetRelativePath(_projectFolder, path).Replace('\\', '/');
+    public string DisplayPath(string path) => _taskUiSettings.DisplayPath(path);
 
     public SourceTaskPdfLayout Resolve(string taskId)
     {
         // A task id that is not a plain folder name cannot have a task folder (and must not be used to
         // build paths to copy from or to).
-        if (_uiFolder is not { } uiFolder || !IsPlainFolderName(taskId))
+        if (_taskUiSettings.UiFolder is not { } uiFolder || !TaskUiSettings.IsPlainFolderName(taskId))
             return new SourceTaskPdfLayout.Automatic();
 
-        var layoutSetsFile = Path.Combine(uiFolder, LayoutSetsFileName);
+        var layoutSetsFile = Path.Combine(uiFolder, TaskUiSettings.LayoutSetsFileName);
         return File.Exists(layoutSetsFile)
             ? ResolveFromLayoutSets(uiFolder, layoutSetsFile, taskId)
             : ResolveFromFolder(uiFolder, taskId, taskId);
@@ -84,14 +69,14 @@ internal sealed class SourceTaskPdfLayoutResolver
         string? layoutSetId;
         try
         {
-            layoutSetId = FindLayoutSetForTask(layoutSetsFile, taskId);
+            layoutSetId = TaskUiSettings.FindLayoutSetForTask(layoutSetsFile, taskId)?.Id;
         }
         catch (JsonException ex)
         {
             return Unreadable(layoutSetsFile, taskId, ex);
         }
 
-        if (layoutSetId is null || !IsPlainFolderName(layoutSetId))
+        if (layoutSetId is null || !TaskUiSettings.IsPlainFolderName(layoutSetId))
             return new SourceTaskPdfLayout.Automatic();
 
         var layout = ResolveFromFolder(uiFolder, layoutSetId, taskId);
@@ -109,13 +94,13 @@ internal sealed class SourceTaskPdfLayoutResolver
     private SourceTaskPdfLayout ResolveFromFolder(string uiFolder, string folderName, string taskId)
     {
         var folder = Path.Combine(uiFolder, folderName);
-        var settingsFile = Path.Combine(folder, SettingsFileName);
+        var settingsFile = Path.Combine(folder, TaskUiSettings.SettingsFileName);
         if (!File.Exists(settingsFile))
             return new SourceTaskPdfLayout.Automatic();
 
         try
         {
-            using var settings = JsonDocument.Parse(File.ReadAllText(settingsFile), _jsonOptions);
+            using var settings = JsonDocument.Parse(File.ReadAllText(settingsFile), TaskUiSettings.JsonOptions);
             if (
                 settings.RootElement.ValueKind != JsonValueKind.Object
                 || !settings.RootElement.TryGetProperty("pages", out var pages)
@@ -149,47 +134,10 @@ internal sealed class SourceTaskPdfLayoutResolver
         }
     }
 
-    private static bool IsPlainFolderName(string name) =>
-        name.Length > 0 && name is not ("." or "..") && name.IndexOfAny(['/', '\\']) < 0;
-
     private SourceTaskPdfLayout.Unresolved Unreadable(string file, string taskId, JsonException ex) =>
         new(
             $"{DisplayPath(file)} is not valid JSON ({ex.Message}), so it is unknown whether task '{taskId}' "
                 + "renders its PDF from a custom layout (pages.pdfLayoutName). Skipped PDF service task "
                 + "insertion - fix the file and re-run the upgrade."
         );
-
-    /// <summary>
-    /// The id of the first layout set whose <c>tasks</c> include <paramref name="taskId"/>, which is the
-    /// set the v8 frontend rendered the task with; null when no set does.
-    /// </summary>
-    private static string? FindLayoutSetForTask(string layoutSetsFile, string taskId)
-    {
-        using var layoutSets = JsonDocument.Parse(File.ReadAllText(layoutSetsFile), _jsonOptions);
-        if (
-            layoutSets.RootElement.ValueKind != JsonValueKind.Object
-            || !layoutSets.RootElement.TryGetProperty("sets", out var sets)
-            || sets.ValueKind != JsonValueKind.Array
-        )
-        {
-            return null;
-        }
-
-        foreach (var set in sets.EnumerateArray())
-        {
-            if (
-                set.ValueKind == JsonValueKind.Object
-                && set.TryGetProperty("id", out var id)
-                && id.ValueKind == JsonValueKind.String
-                && set.TryGetProperty("tasks", out var tasks)
-                && tasks.ValueKind == JsonValueKind.Array
-                && tasks.EnumerateArray().Any(t => t.ValueKind == JsonValueKind.String && t.GetString() == taskId)
-            )
-            {
-                return id.GetString();
-            }
-        }
-
-        return null;
-    }
 }
