@@ -21,16 +21,15 @@ internal static class SigningNotificationHelper
     }
 
     /// <summary>
-    /// Determines the notification choice based on the provided notification object.
-    /// This is to keep backwards compatibility.
+    /// Determines the notification choice from which channels the app configured, for apps that do not set
+    /// <see cref="CommunicationConfig.NotificationChoice"/>. A channel configured without an address still counts:
+    /// Correspondence then notifies the signee at their registered contact details.
     /// </summary>
-    /// <param name="notification"></param>
-    /// <returns></returns>
     internal static NotificationChoice GetNotificationChoiceIfNotSet(Notification? notification)
     {
-        var data = (Email: notification?.Email?.EmailAddress, Sms: notification?.Sms?.MobileNumber);
+        var channels = (Email: notification?.Email, Sms: notification?.Sms);
 
-        return data switch
+        return channels switch
         {
             { Email: not null, Sms: not null } => NotificationChoice.SmsAndEmail,
             { Email: not null } => NotificationChoice.Email,
@@ -71,6 +70,9 @@ internal static class SigningNotificationHelper
                 .WithReminderEmailSubject(cw.ReminderEmailSubject)
                 .WithReminderSmsBody(cw.ReminderSmsBody)
                 .Build(),
+            NotificationChoice.SmsAndEmail
+                when string.IsNullOrEmpty(emailAddress) != string.IsNullOrEmpty(mobileNumber) =>
+                CreateSmsAndEmailWithOneAddress(cw, emailAddress, mobileNumber),
             NotificationChoice.SmsAndEmail => CorrespondenceNotificationBuilder
                 .Create()
                 .WithNotificationTemplate(CorrespondenceNotificationTemplate.CustomMessage)
@@ -123,6 +125,42 @@ internal static class SigningNotificationHelper
                 .Build(),
             _ => null,
         };
+    }
+
+    /// <summary>
+    /// SMS and email where the app gave an address for only one of the channels. The notification channel is the one
+    /// without an address, so the signee gets it at their registered contact details, and the given address is added as
+    /// a custom recipient. Correspondence sends to a custom email address or mobile number on that channel alone,
+    /// whatever the notification channel is. Overriding the registered contact information would drop the signee.
+    /// </summary>
+    private static CorrespondenceNotification CreateSmsAndEmailWithOneAddress(
+        ContentWrapper cw,
+        string? emailAddress,
+        string? mobileNumber
+    )
+    {
+        bool haveEmail = !string.IsNullOrEmpty(emailAddress);
+
+        return CorrespondenceNotificationBuilder
+            .Create()
+            .WithNotificationTemplate(CorrespondenceNotificationTemplate.CustomMessage)
+            .WithNotificationChannel(
+                haveEmail ? CorrespondenceNotificationChannel.Sms : CorrespondenceNotificationChannel.Email
+            )
+            .WithSmsBody(cw.SmsBody)
+            .WithEmailSubject(cw.EmailSubject)
+            .WithEmailBody(cw.EmailBody)
+            .WithSendersReference(cw.SendersReference)
+            .WithRecipientOverride(
+                haveEmail
+                    ? new CorrespondenceNotificationRecipient { EmailAddress = emailAddress }
+                    : new CorrespondenceNotificationRecipient { MobileNumber = mobileNumber }
+            )
+            .WithSendReminder(cw.ReminderNotification is not null)
+            .WithReminderEmailBody(cw.ReminderEmailBody)
+            .WithReminderEmailSubject(cw.ReminderEmailSubject)
+            .WithReminderSmsBody(cw.ReminderSmsBody)
+            .Build();
     }
 
     private static ICorrespondenceNotificationBuilder MaybeWithRecipientOverrides(
