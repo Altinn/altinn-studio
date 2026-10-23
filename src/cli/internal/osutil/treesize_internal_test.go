@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -37,11 +38,18 @@ func TestTreeWalk_SkipsEntriesRemovedMidWalk(t *testing.T) {
 	}
 	w.measure(root)
 
-	if w.total.Err != nil || w.total.Bytes != 4 {
-		t.Fatalf("total = %+v, want 4 bytes and no error", w.total)
+	// The removed directory is never counted. The removed file is, on Windows only: there
+	// DirEntry.Info returns the size the directory listing already holds, without a stat that could
+	// find the file gone. Either way a removed entry never makes a size unknown.
+	want := int64(4)
+	if runtime.GOOS == OSWindows {
+		want += 50
 	}
-	if w.sizes[0].Err != nil || w.sizes[0].Bytes != 4 {
-		t.Fatalf("logs = %+v, want 4 bytes and no error", w.sizes[0])
+	if w.total.Err != nil || w.total.Bytes != want {
+		t.Fatalf("total = %+v, want %d bytes and no error", w.total, want)
+	}
+	if w.sizes[0].Err != nil || w.sizes[0].Bytes != want {
+		t.Fatalf("logs = %+v, want %d bytes and no error", w.sizes[0], want)
 	}
 }
 

@@ -59,13 +59,21 @@ func (w *treeWalk) measure(root string) {
 	case errors.Is(err, fs.ErrNotExist):
 		return
 	case err != nil:
-		w.fail(-1, fmt.Errorf("measure tree: %w", err))
+		w.failRoot(fmt.Errorf("measure tree: %w", err))
 	case !info.IsDir():
-		w.fail(-1, fmt.Errorf("%s: %w", root, errTreeRootNotDir))
+		w.failRoot(fmt.Errorf("%s: %w", root, errTreeRootNotDir))
 	default:
 		w.walkDir(root, "", -1)
+		w.settleUnreachedParts(root)
 	}
-	w.settleUnreachedParts(root)
+}
+
+// failRoot fails the tree and every part: nothing below a root that cannot be walked is measured.
+func (w *treeWalk) failRoot(err error) {
+	w.total.Err = err
+	for i := range w.sizes {
+		w.sizes[i].Err = err
+	}
 }
 
 // walkDir adds the files below dir, whose path relative to the root is rel, to the total and to part

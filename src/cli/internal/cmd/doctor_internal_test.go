@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"slices"
 	"strings"
 	"testing"
 
@@ -25,8 +26,11 @@ func testDiskWithUsage() *doctorsvc.Disk {
 	}
 }
 
+// renderDoctorDiskUsage renders the section without colors and returns its lines, split on the
+// platform line break.
 func renderDoctorDiskUsage(t *testing.T, disk *doctorsvc.Disk) []string {
 	t.Helper()
+	t.Setenv("NO_COLOR", "1")
 
 	var out bytes.Buffer
 	command := &DoctorCommand{cfg: nil, out: ui.NewOutput(&out, io.Discard, false)}
@@ -34,47 +38,26 @@ func renderDoctorDiskUsage(t *testing.T, disk *doctorsvc.Disk) []string {
 	command.renderDoctorDiskUsageSection(table, disk)
 	command.out.RenderTable(table)
 
-	return strings.Split(strings.TrimRight(out.String(), "\n"), "\n")
-}
-
-func findLine(lines []string, label string) string {
-	for _, line := range lines {
-		if strings.Contains(line, label) {
-			return line
-		}
-	}
-	return ""
+	return strings.Split(strings.TrimSuffix(out.String(), osutil.LineBreak), osutil.LineBreak)
 }
 
 func TestRenderDoctorDiskUsageSection_StatesSizesAndTheResetCommand(t *testing.T) {
-	t.Parallel()
+	got := renderDoctorDiskUsage(t, testDiskWithUsage())
 
-	lines := renderDoctorDiskUsage(t, testDiskWithUsage())
-
-	if !strings.Contains(lines[0], "Disk usage") {
-		t.Fatalf("first line = %q, want the section title", lines[0])
+	want := []string{
+		"Disk usage",
+		"    Logs            12.3 MB",
+		"    Localtest data  1.2 GB (cleared by '" + osutil.CurrentBin() + " env reset')",
+		"    Server          " + unknownValue,
+		"    Total           " + unknownValue,
+		"",
 	}
-	want := map[string]string{
-		"Logs":           "12.3 MB",
-		"Localtest data": "1.2 GB (cleared by '" + osutil.CurrentBin() + " env reset')",
-		"Server":         unknownValue,
-		"Total":          unknownValue,
-	}
-	for label, value := range want {
-		if line := findLine(lines, label); !strings.HasSuffix(line, "  "+value) {
-			t.Errorf("%s line = %q, want value %q", label, line, value)
-		}
-	}
-	for _, line := range lines {
-		if strings.Contains(line, "permission denied") {
-			t.Errorf("line %q shows the walk error; text output states only that the size is unknown", line)
-		}
+	if !slices.Equal(got, want) {
+		t.Errorf("rendered lines =\n%q\nwant\n%q", got, want)
 	}
 }
 
 func TestRenderDoctorDiskUsageSection_OmitsTheResetCommandWhenThereIsNoData(t *testing.T) {
-	t.Parallel()
-
 	disk := &doctorsvc.Disk{
 		Checks: []doctorsvc.DiskCheck{},
 		Usage: []doctorsvc.DiskUsage{
@@ -83,10 +66,10 @@ func TestRenderDoctorDiskUsageSection_OmitsTheResetCommandWhenThereIsNoData(t *t
 		HasIssues: false,
 	}
 
-	line := findLine(renderDoctorDiskUsage(t, disk), "Localtest data")
+	got := renderDoctorDiskUsage(t, disk)
 
-	if !strings.HasSuffix(line, " 0 B") {
-		t.Errorf("Localtest data line = %q, want just 0 B", line)
+	if !slices.Contains(got, "    Localtest data  0 B") {
+		t.Errorf("rendered lines = %q, want the localtest data line to state just 0 B", got)
 	}
 }
 
