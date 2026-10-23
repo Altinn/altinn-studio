@@ -532,6 +532,7 @@
   "app_upgrade.upgrade.running_step": "Oppdateringen kjører: {{step}}",
   "app_upgrade.upgrade.view_run": "Se kjøringen i repoet",
   "app_upgrade.versions_unknown": "Ukjent",
+  "app_upgrade.heading": "Oppgrader appen",
   "app_validation.app_metadata.contact_points.incomplete": "Kontaktinformasjon mangler minst ett felt (e-post, telefon, kontaktside eller kategori).",
   "app_validation.app_metadata.contact_points.required": "Det mangler kontaktinformasjon.",
   "app_validation.app_metadata.delegable.required": "Du må oppgi om appen kan delegeres direkte eller ikke.",

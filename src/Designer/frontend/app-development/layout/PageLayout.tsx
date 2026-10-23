@@ -19,6 +19,8 @@ import {
   UnsupportedRepositoryPage,
   isUnsupportedRepositoryType,
 } from './UnsupportedRepositoryPage';
+import { isFocusModeRoute } from 'app-development/router/routes';
+import classes from './PageLayout.module.css';
 
 /**
  * Displays the layout for the app development pages
@@ -48,7 +50,9 @@ type AppPageLayoutProps = {
 
 const AppPageLayout = ({ org, app }: AppPageLayoutProps): React.ReactNode => {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const documentTitle = buildDocumentTitle(app);
+  const isFocusMode = isFocusModeRoute(pathname);
 
   const {
     data: repoStatus,
@@ -65,6 +69,17 @@ const AppPageLayout = ({ org, app }: AppPageLayoutProps): React.ReactNode => {
         <StudioCenter>
           <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
         </StudioCenter>
+      </>
+    );
+  }
+
+  if (isFocusMode) {
+    return (
+      <>
+        <title>{documentTitle}</title>
+        <div className={classes.focusMode}>
+          <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
+        </div>
       </>
     );
   }

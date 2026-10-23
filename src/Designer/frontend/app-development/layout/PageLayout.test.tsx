@@ -127,6 +127,15 @@ describe('PageLayout', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('hides the header on a focus mode route', async () => {
+    render({}, 'my-app', RoutePaths.AppUpgrade);
+    await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
+
+    expect(
+      screen.queryByRole('link', { name: textMock('top_menu.preview') }),
+    ).not.toBeInTheDocument();
+  });
+
   it('should setup the webSocket with the correct parameters', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
@@ -209,13 +218,17 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
   await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 };
 
-const render = async (queries: Partial<ServicesContextProps> = {}, repoName: string = 'my-app') => {
+const render = async (
+  queries: Partial<ServicesContextProps> = {},
+  repoName: string = 'my-app',
+  routePath: RoutePaths = RoutePaths.Overview,
+) => {
   renderWithProviders(
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <PageLayout />
     </FeatureFlagsContextProvider>,
     {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/${repoName}/${RoutePaths.Overview}`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/${repoName}/${routePath}`,
       queries,
     },
   );
