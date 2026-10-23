@@ -363,6 +363,79 @@ describe('useUpdateFormComponentMutation', () => {
       );
     });
   });
+  describe('Updating minCount for FileUpload components outside repeating groups', () => {
+    const fileUploadComponent = {
+      ...componentMocks[ComponentType.FileUpload],
+      id: 'fileUploadOutsideRepeatingGroup',
+    };
+
+    const renderAndMutate = async (
+      oldMinCount?: number,
+      oldMinNumberOfAttachments?: FormFileUploaderComponent['minNumberOfAttachments'],
+      newMinNumberOfAttachments?: number,
+    ) => {
+      renderAndWaitForData();
+      queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+        dataTypes: [{ id: fileUploadComponent.id, maxCount: 2, minCount: oldMinCount }],
+      });
+      queryClientMock.setQueryData(
+        [QueryKey.FormLayouts, org, app, selectedLayoutSet],
+        convertExternalLayoutsToInternalFormat({
+          ...externalLayoutsMock,
+          [selectedLayoutName]: {
+            ...externalLayoutsMock[selectedLayoutName],
+            data: {
+              layout: [
+                { ...fileUploadComponent, minNumberOfAttachments: oldMinNumberOfAttachments },
+              ],
+            },
+          },
+        }),
+      );
+      const updateFormComponentResult = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      ).result;
+      await updateFormComponentResult.current.mutateAsync({
+        id: fileUploadComponent.id,
+        updatedComponent: {
+          ...fileUploadComponent,
+          maxFileSizeInMB: 2,
+          minNumberOfAttachments: newMinNumberOfAttachments,
+        },
+      });
+    };
+
+    it.each`
+      oldMinCount  | oldMinNumberOfAttachments | newMinNumberOfAttachments | expectedMinCount | reason
+      ${undefined} | ${undefined}              | ${1}                      | ${1}             | ${'minCount follows a new requirement'}
+      ${0}         | ${1}                      | ${1}                      | ${0}             | ${'a lower minCount is kept'}
+      ${undefined} | ${1}                      | ${1}                      | ${undefined}     | ${'an unset minCount counts as 0 and is kept'}
+      ${0}         | ${1}                      | ${2}                      | ${0}             | ${'a lower minCount is kept when the requirement is raised'}
+      ${0}         | ${1}                      | ${0}                      | ${0}             | ${'a lower minCount is kept when the requirement is removed'}
+      ${1}         | ${3}                      | ${2}                      | ${1}             | ${'a lower minCount is kept when the requirement is lowered to above it'}
+      ${1}         | ${2}                      | ${0}                      | ${0}             | ${'a lower minCount follows a requirement lowered below it'}
+      ${1}         | ${1}                      | ${0}                      | ${0}             | ${'an equal minCount follows a lowered requirement'}
+      ${1}         | ${1}                      | ${2}                      | ${2}             | ${'an equal minCount follows a raised requirement'}
+      ${1}         | ${0}                      | ${0}                      | ${0}             | ${'a higher minCount follows a requirement of 0'}
+      ${2}         | ${1}                      | ${1}                      | ${1}             | ${'a higher minCount follows a lower requirement'}
+      ${0}         | ${['dataModel', 'count']} | ${1}                      | ${1}             | ${'minCount follows when the old requirement was an expression'}
+    `(
+      'Sets minCount to $expectedMinCount when minCount was $oldMinCount and minNumberOfAttachments changes from $oldMinNumberOfAttachments to $newMinNumberOfAttachments ($reason)',
+      async ({
+        oldMinCount,
+        oldMinNumberOfAttachments,
+        newMinNumberOfAttachments,
+        expectedMinCount,
+      }) => {
+        await renderAndMutate(oldMinCount, oldMinNumberOfAttachments, newMinNumberOfAttachments);
+        expect(queriesMock.updateAppAttachmentMetadata).toHaveBeenCalledWith(
+          org,
+          app,
+          expect.objectContaining({ minCount: expectedMinCount }),
+        );
+      },
+    );
+  });
 });
 
 const renderAndWaitForData = () => {
