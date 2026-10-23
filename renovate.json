@@ -125,6 +125,24 @@
       "pinDigests": true
     },
     {
+      "description": "Read the Gitea runner base image tag as an Ubuntu release (ubuntu-24.04). Docker versioning treats it as unversioned and would only ever move its digest, so a newer Ubuntu release would never be offered",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner-images"],
+      "versioning": "regex:^ubuntu-(?<major>\\d+)\\.(?<minor>\\d+)$"
+    },
+    {
+      "description": "Moving service owners' Gitea Actions jobs to a new Ubuntu release is a deliberate choice: give it its own PR, named after the new tag, and create it only after approval on the Dependency Dashboard",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner-images"],
+      "matchUpdateTypes": ["major", "minor"],
+      "groupSlug": "gitea-runner-ubuntu",
+      "commitMessageTopic": "Gitea runner base image",
+      "commitMessageExtra": "to {{{newValue}}}",
+      "dependencyDashboardApproval": true
+    },
+    {
       "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["nginx", "docker.io/library/nginx"],
