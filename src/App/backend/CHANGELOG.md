@@ -71,7 +71,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The OpenAPI description of the data API lists its error responses, and shows that creating data returns 200, not 201.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
 - Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
-- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to the signee's registered contact details, such as KRR, instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
+- A signee's SMS or email notification in `CommunicationConfig.Notification` without a `MobileNumber` or `EmailAddress` now goes to their registered contact details instead of failing with Correspondence error 3012 or sending the generic email. Persons configured with `Sms` now get an SMS, which the service owner pays for. Organizations with no notification addresses registered in Altinn get no SMS or email. ([#21391](https://github.com/Altinn/altinn-studio/pull/21391))
 
 ### Removed
 

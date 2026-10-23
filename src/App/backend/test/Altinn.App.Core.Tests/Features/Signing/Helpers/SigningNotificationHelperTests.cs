@@ -152,15 +152,25 @@ public class SigningNotificationHelperTests
         Assert.Null(notification.CustomRecipients);
     }
 
-    [Fact]
-    public void CreateNotification_EmptyEmailWithValidMobile_DropsEmptyEmailButStillOverrides()
+    [Theory]
+    [InlineData("test@test.no", "", CorrespondenceNotificationChannel.Sms)]
+    [InlineData(null, "+4799999999", CorrespondenceNotificationChannel.Email)]
+    public void CreateNotification_SmsAndEmailWithOneAddress_SendsOtherChannelToRegisteredContactDetails(
+        string? emailAddress,
+        string mobileNumber,
+        CorrespondenceNotificationChannel expectedChannel
+    )
     {
-        // Arrange: an empty-string email is treated as "not provided" (IsNullOrEmpty),
-        // so only the mobile number survives as a custom recipient.
+        // Arrange: both channels configured, an address for only one. The given address is added to the
+        // signee's registered contact details, which get the channel without an address. Overriding the
+        // registered contact information would drop that channel.
         ContentWrapper contentWrapper = CreateContentWrapper(
             NotificationChoice.SmsAndEmail,
-            emailAddress: "",
-            mobileNumber: "12345678"
+            new Notification
+            {
+                Email = new Email { EmailAddress = emailAddress },
+                Sms = new Sms { MobileNumber = mobileNumber },
+            }
         );
 
         // Act
@@ -168,11 +178,17 @@ public class SigningNotificationHelperTests
 
         // Assert
         Assert.NotNull(notification);
-        Assert.True(notification.OverrideRegisteredContactInformation);
-        Assert.NotNull(notification.CustomRecipients);
-        CorrespondenceNotificationRecipient recipient = Assert.Single(notification.CustomRecipients);
-        Assert.Equal("12345678", recipient.MobileNumber);
-        Assert.True(string.IsNullOrEmpty(recipient.EmailAddress));
+        Assert.Equal(expectedChannel, notification.NotificationChannel);
+        Assert.False(notification.OverrideRegisteredContactInformation);
+        CorrespondenceNotificationRecipient recipient = Assert.Single(notification.CustomRecipients!);
+        Assert.Equal(1, CountIdentifiers(recipient));
+        Assert.Equal(string.IsNullOrEmpty(emailAddress) ? null : emailAddress, recipient.EmailAddress);
+        Assert.Equal(string.IsNullOrEmpty(mobileNumber) ? null : mobileNumber, recipient.MobileNumber);
+
+        // The custom recipient gets its own channel, so both texts must be sent.
+        Assert.Equal("sms body", notification.SmsBody);
+        Assert.Equal("email subject", notification.EmailSubject);
+        Assert.Equal("email body", notification.EmailBody);
     }
 
     [Fact]

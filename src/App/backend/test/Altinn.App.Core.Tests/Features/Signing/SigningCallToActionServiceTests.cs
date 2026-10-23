@@ -541,6 +541,33 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         Assert.Null(recipient.MobileNumber);
     }
 
+    /// <summary>
+    /// Test case: the app asks for SMS and email, with an email address but no mobile number.
+    /// Expected: email to that address, and SMS to the signee's registered contact details.
+    /// </summary>
+    [Fact]
+    public async Task SendSignCallToAction_EmailWithAddressAndSmsWithout_KeepsRegisteredContactForSms()
+    {
+        CorrespondenceNotification notification = await SendAndCaptureNotification(
+            new CommunicationConfig
+            {
+                Notification = new Notification
+                {
+                    Email = new Email { EmailAddress = "signee@example.com" },
+                    Sms = new Sms(),
+                },
+            }
+        );
+
+        Assert.Equal(CorrespondenceNotificationChannel.Sms, notification.NotificationChannel);
+        Assert.False(notification.OverrideRegisteredContactInformation);
+        CorrespondenceNotificationRecipient recipient = Assert.Single(notification.CustomRecipients!);
+        Assert.Equal("signee@example.com", recipient.EmailAddress);
+        Assert.NotNull(notification.SmsBody);
+        Assert.NotNull(notification.EmailBody);
+        Assert.NotNull(notification.EmailSubject);
+    }
+
     private async Task<CorrespondenceNotification> SendAndCaptureNotification(CommunicationConfig communicationConfig)
     {
         SendCorrespondencePayload? capturedPayload = null;
