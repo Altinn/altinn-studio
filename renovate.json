@@ -352,6 +352,12 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "Let the go directives and GO_VERSION arguments wait longer than the golang images, which are published a day or two after a Go release, so a Go toolchain pull request does not pair a new go directive with the previous image and fail to build under the images' GOTOOLCHAIN=local",
+      "matchDatasources": ["golang-version"],
+      "matchPackageNames": ["go"],
+      "minimumReleaseAge": "5 days"
+    },
+    {
       "description": "Move the golangci-lint every Go module's Makefile installs in one pull request, so the modules lint with the same release",
       "matchManagers": ["custom.regex"],
       "matchPackageNames": ["github.com/golangci/golangci-lint/v2"],
