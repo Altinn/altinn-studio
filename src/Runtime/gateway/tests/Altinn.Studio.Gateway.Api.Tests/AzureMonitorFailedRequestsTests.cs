@@ -14,6 +14,10 @@ public sealed class AzureMonitorFailedRequestsTests
     private static readonly DateTimeOffset _laterBucket = new(2026, 6, 30, 4, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset _earlierBucket = _laterBucket.AddHours(-14);
 
+    // The weekly report period in Norwegian summer time that contains both buckets: Monday 29 June to Monday 6 July.
+    private static readonly DateTimeOffset _weekStart = new(2026, 6, 29, 0, 0, 0, TimeSpan.FromHours(2));
+    private static readonly DateTimeOffset _weekEnd = _weekStart.AddDays(7);
+
     private static readonly LogsTableColumn[] _columns =
     [
         LogsQueryModelFactory.LogsTableColumn("AppRoleName", LogsColumnType.String),
@@ -71,7 +75,7 @@ public sealed class AzureMonitorFailedRequestsTests
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
         var result = (
-            await metricsClient.GetAllAppsFailedRequests(10080, TestContext.Current.CancellationToken)
+            await metricsClient.GetAllAppsFailedRequests(_weekStart, _weekEnd, TestContext.Current.CancellationToken)
         ).ToDictionary(request => (request.AppName, request.Name));
 
         Assert.Equal(2, result.Count);
