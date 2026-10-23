@@ -3,7 +3,7 @@
 # Neovim and the boot settings a Sandbox needs, and offers the browser and desktop as features:
 # https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base
 # Renovate moves the digest, and with it the harness versions.
-FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:ecaa7a1926dfff3d635b7819d94b62faeb3e857f17260fde2dcdc8c4002d3a9e AS minimal
+FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:390d420ab678360ef8b16f595440130c551db25095669499a7adddc39c6d9748 AS minimal
 
 # The base ends as the unprivileged Agent user; installing packages needs root again.
 USER root
