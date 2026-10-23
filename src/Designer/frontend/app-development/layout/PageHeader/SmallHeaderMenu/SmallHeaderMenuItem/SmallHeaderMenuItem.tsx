@@ -44,9 +44,6 @@ export const SmallHeaderMenuItem = ({ menuItem }: SmallHeaderMenuItemProps): Rea
     );
   }
 
-  const linkTarget: string = menuItem.action.openInNewTab ? '_blank' : '';
-  const linkRel: string = menuItem.action.openInNewTab ? 'noopener noreferrer' : '';
-
   const linkItemClassName: string =
     UrlUtils.extractLastRouterParam(menuItem.action.href) === currentRoutePath
       ? classes.active
@@ -59,8 +56,8 @@ export const SmallHeaderMenuItem = ({ menuItem }: SmallHeaderMenuItemProps): Rea
           className={`${linkItemClassName} ${menuItem.isBeta ? studioBetaTagClasses.isBeta : ''}`}
           to={menuItem.action.href}
           role='menuitem'
-          target={linkTarget}
-          rel={linkRel}
+          target={menuItem.action.openInNewTab ? '_blank' : undefined}
+          rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : undefined}
         >
           {t(menuItem.name)}
         </NavLink>
