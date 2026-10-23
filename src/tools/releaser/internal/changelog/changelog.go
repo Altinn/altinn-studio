@@ -496,8 +496,7 @@ func buildPromotedCategories(c *Changelog, target *semver.Version) []Category {
 
 func collectPrereleaseLineCategories(versions []*Section, target *semver.Version) []Category {
 	categories := make([]Category, 0)
-	for i := len(versions) - 1; i >= 0; i-- {
-		section := versions[i]
+	for _, section := range slices.Backward(versions) {
 		if section == nil || section.Version == nil {
 			continue
 		}

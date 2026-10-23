@@ -21,6 +21,7 @@ linters:
     - gomoddirectives
     - depguard
     - godox
+    - exhaustruct # deprecated, replaced by exhaustruct_v5
     - ireturn
 
   settings:
@@ -41,6 +42,17 @@ linters:
 
     goconst:
       min-occurrences: 3
+      # goconst 1.11 also counts strings in composite literals; keep the scope these modules were written
+      # against, where struct fields and table-test cases were not reported.
+      exclude-types:
+        - Call
+        - CompositeLit
+
+    modernize:
+      disable:
+        # Go 1.27 lets a struct literal set promoted fields directly. Flattening every embedded
+        # ObjectMeta/TypeMeta literal is a style change of its own, not part of a toolchain update.
+        - embedlit
 
     gocyclo:
       min-complexity: 16
@@ -69,8 +81,8 @@ linters:
         - "os.Exit"
         - "strconv.*"
 
-    exhaustruct:
-      exclude:
+    exhaustruct_v5:
+      ignore-patterns:
         - 'net/http\.Client'
 
     gocritic:
@@ -132,7 +144,7 @@ linters:
           - funlen
           - gosec
           - gocognit
-          - exhaustruct
+          - exhaustruct_v5
 
 formatters:
   enable:

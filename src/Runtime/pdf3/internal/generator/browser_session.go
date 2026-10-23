@@ -706,7 +706,6 @@ func (w *browserSession) startRender(req *workerRequest) func() {
 	if arrived.IsZero() {
 		arrived = time.Now()
 	}
-	//nolint:gosec // The returned function calls cancelDeadline.
 	ctx, cancelDeadline := context.WithDeadline(parent, arrived.Add(types.RequestTimeout()-renderTimeoutMargin))
 	ctx, stop := context.WithCancelCause(ctx)
 	req.ctx = ctx

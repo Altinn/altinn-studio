@@ -93,7 +93,7 @@ $(LOCALBIN):
 	mkdir -p "$(LOCALBIN)"
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.11.2
+GOLANGCI_LINT_VERSION ?= v2.15.0
 
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.

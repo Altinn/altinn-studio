@@ -19,7 +19,7 @@ EXEEXT := .exe
 endif
 
 # Tools
-GOLANGCI_LINT_VERSION ?= v2.11.2
+GOLANGCI_LINT_VERSION ?= v2.15.0
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint$(EXEEXT)
 
 .PHONY: all
