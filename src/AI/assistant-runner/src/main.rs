@@ -17,7 +17,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tracing_subscriber::EnvFilter;
 
-// Conventional shell exit status: 128 + SIGTERM (15), as in the GitHub runner coordinator.
+// The usual shell exit status for SIGTERM: 128 + 15. The GitHub runner coordinator uses the same value.
 const SIGNALED_EXIT_CODE: u8 = 143;
 
 #[derive(Parser)]
@@ -27,11 +27,11 @@ struct Arguments {
     provider: ProviderArguments,
     #[command(flatten)]
     vm: VmArguments,
-    /// Address of the HTTP API.
+    /// The address of the HTTP API.
     #[arg(long, env = "LISTEN_ADDRESS", default_value = "0.0.0.0:8080")]
     listen_address: SocketAddr,
-    /// Seconds to wait for the job request after the job host is ready. Without a request, it exits with 0. The
-    /// `PodTemplate` sets it, so it has no default here.
+    /// The time in seconds to wait for the job request after the job host is ready. If no request arrives, the job
+    /// host exits with 0. This value has no default here, because the `PodTemplate` sets it.
     #[arg(long, env = "REQUEST_TIMEOUT_SECONDS")]
     request_timeout_seconds: NonZeroU64,
 }
@@ -48,7 +48,7 @@ async fn main() -> Result<ExitCode, AnyError> {
         request_timeout_seconds,
     } = Arguments::parse();
     require_kvm()?;
-    // A container that stopped during a job leaves the state of its VM in the Provider home of the pod.
+    // If a container stopped during a job, the state of its VM stays in the Provider home of the pod.
     provider.clear_home().await?;
     let request_timeout = Duration::from_secs(request_timeout_seconds.get());
     let result = serve_one_job(&provider, vm, listen_address, request_timeout).await;
@@ -84,8 +84,8 @@ async fn serve_one_job(
     )
     .await;
     tracing::info!(?stop, "the job host stops");
-    // A job does not delete its VM. When the server has stopped, no job runs, so the job host deletes the VM here. A VM
-    // that could not be deleted makes the job host exit with an error, also after it answered the job request.
+    // A job does not delete its VM. The job host deletes the VM here, because no job runs after the server stops. If
+    // the job host cannot delete the VM, it exits with an error. This is also true after it sent the response.
     vms.delete().await.map(|()| stop)
 }
 
@@ -95,7 +95,7 @@ async fn open_vms(provider: &ProviderArguments, vm: VmArguments) -> Result<Vms, 
     Ok(Vms::new(service, vm)?)
 }
 
-/// Completes on SIGINT or SIGTERM, as in the GitHub runner coordinator.
+/// Completes when the process receives SIGINT or SIGTERM. The GitHub runner coordinator does the same.
 fn shutdown_signal() -> io::Result<impl Future<Output = ()>> {
     let mut interrupt = signal(SignalKind::interrupt())?;
     let mut terminate = signal(SignalKind::terminate())?;

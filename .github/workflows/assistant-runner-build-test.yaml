@@ -79,7 +79,7 @@ jobs:
   job-host:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Test the guest image and the job host
-    # A KVM run takes long, so it waits until the crate builds and its tests pass.
+    # A KVM run is slow. It starts only after the build job passes.
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -87,7 +87,7 @@ jobs:
       REGISTRY: localhost:5000
       JOB_HOST_IMAGE: assistant-runner:ci
       JOB_HOST_URL: http://127.0.0.1:8080
-      # In a cluster, the PodTemplate sets these. This job runs the container without it.
+      # In a cluster, the PodTemplate sets these values. This job runs the container without a PodTemplate.
       SANDBOX_CPUS: "2"
       SANDBOX_MEMORY: 4Gi
       SANDBOX_ROOT_FILESYSTEM: 20Gi
@@ -110,9 +110,9 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm
 
-      # The prepared image is exported from a registry. A registry on this runner needs no credentials and publishes
-      # nothing. Docker pushes to a registry on localhost over plain HTTP, and the export allows it in its Microsandbox
-      # configuration.
+      # The export of the prepared image reads from a registry. A registry on this runner uses no credentials and
+      # publishes nothing. Docker pushes to a registry on localhost with plain HTTP. The Microsandbox configuration of
+      # the export allows plain HTTP for this registry.
       - name: Start a registry on this runner
         run: |
           docker run --detach --name registry --publish 127.0.0.1:5000:5000 \
@@ -129,8 +129,8 @@ jobs:
       - name: Build the job host image
         run: docker build -t "${JOB_HOST_IMAGE}" -f src/AI/assistant-runner/Dockerfile .
 
-      # On a sandbox node, root owns the hostPath folders, and the root of the pod has no capabilities. The export
-      # allows the plain-HTTP registry through the Microsandbox configuration in its Provider home.
+      # On a sandbox node, root owns the hostPath folders. The root user of the pod has no capabilities. This step uses
+      # the same conditions. The Microsandbox configuration in the Provider home of the export allows the registry.
       - name: Export and import the prepared guest image, as the deploy and the init container do
         run: |
           mkdir -p "${RUNNER_TEMP}"/{prepared,export-cache,export-home/runtime,cache,home}
@@ -150,7 +150,7 @@ jobs:
             "${JOB_HOST_IMAGE}" import
 
       # Starts the job host with the restrictions of the pod: root without capabilities, a read-only root file system
-      # and /dev/kvm. The settings of the job host come from the environment of the step.
+      # and /dev/kvm. The job host reads its settings from the environment of the step.
       - name: Write the start script
         run: |
           cat > "${RUNNER_TEMP}/start-job-host.sh" <<'SCRIPT'

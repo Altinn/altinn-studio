@@ -23,7 +23,7 @@ const STEP_OUTPUT_LIMITS: Limits = Limits {
     stderr: 64 * 1024,
 };
 
-/// Extracts the app and commits it. The commit is where the patch starts, and studioctl needs a clean working tree.
+/// Extracts the app and commits it. The patch starts at this commit. studioctl must have a clean working tree.
 const PREPARE_SCRIPT: &str = "set -eu
 mkdir app
 tar -xzf app.tar.gz --no-same-owner -C app
@@ -33,14 +33,14 @@ git init --quiet
 git add -A
 git commit --quiet --no-verify --allow-empty --message base";
 
-/// The patch also has the changes that studioctl did not stage.
+/// The patch also contains the changes that studioctl did not stage.
 const PATCH_SCRIPT: &str = "set -eu
 cd app
 git add -A
 git diff --cached --binary > /job/changes.patch";
 
 const UPGRADE_SCRIPT: &str = "cd app && exec studioctl app upgrade v9 -p . --json";
-/// studioctl stops an upgrade after 10 minutes, so this limit only stops a studioctl that hangs.
+/// studioctl stops an upgrade after 10 minutes. This limit stops only a studioctl process that hangs.
 pub const UPGRADE_TIMEOUT: Duration = Duration::from_mins(11);
 /// The upgrade writes its report as JSON to stdout.
 const UPGRADE_OUTPUT_LIMITS: Limits = Limits {
@@ -51,11 +51,11 @@ const UPGRADE_OUTPUT_LIMITS: Limits = Limits {
 /// A v9 upgrade of the app in the archive.
 pub struct Job {
     pub archive: Bytes,
-    /// The command stops at this time, so that the answer comes before the client stops to wait.
+    /// The command stops at this time, so that the response arrives before the timeout of the client.
     pub deadline: Instant,
 }
 
-/// The answer to a job request.
+/// The response to a job request.
 #[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct JobOutcome {
@@ -64,13 +64,13 @@ pub struct JobOutcome {
     pub timed_out: bool,
     pub stdout: String,
     pub stderr: String,
-    /// The changes of the upgrade as base64, because a patch can have content that is not UTF-8.
+    /// The changes of the upgrade as base64. A patch can contain bytes that are not UTF-8.
     pub patch: Option<String>,
 }
 
 #[derive(Debug)]
 pub enum JobError {
-    /// The archive does not extract.
+    /// The job host cannot extract the archive.
     InvalidArchive(String),
     /// The job host stops before the job ends.
     Cancelled,
@@ -85,11 +85,11 @@ impl From<AnyError> for JobError {
 
 /// Runs jobs. The routes use this trait, so that the tests can use a fake.
 pub trait Jobs {
-    /// Runs one job. Dropping the future stops the job.
+    /// Runs one job. When the caller drops the future, the job stops.
     fn run(&self, job: Job) -> LocalFuture<'_, Result<JobOutcome, JobError>>;
 }
 
-/// Runs the job in a new VM. The job leaves the VM, and the job host deletes it when it stops.
+/// Runs the job in a new VM. The job does not delete the VM. The job host deletes the VM when it stops.
 impl Jobs for Vms {
     fn run(&self, job: Job) -> LocalFuture<'_, Result<JobOutcome, JobError>> {
         Box::pin(async move {
@@ -151,7 +151,7 @@ fn to_outcome(command: &Collected, patch: Option<&[u8]>) -> JobOutcome {
     }
 }
 
-/// Output as text. Bytes that are not UTF-8 become U+FFFD, and a note marks output that was cut.
+/// Converts the output to text. Bytes that are not UTF-8 become U+FFFD. A note shows where the runner cut the output.
 fn to_text(captured: &Captured) -> String {
     let text = String::from_utf8_lossy(captured.bytes());
     if captured.is_cut() {

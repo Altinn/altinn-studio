@@ -8,8 +8,8 @@ use sandbox_authorization::{
 
 /// The only hosts that a job can reach.
 ///
-/// `dotnet restore` downloads packages from `api.nuget.org`, and studioctl finds package versions through the
-/// package search hosts. Change this list only through a reviewed pull request.
+/// `dotnet restore` downloads packages from `api.nuget.org`. studioctl finds package versions through the package
+/// search hosts. Change this list only through a reviewed pull request.
 const ALLOWED_HOSTS: &[&str] = &[
     "api.nuget.org",
     "azuresearch-usnc.nuget.org",
@@ -18,8 +18,8 @@ const ALLOWED_HOSTS: &[&str] = &[
 
 const HTTPS_PORT: u16 = 443;
 
-/// Address ranges that are not on the internet: the cluster, the node, the Sandbox gateway, link-local and the
-/// Azure services that answer only inside Azure.
+/// Address ranges that are not on the internet: the cluster, the node, the Sandbox gateway, link-local addresses and
+/// the Azure services that are available only inside Azure.
 const BLOCKED_IPV4: &[(Ipv4Addr, u32)] = &[
     (Ipv4Addr::UNSPECIFIED, 8),
     (Ipv4Addr::new(10, 0, 0, 0), 8),
@@ -40,7 +40,7 @@ const BLOCKED_IPV6: &[(Ipv6Addr, u32)] = &[
     (Ipv6Addr::new(0xff00, 0, 0, 0, 0, 0, 0, 0), 8),
 ];
 
-/// Lets a job VM resolve and reach the hosts in [`ALLOWED_HOSTS`] with HTTPS, and denies all other network access.
+/// Lets a job VM resolve and reach the hosts in [`ALLOWED_HOSTS`] with HTTPS. It blocks all other network access.
 pub struct AllowlistPolicy;
 
 impl PolicyEngine for AllowlistPolicy {
@@ -87,7 +87,7 @@ fn is_public_https_destination(facts: &AuthorizationContext) -> bool {
         .is_some_and(|address| address.port() == HTTPS_PORT && is_public(address.ip()))
 }
 
-/// The host of an HTTP authority, if the authority has no port or port 443.
+/// Returns the host of an HTTP authority if the authority has no port or port 443.
 fn https_host(authority: &str) -> Option<&str> {
     match authority.rsplit_once(':') {
         None => Some(authority),

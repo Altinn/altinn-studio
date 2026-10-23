@@ -2,8 +2,7 @@ use std::{cell::Cell, future, rc::Rc, time::Duration};
 
 use tokio_util::sync::{CancellationToken, DropGuard};
 
-/// The job host serves one job. The first job request takes the claim, and the claim is finished when that request
-/// has ended.
+/// The job host serves one job. The first job request takes the claim. The claim finishes when that request ends.
 #[derive(Clone, Default)]
 pub struct Claim {
     is_taken: Rc<Cell<bool>>,
@@ -11,7 +10,8 @@ pub struct Claim {
 }
 
 impl Claim {
-    /// Takes the claim, or returns `None` when a request already took it. Dropping the guard finishes the claim.
+    /// Takes the claim. Returns `None` if a request took the claim before. When the caller drops the guard, the claim
+    /// finishes.
     #[must_use]
     pub fn take(&self) -> Option<DropGuard> {
         (!self.is_taken.replace(true)).then(|| self.finished.clone().drop_guard())
@@ -27,19 +27,19 @@ impl Claim {
     }
 }
 
-/// Why the job host stops.
+/// The reason why the job host stops.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Stop {
     /// The job request ended.
     Served,
-    /// No job request came in time, for example because the assistant stopped before it sent the app.
+    /// No job request arrived in time. For example, the assistant stopped before it sent the app.
     Unclaimed,
-    /// A signal asked the job host to stop, for example because the assistant deleted the Job.
+    /// A signal told the job host to stop. For example, the assistant deleted the Job.
     Signaled,
 }
 
-/// Waits until the job host must stop. On `signal`, it cancels `stopping`, which stops a running job, and waits until
-/// the request of that job has ended.
+/// Waits until the job host must stop. When `signal` completes, this function calls `stopping.cancel()`, and the job
+/// stops. Then the function waits until the request of that job ends.
 pub async fn wait_for_stop(
     claim: &Claim,
     stopping: &CancellationToken,
@@ -59,7 +59,8 @@ pub async fn wait_for_stop(
     }
 }
 
-/// Completes after `timeout` if no request has taken the claim. A taken claim keeps the job host until its job ends.
+/// Completes after `timeout` if no request took the claim. If a request took the claim, the job host continues until
+/// the job ends.
 async fn unclaimed_after(claim: &Claim, timeout: Duration) {
     tokio::time::sleep(timeout).await;
     if claim.is_taken() {

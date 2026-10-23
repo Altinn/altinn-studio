@@ -14,40 +14,41 @@ use tokio::{io::AsyncReadExt as _, time::Instant};
 
 use crate::output::{Collected, Limits, collect};
 
-/// The folder of the job in the guest. The guest image gives it to the job user.
+/// The folder of the job in the guest. In the guest image, the job user owns this folder.
 const JOB_FOLDER: &str = "/job";
 const VM_NAME: &str = "job";
 
 const DELETE_TIMEOUT: Duration = Duration::from_mins(1);
 
-/// The guest image and the size of the VM. The `PodTemplate` sets them, next to the resources of the pod that holds the
-/// VM, so they have no defaults here.
+/// The guest image and the size of the VM. These values have no defaults here, because the `PodTemplate` sets them
+/// together with the resources of the pod that contains the VM.
 #[derive(Args)]
 pub struct VmArguments {
-    /// Digest-pinned guest image with the .NET SDK, git and studioctl.
+    /// The guest image, pinned by digest, with the .NET SDK, git and studioctl.
     #[arg(long, env = "SANDBOX_IMAGE")]
     image: String,
 
-    /// Virtual CPUs of the VM.
+    /// The number of virtual CPUs of the VM.
     #[arg(long, env = "SANDBOX_CPUS")]
     cpus: CpuQuantity,
 
-    /// Memory of the VM.
+    /// The memory of the VM.
     #[arg(long, env = "SANDBOX_MEMORY")]
     memory: ByteQuantity,
 
-    /// Size of the private root file system of the VM.
+    /// The size of the private root file system of the VM.
     #[arg(long, env = "SANDBOX_ROOT_FILESYSTEM")]
     root_filesystem: ByteQuantity,
 }
 
-/// Starts the VM of the job from the guest image, and deletes it.
+/// Starts the VM of the job from the guest image, and deletes the VM.
 pub struct Vms {
     service: SandboxService,
     arguments: VmArguments,
 }
 
-/// One running VM. Dropping it does not delete the VM, so the job host deletes it with [`Vms::delete`] when it stops.
+/// A VM that runs. A drop does not delete the VM. The job host deletes it with [`Vms::delete`] when the job host
+/// stops.
 pub struct Vm {
     handle: SandboxHandle,
 }
@@ -72,12 +73,12 @@ impl Vms {
         Ok(Vm { handle })
     }
 
-    /// Deletes the VM and all its files, if a VM was started. It also deletes a VM that did not start completely, or
-    /// whose job was cancelled.
+    /// Deletes the VM and all its files, if the VM exists. It also deletes a VM that did not start completely, and a VM
+    /// whose job did not complete.
     ///
     /// # Errors
     ///
-    /// Returns an error when the VM is not deleted within a minute.
+    /// Returns an error when the delete fails, or when it does not complete in one minute.
     pub async fn delete(&self) -> Result<(), AnyError> {
         let name = SandboxName::new(VM_NAME)?;
         match tokio::time::timeout(DELETE_TIMEOUT, self.service.delete(&name)).await {
@@ -108,7 +109,7 @@ impl Vm {
     ///
     /// # Errors
     ///
-    /// Returns an error when the file cannot be written.
+    /// Returns an error when the write fails.
     pub async fn write_file(&self, path: &str, contents: Bytes) -> Result<(), AnyError> {
         self.handle
             .write_file(&SandboxPath::new(path), Box::pin(io::Cursor::new(contents)))
@@ -120,7 +121,7 @@ impl Vm {
     ///
     /// # Errors
     ///
-    /// Returns an error when the file cannot be read, or when it is larger than `limit` bytes.
+    /// Returns an error when the read fails, or when the file is larger than `limit` bytes.
     pub async fn read_file(&self, path: &str, limit: u64) -> Result<Vec<u8>, AnyError> {
         let mut contents = Vec::new();
         self.handle
@@ -139,7 +140,7 @@ impl Vm {
     ///
     /// # Errors
     ///
-    /// Returns an error when the script does not start, or its events end before it exits.
+    /// Returns an error when the script does not start, or when its events stop before the script exits.
     pub async fn run_script(&self, script: &str, deadline: Instant, limits: Limits) -> Result<Collected, AnyError> {
         let spec = ExecutionSpec::command(SandboxPath::new("/bin/sh"), ["-c".to_string(), script.to_string()])
             .with_working_directory(SandboxPath::new(JOB_FOLDER));

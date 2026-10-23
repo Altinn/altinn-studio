@@ -6,7 +6,7 @@ RUN apt-get update \
 
 WORKDIR /source
 COPY Cargo.toml Cargo.lock ./
-# Cargo reads every workspace member, so the build context has the Rust sources of all members.
+# The build context contains the Rust sources of all workspace members, because Cargo reads all of them.
 COPY src src
 RUN cargo build \
     --locked \
@@ -36,7 +36,7 @@ RUN runtime_tag="v${MICROSANDBOX_RUNTIME_VERSION}" \
     && sha256sum --check --ignore-missing --strict checksums.sha256 \
     && grep --fixed-strings --quiet '  microsandbox-linux-x86_64.tar.gz' checksums.sha256
 
-# The downloaded Microsandbox runtime requires glibc 2.28 or newer.
+# The Microsandbox runtime that this file downloads works only with glibc 2.28 or newer.
 FROM ubuntu:24.04@sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254
 
 RUN apt-get update \

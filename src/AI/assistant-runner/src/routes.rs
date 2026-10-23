@@ -16,13 +16,13 @@ use crate::{
     lifecycle::Claim,
 };
 
-/// The largest app archive that the job host accepts.
+/// The maximum size of an app archive that the job host accepts.
 const MAX_ARCHIVE_BYTES: usize = 50 * 1024 * 1024;
 
 const ARCHIVE_CONTENT_TYPE: &str = "application/gzip";
 const BODY_TIMEOUT: Duration = Duration::from_mins(2);
 
-/// The HTTP API of the job host. It runs one job: the first job request takes the claim, and later job requests get
+/// The HTTP API of the job host. It runs one job. The first job request takes the claim. Later job requests receive
 /// 409.
 pub struct Routes {
     jobs: Rc<dyn Jobs>,
@@ -50,8 +50,9 @@ impl Routes {
         }
     }
 
-    /// The first job request takes the claim, whatever its answer. The claim finishes when the handler ends, also when
-    /// the handler is dropped because the client went away. Then the job host stops and deletes the VM.
+    /// The first job request takes the claim, also if the request fails. The claim finishes when the handler ends.
+    /// This also occurs when hyper drops the handler because the client disconnected. Then the job host stops and
+    /// deletes the VM.
     async fn job(&self, request: Request<Incoming>) -> Response<Body> {
         let deadline = Instant::now() + UPGRADE_TIMEOUT;
         if self.stopping.is_cancelled() {
@@ -81,7 +82,8 @@ impl Routes {
     }
 
     async fn read_archive(&self, request: Request<Incoming>) -> Result<Bytes, Response<Body>> {
-        // hyper has already parsed and checked Content-Length, and gives it as the lower bound of the size hint.
+        // hyper parsed and checked Content-Length before this step. It gives the value as the lower bound of the size
+        // hint.
         if request.body().size_hint().lower() > self.max_archive_bytes as u64 {
             return Err(self.too_large());
         }

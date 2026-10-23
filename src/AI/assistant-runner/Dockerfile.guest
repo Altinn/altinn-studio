@@ -1,26 +1,26 @@
-# The guest image of the job VMs. The jobs run app code, so the image has no secrets.
+# The guest image of the job VMs. The image contains no secrets, because the jobs run app code.
 
-# studioctl-server runs on .NET 10, and it reads the projects of an app with the MSBuild of a .NET 10 SDK.
+# studioctl-server runs on .NET 10. It reads the projects of an app with the MSBuild of a .NET 10 SDK.
 FROM mcr.microsoft.com/dotnet/sdk:10.0-noble@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3 AS sdk10
 
-# v9 apps target .NET 11. v8 apps target .NET 8, and the SDK downloads their targeting packs from NuGet.
+# v9 apps target .NET 11. v8 apps target .NET 8. The SDK downloads the targeting packs for .NET 8 from NuGet.
 FROM mcr.microsoft.com/dotnet/sdk:11.0-resolute@sha256:bfabf51e74c5a7cf2fc4eac852145db86f4867d475257d809518d6a2b0fe71e1
 
 COPY --from=sdk10 /usr/share/dotnet/sdk /usr/share/dotnet/sdk
 COPY --from=sdk10 /usr/share/dotnet/sdk-manifests /usr/share/dotnet/sdk-manifests
 COPY --from=sdk10 /usr/share/dotnet/shared /usr/share/dotnet/shared
 
-# A new studioctl version goes to production only through a reviewed change of these two values.
-# AGENTS.md tells how to update them.
+# Only a reviewed change of these two values can put a new studioctl version into production.
+# AGENTS.md gives the procedure to update them.
 ARG STUDIOCTL_VERSION=v0.1.0-preview.29
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=9a723f023a4e9625c0a5d8be262f54b25c52f563b2e8ca06fe9c5c1e1e575959
 
-# The jobs run as app-build, which is not root in the VM. That makes an escape from the VM harder.
+# The jobs run as app-build, which is not root in the VM. This makes an escape from the VM more difficult.
 RUN useradd --create-home --user-group --shell /bin/bash app-build \
     && install --directory --owner app-build --group app-build /job
 
-# The installer checks the binaries against the checksums of the release. studioctl writes to its home, so
-# app-build owns it.
+# The installer compares the binaries with the checksums of the release. app-build owns the home folder of
+# studioctl, because studioctl writes to it.
 RUN curl -fsSL \
         "https://github.com/Altinn/altinn-studio/releases/download/studioctl/${STUDIOCTL_VERSION}/install.sh" \
         -o /tmp/studioctl-install.sh \
@@ -32,9 +32,9 @@ RUN curl -fsSL \
     && test "$(STUDIOCTL_HOME=/opt/studioctl studioctl version)" = "studioctl ${STUDIOCTL_VERSION}" \
     && chown -R app-build:app-build /opt/studioctl
 
-# The network allowlist blocks the certificate revocation servers, so NuGet does not check revocation online.
-# It also blocks builds.dotnet.microsoft.com, so the SDK does not read the release metadata for its vulnerability
-# check. That setting accepts only `true`, not `1`.
+# NuGet checks revocation offline, because the network allowlist blocks the certificate revocation servers.
+# The SDK does not read the release metadata for its vulnerability check, because the allowlist also blocks
+# builds.dotnet.microsoft.com. DOTNET_SDK_VULNERABILITY_CHECK_DISABLE accepts only `true`, not `1`.
 ENV STUDIOCTL_HOME=/opt/studioctl \
     STUDIOCTL_NO_UPDATE_CHECK=1 \
     NO_COLOR=1 \

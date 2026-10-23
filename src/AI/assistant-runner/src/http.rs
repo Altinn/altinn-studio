@@ -19,13 +19,13 @@ use crate::routes::Routes;
 
 pub type Body = Full<Bytes>;
 
-/// After the stop, open connections get this much time to finish.
+/// After the stop, open connections have this much time to complete.
 const DRAIN_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Serves the routes until `stop` completes, and returns the output of `stop`.
+/// Serves the routes until `stop` completes. Returns the output of `stop`.
 ///
-/// After the stop, it waits for the open connections, so that the answer to the job request is written. Each
-/// connection serves one request, so no idle connection holds the stop.
+/// After the stop, the server waits for the open connections, so that it writes the response to the job request. No
+/// idle connection can delay the stop, because each connection serves only one request.
 pub async fn serve<T>(listener: TcpListener, routes: Rc<Routes>, stop: impl Future<Output = T>) -> T {
     let connections = GracefulShutdown::new();
     let mut stop = pin!(stop);

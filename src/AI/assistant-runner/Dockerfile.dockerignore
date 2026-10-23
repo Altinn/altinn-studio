@@ -1,4 +1,4 @@
-# Cargo reads every workspace member, so add each member of the root Cargo.toml here.
+# Cargo reads all workspace members. Add each member of the root Cargo.toml to this file.
 **
 !Cargo.lock
 !Cargo.toml

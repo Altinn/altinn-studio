@@ -5,7 +5,7 @@ use sandbox::execution::{ExecutionEvent, ExecutionEventStream};
 use sandbox_host::AnyError;
 use tokio::time::{Instant, sleep_until};
 
-/// The largest number of bytes to keep from each output stream of a command.
+/// The maximum number of bytes that the job host keeps from each output stream of a command.
 #[derive(Clone, Copy, Debug)]
 pub struct Limits {
     pub stdout: usize,
@@ -25,7 +25,7 @@ impl Captured {
         &self.bytes
     }
 
-    /// Tells if the stream was longer than its limit.
+    /// Returns `true` if the stream was longer than its limit.
     #[must_use]
     pub const fn is_cut(&self) -> bool {
         self.cut
@@ -51,12 +51,12 @@ pub struct Collected {
     pub stderr: Captured,
 }
 
-/// Reads the events of a command until it exits or the deadline comes. It continues to read after a stream reaches
-/// its limit, so that a command with much output does not stop.
+/// Reads the events of a command until the command exits, or until the deadline. It continues to read after a stream
+/// reaches its limit, so that a command with much output does not block.
 ///
 /// # Errors
 ///
-/// Returns an error when the command does not start, or the events end before the command exits.
+/// Returns an error when the command does not start, or when the events stop before the command exits.
 pub async fn collect(
     events: &mut ExecutionEventStream,
     deadline: Instant,
