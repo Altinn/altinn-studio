@@ -161,7 +161,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:6.0.5"
     classnames: "npm:2.5.1"
     date-fns: "npm:4.4.0"
-    dompurify: "npm:3.4.16"
+    dompurify: "npm:3.4.17"
     eslint: "npm:10.8.1"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
@@ -4761,7 +4761,7 @@ __metadata:
   resolution: "@studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
   dependencies:
     "@studio/components": "workspace:^"
-    dompurify: "npm:^3.2.6"
+    dompurify: "npm:^3.4.17"
     marked: "npm:^17.0.6"
   languageName: unknown
   linkType: soft
@@ -9146,7 +9146,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.16, dompurify@npm:^3.2.6, dompurify@npm:^3.4.12":
+"dompurify@npm:3.4.17, dompurify@npm:^3.4.17":
+  version: 3.4.17
+  resolution: "dompurify@npm:3.4.17"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10/ae03c068bd351d1201a24a9667cb302c65939f45a0c357edec8b84133108e19ac74f355c2d8b0f30baadadd7f0be2db300d269aa80d3ee15872712ca9ff4e1a8
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.4.12":
   version: 3.4.16
   resolution: "dompurify@npm:3.4.16"
   dependencies:
@@ -15963,7 +15975,7 @@ __metadata:
   resolution: "resourceadm@workspace:src/Designer/frontend/resourceadm"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
-    dompurify: "npm:^3.2.6"
+    dompurify: "npm:^3.4.17"
     html-react-parser: "npm:^6.0.0"
     markdown-to-jsx: "npm:7.7.17"
     react: "npm:19.2.8"
