@@ -300,23 +300,56 @@ func (c *DoctorCommand) renderDoctorDiskSection(table *ui.Table, disk *doctorsvc
 	}
 
 	for _, check := range disk.Checks {
+		label := doctorDiskCheckLabel(check.ID)
 		value := check.Message
-		if check.Path != "" {
-			value += " (" + check.Path + ")"
-		}
 
 		switch check.Level {
 		case "ok":
-			doctorKeyValueStatus(table, true, check.ID, value)
+			doctorKeyValueStatus(table, true, label, value)
 		case "info":
-			doctorKeyValue(table, check.ID, value)
+			doctorKeyValue(table, label, value)
 		case "warn":
-			doctorKeyValueStatus(table, false, check.ID, "WARN: "+value)
+			doctorKeyValueStatus(table, false, label, "WARN: "+value)
+			c.verboseDoctorDiskCheckPath(label, check.Path)
 		case "error":
-			doctorKeyValueStatus(table, false, check.ID, "ERROR: "+value)
+			doctorKeyValueStatus(table, false, label, "ERROR: "+value)
+			c.verboseDoctorDiskCheckPath(label, check.Path)
 		default:
-			doctorKeyValue(table, check.ID, value)
+			doctorKeyValue(table, label, value)
 		}
+	}
+}
+
+// verboseDoctorDiskCheckPath names the path a failing check is about, with -v only: studioctl manages
+// these files, so the text output leaves them out, and `doctor --json` always has them.
+func (c *DoctorCommand) verboseDoctorDiskCheckPath(label, path string) {
+	if path != "" {
+		c.out.Verbosef("Disk %s: %s", label, path)
+	}
+}
+
+func doctorDiskCheckLabel(id string) string {
+	switch id {
+	case doctorsvc.DiskCheckHome:
+		return "Home"
+	case doctorsvc.DiskCheckSockets:
+		return "Sockets"
+	case doctorsvc.DiskCheckLogs:
+		return "Logs"
+	case doctorsvc.DiskCheckData:
+		return "Data"
+	case doctorsvc.DiskCheckBin:
+		return "Binaries"
+	case doctorsvc.DiskCheckCredentials:
+		return "Credentials"
+	case doctorsvc.DiskCheckServerBinary:
+		return "Server binary"
+	case doctorsvc.DiskCheckServerState:
+		return "Server state"
+	case doctorsvc.DiskCheckMaskinportenClient:
+		return "Maskinporten"
+	default:
+		return id
 	}
 }
 

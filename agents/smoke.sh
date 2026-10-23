@@ -76,7 +76,9 @@ test -f /home/agent/.config/altinn-studio/data/infra/otel-collector.yaml \
 doctor="$(studioctl doctor --json)"
 jq -e '.cli.version | startswith("v")' <<<"$doctor" >/dev/null \
     || fail "studioctl doctor did not report a CLI version"
-jq -e '.disk.checks[] | select(.id == "appmgr_binary" and .level == "ok")' <<<"$doctor" >/dev/null \
+# studioctl releases up to v0.1.0-preview.29, which STUDIOCTL_VERSION pins, name this check appmgr_binary.
+jq -e '.disk.checks[] | select((.id == "server_binary" or .id == "appmgr_binary") and .level == "ok")' \
+    <<<"$doctor" >/dev/null \
     || fail "studioctl doctor did not find studioctl-server"
 
 systemctl is-enabled agent-studioctl-auth-init.service >/dev/null \
