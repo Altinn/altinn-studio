@@ -43,20 +43,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # The runner image bakes the toolchain pinned by rust-toolchain.toml; only
-      # install through rustup when the two have drifted (e.g. a PR bumping
-      # the toolchain before the image has been rebuilt).
-      - name: Verify Rust toolchain
-        run: |
-          RUST_VERSION="$(sed -n 's/^channel = "\([^"]*\)"$/\1/p' "${GITHUB_WORKSPACE}/rust-toolchain.toml")"
-          test -n "${RUST_VERSION}"
-          if [ "$(rustc --version | awk '{ print $2 }')" != "${RUST_VERSION}" ] \
-            || ! rustfmt --version >/dev/null 2>&1 \
-            || ! cargo clippy --version >/dev/null 2>&1; then
-            rustup toolchain install "${RUST_VERSION}" --profile minimal --component rustfmt,clippy
-            rustup default "${RUST_VERSION}"
-          fi
-
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
