@@ -85,6 +85,11 @@ jobs:
       REGISTRY: localhost:5443
       JOB_HOST_IMAGE: assistant-runner:ci
       JOB_HOST_URL: http://127.0.0.1:8080
+      # In a cluster, the PodTemplate sets these. This job runs the container without it.
+      SANDBOX_CPUS: "2"
+      SANDBOX_MEMORY: 4Gi
+      SANDBOX_ROOT_FILESYSTEM: 20Gi
+      REQUEST_TIMEOUT_SECONDS: "120"
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -182,7 +187,7 @@ jobs:
             "${JOB_HOST_IMAGE}" import
 
       # Starts the job host with the restrictions of the pod: root without capabilities, a read-only root file system
-      # and /dev/kvm. Further arguments are added to `docker run`.
+      # and /dev/kvm. The settings of the job host come from the environment of the step.
       - name: Write the start script
         run: |
           cat > "${RUNNER_TEMP}/start-job-host.sh" <<'SCRIPT'
@@ -192,7 +197,8 @@ jobs:
             --device /dev/kvm --cap-drop ALL --security-opt no-new-privileges --read-only --tmpfs /tmp \
             --volume "${RUNNER_TEMP}/home:/var/lib/altinn/sandbox-provider" \
             --volume "${RUNNER_TEMP}/cache:/var/cache/altinn/sandbox" \
-            --env SANDBOX_IMAGE "$@" "${JOB_HOST_IMAGE}"
+            --env SANDBOX_IMAGE --env SANDBOX_CPUS --env SANDBOX_MEMORY --env SANDBOX_ROOT_FILESYSTEM \
+            --env REQUEST_TIMEOUT_SECONDS "${JOB_HOST_IMAGE}"
           for _ in $(seq 1 60); do
             curl -fsS "${JOB_HOST_URL}/health" && exit 0
             sleep 1
@@ -216,8 +222,10 @@ jobs:
           docker rm job-host
 
       - name: Exit when no job request comes
+        env:
+          REQUEST_TIMEOUT_SECONDS: "5"
         run: |
-          "${RUNNER_TEMP}/start-job-host.sh" --env REQUEST_TIMEOUT_SECONDS=5
+          "${RUNNER_TEMP}/start-job-host.sh"
           test "$(timeout 60 docker wait job-host)" = 0
           docker rm job-host
 

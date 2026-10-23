@@ -31,8 +31,9 @@ struct Arguments {
     /// Address of the HTTP API.
     #[arg(long, env = "LISTEN_ADDRESS", default_value = "0.0.0.0:8080")]
     listen_address: SocketAddr,
-    /// Seconds to wait for the job request after the job host is ready. Without a request, it exits with 0.
-    #[arg(long, env = "REQUEST_TIMEOUT_SECONDS", default_value = "120")]
+    /// Seconds to wait for the job request after the job host is ready. Without a request, it exits with 0. The
+    /// `PodTemplate` sets it, so it has no default here.
+    #[arg(long, env = "REQUEST_TIMEOUT_SECONDS")]
     request_timeout_seconds: NonZeroU64,
 }
 

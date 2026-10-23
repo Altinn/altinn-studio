@@ -20,7 +20,8 @@ const VM_NAME: &str = "job";
 
 const DELETE_TIMEOUT: Duration = Duration::from_mins(1);
 
-/// The guest image and the size of the VM.
+/// The guest image and the size of the VM. The `PodTemplate` sets them, next to the resources of the pod that holds the
+/// VM, so they have no defaults here.
 #[derive(Args)]
 pub struct VmArguments {
     /// Digest-pinned guest image with the .NET SDK, git and studioctl.
@@ -28,15 +29,15 @@ pub struct VmArguments {
     image: String,
 
     /// Virtual CPUs of the VM.
-    #[arg(long, env = "SANDBOX_CPUS", default_value = "2")]
+    #[arg(long, env = "SANDBOX_CPUS")]
     cpus: CpuQuantity,
 
     /// Memory of the VM.
-    #[arg(long, env = "SANDBOX_MEMORY", default_value = "4Gi")]
+    #[arg(long, env = "SANDBOX_MEMORY")]
     memory: ByteQuantity,
 
     /// Size of the private root file system of the VM.
-    #[arg(long, env = "SANDBOX_ROOT_FILESYSTEM", default_value = "20Gi")]
+    #[arg(long, env = "SANDBOX_ROOT_FILESYSTEM")]
     root_filesystem: ByteQuantity,
 }
 

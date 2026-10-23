@@ -78,7 +78,7 @@ Other answers:
 | Exit code | When                                                                                                                                         |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0         | It answered the job request, also when the command failed. The answer has the exit code of the command.                                      |
-| 0         | No job request came within `REQUEST_TIMEOUT_SECONDS` (default 120) after it was ready, for example because the assistant stopped.            |
+| 0         | No job request came within `REQUEST_TIMEOUT_SECONDS` after it was ready, for example because the assistant stopped.                          |
 | 143       | It got SIGTERM or SIGINT, for example because the assistant deleted the Job. It cancels a running job and deletes the VM first.              |
 | 1         | An error, or the VM could not be deleted. A Job pod is never restarted, so the job host clears the Provider home of the pod before it exits. |
 
