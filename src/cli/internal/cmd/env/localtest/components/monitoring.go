@@ -13,6 +13,9 @@ import (
 // datasource settings in grafana-datasources.yaml were verified with.
 const grafanaLogsPluginVersion = "0.32.0"
 
+// grafanaTracesDatasourceUID is the UID grafana-datasources.yaml gives the traces datasource.
+const grafanaTracesDatasourceUID = "altinn-studio-traces"
+
 // The collector receives OTLP over gRPC and HTTP on the standard ports, as the router does in
 // Altinn's environments. The topology's otel URL is the gRPC one.
 const (
