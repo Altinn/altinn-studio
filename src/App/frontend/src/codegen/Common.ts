@@ -55,20 +55,18 @@ const common = {
           .exportAs('ButtonPosition'),
       ),
     ),
-  ISummaryOverridesCommon: () =>
-    new CG.obj(
-      new CG.prop('hidden', new CG.bool().optional()),
-      new CG.prop('emptyFieldText', new CG.str().optional()),
-      new CG.prop(
-        'showNextButton',
-        new CG.bool()
-          .optional()
-          .setTitle('Show next button after editing', 'Vis neste-knappen etter redigering')
-          .setDescription(
-            'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
-            'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
-          ),
-      ),
+  ISummaryOverridesCommon: () => new CG.obj(new CG.prop('hidden', new CG.bool().optional())),
+  summaryEmptyFieldText: () => new CG.prop('emptyFieldText', new CG.str().optional()),
+  summaryShowNextButton: () =>
+    new CG.prop(
+      'showNextButton',
+      new CG.bool()
+        .optional()
+        .setTitle('Show next button after editing', 'Vis neste-knappen etter redigering')
+        .setDescription(
+          'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+          'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+        ),
     ),
   ILayoutFile: () =>
     new CG.obj(

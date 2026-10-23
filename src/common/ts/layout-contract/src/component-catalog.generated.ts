@@ -3071,8 +3071,14 @@ const SummaryTargetComponent = {
 
 const ISummaryOverridesCommon = {
   type: 'object',
+  properties: { hidden: { type: 'boolean', required: false } },
+  additionalProperties: false,
+} as const;
+
+const AddressSummaryOverrides = {
+  type: 'object',
   properties: {
-    hidden: { type: 'boolean', required: false },
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
     emptyFieldText: { type: 'string', required: false },
     showNextButton: {
       type: 'boolean',
@@ -3094,8 +3100,8 @@ const AddressSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: AddressSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: AddressSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3112,8 +3118,8 @@ const AddressSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: AddressSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: AddressSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Address', required: true },
       },
       additionalProperties: false,
@@ -3136,8 +3142,6 @@ const AlertSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3151,8 +3155,6 @@ const AlertSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Alert', required: true },
       },
       additionalProperties: false,
@@ -3175,8 +3177,6 @@ const AttachmentListSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3193,8 +3193,6 @@ const AttachmentListSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'AttachmentList', required: true },
       },
       additionalProperties: false,
@@ -3217,8 +3215,6 @@ const AudioSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3232,8 +3228,6 @@ const AudioSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Audio', required: true },
       },
       additionalProperties: false,
@@ -3253,8 +3247,16 @@ const CheckboxesSummaryOverrides = {
   type: 'object',
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
-    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -3276,8 +3278,8 @@ const CheckboxesSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: CheckboxesSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: CheckboxesSummaryOverrides['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -3295,8 +3297,8 @@ const CheckboxesSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: CheckboxesSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: CheckboxesSummaryOverrides['properties']['showNextButton'],
         displayType: CheckboxesSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'Checkboxes', required: true },
       },
@@ -3313,6 +3315,15 @@ const CheckboxesSummaryOverridesWithRef = {
   ],
 } as const;
 
+const DateSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+  },
+  additionalProperties: false,
+} as const;
+
 const DateSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3320,8 +3331,7 @@ const DateSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: DateSummaryOverrides['properties']['emptyFieldText'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3335,8 +3345,7 @@ const DateSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: DateSummaryOverrides['properties']['emptyFieldText'],
         componentType: { type: 'constant', value: 'Date', required: true },
       },
       additionalProperties: false,
@@ -3352,6 +3361,24 @@ const DateSummaryOverridesWithRef = {
   ],
 } as const;
 
+const DatepickerSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const DatepickerSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3359,8 +3386,8 @@ const DatepickerSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: DatepickerSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: DatepickerSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3377,8 +3404,8 @@ const DatepickerSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: DatepickerSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: DatepickerSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Datepicker', required: true },
       },
       additionalProperties: false,
@@ -3401,8 +3428,6 @@ const DividerSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3419,8 +3444,6 @@ const DividerSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Divider', required: true },
       },
       additionalProperties: false,
@@ -3436,6 +3459,24 @@ const DividerSummaryOverridesWithRef = {
   ],
 } as const;
 
+const DropdownSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const DropdownSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3443,8 +3484,8 @@ const DropdownSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: DropdownSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: DropdownSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3461,8 +3502,8 @@ const DropdownSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: DropdownSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: DropdownSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Dropdown', required: true },
       },
       additionalProperties: false,
@@ -3482,8 +3523,6 @@ const GridSummaryOverrides = {
   type: 'object',
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
-    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
     hideEmptyRows: {
       type: 'boolean',
       title: { en: 'Hide empty rows', nb: 'Skjul tomme rader' },
@@ -3504,8 +3543,6 @@ const GridSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         hideEmptyRows: GridSummaryOverrides['properties']['hideEmptyRows'],
         componentId: { type: 'string', required: true },
       },
@@ -3520,8 +3557,6 @@ const GridSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         hideEmptyRows: GridSummaryOverrides['properties']['hideEmptyRows'],
         componentType: { type: 'constant', value: 'Grid', required: true },
       },
@@ -3545,8 +3580,6 @@ const GroupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3560,8 +3593,6 @@ const GroupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Group', required: true },
       },
       additionalProperties: false,
@@ -3584,8 +3615,6 @@ const HeadingSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3602,8 +3631,6 @@ const HeadingSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Heading', required: true },
       },
       additionalProperties: false,
@@ -3626,8 +3653,6 @@ const IFrameSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3641,8 +3666,6 @@ const IFrameSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'IFrame', required: true },
       },
       additionalProperties: false,
@@ -3665,8 +3688,6 @@ const ImageSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3680,8 +3701,6 @@ const ImageSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Image', required: true },
       },
       additionalProperties: false,
@@ -3697,6 +3716,23 @@ const ImageSummaryOverridesWithRef = {
   ],
 } as const;
 
+const ImageUploadSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ImageUploadSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3704,8 +3740,7 @@ const ImageUploadSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        showNextButton: ImageUploadSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3722,8 +3757,7 @@ const ImageUploadSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        showNextButton: ImageUploadSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'ImageUpload', required: true },
       },
       additionalProperties: false,
@@ -3739,6 +3773,24 @@ const ImageUploadSummaryOverridesWithRef = {
   ],
 } as const;
 
+const InputSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const InputSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3746,8 +3798,8 @@ const InputSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: InputSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: InputSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3761,8 +3813,8 @@ const InputSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: InputSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: InputSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Input', required: true },
       },
       additionalProperties: false,
@@ -3785,8 +3837,6 @@ const InstanceInformationSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3803,8 +3853,6 @@ const InstanceInformationSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'InstanceInformation', required: true },
       },
       additionalProperties: false,
@@ -3820,6 +3868,24 @@ const InstanceInformationSummaryOverridesWithRef = {
   ],
 } as const;
 
+const LikertSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const LikertSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3827,8 +3893,8 @@ const LikertSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: LikertSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: LikertSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3842,8 +3908,8 @@ const LikertSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: LikertSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: LikertSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Likert', required: true },
       },
       additionalProperties: false,
@@ -3859,6 +3925,24 @@ const LikertSummaryOverridesWithRef = {
   ],
 } as const;
 
+const LikertItemSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const LikertItemSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3866,8 +3950,8 @@ const LikertItemSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: LikertItemSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: LikertItemSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3884,8 +3968,8 @@ const LikertItemSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: LikertItemSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: LikertItemSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'LikertItem', required: true },
       },
       additionalProperties: false,
@@ -3901,6 +3985,24 @@ const LikertItemSummaryOverridesWithRef = {
   ],
 } as const;
 
+const ListSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ListSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3908,8 +4010,8 @@ const ListSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: ListSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: ListSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3923,8 +4025,8 @@ const ListSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: ListSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: ListSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'List', required: true },
       },
       additionalProperties: false,
@@ -3940,6 +4042,24 @@ const ListSummaryOverridesWithRef = {
   ],
 } as const;
 
+const MapSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const MapSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -3947,8 +4067,8 @@ const MapSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: MapSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: MapSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -3962,8 +4082,8 @@ const MapSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: MapSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: MapSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Map', required: true },
       },
       additionalProperties: false,
@@ -3983,8 +4103,16 @@ const MultipleSelectSummaryOverrides = {
   type: 'object',
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
-    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     displayType: {
       type: 'string',
       allowedValues: ['list', 'string'],
@@ -4006,8 +4134,8 @@ const MultipleSelectSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: MultipleSelectSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: MultipleSelectSummaryOverrides['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentId: { type: 'string', required: true },
       },
@@ -4025,8 +4153,8 @@ const MultipleSelectSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: MultipleSelectSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: MultipleSelectSummaryOverrides['properties']['showNextButton'],
         displayType: MultipleSelectSummaryOverrides['properties']['displayType'],
         componentType: { type: 'constant', value: 'MultipleSelect', required: true },
       },
@@ -4043,6 +4171,15 @@ const MultipleSelectSummaryOverridesWithRef = {
   ],
 } as const;
 
+const NumberSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+  },
+  additionalProperties: false,
+} as const;
+
 const NumberSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4050,8 +4187,7 @@ const NumberSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: NumberSummaryOverrides['properties']['emptyFieldText'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4065,8 +4201,7 @@ const NumberSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: NumberSummaryOverrides['properties']['emptyFieldText'],
         componentType: { type: 'constant', value: 'Number', required: true },
       },
       additionalProperties: false,
@@ -4082,6 +4217,15 @@ const NumberSummaryOverridesWithRef = {
   ],
 } as const;
 
+const OptionSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+  },
+  additionalProperties: false,
+} as const;
+
 const OptionSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4089,8 +4233,7 @@ const OptionSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: OptionSummaryOverrides['properties']['emptyFieldText'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4104,8 +4247,7 @@ const OptionSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: OptionSummaryOverrides['properties']['emptyFieldText'],
         componentType: { type: 'constant', value: 'Option', required: true },
       },
       additionalProperties: false,
@@ -4121,6 +4263,24 @@ const OptionSummaryOverridesWithRef = {
   ],
 } as const;
 
+const OrganizationLookupSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const OrganizationLookupSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4128,8 +4288,8 @@ const OrganizationLookupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: OrganizationLookupSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: OrganizationLookupSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4146,8 +4306,8 @@ const OrganizationLookupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: OrganizationLookupSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: OrganizationLookupSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'OrganizationLookup', required: true },
       },
       additionalProperties: false,
@@ -4170,8 +4330,6 @@ const PanelSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4185,8 +4343,6 @@ const PanelSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Panel', required: true },
       },
       additionalProperties: false,
@@ -4209,8 +4365,6 @@ const ParagraphSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4227,8 +4381,6 @@ const ParagraphSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Paragraph', required: true },
       },
       additionalProperties: false,
@@ -4251,8 +4403,6 @@ const PaymentSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4269,8 +4419,6 @@ const PaymentSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Payment', required: true },
       },
       additionalProperties: false,
@@ -4293,8 +4441,6 @@ const PaymentDetailsSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4311,8 +4457,6 @@ const PaymentDetailsSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'PaymentDetails', required: true },
       },
       additionalProperties: false,
@@ -4328,6 +4472,24 @@ const PaymentDetailsSummaryOverridesWithRef = {
   ],
 } as const;
 
+const PersonLookupSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const PersonLookupSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4335,8 +4497,8 @@ const PersonLookupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: PersonLookupSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: PersonLookupSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4353,8 +4515,8 @@ const PersonLookupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: PersonLookupSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: PersonLookupSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'PersonLookup', required: true },
       },
       additionalProperties: false,
@@ -4370,6 +4532,24 @@ const PersonLookupSummaryOverridesWithRef = {
   ],
 } as const;
 
+const RadioButtonsSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const RadioButtonsSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4377,8 +4557,8 @@ const RadioButtonsSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: RadioButtonsSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: RadioButtonsSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4395,8 +4575,8 @@ const RadioButtonsSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: RadioButtonsSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: RadioButtonsSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'RadioButtons', required: true },
       },
       additionalProperties: false,
@@ -4416,8 +4596,16 @@ const RepeatingGroupSummaryOverrides = {
   type: 'object',
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
-    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4440,8 +4628,8 @@ const RepeatingGroupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: RepeatingGroupSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: RepeatingGroupSummaryOverrides['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4459,8 +4647,8 @@ const RepeatingGroupSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: RepeatingGroupSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: RepeatingGroupSummaryOverrides['properties']['showNextButton'],
         display: RepeatingGroupSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'RepeatingGroup', required: true },
       },
@@ -4481,8 +4669,15 @@ const SubformSummaryOverrides = {
   type: 'object',
   properties: {
     hidden: ISummaryOverridesCommon['properties']['hidden'],
-    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-    showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
     display: {
       type: 'string',
       allowedValues: ['table', 'full'],
@@ -4505,8 +4700,7 @@ const SubformSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        showNextButton: SubformSummaryOverrides['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentId: { type: 'string', required: true },
       },
@@ -4524,8 +4718,7 @@ const SubformSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        showNextButton: SubformSummaryOverrides['properties']['showNextButton'],
         display: SubformSummaryOverrides['properties']['display'],
         componentType: { type: 'constant', value: 'Subform', required: true },
       },
@@ -4549,8 +4742,6 @@ const TabsSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4564,8 +4755,6 @@ const TabsSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Tabs', required: true },
       },
       additionalProperties: false,
@@ -4581,6 +4770,15 @@ const TabsSummaryOverridesWithRef = {
   ],
 } as const;
 
+const TextSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+  },
+  additionalProperties: false,
+} as const;
+
 const TextSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4588,8 +4786,7 @@ const TextSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: TextSummaryOverrides['properties']['emptyFieldText'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4603,8 +4800,7 @@ const TextSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: TextSummaryOverrides['properties']['emptyFieldText'],
         componentType: { type: 'constant', value: 'Text', required: true },
       },
       additionalProperties: false,
@@ -4620,6 +4816,24 @@ const TextSummaryOverridesWithRef = {
   ],
 } as const;
 
+const TextAreaSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const TextAreaSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4627,8 +4841,8 @@ const TextAreaSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: TextAreaSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: TextAreaSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4645,8 +4859,8 @@ const TextAreaSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: TextAreaSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: TextAreaSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TextArea', required: true },
       },
       additionalProperties: false,
@@ -4662,6 +4876,24 @@ const TextAreaSummaryOverridesWithRef = {
   ],
 } as const;
 
+const TimePickerSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: { type: 'string', required: false },
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const TimePickerSummaryOverridesWithRef = {
   type: 'union',
   variants: [
@@ -4669,8 +4901,8 @@ const TimePickerSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: TimePickerSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: TimePickerSummaryOverrides['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4687,8 +4919,8 @@ const TimePickerSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
+        emptyFieldText: TimePickerSummaryOverrides['properties']['emptyFieldText'],
+        showNextButton: TimePickerSummaryOverrides['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'TimePicker', required: true },
       },
       additionalProperties: false,
@@ -4711,8 +4943,6 @@ const VideoSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentId: { type: 'string', required: true },
       },
       additionalProperties: false,
@@ -4726,8 +4956,6 @@ const VideoSummaryOverridesWithRef = {
       type: 'object',
       properties: {
         hidden: ISummaryOverridesCommon['properties']['hidden'],
-        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
-        showNextButton: ISummaryOverridesCommon['properties']['showNextButton'],
         componentType: { type: 'constant', value: 'Video', required: true },
       },
       additionalProperties: false,

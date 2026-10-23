@@ -42,7 +42,7 @@ export const Config = asOptionsComponent(
         ),
     ),
   )
-  .addSummaryOverrides((obj) => {
+  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true }, (obj) => {
     obj.addProperty(
       new CG.prop(
         'displayType',

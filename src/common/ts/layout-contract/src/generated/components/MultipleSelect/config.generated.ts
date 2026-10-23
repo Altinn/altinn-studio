@@ -32,6 +32,8 @@ export interface IDataModelBindingsForGroupMultiselect extends IDataModelBinding
 }
 
 export interface MultipleSelectSummaryOverrides extends ISummaryOverridesCommon {
+  emptyFieldText?: string;
+  showNextButton?: boolean;
   displayType?: 'list' | 'string';
 }
 
@@ -67,4 +69,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MultipleSelectSummaryOverridesWithRef;
 };
 
-// Source hash: a3edb66a98042f64682ec1131f16ddaf8950725ef01f01444cebd66909c98a83
+// Source hash: 5a4fe8eb6dbd148537337284c1a2f9965fc092d7d331df565ec1da80b6fcebf6

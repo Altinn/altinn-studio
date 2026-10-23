@@ -119,5 +119,5 @@ export const Config = asOptionsComponent(
         .exportAs('ILikertFilter'),
     ),
   )
-  .addSummaryOverrides()
+  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true })
   .extends(CG.common('ILikertColumnProperties'));

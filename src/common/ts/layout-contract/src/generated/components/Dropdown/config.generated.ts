@@ -24,9 +24,14 @@ export interface CompDropdownExternal
   dataModelBindings: IDataModelBindingsOptionsSimple;
 }
 
+export interface DropdownSummaryOverrides extends ISummaryOverridesCommon {
+  emptyFieldText?: string;
+  showNextButton?: boolean;
+}
+
 export type DropdownSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Dropdown' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & DropdownSummaryOverrides)
+  | ({ componentType: 'Dropdown' } & DropdownSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -52,8 +57,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompDropdownExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: DropdownSummaryOverrides;
   summaryOverridesWithRef: DropdownSummaryOverridesWithRef;
 };
 
-// Source hash: 88861f552711a425b00b52cf3fb2f390b17a5a0b379b85e3ab1935a00eaba7ee
+// Source hash: c9911fa42fe14ee7a132e07807e7548a9e6a10aa976fed83a2303febf1aab0e6

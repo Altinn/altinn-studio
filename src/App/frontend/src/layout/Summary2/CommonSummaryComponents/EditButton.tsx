@@ -123,7 +123,9 @@ export function EditButton({
   const overriddenDataElementId = overrides?.dataModelElementId;
   const indexedId = useIndexedId(targetBaseComponentId, skipLastIdMutator);
   const summary2Id = useSummaryProp('id');
-  const showNextButton = useSummaryOverrides(targetBaseComponentId)?.showNextButton;
+  const summaryOverrides = useSummaryOverrides(targetBaseComponentId);
+  const showNextButton =
+    summaryOverrides && 'showNextButton' in summaryOverrides ? summaryOverrides.showNextButton : undefined;
 
   // Check if we're in a repeating group row and if this component is editable
   const editableInRepGroup = useIsEditableInRepGroup(targetBaseComponentId);

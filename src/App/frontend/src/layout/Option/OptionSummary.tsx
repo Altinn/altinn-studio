@@ -14,7 +14,7 @@ import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const OptionSummary = ({ targetBaseComponentId }: Summary2Props) => {
-  const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
+  const emptyFieldText = useSummaryOverrides<'Option'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const displayData = useDisplayData(targetBaseComponentId);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);

@@ -166,7 +166,7 @@ export const Config = new CG.component({
       },
     }).setDefault('general.edit'),
   )
-  .addSummaryOverrides((obj) => {
+  .addSummaryOverrides({ showNextButton: true }, (obj) => {
     obj.addProperty(
       new CG.prop(
         'display',

@@ -80,6 +80,6 @@ export const Config = new CG.component({
         ),
     ),
   )
-  .addSummaryOverrides()
+  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true })
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

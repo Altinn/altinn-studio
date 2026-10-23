@@ -42,7 +42,7 @@ export const Config = asOptionsComponent(
         ),
     ),
   )
-  .addSummaryOverrides()
+  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true })
   .addDataModelBinding(CG.common('IDataModelBindingsOptionsSimple'))
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

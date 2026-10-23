@@ -14,6 +14,8 @@ import {
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
 export interface CheckboxesSummaryOverrides extends ISummaryOverridesCommon {
+  emptyFieldText?: string;
+  showNextButton?: boolean;
   displayType?: 'list' | 'string';
 }
 
@@ -70,4 +72,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: CheckboxesSummaryOverridesWithRef;
 };
 
-// Source hash: e102ec6a0b4a1f686086cb1159ba5c790ebce9a8d217e5bd97dd7cb3a208f090
+// Source hash: 52cdb3a2f5e71952f97cd08fab94efd9957b78f9d21d55077642b8f07e63dd00

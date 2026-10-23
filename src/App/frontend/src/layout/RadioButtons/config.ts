@@ -68,6 +68,6 @@ export const Config = asOptionsComponent(
         ),
     ),
   )
-  .addSummaryOverrides()
+  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true })
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'));

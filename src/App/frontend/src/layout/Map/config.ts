@@ -293,4 +293,4 @@ export const Config = new CG.component({
   )
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
-  .addSummaryOverrides();
+  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true });

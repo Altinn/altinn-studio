@@ -23,7 +23,7 @@ export const Config = new CG.component({
   .makeSummarizable()
   .addProperty(CG.common('forceShowInSummary'))
   .extendTextResources(CG.common('TRBSummarizable'))
-  .addSummaryOverrides()
+  .addSummaryOverrides({ emptyFieldText: true })
   .extendTextResources(CG.common('TRBLabel'))
   .addProperty(
     new CG.prop(

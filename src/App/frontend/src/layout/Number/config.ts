@@ -48,4 +48,4 @@ export const Config = new CG.component({
         .addExample('https://example.com/icon.svg'),
     ),
   )
-  .addSummaryOverrides();
+  .addSummaryOverrides({ emptyFieldText: true });

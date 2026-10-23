@@ -25,7 +25,7 @@ export const Config = new CG.component({
   .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(CG.common('required'))
   .addProperty(CG.common('readOnly'))
-  .addSummaryOverrides()
+  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true })
   .addTextResource(
     new CG.trb({
       name: 'title',

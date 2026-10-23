@@ -16,9 +16,13 @@ export interface CompTextExternal extends ComponentBase {
   dataModelBindings?: undefined;
 }
 
+export interface TextSummaryOverrides extends ISummaryOverridesCommon {
+  emptyFieldText?: string;
+}
+
 export type TextSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Text' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & TextSummaryOverrides)
+  | ({ componentType: 'Text' } & TextSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Presentation,
@@ -44,8 +48,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompTextExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: TextSummaryOverrides;
   summaryOverridesWithRef: TextSummaryOverridesWithRef;
 };
 
-// Source hash: d0594df03a9111b0217485d0a85504c19750b9b5f9eb685e3142d301a79697d4
+// Source hash: 0ba02ac1878cb90c2ab701ee707db685c61fb0d7b44f3f7025e2df0690dfd4b9

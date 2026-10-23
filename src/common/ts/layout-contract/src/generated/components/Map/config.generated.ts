@@ -45,9 +45,14 @@ export interface Location {
 
 export type MapLayer = MapTileLayer | MapWMSLayer;
 
+export interface MapSummaryOverrides extends ISummaryOverridesCommon {
+  emptyFieldText?: string;
+  showNextButton?: boolean;
+}
+
 export type MapSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Map' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & MapSummaryOverrides)
+  | ({ componentType: 'Map' } & MapSummaryOverrides);
 
 export interface MapTileLayer {
   url: string;
@@ -104,8 +109,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompMapExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: MapSummaryOverrides;
   summaryOverridesWithRef: MapSummaryOverridesWithRef;
 };
 
-// Source hash: bdde9704a8bfe5096ae3dd0b2744f2e1b7fd8c43d61bde6770d52523e8a2ed06
+// Source hash: c2222bf67d6566fccedd3d6322dc7887ddd12b6977b9112d9a01113c0259e01d

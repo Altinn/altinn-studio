@@ -1,10 +1,28 @@
 import { CompExternal } from '@app/layout-contract/generated/components.generated';
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
+import { AddressSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Address/config.generated';
 import { CheckboxesSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
+import { DateSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Date/config.generated';
+import { DatepickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Datepicker/config.generated';
+import { DropdownSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Dropdown/config.generated';
 import { GridSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Grid/config.generated';
+import { ImageUploadSummaryOverridesWithRef } from '@app/layout-contract/generated/components/ImageUpload/config.generated';
+import { InputSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Input/config.generated';
+import { LikertSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Likert/config.generated';
+import { LikertItemSummaryOverridesWithRef } from '@app/layout-contract/generated/components/LikertItem/config.generated';
+import { ListSummaryOverridesWithRef } from '@app/layout-contract/generated/components/List/config.generated';
+import { MapSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Map/config.generated';
 import { MultipleSelectSummaryOverridesWithRef } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
+import { NumberSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Number/config.generated';
+import { OptionSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Option/config.generated';
+import { OrganizationLookupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/OrganizationLookup/config.generated';
+import { PersonLookupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/PersonLookup/config.generated';
+import { RadioButtonsSummaryOverridesWithRef } from '@app/layout-contract/generated/components/RadioButtons/config.generated';
 import { RepeatingGroupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 import { SubformSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Subform/config.generated';
+import { TextSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Text/config.generated';
+import { TextAreaSummaryOverridesWithRef } from '@app/layout-contract/generated/components/TextArea/config.generated';
+import { TimePickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/TimePicker/config.generated';
 
 export type AllowedValidationMasks = (
   | 'Schema'
@@ -18,8 +36,7 @@ export type AllowedValidationMasks = (
 )[];
 
 export type AnySummaryOverride =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Address' } & ISummaryOverridesCommon)
+  | AddressSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Alert' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
@@ -27,14 +44,11 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Audio' } & ISummaryOverridesCommon)
   | CheckboxesSummaryOverridesWithRef
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Date' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Datepicker' } & ISummaryOverridesCommon)
+  | DateSummaryOverridesWithRef
+  | DatepickerSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Divider' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Dropdown' } & ISummaryOverridesCommon)
+  | DropdownSummaryOverridesWithRef
   | GridSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Group' } & ISummaryOverridesCommon)
@@ -44,27 +58,18 @@ export type AnySummaryOverride =
   | ({ componentType: 'IFrame' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Image' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'ImageUpload' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Input' } & ISummaryOverridesCommon)
+  | ImageUploadSummaryOverridesWithRef
+  | InputSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'InstanceInformation' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Likert' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'LikertItem' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'List' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Map' } & ISummaryOverridesCommon)
+  | LikertSummaryOverridesWithRef
+  | LikertItemSummaryOverridesWithRef
+  | ListSummaryOverridesWithRef
+  | MapSummaryOverridesWithRef
   | MultipleSelectSummaryOverridesWithRef
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Number' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Option' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'OrganizationLookup' } & ISummaryOverridesCommon)
+  | NumberSummaryOverridesWithRef
+  | OptionSummaryOverridesWithRef
+  | OrganizationLookupSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Panel' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
@@ -73,20 +78,15 @@ export type AnySummaryOverride =
   | ({ componentType: 'Payment' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'PaymentDetails' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'PersonLookup' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'RadioButtons' } & ISummaryOverridesCommon)
+  | PersonLookupSummaryOverridesWithRef
+  | RadioButtonsSummaryOverridesWithRef
   | RepeatingGroupSummaryOverridesWithRef
   | SubformSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Tabs' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Text' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TextArea' } & ISummaryOverridesCommon)
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'TimePicker' } & ISummaryOverridesCommon)
+  | TextSummaryOverridesWithRef
+  | TextAreaSummaryOverridesWithRef
+  | TimePickerSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Video' } & ISummaryOverridesCommon);
 
@@ -553,8 +553,6 @@ export interface ISelectionComponentFull extends ISelectionComponent {
 
 export interface ISummaryOverridesCommon {
   hidden?: boolean;
-  emptyFieldText?: string;
-  showNextButton?: boolean;
 }
 
 export interface ITableColumnFormatting {
@@ -657,4 +655,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 71aa400af820ca8746e423f8e5b8c4395e5b453e20f4f82b155f88cb7ecc8fee
+// Source hash: 0d5a3cde206fad59316d7a3b684afcdd9dca3cc220c51739ad1963bb236eef84

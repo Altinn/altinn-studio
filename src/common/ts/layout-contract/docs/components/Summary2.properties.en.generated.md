@@ -251,28 +251,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -292,28 +270,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -335,28 +291,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -376,28 +310,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -419,28 +331,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -460,28 +350,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -621,18 +489,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -662,18 +518,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -779,28 +623,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -820,28 +642,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -947,28 +747,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].hideemptyrows">
         <summary class="component-property-summary">
           <span class="component-property-chevron" aria-hidden="true"></span>
@@ -1000,28 +778,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].hideemptyrows">
         <summary class="component-property-summary">
@@ -1055,28 +811,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1096,28 +830,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1139,28 +851,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1180,28 +870,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1223,28 +891,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1264,28 +910,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1307,28 +931,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1348,28 +950,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1391,16 +971,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
         <summary class="component-property-summary">
           <span class="component-property-chevron" aria-hidden="true"></span>
@@ -1429,16 +999,6 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </div>
-      </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
           </span>
         </div>
       </div>
@@ -1559,28 +1119,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1600,28 +1138,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2097,18 +1613,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2138,18 +1642,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2181,18 +1673,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2222,18 +1702,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2339,28 +1807,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2380,28 +1826,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2423,28 +1847,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2464,28 +1866,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2507,28 +1887,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2548,28 +1906,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2591,28 +1927,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2632,28 +1946,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2953,16 +2245,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
         <summary class="component-property-summary">
           <span class="component-property-chevron" aria-hidden="true"></span>
@@ -3004,16 +2286,6 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-summary-meta">
             <span class="component-property-required">Optional</span>
             <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </div>
-      </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
           </span>
         </div>
       </div>
@@ -3063,28 +2335,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -3104,28 +2354,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -3157,18 +2385,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -3198,18 +2414,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -3399,28 +2603,6 @@ The component also supports the [common component properties](../common-properti
         </div>
       </div>
 
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
-
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -3440,28 +2622,6 @@ The component also supports the [common component properties](../common-properti
           </span>
         </div>
       </div>
-
-      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
-        <div class="component-property-summary">
-          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
-          </span>
-        </div>
-      </div>
-
-      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
-        <summary class="component-property-summary">
-          <span class="component-property-chevron" aria-hidden="true"></span>
-          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
-          <span class="component-property-summary-meta">
-            <span class="component-property-required">Optional</span>
-            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
-          </span>
-        </summary>
-        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.</div></div>
-      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">

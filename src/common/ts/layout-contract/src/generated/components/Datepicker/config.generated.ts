@@ -39,9 +39,14 @@ export interface CompDatepickerExternal
   format?: string;
 }
 
+export interface DatepickerSummaryOverrides extends ISummaryOverridesCommon {
+  emptyFieldText?: string;
+  showNextButton?: boolean;
+}
+
 export type DatepickerSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Datepicker' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & DatepickerSummaryOverrides)
+  | ({ componentType: 'Datepicker' } & DatepickerSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -67,8 +72,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompDatepickerExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: DatepickerSummaryOverrides;
   summaryOverridesWithRef: DatepickerSummaryOverridesWithRef;
 };
 
-// Source hash: 1ab7410d2919d34f40dc4031ca09af7cddd54d115f8ab74f4a4c5a2ea4d8b9c7
+// Source hash: 69e453abbf79ccc404533cd065e603052f7f59663e0d22408b135b1a9581b91b
