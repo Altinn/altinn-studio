@@ -72,6 +72,7 @@ public sealed class AgentRuntimeFactory(
                 rulesLoader,
                 typstRenderer,
                 folder,
+                agentOptions.Value.Concurrency,
                 stepLogger),
 
             _ => throw new InvalidOperationException(
