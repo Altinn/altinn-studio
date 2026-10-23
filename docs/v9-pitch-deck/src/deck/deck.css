@@ -1,0 +1,332 @@
+/* ---------------------------------------------------------------
+   Deck chrome: stage, progress bar, overview, help.
+   Chrome sizes are viewport-relative; SLIDE content is canvas px.
+
+   The chrome obeys the same Digdir rules as the slides
+   (branding/BRAND.md): light grounds, navy ink, flat fills,
+   hairlines, small radii. No gradients, no glows, no backdrop
+   blur, no neon.
+
+   Every overlay states its own ink. `body` carries navy text for
+   the slides, so an overlay that inherits it onto a dark panel
+   renders its own heading invisible — which is exactly what the
+   overview and the help sheet used to do.
+   --------------------------------------------------------------- */
+
+.deck {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.deck--empty {
+  display: grid;
+  place-items: center;
+  color: var(--text-300);
+  font-size: 20px;
+}
+
+/* ---- Stage / letterbox ---- */
+
+.stage-frame {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.stage-letterbox {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  overflow: hidden;
+  background: transparent;
+}
+
+.stage-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  will-change: transform;
+}
+
+/* Slide layers stack in one cell, so the outgoing and the incoming slide can
+   cross-fade over each other; DOM order puts the incoming one on top.
+
+   `will-change` keeps each layer on its own compositing layer. The crossfade is
+   driven from JavaScript (see motionFlickerFix.ts), and without the promotion
+   Chrome repaints the whole 1920x1080 canvas on every frame of it. */
+.deck__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: opacity;
+}
+
+.thumb-letterbox {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--bg);
+}
+
+/* ---- Progress bar ---- */
+
+/* The track is a visible hairline rail, not a white-on-white ghost: the
+   deck's ground is white, so the old translucent-white track had nothing
+   to sit against. */
+.deck-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--chrome-progress-h);
+  background: var(--surface-3);
+  z-index: 20;
+}
+
+.deck-progress__fill {
+  height: 100%;
+  background: var(--blue-500);
+}
+
+.deck-progress__count {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-400);
+  user-select: none;
+}
+
+.deck-progress__count-current {
+  color: var(--text-200);
+  font-weight: var(--fw-semibold);
+}
+
+.deck-progress__count-sep {
+  opacity: 0.5;
+}
+
+/* ---- Help button ---- */
+
+.deck__help-button {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  z-index: 20;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  color: var(--text-400);
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  opacity: 0.35;
+  transition: opacity var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.deck__help-button:hover {
+  opacity: 1;
+  color: var(--text-100);
+}
+
+/* ---- Overview ---- */
+
+/* A flat, OPAQUE neutral ground. The thumbnails are white slides with their own
+   hairline, so they read as cards against it without a scrim, a blur or a
+   shadow — but only if the slide underneath is gone: at 97% the 96px heading
+   behind still ghosted through the grid. */
+.overview {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: var(--surface-2);
+  color: var(--text-100);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.overview__inner {
+  /* `--overview-thumb` must match THUMB_WIDTH in Overview.tsx. */
+  --overview-thumb: 288px;
+
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 36px 40px 40px;
+}
+
+.overview__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.overview__title {
+  font-size: 24px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-snug);
+  color: var(--text-100);
+}
+
+.overview__hint {
+  font-size: 13px;
+  color: var(--text-400);
+}
+
+.overview__grid {
+  display: grid;
+  /* Fixed-width columns (not `1fr`) so the cell never grows wider than the
+     thumbnail inside it and leaves the label floating in dead space. */
+  grid-template-columns: repeat(auto-fill, var(--overview-thumb));
+  justify-content: center;
+  gap: 22px;
+}
+
+.overview__cell {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-radius: var(--r-md);
+  border: 2px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+
+.overview__cell:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+}
+
+.overview__cell.is-current {
+  border-color: var(--blue-500);
+}
+
+.overview__thumb {
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.overview__label {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 4px 0;
+  font-size: 13px;
+  color: var(--text-300);
+}
+
+.overview__num {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-500);
+}
+
+.overview__id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Help overlay ---- */
+
+/* A flat navy scrim dims the slide behind; the sheet itself is a white card
+   with a hairline. `--shadow-lg` is the one shadow the tokens allow, and only
+   for a floating overlay like this. */
+.help {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgb(30 43 60 / 48%);
+  padding: 32px;
+}
+
+.help__panel {
+  width: min(620px, 100%);
+  padding: 34px 38px 28px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text-100);
+  box-shadow: var(--shadow-lg);
+}
+
+.help__title {
+  font-size: 22px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-snug);
+  margin-bottom: 22px;
+  color: var(--text-100);
+}
+
+.help__list {
+  display: grid;
+  gap: 11px;
+  margin: 0;
+}
+
+.help__row {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.help__keys {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.help__label {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-300);
+}
+
+.help__foot {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--text-400);
+}
+
+.help kbd,
+.overview kbd {
+  display: inline-block;
+  min-width: 26px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  background: var(--surface-2);
+  color: var(--text-100);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  text-align: center;
+  line-height: 1.35;
+}
+
+.help code {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--surface-inset);
+  color: var(--blue-600);
+}

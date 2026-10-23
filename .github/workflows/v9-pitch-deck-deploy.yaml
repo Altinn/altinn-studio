@@ -1,0 +1,61 @@
+name: Deploy v9 pitch deck
+
+# Lives on the parking branch docs/v9-pitch-deck only, never on main. The deck
+# borrows the named preview environment `v9deck` on the Studio Components
+# Storybook's Static Web App, which uses only its production environment, so
+# that site and its other environments are left alone.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - docs/v9-pitch-deck
+    paths:
+      - 'docs/v9-pitch-deck/**'
+      - '.github/workflows/v9-pitch-deck-deploy.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    name: Build and deploy
+    defaults:
+      run:
+        working-directory: docs/v9-pitch-deck
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Use node LTS and npm cache
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: docs/v9-pitch-deck/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the deck
+        run: npm run build
+
+      # Pinned past the v1 tag (2021): only later commits declare
+      # `deployment_environment`, which keeps this out of production.
+      - name: Deploy to the v9deck environment
+        uses: Azure/static-web-apps-deploy@4d27395796ac319302594769cfe812bd207490b1 # main, 2024-09-11
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.STUDIO_COMPONENTS_STATIC_WEB_APP_KEY }}
+          action: 'upload'
+          app_location: 'docs/v9-pitch-deck/dist'
+          api_location: ''
+          output_location: ''
+          skip_app_build: true
+          deployment_environment: 'v9deck'
