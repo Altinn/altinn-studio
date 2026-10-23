@@ -93,20 +93,29 @@ public class LayoutService(
         appRepository.DeleteLayout(layoutSetId, pageId);
 
         LayoutSettings layoutSettings = await appRepository.GetLayoutSettings(layoutSetId);
-        if (layoutSettings.Pages is not PagesWithOrder pages)
+        if (layoutSettings.Pages?.PdfLayoutName == pageId)
         {
-            throw new InvalidOperationException("Cannot delete order page from layout using groups.");
+            // The PDF page is in neither the order nor a group, so only its name in the settings has to go.
+            layoutSettings.Pages.PdfLayoutName = null;
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
         }
-        pages.Order.Remove(pageId);
-        await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
-
-        if (pages.Order.Count == 1)
+        else
         {
-            string lastLayoutName = pages.Order.First();
-            JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastLayoutName);
-            AltinnPageLayout lastPage = new(lastLayout.AsObject());
-            lastPage.RemoveAllComponentsOfType("NavigationButtons");
-            await appRepository.SaveLayout(layoutSetId, lastLayoutName, lastPage.Structure);
+            if (layoutSettings.Pages is not PagesWithOrder pages)
+            {
+                throw new InvalidOperationException("Cannot delete order page from layout using groups.");
+            }
+            pages.Order.Remove(pageId);
+            await appRepository.SaveLayoutSettings(layoutSetId, layoutSettings);
+
+            if (pages.Order.Count == 1)
+            {
+                string lastLayoutName = pages.Order.First();
+                JsonNode lastLayout = await appRepository.GetLayout(layoutSetId, lastLayoutName);
+                AltinnPageLayout lastPage = new(lastLayout.AsObject());
+                lastPage.RemoveAllComponentsOfType("NavigationButtons");
+                await appRepository.SaveLayout(layoutSetId, lastLayoutName, lastPage.Structure);
+            }
         }
 
         await mediatr.Publish(
