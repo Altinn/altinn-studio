@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base
-# Four runs at the same time. Tune this after measuring how the assistant uses the runner.
+# This patch allows four runs at the same time. Adjust these values after you measure how the assistant uses the runner.
 patches:
   - target:
       kind: ResourceQuota

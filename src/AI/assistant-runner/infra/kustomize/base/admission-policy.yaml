@@ -1,6 +1,6 @@
-# The Role lets the assistant create Jobs, but RBAC cannot limit what a Job contains. This policy accepts a Job from the
-# assistant only when its pod is the pod of the PodTemplate assistant-runner, so the assistant can start runner pods
-# and nothing else.
+# The Role allows the assistant to create Jobs. RBAC cannot limit what a Job contains. This policy makes sure that the
+# assistant can start only runner pods. It accepts a Job from the assistant only when the pod of the Job is the pod of
+# the PodTemplate assistant-runner.
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:

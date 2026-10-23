@@ -22,7 +22,7 @@ permissions:
   contents: read
 
 jobs:
-  # Staging has no sandbox node, so the runner runs in dev and prod only.
+  # The runner runs only in dev and prod, because staging has no sandbox node.
   construct-environments-array:
     uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
@@ -121,7 +121,7 @@ jobs:
           esac
           echo "digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
 
-  # The pod imports this image in its init container, so that it needs no registry credentials.
+  # The pod imports this image in its init container, so that registry credentials are not necessary for the pod.
   build-prepared-image:
     name: Build the prepared guest image
     needs: build-images
