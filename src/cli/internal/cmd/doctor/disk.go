@@ -42,6 +42,7 @@ func (s *Service) buildDisk(app *App) *Disk {
 
 	return &Disk{
 		Checks:    checks,
+		Usage:     s.buildDiskUsage(),
 		HasIssues: hasIssues,
 	}
 }

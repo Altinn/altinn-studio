@@ -16,6 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Localtest has a _Messages_ page that shows the messages apps have sent, with their attachments, and the emails and SMS messages that would have gone out. A button clears them without resetting the rest of your data. ([#21224](https://github.com/Altinn/altinn-studio/pull/21224))
 - Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. Localtest checks requests against selected rules of the real API, with the same error codes. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
 - `studioctl env up --monitoring` shows the workflow engine's traces, metrics and logs, as service `workflow-engine-app`, and adds a Workflow Engine dashboard to Grafana.
+- `studioctl doctor` shows how much disk space studioctl uses for logs, localtest data and the studioctl server, and in total. `studioctl env reset` deletes the localtest data.
 
 ### Changed
 
