@@ -8,6 +8,7 @@ using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
 using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
+using LocalTest.Helpers.Authorization;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Register.Interface;
 using Microsoft.Extensions.Options;
@@ -103,6 +104,7 @@ public class AuthenticationService : IAuthentication
         int? authenticationLevel = null
     )
     {
+        org = ServiceOwnerOrg.AuthenticatedOrg(org).ToLower();
         if (orgNumber is null)
         {
             var orgs = await _orgsClient.GetCdnOrgs();
@@ -112,7 +114,7 @@ public class AuthenticationService : IAuthentication
         List<Claim> claims = new List<Claim>();
         string issuer = _generalSettings.Hostname;
         claims.Add(
-            new Claim(AltinnCoreClaimTypes.Org, org.ToLower(), ClaimValueTypes.String, issuer)
+            new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer)
         );
         claims.Add(
             new Claim(

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using AltinnCore.Authentication.Constants;
 using LocalTest.Configuration;
+using LocalTest.Helpers.Authorization;
 using LocalTest.Services.Authentication.Interface;
 
 using Microsoft.AspNetCore.Authorization;
@@ -71,7 +72,7 @@ namespace LocalTest.Controllers.Authentication
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim("urn:altinn:org", org, ClaimValueTypes.String),
+                new Claim("urn:altinn:org", ServiceOwnerOrg.AuthenticatedOrg(org), ClaimValueTypes.String),
                 new Claim("urn:altinn:orgNumber", orgNumber.ToString(), ClaimValueTypes.Integer32),
                 new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "fake-local-maskinporten", ClaimValueTypes.String),
                 new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32),
