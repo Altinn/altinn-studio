@@ -7,6 +7,8 @@ export enum QueryKey {
   AppValidation = 'AppValidation',
   AppTemplates = 'AppTemplates',
   AppVersion = 'AppVersion',
+  AppUpgradeRun = 'AppUpgradeRun',
+  AppUpgradeStatus = 'AppUpgradeStatus',
   AvailableOrgResources = 'AvailableOrgResources',
   BelongsToOrg = 'BelongsToOrg',
   BranchStatus = 'BranchStatus',

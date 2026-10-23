@@ -18,6 +18,13 @@ import type { Policy } from '@altinn/policy-editor';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Resource, ResourceVersionStatus, Validation } from 'app-shared/types/ResourceAdm';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import type {
+  AppUpgradeMergeResult,
+  AppUpgradeResult,
+  AppUpgradeRun,
+  AppUpgradeStart,
+  AppUpgradeStatus,
+} from 'app-shared/types/AppUpgrade';
 import type { Build } from 'app-shared/types/Build';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import {
@@ -60,6 +67,48 @@ export const appRelease: AppRelease = {
 export const appVersion: AppVersion = {
   backendVersion: '',
   frontendVersion: '',
+};
+
+export const appUpgradeStatus: AppUpgradeStatus = {
+  backendVersion: '8.0.0',
+  frontendVersion: '4',
+  targetMajorVersion: 9,
+  isUpgradeAvailable: true,
+  isAutomaticUpgradeSupported: true,
+  activeUpgradeBranch: null,
+  activeUpgradeHasPullRequest: false,
+};
+
+export const appUpgradeStart: AppUpgradeStart = {
+  status: 'Started',
+  message: '',
+  branchName: 'upgrade/altinn-app-v9-20260907-120000',
+};
+
+export const appUpgradeResult: AppUpgradeResult = {
+  outcome: 'Completed',
+  message: '',
+  targetMajorVersion: 9,
+  steps: [],
+  manualTasks: [],
+  fileChanges: [],
+  branchName: null,
+  pullRequestUrl: null,
+  pullRequestNumber: null,
+  pullRequestMerged: false,
+};
+
+export const appUpgradeRun: AppUpgradeRun = {
+  state: 'Completed',
+  runUrl: null,
+  currentStep: null,
+  result: appUpgradeResult,
+};
+
+export const appUpgradeMergeResult: AppUpgradeMergeResult = {
+  isMerged: true,
+  message: '',
+  baseBranch: 'main',
 };
 
 export const branchStatus: BranchStatus = {

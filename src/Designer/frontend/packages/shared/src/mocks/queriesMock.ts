@@ -4,6 +4,13 @@ import { vi } from 'vitest';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { AppVersion } from 'app-shared/types/AppVersion';
+import type {
+  AppUpgradeMergeResult,
+  AppUpgradeRun,
+  AppUpgradeStart,
+  AppUpgradeStatus,
+  AppUpgradeDiscardResult,
+} from 'app-shared/types/AppUpgrade';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import type { Branch, CurrentBranchInfo } from 'app-shared/types/api/BranchTypes';
@@ -58,6 +65,10 @@ import {
   appConfig,
   deploymentsResponse,
   appVersion,
+  appUpgradeMergeResult,
+  appUpgradeRun,
+  appUpgradeStart,
+  appUpgradeStatus,
   appReleasesResponse,
   applicationMetadata,
   branchStatus,
@@ -102,6 +113,10 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<AppReleasesResponse>(appReleasesResponse)),
   getAppVersion: vi.fn().mockImplementation(() => Promise.resolve<AppVersion>(appVersion)),
+  getAppUpgradeStatus: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeStatus>(appUpgradeStatus)),
+  getAppUpgradeRun: vi.fn().mockImplementation(() => Promise.resolve<AppUpgradeRun>(appUpgradeRun)),
   getAvailableResourcesFromOrg: vi
     .fn()
     .mockImplementation(() => Promise.resolve<ExternalResource[]>([])),
@@ -326,6 +341,17 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<CreateRepoCommitPayload>(createRepoCommitPayload)),
   copyApp: vi.fn().mockImplementation(() => Promise.resolve()),
+  startAppUpgrade: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeStart>(appUpgradeStart)),
+  mergeAppUpgrade: vi
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppUpgradeMergeResult>(appUpgradeMergeResult)),
+  discardAppUpgrade: vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve<AppUpgradeDiscardResult>({ isDiscarded: true, message: '' }),
+    ),
   createBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   deleteBranch: vi.fn().mockImplementation(() => Promise.resolve()),
   createDataModel: vi.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),

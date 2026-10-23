@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.GiteaActions;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -232,6 +233,101 @@ public class IGiteaClientMock : IGiteaClient
     }
 
     public async Task<bool> CreatePullRequest(string org, string app, CreatePullRequestOption createPullRequestOption)
+    {
+        return await Task.FromResult(true);
+    }
+
+    public Task<bool> ClosePullRequestAsync(
+        string org,
+        string repository,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    ) => Task.FromResult(true);
+
+    public Task<bool> DeleteBranchAsync(
+        string org,
+        string repository,
+        string branchName,
+        CancellationToken cancellationToken = default
+    ) => Task.FromResult(true);
+
+    public async Task<PullRequest> CreatePullRequestAsync(
+        string org,
+        string app,
+        CreatePullRequestOption createPullRequestOption,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await Task.FromResult(new PullRequest { Number = 1, Title = createPullRequestOption.Title });
+    }
+
+    public Task<List<PullRequest>> ListPullRequestsAsync(
+        string org,
+        string app,
+        string state,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(new List<PullRequest>());
+    }
+
+    public Task<string> GetPullRequestDiffAsync(
+        string org,
+        string app,
+        long pullRequestNumber,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(string.Empty);
+    }
+
+    public Task<bool> ChangeFilesAsync(
+        string org,
+        string app,
+        ChangeFilesOptions options,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(true);
+    }
+
+    public Task<List<ActionWorkflowRun>> ListWorkflowRunsAsync(
+        string org,
+        string app,
+        string branch,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(new List<ActionWorkflowRun>());
+    }
+
+    public Task<List<ActionWorkflowJob>> ListWorkflowRunJobsAsync(
+        string org,
+        string app,
+        long runId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(new List<ActionWorkflowJob>());
+    }
+
+    public Task<string> GetWorkflowJobLogsAsync(
+        string org,
+        string app,
+        long jobId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return Task.FromResult(string.Empty);
+    }
+
+    public async Task<bool> MergePullRequestAsync(
+        string org,
+        string app,
+        long pullRequestNumber,
+        MergePullRequestOption mergePullRequestOption,
+        CancellationToken cancellationToken = default
+    )
     {
         return await Task.FromResult(true);
     }
