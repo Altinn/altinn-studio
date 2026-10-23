@@ -7,6 +7,7 @@ linters:
   default: all
 
   disable:
+    - gomodguard # deprecated, replaced by gomodguard_v2
     - nonamedreturns
     - arangolint
     - ginkgolinter
