@@ -6,13 +6,18 @@ runs:
     - name: Resolve studioctl cache key
       id: studioctl-cache-key
       shell: bash
-      run: echo "key=studioctl-dev-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Runtime/localtest/infra/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '!src/cli/build/**', '!**/bin/**', '!**/obj/**') }}" >> "$GITHUB_OUTPUT"
+      run: echo "key=studioctl-dev-v3-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('src/cli/**', 'src/Runtime/devenv/**', 'src/Runtime/localtest/infra/**', 'src/Shared/**', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '!src/cli/build/**', '!**/bin/**', '!**/obj/**') }}" >> "$GITHUB_OUTPUT"
 
     - name: Cache studioctl dev install
       id: cache-studioctl
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: src/cli/build/dev-home
+        # Keep runner-specific process state, sockets, logs and volumes out of the cache.
+        path: |
+          src/cli/build/dev-home/bin
+          src/cli/build/dev-home/agent/skills
+          src/cli/build/dev-home/data/infra
+          src/cli/build/dev-home/migrations.json
         key: ${{ steps.studioctl-cache-key.outputs.key }}
 
     - name: Set up Go
