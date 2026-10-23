@@ -245,7 +245,7 @@ describe('calculations in the form store', () => {
         .data.setLeafValue({ reference: { dataType: defaultDataTypeMock, field: 'enabled' }, newValue: false });
       store.getState().data.debounce('forced');
     });
-    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ enabled: false });
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ enabled: false, label: null });
   });
 
   it('does not write in read-only forms', async () => {
@@ -284,7 +284,24 @@ describe('calculations in the form store', () => {
         .data.setLeafValue({ reference: { dataType: defaultDataTypeMock, field: 'enabled' }, newValue: false });
       store.getState().data.debounce('forced');
     });
-    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ enabled: false });
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({
+      enabled: false,
+      nullableNumber: null,
+      nullableBoolean: null,
+    });
+  });
+
+  it('preserves explicit nulls without creating absent objects for empty calculations', async () => {
+    const { store } = await renderCalculations(
+      {
+        calculations: {
+          nullableNumber: { expression: null },
+          'missingObject.label': { expression: null },
+        },
+      },
+      { nullableNumber: null },
+    );
+    expect(store.getState().data.models[defaultDataTypeMock].currentData).toEqual({ nullableNumber: null });
   });
 
   it('keeps previous values on evaluation or type conversion errors and continues with other calculations', async () => {

@@ -2972,6 +2972,7 @@ namespace Altinn.App.Core.Internal.Data
 {
     public static class FormDataWrapperFactory
     {
+        public static Altinn.App.Core.Internal.Data.IFormDataWrapper Create(object dataModel, Altinn.Platform.Storage.Interface.Models.DataType dataType, Altinn.Platform.Storage.Interface.Models.DataElement? dataElement) { }
         public static void Register<T>(System.Func<object, Altinn.Platform.Storage.Interface.Models.DataType, Altinn.Platform.Storage.Interface.Models.DataElement?, Altinn.App.Core.Internal.Data.IFormDataWrapper> factory)
             where T :  notnull { }
     }
