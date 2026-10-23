@@ -1,8 +1,7 @@
+# Cargo reads every workspace member, so add each member of the root Cargo.toml here.
 **
 !Cargo.lock
 !Cargo.toml
-!src/
-!src/ci/github-runner/
-!src/ci/github-runner/coordinator/
-!src/ci/github-runner/coordinator/**
+!src/ci/github-runner/coordinator
+!src/ci/sandbox-host
 **/target/
