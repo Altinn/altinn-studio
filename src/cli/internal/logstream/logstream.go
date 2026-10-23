@@ -107,6 +107,10 @@ func (s Streamer) emitAll(files []File) (map[string]int64, error) {
 	offsetByPath := make(map[string]int64, len(files))
 	for _, candidate := range files {
 		file, err := os.Open(candidate.Path)
+		if errors.Is(err, fs.ErrNotExist) {
+			// Retention may delete an old file between listing and reading it.
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("open log: %w", err)
 		}

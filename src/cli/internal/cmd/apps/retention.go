@@ -1,6 +1,7 @@
 package apps
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -22,12 +23,13 @@ type runFiles struct {
 	lastWrite    time.Time
 	logName      string
 	metadataName string
+	statErrs     []error
 }
 
 // DeleteExpiredLogs deletes app run logs and their metadata that were last written to more than
 // 30 days before now, in every app log directory under appLogsDir, and removes app log
 // directories left empty. It keeps files that do not follow the app log naming format.
-// It continues past failures and returns them joined, without file paths.
+// It continues past failures and returns them joined, each naming its app log directory but no file paths.
 func DeleteExpiredLogs(appLogsDir string, now time.Time) error {
 	entries, err := os.ReadDir(appLogsDir)
 	if err != nil {
@@ -43,22 +45,34 @@ func DeleteExpiredLogs(appLogsDir string, now time.Time) error {
 		if !entry.IsDir() {
 			continue
 		}
-		if err := deleteExpiredAppLogs(filepath.Join(appLogsDir, entry.Name()), cutoff); err != nil {
+		for _, err := range deleteExpiredAppLogs(filepath.Join(appLogsDir, entry.Name()), cutoff) {
 			errs = append(errs, fmt.Errorf("app log directory %s: %w", entry.Name(), err))
 		}
 	}
 	return errors.Join(errs...)
 }
 
-func deleteExpiredAppLogs(dir string, cutoff time.Time) error {
-	runs, errs, err := listRuns(dir)
+func deleteExpiredAppLogs(dir string, cutoff time.Time) []error {
+	runs, err := listRuns(dir)
 	if err != nil {
-		return err
+		return []error{err}
 	}
 
+	var errs []error
 	for _, base := range slices.Sorted(maps.Keys(runs)) {
 		run := runs[base]
-		if !run.lastWrite.Before(cutoff) || runProcessRunning(dir, run) {
+		if len(run.statErrs) > 0 {
+			errs = append(errs, run.statErrs...)
+			continue
+		}
+		if !run.lastWrite.Before(cutoff) {
+			continue
+		}
+		running, err := runProcessRunning(dir, run)
+		if err != nil {
+			errs = append(errs, err)
+		}
+		if running {
 			continue
 		}
 		if err := deleteRun(dir, run); err != nil {
@@ -68,19 +82,18 @@ func deleteExpiredAppLogs(dir string, cutoff time.Time) error {
 	if err := removeIfEmpty(dir); err != nil {
 		errs = append(errs, err)
 	}
-	return errors.Join(errs...)
+	return errs
 }
 
-// listRuns groups the directory's log and metadata files by run. A file it cannot stat is skipped
-// and reported in the returned errors.
-func listRuns(dir string) (map[string]runFiles, []error, error) {
+// listRuns groups the directory's log and metadata files by run. A run with a file it cannot stat
+// records the errors, so the run is kept rather than judged on the files it could stat.
+func listRuns(dir string) (map[string]runFiles, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, nil, fmt.Errorf("read: %w", withoutPath(err))
+		return nil, fmt.Errorf("read: %w", withoutPath(err))
 	}
 
 	runs := make(map[string]runFiles)
-	var errs []error
 	for _, entry := range entries {
 		name := entry.Name()
 		isLog := IsLogName(name)
@@ -91,39 +104,47 @@ func listRuns(dir string) (map[string]runFiles, []error, error) {
 		if errors.Is(err, fs.ErrNotExist) {
 			continue
 		}
-		if err != nil {
-			errs = append(errs, fmt.Errorf("stat %s: %w", name, withoutPath(err)))
-			continue
-		}
 
 		base := strings.TrimSuffix(name, filepath.Ext(name))
 		run := runs[base]
-		if isLog {
+		switch {
+		case err != nil:
+			run.statErrs = append(run.statErrs, fmt.Errorf("stat %s: %w", name, withoutPath(err)))
+		case isLog:
 			run.logName = name
-		} else {
+		default:
 			run.metadataName = name
 		}
-		if info.ModTime().After(run.lastWrite) {
+		if err == nil && info.ModTime().After(run.lastWrite) {
 			run.lastWrite = info.ModTime()
 		}
 		runs[base] = run
 	}
-	return runs, errs, nil
+	return runs, nil
 }
 
 // runProcessRunning reports whether the process that writes the run's log may still be running.
 // A process that is alive but silent leaves the log's modification time unchanged.
 // A reused process id only keeps the files until that other process exits.
-func runProcessRunning(dir string, run runFiles) bool {
+// When it cannot tell, it reports the run as running along with the error.
+func runProcessRunning(dir string, run runFiles) (bool, error) {
 	if run.logName == "" || run.metadataName == "" {
-		return false
+		return false, nil
 	}
 	metadata, err := readMetadata(filepath.Join(dir, run.metadataName))
 	if err != nil {
-		return false
+		var syntaxErr *json.SyntaxError
+		var typeErr *json.UnmarshalTypeError
+		if errors.Is(err, fs.ErrNotExist) || errors.As(err, &syntaxErr) || errors.As(err, &typeErr) {
+			return false, nil
+		}
+		return true, fmt.Errorf("read %s: %w", run.metadataName, withoutPath(err))
 	}
 	running, err := osutil.ProcessRunning(metadata.ProcessID)
-	return running || err != nil
+	if err != nil {
+		return true, fmt.Errorf("check process of %s: %w", run.logName, err)
+	}
+	return running, nil
 }
 
 // deleteRun deletes the log before its metadata, so metadata only outlives a log that is already gone.

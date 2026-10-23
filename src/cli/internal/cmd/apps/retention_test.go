@@ -2,7 +2,6 @@ package apps_test
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -115,9 +114,7 @@ func TestDeleteExpiredLogsMissingDirectory(t *testing.T) {
 
 func TestDeleteExpiredLogsContinuesPastDeleteErrors(t *testing.T) {
 	t.Parallel()
-	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
-		t.Skip("needs directory permissions that block deletion")
-	}
+	skipWithoutPermissionChecks(t)
 
 	root := t.TempDir()
 	expired := retentionNow().Add(-retention - time.Hour)
@@ -126,29 +123,86 @@ func TestDeleteExpiredLogsContinuesPastDeleteErrors(t *testing.T) {
 	writeRetentionFile(t, locked, "2026-08-01-1.json", expired)
 	writeRetentionFile(t, locked, "2026-08-01-2.log", expired)
 	writeRetentionFile(t, filepath.Join(root, "ttd-b"), "2026-08-01-1.log", expired)
-	if err := os.Chmod(locked, 0o500); err != nil {
+	chmodForTest(t, locked, 0o500)
+
+	err := apps.DeleteExpiredLogs(root, retentionNow())
+	assertRetentionError(t, err,
+		"app log directory ttd-a: delete 2026-08-01-1.log: permission denied",
+		"app log directory ttd-a: delete 2026-08-01-2.log: permission denied",
+	)
+
+	// After failing on every run in ttd-a, it still prunes ttd-b, and the metadata stays with the
+	// log it could not delete.
+	assertDirFiles(t, locked, "2026-08-01-1.json", "2026-08-01-1.log", "2026-08-01-2.log")
+	assertDirFiles(t, root, "ttd-a")
+}
+
+func TestDeleteExpiredLogsKeepsRunWithUnreadableMetadata(t *testing.T) {
+	t.Parallel()
+	skipWithoutPermissionChecks(t)
+
+	root := t.TempDir()
+	dir := filepath.Join(root, "ttd-app")
+	expired := retentionNow().Add(-retention - time.Hour)
+	writeRetentionFile(t, dir, "2026-08-01-1.log", expired)
+	writeRetentionMetadata(t, dir, "2026-08-01-1.json", os.Getpid(), expired)
+	chmodForTest(t, filepath.Join(dir, "2026-08-01-1.json"), 0)
+
+	err := apps.DeleteExpiredLogs(root, retentionNow())
+	assertRetentionError(t, err, "app log directory ttd-app: read 2026-08-01-1.json: permission denied")
+	assertDirFiles(t, dir, "2026-08-01-1.json", "2026-08-01-1.log")
+}
+
+func TestDeleteExpiredLogsKeepsRunWithFileItCannotStat(t *testing.T) {
+	t.Parallel()
+	skipWithoutPermissionChecks(t)
+
+	root := t.TempDir()
+	dir := filepath.Join(root, "ttd-app")
+	expired := retentionNow().Add(-retention - time.Hour)
+	writeRetentionFile(t, dir, "2026-08-01-1.log", expired)
+	writeRetentionFile(t, dir, "2026-08-01-1.json", expired)
+	// Without search permission the directory lists its files, but cannot stat them.
+	chmodForTest(t, dir, 0o400)
+
+	err := apps.DeleteExpiredLogs(root, retentionNow())
+	assertRetentionError(t, err,
+		"app log directory ttd-app: stat 2026-08-01-1.json: permission denied",
+		"app log directory ttd-app: stat 2026-08-01-1.log: permission denied",
+	)
+	chmodForTest(t, dir, osutil.DirPermOwnerOnly)
+	assertDirFiles(t, dir, "2026-08-01-1.json", "2026-08-01-1.log")
+}
+
+func skipWithoutPermissionChecks(t *testing.T) {
+	t.Helper()
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("needs file permissions that block access")
+	}
+}
+
+// chmodForTest changes the mode of path and restores owner access when the test ends,
+// so the temporary directory can be removed.
+func chmodForTest(t *testing.T, path string, mode os.FileMode) {
+	t.Helper()
+	if err := os.Chmod(path, mode); err != nil {
 		t.Fatalf("Chmod() error = %v", err)
 	}
 	t.Cleanup(func() {
-		if err := os.Chmod(locked, osutil.DirPermOwnerOnly); err != nil {
+		if err := os.Chmod(path, osutil.DirPermOwnerOnly); err != nil {
 			t.Errorf("restore permissions: %v", err)
 		}
 	})
+}
 
-	err := apps.DeleteExpiredLogs(root, retentionNow())
-	if !errors.Is(err, os.ErrPermission) {
-		t.Fatalf("DeleteExpiredLogs() error = %v, want permission error", err)
+func assertRetentionError(t *testing.T, err error, wantLines ...string) {
+	t.Helper()
+	if err == nil {
+		t.Fatalf("DeleteExpiredLogs() error = nil, want %q", wantLines)
 	}
-	if want := "app log directory ttd-a: delete 2026-08-01-1.log: permission denied"; !slices.Contains(
-		strings.Split(err.Error(), "\n"),
-		want,
-	) {
-		t.Fatalf("DeleteExpiredLogs() error = %q, want line %q", err, want)
+	if got := strings.Split(err.Error(), "\n"); !slices.Equal(got, wantLines) {
+		t.Fatalf("DeleteExpiredLogs() error lines = %q, want %q", got, wantLines)
 	}
-
-	// The metadata stays with the log it could not delete, and the other run and app are still pruned.
-	assertDirFiles(t, locked, "2026-08-01-1.json", "2026-08-01-1.log", "2026-08-01-2.log")
-	assertDirFiles(t, root, "ttd-a")
 }
 
 func writeRetentionFile(t *testing.T, dir, name string, modTime time.Time) {

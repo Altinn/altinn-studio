@@ -663,30 +663,37 @@ func (c *RunCommand) openAppLog(appID string) (*os.File, string, error) {
 		return nil, "", errStudioctlConfigRequired
 	}
 	logDir := c.cfg.AppLogDir(appsupport.SanitizeAppID(appID))
+	lastErr := errAppLogCreateCollision
 	for range maxAppLogCreateAttempts {
 		// Create the directory on each attempt: another run's log retention removes empty app log directories.
 		if err := os.MkdirAll(logDir, osutil.DirPermOwnerOnly); err != nil {
 			return nil, "", fmt.Errorf("create app log directory: %w", err)
 		}
 		logPath, err := appsupport.NextLogPath(logDir, time.Now().UTC())
-		if errors.Is(err, os.ErrNotExist) {
-			continue
-		}
 		if err != nil {
-			return nil, "", fmt.Errorf("resolve app log path: %w", err)
+			lastErr = fmt.Errorf("resolve app log path: %w", err)
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return nil, "", lastErr
 		}
 		//nolint:gosec // G304: log path stays under the configured studioctl log directory; app ID is path-sanitized.
 		logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, osutil.FilePermOwnerOnly)
-		if errors.Is(err, os.ErrExist) || errors.Is(err, os.ErrNotExist) {
+		switch {
+		case errors.Is(err, os.ErrExist):
+			lastErr = errAppLogCreateCollision
 			continue
-		}
-		if err != nil {
-			return nil, "", fmt.Errorf("open app log: %w", err)
+		case err != nil:
+			lastErr = fmt.Errorf("open app log: %w", err)
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return nil, "", lastErr
 		}
 		return logFile, logPath, nil
 	}
 
-	return nil, "", fmt.Errorf("create app log: %w", errAppLogCreateCollision)
+	return nil, "", fmt.Errorf("create app log: %w", lastErr)
 }
 
 // deleteExpiredAppLogs deletes old app run logs before this run creates its own,
