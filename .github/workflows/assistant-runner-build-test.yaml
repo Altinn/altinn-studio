@@ -126,16 +126,6 @@ jobs:
           image="$(docker inspect --format '{{index .RepoDigests 0}}' "${REGISTRY}/assistant-runner-guest:ci")"
           echo "SANDBOX_IMAGE=${image}" >> "${GITHUB_ENV}"
 
-      # A container shows quickly that the image can build a v9 app. The upgrade runs in a microVM further down.
-      - name: Build the v9 template
-        run: |
-          docker run --rm -v "${PWD}/src/App/template/v9/src:/template:ro" "${REGISTRY}/assistant-runner-guest:ci" sh -c '
-            set -eu
-            cp -R /template app
-            cd app
-            dotnet build App/App.csproj -nologo -v:q --disable-build-servers
-          '
-
       - name: Build the job host image
         run: docker build -t "${JOB_HOST_IMAGE}" -f src/AI/assistant-runner/Dockerfile .
 

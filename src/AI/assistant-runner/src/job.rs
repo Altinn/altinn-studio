@@ -39,50 +39,17 @@ cd app
 git add -A
 git diff --cached --binary > /job/changes.patch";
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum JobKind {
-    UpgradeV9,
-    Build,
-}
+const UPGRADE_SCRIPT: &str = "cd app && exec studioctl app upgrade v9 -p . --json";
+/// studioctl stops an upgrade after 10 minutes, so this limit only stops a studioctl that hangs.
+pub const UPGRADE_TIMEOUT: Duration = Duration::from_mins(11);
+/// The upgrade writes its report as JSON to stdout.
+const UPGRADE_OUTPUT_LIMITS: Limits = Limits {
+    stdout: 8 * MIB,
+    stderr: MIB,
+};
 
-impl JobKind {
-    const fn script(self) -> &'static str {
-        match self {
-            Self::UpgradeV9 => "cd app && exec studioctl app upgrade v9 -p . --json",
-            Self::Build => "cd app && exec dotnet build App/App.csproj -nologo -v:q --disable-build-servers",
-        }
-    }
-
-    /// studioctl stops an upgrade after 10 minutes, so this limit only stops a studioctl that hangs.
-    #[must_use]
-    pub const fn timeout(self) -> Duration {
-        match self {
-            Self::UpgradeV9 => Duration::from_mins(11),
-            Self::Build => Duration::from_mins(5),
-        }
-    }
-
-    /// The upgrade writes its report as JSON to stdout.
-    const fn limits(self) -> Limits {
-        match self {
-            Self::UpgradeV9 => Limits {
-                stdout: 8 * MIB,
-                stderr: MIB,
-            },
-            Self::Build => Limits {
-                stdout: MIB,
-                stderr: MIB,
-            },
-        }
-    }
-
-    const fn makes_patch(self) -> bool {
-        matches!(self, Self::UpgradeV9)
-    }
-}
-
+/// A v9 upgrade of the app in the archive.
 pub struct Job {
-    pub kind: JobKind,
     pub archive: Bytes,
     /// The command stops at this time, so that the answer comes before the client stops to wait.
     pub deadline: Instant,
@@ -97,7 +64,7 @@ pub struct JobOutcome {
     pub timed_out: bool,
     pub stdout: String,
     pub stderr: String,
-    /// The changes of an upgrade as base64, because a patch can have content that is not UTF-8.
+    /// The changes of the upgrade as base64, because a patch can have content that is not UTF-8.
     pub patch: Option<String>,
 }
 
@@ -166,9 +133,9 @@ impl Jobs for SandboxJobs {
 async fn run_in_vm(vm: &Vm, job: &Job) -> Result<JobOutcome, JobError> {
     prepare_app(vm, job).await?;
     let command = vm
-        .run_script(job.kind.script(), job.deadline, job.kind.limits())
+        .run_script(UPGRADE_SCRIPT, job.deadline, UPGRADE_OUTPUT_LIMITS)
         .await?;
-    let patch = patch_of(vm, job.kind, command.ending).await?;
+    let patch = patch_of(vm, command.ending).await?;
     Ok(to_outcome(&command, patch.as_deref()))
 }
 
@@ -184,8 +151,8 @@ async fn prepare_app(vm: &Vm, job: &Job) -> Result<(), JobError> {
 }
 
 /// An upgrade that timed out has no patch, because its changes are not complete.
-async fn patch_of(vm: &Vm, kind: JobKind, ending: Ending) -> Result<Option<Vec<u8>>, AnyError> {
-    if !kind.makes_patch() || ending == Ending::TimedOut {
+async fn patch_of(vm: &Vm, ending: Ending) -> Result<Option<Vec<u8>>, AnyError> {
+    if ending == Ending::TimedOut {
         return Ok(None);
     }
     read_patch(vm).await.map(Some)
@@ -235,7 +202,7 @@ mod tests {
     use sandbox_host::AnyError;
     use tokio::time::Instant;
 
-    use super::{JobKind, to_outcome};
+    use super::{UPGRADE_OUTPUT_LIMITS, to_outcome};
     use crate::output::{Collected, collect};
 
     async fn collected(events: Vec<ExecutionEvent>) -> Result<Collected, AnyError> {
@@ -244,15 +211,9 @@ mod tests {
         collect(
             &mut events,
             Instant::now() + Duration::from_secs(1),
-            JobKind::UpgradeV9.limits(),
+            UPGRADE_OUTPUT_LIMITS,
         )
         .await
-    }
-
-    #[test]
-    fn has_a_patch_only_for_an_upgrade() {
-        assert!(JobKind::UpgradeV9.makes_patch());
-        assert!(!JobKind::Build.makes_patch());
     }
 
     #[tokio::test]

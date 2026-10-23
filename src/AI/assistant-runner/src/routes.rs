@@ -12,7 +12,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{
     http::{Body, empty, json, problem},
-    job::{Job, JobError, JobKind, JobOutcome, Jobs},
+    job::{Job, JobError, JobOutcome, Jobs, UPGRADE_TIMEOUT},
     lifecycle::Claim,
 };
 
@@ -45,8 +45,7 @@ impl Routes {
     pub async fn handle(&self, request: Request<Incoming>) -> Response<Body> {
         match (request.method(), request.uri().path()) {
             (&Method::GET, "/health") => empty(StatusCode::OK),
-            (&Method::POST, "/api/v1/upgrades/v9") => self.job(request, JobKind::UpgradeV9).await,
-            (&Method::POST, "/api/v1/builds") => self.job(request, JobKind::Build).await,
+            (&Method::POST, "/api/v1/upgrades/v9") => self.job(request).await,
             _ => problem(StatusCode::NOT_FOUND, "No such route."),
         }
     }
@@ -54,8 +53,8 @@ impl Routes {
     /// The first job request takes the claim, whatever its answer. The job runs in a separate task, so that the VM is
     /// deleted also when the client goes away. The task holds the claim, so the job host stops only after the VM is
     /// deleted.
-    async fn job(&self, request: Request<Incoming>, kind: JobKind) -> Response<Body> {
-        let deadline = Instant::now() + kind.timeout();
+    async fn job(&self, request: Request<Incoming>) -> Response<Body> {
+        let deadline = Instant::now() + UPGRADE_TIMEOUT;
         if self.stopping.is_cancelled() {
             return problem(StatusCode::SERVICE_UNAVAILABLE, "The job host is stopping.");
         }
@@ -82,17 +81,9 @@ impl Routes {
         let jobs = self.jobs.clone();
         let running = tokio::task::spawn_local(async move {
             let _claim = claim;
-            jobs.run(
-                Job {
-                    kind,
-                    archive,
-                    deadline,
-                },
-                cancelled,
-            )
-            .await
+            jobs.run(Job { archive, deadline }, cancelled).await
         });
-        answer(running.await, kind)
+        answer(running.await)
     }
 
     async fn read_archive(&self, request: Request<Incoming>) -> Result<Bytes, Response<Body>> {
@@ -120,7 +111,7 @@ impl Routes {
     }
 }
 
-fn answer(finished: Result<Result<JobOutcome, JobError>, JoinError>, kind: JobKind) -> Response<Body> {
+fn answer(finished: Result<Result<JobOutcome, JobError>, JoinError>) -> Response<Body> {
     match finished {
         Ok(Ok(outcome)) => json(StatusCode::OK, &outcome),
         Ok(Err(JobError::InvalidArchive(detail))) => problem(
@@ -129,7 +120,7 @@ fn answer(finished: Result<Result<JobOutcome, JobError>, JoinError>, kind: JobKi
         ),
         Ok(Err(JobError::Cancelled)) => empty(StatusCode::SERVICE_UNAVAILABLE),
         Ok(Err(JobError::Failed(error))) => {
-            tracing::error!(%error, ?kind, "a job failed");
+            tracing::error!(%error, "the upgrade failed");
             problem(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string())
         }
         Err(error) => problem(StatusCode::INTERNAL_SERVER_ERROR, &format!("The job stopped: {error}")),
@@ -167,7 +158,7 @@ mod tests {
     use super::Routes;
     use crate::{
         http,
-        job::{Job, JobError, JobKind, JobOutcome, Jobs},
+        job::{Job, JobError, JobOutcome, Jobs},
         lifecycle::Claim,
     };
 
@@ -180,13 +171,13 @@ mod tests {
         started: Notify,
         release: Notify,
         cancelled: Cell<bool>,
-        jobs: RefCell<Vec<(JobKind, Bytes)>>,
+        archives: RefCell<Vec<Bytes>>,
     }
 
     impl Jobs for FakeJobs {
         fn run(&self, job: Job, cancelled: LocalFuture<'static, ()>) -> LocalFuture<'_, Result<JobOutcome, JobError>> {
             Box::pin(async move {
-                self.jobs.borrow_mut().push((job.kind, job.archive));
+                self.archives.borrow_mut().push(job.archive);
                 self.started.notify_one();
                 if self.hold.get() {
                     tokio::select! {
@@ -294,10 +285,7 @@ mod tests {
             outcome,
             serde_json::json!({ "exitCode": 0, "timedOut": false, "stdout": "{}", "stderr": "", "patch": "ZGlmZgo=" })
         );
-        assert_eq!(
-            *host.jobs.jobs.borrow(),
-            [(JobKind::UpgradeV9, Bytes::from_static(b"app"))]
-        );
+        assert_eq!(*host.jobs.archives.borrow(), [Bytes::from_static(b"app")]);
         Ok(())
     }
 
@@ -307,12 +295,12 @@ mod tests {
 
         let (status, _) = send(
             host.address,
-            &post("/api/v1/builds", "Application/GZIP; foo=bar", "app"),
+            &post("/api/v1/upgrades/v9", "Application/GZIP; foo=bar", "app"),
         )
         .await?;
 
         assert_eq!(status, 200);
-        assert_eq!(host.jobs.jobs.borrow()[0].0, JobKind::Build);
+        assert_eq!(host.jobs.archives.borrow().len(), 1);
         Ok(())
     }
 
@@ -320,10 +308,10 @@ mod tests {
     async fn refuses_other_content_types() -> io::Result<()> {
         let host = start().await?;
 
-        let (status, _) = send(host.address, &post("/api/v1/builds", "application/json", "{}")).await?;
+        let (status, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/json", "{}")).await?;
 
         assert_eq!(status, 415);
-        assert!(host.jobs.jobs.borrow().is_empty());
+        assert!(host.jobs.archives.borrow().is_empty());
         assert!(host.claim.is_taken());
         Ok(())
     }
@@ -333,19 +321,18 @@ mod tests {
         let host = start().await?;
         host.jobs.hold.set(true);
         let address = host.address;
-        let first =
-            tokio::task::spawn_local(
-                async move { send(address, &post("/api/v1/builds", "application/gzip", "a")).await },
-            );
+        let first = tokio::task::spawn_local(async move {
+            send(address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await
+        });
         host.jobs.started.notified().await;
 
-        let (while_running, _) = send(host.address, &post("/api/v1/builds", "application/gzip", "b")).await?;
+        let (while_running, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "b")).await?;
         host.jobs.release.notify_one();
         let (first, _) = first.await??;
         let (after, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "c")).await?;
 
         assert_eq!((first, while_running, after), (200, 409, 409));
-        assert_eq!(host.jobs.jobs.borrow().len(), 1);
+        assert_eq!(host.jobs.archives.borrow().len(), 1);
         Ok(())
     }
 
@@ -355,7 +342,7 @@ mod tests {
         let claim = host.claim.clone();
         let finished = tokio::task::spawn_local(async move { claim.finished().await });
 
-        let (status, _) = send(host.address, &post("/api/v1/builds", "application/gzip", "a")).await?;
+        let (status, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await?;
         wait_until(|| finished.is_finished()).await;
 
         assert_eq!(status, 200);
@@ -368,7 +355,7 @@ mod tests {
         let host = start().await?;
         host.stopping.cancel();
 
-        let (status, _) = send(host.address, &post("/api/v1/builds", "application/gzip", "a")).await?;
+        let (status, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await?;
 
         assert_eq!(status, 503);
         assert!(!host.claim.is_taken());
@@ -395,7 +382,7 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn refuses_a_large_archive_from_its_length_and_finishes_the_claim() -> io::Result<()> {
         let host = start().await?;
-        let declared = "POST /api/v1/builds HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nContent-Length: 11\r\n\r\n";
+        let declared = "POST /api/v1/upgrades/v9 HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nContent-Length: 11\r\n\r\n";
 
         let (status, _) = send(host.address, declared).await?;
         let claim = host.claim.clone();
@@ -403,7 +390,7 @@ mod tests {
         wait_until(|| finished.is_finished()).await;
 
         assert_eq!(status, 413);
-        assert!(host.jobs.jobs.borrow().is_empty());
+        assert!(host.jobs.archives.borrow().is_empty());
         assert!(finished.is_finished());
         Ok(())
     }
@@ -411,12 +398,12 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn refuses_a_large_archive_from_its_chunks() -> io::Result<()> {
         let host = start().await?;
-        let chunked = "POST /api/v1/builds HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nTransfer-Encoding: chunked\r\n\r\n6\r\n123456\r\n6\r\n123456\r\n0\r\n\r\n";
+        let chunked = "POST /api/v1/upgrades/v9 HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nTransfer-Encoding: chunked\r\n\r\n6\r\n123456\r\n6\r\n123456\r\n0\r\n\r\n";
 
         let (status, _) = send(host.address, chunked).await?;
 
         assert_eq!(status, 413);
-        assert!(host.jobs.jobs.borrow().is_empty());
+        assert!(host.jobs.archives.borrow().is_empty());
         Ok(())
     }
 
@@ -426,7 +413,7 @@ mod tests {
         let host = start().await?;
         *host.jobs.error.borrow_mut() = Some(JobError::InvalidArchive("gzip: invalid header".to_string()));
 
-        let (status, body) = send(host.address, &post("/api/v1/builds", "application/gzip", "x")).await?;
+        let (status, body) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "x")).await?;
 
         assert_eq!(status, 400);
         let problem: Value = serde_json::from_str(&body)?;
@@ -440,7 +427,7 @@ mod tests {
         host.jobs.hold.set(true);
         let mut stream = TcpStream::connect(host.address).await?;
         stream
-            .write_all(post("/api/v1/builds", "application/gzip", "a").as_bytes())
+            .write_all(post("/api/v1/upgrades/v9", "application/gzip", "a").as_bytes())
             .await?;
         host.jobs.started.notified().await;
 

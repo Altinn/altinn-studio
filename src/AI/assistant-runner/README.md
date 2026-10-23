@@ -1,8 +1,8 @@
 # Assistant runner
 
-The assistant runner runs app code for the [Studio Assistant](../assistant/README.md): the v8-to-v9 upgrade with
-studioctl, and `dotnet build`. MSBuild runs code that the app controls, for example `<Exec>` steps and the build
-steps of NuGet packages. The assistant holds the model key, the Langfuse keys and the Designer and Gitea keys of each
+The assistant runner runs the v8-to-v9 upgrade with studioctl for the [Studio Assistant](../assistant/README.md). The
+upgrade restores and compiles the app, and MSBuild then runs code that the app controls, for example `<Exec>` steps and
+the build steps of NuGet packages. The assistant holds the model key, the Langfuse keys and the Designer and Gitea keys of each
 session, so this code must not run there.
 
 ## How a job is isolated
@@ -33,7 +33,6 @@ starts.
 | Route                      | Command in the job                                                                         | Timeout    |
 | -------------------------- | ------------------------------------------------------------------------------------------ | ---------- |
 | `POST /api/v1/upgrades/v9` | `studioctl app upgrade v9 -p . --json`, then `git add -A` and `git diff --cached --binary` | 11 minutes |
-| `POST /api/v1/builds`      | `dotnet build App/App.csproj -nologo -v:q --disable-build-servers`                         | 5 minutes  |
 | `GET /health`              |                                                                                            |            |
 
 The job host takes one job request. The first `POST` takes it, also when the request then fails, and every later
@@ -104,12 +103,12 @@ The unit tests need no VM:
 make check
 ```
 
-A job VM needs `/dev/kvm`. To check the guest image without a VM, run the commands of a job in a container:
+A job VM needs `/dev/kvm`. To check the guest image without a VM, run the upgrade in a container:
 
 ```sh
 docker build -t assistant-runner-guest:local -f Dockerfile.guest .
-docker run --rm -v "$PWD/../../App/template/v9/src:/template:ro" assistant-runner-guest:local \
-  sh -c 'cp -R /template app && cd app && dotnet build App/App.csproj -nologo -v:q --disable-build-servers'
+docker run --rm -v "$PWD/../../App/template/v8/src:/template:ro" assistant-runner-guest:local \
+  sh -c 'cp -R /template app && cd app && git init -q && git add -A && git commit -qm base && studioctl app upgrade v9 -p .'
 ```
 
 The workflow [`assistant-runner-build-test.yaml`](../../../.github/workflows/assistant-runner-build-test.yaml) also

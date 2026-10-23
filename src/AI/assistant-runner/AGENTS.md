@@ -1,6 +1,6 @@
 # Assistant runner
 
-A Rust job host that runs one v9 upgrade or `dotnet build` of an app in a new microVM for the Studio Assistant, and
+A Rust job host that runs one v9 upgrade of an app in a new microVM for the Studio Assistant, and
 then exits. The assistant starts one Kubernetes Job for each run. The [README](README.md) has the isolation model, the
 API, the exit codes and the guest image.
 
