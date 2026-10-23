@@ -320,8 +320,9 @@ func (c *DoctorCommand) renderDoctorDiskSection(table *ui.Table, disk *doctorsvc
 	}
 }
 
-// renderDoctorDiskUsageSection states sizes only. The localtest data line names `env reset`, the
-// command that deletes that data; the other areas have no command that shrinks them.
+// renderDoctorDiskUsageSection states sizes only. Localtest data names `env reset`, the command that
+// deletes it, unless there is none: an unknown size can come from data a container wrote, which the
+// command clears all the same. The other areas have no command that shrinks them.
 func (c *DoctorCommand) renderDoctorDiskUsageSection(table *ui.Table, disk *doctorsvc.Disk) {
 	if disk == nil || len(disk.Usage) == 0 {
 		return
@@ -334,11 +335,13 @@ func (c *DoctorCommand) renderDoctorDiskUsageSection(table *ui.Table, disk *doct
 		value := unknownValue
 		if usage.Bytes != nil {
 			value = formatBytes(*usage.Bytes)
-			if usage.ID == doctorsvc.DiskUsageLocaltestData && *usage.Bytes > 0 {
-				value += " (cleared by '" + osutil.CurrentBin() + " env reset')"
-			}
 		}
 		doctorKeyValue(table, doctorDiskUsageLabel(usage.ID), value)
+
+		empty := usage.Bytes != nil && *usage.Bytes == 0
+		if usage.ID == doctorsvc.DiskUsageLocaltestData && !empty {
+			table.Row(ui.Empty(), ui.Empty(), ui.Dim("run '"+osutil.CurrentBin()+" env reset' to clear it"))
+		}
 	}
 }
 

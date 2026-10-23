@@ -1,8 +1,8 @@
 package doctor
 
 import (
-	"path/filepath"
-	"strings"
+	"errors"
+	"io/fs"
 
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	"altinn.studio/studioctl/internal/osutil"
@@ -24,71 +24,47 @@ type DiskUsage struct {
 	Error string `json:"error,omitempty"`
 }
 
-type diskUsageArea struct {
-	id    string
-	paths []string
-}
-
-// buildDiskUsage measures studioctl's home in one walk. It reports sizes only: how large the home has
-// grown is not a fault, so nothing here feeds Disk.HasIssues.
+// buildDiskUsage measures the areas of studioctl's home a user can tell apart and act on: logs, the
+// localtest data `env reset` deletes, and the installed studioctl-server. The rest (installed localtest
+// resources, per-app secrets and keys, credentials) is small and only shows in the total. The
+// workflow-engine database lives in a container volume, outside the home directory, and is not counted.
 //
-// The areas are the ones a user can tell apart and act on: logs, the localtest data `env reset`
-// deletes, and the installed studioctl-server. The rest (installed localtest resources, per-app secrets
-// and keys, credentials) is small and only shows in the total. The workflow-engine database lives in a
-// container volume, outside the home directory, and is not counted.
+// It reports sizes only: how large the home has grown is not a fault, so nothing here feeds
+// Disk.HasIssues.
 func (s *Service) buildDiskUsage() []DiskUsage {
-	areas := []diskUsageArea{
-		{id: DiskUsageLogs, paths: []string{s.cfg.LogDir}},
-		{id: DiskUsageLocaltestData, paths: []string{
+	return []DiskUsage{
+		s.measureDiskUsage(DiskUsageLogs, s.cfg.LogDir),
+		s.measureDiskUsage(
+			DiskUsageLocaltestData,
 			components.LocaltestStoragePath(s.cfg.DataDir),
 			components.WorkflowEngineDbDataPath(s.cfg.DataDir),
-		}},
-		{id: DiskUsageServer, paths: []string{s.cfg.StudioctlServerInstallDir()}},
+		),
+		s.measureDiskUsage(DiskUsageServer, s.cfg.StudioctlServerInstallDir()),
+		s.measureDiskUsage(DiskUsageTotal, s.cfg.Home),
 	}
-
-	var parts []string
-	partArea := make([]int, 0, len(areas))
-	for i, area := range areas {
-		for _, path := range area.paths {
-			if rel, ok := relativeToHome(s.cfg.Home, path); ok {
-				parts = append(parts, rel)
-				partArea = append(partArea, i)
-			}
-		}
-	}
-
-	total, partSizes := osutil.MeasureTree(s.cfg.Home, parts)
-
-	sizes := make([]osutil.TreeSize, len(areas))
-	for i, size := range partSizes {
-		area := &sizes[partArea[i]]
-		area.Bytes += size.Bytes
-		if area.Err == nil {
-			area.Err = size.Err
-		}
-	}
-
-	usage := make([]DiskUsage, 0, len(areas)+1)
-	for i, area := range areas {
-		usage = append(usage, s.diskUsageEntry(area.id, sizes[i]))
-	}
-	return append(usage, s.diskUsageEntry(DiskUsageTotal, total))
 }
 
-func (s *Service) diskUsageEntry(id string, size osutil.TreeSize) DiskUsage {
-	if size.Err != nil {
-		s.debugf("disk usage %s unknown: %v", id, size.Err)
-		return DiskUsage{ID: id, Bytes: nil, Error: size.Err.Error()}
+// measureDiskUsage sums the sizes of dirs, or reports the area as unknown if any of them cannot be
+// measured. The reported error states only the cause, as output does not show paths of files studioctl
+// manages; the verbose log keeps the path.
+func (s *Service) measureDiskUsage(id string, dirs ...string) DiskUsage {
+	var total int64
+	for _, dir := range dirs {
+		size, err := osutil.DirSize(dir)
+		if err != nil {
+			s.debugf("disk usage %s unknown: %v", id, err)
+			return DiskUsage{ID: id, Bytes: nil, Error: withoutPath(err).Error()}
+		}
+		total += size
 	}
-	return DiskUsage{ID: id, Bytes: new(size.Bytes), Error: ""}
+	return DiskUsage{ID: id, Bytes: new(total), Error: ""}
 }
 
-// relativeToHome returns path relative to home, or false when it lies outside it: the walk never
-// leaves the home directory.
-func relativeToHome(home, path string) (string, bool) {
-	rel, err := filepath.Rel(home, path)
-	if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-		return "", false
+// withoutPath drops the file path from err, as output does not show paths of files studioctl manages.
+func withoutPath(err error) error {
+	var pathErr *fs.PathError
+	if errors.As(err, &pathErr) {
+		return pathErr.Err
 	}
-	return rel, true
+	return err
 }

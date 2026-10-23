@@ -88,7 +88,8 @@ func TestBuildDisk_ReportsUsageOfEachAreaAndTheTotal(t *testing.T) {
 	}
 }
 
-// Sizes are information: an area that cannot be measured is reported as unknown, never as a problem.
+// Sizes are information: an area that cannot be measured, here a legacy workflow-engine database the
+// postgres container owns, is reported as unknown, never as a problem. The error states only the cause.
 func TestBuildDisk_UnmeasurableAreaIsUnknownWithoutReportingIssues(t *testing.T) {
 	t.Parallel()
 	if runtime.GOOS == osutil.OSWindows || os.Geteuid() == 0 {
@@ -98,35 +99,27 @@ func TestBuildDisk_UnmeasurableAreaIsUnknownWithoutReportingIssues(t *testing.T)
 	service := newServiceWithConfiguredHome(t)
 	cfg := service.cfg
 	seedFile(t, filepath.Join(cfg.LogDir, "server.log"), 10)
-	locked := filepath.Join(cfg.DataDir, "AltinnPlatformLocal", "locked")
-	seedFile(t, filepath.Join(locked, "data.json"), 3000)
-	lockDir(t, locked)
+	locked := filepath.Join(cfg.DataDir, "workflow-engine-db")
+	seedFile(t, filepath.Join(locked, "PG_VERSION"), 3)
+	if err := os.Chmod(locked, 0); err != nil {
+		t.Fatalf("Chmod() error = %v", err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chmod(locked, 0o700); err != nil {
+			t.Errorf("restore permissions on %s: %v", locked, err)
+		}
+	})
 
 	disk := service.buildDisk(&App{Found: false})
 
 	usage := usageByID(t, disk)
 	for _, id := range []string{DiskUsageLocaltestData, DiskUsageTotal} {
-		if usage[id].Bytes != nil || usage[id].Error == "" {
-			t.Errorf("usage %q = %+v, want unknown with an error", id, usage[id])
+		if usage[id].Bytes != nil || usage[id].Error != "permission denied" {
+			t.Errorf("usage %q = %+v, want unknown with just the cause", id, usage[id])
 		}
 	}
 	assertUsageBytes(t, usage, DiskUsageLogs, 10)
 	if disk.HasIssues {
 		t.Errorf("HasIssues = true, checks: %+v", disk.Checks)
 	}
-}
-
-// lockDir removes every permission from dir for the rest of the test, and restores them so the
-// temporary directory can be removed.
-func lockDir(t *testing.T, dir string) {
-	t.Helper()
-
-	if err := os.Chmod(dir, 0); err != nil {
-		t.Fatalf("Chmod() error = %v", err)
-	}
-	t.Cleanup(func() {
-		if err := os.Chmod(dir, 0o700); err != nil {
-			t.Errorf("restore permissions on %s: %v", dir, err)
-		}
-	})
 }
