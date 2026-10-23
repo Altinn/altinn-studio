@@ -22,7 +22,8 @@ internal static class Endpoints
         AppRegistry registry,
         HostBridgeState hostBridgeState,
         IConfiguration configuration,
-        BoundTopologyOptions boundTopologyOptions
+        BoundTopologyOptions boundTopologyOptions,
+        FrontDoorRegistration frontDoor
     )
     {
         return Results.Ok(
@@ -37,6 +38,7 @@ internal static class Endpoints
                 boundTopologyOptions.BaseConfigPath ?? "",
                 boundTopologyOptions.ConfigPath ?? "",
                 new HostBridgeStatusResponse(hostBridgeState.Enabled, hostBridgeState.IsConnected, hostBridgeState.Url),
+                new LocaltestStatusResponse(frontDoor.Enabled),
                 [
                     .. registry
                         .GetAll()
@@ -159,10 +161,14 @@ internal static class Endpoints
         string BoundTopologyBaseConfigPath,
         string BoundTopologyConfigPath,
         HostBridgeStatusResponse HostBridge,
+        LocaltestStatusResponse Localtest,
         IReadOnlyList<DiscoveredAppResponse> Apps
     );
 
     private sealed record HostBridgeStatusResponse(bool Enabled, bool Connected, string? Url);
+
+    /// <summary>Whether the discovered apps are registered with the localtest-v2 front door; studioctl compares it.</summary>
+    private sealed record LocaltestStatusResponse(bool RegisterApps);
 
     private sealed record RegisterAppRequest(
         string AppId,

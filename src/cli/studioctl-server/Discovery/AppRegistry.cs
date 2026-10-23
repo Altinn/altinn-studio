@@ -13,6 +13,7 @@ internal sealed class AppRegistry : BackgroundService
     private readonly TimeSpan _passivePollInterval;
     private readonly AppMetadataProbe _probe;
     private readonly LocaltestStorageProbe _storageProbe;
+    private readonly FrontDoorRegistration _frontDoor;
     private readonly ILogger<AppRegistry> _logger;
     private readonly Channel<AppRegistryMessage> _messages = Channel.CreateUnbounded<AppRegistryMessage>();
     private readonly List<AppStartWaiter> _pendingStarts = [];
@@ -25,6 +26,7 @@ internal sealed class AppRegistry : BackgroundService
         IEnumerable<IAppDiscovery> discoveries,
         AppMetadataProbe probe,
         LocaltestStorageProbe storageProbe,
+        FrontDoorRegistration frontDoor,
         ILogger<AppRegistry> logger
     )
     {
@@ -32,6 +34,7 @@ internal sealed class AppRegistry : BackgroundService
         _passivePollInterval = _discoveries.Min(static discovery => discovery.Discovery.PassivePollInterval);
         _probe = probe;
         _storageProbe = storageProbe;
+        _frontDoor = frontDoor;
         _logger = logger;
     }
 
@@ -207,6 +210,8 @@ internal sealed class AppRegistry : BackgroundService
             _changed?.Invoke();
         }
 
+        // Before the readiness check: on localtest-v2, Storage knows an app only once the front door has provisioned it.
+        await _frontDoor.Reconcile(apps, cancellationToken);
         await CompleteReadyStarts(apps, cancellationToken);
     }
 
