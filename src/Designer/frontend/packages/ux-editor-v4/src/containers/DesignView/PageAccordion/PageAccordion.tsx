@@ -71,7 +71,8 @@ export const PageAccordion = ({
     if (!confirm(t('ux_editor.page_delete_text'))) return;
     if (selectedItem?.id === pageId) setSelectedItem(null);
 
-    if (isUsingGroups) {
+    // The PDF page is in no group, so it is deleted on its own, also when the layout uses groups.
+    if (isUsingGroups && !pageIsPdf) {
       const updatedGroups = getUpdatedGroupsExcludingPage({
         pageId,
         groups: pages.groups,
