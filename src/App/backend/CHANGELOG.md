@@ -103,6 +103,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
 - Breaking: `Altinn.App.Api.Models.AppProcessState` is removed. Use `Altinn.App.Core.Internal.Process.Elements.AppProcessState`, which the process endpoints return. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 - Breaking: `PUT .../process/completeProcess` is removed. Call `PUT .../process/next` instead, for example to end a feedback task once your system has processed the submission. ([#21562](https://github.com/Altinn/altinn-studio/pull/21562))
+- Breaking: `AppSettings.EnforceDataTypeTaskId` is removed: the app APIs always refuse writes to a data type outside its tasks. Bind a data type your app writes in several tasks to each of them with `taskIds`. `studioctl app upgrade v9` removes the setting. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
 
 ### Deprecated
 
