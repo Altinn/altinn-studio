@@ -183,3 +183,22 @@ stack (see `README.md`).
   only `git merge-tree --write-tree origin/main <head>` reproduces. A PR's base cannot be edited while
   it is in a stack (`gh stack unstack` first).
 - **Prefer the guidance closest to the code.** More-specific `AGENTS.md` files override this one.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues for Altinn/altinn-studio, using the `gh` CLI. See
+[`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+Categories are the GitHub issue types `Bug` and `Enhancement`, not labels; states use the `status/` prefix
+(`needs-triage` is the existing `status/triage`), and `wontfix` means closing as not planned, with no label. See
+[`docs/agents/triage-labels.md`](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` at the repo root for all areas, created lazily. All
+ADRs live in `docs/adr/` and are named by date (`yyyy-mm-dd-<slug>.md`, from `yyyy-mm-dd-template.md`),
+never by sequence number. See [`docs/agents/domain.md`](docs/agents/domain.md).
