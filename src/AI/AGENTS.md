@@ -2,12 +2,13 @@
 
 ## Context
 
-The `/AI` folder contains two projects:
+The `/AI` folder contains three projects:
 
-| Project          | Description                                                            | Path                |
-| ---------------- | ---------------------------------------------------------------------- | ------------------- |
-| Studio Assistant | Agent service that enables users to develop apps with natural language | `./assistant`       |
-| Augmenter agent  | Augments caseworker workflow with LLM support                          | `./augmenter-agent` |
+| Project          | Description                                                                 | Path                |
+| ---------------- | --------------------------------------------------------------------------- | ------------------- |
+| Studio Assistant | Agent service that enables users to develop apps with natural language      | `./assistant`       |
+| Augmenter agent  | Augments caseworker workflow with LLM support (superseded by AI enrichment) | `./augmenter-agent` |
+| AI enrichment    | LLM support for caseworkers as a first-party process step in Altinn apps    | `./enrichment`      |
 
 `./assistant` has an architecture guide in [assistant/docs](assistant/docs/README.md). Before you open a PR with changes in `./assistant`, check if the docs need an update too.
 

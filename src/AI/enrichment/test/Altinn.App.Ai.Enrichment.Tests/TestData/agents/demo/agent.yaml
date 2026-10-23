@@ -1,0 +1,17 @@
+# Demo agent for the test suite: a fictional application for booking a
+# municipal meeting room. Exercises both step types and all ten built-in
+# tools without any real-service domain content.
+
+steps:
+  - name: booking-info
+    type: mapping-pdf
+    mapper: info
+    template: info.typ
+    output: info.pdf
+
+  - name: sjekkliste-agent
+    type: agent-pdf-orchestrated
+    mapper: envelope
+    template: sjekkliste.typ
+    output: sjekkliste.pdf
+    publishTo: sjekkliste
