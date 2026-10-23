@@ -1,0 +1,56 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# The Victoria backend on the devenv kind fixture (src/Runtime/devenv, run with the full
+# monitoring profile): production's backend with its agents, both storage copies and the
+# vmagent-self scraper, so the stack and its alert rules can be tested as they run in
+# Studio prod. The standard kind variant's three zoned workers stand in for the tainted
+# observability pool: the node selectors and tolerations go, and the zone anti-affinity
+# stays, so the two copies of a pair, and the two replicas of an agent, still run in
+# different zones. Storage and queues are sized for a laptop, on the cluster's default
+# storage class.
+resources:
+  - ../../studio/victoria
+  - ../victoria/backend-auth-key.yaml
+
+patches:
+  - path: storage.yaml
+    target:
+      group: operator.victoriametrics.com
+      kind: VMSingle|VTSingle|VLSingle
+  - path: agents.yaml
+    target:
+      group: operator.victoriametrics.com
+      kind: VMAgent|VTAgent|VLAgent
+      name: metrics|traces|logs
+  # The agents keep their persistent volume, but VMAgent names it differently.
+  - patch: |-
+      - op: remove
+        path: /spec/statefulStorage/volumeClaimTemplate/spec/storageClassName
+      - op: replace
+        path: /spec/statefulStorage/volumeClaimTemplate/spec/resources/requests/storage
+        value: 1Gi
+    target:
+      kind: VMAgent
+      name: metrics
+  - patch: |-
+      - op: remove
+        path: /spec/storage/volumeClaimTemplate/spec/storageClassName
+      - op: replace
+        path: /spec/storage/volumeClaimTemplate/spec/resources/requests/storage
+        value: 1Gi
+    target:
+      kind: VTAgent|VLAgent
+  # As in the light profile (../victoria): the free-space floor scaled to a 1Gi volume,
+  # and no disk usage share for VictoriaLogs and VictoriaTraces, since the volume is a
+  # directory on the developer's disk.
+  - patch: |-
+      - op: replace
+        path: /spec/extraArgs/storage.minFreeDiskSpaceBytes
+        value: 512MiB
+    target:
+      kind: VMSingle
+  - patch: |-
+      - op: remove
+        path: /spec/extraArgs/retention.maxDiskUsagePercent
+    target:
+      kind: VTSingle|VLSingle

@@ -1,13 +1,8 @@
 package kind
 
 import (
-	"bufio"
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"maps"
 	"os"
@@ -16,8 +11,12 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
-	"sigs.k8s.io/yaml"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/kustomize/api/krusty"
+	kustomizeTypes "sigs.k8s.io/kustomize/api/types"
+	"sigs.k8s.io/kustomize/kyaml/filesys"
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/kubernetes"
@@ -26,6 +25,14 @@ import (
 	"altinn.studio/devenv/pkg/runtimes/kind/manifests"
 )
 
+// The local Grafana gets Studio's content from Altinn/altinn-dashboards-grafana the way the
+// shared Grafana does: grafana-operator, at the platform's version, syncs the repository's
+// custom resources into it as an external instance. The fixture renders the product directory,
+// leaves out what only the platform has (such as ExternalSecrets), points the datasources at the
+// local observability-proxy, and adds the Secrets the platform's ExternalSecrets would create.
+// Flux applies the result from the fixture's registry, so a resource removed from the
+// repository is removed from Grafana too.
+
 const (
 	// EnvDashboardsRepository names a local checkout of Altinn/altinn-dashboards-grafana for
 	// the monitoring Grafana, when KindContainerRuntimeOptions.DashboardsRepository is empty.
@@ -33,22 +40,39 @@ const (
 
 	dashboardsRepositoryURL = "https://github.com/Altinn/altinn-dashboards-grafana.git"
 	// dashboardsProduct is the product directory in the dashboards repository whose
-	// datasources, folder and dashboards the local Grafana loads.
-	dashboardsProduct   = "studio"
-	monitoringGrafana   = "monitoring-grafana"
-	monitoringGrafanaCA = "monitoring-grafana-ca-bundle"
-	// dashboardsReloadSeconds is how often Grafana rereads the provisioned dashboards.
-	dashboardsReloadSeconds = 10
+	// resources the local Grafana gets.
+	dashboardsProduct         = "studio"
+	monitoringGrafana         = "monitoring-grafana"
+	monitoringGrafanaOperator = "monitoring-grafana-operator"
+	monitoringGrafanaContent  = "monitoring-grafana-content"
+	monitoringGrafanaCA       = "monitoring-grafana-ca-bundle"
+	grafanaContentFile        = "content.yaml"
 
 	// The shared Grafana reaches the observability-proxy at its public address; the
 	// local one reaches it in the cluster, with the local query token.
 	publicObservabilityURL = "https://altinn.studio/internal/observability/"
 	localObservabilityURL  = "http://observability-proxy.observability.svc.cluster.local/internal/observability/"
 	localQueryToken        = "local-grafana-query-token-not-a-secret" //nolint:gosec // Fixed for a developer's own cluster.
-	authorizationValue     = "${authorization}"
+
+	grafanaOperatorGroup = "grafana.integreatly.org"
 )
 
-var errDashboardsDatasourceURL = errors.New("datasource URL is not on the observability-proxy")
+// alertingKinds are applied in the full monitoring profile only, which has the self-monitoring
+// the rules read and the recorder the contact points notify.
+var alertingKinds = []string{
+	"GrafanaAlertRuleGroup",
+	"GrafanaContactPoint",
+	"GrafanaMuteTiming",
+	"GrafanaNotificationPolicy",
+	"GrafanaNotificationPolicyRoute",
+	"GrafanaNotificationTemplate",
+}
+
+var (
+	errNoProductResources = errors.New("the dashboards repository has no kustomization for the product")
+	errSecretKeyConflict  = errors.New("a Secret key is referenced for two different purposes")
+	errPlatformOnly       = errors.New("only the platform has this resource")
+)
 
 // resolveDashboardsRepository returns the dashboards checkout to read: the one given, or a
 // clone in the fixture's cache, updated to the repository's main branch when it can be.
@@ -83,286 +107,286 @@ func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
 	return checkout.Path, nil
 }
 
-// loadGrafanaContent reads the product's datasources, folder and dashboards from the
-// dashboards repository, as the shared Grafana's operator would apply them.
-func loadGrafanaContent(repository string) (manifests.GrafanaContent, error) {
+// renderGrafanaContent renders each kustomization in the product directory, as the platform's
+// Flux does, and returns the resources the local Grafana's operator gets, with the Secrets they
+// read. The alerting resources are included only when alerting is set.
+func renderGrafanaContent(repository string, alerting bool) (string, error) {
 	productDir := filepath.Join(repository, "products", dashboardsProduct)
-	datasources, folder, err := readGrafanaResources(productDir)
+	dirs, err := filepath.Glob(filepath.Join(productDir, "*", "kustomization.yaml"))
 	if err != nil {
-		return manifests.GrafanaContent{}, err
+		return "", fmt.Errorf("find kustomizations in %s: %w", productDir, err)
 	}
-	dashboards, err := readDashboards(filepath.Join(productDir, "dashboards"))
-	if err != nil {
-		return manifests.GrafanaContent{}, err
+	if len(dirs) == 0 {
+		return "", fmt.Errorf("%w: %s", errNoProductResources, productDir)
 	}
-
-	datasourcesFile, err := yaml.Marshal(map[string]any{
-		"apiVersion":  1,
-		"prune":       true,
-		"datasources": datasources,
-	})
-	if err != nil {
-		return manifests.GrafanaContent{}, fmt.Errorf("render Grafana datasources: %w", err)
-	}
-	providersFile, err := yaml.Marshal(map[string]any{
-		"apiVersion": 1,
-		"providers": []any{map[string]any{
-			"name":                  dashboardsProduct,
-			"folder":                folder,
-			"type":                  "file",
-			"allowUiUpdates":        true,
-			"updateIntervalSeconds": dashboardsReloadSeconds,
-			"options":               map[string]any{"path": "/var/lib/grafana/dashboards"},
-		}},
-	})
-	if err != nil {
-		return manifests.GrafanaContent{}, fmt.Errorf("render Grafana dashboard providers: %w", err)
-	}
-
-	digest := sha256.New()
-	digest.Write(datasourcesFile)
-	digest.Write(providersFile)
-	for _, name := range slices.Sorted(maps.Keys(dashboards)) {
-		digest.Write([]byte(name))
-		digest.Write([]byte(dashboards[name]))
-	}
-	return manifests.GrafanaContent{
-		Datasources:        string(datasourcesFile),
-		DashboardProviders: string(providersFile),
-		Dashboards:         dashboards,
-		Digest:             hex.EncodeToString(digest.Sum(nil))[:16],
-	}, nil
-}
-
-// readGrafanaResources returns the product's datasources as Grafana provisioning entries
-// and the title of its folder, from the GrafanaDatasource and GrafanaFolder resources
-// anywhere under the product directory.
-func readGrafanaResources(productDir string) ([]map[string]any, string, error) {
-	var datasources []map[string]any
-	folder := ""
-	err := filepath.WalkDir(productDir, func(path string, entry os.DirEntry, walkErr error) error {
-		if walkErr != nil || entry.IsDir() || !strings.HasSuffix(path, ".yaml") {
-			return walkErr
+	secrets := map[string]map[string][]byte{}
+	var objects []runtime.Object
+	var platformOnly []string
+	for _, file := range dirs {
+		rendered, renderErr := renderProductKustomization(filepath.Dir(file))
+		if renderErr != nil {
+			return "", renderErr
 		}
-		fileDatasources, fileFolder, err := readGrafanaResourceFile(path)
-		if err != nil {
-			return err
-		}
-		datasources = append(datasources, fileDatasources...)
-		if fileFolder != "" {
-			folder = fileFolder
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, "", fmt.Errorf("read Grafana resources in %s: %w", productDir, err)
-	}
-	slices.SortFunc(datasources, func(a, b map[string]any) int {
-		return strings.Compare(fmt.Sprint(a["uid"]), fmt.Sprint(b["uid"]))
-	})
-	return datasources, folder, nil
-}
-
-func readGrafanaResourceFile(path string) ([]map[string]any, string, error) {
-	// #nosec G304 -- Paths come from walking the dashboards checkout.
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, "", fmt.Errorf("read %s: %w", path, err)
-	}
-	docs, err := yamlDocuments(data)
-	if err != nil {
-		return nil, "", fmt.Errorf("%s: %w", path, err)
-	}
-	var datasources []map[string]any
-	folder := ""
-	for _, doc := range docs {
-		var object struct {
-			Spec map[string]any `json:"spec"`
-			Kind string         `json:"kind"`
-		}
-		if err := yaml.Unmarshal(doc, &object); err != nil {
-			return nil, "", fmt.Errorf("parse %s: %w", path, err)
-		}
-		switch object.Kind {
-		case "GrafanaFolder":
-			if title, ok := object.Spec["title"].(string); ok {
-				folder = title
-			}
-		case "GrafanaDatasource":
-			datasource, err := localDatasource(object.Spec)
-			// The local stack has only the observability-proxy's backends, so a datasource
-			// for anything else is left out rather than stopping the fixture.
-			if errors.Is(err, errDashboardsDatasourceURL) {
-				log.Printf("warning: skipping a Grafana datasource in %s: %v", path, err)
+		for _, object := range rendered {
+			keep, secretValue, localErr := localGrafanaObject(object, alerting)
+			switch {
+			case errors.Is(localErr, errPlatformOnly):
+				platformOnly = append(platformOnly, object.GetKind()+"/"+object.GetName())
+				continue
+			case localErr != nil:
+				return "", fmt.Errorf("%s %s: %w", object.GetKind(), object.GetName(), localErr)
+			case !keep:
 				continue
 			}
-			if err != nil {
-				return nil, "", fmt.Errorf("%s: %w", path, err)
+			objects = append(objects, object)
+			if secretErr := addSecretValues(secrets, object.Object, secretValue); secretErr != nil {
+				return "", fmt.Errorf("%s %s: %w", object.GetKind(), object.GetName(), secretErr)
 			}
-			datasources = append(datasources, datasource)
 		}
 	}
-	return datasources, folder, nil
-}
-
-// yamlDocuments splits multi-document YAML into its non-empty documents.
-func yamlDocuments(data []byte) ([][]byte, error) {
-	reader := utilyaml.NewYAMLReader(bufio.NewReader(bytes.NewReader(data)))
-	var docs [][]byte
-	for {
-		doc, err := reader.Read()
-		if errors.Is(err, io.EOF) {
-			return docs, nil
-		}
-		if err != nil {
-			return nil, fmt.Errorf("split YAML documents: %w", err)
-		}
-		if len(bytes.TrimSpace(doc)) > 0 {
-			docs = append(docs, doc)
-		}
+	if len(platformOnly) > 0 {
+		// Such as the ExternalSecrets that fill the Secrets in the shared Grafana's cluster.
+		log.Printf("Grafana content: leaving out what only the platform has: %s", strings.Join(platformOnly, ", "))
 	}
-}
-
-// localDatasource turns a GrafanaDatasource spec into a provisioning entry that reaches the
-// local observability-proxy, with the same name, uid, type and settings.
-func localDatasource(spec map[string]any) (map[string]any, error) {
-	entry := map[string]any{}
-	if datasource, ok := spec["datasource"].(map[string]any); ok {
-		maps.Copy(entry, datasource)
+	for _, name := range slices.Sorted(maps.Keys(secrets)) {
+		objects = append(objects, &corev1.Secret{
+			TypeMeta:   metav1.TypeMeta{APIVersion: "v1", Kind: "Secret"},
+			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: manifests.GrafanaNamespace},
+			Type:       corev1.SecretTypeOpaque,
+			Data:       secrets[name],
+		})
 	}
-	entry["uid"] = spec["uid"]
-	entry["orgId"] = 1
-
-	url, ok := entry["url"].(string)
-	if !ok || !strings.HasPrefix(url, publicObservabilityURL) {
-		return nil, fmt.Errorf("%w: %q", errDashboardsDatasourceURL, url)
-	}
-	entry["url"] = localObservabilityURL + strings.TrimPrefix(url, publicObservabilityURL)
-
-	if secure, ok := entry["secureJsonData"].(map[string]any); ok {
-		local := make(map[string]any, len(secure))
-		for key, value := range secure {
-			if text, isText := value.(string); isText {
-				value = strings.ReplaceAll(text, authorizationValue, "Bearer "+localQueryToken)
-			}
-			local[key] = value
-		}
-		entry["secureJsonData"] = local
-	}
-	// Grafana expands environment variables in provisioning files, which would empty template
-	// variables such as ${__span.traceId} or $__rate_interval. The operator passes them through.
-	return escapeProvisioningMap(entry), nil
-}
-
-// escapeProvisioningMap doubles every '$' in the strings of a provisioning entry, which
-// Grafana reads back as a literal '$'.
-func escapeProvisioningMap(entry map[string]any) map[string]any {
-	escaped := make(map[string]any, len(entry))
-	for key, item := range entry {
-		escaped[key] = escapeProvisioningValue(item)
-	}
-	return escaped
-}
-
-func escapeProvisioningValue(value any) any {
-	switch v := value.(type) {
-	case string:
-		return strings.ReplaceAll(v, "$", "$$")
-	case map[string]any:
-		return escapeProvisioningMap(v)
-	case []any:
-		escaped := make([]any, len(v))
-		for i, item := range v {
-			escaped[i] = escapeProvisioningValue(item)
-		}
-		return escaped
-	default:
-		return value
-	}
-}
-
-func readDashboards(dir string) (map[string]string, error) {
-	entries, err := os.ReadDir(dir)
-	if errors.Is(err, os.ErrNotExist) {
-		return map[string]string{}, nil
-	}
+	manifest, err := kubernetes.ObjectsManifest(objects)
 	if err != nil {
-		return nil, fmt.Errorf("read dashboards in %s: %w", dir, err)
+		return "", fmt.Errorf("render Grafana content: %w", err)
 	}
-	dashboards := map[string]string{}
-	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
-			continue
-		}
-		// #nosec G304 -- Paths come from the dashboards checkout.
-		data, err := os.ReadFile(filepath.Join(dir, entry.Name()))
-		if err != nil {
-			return nil, fmt.Errorf("read dashboard %s: %w", entry.Name(), err)
-		}
-		dashboards[entry.Name()] = string(data)
-	}
-	return dashboards, nil
+	return manifest, nil
 }
 
-// addGrafanaResources adds the local Grafana, with the dashboards repository's datasources
-// and dashboards, and its MCP server, once the observability stack is ready.
-func addGrafanaResources(
+func renderProductKustomization(dir string) ([]*unstructured.Unstructured, error) {
+	opts := krusty.MakeDefaultOptions()
+	opts.LoadRestrictions = kustomizeTypes.LoadRestrictionsNone
+	resources, err := krusty.MakeKustomizer(opts).Run(filesys.MakeFsOnDisk(), dir)
+	if err != nil {
+		return nil, fmt.Errorf("render %s: %w", dir, err)
+	}
+	objects := make([]*unstructured.Unstructured, 0, resources.Size())
+	for _, res := range resources.Resources() {
+		object, err := res.Map()
+		if err != nil {
+			return nil, fmt.Errorf("render %s: %w", dir, err)
+		}
+		objects = append(objects, &unstructured.Unstructured{Object: object})
+	}
+	return objects, nil
+}
+
+// localGrafanaObject reports whether the fixture applies a rendered resource, and points a
+// datasource at the local proxy. It returns what a Secret key the resource reads holds locally,
+// and errPlatformOnly for a resource that is not grafana-operator's, other than a ConfigMap such
+// as a dashboard's JSON.
+func localGrafanaObject(object *unstructured.Unstructured, alerting bool) (bool, func(secretKeyRef) string, error) {
+	gvk := object.GroupVersionKind()
+	switch {
+	case gvk.Group == "" && gvk.Kind == "ConfigMap":
+		return true, nil, nil
+	case gvk.Group != grafanaOperatorGroup || gvk.Kind == "Grafana":
+		return false, nil, errPlatformOnly
+	case gvk.Kind == "GrafanaContactPoint":
+		return alerting, recorderURL, nil
+	case slices.Contains(alertingKinds, gvk.Kind):
+		return alerting, nil, nil
+	case gvk.Kind != "GrafanaDatasource":
+		return true, nil, nil
+	}
+	url, _, err := unstructured.NestedString(object.Object, "spec", "datasource", "url")
+	if err != nil || !strings.HasPrefix(url, publicObservabilityURL) {
+		// The local stack has only the observability-proxy's backends.
+		log.Printf("warning: leaving out Grafana datasource %s, which does not query the "+
+			"observability-proxy: %q", object.GetName(), url)
+		return false, nil, nil //nolint:nilerr // A datasource the fixture cannot serve is left out.
+	}
+	local := localObservabilityURL + strings.TrimPrefix(url, publicObservabilityURL)
+	if err := unstructured.SetNestedField(object.Object, local, "spec", "datasource", "url"); err != nil {
+		return false, nil, fmt.Errorf("set datasource URL: %w", err)
+	}
+	return true, func(secretKeyRef) string { return "Bearer " + localQueryToken }, nil
+}
+
+// secretKeyRef is a key of a Secret that a resource reads.
+type secretKeyRef struct{ name, key string }
+
+// addSecretValues adds every Secret key a resource reads to secrets.
+func addSecretValues(secrets map[string]map[string][]byte, object any, secretValue func(secretKeyRef) string) error {
+	if secretValue == nil {
+		return nil
+	}
+	for _, ref := range secretKeyRefs(object) {
+		value := []byte(secretValue(ref))
+		if existing, ok := secrets[ref.name][ref.key]; ok && string(existing) != string(value) {
+			return fmt.Errorf("%w: %s/%s", errSecretKeyConflict, ref.name, ref.key)
+		}
+		if secrets[ref.name] == nil {
+			secrets[ref.name] = map[string][]byte{}
+		}
+		secrets[ref.name][ref.key] = value
+	}
+	return nil
+}
+
+// secretKeyRefs returns every secretKeyRef in a resource, wherever it names one.
+func secretKeyRefs(value any) []secretKeyRef {
+	var refs []secretKeyRef
+	switch v := value.(type) {
+	case map[string]any:
+		ref, isRef := v["secretKeyRef"].(map[string]any)
+		name, hasName := ref["name"].(string)
+		key, hasKey := ref["key"].(string)
+		if isRef && hasName && hasKey {
+			refs = append(refs, secretKeyRef{name: name, key: key})
+		}
+		for _, item := range v {
+			refs = append(refs, secretKeyRefs(item)...)
+		}
+	case []any:
+		for _, item := range v {
+			refs = append(refs, secretKeyRefs(item)...)
+		}
+	}
+	return refs
+}
+
+// recorderURL is where a contact point's webhook goes instead of Slack: the in-cluster
+// recorder, with the Secret and key in the path so a message shows which webhook it was for.
+func recorderURL(ref secretKeyRef) string {
+	return fmt.Sprintf("http://%s.%s.svc.cluster.local/%s/%s",
+		manifests.AlertRecorderName, manifests.GrafanaNamespace, ref.name, ref.key)
+}
+
+// grafanaInputs are what the local Grafana is built from.
+type grafanaInputs struct {
+	cluster   resource.ResourceRef
+	registry  resource.ResourceRef
+	baseInfra resource.ResourceRef
+	stack     resource.ResourceRef
+	content   string
+	cachePath string
+	full      bool
+}
+
+// addGrafanaResources adds grafana-operator, the local Grafana with its MCP server (and, in the
+// full profile, the alert recorder), and the content the operator syncs into Grafana, once the
+// observability stack is ready.
+func addGrafanaResources(graph *resource.Graph, in grafanaInputs) error {
+	operatorManifest, err := kubernetes.ObjectsManifest(manifests.BuildGrafanaOperator())
+	if err != nil {
+		return fmt.Errorf("render grafana-operator manifest: %w", err)
+	}
+	operator := &resource.KubernetesObjectSet{
+		Name:      monitoringGrafanaOperator,
+		Cluster:   in.cluster,
+		Manifest:  operatorManifest,
+		DependsOn: []resource.ResourceRef{in.baseInfra},
+		Readiness: []resource.KubernetesReadinessCheck{monitoringReadiness(
+			resource.KubernetesReadinessFluxHelmRelease,
+			manifests.GrafanaNamespace,
+			"grafana-operator",
+			monitoringOperatorTimeout,
+		)},
+	}
+	contentDir := filepath.Join(in.cachePath, manifests.GrafanaContentName)
+	contentFile := &resource.LocalFile{
+		Name:    manifests.GrafanaContentName,
+		Path:    filepath.Join(contentDir, grafanaContentFile),
+		Content: []byte(in.content),
+	}
+	contentArtifact := monitoringArtifact(manifests.GrafanaContentName, contentDir, in.registry)
+	contentArtifact.DependsOn = append(contentArtifact.DependsOn, resource.Ref(contentFile))
+	if err = graph.AddAll(operator, contentFile, contentArtifact); err != nil {
+		return fmt.Errorf("add Grafana resources: %w", err)
+	}
+	grafana, err := addGrafana(graph, in, operator)
+	if err != nil {
+		return err
+	}
+
+	// The operator syncs into Grafana once it answers, so the content follows it.
+	contentManifest, err := kubernetes.ObjectsManifest(manifests.BuildGrafanaContent())
+	if err != nil {
+		return fmt.Errorf("render Grafana content manifest: %w", err)
+	}
+	if err := graph.Add(&resource.KubernetesObjectSet{
+		Name:      monitoringGrafanaContent,
+		Cluster:   in.cluster,
+		Manifest:  contentManifest,
+		DependsOn: []resource.ResourceRef{resource.Ref(grafana), resource.Ref(contentArtifact)},
+		Readiness: []resource.KubernetesReadinessCheck{monitoringReadiness(
+			resource.KubernetesReadinessFluxKustomization,
+			manifests.GrafanaNamespace,
+			manifests.GrafanaContentName,
+			monitoringOperatorTimeout,
+		)},
+	}); err != nil {
+		return fmt.Errorf("add Grafana content: %w", err)
+	}
+	return nil
+}
+
+// addGrafana adds the local Grafana, its MCP server and, in the full profile, the recorder, with
+// the fixture's CA bundle when it has one.
+func addGrafana(
 	graph *resource.Graph,
-	content manifests.GrafanaContent,
-	cluster resource.ResourceRef,
-	stack resource.ResourceRef,
-) error {
-	deps := []resource.ResourceRef{stack}
+	in grafanaInputs,
+	operator *resource.KubernetesObjectSet,
+) (*resource.KubernetesObjectSet, error) {
+	deps := []resource.ResourceRef{in.stack, resource.Ref(operator)}
 	bundle, _, err := cabundle.FromEnv()
 	if err != nil {
-		return fmt.Errorf("resolve CA bundle: %w", err)
+		return nil, fmt.Errorf("resolve CA bundle: %w", err)
 	}
 	var grafanaCA *manifests.GrafanaCABundle
 	caSet, hasCASet, err := cabundle.KubernetesConfigMapObjectSet(
 		bundle,
-		cluster,
+		in.cluster,
 		monitoringGrafanaCA,
 		[]cabundle.KubernetesWorkload{{Deployment: "grafana", Namespace: manifests.GrafanaNamespace}},
-		deps,
+		[]resource.ResourceRef{resource.Ref(operator)},
 	)
 	if err != nil {
-		return fmt.Errorf("create Grafana CA bundle resource: %w", err)
+		return nil, fmt.Errorf("create Grafana CA bundle resource: %w", err)
 	}
 	if hasCASet {
 		if err = graph.Add(caSet); err != nil {
-			return fmt.Errorf("add Grafana CA bundle resource: %w", err)
+			return nil, fmt.Errorf("add Grafana CA bundle resource: %w", err)
 		}
 		deps = append(deps, resource.Ref(caSet))
 		grafanaCA = grafanaCABundle()
 	}
 
-	manifest, err := kubernetes.ObjectsManifest(manifests.BuildGrafana(content, grafanaCA))
+	manifest, err := kubernetes.ObjectsManifest(manifests.BuildGrafana(grafanaCA, in.full))
 	if err != nil {
-		return fmt.Errorf("render Grafana manifest: %w", err)
+		return nil, fmt.Errorf("render Grafana manifest: %w", err)
 	}
-	if err := graph.Add(&resource.KubernetesObjectSet{
+	deployments := []string{"grafana", "grafana-mcp"}
+	if in.full {
+		deployments = append(deployments, manifests.AlertRecorderName)
+	}
+	readiness := make([]resource.KubernetesReadinessCheck, 0, len(deployments))
+	for _, name := range deployments {
+		readiness = append(readiness, monitoringReadiness(resource.KubernetesReadinessDeploymentAvailable,
+			manifests.GrafanaNamespace, name, monitoringStackTimeout))
+	}
+	grafana := &resource.KubernetesObjectSet{
 		Name:      monitoringGrafana,
-		Cluster:   cluster,
+		Cluster:   in.cluster,
 		Manifest:  manifest,
 		DependsOn: deps,
-		Readiness: []resource.KubernetesReadinessCheck{
-			monitoringReadiness(
-				resource.KubernetesReadinessDeploymentAvailable,
-				manifests.GrafanaNamespace,
-				"grafana",
-				monitoringStackTimeout,
-			),
-			monitoringReadiness(
-				resource.KubernetesReadinessDeploymentAvailable,
-				manifests.GrafanaNamespace,
-				"grafana-mcp",
-				monitoringStackTimeout,
-			),
-		},
-	}); err != nil {
-		return fmt.Errorf("add Grafana resources: %w", err)
+		Readiness: readiness,
 	}
-	return nil
+	if err := graph.Add(grafana); err != nil {
+		return nil, fmt.Errorf("add Grafana: %w", err)
+	}
+	return grafana, nil
 }
 
 func grafanaCABundle() *manifests.GrafanaCABundle {

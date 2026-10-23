@@ -1,0 +1,18 @@
+# The agents with a laptop's resources, and a 1GiB queue per storage copy instead of
+# production's 20GiB, so a copy that is down cannot fill the developer's disk: three
+# agents of two replicas each hold two queues. The zone anti-affinity is kept.
+- op: remove
+  path: /spec/nodeSelector
+- op: remove
+  path: /spec/tolerations
+- op: replace
+  path: /spec/remoteWriteSettings/maxDiskUsagePerURL
+  value: 1GiB
+- op: replace
+  path: /spec/resources
+  value:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 512Mi

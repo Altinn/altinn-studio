@@ -26,6 +26,9 @@ const (
 	KubernetesReadinessDeploymentAvailable KubernetesReadinessKind = "deployment-available"
 	KubernetesReadinessFluxKustomization   KubernetesReadinessKind = "flux-kustomization"
 	KubernetesReadinessFluxHelmRelease     KubernetesReadinessKind = "flux-helm-release"
+	// KubernetesReadinessStatefulSetReady waits until every replica of a StatefulSet runs its
+	// current revision and is ready, including one an operator creates from a custom resource.
+	KubernetesReadinessStatefulSetReady KubernetesReadinessKind = "statefulset-ready"
 )
 
 // KubernetesReadinessCheck describes a readiness condition for a Kubernetes object set.
@@ -90,6 +93,7 @@ func (r *KubernetesObjectSet) Validate() error {
 func (r KubernetesReadinessCheck) Validate() error {
 	switch r.Kind {
 	case KubernetesReadinessDeploymentAvailable,
+		KubernetesReadinessStatefulSetReady,
 		KubernetesReadinessFluxKustomization,
 		KubernetesReadinessFluxHelmRelease:
 	default:

@@ -9,6 +9,7 @@ require (
 	github.com/fluxcd/flux2/v2 v2.8.8
 	github.com/fluxcd/helm-controller/api v1.5.5
 	github.com/fluxcd/kustomize-controller/api v1.8.5
+	github.com/fluxcd/pkg/apis/kustomize v1.15.1
 	github.com/fluxcd/pkg/apis/meta v1.25.1
 	github.com/fluxcd/pkg/oci v0.62.0
 	github.com/fluxcd/source-controller/api v1.8.5
@@ -54,7 +55,6 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v1.15.1 // indirect
 	github.com/fluxcd/pkg/kustomize v1.27.2 // indirect
 	github.com/fluxcd/pkg/sourceignore v0.17.0 // indirect
 	github.com/fluxcd/pkg/tar v1.1.0 // indirect
