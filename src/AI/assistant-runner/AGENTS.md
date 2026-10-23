@@ -14,17 +14,14 @@ lizard -l rust -C 6 -w src
 ```
 
 `make check` formats, builds, lints, tests and checks the dependencies. Keep the cyclomatic complexity of a function
-at 6 or less; lizard also counts the arms of a `match`, and those are allowed. The unit tests use no VM. The workflow
-[`assistant-runner-build-test.yaml`](../../../.github/workflows/assistant-runner-build-test.yaml) also runs the
-commands of a job in the guest image as a container, and one upgrade through the job host in a real microVM.
+at 6 or less; lizard also counts the arms of a `match`, and those are allowed. The unit tests use no VM; the README
+says what CI runs with one.
 
 ## Rules
 
 - Do not give the job host, the guest image or a VM a secret or a token. The runner is safe because it has nothing
   to steal.
 - The job host serves one job request and then exits. Do not add a queue or a second job; each run gets a new Job.
-- A job reaches only the hosts in `ALLOWED_HOSTS`. Change the list only in code, with a test.
-- Start a new VM for each job, and delete it when the job ends, also after an error.
 - Use the shared [`sandbox-host`](../../ci/sandbox-host/README.md) crate for the Provider and the image
   checks.
 - Each Dockerfile that builds a workspace crate copies every workspace member. Add a new member to

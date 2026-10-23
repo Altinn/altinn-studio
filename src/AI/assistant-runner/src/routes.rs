@@ -4,8 +4,8 @@ use bytes::Bytes;
 use http_body_util::{BodyExt as _, LengthLimitError, Limited};
 use hyper::{
     HeaderMap, Method, Request, Response, StatusCode,
-    body::Incoming,
-    header::{CONTENT_LENGTH, CONTENT_TYPE},
+    body::{Body as _, Incoming},
+    header::CONTENT_TYPE,
 };
 use tokio::{task::JoinError, time::Instant};
 use tokio_util::sync::CancellationToken;
@@ -96,7 +96,8 @@ impl Routes {
     }
 
     async fn read_archive(&self, request: Request<Incoming>) -> Result<Bytes, Response<Body>> {
-        if content_length(request.headers()).is_some_and(|length| length > self.max_archive_bytes) {
+        // hyper has already parsed and checked Content-Length, and gives it as the lower bound of the size hint.
+        if request.body().size_hint().lower() > self.max_archive_bytes as u64 {
             return Err(self.too_large());
         }
         let body = Limited::new(request.into_body(), self.max_archive_bytes);
@@ -141,10 +142,6 @@ fn is_archive(headers: &HeaderMap) -> bool {
         .and_then(|value| value.to_str().ok())
         .and_then(|value| value.split(';').next())
         .is_some_and(|media_type| media_type.trim().eq_ignore_ascii_case(ARCHIVE_CONTENT_TYPE))
-}
-
-fn content_length(headers: &HeaderMap) -> Option<usize> {
-    headers.get(CONTENT_LENGTH)?.to_str().ok()?.parse().ok()
 }
 
 #[cfg(test)]

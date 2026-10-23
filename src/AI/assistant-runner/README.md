@@ -49,8 +49,7 @@ The answer:
 ```
 
 - `exitCode` is `null` when the command timed out. The timeout starts with the request.
-- `patch` is the output of `git diff --cached --binary` as base64, because a patch can have content that is not
-  UTF-8. Only an upgrade that did not time out has a patch. App code made the patch, so check it before you apply it.
+- `patch` is the patch from the table above, as base64, because a patch can have content that is not UTF-8. Only an upgrade that did not time out has a patch. App code made the patch, so check it before you apply it.
 - The runner cuts `stdout` and `stderr` at 1 MiB, and the upgrade report in `stdout` at 8 MiB. A patch above 20 MiB
   fails the job.
 

@@ -79,10 +79,12 @@ jobs:
   job-host:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Test the guest image and the job host
+    # A KVM run takes long, so it waits until the crate builds and its tests pass.
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      REGISTRY: localhost:5443
+      REGISTRY: localhost:5000
       JOB_HOST_IMAGE: assistant-runner:ci
       JOB_HOST_URL: http://127.0.0.1:8080
       # In a cluster, the PodTemplate sets these. This job runs the container without it.
@@ -108,26 +110,12 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm
 
-      # The prepared image is exported from a registry. A registry on this runner with a CA made here needs no
-      # credentials and publishes nothing. Rustls refuses a self-signed CA certificate as the server certificate, so
-      # the CA signs a separate server certificate.
+      # The prepared image is exported from a registry. A registry on this runner needs no credentials and publishes
+      # nothing. Docker pushes to a registry on localhost over plain HTTP, and the export allows it in its Microsandbox
+      # configuration.
       - name: Start a registry on this runner
-        working-directory: ${{ runner.temp }}
         run: |
-          mkdir registry
-          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=CI registry CA' \
-            -keyout registry/ca.key -out registry/ca.crt
-          openssl req -newkey rsa:2048 -nodes -subj '/CN=localhost' -keyout registry/tls.key -out registry/tls.csr
-          printf '%s\n' 'basicConstraints=critical,CA:FALSE' 'subjectAltName=DNS:localhost' \
-            'keyUsage=critical,digitalSignature,keyEncipherment' 'extendedKeyUsage=serverAuth' > registry/tls.ext
-          openssl x509 -req -in registry/tls.csr -CA registry/ca.crt -CAkey registry/ca.key -days 1 \
-            -extfile registry/tls.ext -out registry/tls.crt
-          sudo mkdir -p "/etc/docker/certs.d/${REGISTRY}"
-          sudo cp registry/ca.crt "/etc/docker/certs.d/${REGISTRY}/ca.crt"
-          docker run --detach --name registry --publish 127.0.0.1:5443:5443 \
-            --env REGISTRY_HTTP_ADDR=0.0.0.0:5443 \
-            --env REGISTRY_HTTP_TLS_CERTIFICATE=/certs/tls.crt --env REGISTRY_HTTP_TLS_KEY=/certs/tls.key \
-            --volume "${PWD}/registry:/certs:ro" \
+          docker run --detach --name registry --publish 127.0.0.1:5000:5000 \
             registry:3.1.2@sha256:ddf754342cfc8acc51a56d5d0ab6af06826461864460636d8bd5c546dab2a7b8
 
       - name: Build the guest image and push it to the registry
@@ -138,22 +126,7 @@ jobs:
           image="$(docker inspect --format '{{index .RepoDigests 0}}' "${REGISTRY}/assistant-runner-guest:ci")"
           echo "SANDBOX_IMAGE=${image}" >> "${GITHUB_ENV}"
 
-      # The same commands in a container show quickly that the image can upgrade and build apps. The steps after them
-      # run an upgrade in a microVM.
-      - name: Upgrade the v8 template, and build the result
-        run: |
-          docker run --rm -v "${PWD}/src/App/template/v8/src:/template:ro" "${REGISTRY}/assistant-runner-guest:ci" sh -c '
-            set -eu
-            cp -R /template app
-            cd app
-            git init --quiet
-            git add -A
-            git commit --quiet --message base
-            studioctl app upgrade v9 -p . --json
-            dotnet build App/App.csproj -nologo -v:q --disable-build-servers >&2
-          ' > "${RUNNER_TEMP}/upgrade.json"
-          jq -e '.exitCode == 0' "${RUNNER_TEMP}/upgrade.json" || { jq . "${RUNNER_TEMP}/upgrade.json"; exit 1; }
-
+      # A container shows quickly that the image can build a v9 app. The upgrade runs in a microVM further down.
       - name: Build the v9 template
         run: |
           docker run --rm -v "${PWD}/src/App/template/v9/src:/template:ro" "${REGISTRY}/assistant-runner-guest:ci" sh -c '
@@ -167,16 +140,16 @@ jobs:
         run: docker build -t "${JOB_HOST_IMAGE}" -f src/AI/assistant-runner/Dockerfile .
 
       # On a sandbox node, root owns the hostPath folders, and the root of the pod has no capabilities. The export
-      # trusts the CA of the registry through the Microsandbox configuration in its Provider home.
+      # allows the plain-HTTP registry through the Microsandbox configuration in its Provider home.
       - name: Export and import the prepared guest image, as the deploy and the init container do
         run: |
           mkdir -p "${RUNNER_TEMP}"/{prepared,export-cache,export-home/runtime,cache,home}
           sudo chown 0:0 "${RUNNER_TEMP}"/{cache,home}
-          echo '{"registries":{"ca_certs":"/certs/ca.crt"}}' > "${RUNNER_TEMP}/export-home/runtime/config.json"
+          echo "{\"registries\":{\"hosts\":{\"${REGISTRY}\":{\"insecure\":true}}}}" > "${RUNNER_TEMP}/export-home/runtime/config.json"
           docker run --rm --network host --entrypoint /usr/local/bin/sandbox-image \
             --env SANDBOX_PROVIDER_HOME=/provider --env SANDBOX_CACHE_HOME=/cache \
             --env PREPARED_IMAGE_DIRECTORY=/output --env SANDBOX_IMAGE \
-            --volume "${RUNNER_TEMP}/export-home:/provider" --volume "${RUNNER_TEMP}/registry/ca.crt:/certs/ca.crt:ro" \
+            --volume "${RUNNER_TEMP}/export-home:/provider" \
             --volume "${RUNNER_TEMP}/export-cache:/cache" --volume "${RUNNER_TEMP}/prepared:/output" \
             "${JOB_HOST_IMAGE}" export
           docker run --rm --entrypoint /usr/local/bin/sandbox-image \
@@ -207,7 +180,7 @@ jobs:
           SCRIPT
           chmod +x "${RUNNER_TEMP}/start-job-host.sh"
 
-      - name: Upgrade the v8 template, and check the patch and the exit
+      - name: Upgrade the v8 template in a microVM, check the exit, and build the result
         run: |
           "${RUNNER_TEMP}/start-job-host.sh"
           tar -czf "${RUNNER_TEMP}/app.tar.gz" -C src/App/template/v8/src .
@@ -216,10 +189,16 @@ jobs:
           jq -e '.exitCode == 0 and .patch != null' "${RUNNER_TEMP}/answer.json" > /dev/null \
             || { jq 'del(.patch)' "${RUNNER_TEMP}/answer.json"; exit 1; }
           jq -r .patch "${RUNNER_TEMP}/answer.json" | base64 -d > "${RUNNER_TEMP}/changes.patch"
-          cp -R src/App/template/v8/src "${RUNNER_TEMP}/app"
-          git -C "${RUNNER_TEMP}/app" apply --check "${RUNNER_TEMP}/changes.patch"
           test "$(timeout 120 docker wait job-host)" = 0
           docker rm job-host
+          cp -R src/App/template/v8/src "${RUNNER_TEMP}/app"
+          git -C "${RUNNER_TEMP}/app" apply "${RUNNER_TEMP}/changes.patch"
+          docker run --rm -v "${RUNNER_TEMP}/app:/upgraded:ro" "${REGISTRY}/assistant-runner-guest:ci" sh -c '
+            set -eu
+            cp -R /upgraded app
+            cd app
+            dotnet build App/App.csproj -nologo -v:q --disable-build-servers
+          '
 
       - name: Exit when no job request comes
         env:

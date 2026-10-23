@@ -8,12 +8,12 @@ use hyper::{
     server::conn::http1,
     service::service_fn,
 };
-use hyper_util::rt::TokioIo;
-use serde::Serialize;
-use tokio::{
-    net::{TcpListener, TcpStream},
-    task::JoinSet,
+use hyper_util::{
+    rt::TokioIo,
+    server::graceful::{GracefulShutdown, Watcher},
 };
+use serde::Serialize;
+use tokio::net::{TcpListener, TcpStream};
 
 use crate::routes::Routes;
 
@@ -27,41 +27,38 @@ const DRAIN_TIMEOUT: Duration = Duration::from_secs(30);
 /// After the stop, it waits for the open connections, so that the answer to the job request is written. Each
 /// connection serves one request, so no idle connection holds the stop.
 pub async fn serve<T>(listener: TcpListener, routes: Rc<Routes>, stop: impl Future<Output = T>) -> T {
-    let mut connections = JoinSet::new();
+    let connections = GracefulShutdown::new();
     let mut stop = pin!(stop);
     let stopped = loop {
         tokio::select! {
             accepted = listener.accept() => match accepted {
                 Ok((stream, _)) => {
-                    connections.spawn_local(serve_connection(stream, routes.clone()));
+                    tokio::task::spawn_local(serve_connection(connections.watcher(), stream, routes.clone()));
                 }
                 Err(error) => tracing::warn!(%error, "could not accept a connection"),
             },
-            Some(_) = connections.join_next(), if !connections.is_empty() => {}
             stopped = &mut stop => break stopped,
         }
     };
     drop(listener);
-    let drained = tokio::time::timeout(DRAIN_TIMEOUT, async {
-        while connections.join_next().await.is_some() {}
-    })
-    .await;
-    if drained.is_err() {
-        tracing::warn!(open = connections.len(), "stopped with open connections");
+    if tokio::time::timeout(DRAIN_TIMEOUT, connections.shutdown())
+        .await
+        .is_err()
+    {
+        tracing::warn!("stopped with open connections");
     }
     stopped
 }
 
-async fn serve_connection(stream: TcpStream, routes: Rc<Routes>) {
+async fn serve_connection(watcher: Watcher, stream: TcpStream, routes: Rc<Routes>) {
     let service = service_fn(move |request| {
         let routes = routes.clone();
         async move { Ok::<_, Infallible>(routes.handle(request).await) }
     });
-    let served = http1::Builder::new()
+    let connection = http1::Builder::new()
         .keep_alive(false)
-        .serve_connection(TokioIo::new(stream), service)
-        .await;
-    if let Err(error) = served {
+        .serve_connection(TokioIo::new(stream), service);
+    if let Err(error) = watcher.watch(connection).await {
         tracing::debug!(%error, "a connection ended with an error");
     }
 }

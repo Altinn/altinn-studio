@@ -19,7 +19,7 @@ clap = { version = "4.6.6", features = ["derive"] }
 futures-util = "0.3.34"
 http-body-util = "0.1.5"
 hyper = { version = "1.11.0", features = ["http1", "server"] }
-hyper-util = { version = "0.1.20", features = ["tokio"] }
+hyper-util = { version = "0.1.20", features = ["server-graceful", "tokio"] }
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 reqwest = { version = "0.13.4", features = ["json"] }
 # The Sandbox crates from digdir/digdir-agents, at the commit tagged `agentctl/v0.1.0-preview.10`.

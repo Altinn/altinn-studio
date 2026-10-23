@@ -110,12 +110,12 @@ impl Vm {
             .map_err(Into::into)
     }
 
-    /// Reads a file in the guest, or returns `None` when the file is larger than `limit` bytes.
+    /// Reads a file in the guest.
     ///
     /// # Errors
     ///
-    /// Returns an error when the file cannot be read.
-    pub async fn read_file(&self, path: &str, limit: u64) -> Result<Option<Vec<u8>>, AnyError> {
+    /// Returns an error when the file cannot be read, or when it is larger than `limit` bytes.
+    pub async fn read_file(&self, path: &str, limit: u64) -> Result<Vec<u8>, AnyError> {
         let mut contents = Vec::new();
         self.handle
             .read_file(&SandboxPath::new(path))
@@ -123,7 +123,10 @@ impl Vm {
             .take(limit + 1)
             .read_to_end(&mut contents)
             .await?;
-        Ok((contents.len() as u64 <= limit).then_some(contents))
+        if contents.len() as u64 > limit {
+            return Err(io::Error::other(format!("{path} is larger than {limit} bytes")).into());
+        }
+        Ok(contents)
     }
 
     /// Runs a shell script as the job user in [`JOB_FOLDER`], with the environment of the guest image.

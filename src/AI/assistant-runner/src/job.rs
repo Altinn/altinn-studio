@@ -198,9 +198,7 @@ async fn read_patch(vm: &Vm) -> Result<Vec<u8>, AnyError> {
     if made.ending != Ending::Exited(0) {
         return Err(io::Error::other(format!("git could not make the patch: {}", to_text(&made.stderr))).into());
     }
-    vm.read_file(PATCH_PATH, MAX_PATCH_BYTES)
-        .await?
-        .ok_or_else(|| io::Error::other(format!("the patch is larger than {MAX_PATCH_BYTES} bytes")).into())
+    vm.read_file(PATCH_PATH, MAX_PATCH_BYTES).await
 }
 
 fn to_outcome(command: &Collected, patch: Option<&[u8]>) -> JobOutcome {
