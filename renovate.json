@@ -3,6 +3,7 @@
   "extends": [
     "local>Altinn/renovate-config",
     ":prHourlyLimit4",
+    "customManagers:makefileVersions",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
   "customManagers": [
@@ -80,10 +81,10 @@
     },
     {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
-      "matchManagers": ["gomod"],
+      "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
-        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
@@ -93,10 +94,10 @@
     },
     {
       "description": "Require explicit approval for Kubernetes, Flux, and cluster tooling Go dependency minor/major updates after checking target cluster compatibility",
-      "matchManagers": ["gomod"],
+      "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
-        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
@@ -349,6 +350,13 @@
       "matchPackageNames": ["go", "golang", "docker.io/library/golang"],
       "matchUpdateTypes": ["major", "minor"],
       "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Move the golangci-lint every Go module's Makefile installs in one pull request, so the modules lint with the same release",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["github.com/golangci/golangci-lint/v2"],
+      "groupName": "golangci-lint",
+      "groupSlug": "golangci-lint"
     }
   ],
   "schedule": ["* 7-15 * * 1-5"],

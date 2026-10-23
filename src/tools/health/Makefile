@@ -9,6 +9,7 @@ ifeq ($(OS),Windows_NT)
 EXEEXT := .exe
 endif
 
+# renovate: datasource=go depName=github.com/golangci/golangci-lint/v2
 GOLANGCI_LINT_VERSION ?= v2.15.0
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint$(EXEEXT)
 
