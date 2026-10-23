@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=${SERVICE_VERSION}" \
     -o main ./cmd/worker
 
-FROM docker.io/chromedp/headless-shell:stable@sha256:c65aef2b8fef5113cb97be8c99f7bf094320ca9b11e511041e6924e516bda0a1
+FROM docker.io/chromedp/headless-shell:stable@sha256:3da74b0945e4f80f00f0310bcda9f76cee283539ebd200a053a7bebf3de89423
 
 USER root
 
