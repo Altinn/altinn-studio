@@ -1,0 +1,114 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": ["notEquals", ["dataModel", "ShowGroupNavigation"], true],
+    "layout": [
+      {
+        "id": "nav-group-navigation",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "navigation-group",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Navigering i repeterende grupper"
+        },
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
+        },
+        "children": ["0:navigation-value", "1:navigation-nested"],
+        "tableHeaders": ["navigation-value"],
+        "edit": {
+          "multiPage": true,
+          "openByDefault": "first"
+        }
+      },
+      {
+        "id": "navigation-value",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Beløp"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        },
+        "formatting": {
+          "number": {
+            "prefix": "NOK "
+          }
+        }
+      },
+      {
+        "id": "navigation-nested",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Undergruppe med statiske rader"
+        },
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
+        },
+        "children": ["navigation-comment"],
+        "edit": { "openByDefault": true },
+        "tableHeaders": ["navigation-comment"],
+        "rowsBefore": [
+          {
+            "cells": [
+              {
+                "component": "navigation-before"
+              }
+            ]
+          }
+        ],
+        "rowsAfter": [
+          {
+            "cells": [
+              {
+                "component": "navigation-after"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "navigation-before",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Før tabellen"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        },
+        "formatting": {
+          "number": {
+            "prefix": "NOK "
+          }
+        }
+      },
+      {
+        "id": "navigation-after",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Etter tabellen"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
+        },
+        "formatting": {
+          "number": {
+            "prefix": "NOK "
+          }
+        }
+      },
+      {
+        "id": "navigation-comment",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Kommentar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value"
+        }
+      }
+    ]
+  }
+}
