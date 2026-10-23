@@ -264,8 +264,8 @@ func buildCreateArgs(cfg types.ContainerConfig) []string {
 	}
 
 	caps := types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
-	for _, cap := range caps {
-		args = append(args, "--cap-add", cap)
+	for _, capability := range caps {
+		args = append(args, "--cap-add", capability)
 	}
 
 	args = appendHealthCheckArgs(args, cfg.HealthCheck)

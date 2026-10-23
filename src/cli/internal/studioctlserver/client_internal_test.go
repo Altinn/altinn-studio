@@ -296,8 +296,7 @@ func TestStudioctlServerCommand_OpensStandardStreams(t *testing.T) {
 	cmd.Args = []string{"/bin/sh", "-c", `for fd in 0 1 2; do [ -e /dev/fd/$fd ] || exit $((10 + fd)); done`}
 
 	err := cmd.Run()
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
+	if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 		t.Fatalf("studioctl-server starts with fd %d closed", exitErr.ExitCode()-10)
 	}
 	if err != nil {
