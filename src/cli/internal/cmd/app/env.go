@@ -16,9 +16,22 @@ type appEnv struct {
 	values map[string]string
 }
 
+// accessTokenSigning is the certificate an app signs its platform access tokens with. The localtest
+// runtime never checked those tokens, so a run against it has none (nil); the localtest-v2 components
+// validate them, so a run against that runtime gets the shared test certificate.
+//
+// Two generations of Altinn.Common.AccessTokenClient read the settings differently: 3.x (app-lib v8)
+// opens FullPath, and 1.x (the v9 backend) concatenates the parent of the working directory, KeysFolder
+// and FileName without separators, so KeysFolder is a path that resolves from there.
+type accessTokenSigning struct {
+	FullPath   string
+	KeysFolder string
+	FileName   string
+}
+
 // newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
 // secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
-// the data-protection keys go.
+// the data-protection keys go; signing is set only while localtest-v2 is up.
 func newAppRunEnv(
 	current []string,
 	kestrelURL string,
@@ -26,9 +39,10 @@ func newAppRunEnv(
 	appFrontendAssetBaseUrl string,
 	secretsDir string,
 	keysDir string,
+	signing *accessTokenSigning,
 ) []string {
 	env := newAppEnv(current)
-	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir, keysDir)
+	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir, keysDir, signing)
 	return env.entries()
 }
 
@@ -52,6 +66,7 @@ func (e appEnv) addRunDefaults(
 	appFrontendAssetBaseUrl string,
 	secretsDir string,
 	keysDir string,
+	signing *accessTokenSigning,
 ) {
 	endpoints := newAppEndpointConfig(topology)
 
@@ -94,6 +109,27 @@ func (e appEnv) addRunDefaults(
 	e.setDefault("PlatformSettings__ApiCorrespondenceEndpoint", endpoints.platform+"/correspondence/api/v1/")
 	e.setDefault("PlatformSettings__ApiAccessManagementEndpoint", endpoints.platform+"/accessmanagement/api/v1/")
 	e.setDefault("PlatformSettings__ApiWorkflowEngineEndpoint", endpoints.workflowEngine)
+	if signing != nil {
+		e.setDefault("AccessTokenSettings__AccessTokenSigningCertificateFullPath", signing.FullPath)
+		e.setDefault("AccessTokenSettings__AccessTokenSigningKeysFolder", signing.KeysFolder)
+		e.setDefault("AccessTokenSettings__AccessTokenSigningCertificateFileName", signing.FileName)
+		e.addArbeidsflateLinks(topology)
+	}
+}
+
+// addArbeidsflateLinks points the app frontend's inbox, dialog, profile and parties links at the local
+// Arbeidsflate, which only localtest-v2 has. The app frontend
+// reads them from app-lib's PlatformFrontendSettings in the bootstrap response; on a local host it uses a
+// configured link and falls back to the localtest start page otherwise, so without these "back to inbox"
+// is the start page. AccessManagementChangeAndRedirectUrl stays unset: the stack's Access Management does not
+// serve reportee/changeandredirect (it is the UI backend's), so the links go to the inbox without a party
+// switch. The other members (login, logout, all forms, access management, help) keep the start page.
+func (e appEnv) addArbeidsflateLinks(topology envtopology.Local) {
+	arbeidsflate := topology.PublicBaseURL(envtopology.ComponentArbeidsflate)
+	e.setDefault("PlatformFrontendSettings__ArbeidsflateInboxUrl", arbeidsflate+"/")
+	e.setDefault("PlatformFrontendSettings__ArbeidsflateDialogUrl", arbeidsflate+"/inbox/{dialogId}")
+	e.setDefault("PlatformFrontendSettings__ArbeidsflateProfileUrl", arbeidsflate+"/profile")
+	e.setDefault("PlatformFrontendSettings__ArbeidsflatePartiesUrl", arbeidsflate+"/profile/parties")
 }
 
 func (e appEnv) setDefault(key, value string) {

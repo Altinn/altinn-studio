@@ -411,6 +411,11 @@ func (c *RunCommand) runDotnet(
 	if err != nil {
 		return err
 	}
+	removeDevFrontend, err := c.registerDevFrontend(ctx, topology, flags)
+	if err != nil {
+		stopDotnetProcess(cmd.Process, waitErr)
+		return err
+	}
 	if flags.detach {
 		return runDetachedOutput{
 			AppID:       target.AppID,
@@ -425,6 +430,7 @@ func (c *RunCommand) runDotnet(
 		}.Print(c.out)
 	}
 	defer c.unregisterAppBestEffort(ctx, target.AppID)
+	defer removeDevFrontend()
 
 	select {
 	case err := <-waitErr:
@@ -818,9 +824,16 @@ func (c *RunCommand) registerPortAndWaitForApp(
 		return "", startupOperationError(ctx, "start studioctl-server", err)
 	}
 
+	since := time.Now()
 	client := studioctlserver.NewClient(c.cfg)
 	baseURL, err := registerPortAppWithStartupMonitor(ctx, client, appID, port, runInfo, monitor, startupTimeout)
 	if err != nil {
+		return "", err
+	}
+
+	if err := waitForFrontDoorRegistration(
+		ctx, c.cfg, topology, appID, baseURL, since, startupTimeout,
+	); err != nil {
 		return "", err
 	}
 
@@ -914,6 +927,7 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 		return "", startupOperationError(ctx, "start studioctl-server", err)
 	}
 
+	since := time.Now()
 	client := studioctlserver.NewClient(c.cfg)
 	baseURL, err := registerProcessAppWithStartupMonitor(
 		ctx,
@@ -925,6 +939,12 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 		startupTimeout,
 	)
 	if err != nil {
+		return "", err
+	}
+
+	if err := waitForFrontDoorRegistration(
+		ctx, c.cfg, topology, appID, baseURL, since, startupTimeout,
+	); err != nil {
 		return "", err
 	}
 
@@ -1208,7 +1228,8 @@ func containerRunProgressResources(spec appsvc.DockerRunSpec, flags runFlags) []
 				HandleDestroyError: nil,
 				RetainOnDestroy:    false,
 			},
-			WaitForReady: false,
+			WaitForReady:   false,
+			ReadinessProbe: nil,
 		},
 		Name:           spec.Config.Name,
 		RestartPolicy:  "",

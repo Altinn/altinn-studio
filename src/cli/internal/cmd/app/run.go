@@ -18,6 +18,7 @@ import (
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/localtestv2"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -26,6 +27,11 @@ import (
 const ContainerKeysDir = "/mnt/keys"
 
 var (
+	// ErrContainerModeLocaltestV2 is returned for a container run while the localtest-v2 runtime is up: the app
+	// container would join the localtest runtime's network, which localtest-v2 does not create.
+	ErrContainerModeLocaltestV2 = errors.New(
+		"run --mode container does not support the localtest-v2 runtime yet; run the app as a process (the default)",
+	)
 	errAppProjectNotFound   = errors.New("app project not found")
 	errInvalidAppMetadataID = errors.New("application metadata id must be on the form org/app")
 	errMultipleAppProjects  = errors.New("multiple app projects found")
@@ -33,7 +39,10 @@ var (
 
 // TODO: this should come from the "current env".
 const (
-	localtestLoopbackHost           = "127.0.0.1"
+	localtestLoopbackHost = "127.0.0.1"
+	// allInterfacesHost is where an app listens while the localtest-v2 runtime is up: its front door, in a container,
+	// reaches the app through the runtime's host gateway (host.docker.internal), which loopback does not answer.
+	allInterfacesHost               = "0.0.0.0"
 	localtestAppContainerNamePrefix = "localtest-app-"
 	appMetadataFile                 = "App/config/applicationmetadata.json"
 )
@@ -130,6 +139,15 @@ func (s *Service) BuildDotnetRunSpec(
 	if err := s.provisionAppSecrets(secretsDir); err != nil {
 		return DotnetRunSpec{}, err
 	}
+	signing, signingErr := s.nativeAccessTokenSigning(appPath)
+	if signingErr != nil {
+		return DotnetRunSpec{}, signingErr
+	}
+	kestrelURL := baseURL
+	if signing != nil {
+		// localtest-v2 is up: its front door needs the app on every interface.
+		kestrelURL = "http://" + allInterfacesHost + ":" + port
+	}
 
 	return DotnetRunSpec{
 		Dir:            filepath.Dir(projectPath),
@@ -140,7 +158,33 @@ func (s *Service) BuildDotnetRunSpec(
 		AppArgs:        args,
 		BuildArgs:      []string{"build", projectPath},
 		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
-		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl, secretsDir, ""),
+		Env:            newAppRunEnv(env, kestrelURL, topology, opts.AppFrontendAssetBaseUrl, secretsDir, "", signing),
+	}, nil
+}
+
+// nativeAccessTokenSigning points a process run at the localtest-v2 certificate, or returns nil when that
+// runtime is not up. KeysFolder is a traversal from the app root (the parent of the App/ working
+// directory) to the certificate directory, which is what the 1.x client resolves.
+func (s *Service) nativeAccessTokenSigning(appPath string) (*accessTokenSigning, error) {
+	state, up, err := localtestv2.ReadState(s.cfg)
+	if err != nil {
+		return nil, fmt.Errorf("read localtest-v2 state: %w", err)
+	}
+	if !up {
+		return nil, nil //nolint:nilnil // nil is "no localtest-v2", not a failure.
+	}
+	appRoot, err := filepath.Abs(appPath)
+	if err != nil {
+		return nil, fmt.Errorf("resolve app path: %w", err)
+	}
+	rel, err := filepath.Rel(appRoot, state.CertificateDir)
+	if err != nil {
+		return nil, fmt.Errorf("relate certificate directory to app: %w", err)
+	}
+	return &accessTokenSigning{
+		FullPath:   state.CertificatePath(),
+		KeysFolder: "/" + filepath.ToSlash(rel) + "/",
+		FileName:   localtestv2.CertificateFileName,
 	}, nil
 }
 
@@ -217,6 +261,11 @@ func (s *Service) BuildDockerRunSpec(
 	topology envtopology.Local,
 	opts DockerRunOptions,
 ) (DockerRunSpec, error) {
+	if _, up, err := localtestv2.ReadState(s.cfg); err != nil {
+		return DockerRunSpec{}, fmt.Errorf("read localtest-v2 state: %w", err)
+	} else if up {
+		return DockerRunSpec{}, ErrContainerModeLocaltestV2
+	}
 	appPath := result.AppRoot
 	appName := appnaming.AppNameFromPath(appPath)
 	hostPort := appcontainers.DefaultContainerPort
@@ -277,6 +326,7 @@ func (s *Service) BuildDockerRunSpec(
 				opts.AppFrontendAssetBaseUrl,
 				appsecrets.ContainerDir,
 				keysDirEnv,
+				nil,
 			),
 			Command: args,
 			CapAdd:  nil,
