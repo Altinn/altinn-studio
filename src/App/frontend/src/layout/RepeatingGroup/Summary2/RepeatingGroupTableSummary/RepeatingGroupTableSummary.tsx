@@ -31,6 +31,7 @@ import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryCo
 import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles, useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -274,7 +275,17 @@ type DataCellProps = {
   errors: ReturnType<typeof useDeepValidationsForNode>;
 };
 
-function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
+function DataCell(props: DataCellProps) {
+  const hidden = useIsHidden(props.baseComponentId);
+  return hidden ? <HiddenDataCell /> : <VisibleDataCell {...props} />;
+}
+
+function HiddenDataCell() {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  return <Table.Cell />;
+}
+
+function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
   const { langAsString } = useLanguage();
   const headerTitle = langAsString(useTableTitle(baseComponentId));
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);

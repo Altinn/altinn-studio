@@ -1,6 +1,7 @@
 import React, { Component, useEffect } from 'react';
 
 import { FormStore } from 'src/features/form/FormContext';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 
 interface IErrorBoundary {
   lastError?: Error;
@@ -37,6 +38,7 @@ export class ComponentErrorBoundary extends Component<Props, IErrorBoundary> {
 }
 
 function StoreErrorAndBail({ error, nodeId }: { error: Error; nodeId: string }) {
+  const isPdf = useIsPdf();
   const addError = FormStore.layoutDiagnostics.useAddError();
 
   useEffect(() => {
@@ -44,5 +46,9 @@ function StoreErrorAndBail({ error, nodeId }: { error: Error; nodeId: string }) 
     addError(error.message, nodeId, 'node');
   }, [addError, error, nodeId]);
 
+  // A partially rendered document must never be printed as a successful PDF.
+  if (isPdf) {
+    throw error;
+  }
   return null;
 }
