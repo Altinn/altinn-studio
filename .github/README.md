@@ -16,3 +16,12 @@ See [Environments](../docs/infrastructure/environments.md) for deployment target
 
 [Cache warming](workflows/cache-warm.yml) populates shared dependency caches from `main` so pull requests can
 reuse them. Entries saved under one pull request cannot serve other pull requests and can evict shared entries.
+
+## Workflow names
+
+- `deploy-<target>-<name>.yaml` deploys a service or resource when a change to it reaches `main`. The target is
+  `runtime` (runtime clusters), `studio` (Studio clusters), `admin` (adminservices) or `dis` (DIS Core). Older
+  Studio deployments, such as `deploy-designer.yaml`, have no target in the name.
+- `release-<product>.yaml` publishes a release of a product.
+- `template-*.yaml` are reusable workflows that other workflows call.
+- Other workflows are named after the area and component they check, such as `runtime-pdf3-build.yml`.
