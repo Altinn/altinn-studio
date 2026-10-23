@@ -40,6 +40,16 @@ describe('StudioCallToActionBar', () => {
 
     expect(onActionButtonClickedMock).toHaveBeenCalledTimes(1);
   });
+
+  it('Places the action bar below the children by default', () => {
+    renderComponent({ isVisible: true });
+    expect(getActionContainer()).not.toHaveClass('top');
+  });
+
+  it('Places the action bar above the children when placement is top', () => {
+    renderComponent({ isVisible: true, placement: 'top' });
+    expect(getActionContainer()).toHaveClass('top');
+  });
 });
 
 const childText = 'Child content';
@@ -51,4 +61,8 @@ function renderComponent(props: Partial<StudioCallToActionBarProps> = {}): Rende
       {childText}
     </StudioCallToActionBar>,
   );
+}
+
+function getActionContainer(): HTMLElement {
+  return screen.getByRole('button', { name: title }).parentElement;
 }

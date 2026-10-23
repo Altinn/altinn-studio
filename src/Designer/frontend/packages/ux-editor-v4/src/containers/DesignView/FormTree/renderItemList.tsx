@@ -21,6 +21,7 @@ export const renderItemList = (
           key={id}
           containerId={parentId}
           saveAtIndexPosition={getSavePositionByIndex(index)}
+          isFirstChild={index === 0}
           isLastChild={index === childIds.length - 1}
         />
       ))}

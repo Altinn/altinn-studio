@@ -13,12 +13,15 @@ import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { WithHoverAddButton } from '../../../../components/WithHoverAddButton/WithHoverAddButton';
 
+const firstIndexPosition = 0;
+
 export type FormItemProps = {
   layout: IInternalLayout;
   id: string;
   saveAtIndexPosition: number;
   duplicateComponents?: string[];
   containerId?: string;
+  isFirstChild?: boolean;
   isLastChild?: boolean;
 };
 
@@ -28,6 +31,7 @@ export const FormItem = ({
   saveAtIndexPosition,
   duplicateComponents,
   containerId,
+  isFirstChild,
   isLastChild,
 }: FormItemProps): ReactElement => {
   const { t } = useTranslation();
@@ -38,7 +42,7 @@ export const FormItem = ({
   }
 
   if (shouldRenderWithHoverAddButton) {
-    return (
+    const itemWithAddButtonBelow = (
       <WithHoverAddButton
         layout={layout}
         saveAtIndexPosition={saveAtIndexPosition}
@@ -47,6 +51,18 @@ export const FormItem = ({
         isLastChild={isLastChild}
       >
         <Item duplicateComponents={duplicateComponents} layout={layout} id={id} />
+      </WithHoverAddButton>
+    );
+    if (!isFirstChild) return itemWithAddButtonBelow;
+    return (
+      <WithHoverAddButton
+        layout={layout}
+        saveAtIndexPosition={firstIndexPosition}
+        containerId={containerId || BASE_CONTAINER_ID}
+        title={t('ux_editor.add_item.new_component_above')}
+        placement='top'
+      >
+        {itemWithAddButtonBelow}
       </WithHoverAddButton>
     );
   }
