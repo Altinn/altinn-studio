@@ -695,8 +695,6 @@ steps:
       workingDirectory: '$(FLUX_ARTIFACT_DIR)'
       targetType: inline
       script: |
-        set -euo pipefail
-
         # The environment is part of a filename, not a path.
         if [[ ! "$APP_ENVIRONMENT" =~ ^[a-zA-Z0-9_-]+$ ]]; then
           echo "##[error]Invalid environment name for deployment values"
@@ -708,8 +706,22 @@ steps:
         # For backward compatibility we need to support two formats of values.yaml:
         # 1) Flat structure where all keys are at root level
         # 2) Nested structure where all keys are under "deployment" key
-        # Normalize each file before merging, so the two formats can be mixed.
-        normalize_values() {
+        # Preserve the existing shared-file handling, including its error behavior.
+        if [[ -f "${values_file_path}" ]]; then
+          if yq eval 'has("deployment")' "${values_file_path}" | grep -q true; then
+            # .deployment exists → hoist its children to root
+            yq eval '(.deployment // {}) * (del(.deployment))' "${values_file_path}" > "${NORMALIZED_VALUES}"
+          else
+            # .deployment does not exist → use file as-is
+            cp "${values_file_path}" "${NORMALIZED_VALUES}"
+          fi
+        else
+          # No values.yaml present → start from empty
+          echo "{}" > "${NORMALIZED_VALUES}"
+        fi
+
+        # Validate only the new environment file; both layouts are supported.
+        normalize_environment_values() {
           local file="$1"
           if [[ ! -e "$file" ]]; then
             echo "{}"
@@ -722,8 +734,10 @@ steps:
           yq eval '(. // {}) | (.deployment // {}) * (del(.deployment))' "$file"
         }
 
-        normalize_values "${values_file_path}" > "${NORMALIZED_VALUES}"
-        normalize_values "${environment_values_file_path}" > "${NORMALIZED_ENVIRONMENT_VALUES}"
+        if ! normalize_environment_values "${environment_values_file_path}" > "${NORMALIZED_ENVIRONMENT_VALUES}"; then
+          echo "##[error]Could not normalize environment values in ${environment_values_file_path}" >&2
+          exit 1
+        fi
 
         # Shared values < environment values < platform overrides.
         yq ea '. as $item ireduce ({}; . * $item )' \
@@ -733,7 +747,7 @@ steps:
 
         # --- Merge custom ingress routes if available (staf org only) ---
         CUSTOM_INGRESS_FILE="../${APP_COMMIT_ID}/custom-ingress-routes.yaml"
-        if [[ "${HAS_CUSTOM_INGRESS_ROUTES:-false}" == "true" ]] && [[ -f "${CUSTOM_INGRESS_FILE}" ]]; then
+        if [[ "${HAS_CUSTOM_INGRESS_ROUTES}" == "true" ]] && [[ -f "${CUSTOM_INGRESS_FILE}" ]]; then
           echo "Merging custom ingress routes into values"
           yq eval ".customIngressRoutes = load(\"${CUSTOM_INGRESS_FILE}\")" --inplace "${MERGED_VALUES}"
         fi

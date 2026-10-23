@@ -177,20 +177,39 @@ test('root-level keys still take precedence over nested deployment keys', (t) =>
   );
 });
 
-for (const name of ['values.yaml', 'values.tt02.yaml']) {
-  for (const contents of [
-    'replicaCount: [',
-    '- not-a-mapping',
-    'replicaCount: 1\n---\nreplicaCount: 2',
-  ]) {
-    test(`invalid ${name}: ${JSON.stringify(contents)} fails before publishing values`, (t) => {
-      const result = deploy(t, { [name]: contents });
-      assert.notEqual(result.status, 0);
-      assert.match(result.stderr, /Expected a single YAML mapping/);
-      assert.deepEqual(result.values, {});
-    });
-  }
+for (const contents of [
+  'replicaCount: [',
+  '- not-a-mapping',
+  'replicaCount: 1\n---\nreplicaCount: 2',
+]) {
+  test(`invalid environment values: ${JSON.stringify(contents)} fails before publishing values`, (t) => {
+    const result = deploy(t, { 'values.tt02.yaml': contents });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Expected a single YAML mapping/);
+    assert.deepEqual(result.values, {});
+  });
 }
+
+test('environment normalization errors fail before publishing values', (t) => {
+  const result = deploy(t, { 'values.tt02.yaml': { deployment: 'not-a-mapping' } });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Could not normalize environment values/);
+  assert.deepEqual(result.values, {});
+});
+
+test('multiple shared YAML documents retain the existing merge behavior', (t) => {
+  assert.deepEqual(
+    successful(deploy(t, { 'values.yaml': 'replicaCount: 1\n---\nreplicaCount: 2' })),
+    { replicaCount: 2 },
+  );
+});
+
+test('malformed shared YAML retains the existing non-fatal error behavior', (t) => {
+  const result = deploy(t, { 'values.yaml': 'replicaCount: [' });
+  assert.equal(result.status, 0);
+  assert.match(result.stderr, /Error/);
+  assert.doesNotMatch(result.stderr, /Expected a single YAML mapping/);
+});
 
 test('reject environment names containing path separators', (t) => {
   const result = deploy(t, {}, '../production');
