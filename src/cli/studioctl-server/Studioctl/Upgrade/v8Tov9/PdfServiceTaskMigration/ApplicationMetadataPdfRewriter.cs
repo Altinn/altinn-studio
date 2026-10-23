@@ -11,7 +11,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 /// task via <c>taskId</c>. The flag defaults to true in v8, so a dataType without it counts as enabled.
 /// Exactly one PDF was produced per task-end regardless of how many datamodels qualified. The flag on
 /// attachment dataTypes (no classRef) or without a taskId (e.g. stateless) was a no-op. We therefore
-/// group qualifying datamodels by taskId; each distinct task gets one pdf task.
+/// group qualifying datamodels by taskId; each distinct task gets one pdf task. The task binding is read
+/// with <see cref="DataTypeTaskIdsMigration.BoundTasks"/>, so a dataType already moved to <c>taskIds</c>
+/// counts for each task it lists.
 /// </summary>
 internal sealed class ApplicationMetadataPdfRewriter
 {
@@ -80,12 +82,11 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
-            if (
-                !dataType.TryGetProperty("taskId", out var taskId)
-                || taskId.ValueKind != JsonValueKind.String
-                || taskId.GetString() is not { } task
-                || string.IsNullOrWhiteSpace(task)
-            )
+            var boundTasks = DataTypeTaskIdsMigration
+                .BoundTasks(dataType)
+                .Where(task => !string.IsNullOrWhiteSpace(task))
+                .ToList();
+            if (boundTasks.Count == 0)
             {
                 // Legacy no-op: without a taskId (e.g. stateless data) there is no task-end to trigger on.
                 // Only an explicit flag is worth a warning; the implicit default is on every such dataType.
@@ -97,7 +98,7 @@ internal sealed class ApplicationMetadataPdfRewriter
                 continue;
             }
 
-            if (!tasks.Exists(t => t.TaskId == task))
+            foreach (var task in boundTasks.Where(task => !tasks.Exists(t => t.TaskId == task)))
                 tasks.Add((task, dataTypeId));
         }
 

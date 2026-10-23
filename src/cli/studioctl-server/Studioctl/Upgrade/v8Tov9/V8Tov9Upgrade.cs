@@ -285,6 +285,11 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
 
+        // The PDF and eFormidling service task steps read tasks with DataTypeTaskIdsMigration.BoundTasks, so they find
+        // the same tasks before and after this step.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateDataTypeTaskIds(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
 
@@ -1911,6 +1916,27 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Index.cshtml", ex);
+        }
+    }
+
+    /// <summary>
+    /// Replaces the taskId of the data types in applicationmetadata.json with taskIds, the only task binding v9 reads.
+    /// </summary>
+    static async Task<int> MigrateDataTypeTaskIds(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Data type taskIds");
+        try
+        {
+            var result = await DataTypeTaskIdsMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No data type has a taskId",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error replacing taskId with taskIds in applicationmetadata.json", ex);
         }
     }
 

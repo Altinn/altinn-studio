@@ -340,4 +340,25 @@ public sealed class EFormidlingServiceTaskMigratorTests : IDisposable
         Assert.Empty(result.Todos);
         Assert.Null(ElementById(ProcessAfter(), "EFormidlingTask_Task_1"));
     }
+
+    [Theory]
+    [InlineData("\"taskId\": \"Task_2\"")]
+    [InlineData("\"taskIds\": [\"Task_1\", \"Task_2\"]")]
+    public void FormDataTypeForTask_IsTheDataModelBoundToTheTask(string binding)
+    {
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            $$"""
+            {
+              "dataTypes": [
+                { "id": "attachment", "taskIds": ["Task_2"] },
+                { "id": "other", "taskIds": ["Task_1"], "appLogic": { "classRef": "Altinn.App.Models.other" } },
+                { "id": "model", {{binding}}, "appLogic": { "classRef": "Altinn.App.Models.model" } }
+              ]
+            }
+            """
+        );
+
+        Assert.Equal("model", new ApplicationMetadataEFormidlingRewriter(file).GetFormDataTypeForTask("Task_2"));
+    }
 }
