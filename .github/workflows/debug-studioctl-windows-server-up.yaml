@@ -1,0 +1,164 @@
+name: Debug studioctl server up on Windows
+
+# Throwaway workflow to reproduce `studioctl server up` timing out on Windows
+# with bound topology enabled. Not meant to be merged.
+
+on:
+  push:
+    branches:
+      - debug/studioctl-windows-server-up
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repro:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      STUDIOCTL_VERSION: v0.1.0-preview.29
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Install studioctl
+        run: |
+          $bin = Join-Path $env:RUNNER_TEMP "studioctl-bin"
+          New-Item -ItemType Directory -Force -Path $bin | Out-Null
+          $installer = Join-Path $env:RUNNER_TEMP "install.ps1"
+          Invoke-WebRequest -UseBasicParsing -OutFile $installer `
+            -Uri "https://github.com/Altinn/altinn-studio/releases/download/studioctl/$env:STUDIOCTL_VERSION/install.ps1"
+          & $installer -Version $env:STUDIOCTL_VERSION -InstallDir $bin
+          Add-Content -Path $env:GITHUB_PATH -Value $bin
+
+      - name: Doctor
+        run: |
+          studioctl --version
+          studioctl doctor
+          exit 0
+
+      - name: "Case A: server up, bound topology disabled"
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "diag"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          studioctl server up *>&1 | Tee-Object -FilePath (Join-Path $out "case-a-server-up.txt")
+          "exit=$LASTEXITCODE elapsed=$($sw.Elapsed)" | Tee-Object -Append -FilePath (Join-Path $out "case-a-server-up.txt")
+          studioctl server status *>&1
+          studioctl server down *>&1
+          Start-Sleep -Seconds 2
+          exit 0
+
+      - name: "Case B: server up, bound topology enabled"
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "diag"
+          $topologyDir = Join-Path $env:APPDATA "altinn-studio\data\generated\topology"
+          New-Item -ItemType Directory -Force -Path $topologyDir | Out-Null
+          @'
+          {
+            "appRouteTemplate": { "host": "local.altinn.cloud", "pathPrefixTemplate": "/{org}/{app}" },
+            "routes": [
+              { "destination": { "location": "env", "kind": "http", "url": "http://localtest-grafana:3000" }, "match": { "host": "local.altinn.cloud", "pathPrefix": "/grafana" }, "component": "grafana", "enabled": false },
+              { "destination": { "location": "host", "kind": "http", "url": "http://127.0.0.1:8080" }, "match": { "host": "app-frontend.local.altinn.cloud" }, "component": "frontendDevServer", "enabled": true },
+              { "destination": { "location": "env", "kind": "http", "url": "http://localtest-pdf3:5031" }, "match": { "host": "pdf.local.altinn.cloud" }, "component": "pdf", "enabled": true },
+              { "destination": { "location": "env", "kind": "http", "url": "http://localtest-workflow-engine:9090" }, "match": { "host": "workflow-engine.local.altinn.cloud" }, "component": "workflowEngine", "enabled": true },
+              { "destination": { "location": "env", "kind": "http", "url": "http://localtest-pgadmin:80" }, "match": { "host": "pgadmin.local.altinn.cloud" }, "component": "pgadmin", "enabled": false }
+            ],
+            "version": 1
+          }
+          '@ | Set-Content -Path (Join-Path $topologyDir "env.json") -Encoding utf8NoBOM
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          studioctl server up *>&1 | Tee-Object -FilePath (Join-Path $out "case-b-server-up.txt")
+          "exit=$LASTEXITCODE elapsed=$($sw.Elapsed)" | Tee-Object -Append -FilePath (Join-Path $out "case-b-server-up.txt")
+          studioctl server status *>&1
+          studioctl server down *>&1
+          Start-Sleep -Seconds 2
+          exit 0
+
+      - name: "Case C: run studioctl-server in the foreground"
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "diag"
+          $home_ = Join-Path $env:APPDATA "altinn-studio"
+          $server = Get-ChildItem -Recurse -Path $home_ -Filter "studioctl-server.exe" | Select-Object -First 1 -ExpandProperty FullName
+          "server=$server"
+          $socket = Join-Path $home_ "studioctl-server.sock"
+          $topologyDir = Join-Path $home_ "data\generated\topology"
+
+          function Invoke-Server([string]$name, [hashtable]$extraEnv) {
+            Remove-Item -Force -ErrorAction SilentlyContinue $socket
+            $psi = [Diagnostics.ProcessStartInfo]::new($server)
+            $psi.WorkingDirectory = $home_
+            $psi.UseShellExecute = $false
+            $psi.RedirectStandardOutput = $true
+            $psi.RedirectStandardError = $true
+            $psi.Environment["STUDIOCTL_SERVER_UNIX_SOCKET_PATH"] = $socket
+            $psi.Environment["HostBridge__Url"] = "ws://127.0.0.1:8000/internal/host-bridge"
+            $psi.Environment["Localtest__Url"] = "http://127.0.0.1:8000"
+            foreach ($k in $extraEnv.Keys) { $psi.Environment[$k] = $extraEnv[$k] }
+            $p = [Diagnostics.Process]::Start($psi)
+            $stdout = $p.StandardOutput.ReadToEndAsync()
+            $stderr = $p.StandardError.ReadToEndAsync()
+            $exited = $p.WaitForExit(15000)
+            $socketExists = Test-Path $socket
+            $health = & curl.exe -sS --max-time 5 --unix-socket $socket http://studioctl-server/api/v1/healthz 2>&1
+            if (-not $exited) { $p.Kill($true); $p.WaitForExit() }
+            $report = @(
+              "== $name",
+              "exitedOnItsOwn=$exited exitCode=$($p.ExitCode) (0x{0:X8})" -f $p.ExitCode,
+              "socketExists=$socketExists",
+              "healthz=$health",
+              "-- stdout",
+              $stdout.Result,
+              "-- stderr",
+              $stderr.Result
+            ) -join "`n"
+            $report | Tee-Object -FilePath (Join-Path $out "case-c-$name.txt")
+          }
+
+          $studioctl = (Get-Command studioctl).Source
+          Invoke-Server "topology-off" @{ "Studioctl__Path" = $studioctl }
+          Invoke-Server "topology-on" @{
+            "Studioctl__Path" = $studioctl
+            "BoundTopologyOptions__BaseConfigPath" = (Join-Path $topologyDir "env.json")
+            "BoundTopologyOptions__ConfigPath" = (Join-Path $topologyDir "result.json")
+          }
+          Invoke-Server "topology-on-no-container-discovery" @{
+            "BoundTopologyOptions__BaseConfigPath" = (Join-Path $topologyDir "env.json")
+            "BoundTopologyOptions__ConfigPath" = (Join-Path $topologyDir "result.json")
+          }
+          exit 0
+
+      - name: Collect logs and crash events
+        if: always()
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "diag"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $logs = Join-Path $env:APPDATA "altinn-studio\logs"
+          if (Test-Path $logs) { Copy-Item -Recurse -Force $logs (Join-Path $out "logs") }
+          $topologyDir = Join-Path $env:APPDATA "altinn-studio\data\generated\topology"
+          if (Test-Path $topologyDir) { Copy-Item -Recurse -Force $topologyDir (Join-Path $out "topology") }
+          Get-ChildItem -Recurse $out | Select-Object FullName, Length, LastWriteTime | Format-Table -AutoSize | Out-String -Width 300
+          foreach ($f in Get-ChildItem -Recurse -File -Path (Join-Path $out "logs") -ErrorAction SilentlyContinue) {
+            "===== $($f.FullName)"
+            Get-Content $f.FullName
+          }
+          $since = (Get-Date).AddMinutes(-30)
+          Get-WinEvent -FilterHashtable @{ LogName = "Application"; StartTime = $since } -ErrorAction SilentlyContinue |
+            Where-Object { $_.ProviderName -in ".NET Runtime", "Application Error", "Windows Error Reporting" } |
+            Format-List TimeCreated, ProviderName, Id, Message | Out-String -Width 300 |
+            Tee-Object -FilePath (Join-Path $out "application-events.txt")
+          exit 0
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: diag-${{ matrix.os }}
+          path: ${{ runner.temp }}/diag
+          if-no-files-found: warn
+          retention-days: 7
