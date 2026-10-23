@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Checks that a Dockerfile downloads the Microsandbox runtime that matches the microsandbox crate in Cargo.lock.
-# Each crate that downloads the runtime runs this in `make deps-check`.
+# Checks that a Dockerfile downloads the same Microsandbox runtime version as the microsandbox crate in Cargo.lock.
+# Each crate that downloads the runtime runs this script in `make deps-check`.
 set -euo pipefail
 
 dockerfile="${1:?usage: check-runtime-pin.sh <Dockerfile>}"

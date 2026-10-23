@@ -1,10 +1,10 @@
 use std::{fs::OpenOptions, io};
 
-/// Checks that this process can open `/dev/kvm`, so that it can start Sandboxes.
+/// Checks that this process can open `/dev/kvm`. The process must open it to start Sandboxes.
 ///
 /// # Errors
 ///
-/// Returns an error when `/dev/kvm` does not exist or this process has no read and write access to it.
+/// Returns an error when `/dev/kvm` does not exist, or when this process cannot read and write it.
 pub fn require_kvm() -> Result<(), io::Error> {
     OpenOptions::new()
         .read(true)

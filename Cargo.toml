@@ -17,8 +17,8 @@ futures-util = "0.3.34"
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }
 reqwest = { version = "0.13.4", features = ["json"] }
 # The Sandbox crates from digdir/digdir-agents, at the commit tagged `agentctl/v0.1.0-preview.10`.
-# They pin the Microsandbox version; keep MICROSANDBOX_RUNTIME_VERSION in every Dockerfile that sets it
-# in step with it. `make deps-check` of each such crate checks this.
+# These crates set the Microsandbox version. Each Dockerfile that sets MICROSANDBOX_RUNTIME_VERSION must use the same
+# version. `make deps-check` of each crate with such a Dockerfile checks this.
 sandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
 sandbox-microsandbox = { git = "https://github.com/digdir/digdir-agents.git", rev = "a58229f7f9125784b8c4a195329a124b2e1552f9" }
 sandbox-host = { path = "src/ci/sandbox-host" }

@@ -1,6 +1,6 @@
 use std::io;
 
-/// Checks that `SANDBOX_IMAGE` names an image by its sha256 digest, so that every Sandbox starts the same image.
+/// Checks that `SANDBOX_IMAGE` identifies an image by its sha256 digest. Then each Sandbox starts the same image.
 ///
 /// # Errors
 ///
