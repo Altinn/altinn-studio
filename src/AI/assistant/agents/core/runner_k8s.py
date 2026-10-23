@@ -1,8 +1,9 @@
 """Runs app code for this service in a Kubernetes Job: one Job, one pod and one microVM for each run.
 
 The pod runs the job host from `src/AI/assistant-runner`.  This service creates the Job from the PodTemplate
-`assistant-runner` in the runner namespace, waits until the pod is Ready, sends the app to the pod over HTTP, and
-deletes the Job.  The admission policy of the runner namespace accepts only a Job with the pod of that PodTemplate.
+`assistant-runner` in the runner namespace.  It waits until the pod is Ready and sends the app to the pod through
+HTTP.  Then it deletes the Job.  The admission policy of the runner namespace accepts only a Job with the pod of that
+PodTemplate.
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ _JOB_HOST_PORT = 8080
 _ARCHIVE_CONTENT_TYPE = "application/gzip"
 _OK = 200
 
-# The admission policy of the runner namespace requires these values.
+# The admission policy of the runner namespace accepts only a Job with these values.
 _BACKOFF_LIMIT = 0
 _ACTIVE_DEADLINE_SECONDS = 1200
 _TTL_SECONDS_AFTER_FINISHED = 60
@@ -40,7 +41,7 @@ _START_TIMEOUT_SECONDS = 5 * 60
 _POLL_INTERVAL_SECONDS = 1
 # The Job controller creates the pod within a few seconds.  A Job without a pod after this time waits for room.
 _POD_CREATE_GRACE_SECONDS = 3
-# The job host stops the upgrade after 11 minutes, so the answer comes before this timeout.
+# The answer comes before this timeout, because the job host stops the upgrade after 11 minutes.
 _UPGRADE_TIMEOUT_SECONDS = 12 * 60
 _CONNECT_TIMEOUT_SECONDS = 10
 
@@ -116,7 +117,7 @@ async def _start_job(api: KubernetesApi, namespace: str, run_kind: str, progress
 
 
 def _job_from(template: dict[str, Any], run_kind: str) -> dict[str, Any]:
-    """A Job with the pod of the PodTemplate, as the admission policy requires.  The labels have no developer data."""
+    """Returns a Job with the pod of the PodTemplate, for the admission policy.  The labels have no developer data."""
     return {
         "apiVersion": "batch/v1",
         "kind": "Job",
@@ -170,8 +171,8 @@ def _ready_pod_ip(pod: dict[str, Any]) -> str | None:
 
 
 def _is_waiting_for_room(pod: dict[str, Any] | None, elapsed_seconds: float) -> bool:
-    """A run waits for room when the quota stops the Job controller from creating the pod, or when no sandbox node
-    has room for the pod."""
+    """A run waits for room when the Job controller cannot create the pod because of the quota.  It also waits when
+    no sandbox node has room for the pod."""
     if pod is None:
         return elapsed_seconds >= _POD_CREATE_GRACE_SECONDS
     conditions = pod.get("status", {}).get("conditions", [])
@@ -196,14 +197,14 @@ async def _send_job_request(pod_ip: str, path: str, archive: bytes, timeout_seco
 
 
 def _create_job_host_client(base_url: str, timeout_seconds: int) -> httpx.AsyncClient:
-    """Module level, so that the tests can replace the job host."""
+    """This function is at module level so that the tests can replace the job host."""
     return httpx.AsyncClient(
         base_url=base_url, timeout=httpx.Timeout(timeout_seconds, connect=_CONNECT_TIMEOUT_SECONDS)
     )
 
 
 async def _delete_job(api: KubernetesApi, namespace: str, job_name: str) -> None:
-    """The Job deadline and the TTL remove the Job when this delete fails."""
+    """When this function cannot delete the Job, the Job deadline and the TTL remove it."""
     try:
         await api.delete_job(namespace, job_name)
     except KubernetesApiError:

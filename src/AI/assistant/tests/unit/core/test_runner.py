@@ -1,4 +1,4 @@
-"""Tests for the parts of the assistant runner client that do not depend on how the app gets to the runner."""
+"""Tests for the parts of the assistant runner client that do not depend on how the app goes to the runner."""
 
 from __future__ import annotations
 

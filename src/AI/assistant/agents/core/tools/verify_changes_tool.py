@@ -143,7 +143,7 @@ def _verify_one(ctx: LoopContext, file_path: str) -> tuple[bool, list[str]]:
     """Return `(passed, notes)` for a single changed file."""
     full_path = Path(ctx.repo_path) / file_path
     if not full_path.exists():
-        # Only the v9 upgrade deletes files: the model has no delete tool, and
+        # Only the v9 upgrade deletes files.  The model has no delete tool, and
         # `discard_file_changes` removes the entry from `changed_files`.
         return True, [f"{file_path}: deleted, nothing to validate"]
 

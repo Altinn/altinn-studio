@@ -1,7 +1,7 @@
 """The assistant runner (`src/AI/assistant-runner`) runs app code for this service.
 
-MSBuild runs code from the app, so the v9 upgrade runs in a microVM without the secrets of this service.  The tools use
-the `Runner` protocol, so they do not depend on how the app gets to the runner.
+The v9 upgrade runs in a microVM without the secrets of this service, because MSBuild runs code from the app.  The
+tools use the `Runner` protocol so that they do not depend on how this service sends the app to the runner.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from typing import Any, Protocol
 
 from shared.config.base_config import get_config
 
-# The app folder in the VM.  Paths in the output of a job start with it.
+# This is the app folder in the VM.  Paths in the output of a job start with it.
 JOB_APP_FOLDER = "/job/app/"
 
 _GIT_LIST_APP_FILES = ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"]
@@ -27,7 +27,7 @@ _GIT_LIST_APP_FILES = ["git", "ls-files", "-z", "--cached", "--others", "--exclu
 @dataclass(frozen=True)
 class RunResult:
     """The result of a job.  `exit_code` is None when the command did not finish in time.  `patch` has the changes
-    that an upgrade made, as `git diff --binary` output.  App code made the patch, so check it before you apply it."""
+    that an upgrade made, as `git diff --binary` output.  App code made the patch.  Check it before you apply it."""
 
     exit_code: int | None
     stdout: str
@@ -67,15 +67,15 @@ def create_runner() -> Runner | None:
 
 
 def list_app_files(repo_path: str) -> list[str]:
-    """The files that a job gets: the files that git tracks and the new files that git does not ignore, as they are on
-    disk.  A tracked file that the model deleted is not in the list."""
+    """Returns the files that a job receives, as they are on disk.  These are the files that git tracks and the new
+    files that git does not ignore.  A tracked file that the model deleted is not in the list."""
     listed = subprocess.run(_GIT_LIST_APP_FILES, cwd=repo_path, capture_output=True, check=True)
     paths = listed.stdout.decode().split("\0")
     return [path for path in paths if path and os.path.lexists(os.path.join(repo_path, path))]
 
 
 def archive_app_files(repo_path: str) -> bytes:
-    """A tar.gz of the app files, without `.git`.  Symbolic links stay links."""
+    """Returns a tar.gz of the app files, without `.git`.  The archive keeps symbolic links as links."""
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w:gz") as archive:
         for path in list_app_files(repo_path):
@@ -84,12 +84,12 @@ def archive_app_files(repo_path: str) -> bytes:
 
 
 def to_run_result(answer: dict[str, Any]) -> RunResult:
-    """The answer of the job host, as a `RunResult`.  The patch comes as base64."""
+    """Returns the answer of the job host as a `RunResult`.  The patch in the answer is base64."""
     patch = base64.b64decode(answer["patch"]) if answer["patch"] else b""
     exit_code = None if answer["timedOut"] else answer["exitCode"]
     return RunResult(exit_code=exit_code, stdout=answer["stdout"], stderr=answer["stderr"], patch=patch)
 
 
 def to_app_paths(output: str) -> str:
-    """Paths in the output of a job, relative to the app."""
+    """Returns the output of a job with paths relative to the app."""
     return output.replace(JOB_APP_FOLDER, "")

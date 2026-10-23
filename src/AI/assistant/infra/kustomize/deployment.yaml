@@ -18,7 +18,7 @@ spec:
         app: altinn-altinity-agents
     spec:
       serviceAccountName: altinn-altinity-agents-sa
-      # The token lets the assistant start runner Jobs in the namespace assistant-runners, and nothing else.
+      # With this token, the assistant can only start runner Jobs in the namespace assistant-runners.
       automountServiceAccountToken: true
       containers:
         - name: altinn-altinity-agents

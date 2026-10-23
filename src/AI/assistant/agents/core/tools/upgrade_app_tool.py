@@ -1,10 +1,10 @@
 """`upgrade_app_to_v9` — run the official v8→v9 app upgrade.
 
-The upgrade logic lives in studioctl. The upgrade runs code from the app, so the
-assistant runner runs it in a Kubernetes Job, in a microVM without the secrets of
-this service. The runner returns the changes as a patch. This tool checks the
-patch, applies it to the session repo and marks the files so that the normal
-commit flow picks them up.
+The upgrade logic is in studioctl. Because the upgrade runs app code, the assistant
+runner runs it in a Kubernetes Job, in a microVM without the secrets of this
+service. The runner returns the changes as a patch. This tool checks the patch and
+applies it to the session repo. Then it marks the files so that the normal commit
+flow commits them.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from agents.core.tool import LoopContext, ToolResult, WriteTool
 
 log = logging.getLogger(__name__)
 
-# studioctl upgrade exit codes, reported in its JSON result
+# studioctl reports these upgrade exit codes in its JSON result.
 _EXIT_SUCCESS = 0
 _EXIT_UNSUPPORTED_VERSION = 2
 _EXIT_MANUAL_ACTION_REQUIRED = 3
@@ -46,16 +46,16 @@ _UNAVAILABLE_MESSAGE = (
 )
 _REFUSED_CHANGES_MESSAGE = "The upgrade made these changes, which the real upgrade never makes:"
 
-# The runner stops studioctl after 11 minutes.  studioctl stops an upgrade after 10.
+# The runner stops studioctl after 11 minutes.  studioctl stops an upgrade after 10 minutes.
 _UPGRADE_TIMEOUT_MINUTES = 11
 _TIMED_OUT_MESSAGE = f"The v9 upgrade did not finish in {_UPGRADE_TIMEOUT_MINUTES} minutes, and nothing was changed."
-# Status messages for the user, by the progress of the run.
+# Each progress state of the run has a status message for the user.
 _PROGRESS_STATUS = {
     RunnerProgress.WAITING: "Står i kø for oppgradering",
     RunnerProgress.RUNNING: "Oppgraderer appen til v9",
 }
 
-# The upgrade keeps this file when it holds back layout sets that need manual work.
+# The upgrade keeps this file when it does not upgrade layout sets that must have manual work.
 _LAYOUT_SETS_FILE = "App/ui/layout-sets.json"
 _HELD_BACK_MESSAGE = "The app was not upgraded, and nothing was changed.  These TODOs block the upgrade:"
 _HELD_BACK_ROLLBACK_NOTE = (
@@ -66,17 +66,17 @@ _TODO_STATUS = "TODO"
 _CREATED_FILES_WITH_TODOS_MESSAGE = "The upgrade created files with these TODOs:"
 _COMMENT_PREFIX = "//"
 
-# The patch goes into the index, so git status shows a file that the upgrade created as added to the index.
+# git status shows a file that the upgrade created as added to the index, because the patch goes into the index.
 _GIT_STATUS_ADDED = "A"
 _GIT_STATUS_RENAMED = "R"
 
 _GIT_RESET_TO_HEAD = ["git", "reset", "--hard", "HEAD"]
 _GIT_REMOVE_UNTRACKED_FILES = ["git", "clean", "-fd"]
 _GIT_APPLY_PATCH_TO_INDEX_AND_WORKING_TREE = ["git", "apply", "--index", "--whitespace=nowarn"]
-# Each staged change as `:<old mode> <new mode> <old id> <new id> <status>`, then its path.
+# For each staged change, this command writes `:<old mode> <new mode> <old id> <new id> <status>` and then the path.
 _GIT_STAGED_CHANGES_WITH_MODES = ["git", "diff", "--cached", "--raw", "-z", "--no-renames"]
 
-# The tool marks the changed files as verified, so it accepts only what an upgrade can make.
+# The tool accepts only the changes that an upgrade can make, because it marks the changed files as verified.
 _REFUSED_FILE_MODES = {"120000": "a symbolic link", "160000": "a submodule"}
 # CI workflows run with the secrets of the repo.
 _REFUSED_FOLDERS = (".gitea/", ".github/")
@@ -98,9 +98,9 @@ class _UpgradeRun:
 
 
 async def _upgrade_copy_of_repo(repo_path: str, report_status: Callable[[str], None]) -> _UpgradeRun:
-    """Send the app to the assistant runner, which runs the upgrade on a copy and makes the patch.  Each upgrade gets
-    its own runner, so upgrades of different sessions run at the same time.  Raises TimeoutError when the upgrade does
-    not finish in time."""
+    """Send the app to the assistant runner, which runs the upgrade on a copy and makes the patch.  Upgrades of
+    different sessions run at the same time, because each upgrade has its own runner.  Raises TimeoutError when the
+    upgrade does not finish in time."""
     app_runner = runner.create_runner()
     if app_runner is None:
         raise RunnerUnavailable("this deployment has no assistant runner")
@@ -195,9 +195,9 @@ def _apply_upgrade(exit_code: int, steps: list[dict], summary: str, changes: byt
 
 
 def _apply_changes(repo_path: str, patch: bytes) -> str | None:
-    """Apply the patch from the runner, or return why it does not apply.  App code made the patch,
-    so this tool keeps only the changes that an upgrade can make.  git applies all of the patch or
-    nothing, and refuses paths outside the repo, paths in `.git` and paths behind a symlink."""
+    """Apply the patch from the runner, or return why it does not apply.  This tool keeps only the
+    changes that an upgrade can make, because app code made the patch.  git applies all of the patch
+    or nothing.  It refuses paths outside the repo, paths in `.git` and paths behind a symlink."""
     if not patch:
         return None
     applied = subprocess.run(
@@ -214,8 +214,8 @@ def _apply_changes(repo_path: str, patch: bytes) -> str | None:
 
 
 def _find_refused_changes(repo_path: str) -> list[str]:
-    """Each staged path that the upgrade never makes, with the reason.  This tool reads the created
-    files to find TODOs, so a symbolic link could send it out of the repo."""
+    """Returns each staged path that the upgrade never makes, with the reason.  A symbolic link can
+    send this tool out of the repo, because the tool reads the created files to find TODOs."""
     staged = subprocess.run(_GIT_STAGED_CHANGES_WITH_MODES, cwd=repo_path, capture_output=True, check=True)
     fields = staged.stdout.decode(errors="replace").split("\0")
     refused_changes: list[str] = []
@@ -265,7 +265,7 @@ def _held_back_layout_sets(repo_path: str) -> bool:
 
 
 def _switch_app_version_profile(ctx: LoopContext) -> str:
-    """The system prompt is fixed for the turn, so the rules of the new app version travel in the tool result."""
+    """The tool result has the rules of the new app version, because the system prompt does not change in the turn."""
     previous_profile = ctx.app_version_profile
     ctx.app_version_profile = detect_app_version_profile(ctx.repo_path)
     return "\n\n".join(
@@ -285,7 +285,7 @@ def _summarize_steps(steps: list[dict]) -> str:
 
 
 def _summarize_todos(steps: list[dict]) -> str:
-    """The rollback undid the other steps, so only their TODOs still apply."""
+    """The rollback undid the other steps.  Only their TODOs still apply."""
     return "\n".join(
         _format_message(step, message)
         for step in steps
@@ -299,7 +299,7 @@ def _format_message(step: dict, message: dict) -> str:
 
 
 def _restore_working_tree(repo_path: str) -> None:
-    """The upgrade only runs on a clean working tree, so this discards only the changes of the upgrade."""
+    """Discards only the changes of the upgrade, because the upgrade runs only on a clean working tree."""
     subprocess.run(_GIT_RESET_TO_HEAD, cwd=repo_path, capture_output=True, text=True, check=True)
     subprocess.run(_GIT_REMOVE_UNTRACKED_FILES, cwd=repo_path, capture_output=True, text=True, check=True)
 
@@ -308,11 +308,11 @@ def _record_changed_files(ctx: LoopContext, paths: list[str]) -> None:
     changed: set[str] = ctx.extras.setdefault("changed_files", set())
     verified: set[str] = ctx.extras.setdefault("verified_files", set())
     changed.update(paths)
-    verified.update(paths)  # We trust the upgrade script and bypass VerifyChangesTool
+    verified.update(paths)  # Because we trust the upgrade script, VerifyChangesTool is not necessary for these files.
 
 
 def _todos_in_created_files(repo_path: str) -> list[str]:
-    """Each TODO comment in the files the upgrade created, below its `path:line:`."""
+    """Returns each TODO comment in the files that the upgrade created, below its `path:line:`."""
     todos: list[str] = []
     for path in _get_created_paths(repo_path):
         lines = (Path(repo_path) / path).read_text(encoding="utf-8").splitlines()
@@ -322,7 +322,7 @@ def _todos_in_created_files(repo_path: str) -> list[str]:
 
 
 def _todo_comment(lines: list[str], todo_index: int) -> str:
-    """The TODO line and the comment lines below it, which say what the TODO asks for."""
+    """Returns the TODO line and the comment lines below it, which say what the TODO asks for."""
     comment = [lines[todo_index].strip()]
     for line in lines[todo_index + 1 :]:
         stripped_line = line.strip()
@@ -333,7 +333,7 @@ def _todo_comment(lines: list[str], todo_index: int) -> str:
 
 
 def _get_changed_paths(repo_path: str) -> list[str]:
-    """Repo-relative paths touched in the working tree"""
+    """Returns the repo-relative paths of the files that changed in the working tree."""
     return [path for _, path in _git_status_entries(repo_path)]
 
 
@@ -342,9 +342,10 @@ def _get_created_paths(repo_path: str) -> list[str]:
 
 
 def _git_status_entries(repo_path: str) -> list[tuple[str, str]]:
-    """The status code and path of each changed file.  A renamed file has its new path.
+    """Returns the status code and the path of each changed file.  A renamed file has its new path.
 
-    With `-z`, git leaves paths with spaces and non-ASCII letters unquoted, so they match the files on disk.
+    This function uses `-z` so that the paths match the files on disk.  With `-z`, git does not quote paths with
+    spaces and non-ASCII letters.
     """
     result = subprocess.run(
         ["git", "status", "--porcelain", "-z"],
@@ -358,6 +359,6 @@ def _git_status_entries(repo_path: str) -> list[tuple[str, str]]:
     for field in fields:
         status, path = field[:2], field[3:]
         if _GIT_STATUS_RENAMED in status:
-            next(fields)  # the path before the rename
+            next(fields)  # This field is the path before the rename.
         entries.append((status, path))
     return entries

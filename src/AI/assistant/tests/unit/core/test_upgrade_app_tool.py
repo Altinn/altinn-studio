@@ -1,8 +1,9 @@
 """Tests for `upgrade_app_to_v9`.
 
 The tool sends the session repo to the assistant runner, which runs `studioctl app upgrade`
-on a copy.  `_FakeRunner` does the work of the runner, so these tests run without
-studioctl.  The fake upgrades change the copy, a real git repo, the way studioctl does.
+on a copy.  These tests run without studioctl, because `_FakeRunner` does the work of the
+runner.  The fake upgrades change the copy in the same way as studioctl.  The copy is a real
+git repo.
 """
 
 from __future__ import annotations
@@ -56,8 +57,8 @@ _FakeUpgrade = Callable[[Path], Awaitable[subprocess.CompletedProcess[bytes]]]
 
 @dataclass
 class _FakeRunner:
-    """Does what the assistant runner does: it copies the app files into a new folder, commits them, runs the
-    upgrade there, and returns the result and the changes as a patch.  `studioctl` stands in for studioctl, and
+    """Does what the assistant runner does.  It copies the app files into a new folder, commits them and runs the
+    upgrade there.  Then it returns the result and the changes as a patch.  `studioctl` replaces studioctl and
     raises TimeoutError for an upgrade that does not finish in time."""
 
     jobs_folder: Path
@@ -136,7 +137,7 @@ def _upgrade_with(
     recorder: list[Path] | None = None,
     edit_repo: Callable[[Path], None] | None = None,
 ) -> _FakeUpgrade:
-    """`edit_repo` gets the copy of the session repo that studioctl upgrades."""
+    """`edit_repo` receives the copy of the session repo that studioctl upgrades."""
 
     async def fake_upgrade(app: Path) -> subprocess.CompletedProcess[bytes]:
         if recorder is not None:
@@ -176,7 +177,7 @@ def _stub_upgrade_that_edits_repo(runner: _FakeRunner, edit_repo: Callable[[Path
 
 
 def _upgrade_that_bumps_csproj_and_deletes_layout_sets(repo: Path) -> None:
-    """Mimics studioctl: change the app, then stage every change."""
+    """Changes the app and then stages every change, in the same way as studioctl."""
     write_files(repo, {"App/App.csproj": _V9_PROJECT_FILE})
     (repo / "App/ui/layout-sets.json").unlink()
     git(repo, "add", "-A")
@@ -204,7 +205,7 @@ def _upgrade_that_creates_a_file_with_a_space_and_a_norwegian_letter(repo: Path)
 
 
 def _upgrade_that_fixes_a_v9_app(repo: Path) -> None:
-    """Mimics a newer studioctl finding something to fix in an app that an earlier version upgraded."""
+    """Does the same as a newer studioctl that finds something to fix in an app that an earlier version upgraded."""
     write_files(repo, {"App/ui/Settings.json": '{"hideCloseButton": true}'})
     git(repo, "add", "-A")
 
@@ -215,7 +216,7 @@ _REVIEW_TODO_DETAILS = "// You MUST carefully review each method."
 
 
 def _upgrade_that_generates_a_data_processor(repo: Path) -> None:
-    """Mimics studioctl converting data processing rules to C#, which it marks with a TODO to review."""
+    """Converts data processing rules to C# and marks the code with a TODO to review, in the same way as studioctl."""
     write_files(
         repo,
         {
@@ -260,8 +261,8 @@ def _upgrade_that_adds_a_file(path: str) -> Callable[[Path], None]:
 
 
 def _stub_held_back_upgrade(runner: _FakeRunner) -> None:
-    """Mimics studioctl holding back a layout set: the project file is on v9,
-    but layout-sets.json stays, and a rule is reported as a TODO."""
+    """Does the same as studioctl when it does not upgrade a layout set.  The project file is on v9,
+    but layout-sets.json remains.  studioctl reports a rule as a TODO."""
 
     async def fake_upgrade(app: Path) -> subprocess.CompletedProcess[bytes]:
         write_files(app, {"App/App.csproj": _V9_PROJECT_FILE, "App/ui/Task_1/Settings.json": "{}"})
@@ -287,7 +288,7 @@ def _stub_held_back_upgrade(runner: _FakeRunner) -> None:
 
 
 def _lock_the_index_and_hold_back(repo_path: str) -> bool:
-    """A left-over index.lock makes `git reset` fail, so the rollback of the held-back upgrade cannot run."""
+    """The rollback of the held-back upgrade cannot run, because a left-over index.lock makes `git reset` fail."""
     (Path(repo_path) / ".git/index.lock").touch()
     return True
 
@@ -796,7 +797,7 @@ class TestUpgradeAppToV9:
     async def test_never_applies_a_patch_that_writes_outside_the_working_tree(
         self, monkeypatch, runner: _FakeRunner, tmp_path: Path, patch: bytes, path_outside_the_working_tree: str
     ):
-        """App code runs in the runner, so it can control all of the patch."""
+        """App code can control all of the patch, because it runs in the runner."""
         repo = create_committed_repo(tmp_path / "session", _V8_APP_FILES)
         _stub_upgrade_that_edits_repo(runner, _upgrade_that_bumps_csproj_and_deletes_layout_sets, exit_code=0)
         runner.hostile_patch = patch

@@ -1,6 +1,6 @@
 """Tests for the runner that starts one Kubernetes Job for each run.
 
-`_FakeCluster` plays the Kubernetes API server and the job host in the pod, over `httpx.MockTransport`.
+`_FakeCluster` replaces the Kubernetes API server and the job host in the pod, through `httpx.MockTransport`.
 """
 
 from __future__ import annotations
@@ -50,9 +50,9 @@ def _status(code: int, message: str) -> httpx.Response:
 @dataclass
 class _FakeCluster:
     template_answer: httpx.Response = field(default_factory=lambda: httpx.Response(200, json=_TEMPLATE))
-    # Answers to the Job creation before it succeeds, for example a refusal from the quota.
+    # The fake cluster sends these answers before it creates the Job, for example a refusal from the quota.
     create_refusals: list[httpx.Response] = field(default_factory=list)
-    # The pods of the Job in each poll.  The last answer repeats.
+    # Each poll receives the next list of pods of the Job.  The last list repeats.
     pod_polls: list[list[dict[str, Any]]] = field(default_factory=lambda: [[_READY_POD]])
     job_host_answer: httpx.Response | Exception = field(default_factory=lambda: httpx.Response(200, json=_ANSWER))
     created_jobs: list[dict[str, Any]] = field(default_factory=list)

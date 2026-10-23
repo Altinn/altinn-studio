@@ -1,7 +1,7 @@
 """A small client for the Kubernetes API, for the runner Jobs of this service.
 
 It uses the ServiceAccount token and CA that Kubernetes mounts in the pod.  The ServiceAccount of this service can only
-read the runner PodTemplate, and create, follow and delete Jobs in the runner namespace.
+read the runner PodTemplate, and create, monitor and delete Jobs in the runner namespace.
 """
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ class KubernetesApi:
         return pods.get("items", [])
 
     async def delete_job(self, namespace: str, name: str) -> None:
-        """Deletes the Job and, in the background, its pod.  A Job that is already gone is not an error."""
+        """Deletes the Job and, in the background, its pod.  It is not an error if the Job does not exist."""
         try:
             await self._request(
                 "DELETE",
@@ -95,7 +95,7 @@ class KubernetesApi:
         json: dict[str, Any] | None = None,
         params: dict[str, str] | None = None,
     ) -> dict[str, Any]:
-        # Kubernetes rotates the token, so read it for each request.
+        # Read the token for each request, because Kubernetes rotates it.
         token = await asyncio.to_thread(read_token)
         try:
             response = await self._client.request(
@@ -109,7 +109,7 @@ class KubernetesApi:
 
 
 def open_in_cluster() -> KubernetesApi:
-    """The API server of the cluster that this pod runs in."""
+    """Returns a client for the API server of the cluster that this pod runs in."""
     host = os.environ["KUBERNETES_SERVICE_HOST"]
     port = os.environ["KUBERNETES_SERVICE_PORT"]
     host = f"[{host}]" if ":" in host else host
@@ -121,7 +121,7 @@ def read_token() -> str:
 
 
 def _create_client(base_url: str) -> httpx.AsyncClient:
-    """Module level, so that the tests can replace the API server."""
+    """This function is at module level so that the tests can replace the API server."""
     context = ssl.create_default_context(cafile=str(SERVICE_ACCOUNT_FOLDER / _CA_FILE))
     return httpx.AsyncClient(base_url=base_url, verify=context, timeout=_REQUEST_TIMEOUT_SECONDS)
 
@@ -139,7 +139,7 @@ def _to_error(method: str, path: str, response: httpx.Response) -> KubernetesApi
 
 
 def _status_message(response: httpx.Response) -> str:
-    """The message of a Kubernetes `Status` answer, or the text of another answer."""
+    """Returns the message of a Kubernetes `Status` answer, or the text of another answer."""
     try:
         return str(response.json().get("message", response.text))
     except ValueError:
