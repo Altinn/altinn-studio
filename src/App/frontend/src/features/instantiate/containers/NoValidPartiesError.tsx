@@ -9,7 +9,7 @@ import { returnUrlToRolesAndRightsHelp } from 'src/utils/urls/urlHelper';
 export function NoValidPartiesError() {
   const { langAsString } = useLanguage();
   const appMetadata = getApplicationMetadata();
-  const rolesAndRightsHelpUrl = returnUrlToRolesAndRightsHelp(window.location.host);
+  const rolesAndRightsHelpUrl = returnUrlToRolesAndRightsHelp();
 
   function getAllowedParties(): string {
     let returnString = '';

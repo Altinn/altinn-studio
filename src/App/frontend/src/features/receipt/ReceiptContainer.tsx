@@ -174,11 +174,7 @@ export const ReceiptContainer = () => {
           collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
           subtitle={hiddenFromInbox ? undefined : <Lang id='receipt.subtitle' />}
-          subtitleurl={
-            hiddenFromInbox
-              ? undefined
-              : returnUrlToArchive(window.location.host, instanceOwnerParty?.partyId, dialogId)
-          }
+          subtitleurl={hiddenFromInbox ? undefined : returnUrlToArchive(instanceOwnerParty?.partyId, dialogId)}
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}
           pdf={pdfDisplayAttachments}

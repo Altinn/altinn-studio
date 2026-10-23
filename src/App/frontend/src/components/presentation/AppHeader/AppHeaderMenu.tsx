@@ -71,7 +71,7 @@ export function AppHeaderMenu({ logoColor }: AppHeaderMenuProps) {
                 variant='tertiary'
                 asChild
               >
-                <a href={logoutUrlAltinn(window.location.host)}>
+                <a href={logoutUrlAltinn()}>
                   <Lang id='general.log_out' />
                 </a>
               </Button>

@@ -1,5 +1,4 @@
 import { isNotNullUndefinedOrEmpty } from 'src/utils/listUtils';
-import { isLocalEnvironment } from 'src/utils/urls/urlHelper';
 
 const MILLISECONDS_PER_DAY = 86400000;
 
@@ -9,7 +8,8 @@ export class CookieStorage {
     const expires = expiresInDays
       ? `expires=${new Date(Date.now() + expiresInDays * MILLISECONDS_PER_DAY).toUTCString()}`
       : '';
-    const secure = isLocalEnvironment(window.location.host) ? '' : 'Secure';
+    // A Secure cookie is only stored over https, so a page served over plain http (localtest) must not ask for it.
+    const secure = window.location.protocol === 'https:' ? 'Secure' : '';
 
     const cookieString = [encodedKeyValue, expires, `path=/${window.org}/${window.app}`, 'SameSite=Lax', secure]
       .filter(isNotNullUndefinedOrEmpty)

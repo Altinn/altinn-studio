@@ -46,7 +46,7 @@ export const PartySelection = () => {
   const defaultShowDeleted = partiesAllowedToInstantiate.every((party) => party.isDeleted);
 
   const appPromptForPartyOverride = appMetadata.promptForParty;
-  const partiesSettingsUrl = returnUrlToPartiesSettings(window.location.host);
+  const partiesSettingsUrl = returnUrlToPartiesSettings();
   const { langAsString } = useLanguage();
 
   const [filterString, setFilterString] = React.useState('');

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
-import { vi } from 'vitest';
 
 import { getOrganisationMock } from 'src/__mocks__/getOrganisationMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
@@ -34,13 +33,11 @@ describe('InstantiateHeader', () => {
   });
 
   it('should not render the link to all forms when no all forms url is configured', async () => {
-    vi.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location, host: 'tt02.altinn.no' });
     window.altinnAppGlobalData.platformFrontendSettings.allFormsUrl = undefined;
 
     await render();
 
     expect(screen.queryByText(/alle skjema/i)).not.toBeInTheDocument();
-    vi.spyOn(window, 'location', 'get').mockRestore();
   });
 
   it('should not render links to inbox, schemas and profile when profile does not have "party" property', async () => {

@@ -21,8 +21,9 @@ describe('NoValidPartiesError', () => {
     vi.restoreAllMocks();
   });
 
-  it('links to the configured URL on an Altinn host', async () => {
-    mockHost('ttd.apps.tt02.altinn.no');
+  // The host plays no part: localtest at a custom origin gets the link the settings give it
+  it.each(['ttd.apps.tt02.altinn.no', 'altinn.test:18000'])('links to the configured URL on %s', async (host) => {
+    mockHost(host);
     window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = 'https://ny.altinn.no/hjelp/roller';
 
     await render();
@@ -33,18 +34,9 @@ describe('NoValidPartiesError', () => {
     );
   });
 
-  it('hides the link when no URL is configured', async () => {
-    mockHost('ttd.apps.tt02.altinn.no');
+  // A Studio preview or any other host the platform does not run the app on gets no settings
+  it('renders without the link when no URL is configured', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = undefined;
-
-    await render();
-
-    expect(screen.queryByText(rolesAndRightsLink)).not.toBeInTheDocument();
-  });
-
-  // getHostname() used to throw on hosts it did not recognize, which took the whole page down
-  it('renders without the link on an unknown host', async () => {
-    mockHost('altinn.studio');
 
     await render();
 

@@ -50,9 +50,8 @@ describe('Presentation', () => {
   });
 
   it('should link to default messagebox url if query parameter returnUrl is not valid', async () => {
-    const host = 'ttd.apps.tt02.altinn.no';
     const returnUrl = 'https://altinn.cloud.no';
-    const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}`, host };
+    const mockedLocation = { ...realLocation, search: `?returnUrl=${returnUrl}` };
     vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
     const messageBoxUrl = getMessageBoxUrl(getPartyMock().partyId);
 
@@ -66,9 +65,8 @@ describe('Presentation', () => {
   });
 
   it('should link to default messagebox url if query parameter returnUrl is not found', async () => {
-    const host = 'ttd.apps.tt02.altinn.no';
     const partyId = getPartyMock().partyId;
-    const mockedLocation = { ...realLocation, host, search: '' };
+    const mockedLocation = { ...realLocation, search: '' };
     vi.spyOn(window, 'location', 'get').mockReturnValue(mockedLocation);
     const messageBoxUrl = getMessageBoxUrl(partyId);
 

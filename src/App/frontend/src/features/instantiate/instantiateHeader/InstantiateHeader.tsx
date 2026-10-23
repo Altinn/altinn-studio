@@ -16,7 +16,7 @@ export interface InstantiateHeaderProps {
 
 export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
   const party = profile?.party;
-  const allFormsUrl = returnUrlToAllForms(window.location.host);
+  const allFormsUrl = returnUrlToAllForms();
 
   return (
     <div
@@ -59,7 +59,7 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
             <li className={classes.headerLink}>
               <a
                 className='altinnLink'
-                href={returnUrlToProfile(window.location.host, party?.partyId)}
+                href={returnUrlToProfile()}
               >
                 <Lang id='instantiate.profile' />
               </a>

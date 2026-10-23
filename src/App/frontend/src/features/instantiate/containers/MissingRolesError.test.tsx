@@ -22,8 +22,9 @@ describe('MissingRolesError', () => {
     vi.restoreAllMocks();
   });
 
-  it('links to the configured URLs on an Altinn host', async () => {
-    mockHost('ttd.apps.tt02.altinn.no');
+  // The host plays no part: localtest at a custom origin gets the links the settings give it
+  it.each(['ttd.apps.tt02.altinn.no', 'altinn.test:18000'])('links to the configured URLs on %s', async (host) => {
+    mockHost(host);
     window.altinnAppGlobalData.platformFrontendSettings.accessManagementUrl = 'https://ny.altinn.no/tilganger';
     window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = 'https://ny.altinn.no/hjelp/roller';
 
@@ -39,26 +40,10 @@ describe('MissingRolesError', () => {
     );
   });
 
-  it('links to the localtest front page in localtest without configured URLs', async () => {
-    mockHost('local.altinn.cloud:8000');
+  // A Studio preview or any other host the platform does not run the app on gets no settings
+  it('renders without the links when no URL is configured', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.accessManagementUrl = undefined;
     window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = undefined;
-
-    await render();
-
-    expect(screen.getByRole('link', { name: accessManagementLink })).toHaveAttribute(
-      'href',
-      'http://local.altinn.cloud:8000/',
-    );
-    expect(screen.getByRole('link', { name: rolesAndRightsLink })).toHaveAttribute(
-      'href',
-      'http://local.altinn.cloud:8000/',
-    );
-  });
-
-  // getHostname() used to throw on hosts it did not recognize, which took the whole page down
-  it('renders without the links on an unknown host', async () => {
-    mockHost('altinn.studio');
 
     await render();
 
@@ -67,21 +52,9 @@ describe('MissingRolesError', () => {
     expect(screen.queryByText(rolesAndRightsLink)).not.toBeInTheDocument();
   });
 
-  it('hides the links when no URL is configured', async () => {
-    mockHost('ttd.apps.tt02.altinn.no');
-    window.altinnAppGlobalData.platformFrontendSettings.accessManagementUrl = undefined;
-    window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = undefined;
-
-    await render();
-
-    expect(screen.queryByText(accessManagementLink)).not.toBeInTheDocument();
-    expect(screen.queryByText(rolesAndRightsLink)).not.toBeInTheDocument();
-  });
-
   // The texts take the whole URL as {0} now. That is safe for apps overriding them, because
   // parameters are only substituted into the built-in texts, never into an app's own.
   it('shows an app text overriding the link as it is', async () => {
-    mockHost('ttd.apps.tt02.altinn.no');
     window.altinnAppGlobalData.textResources!.resources = [
       {
         id: 'instantiate.authorization_error_check_rights',

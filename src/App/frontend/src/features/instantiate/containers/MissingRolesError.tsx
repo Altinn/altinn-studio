@@ -10,8 +10,8 @@ import { returnUrlToAccessManagement, returnUrlToRolesAndRightsHelp } from 'src/
 export function MissingRolesError() {
   const { langAsString } = useLanguage();
   const selectedParty = useSelectedParty();
-  const accessManagementUrl = returnUrlToAccessManagement(window.location.host);
-  const rolesAndRightsHelpUrl = returnUrlToRolesAndRightsHelp(window.location.host);
+  const accessManagementUrl = returnUrlToAccessManagement();
+  const rolesAndRightsHelpUrl = returnUrlToRolesAndRightsHelp();
 
   return (
     <InstantiationErrorPage
