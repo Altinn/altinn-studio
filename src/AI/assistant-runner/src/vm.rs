@@ -41,13 +41,13 @@ pub struct VmArguments {
     root_filesystem: ByteQuantity,
 }
 
-/// Starts the VM of the job from the guest image.
+/// Starts the VM of the job from the guest image, and deletes it.
 pub struct Vms {
     service: SandboxService,
     arguments: VmArguments,
 }
 
-/// One running VM. Delete it with [`Vm::delete`] when the job ends.
+/// One running VM. Dropping it does not delete the VM, so the job host deletes it with [`Vms::delete`] when it stops.
 pub struct Vm {
     handle: SandboxHandle,
 }
@@ -61,22 +61,28 @@ impl Vms {
         Ok(Self { service, arguments })
     }
 
-    /// Starts a new VM. A failed start deletes what it made.
+    /// Starts a new VM.
     ///
     /// # Errors
     ///
     /// Returns an error when the VM does not start.
     pub async fn start(&self) -> Result<Vm, AnyError> {
+        let request = EnsureSandboxRequest::new(SandboxName::new(VM_NAME)?, self.spec());
+        let handle = self.service.ensure(&request).await?;
+        Ok(Vm { handle })
+    }
+
+    /// Deletes the VM and all its files, if a VM was started. It also deletes a VM that did not start completely, or
+    /// whose job was cancelled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the VM is not deleted within a minute.
+    pub async fn delete(&self) -> Result<(), AnyError> {
         let name = SandboxName::new(VM_NAME)?;
-        let request = EnsureSandboxRequest::new(name.clone(), self.spec());
-        match self.service.ensure(&request).await {
-            Ok(handle) => Ok(Vm { handle }),
-            Err(error) => {
-                if let Err(cleanup) = with_delete_timeout(self.service.delete(&name)).await {
-                    tracing::warn!(%cleanup, vm = %name, "could not delete a VM that did not start");
-                }
-                Err(error.into())
-            }
+        match tokio::time::timeout(DELETE_TIMEOUT, self.service.delete(&name)).await {
+            Ok(deleted) => Ok(deleted?),
+            Err(_) => Err(io::Error::new(io::ErrorKind::TimedOut, "deleting the VM timed out").into()),
         }
     }
 
@@ -140,20 +146,4 @@ impl Vm {
         let mut started = self.handle.start_execution(StartExecutionRequest::new(spec)).await?;
         collect(&mut started.events, deadline, limits).await
     }
-
-    /// Deletes the VM and all its files.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the VM is not deleted within a minute.
-    pub async fn delete(self) -> Result<(), AnyError> {
-        with_delete_timeout(self.handle.delete()).await
-    }
-}
-
-async fn with_delete_timeout(delete: impl Future<Output = Result<(), sandbox::Error>>) -> Result<(), AnyError> {
-    tokio::time::timeout(DELETE_TIMEOUT, delete).await.map_or_else(
-        |_| Err(io::Error::new(io::ErrorKind::TimedOut, "deleting the VM timed out").into()),
-        |deleted| deleted.map_err(Into::into),
-    )
 }

@@ -69,7 +69,8 @@ Other answers:
 2. It writes the archive to `/job/app.tar.gz`, extracts it into `/job/app`, and commits it as the base of the patch.
 3. It runs the command in `/job/app` as `app-build`.
 4. For an upgrade, it writes the patch to `/job/changes.patch` and reads it.
-5. It deletes the VM, also after an error, a timeout, when the client goes away, or when the job host stops.
+5. When the job host stops, it deletes the VM by name. It does this after every job, also after an error, a timeout,
+   when the client goes away, or when the job host gets a signal.
 
 ## When the job host exits
 

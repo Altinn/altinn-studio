@@ -7,7 +7,7 @@ use hyper::{
     body::{Body as _, Incoming},
     header::CONTENT_TYPE,
 };
-use tokio::{task::JoinError, time::Instant};
+use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
@@ -50,15 +50,14 @@ impl Routes {
         }
     }
 
-    /// The first job request takes the claim, whatever its answer. The job runs in a separate task, so that the VM is
-    /// deleted also when the client goes away. The task holds the claim, so the job host stops only after the VM is
-    /// deleted.
+    /// The first job request takes the claim, whatever its answer. The claim finishes when the handler ends, also when
+    /// the handler is dropped because the client went away. Then the job host stops and deletes the VM.
     async fn job(&self, request: Request<Incoming>) -> Response<Body> {
         let deadline = Instant::now() + UPGRADE_TIMEOUT;
         if self.stopping.is_cancelled() {
             return problem(StatusCode::SERVICE_UNAVAILABLE, "The job host is stopping.");
         }
-        let Some(claim) = self.claim.take() else {
+        let Some(_claim) = self.claim.take() else {
             return problem(
                 StatusCode::CONFLICT,
                 "This job host has already taken its job. Each run needs a new job host.",
@@ -74,16 +73,11 @@ impl Routes {
             Ok(archive) => archive,
             Err(response) => return response,
         };
-        // The job stops when the job host stops, or when this handler is dropped because the client went away.
-        let cancel = self.stopping.child_token();
-        let _cancel_when_dropped = cancel.clone().drop_guard();
-        let cancelled = Box::pin(cancel.cancelled_owned());
-        let jobs = self.jobs.clone();
-        let running = tokio::task::spawn_local(async move {
-            let _claim = claim;
-            jobs.run(Job { archive, deadline }, cancelled).await
-        });
-        answer(running.await)
+        let finished = tokio::select! {
+            finished = self.jobs.run(Job { archive, deadline }) => finished,
+            () = self.stopping.cancelled() => Err(JobError::Cancelled),
+        };
+        answer(finished)
     }
 
     async fn read_archive(&self, request: Request<Incoming>) -> Result<Bytes, Response<Body>> {
@@ -111,19 +105,18 @@ impl Routes {
     }
 }
 
-fn answer(finished: Result<Result<JobOutcome, JobError>, JoinError>) -> Response<Body> {
+fn answer(finished: Result<JobOutcome, JobError>) -> Response<Body> {
     match finished {
-        Ok(Ok(outcome)) => json(StatusCode::OK, &outcome),
-        Ok(Err(JobError::InvalidArchive(detail))) => problem(
+        Ok(outcome) => json(StatusCode::OK, &outcome),
+        Err(JobError::InvalidArchive(detail)) => problem(
             StatusCode::BAD_REQUEST,
             &format!("The archive does not extract: {detail}"),
         ),
-        Ok(Err(JobError::Cancelled)) => empty(StatusCode::SERVICE_UNAVAILABLE),
-        Ok(Err(JobError::Failed(error))) => {
+        Err(JobError::Cancelled) => empty(StatusCode::SERVICE_UNAVAILABLE),
+        Err(JobError::Failed(error)) => {
             tracing::error!(%error, "the upgrade failed");
             problem(StatusCode::INTERNAL_SERVER_ERROR, &error.to_string())
         }
-        Err(error) => problem(StatusCode::INTERNAL_SERVER_ERROR, &format!("The job stopped: {error}")),
     }
 }
 
@@ -170,23 +163,16 @@ mod tests {
         hold: Cell<bool>,
         started: Notify,
         release: Notify,
-        cancelled: Cell<bool>,
         archives: RefCell<Vec<Bytes>>,
     }
 
     impl Jobs for FakeJobs {
-        fn run(&self, job: Job, cancelled: LocalFuture<'static, ()>) -> LocalFuture<'_, Result<JobOutcome, JobError>> {
+        fn run(&self, job: Job) -> LocalFuture<'_, Result<JobOutcome, JobError>> {
             Box::pin(async move {
                 self.archives.borrow_mut().push(job.archive);
                 self.started.notify_one();
                 if self.hold.get() {
-                    tokio::select! {
-                        () = self.release.notified() => {}
-                        () = cancelled => {
-                            self.cancelled.set(true);
-                            return Err(JobError::Cancelled);
-                        }
-                    }
+                    self.release.notified().await;
                 }
                 if let Some(error) = self.error.borrow_mut().take() {
                     return Err(error);
@@ -228,6 +214,11 @@ mod tests {
             claim,
             stopping,
         })
+    }
+
+    fn claim_finished(claim: &Claim) -> tokio::task::JoinHandle<()> {
+        let claim = claim.clone();
+        tokio::task::spawn_local(async move { claim.finished().await })
     }
 
     async fn wait_until(condition: impl Fn() -> bool) {
@@ -339,8 +330,7 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn finishes_the_claim_when_the_job_ends() -> io::Result<()> {
         let host = start().await?;
-        let claim = host.claim.clone();
-        let finished = tokio::task::spawn_local(async move { claim.finished().await });
+        let finished = claim_finished(&host.claim);
 
         let (status, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await?;
         wait_until(|| finished.is_finished()).await;
@@ -363,9 +353,10 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn cancels_the_job_when_the_job_host_stops() -> io::Result<()> {
+    async fn stops_the_job_and_finishes_the_claim_when_the_job_host_stops() -> io::Result<()> {
         let host = start().await?;
         host.jobs.hold.set(true);
+        let finished = claim_finished(&host.claim);
         let address = host.address;
         let running = tokio::task::spawn_local(async move {
             send(address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await
@@ -375,7 +366,8 @@ mod tests {
         host.stopping.cancel();
 
         assert_eq!(running.await??.0, 503);
-        assert!(host.jobs.cancelled.get());
+        wait_until(|| finished.is_finished()).await;
+        assert!(finished.is_finished());
         Ok(())
     }
 
@@ -385,8 +377,7 @@ mod tests {
         let declared = "POST /api/v1/upgrades/v9 HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nContent-Length: 11\r\n\r\n";
 
         let (status, _) = send(host.address, declared).await?;
-        let claim = host.claim.clone();
-        let finished = tokio::task::spawn_local(async move { claim.finished().await });
+        let finished = claim_finished(&host.claim);
         wait_until(|| finished.is_finished()).await;
 
         assert_eq!(status, 413);
@@ -422,9 +413,10 @@ mod tests {
     }
 
     #[tokio::test(flavor = "local")]
-    async fn cancels_the_job_when_the_client_goes_away() -> io::Result<()> {
+    async fn stops_the_job_and_finishes_the_claim_when_the_client_goes_away() -> io::Result<()> {
         let host = start().await?;
         host.jobs.hold.set(true);
+        let finished = claim_finished(&host.claim);
         let mut stream = TcpStream::connect(host.address).await?;
         stream
             .write_all(post("/api/v1/upgrades/v9", "application/gzip", "a").as_bytes())
@@ -432,9 +424,9 @@ mod tests {
         host.jobs.started.notified().await;
 
         drop(stream);
-        wait_until(|| host.jobs.cancelled.get()).await;
+        wait_until(|| finished.is_finished()).await;
 
-        assert!(host.jobs.cancelled.get());
+        assert!(finished.is_finished());
         Ok(())
     }
 }

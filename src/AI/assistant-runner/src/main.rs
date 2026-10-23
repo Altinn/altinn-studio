@@ -2,7 +2,6 @@ use std::{io, net::SocketAddr, num::NonZeroU64, process::ExitCode, rc::Rc, time:
 
 use assistant_runner::{
     http,
-    job::SandboxJobs,
     lifecycle::{Claim, Stop, wait_for_stop},
     policy::AllowlistPolicy,
     routes::Routes,
@@ -71,10 +70,10 @@ async fn serve_one_job(
     listen_address: SocketAddr,
     request_timeout: Duration,
 ) -> Result<Stop, AnyError> {
-    let jobs = Rc::new(SandboxJobs::new(open_vms(provider, vm).await?));
+    let vms = Rc::new(open_vms(provider, vm).await?);
     let claim = Claim::default();
     let stopping = CancellationToken::new();
-    let routes = Rc::new(Routes::new(jobs.clone(), claim.clone(), stopping.clone()));
+    let routes = Rc::new(Routes::new(vms.clone(), claim.clone(), stopping.clone()));
     let listener = TcpListener::bind(listen_address).await?;
     let signaled = shutdown_signal()?;
     tracing::info!(%listen_address, ?request_timeout, "the job host is ready for one job");
@@ -85,15 +84,9 @@ async fn serve_one_job(
     )
     .await;
     tracing::info!(?stop, "the job host stops");
-    checked(stop, &jobs)
-}
-
-/// A VM that could not be deleted makes the job host exit with an error, also after it answered the job request.
-fn checked(stop: Stop, jobs: &SandboxJobs) -> Result<Stop, AnyError> {
-    if jobs.has_undeleted_vm() {
-        return Err(io::Error::other("could not delete the VM of the job").into());
-    }
-    Ok(stop)
+    // A job does not delete its VM. When the server has stopped, no job runs, so the job host deletes the VM here. A VM
+    // that could not be deleted makes the job host exit with an error, also after it answered the job request.
+    vms.delete().await.map(|()| stop)
 }
 
 async fn open_vms(provider: &ProviderArguments, vm: VmArguments) -> Result<Vms, AnyError> {

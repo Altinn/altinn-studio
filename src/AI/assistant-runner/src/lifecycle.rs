@@ -3,7 +3,7 @@ use std::{cell::Cell, future, rc::Rc, time::Duration};
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 /// The job host serves one job. The first job request takes the claim, and the claim is finished when that request
-/// has ended and the VM of its job is deleted.
+/// has ended.
 #[derive(Clone, Default)]
 pub struct Claim {
     is_taken: Rc<Cell<bool>>,
@@ -38,8 +38,8 @@ pub enum Stop {
     Signaled,
 }
 
-/// Waits until the job host must stop. On `signal`, it cancels `stopping`, which cancels a running job, and waits
-/// until the VM of that job is deleted.
+/// Waits until the job host must stop. On `signal`, it cancels `stopping`, which stops a running job, and waits until
+/// the request of that job has ended.
 pub async fn wait_for_stop(
     claim: &Claim,
     stopping: &CancellationToken,

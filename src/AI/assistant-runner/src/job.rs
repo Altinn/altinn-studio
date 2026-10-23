@@ -1,4 +1,4 @@
-use std::{cell::Cell, io, time::Duration};
+use std::{io, time::Duration};
 
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use bytes::Bytes;
@@ -72,7 +72,7 @@ pub struct JobOutcome {
 pub enum JobError {
     /// The archive does not extract.
     InvalidArchive(String),
-    /// The client went away, or the job host stops, so no one reads the answer.
+    /// The job host stops before the job ends.
     Cancelled,
     Failed(AnyError),
 }
@@ -85,47 +85,16 @@ impl From<AnyError> for JobError {
 
 /// Runs jobs. The routes use this trait, so that the tests can use a fake.
 pub trait Jobs {
-    /// Runs one job. `cancelled` completes when the client goes away or the job host stops.
-    fn run(&self, job: Job, cancelled: LocalFuture<'static, ()>) -> LocalFuture<'_, Result<JobOutcome, JobError>>;
+    /// Runs one job. Dropping the future stops the job.
+    fn run(&self, job: Job) -> LocalFuture<'_, Result<JobOutcome, JobError>>;
 }
 
-/// Runs the job in a new VM, and deletes the VM when the job ends.
-pub struct SandboxJobs {
-    vms: Vms,
-    has_undeleted_vm: Cell<bool>,
-}
-
-impl SandboxJobs {
-    #[must_use]
-    pub const fn new(vms: Vms) -> Self {
-        Self {
-            vms,
-            has_undeleted_vm: Cell::new(false),
-        }
-    }
-
-    /// True when the VM of the job could not be deleted. The job host then exits with an error after it clears the
-    /// Provider home, because a Job pod is never restarted.
-    #[must_use]
-    pub const fn has_undeleted_vm(&self) -> bool {
-        self.has_undeleted_vm.get()
-    }
-}
-
-impl Jobs for SandboxJobs {
-    fn run(&self, job: Job, cancelled: LocalFuture<'static, ()>) -> LocalFuture<'_, Result<JobOutcome, JobError>> {
+/// Runs the job in a new VM. The job leaves the VM, and the job host deletes it when it stops.
+impl Jobs for Vms {
+    fn run(&self, job: Job) -> LocalFuture<'_, Result<JobOutcome, JobError>> {
         Box::pin(async move {
-            let vm = self.vms.start().await?;
-            let outcome = tokio::select! {
-                outcome = run_in_vm(&vm, &job) => outcome,
-                () = cancelled => Err(JobError::Cancelled),
-            };
-            if let Err(error) = vm.delete().await {
-                // The command has ended, so the outcome is still valid. The job host stops after this job.
-                tracing::error!(%error, "could not delete the VM of the job");
-                self.has_undeleted_vm.set(true);
-            }
-            outcome
+            let vm = self.start().await?;
+            run_in_vm(&vm, &job).await
         })
     }
 }
