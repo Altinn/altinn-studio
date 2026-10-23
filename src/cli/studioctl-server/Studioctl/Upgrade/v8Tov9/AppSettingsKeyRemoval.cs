@@ -27,13 +27,15 @@ internal static partial class AppSettingsKeyRemoval
     /// <param name="section">The top-level section holding the key</param>
     /// <param name="key">The key to remove</param>
     /// <param name="removed">Reports a removal, given the file name and the value the key had</param>
-    /// <param name="notRemoved">Reports a key that could not be removed automatically, given the file name</param>
+    /// <param name="notRemoved">
+    /// Reports a key that could not be removed automatically, given the file name and the value the key has
+    /// </param>
     public static async Task<MigrationResult> Migrate(
         string appFolder,
         string section,
         string key,
         Action<List<UpgradeMessage>, string, JsonNode?> removed,
-        Action<List<UpgradeMessage>, string> notRemoved
+        Action<List<UpgradeMessage>, string, JsonNode?> notRemoved
     )
     {
         var line = new Regex(
@@ -65,7 +67,7 @@ internal static partial class AppSettingsKeyRemoval
             }
             else
             {
-                notRemoved(messages, name);
+                notRemoved(messages, name, value);
             }
         }
 

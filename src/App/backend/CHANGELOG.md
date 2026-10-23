@@ -84,6 +84,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandonHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
+- Breaking: `AppSettings.EnforceDataTypeTaskId` is removed: the app APIs always refuse writes to a data type outside its tasks. Bind a data type your app writes in several tasks to each of them with `taskIds`. `studioctl app upgrade v9` removes the setting. ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
 
 ## [9.0.0-preview.8] - 2026-10-14
 

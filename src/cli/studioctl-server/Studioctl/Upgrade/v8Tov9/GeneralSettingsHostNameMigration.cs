@@ -16,7 +16,7 @@ internal static class GeneralSettingsHostNameMigration
             "HostName",
             removed: (messages, name, _) =>
                 messages.Warn($"Removed GeneralSettings:HostName from {name}: the platform and studioctl set it."),
-            notRemoved: (messages, name) =>
+            notRemoved: (messages, name, _) =>
                 messages.Todo(
                     $"Remove GeneralSettings:HostName from {name}: the platform and studioctl set it, but it could not "
                         + "be removed automatically."
