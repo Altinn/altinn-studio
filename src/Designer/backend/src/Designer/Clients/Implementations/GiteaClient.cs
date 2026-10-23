@@ -432,21 +432,14 @@ public class GiteaClient(
         Guard.AssertValidAppRepoName(repository);
         Guard.AssertValidRepoBranchName(branch);
 
-        HttpResponseMessage response = await httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");
-        if (response.StatusCode == HttpStatusCode.OK)
+        using HttpResponseMessage response = await httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return await response.Content.ReadAsAsync<Branch>();
+            return null;
         }
 
-        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-        logger.LogError(
-            "User {Developer}, method {MethodName} failed with statuscode {StatusCode}",
-            developer,
-            nameof(GetBranch),
-            response.StatusCode
-        );
-
-        return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadAsAsync<Branch>();
     }
 
     /// <inheritdoc />

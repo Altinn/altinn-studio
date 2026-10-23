@@ -25,7 +25,11 @@ import { hasDefaultMaskinportenScopes } from 'app-development/utils/maskinporten
 import { isVersionAtLeast } from 'app-development/utils/versionUtils';
 import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 
-export function CreateRelease() {
+export type CreateReleaseProps = {
+  branchName: string;
+};
+
+export function CreateRelease({ branchName }: CreateReleaseProps) {
   const { org, app } = useStudioEnvironmentParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
@@ -34,7 +38,7 @@ export function CreateRelease() {
   const { data: orgs = {} } = useOrgListQuery();
   const repoOwnerIsServiceOwner = isServiceOwnerOrg(orgs, org);
   const { data: selectedMaskinportenScopes } = useGetSelectedScopesQuery(repoOwnerIsServiceOwner);
-  const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
+  const { refetch: getBranchStatus } = useBranchStatusQuery(org, app, branchName);
   const { data: appValidationResult } = useAppValidationQuery(org, app);
   const { t } = useTranslation();
 
@@ -46,12 +50,16 @@ export function CreateRelease() {
   const mutation = useCreateReleaseMutation(org, app);
   const handleBuildVersionClick = async () => {
     if (versionNameValid(releases, tagName) && tagName !== '') {
-      const { data: newMasterBranchStatus } = await getMasterBranchStatus();
+      const { data: newBranchStatus, isError } = await getBranchStatus();
+      if (isError || !newBranchStatus) {
+        return;
+      }
       mutation.mutate({
         tagName,
         name: tagName,
         body,
-        targetCommitish: newMasterBranchStatus.commit.id,
+        targetCommitish: newBranchStatus.commit.id,
+        branch: branchName,
       });
       setTagName('');
       setBody('');
