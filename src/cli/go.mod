@@ -2,6 +2,11 @@ module altinn.studio/studioctl
 
 go 1.27.3
 
+// Go 1.27 makes SSL_CERT_FILE and SSL_CERT_DIR replace the platform certificate verifier on Windows
+// and macOS. Developers on managed machines often set them for other tools, and a partial bundle
+// would break studioctl's TLS, so keep verifying with the platform as before.
+godebug x509sslcertoverrideplatform=0
+
 require (
 	altinn.studio/devenv v0.0.0
 	github.com/mattn/go-runewidth v0.0.27
