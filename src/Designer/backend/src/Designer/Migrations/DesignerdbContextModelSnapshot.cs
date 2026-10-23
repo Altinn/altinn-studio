@@ -286,6 +286,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("environment");
 
+                    b.Property<int?>("InactivityPeriodDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("inactivity_period_days");
+
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("character varying")
                         .HasColumnName("last_modified_by");
@@ -295,7 +299,7 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("org");
 
-                    b.Property<bool>("UndeployOnInactivity")
+                    b.Property<bool?>("UndeployOnInactivity")
                         .HasColumnType("boolean")
                         .HasColumnName("undeploy_on_inactivity");
 
@@ -674,6 +678,49 @@ namespace Altinn.Studio.Designer.Migrations
                     b.HasIndex(new[] { "Org", "App" }, "idx_deployments_org_app");
 
                     b.ToTable("deployments", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.OrgSettingsDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("InactivityPeriodDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("inactivity_period_days");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<bool>("UndeployOnInactivity")
+                        .HasColumnType("boolean")
+                        .HasColumnName("undeploy_on_inactivity");
+
+                    b.HasKey("Id")
+                        .HasName("org_settings_pkey");
+
+                    b.HasIndex(new[] { "Org" }, "idx_org_settings_org")
+                        .IsUnique();
+
+                    b.ToTable("org_settings", "designer");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel", b =>

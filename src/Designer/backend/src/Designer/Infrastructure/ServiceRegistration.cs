@@ -98,6 +98,7 @@ public static class ServiceRegistration
         services.AddScoped<IAppScopesRepository, AppScopesRepository>();
         services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
         services.AddScoped<IAppActivityRepository, AppActivityRepository>();
+        services.AddScoped<IOrgSettingsRepository, OrgSettingsRepository>();
         services.AddScoped<IChatRepository, ChatRepository>();
         services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
@@ -115,6 +116,7 @@ public static class ServiceRegistration
         services.AddTransient<IDeploymentService, DeploymentService>();
         services.AddTransient<IAppScopesService, AppScopesService>();
         services.AddTransient<IAppSettingsService, AppSettingsService>();
+        services.AddTransient<IOrgSettingsService, OrgSettingsService>();
         services.AddTransient<IContactPointsService, ContactPointsService>();
         services.AddTransient<IChatService, ChatService>();
         services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();

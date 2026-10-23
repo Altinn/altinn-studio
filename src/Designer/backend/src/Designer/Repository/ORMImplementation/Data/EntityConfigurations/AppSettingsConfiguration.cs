@@ -20,11 +20,9 @@ public class AppSettingsConfiguration : IEntityTypeConfiguration<AppSettingsDbMo
 
         builder.Property(e => e.Environment).HasColumnType("character varying").HasColumnName("environment");
 
-        builder
-            .Property(e => e.UndeployOnInactivity)
-            .HasColumnType("boolean")
-            .HasColumnName("undeploy_on_inactivity")
-            .IsRequired();
+        builder.Property(e => e.UndeployOnInactivity).HasColumnType("boolean").HasColumnName("undeploy_on_inactivity");
+
+        builder.Property(e => e.InactivityPeriodDays).HasColumnType("integer").HasColumnName("inactivity_period_days");
 
         builder.Property(e => e.Created).HasColumnType("timestamptz").HasColumnName("created").IsRequired();
 
