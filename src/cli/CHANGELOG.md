@@ -37,6 +37,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` quotes the `dotnet restore` error when restore fails, instead of a line of dashes or the "Failed to restore" summary. ([#21404](https://github.com/Altinn/altinn-studio/pull/21404))
 - Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 - Payment, signing and PDF tasks no longer fail to store the file they generate, such as the receipt after the user has paid, in apps upgraded with `studioctl app upgrade v9`. Run it again to fix an upgraded app. ([#21119](https://github.com/Altinn/altinn-studio/pull/21119))
+- `studioctl env up` starts a new studioctl server instead of failing with `kill process: operation not permitted` when the saved server process id belongs to another user's process, as after restoring a cached studioctl home on a CI runner. ([#21482](https://github.com/Altinn/altinn-studio/pull/21482))
 
 ## [0.1.0-preview.29] - 2026-10-14
 
