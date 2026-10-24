@@ -175,7 +175,7 @@ jobs:
           "${RUNNER_TEMP}/start-job-host.sh"
           tar -czf "${RUNNER_TEMP}/app.tar.gz" -C src/App/template/v8/src .
           curl -sS --fail-with-body --max-time 720 -H 'Content-Type: application/gzip' \
-            --data-binary "@${RUNNER_TEMP}/app.tar.gz" "${JOB_HOST_URL}/api/v1/upgrades/v9" > "${RUNNER_TEMP}/answer.json"
+            --data-binary "@${RUNNER_TEMP}/app.tar.gz" "${JOB_HOST_URL}/upgrade/v9" > "${RUNNER_TEMP}/answer.json"
           jq -e '.exitCode == 0 and .patch != null' "${RUNNER_TEMP}/answer.json" > /dev/null \
             || { jq 'del(.patch)' "${RUNNER_TEMP}/answer.json"; exit 1; }
           jq -r .patch "${RUNNER_TEMP}/answer.json" | base64 -d > "${RUNNER_TEMP}/changes.patch"

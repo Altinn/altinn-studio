@@ -45,7 +45,7 @@ impl Routes {
     pub async fn handle(&self, request: Request<Incoming>) -> Response<Body> {
         match (request.method(), request.uri().path()) {
             (&Method::GET, "/health") => empty(StatusCode::OK),
-            (&Method::POST, "/api/v1/upgrades/v9") => self.job(request).await,
+            (&Method::POST, "/upgrade/v9") => self.job(request).await,
             _ => problem(StatusCode::NOT_FOUND, "No such route."),
         }
     }
@@ -270,7 +270,7 @@ mod tests {
     async fn runs_an_upgrade_and_answers_with_the_outcome() -> Result<(), Box<dyn std::error::Error>> {
         let host = start().await?;
 
-        let (status, body) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "app")).await?;
+        let (status, body) = send(host.address, &post("/upgrade/v9", "application/gzip", "app")).await?;
 
         assert_eq!(status, 200);
         let outcome: Value = serde_json::from_str(&body)?;
@@ -286,11 +286,7 @@ mod tests {
     async fn accepts_the_archive_content_type_in_any_case_and_with_parameters() -> io::Result<()> {
         let host = start().await?;
 
-        let (status, _) = send(
-            host.address,
-            &post("/api/v1/upgrades/v9", "Application/GZIP; foo=bar", "app"),
-        )
-        .await?;
+        let (status, _) = send(host.address, &post("/upgrade/v9", "Application/GZIP; foo=bar", "app")).await?;
 
         assert_eq!(status, 200);
         assert_eq!(host.jobs.archives.borrow().len(), 1);
@@ -301,7 +297,7 @@ mod tests {
     async fn refuses_other_content_types() -> io::Result<()> {
         let host = start().await?;
 
-        let (status, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/json", "{}")).await?;
+        let (status, _) = send(host.address, &post("/upgrade/v9", "application/json", "{}")).await?;
 
         assert_eq!(status, 415);
         assert!(host.jobs.archives.borrow().is_empty());
@@ -314,15 +310,14 @@ mod tests {
         let host = start().await?;
         host.jobs.hold.set(true);
         let address = host.address;
-        let first = tokio::task::spawn_local(async move {
-            send(address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await
-        });
+        let first =
+            tokio::task::spawn_local(async move { send(address, &post("/upgrade/v9", "application/gzip", "a")).await });
         host.jobs.started.notified().await;
 
-        let (while_running, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "b")).await?;
+        let (while_running, _) = send(host.address, &post("/upgrade/v9", "application/gzip", "b")).await?;
         host.jobs.release.notify_one();
         let (first, _) = first.await??;
-        let (after, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "c")).await?;
+        let (after, _) = send(host.address, &post("/upgrade/v9", "application/gzip", "c")).await?;
 
         assert_eq!((first, while_running, after), (200, 409, 409));
         assert_eq!(host.jobs.archives.borrow().len(), 1);
@@ -334,7 +329,7 @@ mod tests {
         let host = start().await?;
         let finished = claim_finished(&host.claim);
 
-        let (status, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await?;
+        let (status, _) = send(host.address, &post("/upgrade/v9", "application/gzip", "a")).await?;
         wait_until(|| finished.is_finished()).await;
 
         assert_eq!(status, 200);
@@ -347,7 +342,7 @@ mod tests {
         let host = start().await?;
         host.stopping.cancel();
 
-        let (status, _) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await?;
+        let (status, _) = send(host.address, &post("/upgrade/v9", "application/gzip", "a")).await?;
 
         assert_eq!(status, 503);
         assert!(!host.claim.is_taken());
@@ -360,9 +355,8 @@ mod tests {
         host.jobs.hold.set(true);
         let finished = claim_finished(&host.claim);
         let address = host.address;
-        let running = tokio::task::spawn_local(async move {
-            send(address, &post("/api/v1/upgrades/v9", "application/gzip", "a")).await
-        });
+        let running =
+            tokio::task::spawn_local(async move { send(address, &post("/upgrade/v9", "application/gzip", "a")).await });
         host.jobs.started.notified().await;
 
         host.stopping.cancel();
@@ -376,7 +370,8 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn refuses_a_large_archive_from_its_length_and_finishes_the_claim() -> io::Result<()> {
         let host = start().await?;
-        let declared = "POST /api/v1/upgrades/v9 HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nContent-Length: 11\r\n\r\n";
+        let declared =
+            "POST /upgrade/v9 HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nContent-Length: 11\r\n\r\n";
 
         let (status, _) = send(host.address, declared).await?;
         let finished = claim_finished(&host.claim);
@@ -391,7 +386,7 @@ mod tests {
     #[tokio::test(flavor = "local")]
     async fn refuses_a_large_archive_from_its_chunks() -> io::Result<()> {
         let host = start().await?;
-        let chunked = "POST /api/v1/upgrades/v9 HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nTransfer-Encoding: chunked\r\n\r\n6\r\n123456\r\n6\r\n123456\r\n0\r\n\r\n";
+        let chunked = "POST /upgrade/v9 HTTP/1.1\r\nHost: runner\r\nContent-Type: application/gzip\r\nTransfer-Encoding: chunked\r\n\r\n6\r\n123456\r\n6\r\n123456\r\n0\r\n\r\n";
 
         let (status, _) = send(host.address, chunked).await?;
 
@@ -406,7 +401,7 @@ mod tests {
         let host = start().await?;
         *host.jobs.error.borrow_mut() = Some(JobError::InvalidArchive("gzip: invalid header".to_string()));
 
-        let (status, body) = send(host.address, &post("/api/v1/upgrades/v9", "application/gzip", "x")).await?;
+        let (status, body) = send(host.address, &post("/upgrade/v9", "application/gzip", "x")).await?;
 
         assert_eq!(status, 400);
         let problem: Value = serde_json::from_str(&body)?;
@@ -421,7 +416,7 @@ mod tests {
         let finished = claim_finished(&host.claim);
         let mut stream = TcpStream::connect(host.address).await?;
         stream
-            .write_all(post("/api/v1/upgrades/v9", "application/gzip", "a").as_bytes())
+            .write_all(post("/upgrade/v9", "application/gzip", "a").as_bytes())
             .await?;
         host.jobs.started.notified().await;
 

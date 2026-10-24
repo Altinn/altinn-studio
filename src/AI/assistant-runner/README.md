@@ -30,10 +30,10 @@ starts.
 
 ## API
 
-| Route                      | Command in the job                                                                         | Timeout    |
-| -------------------------- | ------------------------------------------------------------------------------------------ | ---------- |
-| `POST /api/v1/upgrades/v9` | `studioctl app upgrade v9 -p . --json`, then `git add -A` and `git diff --cached --binary` | 11 minutes |
-| `GET /health`              |                                                                                            |            |
+| Route              | Command in the job                                                                         | Timeout    |
+| ------------------ | ------------------------------------------------------------------------------------------ | ---------- |
+| `POST /upgrade/v9` | `studioctl app upgrade v9 -p . --json`, then `git add -A` and `git diff --cached --binary` | 11 minutes |
+| `GET /health`      |                                                                                            |            |
 
 The job host takes one job request. The first `POST` takes it, also when the request then fails, and every later
 `POST` gets 409. Each run needs a new Job.
