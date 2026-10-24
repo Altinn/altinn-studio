@@ -9,9 +9,10 @@ import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
+import { usePaymentInformation, useRefetchPaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 import { usePayment } from 'src/features/payment/PaymentProvider';
 import { PaymentStatus } from 'src/features/payment/types';
+import { getPaymentActions, isPaymentStatusIssue, isRefusedOnlyForPaymentStatus } from 'src/features/payment/utils';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
@@ -22,15 +23,36 @@ import { PaymentDetailsTable } from 'src/layout/PaymentDetails/PaymentDetailsTab
 import { TaskKeys } from 'src/routesBuilder';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import type { BackendValidationIssue } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<'Payment'>) => {
   const { langAsString } = useLanguage();
-  const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
-  const { mutate: processReject, isPending: isRejecting } = useProcessNext({ action: 'reject' });
+  const { data: process, refetch: reFetchProcessData } = useProcessQuery();
+  const refetchPaymentInformation = useRefetchPaymentInformation();
+  // A transition refused because of the payment status means the status shown is out of date, so show the current one
+  const handlePaymentStatusIssues = useCallback(
+    async (validationIssues: BackendValidationIssue[]) => {
+      if (!validationIssues.some(isPaymentStatusIssue)) {
+        return false;
+      }
+      await Promise.all([refetchPaymentInformation(), reFetchProcessData()]);
+      return isRefusedOnlyForPaymentStatus(validationIssues);
+    },
+    [refetchPaymentInformation, reFetchProcessData],
+  );
+  const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({
+    action: 'confirm',
+    handleValidationIssues: handlePaymentStatusIssues,
+  });
+  const { mutate: processReject, isPending: isRejecting } = useProcessNext({
+    action: 'reject',
+    handleValidationIssues: handlePaymentStatusIssues,
+  });
   const isAnyProcessing = useIsAnyProcessing();
   const paymentInfo = usePaymentInformation();
   const { performPayment, paymentError } = usePayment();
+  const { canGoNext, canPayOrGoBack, isProcessing } = getPaymentActions(paymentInfo?.status, !!paymentError);
   const config = useComponentConfig(baseComponentId, 'Payment');
   const title = useEvalOptionalText(config.textResourceBindings?.title, Expressions.Payment.textResourceBindings.title);
   const description = useEvalOptionalText(
@@ -39,7 +61,6 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   );
   const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.Payment.textResourceBindings.help);
 
-  const { data: process, refetch: reFetchProcessData } = useProcessQuery();
   const navigateToTask = useNavigateToTask();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
@@ -86,10 +107,15 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
   const handleNextClick = async () => {
     await navigateBasedOnProcess(true);
   };
-  const goToCurrentTask = useCallback(async () => {
+  const pollPaymentAndProcess = useCallback(async () => {
+    // The payment processor has accepted the payment, so wait for it to be charged
+    if (isProcessing) {
+      await refetchPaymentInformation();
+      return;
+    }
     await navigateBasedOnProcess(false);
-  }, [navigateBasedOnProcess]);
-  usePollingWithBackoff(goToCurrentTask);
+  }, [isProcessing, refetchPaymentInformation, navigateBasedOnProcess]);
+  usePollingWithBackoff(pollPaymentAndProcess);
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <div className={classes.paymentContainer}>
@@ -110,9 +136,14 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
               <Lang id='payment.alert.paid' />
             </Alert>
           )}
+          {isProcessing && (
+            <Alert data-color='info'>
+              <Lang id='payment.alert.processing' />
+            </Alert>
+          )}
         </div>
         <div className={classes.buttonContainer}>
-          {(paymentInfo?.status === PaymentStatus.Created || paymentError) && (
+          {canPayOrGoBack && (
             <>
               <Button
                 variant='secondary'
@@ -131,7 +162,7 @@ export const PaymentComponent = ({ baseComponentId }: PropsFromGenericComponent<
               </Button>
             </>
           )}
-          {(paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped) && (
+          {canGoNext && (
             <Button
               variant='secondary'
               disabled={disabled}

@@ -1,13 +1,15 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
+import { useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useRefetchPaymentInformation } from 'src/features/payment/PaymentInformationProvider';
 
 export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: string) => {
   const queryClient = useQueryClient();
   const { doPerformAction } = useAppMutations();
   const selectedLanguage = useCurrentLanguage();
+  const refetchPaymentInformation = useRefetchPaymentInformation();
   return useMutation({
     mutationKey: ['performPayAction', partyId, instanceGuid],
     mutationFn: async () => {
@@ -26,7 +28,7 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
       if (data?.redirectUrl) {
         window.location.assign(data.redirectUrl);
       } else {
-        return queryClient.invalidateQueries({ queryKey: ['fetchPaymentInfo'] });
+        return refetchPaymentInformation();
       }
     },
   });
