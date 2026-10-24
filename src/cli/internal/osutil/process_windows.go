@@ -26,7 +26,8 @@ func interruptProcess(_ *os.Process, pid int) error {
 	return nil
 }
 
-// ProcessRunning reports whether pid is still running.
+// ProcessRunning reports whether pid is still running. A process studioctl has no access to belongs to another
+// user, so it cannot be one studioctl started and counts as not running.
 func ProcessRunning(pid int) (bool, error) {
 	if pid <= 0 {
 		return false, nil
@@ -42,7 +43,7 @@ func ProcessRunning(pid int) (bool, error) {
 	case errors.Is(err, windows.ERROR_INVALID_PARAMETER):
 		return false, nil
 	case errors.Is(err, windows.ERROR_ACCESS_DENIED):
-		return true, nil
+		return false, nil
 	default:
 		return false, fmt.Errorf("open process: %w", err)
 	}
