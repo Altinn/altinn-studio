@@ -4,6 +4,7 @@ using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.DatepickerMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.DeprecatedLayoutPropertiesMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.KnownScenarios;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.LayoutSetsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
@@ -142,6 +143,10 @@ internal static class V8Tov9Upgrade
         // Runs before the other C# rewrites, while the code still matches the v8 compilation it relies on.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await RemoveUnusedPdfFormatters(scanner));
+
+        // Also before the other C# rewrites: the scenarios bind against the same v8 compilation.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, ApplyKnownScenarios(scanner));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
@@ -1099,6 +1104,36 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing unused IPdfFormatter implementations", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the code patterns in <see cref="KnownScenarioMigration.All"/>: each a narrow shape found in deployed
+    /// apps that v9 refuses or breaks, with a rewrite that is safe for that shape and nothing else. Every scenario
+    /// binds symbols, so without the app's v8 compilation nothing is checked, and the step says so rather than
+    /// claiming the app is clean.
+    /// </summary>
+    static int ApplyKnownScenarios(CSharpSourceScanner scanner)
+    {
+        UpgradeConsole.BeginStep("Known scenarios");
+        if (!scanner.HasSemanticModels)
+        {
+            UpgradeConsole.Skip("Not checked without the app's v8 compilation");
+            return ExitSuccess;
+        }
+
+        try
+        {
+            var result = new KnownScenarioMigration(scanner).Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No code matches a known scenario",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error applying known scenarios", ex);
         }
     }
 
