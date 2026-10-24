@@ -92,7 +92,8 @@ internal static class ProcessDataTypeUtils
 
     /// <summary>
     /// Appends a diagnostic for every data type the process names that applicationmetadata.json does not declare,
-    /// or that cannot hold what a task stores in it, and for every data type whose <c>taskId</c> names no task.
+    /// or that cannot hold what a task stores in it, and for every task id in a data type's <c>taskIds</c> that
+    /// names no task.
     /// </summary>
     internal static void CollectDiagnostics(
         ImmutableArray<AdditionalText> additionalFiles,
@@ -319,14 +320,14 @@ internal static class ProcessDataTypeUtils
 
         if (Resolve(context, config, "signatureDataType") is (var signature, var signatureDataType))
         {
-            // Storage's sign endpoint accepts a signature only when some data type with the id has a taskId that is
-            // empty or the current task (ApplicationService.ValidateDataTypeForApp; localtest mirrors Storage), so
-            // otherwise every signature in the task is rejected.
+            // Storage's sign endpoint accepts a signature only when some data type with the id is bound to no task
+            // or to the current task (ApplicationService.ValidateDataTypeForApp; localtest mirrors Storage), so
+            // otherwise every signature in the task is rejected. Storage still reads a v8 taskId when there is no
+            // taskIds, which ALTINNAPP0602 reports.
             if (
                 signs
                 && !context.DataTypes.All.Exists(dataType =>
-                    dataType.Id == signatureDataType.Id
-                    && (string.IsNullOrEmpty(dataType.TaskId) || dataType.TaskId == taskId)
+                    dataType.Id == signatureDataType.Id && IsAllowedInTask(dataType, taskId)
                 )
             )
             {
@@ -336,9 +337,9 @@ internal static class ProcessDataTypeUtils
                     taskId,
                     "its signatures",
                     signatureDataType.Id,
-                    $"the data type's taskId is '{signatureDataType.TaskId}', and Storage accepts a signature only in "
-                        + "a data type whose taskId is empty or the signing task, so every signature fails",
-                    $"Set its taskId to '{taskId}', or remove the taskId"
+                    $"the data type's taskIds does not list '{taskId}', and Storage accepts a signature only in a "
+                        + "data type that is bound to no task or to the signing task, so every signature fails",
+                    $"Add '{taskId}' to its taskIds"
                 );
             }
 
@@ -368,6 +369,9 @@ internal static class ProcessDataTypeUtils
         {
             ReportIfCannotStore(context, signingPdf, taskId, "its signing PDF", PdfContentType, signingPdfDataType);
         }
+
+        static bool IsAllowedInTask(MetadataDataType dataType, string task) =>
+            dataType.TaskIds is not { Count: > 0 } taskIds || taskIds.Exists(t => t.Value == task);
     }
 
     /// <summary>
@@ -461,8 +465,8 @@ internal static class ProcessDataTypeUtils
 
     /// <summary>
     /// Only a <c>bpmn:task</c> or <c>bpmn:serviceTask</c> directly in the process becomes the current task, which is
-    /// what the runtime compares a data type's taskId with, exactly (DataElementAccessChecker, the validators). An
-    /// empty taskId is a taskId too, which no task has.
+    /// what the runtime looks up, exactly, in a data type's taskIds (DataElementAccessChecker, the validators). An
+    /// empty or null entry is a task id too, which no task has.
     /// </summary>
     private static void CheckDataTypeTaskIds(
         Context context,
@@ -474,32 +478,51 @@ internal static class ProcessDataTypeUtils
     {
         foreach (var dataType in context.DataTypes.All)
         {
-            if (dataType.TaskId is not { } taskId || taskIds.Contains(taskId))
+            if (dataType.TaskIds is not { } dataTypeTaskIds)
             {
                 continue;
             }
 
-            // A stateless app finds the data model of the folder it shows by a taskId that names that folder, when
-            // the folder's Settings.json has no defaultDataType (HomeController.GetStatelessDataType).
-            if (taskId == statelessFolder && dataType.HasClassRef)
+            var namesATask = dataTypeTaskIds.Exists(t => t.Value is { } value && taskIds.Contains(value));
+            foreach (var dataTypeTaskId in dataTypeTaskIds)
             {
-                continue;
-            }
+                var taskId = dataTypeTaskId.Value;
+                if (taskId is not null && taskIds.Contains(taskId))
+                {
+                    continue;
+                }
 
-            context.Output.Add(
-                Diagnostic.Create(
-                    Diagnostics.Process.DataTypeTaskNotFound,
-                    FileLocationHelper.GetLocation(metadataFile, dataType.TaskIdStart, dataType.TaskIdEnd),
-                    dataType.Id,
-                    taskId,
-                    WhyNotATask(process, taskId)
-                )
-            );
+                // A stateless app finds the data model of the folder it shows by a task id that names that folder,
+                // when the folder's Settings.json has no defaultDataType (HomeController.GetStatelessDataType).
+                if (taskId is not null && taskId == statelessFolder && dataType.HasClassRef)
+                {
+                    continue;
+                }
+
+                context.Output.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.DataTypeTaskNotFound,
+                        FileLocationHelper.GetLocation(metadataFile, dataTypeTaskId.Start, dataTypeTaskId.End),
+                        dataType.Id,
+                        taskId is null ? "null" : $"'{taskId}'",
+                        WhyNotATask(process, taskId),
+                        namesATask
+                            ? "that entry has no effect"
+                            : "users cannot change the data type's data through the app, and its minCount and "
+                                + "validation never apply"
+                    )
+                );
+            }
         }
     }
 
-    private static string WhyNotATask(XElement process, string taskId)
+    private static string WhyNotATask(XElement process, string? taskId)
     {
+        if (taskId is null)
+        {
+            return "null names no task";
+        }
+
         if (taskId.Length == 0)
         {
             return "no task has an empty id";

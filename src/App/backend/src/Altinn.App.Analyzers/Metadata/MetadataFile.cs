@@ -96,16 +96,44 @@ internal static class MetadataFile
             allowedContributors = ReadStringList(dataType.GetPropertyIgnoreCase("allowedContributors"));
         }
 
-        var taskId = dataType.GetPropertyIgnoreCase("taskId") is { Type: JsonType.String } value ? value : null;
+        var taskId = dataType.GetPropertyIgnoreCase("taskId") is { Type: JsonType.String } value
+            ? new MetadataTaskId(value.GetString(), value.Start, value.End)
+            : null;
         return new MetadataDataType(
             id,
             hasClassRef,
             ReadStringList(dataType.GetPropertyIgnoreCase("allowedContentTypes")),
             allowedContributors,
-            taskId?.GetString(),
-            taskId?.Start ?? 0,
-            taskId?.End ?? 0
+            taskId,
+            ReadTaskIds(dataType.GetPropertyIgnoreCase("taskIds"))
         );
+    }
+
+    /// <summary>
+    /// The string and null entries of a <c>taskIds</c> array, or null when it is not an array. The app cannot read
+    /// applicationmetadata.json with any other entry in <c>taskIds</c>, so those are left out.
+    /// </summary>
+    private static List<MetadataTaskId>? ReadTaskIds(JsonValue? value)
+    {
+        if (value?.Type != JsonType.Array)
+        {
+            return null;
+        }
+
+        var list = new List<MetadataTaskId>();
+        foreach (var item in value.GetArrayValues())
+        {
+            if (item.Type == JsonType.String)
+            {
+                list.Add(new MetadataTaskId(item.GetString(), item.Start, item.End));
+            }
+            else if (item.Type == JsonType.Null)
+            {
+                list.Add(new MetadataTaskId(null, item.Start, item.End));
+            }
+        }
+
+        return list;
     }
 
     /// <summary>
@@ -159,15 +187,26 @@ internal sealed record MetadataDataTypes(List<MetadataDataType> All)
 /// The contributor list the runtime uses: <c>allowedContributers</c> when it lists anything, otherwise
 /// <c>allowedContributors</c>, or null when neither is an array.
 /// </param>
-/// <param name="TaskId">The <c>taskId</c>, or null when absent or not a string.</param>
-/// <param name="TaskIdStart">Where the <c>taskId</c> value starts in the file.</param>
-/// <param name="TaskIdEnd">Where the <c>taskId</c> value ends in the file.</param>
+/// <param name="TaskId">
+/// The v8 <c>taskId</c>, which v9 does not read, or null when absent or not a string.
+/// </param>
+/// <param name="TaskIds">
+/// The string and null entries of <c>taskIds</c>, or null when it is absent or not an array. Null or empty binds the
+/// data type to no task.
+/// </param>
 internal sealed record MetadataDataType(
     string Id,
     bool HasClassRef,
     List<string?>? AllowedContentTypes,
     List<string?>? AllowedContributors,
-    string? TaskId,
-    int TaskIdStart,
-    int TaskIdEnd
+    MetadataTaskId? TaskId,
+    List<MetadataTaskId>? TaskIds
 );
+
+/// <summary>
+/// A task id in <c>taskId</c> or <c>taskIds</c>.
+/// </summary>
+/// <param name="Value">The task id, or null for a null entry in <c>taskIds</c>.</param>
+/// <param name="Start">Where the value starts in the file.</param>
+/// <param name="End">Where the value ends in the file.</param>
+internal sealed record MetadataTaskId(string? Value, int Start, int End);

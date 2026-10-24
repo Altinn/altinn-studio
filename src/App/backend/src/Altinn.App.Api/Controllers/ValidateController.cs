@@ -185,18 +185,24 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unknown element type.");
         }
 
-        // Should this be a BadRequest instead?
-        // The element will likely not be validated at all if the taskId is not the same as the one in the dataType
-        if (!taskId.Equals(dataType.TaskId, StringComparison.OrdinalIgnoreCase))
+        // A data type bound only to other tasks is validated at the first of them, with a warning, since the current
+        // task's validators would likely skip it. Should this be a BadRequest instead?
+        IReadOnlyList<string> dataTypeTaskIds = dataType.TaskIds ?? [];
+        string validationTaskId =
+            dataTypeTaskIds.FirstOrDefault(t => string.Equals(t, taskId, StringComparison.OrdinalIgnoreCase))
+            ?? dataTypeTaskIds.FirstOrDefault()
+            ?? taskId;
+        if (!validationTaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
         {
+            string dataTypeTasks = string.Join(", ", dataTypeTaskIds);
             ValidationIssueWithSource message = new()
             {
                 Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
                 Severity = ValidationIssueSeverity.Warning,
                 DataElementId = element.Id,
-                Description = $"Data element for task {dataType.TaskId} validated while currentTask is {taskId}",
+                Description = $"Data element for task {dataTypeTasks} validated while currentTask is {taskId}",
                 CustomTextKey = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                CustomTextParams = new List<string>() { dataType.TaskId, taskId },
+                CustomTextParams = new List<string>() { dataTypeTasks, taskId },
                 Source = GetType().FullName ?? String.Empty,
                 NoIncrementalUpdates = true,
             };
@@ -206,14 +212,14 @@ public class ValidateController : ControllerBase
         var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(
             instance,
             fetchedInstance.Metadata,
-            dataType.TaskId,
+            validationTaskId,
             language
         );
 
         // Run validations for all data elements, but only return the issues for the specific data element
         var issues = await _validationService.ValidateInstanceAtTask(
             dataAccessor,
-            dataType.TaskId,
+            validationTaskId,
             ignoredValidators: null,
             onlyIncrementalValidators: true,
             language: language

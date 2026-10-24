@@ -217,15 +217,15 @@ function createApplicationMetadata({
       ...(dataModels.map((dm) => ({
         id: dm.dataElement.dataType,
         appLogic: { classRef: 'some-class' },
-        taskId: 'Task_1',
+        taskIds: ['Task_1'],
       })) as IDataType[]),
     );
   }
   if (!applicationMetadata.dataTypes.find((d) => d.id === 'default')) {
     applicationMetadata.dataTypes.push({
       id: 'default',
-      appLogic: { classRef: 'some-class', taskId: 'Task_1' },
-    } as unknown as IDataType);
+      appLogic: { classRef: 'some-class' },
+    } as IDataType);
   }
   return applicationMetadata;
 }

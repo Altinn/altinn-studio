@@ -316,14 +316,13 @@ public static class Diagnostics
         );
 
         // A warning, since keeping a data type for a task that was removed is legitimate: old instances still hold
-        // its data.
+        // its data. '{1}' is the quoted task id or null, '{2}' says why it is not a task, and '{3}' what follows.
         public static readonly DiagnosticDescriptor DataTypeTaskNotFound = Warning(
             "ALTINNAPP1017",
             Category.Process,
             "Data type belongs to a task that does not exist",
-            "Data type '{0}' has the taskId '{1}', but {2}. The process never stops there, so users cannot change "
-                + "the data type's data through the app, and its minCount and validation never apply. Set taskId to "
-                + "the task the data belongs to, or remove it."
+            "Data type '{0}' has {1} in its taskIds, but {2}. The process never stops there, so {3}. Correct the "
+                + "entry, or remove it from taskIds."
         );
 
         // A warning, since nothing fails: the runtime filters by these ids, so one that matches nothing is skipped.
@@ -410,6 +409,23 @@ public static class Diagnostics
             Category.Deprecation,
             "Legacy eFormidling configuration is not supported",
             "The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead."
+        );
+
+        // An error, since the app would otherwise run with the data type bound to no task, which nothing else
+        // reports.
+        public static readonly DiagnosticDescriptor TaskId = Error(
+            "ALTINNAPP0602",
+            Category.Deprecation,
+            "taskId is not supported",
+            "'taskId' on dataType '{0}' is no longer supported by this version of the app backend, so the data type is bound to no task: it is not auto-created or validated in '{1}', and users can change its data in every task. Replace it with \"taskIds\": [\"{1}\"]; studioctl app upgrade v9 does this."
+        );
+
+        // A warning, since the app works as taskIds says, whatever task the taskId names.
+        public static readonly DiagnosticDescriptor TaskIdNextToTaskIds = Warning(
+            "ALTINNAPP0603",
+            Category.Deprecation,
+            "taskId next to taskIds is ignored",
+            "'taskId' on dataType '{0}' is no longer supported by this version of the app backend and is ignored, so the data type is bound only to the tasks in its taskIds. Remove the taskId '{1}', and list every task the data belongs to in taskIds."
         );
     }
 

@@ -32,7 +32,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 1,
       "minCount": 1,
       "enableFileScan": false,
@@ -53,7 +53,7 @@
         "allowUserDelete": true,
         "allowInSubform": true
       },
-      "taskId": "Task_1",
+      "taskIds": ["Task_1"],
       "maxCount": 10,
       "minCount": 0,
       "enableFileScan": false,

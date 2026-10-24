@@ -668,6 +668,7 @@ public class ProcessController : ControllerBase
 
         if (e.Response.StatusCode == HttpStatusCode.Conflict)
         {
+            _logger.LogWarning("{Message} Conflict: {Reason}", defaultMessage, e.Message);
             return Conflict();
         }
 

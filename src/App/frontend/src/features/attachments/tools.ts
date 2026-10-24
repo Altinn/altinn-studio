@@ -63,9 +63,13 @@ export function isCanonicalAttachmentData(
   }
 
   const dataType = application.dataTypes.find((candidate) => candidate.id === data.dataType);
+  if (!dataType) {
+    return false;
+  }
+
+  const dataTypeTaskIds = dataType.taskIds ?? [];
   return (
-    !!dataType &&
-    (!dataType.taskId || dataType.taskId === taskId) &&
+    (dataTypeTaskIds.length === 0 || (!!taskId && dataTypeTaskIds.includes(taskId))) &&
     !dataType.appLogic?.classRef &&
     dataType.id !== 'ref-data-as-pdf'
   );

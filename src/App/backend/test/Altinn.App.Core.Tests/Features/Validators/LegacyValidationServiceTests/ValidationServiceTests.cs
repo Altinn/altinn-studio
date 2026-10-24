@@ -51,14 +51,14 @@ public sealed class ValidationServiceTests : IDisposable
     private static readonly DataType _defaultDataType = new()
     {
         Id = "MyType",
-        TaskId = DefaultTaskId,
+        TaskIds = [DefaultTaskId],
         AppLogic = new ApplicationLogic { ClassRef = typeof(MyModel).FullName },
     };
 
     private static readonly DataType _neverataType = new()
     {
         Id = "never",
-        TaskId = DefaultTaskId,
+        TaskIds = [DefaultTaskId],
         AppLogic = new ApplicationLogic { ClassRef = typeof(MyModel).FullName },
     };
 

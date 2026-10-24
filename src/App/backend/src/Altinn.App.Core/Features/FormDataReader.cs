@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -25,11 +27,17 @@ internal interface IFormDataReader
 internal sealed class FormDataReader : IFormDataReader
 {
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IAppMetadata _appMetadata;
     private readonly ILogger<FormDataReader> _logger;
 
-    public FormDataReader(AppImplementationFactory appImplementationFactory, ILogger<FormDataReader> logger)
+    public FormDataReader(
+        AppImplementationFactory appImplementationFactory,
+        IAppMetadata appMetadata,
+        ILogger<FormDataReader> logger
+    )
     {
         _appImplementationFactory = appImplementationFactory;
+        _appMetadata = appMetadata;
         _logger = logger;
     }
 
@@ -74,10 +82,8 @@ internal sealed class FormDataReader : IFormDataReader
             );
         }
 
-        bool canModifyFormData = ProcessStatusHelper.IsIdle(instance);
-
         byte[]? beforeProcessDataRead = null;
-        if (persistFormData is not null && canModifyFormData)
+        if (persistFormData is not null && ProcessStatusHelper.IsIdle(instance) && CanPersist(instance, dataElement))
         {
             // Keep a copy to determine if ProcessDataRead changed the model.
             beforeProcessDataRead = JsonSerializer.SerializeToUtf8Bytes(appModel);
@@ -95,7 +101,6 @@ internal sealed class FormDataReader : IFormDataReader
         if (
             persistFormData is not null
             && beforeProcessDataRead is not null
-            && !dataElement.Locked
             && !beforeProcessDataRead.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(appModel))
         )
         {
@@ -116,4 +121,10 @@ internal sealed class FormDataReader : IFormDataReader
 
         return appModel;
     }
+
+    private bool CanPersist(Instance instance, DataElement dataElement) =>
+        !dataElement.Locked
+        && _appMetadata.ApplicationMetadata.DataTypes.Find(dataType => dataType.Id == dataElement.DataType)
+            is { } dataType
+        && dataType.IsWritableInCurrentTask(instance);
 }

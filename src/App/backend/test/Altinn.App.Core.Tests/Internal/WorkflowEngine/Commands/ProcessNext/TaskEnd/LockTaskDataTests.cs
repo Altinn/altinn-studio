@@ -78,9 +78,9 @@ public class LockTaskDataTests
         {
             DataTypes =
             [
-                new DataType { Id = "task-data", TaskId = "Task_1" },
-                new DataType { Id = "task-attachment", TaskId = "Task_1" },
-                new DataType { Id = "other-data", TaskId = "Task_2" },
+                new DataType { Id = "task-data", TaskIds = ["Task_1"] },
+                new DataType { Id = "task-attachment", TaskIds = ["Task_1"] },
+                new DataType { Id = "other-data", TaskIds = ["Task_2"] },
             ],
         };
 

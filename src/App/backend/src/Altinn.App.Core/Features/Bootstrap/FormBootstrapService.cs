@@ -623,7 +623,10 @@ internal sealed class FormBootstrapService
         }
 
         var persistableChanges = changes
-            .AllChanges.Where(c => c is not FormDataChange { Type: ChangeType.Updated, DataElement.Locked: true })
+            .AllChanges.Where(c =>
+                c is not FormDataChange { Type: ChangeType.Updated, DataElement.Locked: true }
+                && c.DataType.IsWritableInCurrentTask(dataAccessor.Instance)
+            )
             .ToList();
         if (persistableChanges.Count == 0)
         {
