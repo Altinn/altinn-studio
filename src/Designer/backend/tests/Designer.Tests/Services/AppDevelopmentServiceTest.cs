@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -465,6 +466,100 @@ public class AppDevelopmentServiceTest : IDisposable
         Assert.Equal("subform-model", layoutSetConfig.DataType);
         Assert.Equal("subform", layoutSetConfig.Type);
         Assert.Null(layoutSetConfig.Tasks);
+    }
+
+    [Theory]
+    [InlineData(true, "datamodel")]
+    [InlineData(false, "unUsedDatamodel")]
+    public async Task GetAppMetadataModelIds_WhenOnlyUnReferenced_ShouldReadTaskIdOrTaskIdsByAppLibVersion(
+        bool usesTaskIds,
+        string expectedModelId
+    )
+    {
+        // Arrange
+        AltinnRepoEditingContext editingContext = await PrepareRepo();
+        _appVersionServiceMock
+            .Setup(s => s.UsesDataTypeTaskIds(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(usesTaskIds);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(CreatedTestRepoPath, "datamodel", "Task_1", taskIds: []);
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(
+            CreatedTestRepoPath,
+            "unUsedDatamodel",
+            taskId: null,
+            ["Task_2"]
+        );
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(CreatedTestRepoPath, "HvemErHvem_M", "Task_3", ["Task_3"]);
+
+        // Act
+        IEnumerable<string> modelIds = await _appDevelopmentService.GetAppMetadataModelIds(editingContext, true);
+
+        // Assert
+        Assert.Equal(new[] { expectedModelId }, modelIds);
+    }
+
+    [Fact]
+    public async Task DeleteLayoutSet_WhenDataTypeHasTaskIds_ShouldClearTaskIdAndRemoveTaskFromTaskIds()
+    {
+        // Arrange
+        AltinnRepoEditingContext editingContext = await PrepareRepo();
+        DataTypeTaskBindingTestHelper.WriteTaskBinding(
+            CreatedTestRepoPath,
+            "datamodel",
+            "Task_1",
+            ["Task_1", "Task_2"]
+        );
+
+        // Act
+        await _appDevelopmentService.DeleteLayoutSet(editingContext, "layoutSet1");
+
+        // Assert
+        JsonObject dataType = DataTypeTaskBindingTestHelper.ReadDataType(CreatedTestRepoPath, "datamodel");
+        Assert.False(dataType.ContainsKey("taskId"));
+        Assert.Equal(new[] { "Task_2" }, DataTypeTaskBindingTestHelper.ReadTaskIds(dataType));
+    }
+
+    [Fact]
+    public async Task DeleteLayoutSet_WhenDataTypeIsBoundToAnotherTask_ShouldKeepTaskId()
+    {
+        // Arrange: the receipt layout set reuses "datamodel", which is bound to Task_1.
+        AltinnRepoEditingContext editingContext = await PrepareRepo();
+
+        // Act
+        await _appDevelopmentService.DeleteLayoutSet(editingContext, "receipt");
+
+        // Assert
+        JsonObject dataType = DataTypeTaskBindingTestHelper.ReadDataType(CreatedTestRepoPath, "datamodel");
+        Assert.Equal("Task_1", (string)dataType["taskId"]);
+    }
+
+    [Fact]
+    public async Task DeleteLayoutSet_WhenDataTypeIsMissingFromApplicationMetadata_ShouldDeleteLayoutSet()
+    {
+        // Arrange
+        AltinnRepoEditingContext editingContext = await PrepareRepo();
+        string layoutSetsPath = Path.Combine(CreatedTestRepoPath, "App", "ui", "layout-sets.json");
+        JsonNode layoutSetsFile = JsonNode.Parse(File.ReadAllText(layoutSetsPath));
+        layoutSetsFile["sets"].AsArray().Single(set => (string)set["id"] == "layoutSet1")["dataType"] =
+            "missingDatamodel";
+        File.WriteAllText(layoutSetsPath, layoutSetsFile.ToJsonString());
+
+        // Act
+        LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, "layoutSet1");
+
+        // Assert
+        Assert.DoesNotContain(layoutSets.Sets, set => set.Id == "layoutSet1");
+    }
+
+    private async Task<AltinnRepoEditingContext> PrepareRepo()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(
+            _org,
+            _repository,
+            _developer,
+            targetRepository
+        );
+        return AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, targetRepository, _developer);
     }
 
     private async Task<AltinnRepoEditingContext> PrepareV9Repo()

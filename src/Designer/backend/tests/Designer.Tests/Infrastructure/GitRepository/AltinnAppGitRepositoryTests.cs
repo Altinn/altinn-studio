@@ -73,7 +73,9 @@ public class AltinnAppGitRepositoryTests : IDisposable
         Assert.True(mainDataType.AppLogic.AutoCreate);
         Assert.Equal(1, mainDataType.MinCount);
         Assert.Equal(1, mainDataType.MaxCount);
+#pragma warning disable CS0618 // hvem-er-hvem binds its data model with the v8 taskId
         Assert.Equal("Task_1", mainDataType.TaskId);
+#pragma warning restore CS0618
 
         Assert.False(applicationMetadata.PartyTypesAllowed.Person);
         Assert.False(applicationMetadata.PartyTypesAllowed.Organisation);

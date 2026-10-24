@@ -262,7 +262,8 @@ public class AppDevelopmentService : IAppDevelopmentService
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(
             cancellationToken
         );
-        return GetAppMetadataModelIds(applicationMetadata, onlyUnReferenced);
+        bool usesTaskIds = _appVersionService.UsesDataTypeTaskIds(altinnRepoEditingContext);
+        return GetAppMetadataModelIds(applicationMetadata, onlyUnReferenced, usesTaskIds);
     }
 
     /// <inheritdoc />
@@ -345,7 +346,11 @@ public class AppDevelopmentService : IAppDevelopmentService
         return foundLayoutSet.DataType;
     }
 
-    private IEnumerable<string> GetAppMetadataModelIds(ApplicationMetadata applicationMetadata, bool onlyUnReferenced)
+    private IEnumerable<string> GetAppMetadataModelIds(
+        ApplicationMetadata applicationMetadata,
+        bool onlyUnReferenced,
+        bool usesTaskIds
+    )
     {
         var appMetaDataDataTypes = applicationMetadata.DataTypes.Where(data =>
             data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef)
@@ -353,7 +358,7 @@ public class AppDevelopmentService : IAppDevelopmentService
 
         if (onlyUnReferenced)
         {
-            var unReferencedDataTypes = appMetaDataDataTypes.Where(dataType => string.IsNullOrEmpty(dataType.TaskId));
+            var unReferencedDataTypes = appMetaDataDataTypes.Where(dataType => !dataType.IsBoundToAnyTask(usesTaskIds));
             return unReferencedDataTypes.Select(datatype => datatype.Id);
         }
 
@@ -593,7 +598,11 @@ public class AppDevelopmentService : IAppDevelopmentService
         var dataTypeNameToRemoveTaskIdRef = layoutSetToDelete?.DataType;
         if (!string.IsNullOrEmpty(dataTypeNameToRemoveTaskIdRef))
         {
-            await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataTypeNameToRemoveTaskIdRef);
+            await DeleteTaskRefInApplicationMetadata(
+                altinnAppGitRepository,
+                dataTypeNameToRemoveTaskIdRef,
+                layoutSetToDelete.Tasks ?? []
+            );
         }
 
         altinnAppGitRepository.DeleteLayoutSetFolder(layoutSetToDeleteId, cancellationToken);
@@ -602,13 +611,28 @@ public class AppDevelopmentService : IAppDevelopmentService
 
     private async Task DeleteTaskRefInApplicationMetadata(
         AltinnAppGitRepository altinnAppGitRepository,
-        string dataTypeId
+        string dataTypeId,
+        List<string> layoutSetTaskIds
     )
     {
         var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         var dataType = applicationMetadata.DataTypes.Find(dataType => dataType.Id == dataTypeId);
-        dataType.TaskId = null;
-        await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        if (dataType is null)
+        {
+            return;
+        }
+
+        // Layout sets exist only in v8 apps, which do not read taskIds.
+        bool hasChanges = false;
+        foreach (string taskId in layoutSetTaskIds)
+        {
+            hasChanges |= dataType.UnbindFromTask(taskId, usesTaskIds: false);
+        }
+
+        if (hasChanges)
+        {
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
     }
 
     private static async Task<LayoutSets> DeleteExistingLayoutSet(
