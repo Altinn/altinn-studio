@@ -1901,7 +1901,7 @@ internal static class V8Tov9Upgrade
             // Phrased as an end state, not an action: this migrator reports no warnings both when it
             // migrated cleanly and when there was nothing to migrate, and MigrationResult cannot tell the
             // two apart.
-            return ReportMigrationResult(result, cleanText: "No enablePdfCreation flags remain");
+            return ReportMigrationResult(result, cleanText: "No data type relies on enablePdfCreation");
         }
         catch (Exception ex)
         {

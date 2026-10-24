@@ -397,7 +397,7 @@
         "enablePdfCreation": {
           "type": "boolean",
           "title": "Enable PDF creation",
-          "description": "**Deprecated**: Use a PDF service task in the process instead, supported from app backend v8.9. Not supported from v9.\nA value indicating whether the element should trigger PDF generation.",
+          "description": "**Deprecated**: Use a PDF service task in the process instead, supported from app backend v8.9. Ignored from v9, so a false value may stay.\nA value indicating whether the element should trigger PDF generation.",
           "deprecated": true
         },
         "enableFileScan": {

@@ -134,7 +134,7 @@ internal sealed class AppSettingsEFormidlingRewriter
 
     /// <summary>
     /// Removes every whole-line <c>"EnableEFormidling": true/false</c> property from the app's
-    /// appsettings files, preserving the surrounding formatting (same approach as the
+    /// appsettings files, preserving the surrounding formatting (the same whole-line technique as the
     /// enablePdfCreation migration). Files where the property has unexpected formatting are left
     /// unchanged with a warning. Verifies each result still parses.
     /// </summary>

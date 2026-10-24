@@ -50,9 +50,9 @@ internal sealed class FiksArkivSettingsMigrator
     /// <summary>
     /// Removes every whole-line <c>"moveToNextTask": true/false</c> property that sits directly inside a
     /// <c>successHandling</c> or <c>errorHandling</c> object, preserving the surrounding formatting (the same
-    /// approach as the eFormidling and enablePdfCreation migrations). The parent is tracked by following the
-    /// braces, so a same-named property elsewhere in the file is left alone. A property with unexpected
-    /// formatting is left in place with a to-do. Verifies the result still parses before writing it.
+    /// whole-line technique as the eFormidling and enablePdfCreation migrations). The parent is tracked by
+    /// following the braces, so a same-named property elsewhere in the file is left alone. A property with
+    /// unexpected formatting is left in place with a to-do. Verifies the result still parses before writing it.
     /// </summary>
     private static async Task StripMoveToNextTask(string file, List<UpgradeMessage> messages)
     {
