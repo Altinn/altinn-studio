@@ -55,6 +55,11 @@ class BaseConfig:
     LLM_MODEL_REVIEWER = os.getenv("LLM_MODEL_REVIEWER", "gpt-5.6-sol")
     LLM_MODEL_ASSISTANT = os.getenv("LLM_MODEL_ASSISTANT", "gpt-5.6-sol")
 
+    # The assistant starts one Kubernetes Job in this namespace for each run of app code (src/AI/assistant-runner).
+    # An empty value means that there is no runner, for example in local development.  A namespace without the runner
+    # PodTemplate also means that there is no runner, for example in staging.
+    RUNNER_NAMESPACE = os.getenv("RUNNER_NAMESPACE", "")
+
     PREVIEW_CHECK_ENABLED = os.getenv("PREVIEW_CHECK_ENABLED", "false").lower() == "true"
     PREVIEW_STUDIO_BASE_URL = os.getenv("PREVIEW_STUDIO_BASE_URL", "http://studio.localhost")
     PREVIEW_STUDIO_USER = os.getenv("PREVIEW_STUDIO_USER", "localgiteaadmin")
