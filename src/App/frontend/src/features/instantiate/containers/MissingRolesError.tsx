@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 
+import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -10,8 +11,8 @@ import { returnUrlToAccessManagement, returnUrlToRolesAndRightsHelp } from 'src/
 export function MissingRolesError() {
   const { langAsString } = useLanguage();
   const selectedParty = useSelectedParty();
-  const accessManagementUrl = returnUrlToAccessManagement();
-  const rolesAndRightsHelpUrl = returnUrlToRolesAndRightsHelp();
+  const accessManagementUrl = platformLinkHref('AccessManagementUrl', returnUrlToAccessManagement());
+  const rolesAndRightsHelpUrl = platformLinkHref('RolesAndRightsHelpUrl', returnUrlToRolesAndRightsHelp());
 
   return (
     <InstantiationErrorPage
@@ -35,24 +36,20 @@ export function MissingRolesError() {
             <Lang id='instantiate.authorization_error_ask' />
           </span>
           <br />
-          {accessManagementUrl && (
-            <span>
-              <Lang
-                id='instantiate.authorization_error_check_rights'
-                params={[accessManagementUrl]}
-              />
-            </span>
-          )}
+          <span>
+            <Lang
+              id='instantiate.authorization_error_check_rights'
+              params={[accessManagementUrl]}
+            />
+          </span>
           <br />
           <br />
-          {rolesAndRightsHelpUrl && (
-            <span>
-              <Lang
-                id='instantiate.authorization_error_info_rights'
-                params={[rolesAndRightsHelpUrl]}
-              />
-            </span>
-          )}
+          <span>
+            <Lang
+              id='instantiate.authorization_error_info_rights'
+              params={[rolesAndRightsHelpUrl]}
+            />
+          </span>
           <span>
             <Lang
               id='instantiate.authorization_error_info_customer_service'

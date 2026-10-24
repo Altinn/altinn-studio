@@ -5,6 +5,7 @@ import { screen } from '@testing-library/react';
 import { getOrganisationMock } from 'src/__mocks__/getOrganisationMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { InstantiateHeader } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
+import { expectConfiguredPlatformLink, expectNotConfiguredPlatformLink } from 'src/test/platformLink';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { InstantiateHeaderProps } from 'src/features/instantiate/instantiateHeader/InstantiateHeader';
 
@@ -32,12 +33,30 @@ describe('InstantiateHeader', () => {
     expect(screen.getByRole('link', { name: /profil/i })).toBeInTheDocument();
   });
 
-  it('should not render the link to all forms when no all forms url is configured', async () => {
+  it('links inbox, all forms and profile to the configured URLs', async () => {
+    await render();
+
+    expectConfiguredPlatformLink(
+      screen.getByRole('link', { name: /innboks/i }),
+      'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=12345&goTo=https%3A%2F%2Faf.tt02.altinn.no%2F',
+    );
+    expectConfiguredPlatformLink(
+      screen.getByRole('link', { name: /alle skjema/i }),
+      'https://tt02.altinn.no/skjemaoversikt',
+    );
+    expectConfiguredPlatformLink(screen.getByRole('link', { name: /profil/i }), 'https://af.tt02.altinn.no/profile');
+  });
+
+  it('shows inbox, all forms and profile as not configured when their URLs are not configured', async () => {
+    window.altinnAppGlobalData.platformFrontendSettings.arbeidsflateInboxUrl = undefined;
     window.altinnAppGlobalData.platformFrontendSettings.allFormsUrl = undefined;
+    window.altinnAppGlobalData.platformFrontendSettings.arbeidsflateProfileUrl = undefined;
 
     await render();
 
-    expect(screen.queryByText(/alle skjema/i)).not.toBeInTheDocument();
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: /innboks/i }), 'ArbeidsflateInboxUrl');
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: /alle skjema/i }), 'AllFormsUrl');
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: /profil/i }), 'ArbeidsflateProfileUrl');
   });
 
   it('should not render links to inbox, schemas and profile when profile does not have "party" property', async () => {

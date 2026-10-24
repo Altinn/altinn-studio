@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
+import { expectNotConfiguredPlatformLink } from 'src/test/platformLink';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
 const accessManagementLink = /se hvem som har rollen tilgangsstyring/i;
@@ -40,16 +41,16 @@ describe('MissingRolesError', () => {
     );
   });
 
-  // A Studio preview or any other host the platform does not run the app on gets no settings
-  it('renders without the links when no URL is configured', async () => {
+  // The settings reach only apps the platform runs; where one is missing the link shows that it is not configured
+  it('shows the links as not configured when no URL is configured', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.accessManagementUrl = undefined;
     window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = undefined;
 
     await render();
 
     expect(screen.getByText(/kontakte oss på brukerservice/i)).toBeInTheDocument();
-    expect(screen.queryByText(accessManagementLink)).not.toBeInTheDocument();
-    expect(screen.queryByText(rolesAndRightsLink)).not.toBeInTheDocument();
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: accessManagementLink }), 'AccessManagementUrl');
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: rolesAndRightsLink }), 'RolesAndRightsHelpUrl');
   });
 
   // The texts take the whole URL as {0} now. That is safe for apps overriding them, because

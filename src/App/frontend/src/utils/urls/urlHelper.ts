@@ -12,8 +12,8 @@ export function fillUrlTemplate(
 }
 
 /**
- * A platform link exists when its URL is configured. The settings only reach apps the platform runs (deployed
- * environments and localtest), so a Studio preview or any other host gets no settings and therefore no link.
+ * A platform link's URL is the configured one, never derived from the page's host; an empty value counts as not
+ * configured. A missing URL is `undefined`, which `PlatformLink` renders as a visibly broken link naming the setting.
  */
 function configuredUrl(url: string | undefined): string | undefined {
   return url || undefined;

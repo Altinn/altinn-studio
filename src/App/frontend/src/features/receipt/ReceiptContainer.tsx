@@ -5,6 +5,7 @@ import { formatDate } from 'date-fns';
 
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
@@ -173,8 +174,17 @@ export const ReceiptContainer = () => {
           body={<Lang id='receipt.body' />}
           collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
-          subtitle={hiddenFromInbox ? undefined : <Lang id='receipt.subtitle' />}
-          subtitleurl={hiddenFromInbox ? undefined : returnUrlToArchive(instanceOwnerParty?.partyId, dialogId)}
+          subtitle={
+            hiddenFromInbox ? undefined : (
+              <PlatformLink
+                className='altinnLink'
+                href={returnUrlToArchive(instanceOwnerParty?.partyId, dialogId)}
+                setting='ArbeidsflateInboxUrl'
+              >
+                <Lang id='receipt.subtitle' />
+              </PlatformLink>
+            )
+          }
           title={<Lang id='receipt.title' />}
           titleSubmitted={<Lang id='receipt.title_submitted' />}
           pdf={pdfDisplayAttachments}

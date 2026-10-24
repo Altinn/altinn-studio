@@ -7,6 +7,7 @@ import { PlusIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { AltinnParty } from 'src/components/altinnParty';
+import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
@@ -46,7 +47,7 @@ export const PartySelection = () => {
   const defaultShowDeleted = partiesAllowedToInstantiate.every((party) => party.isDeleted);
 
   const appPromptForPartyOverride = appMetadata.promptForParty;
-  const partiesSettingsUrl = returnUrlToPartiesSettings();
+  const partiesSettingsUrl = platformLinkHref('ArbeidsflatePartiesUrl', returnUrlToPartiesSettings());
   const { langAsString } = useLanguage();
 
   const [filterString, setFilterString] = React.useState('');
@@ -214,7 +215,7 @@ export const PartySelection = () => {
           </Flex>
         </Flex>
         {renderParties()}
-        {errorCode === 'explained' && (appPromptForPartyOverride === 'always' || partiesSettingsUrl) && (
+        {errorCode === 'explained' && (
           <Flex style={{ padding: 12 }}>
             <Heading
               level={2}
