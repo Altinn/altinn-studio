@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
@@ -109,11 +110,79 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             cancellationToken
         );
 
+    public async Task<AcquireWorkflowResult> EnqueueAndWaitForAcquire(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        ProcessStateChange processStateChange,
+        Actor actor,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken = default
+    )
+    {
+        (Guid acquireWorkflowId, _) = await SubmitWorkflow(
+            () =>
+                Task.FromResult(
+                    _processNextRequestFactory.CreateAcquire(
+                        instance,
+                        processStateChange,
+                        state,
+                        CreateProcessNextIdempotencyKey(instance, instanceVersions),
+                        actor
+                    )
+                ),
+            cancellationToken
+        );
+
+        WorkflowStatusResponse? acquireWorkflow = await WaitForWorkflowToFinish(
+            acquireWorkflowId,
+            deadline,
+            cancellationToken
+        );
+        if (acquireWorkflow is null || IsActiveWorkflowStatus(acquireWorkflow))
+        {
+            return new AcquireWorkflowResult.NotCompleted(new WorkflowFailure { Kind = WorkflowFailureKind.Timeout });
+        }
+
+        // Only a completed acquire compared the instance. One that failed, such as one the acquirer rejected or one
+        // condemned by an earlier failed workflow, says nothing about whether the instance changed.
+        if (BuildWorkflowFailure([acquireWorkflow]) is { } failure)
+        {
+            return new AcquireWorkflowResult.NotCompleted(failure);
+        }
+
+        return new AcquireWorkflowResult.Completed(
+            await _instanceClient.GetInstanceWithStorageMetadata(
+                instance,
+                StorageAuthenticationMethod.ServiceOwner(),
+                cancellationToken
+            )
+        );
+    }
+
     /// <param name="instance">The instance the workflow is enqueued for.</param>
     /// <param name="createEnvelope">Builds the enqueue request.</param>
     /// <param name="cancellationToken">Cancels the enqueue and the wait.</param>
     private async Task<ProcessNextWorkflowResult> EnqueueAndWaitForWorkflow(
         Instance instance,
+        Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
+        CancellationToken cancellationToken
+    )
+    {
+        (Guid enqueuedWorkflowId, string collectionKey) = await SubmitWorkflow(createEnvelope, cancellationToken);
+
+        return await WaitForWorkflowCollectionAndRefetchInstance(
+            instance,
+            collectionKey,
+            sinceWorkflowId: enqueuedWorkflowId,
+            cancellationToken
+        );
+    }
+
+    /// <summary>
+    /// Builds and submits the workflow, and returns once the engine has accepted it.
+    /// </summary>
+    private async Task<(Guid WorkflowId, string CollectionKey)> SubmitWorkflow(
         Func<Task<WorkflowEnqueueEnvelope>> createEnvelope,
         CancellationToken cancellationToken
     )
@@ -164,12 +233,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
             );
         }
 
-        return await WaitForWorkflowCollectionAndRefetchInstance(
-            instance,
-            collectionKey,
-            sinceWorkflowId: enqueuedWorkflowId,
-            cancellationToken
-        );
+        return (enqueuedWorkflowId, collectionKey);
     }
 
     public Task<Guid> EnqueueDependentProcessNext(
@@ -527,15 +591,69 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 }
             }
 
-            await Task.Delay(TimeSpan.FromMilliseconds(currentDelayMs), _timeProvider, cancellationToken);
-            currentDelayMs =
-                _timeProvider.GetElapsedTime(startedAt) < TimeSpan.FromMilliseconds(WorkflowPollingTightWindowMs)
-                    ? InitialWorkflowPollingDelayMs
-                    : Math.Min(
-                        currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
-                        MaxWorkflowPollingDelayMs
-                    );
+            currentDelayMs = await DelayNextPoll(
+                startedAt,
+                currentDelayMs,
+                TimeSpan.FromMilliseconds(WorkflowPollingTimeoutMs) - _timeProvider.GetElapsedTime(startedAt),
+                cancellationToken
+            );
         }
+    }
+
+    /// <summary>
+    /// Polls one workflow until it is no longer active, or until <paramref name="deadline"/>.
+    /// </summary>
+    /// <returns>The workflow as the last poll read it, or null if the engine did not find it.</returns>
+    private async Task<WorkflowStatusResponse?> WaitForWorkflowToFinish(
+        Guid workflowId,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken
+    )
+    {
+        long startedAt = _timeProvider.GetTimestamp();
+        int currentDelayMs = InitialWorkflowPollingDelayMs;
+
+        while (true)
+        {
+            WorkflowStatusResponse? workflow = await _workflowEngineClient.GetWorkflow(
+                GetNamespace(),
+                workflowId,
+                cancellationToken
+            );
+            TimeSpan remaining = deadline - _timeProvider.GetUtcNow();
+            if ((workflow is not null && !IsActiveWorkflowStatus(workflow)) || remaining <= TimeSpan.Zero)
+            {
+                return workflow;
+            }
+
+            currentDelayMs = await DelayNextPoll(startedAt, currentDelayMs, remaining, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Waits <paramref name="currentDelayMs"/> before the next poll of a wait that started at
+    /// <paramref name="startedAt"/>, but no longer than the <paramref name="remaining"/> time of the wait, so that its
+    /// last poll falls on its deadline rather than past it. Returns the delay before the poll after it, following the
+    /// ladder at the top of this class.
+    /// </summary>
+    private async Task<int> DelayNextPoll(
+        long startedAt,
+        int currentDelayMs,
+        TimeSpan remaining,
+        CancellationToken cancellationToken
+    )
+    {
+        await Task.Delay(
+            TimeSpan.FromMilliseconds(Math.Clamp(remaining.TotalMilliseconds, 0, currentDelayMs)),
+            _timeProvider,
+            cancellationToken
+        );
+        return _timeProvider.GetElapsedTime(startedAt) < TimeSpan.FromMilliseconds(WorkflowPollingTightWindowMs)
+            ? InitialWorkflowPollingDelayMs
+            : Math.Min(
+                currentDelayMs + (currentDelayMs * WorkflowPollingBackoffPercent / 100),
+                MaxWorkflowPollingDelayMs
+            );
     }
 
     private async Task<ProcessNextWorkflowResult> CreatePollingTimeoutResult(

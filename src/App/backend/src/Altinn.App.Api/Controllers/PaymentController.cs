@@ -10,6 +10,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,7 @@ namespace Altinn.App.Api.Controllers;
 public class PaymentController : ControllerBase
 {
     private readonly IInstanceClient _instanceClient;
+    private readonly IInstanceClientWithStorageMetadata _instanceClientWithStorageMetadata;
     private readonly IProcessReader _processReader;
     private readonly IPaymentService _paymentService;
     private readonly AppImplementationFactory _appImplementationFactory;
@@ -46,6 +48,7 @@ public class PaymentController : ControllerBase
         _logger = logger;
         _netsWebhookSecretProvider = serviceProvider.GetService<INetsWebhookSecretProvider>();
         _paymentService = serviceProvider.GetRequiredService<IPaymentService>();
+        _instanceClientWithStorageMetadata = serviceProvider.GetRequiredService<IInstanceClientWithStorageMetadata>();
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
@@ -73,14 +76,16 @@ public class PaymentController : ControllerBase
         [FromQuery] string? taskId = null
     )
     {
-        Instance instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            authenticationMethod: null,
-            cancellationToken
-        );
+        InstanceWithStorageMetadata fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                authenticationMethod: null,
+                cancellationToken
+            );
+        Instance instance = fetchedInstance.Instance;
 
         string? finalTaskId = taskId ?? instance.Process?.CurrentTask?.ElementId;
         AltinnPaymentConfiguration? paymentConfiguration = finalTaskId is null
@@ -105,7 +110,7 @@ public class PaymentController : ControllerBase
             try
             {
                 paymentInformation = await _paymentService.CheckAndStorePaymentStatus(
-                    instance,
+                    fetchedInstance,
                     validPaymentConfiguration,
                     language,
                     cancellationToken
@@ -113,9 +118,10 @@ public class PaymentController : ControllerBase
             }
             catch (PlatformHttpException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                // The legacy per-data-element Storage endpoint uses an untyped 409 for both process-status
-                // conflicts and unrelated failures. Re-read the instance once and classify only from the
-                // authoritative snapshot instead of interpreting the response body.
+                // The payment service handles a changed instance itself, but Storage also answers an untyped 409, both
+                // for a payment record that a transition locked after this request read the instance and for unrelated
+                // failures. Re-read the instance once and classify only from the authoritative snapshot instead of
+                // interpreting the response body.
                 Instance refreshed = await _instanceClient.GetInstance(
                     app,
                     org,
@@ -277,22 +283,46 @@ public class PaymentController : ControllerBase
             webhookPayload.Data.PaymentId
         );
 
-        var instance = await _instanceClient.GetInstance(
-            app,
-            org,
-            instanceOwnerPartyId,
-            instanceGuid,
-            StorageAuthenticationMethod.ServiceOwner(),
-            cancellationToken
-        );
-
-        if (instance.Process?.CurrentTask?.ElementId == null)
+        if (webhookPayload.EventName == NetsPaymentProcessor.ChargeFailedEventName)
         {
+            // Nets reports a failed charge only through this event. The payment it retrieves stays reserved, so the
+            // status stays Authorized until the payment is charged or cancelled in the Nets portal.
             _logger.LogWarning(
-                "Instance has no current task. Cannot process Nets webhook callback for instance {InstanceGuid}",
+                "Nets reports that charging payment {PaymentId} for instance {InstanceGuid} failed. The payment stays Authorized until it is charged or cancelled in the Nets portal.",
+                webhookPayload.Data.PaymentId,
                 instanceGuid
             );
-            return BadRequest("Instance has no current task");
+        }
+
+        InstanceWithStorageMetadata fetchedInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                app,
+                org,
+                instanceOwnerPartyId,
+                instanceGuid,
+                StorageAuthenticationMethod.ServiceOwner(),
+                cancellationToken
+            );
+        Instance instance = fetchedInstance.Instance;
+
+        if (instance.Process is null)
+        {
+            _logger.LogWarning(
+                "Instance has no process. Cannot process Nets webhook callback for instance {InstanceGuid}",
+                instanceGuid
+            );
+            return BadRequest("Instance has no process");
+        }
+
+        if (instance.Process.Ended is not null || instance.Process.CurrentTask?.ElementId is null)
+        {
+            // Nets calls more than once for a payment, and an earlier call often ended the process, since the payment
+            // task is commonly the last one. Answer OK, as for a task that is not a payment task, so Nets stops calling.
+            _logger.LogInformation(
+                "The process of instance {InstanceId} has ended. Ignoring the Nets webhook callback.",
+                instance.Id
+            );
+            return Ok(new ProblemDetails() { Detail = "The process of the instance has ended" });
         }
 
         AltinnPaymentConfiguration? paymentConfiguration = _processReader
@@ -318,11 +348,9 @@ public class PaymentController : ControllerBase
 
         var validPaymentConfiguration = paymentConfiguration.Validate();
 
-        // Update payment status using ServiceOwner authentication
         var responseText = await _paymentService.HandlePaymentCompletedWebhook(
-            instance,
+            fetchedInstance,
             validPaymentConfiguration,
-            StorageAuthenticationMethod.ServiceOwner(),
             cancellationToken
         );
 

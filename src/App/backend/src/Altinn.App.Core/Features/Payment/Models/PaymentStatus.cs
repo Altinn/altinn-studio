@@ -37,4 +37,11 @@ public enum PaymentStatus
     /// The payment was skipped, likely because the sum of the order was zero.
     /// </summary>
     Skipped,
+
+    /// <summary>
+    /// The payment has gone through at the payment processor, but is not settled yet. The money is reserved, or
+    /// authorized, and the payment processor has not charged it. It can no longer be terminated, and is expected to
+    /// become <see cref="Paid"/>.
+    /// </summary>
+    Authorized,
 }

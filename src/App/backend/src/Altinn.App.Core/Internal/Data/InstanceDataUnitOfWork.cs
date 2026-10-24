@@ -774,6 +774,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         );
     }
 
+    /// <summary>
+    /// Saves <paramref name="changes"/> and reads the whole instance back with its storage versions, so what runs next
+    /// starts from Storage's own snapshot, including anything written to Storage directly in the meantime.
+    /// </summary>
+    internal async Task<InstanceWithStorageMetadata> SaveChangesAndRefetch(
+        DataElementChanges changes,
+        StorageAuthenticationMethod? authenticationMethod,
+        CancellationToken cancellationToken
+    )
+    {
+        await SaveChanges(changes);
+        return await _instanceClient.GetInstanceWithStorageMetadata(Instance, authenticationMethod, cancellationToken);
+    }
+
     internal async Task<WorkflowAggregateSaveOutcome> SaveWorkflowOwnedAggregate(
         DataElementChanges changes,
         string idempotencyKey,

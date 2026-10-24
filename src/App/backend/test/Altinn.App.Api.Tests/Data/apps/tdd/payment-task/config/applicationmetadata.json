@@ -1,0 +1,42 @@
+{
+  "id": "tdd/payment-task",
+  "org": "tdd",
+  "title": {
+    "nb": "payment-task"
+  },
+  "dataTypes": [
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": ["application/pdf"],
+      "maxCount": 0,
+      "minCount": 0
+    },
+    {
+      "id": "paymentInformation",
+      "allowedContentTypes": ["application/json"],
+      "allowedContributors": ["app:owned"],
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 0
+    },
+    {
+      "id": "paymentReceiptPdf",
+      "allowedContentTypes": ["application/pdf"],
+      "allowedContributors": ["app:owned"],
+      "taskId": "Task_2",
+      "maxCount": 1,
+      "minCount": 0
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2026-10-22T08:00:00Z",
+  "createdBy": "test",
+  "lastChanged": "2026-10-22T08:00:00Z",
+  "lastChangedBy": "test"
+}

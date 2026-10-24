@@ -15,6 +15,9 @@ using Altinn.App.Core.Infrastructure.Clients.Secrets;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
+using Altinn.App.Core.Models.Process;
 using Altinn.App.Tests.Common.Fixtures;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -76,6 +79,7 @@ public class PaymentControllerTests
         _services.OutputHelper = outputHelper;
         // Ensure common mocks that are dependencies of payment controller/service is registered
         _services.Mock<IProcessReader>();
+        _services.Mock<IProcessEngine>();
 
         // Register tested services as singletons
         _services.Services.AddSingleton<IPaymentService, PaymentService>();
@@ -323,10 +327,46 @@ public class PaymentControllerTests
         _services.VerifyMocks();
     }
 
-    [Fact]
-    public async Task PaymentWebhookListener_NoCurrentTask_ReturnsBadRequest()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PaymentWebhookListener_ProcessHasEnded_ReturnsOk(bool endedIsSet)
     {
+        // Nets' other webhook for the payment, after the first one moved the process on from its last task.
         _instance.Process.CurrentTask = null;
+        _instance.Process.Ended = endedIsSet ? DateTime.UtcNow : null;
+        var callbackKey = AddPaymentsCallbackCode("validkey");
+
+        await using var sp = _services.BuildServiceProvider();
+
+        var controller = sp.GetRequiredService<PaymentController>();
+        var result = await controller.PaymentWebhookListener(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            new()
+            {
+                Id = Guid.NewGuid().ToString(),
+                Data = new() { PaymentId = Guid.NewGuid().ToString() },
+                EventName = "payment.charge.created.v2",
+                Timestamp = DateTime.UtcNow,
+                MerchantId = 222,
+            },
+            callbackKey,
+            CancellationToken.None
+        );
+        // Anything else makes Nets call again for days.
+        var response = Assert.IsType<OkObjectResult>(result);
+        Assert.Contains("has ended", Assert.IsType<ProblemDetails>(response.Value).Detail);
+
+        _services.VerifyMocks();
+    }
+
+    [Fact]
+    public async Task PaymentWebhookListener_NoProcess_ReturnsBadRequest()
+    {
+        _instance.Process = null;
         var callbackKey = AddPaymentsCallbackCode("validkey");
 
         await using var sp = _services.BuildServiceProvider();
@@ -438,13 +478,21 @@ public class PaymentControllerTests
             )
         );
 
-        // The callback currently triggers a process advance, so we need to mock that endpoint
-        // In the future we might want to call the process engine directly instead of via HTTP
-        _services.FakeHttpMessageHandler.RegisterJsonEndpoint(
-            HttpMethod.Put,
-            $"/{_instance.AppId}/instances/{_instance.Id}/process/next",
-            new AppProcessState()
-        );
+        // A paid payment moves the process on in the app itself, as the service owner
+        _services
+            .Mock<IProcessEngine>()
+            .Setup(engine =>
+                engine.EnqueueNextForApp(
+                    It.Is<Instance>(instance => instance.Id == _instance.Id),
+                    It.IsAny<StorageVersionMetadata>(),
+                    "confirm",
+                    It.Is<Actor>(actor => actor.OrgId != null && actor.UserId == null),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ProcessChangeResult { Success = true, ProcessStateChange = new ProcessStateChange() })
+            .Verifiable(Times.Once());
 
         await using var sp = _services.BuildServiceProvider();
         var controller = sp.GetRequiredService<PaymentController>();
@@ -466,6 +514,82 @@ public class PaymentControllerTests
         );
         var response = Assert.IsType<OkObjectResult>(result);
         Assert.Contains("Payment status is Paid for instance 12345", response.Value?.ToString());
+        _services.VerifyMocks();
+    }
+
+    [Fact]
+    public async Task PaymentWebhookListener_ChargeFailed_LogsAWarningAndStoresTheReservedStatus()
+    {
+        var callbackKey = AddPaymentsCallbackCode("validkey");
+        SetupAltinnTaskExtensionMock(
+            "currentTask",
+            new AltinnTaskExtension()
+            {
+                PaymentConfiguration = new()
+                {
+                    PaymentDataType = "paymentDataType",
+                    PaymentReceiptPdfDataType = "paymentPdfDataType",
+                },
+            },
+            Times.Once()
+        );
+        _services.Mock<IPaymentProcessor>().SetupGet(pp => pp.PaymentProcessorId).Returns("Nets Easy");
+        _services
+            .Mock<IPaymentProcessor>()
+            .Setup(pp =>
+                pp.GetPaymentStatus(
+                    It.IsAny<Instance>(),
+                    "some-payment-id",
+                    It.IsAny<decimal>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync((PaymentStatus.Authorized, new PaymentDetails { PaymentId = "some-payment-id" }))
+            .Verifiable(Times.Once());
+        _services.Storage.AddData(
+            _instance,
+            "paymentDataType",
+            "application/json",
+            JsonSerializer.SerializeToUtf8Bytes(
+                new PaymentInformation()
+                {
+                    TaskId = "currentTask",
+                    Status = PaymentStatus.Created,
+                    OrderDetails = _orderDetails,
+                    PaymentDetails = new PaymentDetails { PaymentId = "some-payment-id" },
+                }
+            )
+        );
+
+        await using var sp = _services.BuildServiceProvider();
+        var controller = sp.GetRequiredService<PaymentController>();
+        var result = await controller.PaymentWebhookListener(
+            "org",
+            "app",
+            PartyId,
+            _instanceGuid,
+            new()
+            {
+                Id = Guid.NewGuid().ToString(),
+                Data = new() { PaymentId = "some-payment-id" },
+                EventName = "payment.charge.failed.v2",
+                Timestamp = DateTime.UtcNow,
+                MerchantId = 0,
+            },
+            callbackKey,
+            CancellationToken.None
+        );
+
+        var response = Assert.IsType<OkObjectResult>(result);
+        Assert.Contains("Payment status is Authorized", response.Value?.ToString());
+        Assert.Contains(
+            sp.Logs,
+            log =>
+                log.LogLevel == Microsoft.Extensions.Logging.LogLevel.Warning
+                && log.FormattedMessage?.Contains("charging payment some-payment-id", StringComparison.Ordinal) == true
+        );
+        _services.Mock<IProcessEngine>().VerifyNoOtherCalls();
         _services.VerifyMocks();
     }
 
@@ -538,7 +662,7 @@ public class PaymentControllerTests
             .Mock<IPaymentService>()
             .Setup(s =>
                 s.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
+                    It.IsAny<InstanceWithStorageMetadata>(),
                     It.IsAny<ValidAltinnPaymentConfiguration>(),
                     It.IsAny<string?>()
                 )
@@ -583,7 +707,7 @@ public class PaymentControllerTests
             .Verify(
                 service =>
                     service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
+                        It.IsAny<InstanceWithStorageMetadata>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         It.IsAny<string?>()
                     ),
@@ -626,7 +750,7 @@ public class PaymentControllerTests
             .Mock<IPaymentService>()
             .Setup(s =>
                 s.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
+                    It.IsAny<InstanceWithStorageMetadata>(),
                     It.IsAny<ValidAltinnPaymentConfiguration>(),
                     It.IsAny<string?>()
                 )
@@ -649,7 +773,7 @@ public class PaymentControllerTests
             .Verify(
                 service =>
                     service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
+                        It.IsAny<InstanceWithStorageMetadata>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         It.IsAny<string?>()
                     ),
@@ -697,7 +821,7 @@ public class PaymentControllerTests
             .Mock<IPaymentService>()
             .Setup(service =>
                 service.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
+                    It.IsAny<InstanceWithStorageMetadata>(),
                     It.IsAny<ValidAltinnPaymentConfiguration>(),
                     It.IsAny<string?>()
                 )
@@ -735,7 +859,7 @@ public class PaymentControllerTests
             .Verify(
                 service =>
                     service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
+                        It.IsAny<InstanceWithStorageMetadata>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         It.IsAny<string?>()
                     ),
@@ -784,7 +908,7 @@ public class PaymentControllerTests
             .Mock<IPaymentService>()
             .Setup(s =>
                 s.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
+                    It.IsAny<InstanceWithStorageMetadata>(),
                     It.IsAny<ValidAltinnPaymentConfiguration>(),
                     It.IsAny<string?>()
                 )
@@ -847,7 +971,7 @@ public class PaymentControllerTests
             .Verify(
                 service =>
                     service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
+                        It.IsAny<InstanceWithStorageMetadata>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         It.IsAny<string?>()
                     ),
@@ -890,7 +1014,7 @@ public class PaymentControllerTests
             .Mock<IPaymentService>()
             .Setup(service =>
                 service.CheckAndStorePaymentStatus(
-                    It.IsAny<Instance>(),
+                    It.IsAny<InstanceWithStorageMetadata>(),
                     It.IsAny<ValidAltinnPaymentConfiguration>(),
                     It.IsAny<string?>()
                 )
@@ -923,7 +1047,7 @@ public class PaymentControllerTests
             .Verify(
                 service =>
                     service.CheckAndStorePaymentStatus(
-                        It.IsAny<Instance>(),
+                        It.IsAny<InstanceWithStorageMetadata>(),
                         It.IsAny<ValidAltinnPaymentConfiguration>(),
                         It.IsAny<string?>()
                     ),
@@ -949,6 +1073,7 @@ public class PaymentControllerTests
     {
         var services = new MockedServiceCollection();
         services.Mock<IProcessReader>();
+        services.Mock<IProcessEngine>();
         services.Services.AddSingleton<IPaymentService, PaymentService>();
         services.Services.AddSingleton<PaymentController>();
         // Deliberately not registering INetsWebhookSecretProvider
@@ -966,6 +1091,7 @@ public class PaymentControllerTests
     {
         var services = new MockedServiceCollection();
         services.Mock<IProcessReader>();
+        services.Mock<IProcessEngine>();
         services.Services.AddSingleton<IPaymentService, PaymentService>();
         services.Services.AddSingleton<PaymentController>();
         // Deliberately not registering INetsWebhookSecretProvider

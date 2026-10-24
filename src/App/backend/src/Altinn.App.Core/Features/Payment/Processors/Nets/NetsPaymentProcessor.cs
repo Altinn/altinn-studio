@@ -28,6 +28,21 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     private const int LowestMonetaryUnitMultiplier = 100;
 
     /// <summary>
+    /// Sent when the customer has completed the checkout. https://developer.nexigroup.com/nexi-checkout/en-EU/api/payment-webhooks-v1/
+    /// </summary>
+    private const string CheckoutCompletedEventName = "payment.checkout.completed";
+
+    /// <summary>
+    /// Sent when the customer has been charged, partially or fully. https://developer.nexigroup.com/nexi-checkout/en-EU/api/payment-webhooks-v1/
+    /// </summary>
+    private const string ChargeCreatedEventName = "payment.charge.created.v2";
+
+    /// <summary>
+    /// Sent when a charge attempt has failed. https://developer.nexigroup.com/nexi-checkout/en-EU/api/payment-webhooks-v1/
+    /// </summary>
+    internal const string ChargeFailedEventName = "payment.charge.failed.v2";
+
+    /// <summary>
     /// Implementation of IPaymentProcessor for Nets.
     /// </summary>
     public NetsPaymentProcessor(
@@ -127,6 +142,10 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         if (!_env.IsDevelopment())
         {
             string webhookSecret = _webhookSecretProvider.GetSigningSecret();
+            string webhookUrl = $"{baseUrl}instances/{instance.Id}/payment/nets-webhook-listener";
+            // The checkout can complete before the automatic charge, and the listener asks Nets for the status anyway,
+            // so the charge event makes sure a listener call sees the payment as paid. A failed charge leaves the payment
+            // reserved, which the listener can only report.
             payment.Notifications = new NetsNotifications()
             {
                 WebHooks =
@@ -134,8 +153,20 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                     new NetsWebHook()
                     {
                         Authorization = webhookSecret,
-                        Url = $"{baseUrl}instances/{instance.Id}/payment/nets-webhook-listener",
-                        EventName = "payment.checkout.completed",
+                        Url = webhookUrl,
+                        EventName = CheckoutCompletedEventName,
+                    },
+                    new NetsWebHook()
+                    {
+                        Authorization = webhookSecret,
+                        Url = webhookUrl,
+                        EventName = ChargeCreatedEventName,
+                    },
+                    new NetsWebHook()
+                    {
+                        Authorization = webhookSecret,
+                        Url = webhookUrl,
+                        EventName = ChargeFailedEventName,
                     },
                 ],
             };
@@ -202,9 +233,7 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         NetsPayment payment =
             httpApiResult.Result.Payment
             ?? throw new PaymentException("Payment information is null in the response from Nets");
-        decimal? chargedAmount = payment.Summary?.ChargedAmount;
-
-        PaymentStatus status = chargedAmount > 0 ? PaymentStatus.Paid : PaymentStatus.Created;
+        PaymentStatus status = MapPaymentStatus(payment);
         NetsPaymentDetails? paymentPaymentDetails = payment.PaymentDetails;
 
         NetsCheckoutUrls checkout =
@@ -226,6 +255,35 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         };
 
         return (status, paymentDetails);
+    }
+
+    /// <summary>
+    /// Maps the state of a Nets payment to a payment status. The checkout charges automatically, so a payment that is
+    /// reserved but not charged yet has gone through and is waiting for the charge.
+    /// </summary>
+    private static PaymentStatus MapPaymentStatus(NetsPayment payment)
+    {
+        decimal reservedAmount = payment.Summary?.ReservedAmount ?? 0;
+        decimal chargedAmount = payment.Summary?.ChargedAmount ?? 0;
+        decimal cancelledAmount = payment.Summary?.CancelledAmount ?? 0;
+
+        if (payment.Terminated is not null)
+        {
+            return PaymentStatus.Cancelled;
+        }
+
+        if (chargedAmount > 0)
+        {
+            return PaymentStatus.Paid;
+        }
+
+        if (reservedAmount > 0)
+        {
+            // A cancelled reservation can never be charged.
+            return cancelledAmount >= reservedAmount ? PaymentStatus.Cancelled : PaymentStatus.Authorized;
+        }
+
+        return PaymentStatus.Created;
     }
 
     private static string AddLanguageQueryParam(string url, string? language)
