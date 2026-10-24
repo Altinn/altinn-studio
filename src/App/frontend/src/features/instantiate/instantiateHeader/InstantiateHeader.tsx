@@ -5,9 +5,9 @@ import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 import { CircleIcon } from 'src/components/CircleIcon';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import { AltinnLogo, LogoColor } from 'src/components/logo/AltinnLogo';
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import classes from 'src/features/instantiate/instantiateHeader/InstantiateHeader.module.css';
 import { Lang } from 'src/features/language/Lang';
-import { getMessageBoxUrl, returnUrlToAllForms, returnUrlToProfile } from 'src/utils/urls/urlHelper';
 import type { IProfile } from 'src/types/shared';
 
 export interface InstantiateHeaderProps {
@@ -16,7 +16,6 @@ export interface InstantiateHeaderProps {
 
 export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
   const party = profile?.party;
-  const allFormsUrl = returnUrlToAllForms();
 
   return (
     <div
@@ -39,30 +38,29 @@ export const InstantiateHeader = ({ profile }: InstantiateHeaderProps) => {
         {party && (
           <ul className={classes.headerLinkList}>
             <li className={classes.headerLink}>
-              <a
+              <PlatformLink
                 className='altinnLink'
-                href={getMessageBoxUrl(party?.partyId)}
+                setting='ArbeidsflateInboxUrl'
+                partyId={party?.partyId}
               >
                 <Lang id='instantiate.inbox' />
-              </a>
+              </PlatformLink>
             </li>
-            {allFormsUrl && (
-              <li className={classes.headerLink}>
-                <a
-                  className='altinnLink'
-                  href={allFormsUrl}
-                >
-                  <Lang id='instantiate.all_forms' />
-                </a>
-              </li>
-            )}
             <li className={classes.headerLink}>
-              <a
+              <PlatformLink
                 className='altinnLink'
-                href={returnUrlToProfile()}
+                setting='AllFormsUrl'
+              >
+                <Lang id='instantiate.all_forms' />
+              </PlatformLink>
+            </li>
+            <li className={classes.headerLink}>
+              <PlatformLink
+                className='altinnLink'
+                setting='ArbeidsflateProfileUrl'
               >
                 <Lang id='instantiate.profile' />
-              </a>
+              </PlatformLink>
             </li>
           </ul>
         )}

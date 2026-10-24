@@ -1,15 +1,15 @@
 import React from 'react';
 
+import { platformLinkHref } from 'src/components/PlatformLink/PlatformLink';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { returnUrlToRolesAndRightsHelp } from 'src/utils/urls/urlHelper';
 
 export function NoValidPartiesError() {
   const { langAsString } = useLanguage();
   const appMetadata = getApplicationMetadata();
-  const rolesAndRightsHelpUrl = returnUrlToRolesAndRightsHelp();
+  const rolesAndRightsHelpUrl = platformLinkHref('RolesAndRightsHelpUrl');
 
   function getAllowedParties(): string {
     let returnString = '';
@@ -69,14 +69,12 @@ export function NoValidPartiesError() {
           </span>
           <br />
           <br />
-          {rolesAndRightsHelpUrl && (
-            <span>
-              <Lang
-                id='instantiate.authorization_error_info_rights'
-                params={[rolesAndRightsHelpUrl]}
-              />
-            </span>
-          )}
+          <span>
+            <Lang
+              id='instantiate.authorization_error_info_rights'
+              params={[rolesAndRightsHelpUrl]}
+            />
+          </span>
           <span>
             <Lang
               id='instantiate.authorization_error_info_customer_service'

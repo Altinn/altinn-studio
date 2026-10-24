@@ -1,4 +1,5 @@
 import React from 'react';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { screen, waitFor } from '@testing-library/react';
@@ -7,6 +8,7 @@ import { userEvent } from '@testing-library/user-event';
 import { getPartyMock, getPartyWithSubunitMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { useSelectedParty, useSelectedPartyIsValid } from 'src/features/party/PartiesProvider';
+import { expectConfiguredPlatformLink, expectNotConfiguredPlatformLink } from 'src/test/platformLink';
 import { renderWithDefaultProviders } from 'src/test/renderWithProviders';
 import type { PartyApi } from 'src/core/api-client/party.api';
 
@@ -48,6 +50,45 @@ function TestWrapper(props: PropsWithChildren) {
 }
 
 describe('PartySelection', () => {
+  describe('the link to the parties settings', () => {
+    function renderExplained() {
+      return renderWithDefaultProviders({
+        renderer: <PartySelection />,
+        router: ({ children }) => (
+          <MemoryRouter initialEntries={['/party-selection/explained']}>
+            <Routes>
+              <Route
+                path='/party-selection/:errorCode'
+                element={children}
+              />
+            </Routes>
+          </MemoryRouter>
+        ),
+        apis: { partyApi: { getPartiesAllowedToInstantiateHierarchical: async () => parties } },
+      });
+    }
+
+    it('links to the configured URL', async () => {
+      await renderExplained();
+
+      expectConfiguredPlatformLink(
+        await screen.findByRole('link', { name: /profilinnstillingene/i }),
+        'https://af.tt02.altinn.no/profile/parties',
+      );
+    });
+
+    it('shows the link as not configured when no URL is configured', async () => {
+      window.altinnAppGlobalData.platformFrontendSettings.arbeidsflatePartiesUrl = undefined;
+
+      await renderExplained();
+
+      expectNotConfiguredPlatformLink(
+        await screen.findByRole('link', { name: /profilinnstillingene/i }),
+        'ArbeidsflatePartiesUrl',
+      );
+    });
+  });
+
   function render(_parties = parties, setPartiesMock?: PartyApi['setSelectedParty']) {
     return renderWithDefaultProviders({
       renderer: (

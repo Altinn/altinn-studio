@@ -126,7 +126,7 @@ describe('Shared urlHelper.ts', () => {
         [host, 'not set', undefined],
         [host, 'empty', ''],
       ]),
-    )('no link on %s when the settings are %s', (host, _, value) => {
+    )('no URL on %s when the settings are %s', (host, _, value) => {
       window.altinnAppGlobalData.platformFrontendSettings = {
         ...window.altinnAppGlobalData.platformFrontendSettings,
         arbeidsflateInboxUrl: value,
@@ -208,7 +208,7 @@ describe('Shared urlHelper.ts', () => {
       );
     });
 
-    test('no arbeidsflate link in environments where it is not deployed', () => {
+    test('no arbeidsflate URL in environments where it is not deployed', () => {
       configureArbeidsflate({});
 
       expect(returnUrlToProfile()).toBe(undefined);
@@ -322,7 +322,7 @@ describe('Shared urlHelper.ts', () => {
       expect(returnUrlToPartiesSettings()).toBe('https://ny.altinn.no/profil/aktorer');
     });
 
-    test('no link when not configured', () => {
+    test('no URL when not configured', () => {
       window.altinnAppGlobalData.platformFrontendSettings = {
         ...window.altinnAppGlobalData.platformFrontendSettings,
         accessManagementUrl: undefined,

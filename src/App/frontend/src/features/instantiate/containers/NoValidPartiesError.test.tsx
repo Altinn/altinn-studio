@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
+import { expectNotConfiguredPlatformLink } from 'src/test/platformLink';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
 const rolesAndRightsLink = /mer informasjon om roller og rettigheter/i;
@@ -34,13 +35,13 @@ describe('NoValidPartiesError', () => {
     );
   });
 
-  // A Studio preview or any other host the platform does not run the app on gets no settings
-  it('renders without the link when no URL is configured', async () => {
+  // The settings reach only apps the platform runs; where one is missing the link shows that it is not configured
+  it('shows the link as not configured when no URL is configured', async () => {
     window.altinnAppGlobalData.platformFrontendSettings.rolesAndRightsHelpUrl = undefined;
 
     await render();
 
     expect(screen.getByText(/kontakte oss på brukerservice/i)).toBeInTheDocument();
-    expect(screen.queryByText(rolesAndRightsLink)).not.toBeInTheDocument();
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: rolesAndRightsLink }), 'RolesAndRightsHelpUrl');
   });
 });

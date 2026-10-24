@@ -4,6 +4,7 @@ import { Button, useIsMobile } from '@app/form-component';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';
@@ -14,7 +15,7 @@ import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useExitSubform } from 'src/hooks/useNavigatePage';
 import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
-import { getDialogIdFromDataValues, getMessageBoxUrl } from 'src/utils/urls/urlHelper';
+import { getDialogIdFromDataValues } from 'src/utils/urls/urlHelper';
 
 export function BackNavigationButton(props: { className?: string }) {
   const { langAsString } = useLanguage();
@@ -31,7 +32,6 @@ export function BackNavigationButton(props: { className?: string }) {
   const applicationMetadata = getApplicationMetadata();
   const dataValues = useInstanceDataQuery({ select: (instance) => instance.dataValues }).data;
   const dialogId = getDialogIdFromDataValues(dataValues);
-  const messageBoxUrl = getMessageBoxUrl(party?.partyId, dialogId);
   const hiddenFromInbox = MessageBoxConfigEvaluator.isHiddenFromInbox(applicationMetadata.messageBoxConfig);
   const returnUrl = window.altinnAppGlobalData.returnUrl;
 
@@ -79,7 +79,7 @@ export function BackNavigationButton(props: { className?: string }) {
     );
   }
 
-  if (messageBoxUrl && !hiddenFromInbox) {
+  if (!hiddenFromInbox) {
     return (
       <Button
         asChild
@@ -87,13 +87,17 @@ export function BackNavigationButton(props: { className?: string }) {
         size='sm'
         className={cn(classes.button, props.className)}
       >
-        <a href={messageBoxUrl}>
+        <PlatformLink
+          setting='ArbeidsflateInboxUrl'
+          partyId={party?.partyId}
+          dialogId={dialogId}
+        >
           <ArrowLeftIcon
             fontSize='1rem'
             aria-hidden
           />
           <Lang id={isMobile ? 'navigation.inbox' : 'navigation.back_to_inbox'} />
-        </a>
+        </PlatformLink>
       </Button>
     );
   }
