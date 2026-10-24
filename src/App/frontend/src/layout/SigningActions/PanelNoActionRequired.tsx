@@ -2,8 +2,8 @@ import React from 'react';
 
 import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Link } from '@digdir/designsystemet-react';
 
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import { Lang } from 'src/features/language/Lang';
 import { useProfile } from 'src/features/profile/ProfileProvider';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
@@ -61,12 +61,13 @@ export function NoActionRequiredPanel({ baseComponentId, hasSigned }: NoActionRe
           size='md'
           asChild
         >
-          <Link
-            href={getMessageBoxUrl(currentUserPartyId) ?? '#'}
+          <PlatformLink
+            href={getMessageBoxUrl(currentUserPartyId)}
+            setting='ArbeidsflateInboxUrl'
             className={classes.buttonLink}
           >
             <Lang id={goToInboxButton} />
-          </Link>
+          </PlatformLink>
         </Button>
       }
     />

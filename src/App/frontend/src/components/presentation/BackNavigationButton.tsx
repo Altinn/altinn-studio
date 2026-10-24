@@ -4,6 +4,7 @@ import { Button, useIsMobile } from '@app/form-component';
 import { ArrowLeftIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import classes from 'src/components/presentation/BackNavigationButton.module.css';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { MessageBoxConfigEvaluator } from 'src/features/applicationMetadata/messageBoxConfig';
@@ -79,7 +80,7 @@ export function BackNavigationButton(props: { className?: string }) {
     );
   }
 
-  if (messageBoxUrl && !hiddenFromInbox) {
+  if (!hiddenFromInbox) {
     return (
       <Button
         asChild
@@ -87,13 +88,16 @@ export function BackNavigationButton(props: { className?: string }) {
         size='sm'
         className={cn(classes.button, props.className)}
       >
-        <a href={messageBoxUrl}>
+        <PlatformLink
+          href={messageBoxUrl}
+          setting='ArbeidsflateInboxUrl'
+        >
           <ArrowLeftIcon
             fontSize='1rem'
             aria-hidden
           />
           <Lang id={isMobile ? 'navigation.inbox' : 'navigation.back_to_inbox'} />
-        </a>
+        </PlatformLink>
       </Button>
     );
   }

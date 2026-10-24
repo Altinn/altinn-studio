@@ -6,6 +6,7 @@ import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { CircleIcon } from 'src/components/CircleIcon';
+import { PlatformLink } from 'src/components/PlatformLink/PlatformLink';
 import classes from 'src/components/presentation/AppHeader/AppHeaderMenu.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -71,9 +72,12 @@ export function AppHeaderMenu({ logoColor }: AppHeaderMenuProps) {
                 variant='tertiary'
                 asChild
               >
-                <a href={logoutUrlAltinn(window.location.host)}>
+                <PlatformLink
+                  href={logoutUrlAltinn()}
+                  setting='LogoutUrl'
+                >
                   <Lang id='general.log_out' />
-                </a>
+                </PlatformLink>
               </Button>
             </Dropdown.Item>
           </Dropdown.List>
