@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
@@ -10,7 +9,6 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Data;
@@ -414,24 +412,6 @@ public class DataElementAccessCheckerTest
     }
 
     [Fact]
-    public async Task Mutators_IgnoreTheTasksWhenEnforceDataTypeTaskIdIsOff()
-    {
-        // Arrange
-        var fixture = Fixture.Create();
-        fixture.Data.AppSettings.EnforceDataTypeTaskId = false;
-        var instance = fixture.Data.DefaultInstance;
-        var dataType = fixture.Data.DataTypeA;
-        dataType.TaskIds = ["Task_1"];
-        instance.Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } };
-
-        // Act
-        var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(instance, dataType);
-
-        // Assert
-        Assert.Null(createResult);
-    }
-
-    [Fact]
     public async Task Mutators_BlockPdfDataType()
     {
         // Arrange
@@ -498,8 +478,7 @@ public class DataElementAccessCheckerTest
                     mocks.AuthorizationServiceMock.Object,
                     mocks.HttpContextAccessorMock.Object,
                     mocks.AuthenticationContextMock.Object,
-                    mocks.AppMetadataMock.Object,
-                    Options.Create(data.AppSettings)
+                    mocks.AppMetadataMock.Object
                 ),
             };
         }
@@ -520,8 +499,6 @@ public class DataElementAccessCheckerTest
             public DataElement DataElementA { get; }
             public DataElement DataElementB { get; }
             public ApplicationMetadata AppMetadata { get; }
-
-            public AppSettings AppSettings { get; } = new() { EnforceDataTypeTaskId = true };
 
             public FixtureData()
             {

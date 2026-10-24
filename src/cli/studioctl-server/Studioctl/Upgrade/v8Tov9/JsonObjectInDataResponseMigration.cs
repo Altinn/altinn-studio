@@ -22,7 +22,7 @@ internal static class JsonObjectInDataResponseMigration
                             + "validation issues from the data API as JSON. A client of the obsolete POST "
                             + ".../data?dataType= now gets a list of validation issues instead of a text."
                 ),
-            notRemoved: (messages, name) =>
+            notRemoved: (messages, name, _) =>
                 messages.Todo(
                     $"Remove {Flag} from {name}: v9 no longer reads it and always returns validation issues from the "
                         + "data API as JSON, but it could not be removed automatically."
