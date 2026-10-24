@@ -96,10 +96,10 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
     }
 
     /// <summary>
-    /// Returns the id of the first dataType with <c>appLogic.classRef</c> bound to the given task -
-    /// the task's form data model. Used to pin <c>connectedDataTypeId</c> on downstream gateways
-    /// whose expressions previously inferred their data model from that task (see
-    /// <see cref="EFormidlingProcessRewriter"/>).
+    /// Returns the id of the first dataType with <c>appLogic.classRef</c> bound to the given task by
+    /// <see cref="DataTypeTaskIdsMigration.BoundTasks"/> - the task's form data model. Used to pin
+    /// <c>connectedDataTypeId</c> on downstream gateways whose expressions previously inferred their
+    /// data model from that task (see <see cref="EFormidlingProcessRewriter"/>).
     /// </summary>
     public string? GetFormDataTypeForTask(string taskId)
     {
@@ -127,9 +127,7 @@ internal sealed class ApplicationMetadataEFormidlingRewriter
 
             if (
                 hasClassRef
-                && dataType.TryGetProperty("taskId", out var boundTask)
-                && boundTask.ValueKind == JsonValueKind.String
-                && boundTask.GetString() == taskId
+                && DataTypeTaskIdsMigration.BoundTasks(dataType).Contains(taskId)
                 && dataType.TryGetProperty("id", out var id)
                 && id.ValueKind == JsonValueKind.String
             )
