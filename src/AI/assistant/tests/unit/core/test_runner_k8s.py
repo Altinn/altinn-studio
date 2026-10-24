@@ -149,7 +149,7 @@ class TestUpgrade:
         await _upgrade(repo)
 
         request = cluster.job_requests[0]
-        assert str(request.url) == f"http://{_POD_IP}:8080/api/v1/upgrades/v9"
+        assert str(request.url) == f"http://{_POD_IP}:8080/upgrade/v9"
         assert request.headers["Content-Type"] == "application/gzip"
         assert gzip.decompress(request.content)
 
