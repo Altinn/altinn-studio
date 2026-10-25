@@ -88,16 +88,35 @@ public sealed class HookRegistrationsTests : IDisposable
     }
 
     [Fact]
-    public void ARegistrationOfAPackageClass_StaysAsItIs()
+    public void ARegistrationOfAPackageClass_StaysAsItIs_WithATodo()
     {
         // krt ×13 App/Program.cs:27 services.AddTransient<IProcessEnd, XsdMetadataGenerator>();
         var program = Program("services.AddTransient<IProcessTaskEnd, Dibk.Ftpb.Common.AltinnApps.ProcessTaskEnd>();");
         _app.Write("Program.cs", program);
         _app.Write("logic/Model.cs", InApp("public class Model { }"));
+        _app.Write(
+            "App.csproj",
+            """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup>
+                <PackageReference Include="Dibk.Ftpb.Common.AltinnApps" Version="1.7.0" />
+              </ItemGroup>
+            </Project>
+            """
+        );
 
         var result = Port(AppFolder, Package);
 
-        Assert.Empty(result.Messages);
+        Assert.Equal(
+            [
+                Todo(
+                    "Program.cs:11: Dibk.Ftpb.Common.AltinnApps 1.7.0 implements IProcessTaskEnd in ProcessTaskEnd, which "
+                        + "the app registers here; v9 removed that interface, so the app needs a v9 version of the "
+                        + "package. The registration was left unchanged."
+                ),
+            ],
+            result.Messages
+        );
         Assert.Equal(program, _app.Read("Program.cs"));
     }
 

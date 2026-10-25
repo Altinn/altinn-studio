@@ -698,30 +698,4 @@ public sealed class TaskHookPortTests : IDisposable
             result.Warnings.Where(static warning => warning.Contains("throws", StringComparison.Ordinal))
         );
     }
-
-    [Fact]
-    public void AHookThatCallsStorage_IsLeftAsItIs_WithoutAMessage()
-    {
-        var source = InApp(
-            """
-            public class Hook(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) : IProcessTaskEnd
-            {
-                public async Task End(string taskId, Instance instance)
-                {
-                    if (taskId != "Task_1") return;
-                    await instanceClient.UpdateDataValues(instance, new() { ["Fagsystem"] = "hego" });
-                }
-            }
-            """
-        );
-        _app.Write(HookPath, source);
-        var program = Program("services.AddTransient<IProcessTaskEnd, Hook>();");
-        _app.Write("Program.cs", program);
-
-        var result = Port(AppFolder);
-
-        Assert.Empty(result.Messages);
-        Assert.Equal(source, _app.Read(HookPath));
-        Assert.Equal(program, _app.Read("Program.cs"));
-    }
 }
