@@ -5,18 +5,18 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 /// <summary>
 /// v9 keeps <c>IProcessTask</c> but has no <c>Start</c>, <c>End</c> or <c>Abandon</c>: it runs the stages that
 /// <c>DefineStart</c>, <c>DefineEnd</c> and <c>DefineAbandon</c> compose, none by default, so an app's v8
-/// <c>(string taskId, Instance instance)</c> methods still compile and are never called. A method becomes the one stage
-/// of its <c>Define</c> member; one that did nothing is deleted, and one that calls Storage is left to the Storage call
-/// rewrite and reported, since nothing else would say it stopped running.
+/// <c>(string taskId, Instance instance)</c> methods still compile and are never called. A method that did nothing is
+/// deleted; the others become the one stage of their <c>Define</c> member, with their Storage calls moved to the
+/// context's mutator.
 /// </summary>
 internal static class ProcessTaskPort
 {
     public static void Plan(
         IReadOnlyList<ScannedCSharpFile> files,
-        StorageCallReach reach,
         IReadOnlyDictionary<IMethodSymbol, string> calls,
         PortEdits edits,
-        List<PortReport> reports
+        List<PortReport> reports,
+        StorageCallPort storage
     )
     {
         foreach (var hook in HookFamily.ProcessTaskMembers.SelectMany(family => HookImplementation.Find(family, files)))
@@ -47,24 +47,9 @@ internal static class ProcessTaskPort
                     )
                 );
             }
-            else if (reach.Reaches(hook.Method))
-            {
-                reports.Add(
-                    PortReport.Located(
-                        hook.File,
-                        method,
-                        UpgradeMessageStatus.Todo,
-                        NotCalled(
-                            name,
-                            member,
-                            "it calls Storage directly, which v9 refuses while the process is transitioning"
-                        )
-                    )
-                );
-            }
             else
             {
-                var ported = HookMethodPort.Rewrite(
+                var ported = storage.Port(
                     hook,
                     TaskIds.Every,
                     explicitFilter: false,

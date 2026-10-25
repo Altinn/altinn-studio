@@ -51,6 +51,7 @@ internal sealed class TaskFilter
     private readonly SemanticModel _model;
     private readonly IParameterSymbol _taskId;
     private readonly Dictionary<string, TaskIdSource> _sources = new(StringComparer.Ordinal);
+    private readonly List<(StatementSyntax Statement, Set Reach)> _reached = [];
     private Set _effects = Set.None;
 
     private TaskFilter(SemanticModel model, IParameterSymbol taskId)
@@ -62,6 +63,40 @@ internal sealed class TaskFilter
     /// <summary>The tasks <paramref name="method"/> does anything for, with <paramref name="taskId"/> its task id parameter.</summary>
     public static TaskIds Of(MethodDeclarationSyntax method, IParameterSymbol taskId, SemanticModel model)
     {
+        var filter = Walked(method, taskId, model);
+        return filter.Ids(filter._effects);
+    }
+
+    /// <summary>
+    /// The tasks for which a node of <paramref name="method"/> can run, read as <see cref="Of"/> reads the body: those
+    /// for which the innermost statement that holds the node is reached.
+    /// </summary>
+    public static Func<SyntaxNode, TaskIds> Reached(
+        MethodDeclarationSyntax method,
+        IParameterSymbol taskId,
+        SemanticModel model
+    )
+    {
+        var filter = Walked(method, taskId, model);
+        return node =>
+        {
+            var holders = filter._reached.Where(reached => reached.Statement.Span.Contains(node.Span)).ToList();
+            if (holders.Count == 0)
+            {
+                return TaskIds.Every;
+            }
+
+            var innermost = holders.Min(static reached => reached.Statement.Span.Length);
+            return filter.Ids(
+                holders
+                    .Where(reached => reached.Statement.Span.Length == innermost)
+                    .Aggregate(Set.None, static (reach, reached) => reach.Union(reached.Reach))
+            );
+        };
+    }
+
+    private static TaskFilter Walked(MethodDeclarationSyntax method, IParameterSymbol taskId, SemanticModel model)
+    {
         var filter = new TaskFilter(model, taskId);
         if (method.Body is { } body)
         {
@@ -72,13 +107,13 @@ internal sealed class TaskFilter
             filter.AddEffects(arrow.Expression, Set.All);
         }
 
-        if (filter._effects.Ids is not { } ids)
-        {
-            return TaskIds.Every;
-        }
-
-        return new TaskIds(ids, ids.ToDictionary(static id => id, id => filter._sources[id], StringComparer.Ordinal));
+        return filter;
     }
+
+    private TaskIds Ids(Set set) =>
+        set.Ids is { } ids
+            ? new TaskIds(ids, ids.ToDictionary(static id => id, id => _sources[id], StringComparer.Ordinal))
+            : TaskIds.Every;
 
     /// <summary>
     /// <c>taskId == "Task_1" || taskId == "Task_2"</c> for a set of tasks, with the hook's own constants and
@@ -130,6 +165,7 @@ internal sealed class TaskFilter
     /// <summary>Walks a statement entered for <paramref name="reach"/>; returns the tasks for which it completes normally.</summary>
     private Set Walk(StatementSyntax statement, Set reach)
     {
+        _reached.Add((statement, reach));
         if (reach.IsNone)
         {
             return reach;

@@ -12,10 +12,10 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 /// methods to the context v9 calls them with.
 /// </summary>
 /// <remarks>
-/// <p>A hook whose code calls Storage directly is left as it is, and so is every handler that runs at a task with
-/// one: v9 refuses those calls while the process is transitioning, and moving them to the instance data mutator is a
-/// separate rewrite. The removed-API check lists what is left. A hook the port cannot move for another reason gets a
-/// to-do saying why.</p>
+/// <p>The Storage calls of the code a moved hook runs go to the instance data mutator (<see cref="StorageCallPort"/>),
+/// as do those of <c>IInstantiationProcessor.DataCreation</c> and v8 service tasks: v9 refuses direct writes while
+/// the process is transitioning. The removed-API check lists what is left. A hook the port cannot move gets a to-do
+/// saying why.</p>
 /// <p>Binds against the app's v8 compilation, so it runs before any rewrite that moves names the compilation knows,
 /// and does nothing without one. Everything is found before anything is written; each file is then written once.</p>
 /// </remarks>
@@ -34,15 +34,11 @@ internal sealed class ProcessHookPortMigration(CSharpSourceScanner scanner, Proc
         }
 
         var compilation = anyModel.Compilation;
-        var reach = new StorageCallReach(compilation);
         var calls = AppCalls(files);
         var edits = new PortEdits();
         var reports = new List<PortReport>();
         var registrations = HookRegistrations.Find(files, HookFamily.RemovedHooks);
-        var candidates = TaskHookPort
-            .Find(files, reach, calls)
-            .Concat(ProcessEndedPort.Find(files, reach, calls))
-            .ToList();
+        var candidates = TaskHookPort.Find(files, calls).Concat(ProcessEndedPort.Find(files, calls)).ToList();
         cancellationToken.ThrowIfCancellationRequested();
         var plans = Plans(candidates, registrations, files, compilation);
         var mergedInto = MergedInto(plans);
@@ -117,6 +113,17 @@ internal sealed class ProcessHookPortMigration(CSharpSourceScanner scanner, Proc
         }
 
         var ported = candidates.Where(candidate => candidate.IsPortable && !held.Contains(candidate)).ToList();
+        var storage = StorageCallPort.Plan(files, compilation, context, ported, calls, cancellationToken);
+        reports.AddRange(storage.Reports);
+        reports.AddRange(
+            WindowReports.PackageHookTypes(
+                registrations,
+                ported
+                    .Select(static candidate => (ITypeSymbol)candidate.Hook.Type)
+                    .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default),
+                context
+            )
+        );
         foreach (var candidate in ported)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -133,11 +140,13 @@ internal sealed class ProcessHookPortMigration(CSharpSourceScanner scanner, Proc
                     && SymbolEqualityComparer.Default.Equals(other.Hook.Type, candidate.Hook.Type)
                 ) > 1,
                 edits,
-                reports
+                reports,
+                storage
             );
         }
 
-        ProcessTaskPort.Plan(files, reach, calls, edits, reports);
+        ProcessTaskPort.Plan(files, calls, edits, reports, storage);
+        storage.Apply(edits);
 
         edits.Apply(scanner);
         return new MigrationResult([
@@ -215,7 +224,8 @@ internal sealed class ProcessHookPortMigration(CSharpSourceScanner scanner, Proc
         MergeGroup? group,
         bool explicitFilter,
         PortEdits edits,
-        List<PortReport> reports
+        List<PortReport> reports,
+        StorageCallPort storage
     )
     {
         var hook = candidate.Hook;
@@ -226,7 +236,7 @@ internal sealed class ProcessHookPortMigration(CSharpSourceScanner scanner, Proc
 
         var family = hook.Family;
         var file = edits.For(hook.File);
-        var ported = HookMethodPort.Rewrite(
+        var ported = storage.Port(
             hook,
             candidate.Tasks,
             explicitFilter,
@@ -385,16 +395,14 @@ internal sealed class ProcessHookPortMigration(CSharpSourceScanner scanner, Proc
 
 /// <summary>
 /// A v8 hook the app implements, and whether the port moves it: not when something blocks it
-/// (<see cref="BlockedBy"/>, which is reported), nor when its code calls Storage, which the rewrite of Storage calls
-/// takes on.
+/// (<see cref="BlockedBy"/>, which is reported).
 /// </summary>
 /// <param name="Tasks">The tasks the hook does anything for, for a family with a task filter.</param>
-internal sealed record HookCandidate(HookImplementation Hook, string? BlockedBy, bool CallsStorage, TaskIds Tasks)
+internal sealed record HookCandidate(HookImplementation Hook, string? BlockedBy, TaskIds Tasks)
 {
-    public bool IsPortable => BlockedBy is null && !CallsStorage;
+    public bool IsPortable => BlockedBy is null;
 
-    public static HookCandidate Blocked(HookImplementation hook, string reason) =>
-        new(hook, reason, false, TaskIds.Every);
+    public static HookCandidate Blocked(HookImplementation hook, string reason) => new(hook, reason, TaskIds.Every);
 
     /// <summary>Why the hook cannot be moved, the base list entry it needs included; <c>null</c> when it can.</summary>
     public static string? BlockingReason(HookImplementation hook, IReadOnlyDictionary<IMethodSymbol, string> calls) =>

@@ -4,12 +4,20 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 
-/// <summary>A hook method moved to its v9 signature.</summary>
+/// <summary>
+/// A hook method moved to its v9 signature. <see cref="CompatLocals"/> maps each v8 parameter the body still uses to
+/// the local that now holds it.
+/// </summary>
 /// <param name="PrecedingMember">
 /// The member to insert before the method: the filter of a family that has one, or the <c>Define</c> member that runs
 /// a custom process task's stage.
 /// </param>
-internal sealed record PortedMethod(MethodDeclarationSyntax Rewritten, MethodDeclarationSyntax? PrecedingMember);
+internal sealed record PortedMethod(
+    MethodDeclarationSyntax Rewritten,
+    MethodDeclarationSyntax? PrecedingMember,
+    string ContextName,
+    IReadOnlyDictionary<HookParameterRole, string> CompatLocals
+);
 
 /// <summary>
 /// Moves a v8 hook method to its v9 signature: the context replaces the parameters, the body reads what it used from
@@ -102,6 +110,7 @@ internal static class HookMethodPort
         var family = hook.Family;
         var contextName = ContextName(original);
         var locals = new List<StatementSyntax>();
+        var compatLocals = new Dictionary<HookParameterRole, string>();
         for (var i = 0; i < family.V8Parameters.Count; i++)
         {
             var role = family.V8Parameters[i];
@@ -118,6 +127,7 @@ internal static class HookMethodPort
             locals.Add(
                 SyntaxFactory.ParseStatement($"{parameter.Type} {parameter.Identifier.Text} = {contextName}.{path};")
             );
+            compatLocals[role] = parameter.Identifier.Text;
         }
 
         var method = WithResults(original, family, hook.Model, lineEnding);
@@ -156,7 +166,7 @@ internal static class HookMethodPort
             method = method.WithLeadingTrivia(remainder.Insert(0, SyntaxFactory.EndOfLine(lineEnding)));
         }
 
-        return new PortedMethod(method, preceding);
+        return new PortedMethod(method, preceding, contextName, compatLocals);
     }
 
     /// <summary>
