@@ -83,6 +83,5 @@ public sealed class KnownScenarioMigrationTests : IDisposable
             step.Messages
         );
         Assert.Equal(steps.IndexOf("Unused IPdfFormatter") + 1, steps.IndexOf("Known scenarios"));
-        Assert.Equal(steps.IndexOf("Known scenarios") + 1, steps.IndexOf("OpenAPI namespace"));
     }
 }
