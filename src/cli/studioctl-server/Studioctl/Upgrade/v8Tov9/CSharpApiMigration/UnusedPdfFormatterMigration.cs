@@ -70,7 +70,10 @@ internal sealed class UnusedPdfFormatterMigration
 
         foreach (var file in lines.GroupBy(static line => line.File))
         {
-            _scanner.Update(file.Key, RemoveLines(file.Key.Root, file.Select(static line => line.Node).ToList()));
+            _scanner.Update(
+                file.Key,
+                SyntaxEditing.RemoveLines(file.Key.Root, file.Select(static line => line.Node).ToList())
+            );
         }
 
         foreach (var removal in removals)
@@ -208,38 +211,6 @@ internal sealed class UnusedPdfFormatterMigration
     private static bool HasAnythingLeft(INamespaceSymbol ns, IReadOnlySet<ISymbol> removedTypes) =>
         ns.GetTypeMembers().Any(type => !removedTypes.Contains(type))
         || ns.GetNamespaceMembers().Any(child => HasAnythingLeft(child, removedTypes));
-
-    /// <summary>Removes nodes that have lines of their own, keeping comments on the lines above them.</summary>
-    private static CompilationUnitSyntax RemoveLines(CompilationUnitSyntax root, IReadOnlyList<SyntaxNode> nodes)
-    {
-        root = root.TrackNodes(nodes);
-        foreach (var original in nodes)
-        {
-            var node = Current(root, original);
-            var leading = node.GetLeadingTrivia();
-            var options = SyntaxRemoveOptions.KeepNoTrivia;
-            if (
-                leading.Any(static t => !t.IsKind(SyntaxKind.WhitespaceTrivia) && !t.IsKind(SyntaxKind.EndOfLineTrivia))
-            )
-            {
-                // The comments stay, but not the node's indentation, which would double the next line's.
-                var indentation = leading
-                    .Reverse()
-                    .TakeWhile(static t => t.IsKind(SyntaxKind.WhitespaceTrivia))
-                    .Count();
-                root = root.ReplaceNode(node, node.WithLeadingTrivia(leading.Take(leading.Count - indentation)));
-                node = Current(root, original);
-                options = SyntaxRemoveOptions.KeepLeadingTrivia;
-            }
-
-            root = root.RemoveNode(node, options) ?? throw new InvalidOperationException("Failed to remove a line");
-        }
-
-        return root;
-    }
-
-    private static SyntaxNode Current(CompilationUnitSyntax root, SyntaxNode original) =>
-        root.GetCurrentNode(original) ?? throw new InvalidOperationException("Failed to track a line");
 
     private static bool IsPdfFormatter(INamedTypeSymbol type) => type.ToDisplayString() == InterfaceName;
 

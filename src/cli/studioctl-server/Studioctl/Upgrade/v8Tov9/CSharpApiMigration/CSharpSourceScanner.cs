@@ -155,7 +155,7 @@ internal sealed class CSharpSourceScanner
             _pristine ??= Snapshot();
         }
 
-        File.WriteAllText(file.Path, newRoot.ToFullString());
+        Utf8TextFile.Overwrite(file.Path, newRoot.ToFullString());
 
         CompilationUnitSyntax canonicalRoot;
         if (_compilation is not null && _trees.Remove(file, out var oldTree))
@@ -165,7 +165,7 @@ internal sealed class CSharpSourceScanner
             // model valid.
             var newTree = oldTree.WithRootAndOptions(newRoot, oldTree.Options);
             canonicalRoot = (CompilationUnitSyntax)newTree.GetRoot();
-            _compilation = _compilation.ReplaceSyntaxTree(oldTree, newTree);
+            ReplaceCompilation(_compilation.ReplaceSyntaxTree(oldTree, newTree));
 
             var updatedFile = new ScannedCSharpFile(this, file.Path, file.RelativePath, canonicalRoot);
             _trees[updatedFile] = newTree;
@@ -176,6 +176,32 @@ internal sealed class CSharpSourceScanner
         var updated = new ScannedCSharpFile(this, file.Path, file.RelativePath, newRoot);
         files[index] = updated;
         return updated;
+    }
+
+    /// <summary>
+    /// Writes a new file and adds it to the scanner's view and to the compilation, parsed with the options of the
+    /// compilation's other files. The pristine view does not get it: it holds the code before any rewrite.
+    /// </summary>
+    public ScannedCSharpFile Add(string path, CompilationUnitSyntax root)
+    {
+        var files = _files.Value;
+        if (_isPristineView || File.Exists(path) || files.Exists(file => file.Path == path))
+        {
+            throw new ArgumentException($"Cannot add a file that exists: {path}", nameof(path));
+        }
+
+        var compilation =
+            _compilation
+            ?? throw new InvalidOperationException("Cannot add a file to a scanner without a compilation.");
+        _pristine ??= Snapshot();
+        Utf8TextFile.Overwrite(path, root.ToFullString());
+        var relativePath = Path.GetRelativePath(_sourceDirectory, path);
+        var tree = CSharpSyntaxTree.Create(root, (CSharpParseOptions)compilation.SyntaxTrees.First().Options, path);
+        ReplaceCompilation(compilation.AddSyntaxTrees(tree));
+        var file = new ScannedCSharpFile(this, path, relativePath, tree.GetCompilationUnitRoot());
+        _trees[file] = tree;
+        files.Add(file);
+        return file;
     }
 
     /// <summary>
@@ -192,16 +218,26 @@ internal sealed class CSharpSourceScanner
         File.Delete(file.Path);
         if (_compilation is not null && _trees.Remove(file, out var tree))
         {
-            _compilation = _compilation.RemoveSyntaxTrees(tree);
+            ReplaceCompilation(_compilation.RemoveSyntaxTrees(tree));
         }
 
         _pristine?._files.Value.RemoveAll(pristineFile => pristineFile.Path == file.Path);
     }
 
+    /// <summary>
+    /// Makes <paramref name="compilation"/> the scanner's, and drops the models of the one before: a symbol from one
+    /// compilation never equals the same declaration's symbol from another.
+    /// </summary>
+    private void ReplaceCompilation(Compilation compilation)
+    {
+        _compilation = compilation;
+        _semanticModels.Clear();
+    }
+
     internal SemanticModel? GetSemanticModel(ScannedCSharpFile file)
     {
-        // Cached per file: a fresh model per access would re-bind from scratch every time. Update
-        // replaces the file instance, so entries never go stale — they just stop being reachable.
+        // Cached per file until the compilation changes: a fresh model per access would re-bind from scratch every
+        // time.
         if (_semanticModels.TryGetValue(file, out var cached))
         {
             return cached;

@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Altinn.Studio.Cli.Upgrade.ProjectFile;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
+using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration.ProcessHooks;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.DatepickerMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.DeprecatedLayoutPropertiesMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.IndexMigration;
@@ -147,6 +148,14 @@ internal static class V8Tov9Upgrade
         // Also before the other C# rewrites: the scenarios bind against the same v8 compilation.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, ApplyKnownScenarios(scanner));
+
+        // After the known scenarios, which take the exact shapes they know first, and still on the v8 compilation; the
+        // removed-API check below then lists only the hooks this could not move.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(
+            returnCode,
+            MigrateProcessHooks(scanner, Path.GetDirectoryName(projectFile) ?? projectFolder, options.CancellationToken)
+        );
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateOpenApiNamespace(scanner));
@@ -1141,6 +1150,45 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error applying known scenarios", ex);
+        }
+    }
+
+    /// <summary>
+    /// Moves the app's v8 process hooks (<c>IProcessTaskStart</c>, <c>IProcessTaskEnd</c>, <c>IProcessTaskAbandon</c>,
+    /// <c>IProcessEnd</c>, and the methods of a custom <c>IProcessTask</c>) to the v9 handlers and signatures. It binds
+    /// symbols, so without the app's v8 compilation nothing is moved, and the step says so; a resumed upgrade has none.
+    /// </summary>
+    static int MigrateProcessHooks(
+        CSharpSourceScanner scanner,
+        string projectFolder,
+        CancellationToken cancellationToken
+    )
+    {
+        UpgradeConsole.BeginStep("Process hooks and Storage calls");
+        if (!scanner.HasSemanticModels)
+        {
+            UpgradeConsole.Skip("Not ported without the app's v8 compilation; the removed APIs are listed below");
+            return ExitSuccess;
+        }
+
+        try
+        {
+            var result = new ProcessHookPortMigration(scanner, ProcessHookPortContext.Read(projectFolder)).Migrate(
+                cancellationToken
+            );
+            return ReportMigrationResult(
+                result,
+                cleanText: "No v8 process hooks or Storage calls to port",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error porting the process hooks", ex);
         }
     }
 

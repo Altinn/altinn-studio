@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- `studioctl app upgrade v9` moves classes that implement the removed `IProcessEnd`, `IProcessTaskStart`, `IProcessTaskEnd` and `IProcessTaskAbandon` to the v9 handlers, such as `IOnProcessEndedHandler`, with their registrations, and lists the classes it could not move. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes appsettings keys v9 no longer reads, and points out when one was off:
     - `JsonObjectInDataResponse`: clients of the data API get validation issues as JSON instead of text ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
     - `AppSettings:EnforceDataTypeTaskId`: the app APIs refuse writes to a data type outside the tasks it is bound to ([#21464](https://github.com/Altinn/altinn-studio/pull/21464))
