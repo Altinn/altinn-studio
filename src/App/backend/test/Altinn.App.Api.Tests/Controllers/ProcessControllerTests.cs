@@ -25,6 +25,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
@@ -414,6 +415,74 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             Language = context.InstanceDataMutator.Language;
             return Task.FromResult<HandlerResult>(HandlerResult.Success());
+        }
+    }
+
+    [Fact]
+    public async Task RunProcessNext_TaskEndingHandlerMutatorWrites_AreSavedWithTheTransition()
+    {
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(SetupPdfGeneratorMock().Object);
+            services.AddSingleton<IOnTaskEndingHandler>(new MutatorMembersTaskEndHandler());
+        };
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+
+        Assert.True(nextResponse.IsSuccessStatusCode, await nextResponse.Content.ReadAsStringAsync());
+        Instance instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        Assert.Equal("2026-1", instance.DataValues?["caseNumber"]);
+        Assert.Equal("Name change", instance.PresentationTexts?["caseTitle"]);
+        Assert.Equal("Kari Nordmann", instance.PresentationTexts?["Navn"]);
+        Assert.Equal(
+            ("submitted", "Sent to the case worker"),
+            (instance.Status?.Substatus?.Label, instance.Status?.Substatus?.Description)
+        );
+        Assert.Contains(instance.CompleteConfirmations ?? [], confirmation => confirmation.StakeholderId == Org);
+        DataElement formElement = JsonSerializer.Deserialize<DataElement>(
+            await File.ReadAllTextAsync(
+                TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid)
+            ),
+            _jsonSerializerOptions
+        )!;
+        Assert.Equal(["checked"], formElement.Tags);
+        Assert.Equal([("checkedBy", "hook")], formElement.Metadata?.Select(entry => (entry.Key, entry.Value)));
+        Assert.Equal([("TheKey", "42")], formElement.UserDefinedMetadata?.Select(entry => (entry.Key, entry.Value)));
+        Assert.Equal("skjema.xml", formElement.Filename);
+        Assert.Contains(
+            "<name>Kari Nordmann</name>",
+            TestData.GetDataElementBlobContnet(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid),
+            StringComparison.Ordinal
+        );
+    }
+
+    private sealed class MutatorMembersTaskEndHandler : IOnTaskEndingHandler
+    {
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public async Task<HandlerResult> Execute(OnTaskEndingContext context)
+        {
+            IInstanceDataMutator mutator = context.InstanceDataMutator;
+            DataElement formElement = mutator.Instance.Data.Single(dataElement => dataElement.DataType == "default");
+            Skjema skjema = await mutator.GetFormDataCopy<Skjema>(formElement);
+            skjema.Melding!.Name = "Kari Nordmann";
+            await mutator.ReplaceFormData(formElement, skjema);
+            mutator.UpdateDataElementMetadata(
+                formElement,
+                new DataElementMetadataUpdate
+                {
+                    Tags = ["checked"],
+                    Metadata = [new KeyValueEntry { Key = "checkedBy", Value = "hook" }],
+                    UserDefinedMetadata = [new KeyValueEntry { Key = "TheKey", Value = "42" }],
+                    Filename = "skjema.xml",
+                }
+            );
+            mutator.SetDataValue("caseNumber", "2026-1");
+            mutator.SetPresentationText("caseTitle", "Name change");
+            mutator.SetSubstatus(new Substatus { Label = "submitted", Description = "Sent to the case worker" });
+            mutator.AddCompleteConfirmation();
+            return HandlerResult.Success();
         }
     }
 

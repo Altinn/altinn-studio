@@ -1539,10 +1539,22 @@ namespace Altinn.App.Core.Features
         void AbandonAllChanges(System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Validation.ValidationIssue> validationIssues);
         Altinn.App.Core.Models.BinaryDataChange AddBinaryDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, string contentType, string? filename, System.ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? metadata = null);
         Altinn.App.Core.Models.BinaryDataChange AddBinaryDataElement(string dataTypeId, string contentType, string? filename, System.ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? metadata = null);
+        void AddCompleteConfirmation();
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
+        System.Threading.Tasks.Task<object> GetFormDataCopy(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
+        System.Threading.Tasks.Task ReplaceFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model);
+        void SetDataValue(string key, string? value);
+        void SetPresentationText(string key, string? value);
+        void SetSubstatus(Altinn.Platform.Storage.Interface.Models.Substatus substatus);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
+        void UpdateDataElementMetadata(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, Altinn.App.Core.Models.DataElementMetadataUpdate update);
+    }
+    public static class IInstanceDataMutatorExtensions
+    {
+        public static System.Threading.Tasks.Task<T> GetFormDataCopy<T>(this Altinn.App.Core.Features.IInstanceDataMutator mutator, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier)
+            where T :  class { }
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
@@ -4107,6 +4119,15 @@ namespace Altinn.App.Core.Models
         public static Altinn.App.Core.Models.DataElementIdentifier? op_Implicit(Altinn.Platform.Storage.Interface.Models.DataElement? dataElement) { }
         public static bool operator !=(Altinn.App.Core.Models.DataElementIdentifier left, Altinn.App.Core.Models.DataElementIdentifier right) { }
         public static bool operator ==(Altinn.App.Core.Models.DataElementIdentifier left, Altinn.App.Core.Models.DataElementIdentifier right) { }
+    }
+    public sealed class DataElementMetadataUpdate : System.IEquatable<Altinn.App.Core.Models.DataElementMetadataUpdate>
+    {
+        public DataElementMetadataUpdate() { }
+        public string? Filename { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? Metadata { get; init; }
+        public System.Collections.Generic.IReadOnlyList<System.Guid>? Refs { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? Tags { get; init; }
+        public System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? UserDefinedMetadata { get; init; }
     }
     public class DataList
     {

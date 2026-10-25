@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
@@ -25,7 +26,7 @@ using RequestResponse = Altinn.App.Tests.Common.Mocks.StorageClientInterceptor.R
 
 namespace Altinn.App.Core.Tests.Internal.Data;
 
-public sealed class InstanceDataUnitOfWorkTests
+public sealed partial class InstanceDataUnitOfWorkTests
 {
     [Fact]
     public async Task UpdateBinaryDataElement_RegistersUpdatedBinaryChange_AndReturnsUpdatedBytes()
@@ -4063,6 +4064,16 @@ public sealed class InstanceDataUnitOfWorkTests
         public string? Status { get; set; }
 
         public string? CustomerName { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<PaymentLine>? Lines { get; set; }
+    }
+
+    private sealed class PaymentLine
+    {
+        public Guid AltinnRowId { get; set; }
+
+        public string? Description { get; set; }
     }
 
     public enum CustomAuthenticationMixture

@@ -289,14 +289,12 @@ public class WorkflowEngineCallbackController : ControllerBase
 
             case DeferredProcessEngineCommandResult deferred:
                 // Deferrals echo the incoming state, so staged writes would be lost.
-                DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
-                if (deferredChanges.AllChanges.Count > 0)
+                if (instanceDataUnitOfWork.HasStagedChanges())
                 {
                     _logger.LogError(
-                        "Callback handler deferred after modifying instance data ({ChangeCount} change(s)). "
+                        "Callback handler deferred after modifying instance data. "
                             + "A deferral is stateless: move the work that records data into its own step. "
                             + "CommandKey: {CommandKey}, Instance: {InstanceId}, Task: {TaskId}.",
-                        deferredChanges.AllChanges.Count,
                         command.GetKey(),
                         instanceId,
                         currentTaskId

@@ -29,6 +29,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
 - Custom process tasks can split the work they do when a task starts, ends or is abandoned into stages with `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`, composed and run exactly like the stages of a service task: each stage is saved and retried on its own, and can defer or fail permanently. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+- Process hooks, service tasks and `IInstantiationProcessor` can set data values and presentation texts, change a data element's tags, metadata, refs and filename, and replace a form's data through `IInstanceDataMutator`; hooks and service tasks can also set the substatus and confirm the instance as complete. The changes are saved with the process transition or instantiation. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
+- Build check `ALTINNAPP0501` (warning) reports calls to `IDataClient`, `IInstanceClient` and `IDataService` in process hooks, service tasks and `IInstantiationProcessor.DataCreation`, where Storage refuses direct writes while the process is transitioning. Use the `IInstanceDataMutator` from the context instead. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 
 ### Changed
 
@@ -92,6 +94,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The app's OpenAPI documentation for `PUT .../process/next` now describes the response it returns, including `processTasks`, `workflow` and the actions on `currentTask`, instead of a top-level `actions` that never appears. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 - Delegated signing retries the step that failed when Access Management, Correspondence or Register is briefly unavailable, instead of leaving signees without signing rights or a notification. A retry does not notify anyone twice. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182))
 - The app's OpenAPI document at `/{org}/{app}/v1/customOpenapi.json` no longer fails with a server error when a data type, such as `ref-data-as-pdf`, is not bound to a task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Changing a form or attachment through `IInstanceDataMutator` keeps its `refs`, unless the same step set new ones, and the task it was generated from, so a PDF generated for a task is still cleaned up when the process returns to that task. Its other `references` are replaced. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182), [#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 
 ### Removed
 

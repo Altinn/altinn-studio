@@ -12,12 +12,14 @@ public interface IInstantiationProcessor
     /// Run events related to instantiation
     /// </summary>
     /// <remarks>
-    /// For example custom prefill.
+    /// For example custom prefill. The default implementation does nothing. Copying an instance calls only this overload,
+    /// so an implementation of only <see cref="DataCreation(IInstanceDataMutator, object, Dictionary{string, string})"/>
+    /// runs for data created at instantiation or through the data API, but not for a copied instance.
     /// </remarks>
     /// <param name="instance">Instance information</param>
     /// <param name="data">The data object created</param>
     /// <param name="prefill">External prefill available under instantiation if supplied</param>
-    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill);
+    public Task DataCreation(Instance instance, object data, Dictionary<string, string>? prefill) => Task.CompletedTask;
 
     /// <summary>
     /// Run events related to instantiation, with access to the mutator that is creating the data element
