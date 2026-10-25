@@ -382,3 +382,21 @@ public static class IInstanceDataAccessorExtensions
         }
     }
 }
+
+/// <summary>
+/// Extension methods for IInstanceDataMutator to simplify usage.
+/// </summary>
+public static class IInstanceDataMutatorExtensions
+{
+    /// <summary>
+    /// Reads a copy of the element's current form data (cast into T); changes to the copy are not saved.
+    /// </summary>
+    public static async Task<T> GetFormDataCopy<T>(
+        this IInstanceDataMutator mutator,
+        DataElementIdentifier dataElementIdentifier
+    )
+        where T : class
+    {
+        return (T)await mutator.GetFormDataCopy(dataElementIdentifier);
+    }
+}

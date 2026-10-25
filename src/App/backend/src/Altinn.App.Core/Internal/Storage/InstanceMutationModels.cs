@@ -30,6 +30,9 @@ internal sealed class StorageInstanceMutationRequest
     [JsonProperty(PropertyName = "addCompleteConfirmation")]
     public bool AddCompleteConfirmation { get; set; }
 
+    [JsonProperty(PropertyName = "substatus", NullValueHandling = NullValueHandling.Ignore)]
+    public Substatus? Substatus { get; set; }
+
     [JsonProperty(PropertyName = "processState")]
     public StorageInstanceMutationProcessStateUpdate? ProcessState { get; set; }
 }

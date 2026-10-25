@@ -90,7 +90,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     private bool _stagedProcessingRelease;
     private bool _stagedInstanceDeletion;
     private bool _stagedCompleteConfirmation;
-    private readonly Dictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, string?> _stagedInstanceDataValues = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, string?> _stagedInstancePresentationTexts = new(
+        StringComparer.Ordinal
+    );
+    private Substatus? _stagedSubstatus;
+
+    // The instance's data values, presentation texts and status are plain objects that the setters change in place.
+    private readonly Lock _instanceFieldsLock = new();
+
+    // Metadata changes per data element, existing or staged for creation, merged per property.
+    private readonly ConcurrentDictionary<DataElementIdentifier, StagedDataElementMetadata> _stagedMetadataUpdates = [];
 
     private readonly ConcurrentDictionary<DataType, StorageAuthenticationMethod> _authenticationMethodOverrides = new(
         DataTypeComparer.Instance
@@ -185,6 +195,57 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 );
             }
         );
+    }
+
+    /// <inheritdoc />
+    public async Task<object> GetFormDataCopy(DataElementIdentifier dataElementIdentifier)
+    {
+        return (await GetFormDataWrapper(dataElementIdentifier)).Copy().BackingData<object>();
+    }
+
+    /// <inheritdoc />
+    public async Task ReplaceFormData(DataElementIdentifier dataElementIdentifier, object model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        if (
+            !Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
+            && _changesForCreation.Any(change => change.DataElementIdentifier == dataElementIdentifier)
+        )
+        {
+            throw new InvalidOperationException(
+                $"Data element {dataElementIdentifier.Id} is added in this unit of work and cannot be replaced; change the object passed to AddFormDataElement instead"
+            );
+        }
+
+        DataElement dataElement = GetDataElement(dataElementIdentifier);
+        if (_changesForDeletion.Any(change => change.DataElementIdentifier == dataElementIdentifier))
+        {
+            throw new InvalidOperationException(
+                $"Data element with id {dataElementIdentifier.Id} is marked for deletion and cannot be updated"
+            );
+        }
+
+        DataType dataType = this.GetDataType(dataElementIdentifier);
+        if (dataType.AppLogic?.ClassRef is not { } classRef)
+        {
+            throw new InvalidOperationException(
+                $"Data type {dataType.Id} does not have a class reference in app metadata"
+            );
+        }
+
+        Type modelType = model.GetType();
+        if (modelType.FullName != classRef)
+        {
+            throw new InvalidOperationException(
+                $"Tried to save {modelType.FullName} as {dataType.Id}, but applicationmetadata.json specifies {classRef}"
+            );
+        }
+
+        IFormDataWrapper replacement = FormDataWrapperFactory.Create(model, dataType, dataElement).Copy();
+        // The save compares the replacement with the persisted bytes, which loading the element caches.
+        await GetFormDataWrapper(dataElementIdentifier);
+        replacement.InitializeAltinnRowIds();
+        SetFormData(dataElementIdentifier, replacement);
     }
 
     /// <inheritdoc />
@@ -465,6 +526,100 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
+    /// <inheritdoc />
+    public void UpdateDataElementMetadata(DataElementIdentifier dataElementIdentifier, DataElementMetadataUpdate update)
+    {
+        ArgumentNullException.ThrowIfNull(update);
+        DataElement dataElement = GetDataElementOrStagedCreation(dataElementIdentifier);
+        if (_changesForDeletion.Any(change => change.DataElementIdentifier == dataElementIdentifier))
+        {
+            throw new InvalidOperationException(
+                $"Data element with id {dataElementIdentifier.Id} is marked for deletion and cannot be updated"
+            );
+        }
+
+        ValidateMetadataUpdate(update);
+        if (update is { Tags: null, Metadata: null, UserDefinedMetadata: null, Refs: null, Filename: null })
+        {
+            return;
+        }
+
+        _stagedMetadataUpdates.AddOrUpdate(
+            dataElementIdentifier,
+            static (_, update) => MergeMetadataUpdate(previous: null, update),
+            static (_, previous, update) => MergeMetadataUpdate(previous, update),
+            update
+        );
+
+        if (update.Tags is not null)
+        {
+            dataElement.Tags = [.. update.Tags];
+        }
+        if (update.Metadata is not null)
+        {
+            dataElement.Metadata = CopyKeyValueEntries(update.Metadata);
+        }
+        if (update.UserDefinedMetadata is not null)
+        {
+            dataElement.UserDefinedMetadata = CopyKeyValueEntries(update.UserDefinedMetadata);
+        }
+        if (update.Refs is not null)
+        {
+            dataElement.Refs = [.. update.Refs];
+        }
+        if (update.Filename is not null)
+        {
+            dataElement.Filename = update.Filename;
+        }
+    }
+
+    private static StagedDataElementMetadata MergeMetadataUpdate(
+        StagedDataElementMetadata? previous,
+        DataElementMetadataUpdate update
+    ) =>
+        new(
+            update.Tags is { } tags ? [.. tags] : previous?.Tags,
+            update.Metadata is { } metadata ? CopyKeyValueEntries(metadata) : previous?.Metadata,
+            update.UserDefinedMetadata is { } userDefinedMetadata
+                ? CopyKeyValueEntries(userDefinedMetadata)
+                : previous?.UserDefinedMetadata,
+            update.Refs is { } refs ? [.. refs] : previous?.Refs,
+            update.Filename ?? previous?.Filename
+        );
+
+    private DataElement GetDataElementOrStagedCreation(DataElementIdentifier dataElementIdentifier)
+    {
+        if (
+            !Instance.Data.Exists(dataElement => dataElement.Id == dataElementIdentifier.Id)
+            && _changesForCreation.FirstOrDefault(change => change.DataElementIdentifier == dataElementIdentifier)
+                is { DataElement: { } stagedDataElement }
+        )
+        {
+            return stagedDataElement;
+        }
+
+        return GetDataElement(dataElementIdentifier);
+    }
+
+    private void ValidateMetadataUpdate(DataElementMetadataUpdate update)
+    {
+        foreach (Guid reference in update.Refs ?? [])
+        {
+            if (
+                !Instance.Data.Exists(dataElement => dataElement.Id == reference.ToString())
+                && _changesForCreation.Any(change => change.DataElementIdentifier.Guid == reference)
+            )
+            {
+                throw new InvalidOperationException(
+                    $"Data element {reference} is added in this unit of work and cannot be referred to: its id is assigned when the instance is saved"
+                );
+            }
+        }
+    }
+
+    private static List<KeyValueEntry> CopyKeyValueEntries(IEnumerable<KeyValueEntry> entries) =>
+        [.. entries.Select(entry => new KeyValueEntry { Key = entry.Key, Value = entry.Value })];
+
     /// <summary>
     /// Lock all current and pending data elements for a data type.
     ///
@@ -567,14 +722,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedInstanceDeletion = true;
     }
 
-    /// <summary>
-    /// Stages a complete confirmation for the service owner. Storage records it for the calling
-    /// organization, which for an app is the instance's own org, so a confirmation this instance
-    /// already carries is not requested again: the mutation would bump the instance version for a
-    /// write that changes nothing, and every fence held elsewhere with it. A confirmation added after
-    /// this snapshot was captured is still requested, and Storage keeps that from duplicating.
-    /// </summary>
-    internal void AddCompleteConfirmation()
+    /// <inheritdoc />
+    /// <remarks>
+    /// Storage records the confirmation for the calling organization, which for an app is the instance's
+    /// own org, so a confirmation this instance already carries is not requested again: the mutation
+    /// would bump the instance version for a write that changes nothing, and every fence held elsewhere
+    /// with it. A confirmation added after this snapshot was captured is still requested, and Storage
+    /// keeps that from duplicating.
+    /// </remarks>
+    public void AddCompleteConfirmation()
     {
         if (
             _instance.CompleteConfirmations?.Exists(confirmation => confirmation.StakeholderId == _instance.Org) is true
@@ -592,9 +748,94 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedInstanceDataValues[key] = value;
     }
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// The save derives the keys in <c>dataFields</c> from the cached form data each time, which would
+    /// overwrite an explicit value in the next save, so such keys are refused.
+    /// </remarks>
+    public void SetDataValue(string key, string? value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        if (_appMetadata.DataFields?.Exists(field => field.Id == key) is true)
+        {
+            throw new InvalidOperationException(
+                $"Data value '{key}' is derived from dataFields in applicationmetadata.json and cannot be set explicitly; remove it from dataFields or set the model field it is derived from."
+            );
+        }
+
+        lock (_instanceFieldsLock)
+        {
+            _stagedInstanceDataValues[key] = value;
+            Instance.DataValues = SetInstanceField(Instance.DataValues, key, value);
+        }
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Keys in <c>presentationFields</c> are refused for the reason given on <see cref="SetDataValue"/>.
+    /// </remarks>
+    public void SetPresentationText(string key, string? value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        if (_appMetadata.PresentationFields?.Exists(field => field.Id == key) is true)
+        {
+            throw new InvalidOperationException(
+                $"Presentation text '{key}' is derived from presentationFields in applicationmetadata.json and cannot be set explicitly; remove it from presentationFields or set the model field it is derived from."
+            );
+        }
+
+        lock (_instanceFieldsLock)
+        {
+            _stagedInstancePresentationTexts[key] = value;
+            Instance.PresentationTexts = SetInstanceField(Instance.PresentationTexts, key, value);
+        }
+    }
+
+    private static Dictionary<string, string?>? SetInstanceField(
+        Dictionary<string, string?>? fields,
+        string key,
+        string? value
+    )
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            fields?.Remove(key);
+            return fields;
+        }
+
+        fields ??= [];
+        fields[key] = value;
+        return fields;
+    }
+
+    /// <inheritdoc />
+    public void SetSubstatus(Substatus substatus)
+    {
+        ArgumentNullException.ThrowIfNull(substatus);
+
+        lock (_instanceFieldsLock)
+        {
+            _stagedSubstatus = new Substatus { Label = substatus.Label, Description = substatus.Description };
+            Instance.Status ??= new InstanceStatus();
+            Instance.Status.Substatus = new Substatus { Label = substatus.Label, Description = substatus.Description };
+        }
+    }
+
     internal IReadOnlyDictionary<string, string?> StagedInstanceDataValues => _stagedInstanceDataValues;
 
     internal bool StagedCompleteConfirmation => _stagedCompleteConfirmation;
+
+    /// <summary>
+    /// Whether a save would write something that app code staged: the element changes, or a change to element
+    /// metadata, data values, presentation texts, the substatus or the complete confirmation.
+    /// </summary>
+    internal bool HasStagedChanges() =>
+        GetDataElementChanges(false).AllChanges.Count > 0
+        || !_stagedMetadataUpdates.IsEmpty
+        || !_stagedInstanceDataValues.IsEmpty
+        || !_stagedInstancePresentationTexts.IsEmpty
+        || _stagedSubstatus is not null
+        || _stagedCompleteConfirmation;
 
     /// <summary>
     /// Captures all form data from the cache for state transport.
@@ -836,6 +1077,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         ApplyStagedInstanceDeletion(mutationPlan.Request);
         ApplyStagedCompleteConfirmation(mutationPlan.Request);
         ApplyStagedInstanceDataValues(mutationPlan.Request);
+        ApplyStagedInstancePresentationTexts(mutationPlan.Request);
+        ApplyStagedSubstatus(mutationPlan.Request);
         if (!mutationPlan.HasMutations)
         {
             return WorkflowAggregateSaveOutcome.NothingToSave;
@@ -967,6 +1210,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         lockStatusDataTypeIds.Add(change.DataType.Id);
                     }
                     plannedDataElementIdentifiers.Add(change.DataElementIdentifier);
+                    StagedDataElementMetadata? stagedMetadata = _stagedMetadataUpdates.GetValueOrDefault(
+                        change.DataElementIdentifier
+                    );
 
                     request.CreateDataElements.Add(
                         new StorageInstanceMutationCreateDataElement
@@ -974,9 +1220,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                             DataType = change.DataType.Id,
                             ContentPartName = contentPartName,
                             ContentType = change.ContentType,
-                            Filename = (change as BinaryDataChange)?.FileName,
+                            Filename = stagedMetadata?.Filename ?? (change as BinaryDataChange)?.FileName,
+                            Refs = stagedMetadata?.Refs,
                             GeneratedFromTask = (change as BinaryDataChange)?.GeneratedFromTask,
-                            Metadata = (change as BinaryDataChange)?.Metadata,
+                            Metadata = stagedMetadata?.Metadata ?? (change as BinaryDataChange)?.Metadata,
+                            UserDefinedMetadata = stagedMetadata?.UserDefinedMetadata,
+                            Tags = stagedMetadata?.Tags,
                             Locked = hasLocked ? locked : null,
                         }
                     );
@@ -1006,6 +1255,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         lockStatusDataTypeIds.Add(change.DataType.Id);
                     }
                     plannedDataElementIdentifiers.Add(change.DataElementIdentifier);
+                    StagedDataElementMetadata? stagedMetadata = _stagedMetadataUpdates.GetValueOrDefault(
+                        change.DataElementIdentifier
+                    );
 
                     request.UpdateDataElements.Add(
                         new StorageInstanceMutationUpdateDataElement
@@ -1016,21 +1268,26 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                             ContentType = change.ContentType,
                             // A content update replaces the element's refs and task reference, so send the
                             // current ones back or the update would drop them.
-                            Refs = change.DataElement.Refs,
+                            Refs = stagedMetadata?.Refs ?? change.DataElement.Refs,
                             GeneratedFromTask = change
                                 .DataElement.References?.Find(reference =>
                                     reference.Relation == RelationType.GeneratedFrom
                                     && reference.ValueType == ReferenceType.Task
                                 )
                                 ?.Value,
-                            Filename = change switch
-                            {
-                                BinaryDataChange binaryDataChange => binaryDataChange.FileName,
-                                FormDataChange => change.DataElement.Filename,
-                                _ => throw new UnreachableException(
-                                    "ChangeType.Updated must be a form or binary data change"
-                                ),
-                            },
+                            Filename =
+                                stagedMetadata?.Filename
+                                ?? change switch
+                                {
+                                    BinaryDataChange binaryDataChange => binaryDataChange.FileName,
+                                    FormDataChange => change.DataElement.Filename,
+                                    _ => throw new UnreachableException(
+                                        "ChangeType.Updated must be a form or binary data change"
+                                    ),
+                                },
+                            Metadata = stagedMetadata?.Metadata,
+                            UserDefinedMetadata = stagedMetadata?.UserDefinedMetadata,
+                            Tags = stagedMetadata?.Tags,
                             Locked = hasLocked ? locked : null,
                         }
                     );
@@ -1058,6 +1315,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 default:
                     throw new UnreachableException($"Unknown data element change type {change.Type}");
             }
+        }
+
+        foreach (var (dataElementIdentifier, stagedMetadata) in _stagedMetadataUpdates)
+        {
+            if (plannedDataElementIdentifiers.Contains(dataElementIdentifier))
+            {
+                continue;
+            }
+
+            request.UpdateDataElements.Add(CreateMetadataUpdate(dataElementIdentifier, stagedMetadata));
+            authenticationMethods.Add(GetAuthenticationMethod(dataElementIdentifier));
         }
 
         foreach (var (dataElementIdentifier, locked) in pendingLockStatuses)
@@ -1140,6 +1408,19 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
+    private void ApplyStagedInstancePresentationTexts(StorageInstanceMutationRequest request)
+    {
+        foreach (var (key, value) in _stagedInstancePresentationTexts)
+        {
+            request.PresentationTexts[key] = value;
+        }
+    }
+
+    private void ApplyStagedSubstatus(StorageInstanceMutationRequest request)
+    {
+        request.Substatus = _stagedSubstatus;
+    }
+
     private async Task RebuildFromStorageAfterReplay(CancellationToken cancellationToken)
     {
         var appIdentifier = GetAppIdentifierForStorageLookup();
@@ -1170,6 +1451,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _stagedInstanceDeletion = false;
         _stagedCompleteConfirmation = false;
         _stagedInstanceDataValues.Clear();
+        _stagedInstancePresentationTexts.Clear();
+        _stagedSubstatus = null;
+        _stagedMetadataUpdates.Clear();
     }
 
     private void ClearCommittedAggregateState()
@@ -1208,6 +1492,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         return pendingDataTypeLockStatuses.TryGetValue(change.DataType.Id, out locked);
     }
+
+    private static StorageInstanceMutationUpdateDataElement CreateMetadataUpdate(
+        DataElementIdentifier dataElementIdentifier,
+        StagedDataElementMetadata stagedMetadata
+    ) =>
+        new()
+        {
+            DataElementId = dataElementIdentifier.Guid,
+            Filename = stagedMetadata.Filename,
+            Refs = stagedMetadata.Refs,
+            Metadata = stagedMetadata.Metadata,
+            UserDefinedMetadata = stagedMetadata.UserDefinedMetadata,
+            Tags = stagedMetadata.Tags,
+        };
 
     private static void AddContentPart(
         Dictionary<string, StorageInstanceMutationContent> contentParts,
@@ -1560,6 +1858,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         return currentUserMethod ?? defaultMethod;
     }
 
+    private sealed record StagedDataElementMetadata(
+        List<string>? Tags,
+        List<KeyValueEntry>? Metadata,
+        List<KeyValueEntry>? UserDefinedMetadata,
+        List<Guid>? Refs,
+        string? Filename
+    );
+
     private sealed record AggregateMutationPlan(
         StorageInstanceMutationRequest Request,
         IReadOnlyDictionary<string, StorageInstanceMutationContent> ContentParts,
@@ -1575,6 +1881,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             || Request.DeleteDataElements.Count > 0
             || Request.DeleteInstance is not null
             || Request.AddCompleteConfirmation
+            || Request.Substatus is not null
             || Request.DataValues.Count > 0
             || Request.PresentationTexts.Count > 0
             || Request.ProcessState?.State is not null

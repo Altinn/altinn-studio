@@ -756,6 +756,21 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
                 changedDataElementIds.Add(update.DataElementId);
             }
 
+            if (update.Metadata is not null)
+            {
+                dataElement.Metadata = update.Metadata;
+            }
+
+            if (update.UserDefinedMetadata is not null)
+            {
+                dataElement.UserDefinedMetadata = update.UserDefinedMetadata;
+            }
+
+            if (update.Tags is not null)
+            {
+                dataElement.Tags = update.Tags;
+            }
+
             if (update.DeleteStatus is not null)
             {
                 dataElement.DeleteStatus = update.DeleteStatus;
@@ -809,6 +824,20 @@ internal sealed class DataClientMock : IDataClient, IDataClientWithStorageMetada
             mutation.PresentationTexts,
             values => instance.PresentationTexts = values
         );
+
+        if (mutation.Substatus is not null)
+        {
+            instance.Status ??= new InstanceStatus();
+            instance.Status.Substatus = mutation.Substatus;
+        }
+
+        if (mutation.AddCompleteConfirmation)
+        {
+            instance.CompleteConfirmations ??= [];
+            instance.CompleteConfirmations.Add(
+                new CompleteConfirmation { StakeholderId = instance.Org, ConfirmedOn = DateTime.UtcNow }
+            );
+        }
 
         bool processStateChanged = mutation.ProcessState?.State is not null;
         if (mutation.ProcessState?.State is { } processState)
