@@ -71,6 +71,7 @@ public class InstanceMutationsController(
     /// organization that already has a confirmation keeps the one it has, and the remaining
     /// operations commit either way. A mutation that sets the process state cannot also create,
     /// update, or delete data elements (400), so every data element write is made in the current task.
+    /// Only the instance's own organization can set the substatus.
     /// </remarks>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPost]
@@ -143,6 +144,12 @@ public class InstanceMutationsController(
             );
         }
 
+        ActionResult substatusError = ValidateSubstatus(mutationRequest);
+        if (substatusError is not null)
+        {
+            return substatusError;
+        }
+
         ActionResult instanceEventError = ValidateMutationInstanceEvents(
             mutationRequest,
             instanceOwnerPartyId,
@@ -211,6 +218,11 @@ public class InstanceMutationsController(
         if (completeConfirmationAuthorizationError is not null)
         {
             return completeConfirmationAuthorizationError;
+        }
+
+        if (mutationRequest.Substatus is not null && User.GetOrg() != instance.Org)
+        {
+            return Forbid();
         }
 
         if (
@@ -696,6 +708,13 @@ public class InstanceMutationsController(
                 instanceUpdateProperties.Add(nameof(Instance.CompleteConfirmations));
             }
 
+            if (mutationRequest.Substatus is not null)
+            {
+                instanceStatus ??= new InstanceStatus();
+                instanceStatus.Substatus = mutationRequest.Substatus;
+                instanceUpdateProperties.Add(nameof(InstanceStatus.Substatus));
+            }
+
             Instance instanceUpdates = new()
             {
                 Id = instance.Id,
@@ -727,6 +746,16 @@ public class InstanceMutationsController(
                 mutationInstanceEvents.Add(
                     _instanceEventService.BuildInstanceEvent(
                         InstanceEventType.ConfirmedComplete,
+                        instanceUpdates
+                    )
+                );
+            }
+
+            if (mutationRequest.Substatus is not null)
+            {
+                mutationInstanceEvents.Add(
+                    _instanceEventService.BuildInstanceEvent(
+                        InstanceEventType.SubstatusUpdated,
                         instanceUpdates
                     )
                 );
@@ -1070,6 +1099,7 @@ public class InstanceMutationsController(
         || request.DataValues?.Count > 0
         || request.PresentationTexts?.Count > 0
         || request.AddCompleteConfirmation
+        || request.Substatus is not null
         || request.ProcessState?.State is not null
         || request.ProcessState?.Events?.Count > 0;
 
@@ -1131,7 +1161,8 @@ public class InstanceMutationsController(
             || request.UpdateDataElements?.Count > 0
             || request.DataValues?.Count > 0
             || request.PresentationTexts?.Count > 0
-            || request.AddCompleteConfirmation;
+            || request.AddCompleteConfirmation
+            || request.Substatus is not null;
         bool isStandaloneDelete =
             !hasUnrelatedMutationOperations
             && request.DeleteDataElements?.Count is not > 0
@@ -1185,6 +1216,16 @@ public class InstanceMutationsController(
             return BadRequest(
                 $"dataElementId '{duplicateDataElementId}' is referenced by more than one operation."
             );
+        }
+
+        return null;
+    }
+
+    private ActionResult ValidateSubstatus(InstanceMutationRequest request)
+    {
+        if (request.Substatus is not null && string.IsNullOrEmpty(request.Substatus.Label))
+        {
+            return BadRequest("substatus.label is required.");
         }
 
         return null;
