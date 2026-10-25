@@ -90,7 +90,8 @@ func (s *Stack) Apply(ctx context.Context, resources []resource.Resource, spinne
 
 	var renderer resourcegraph.Renderer
 	outputs, err := exec.Apply(ctx, graph, executor.WithApplyPlan(func(plan executor.ApplyPlan) error {
-		renderer = s.startRenderer(
+		s.startRenderer(
+			&renderer,
 			exec,
 			applyPlannedResources(plan),
 			resourcegraph.OperationApply,
@@ -121,7 +122,8 @@ func (s *Stack) Destroy(ctx context.Context, resources []resource.Resource, logS
 
 	var renderer resourcegraph.Renderer
 	if err := exec.Destroy(ctx, graph, executor.WithDestroyPlan(func(plan executor.DestroyPlan) error {
-		renderer = s.startRenderer(
+		s.startRenderer(
+			&renderer,
 			exec,
 			plan.Destroy,
 			resourcegraph.OperationDestroy,
@@ -229,28 +231,27 @@ func (s *Stack) warnAboutStaleImages(resources []resource.Resource, outputs exec
 	}
 }
 
-//nolint:ireturn // the renderer kind depends on the terminal
+// startRenderer starts the progress renderer the terminal calls for in renderer and makes it exec's observer.
 func (s *Stack) startRenderer(
+	renderer *resourcegraph.Renderer,
 	exec *executor.Executor,
 	resources []executor.PlannedResource,
 	operation resourcegraph.Operation,
 	statuses map[resource.ResourceID]executor.Status,
 	logStartMessage string,
-) resourcegraph.Renderer {
-	var renderer resourcegraph.Renderer
+) {
 	switch resourcegraph.DetectMode(s.out, s.verbose) {
 	case resourcegraph.ModeTable:
-		renderer = resourcegraph.NewTableWithPlan(s.out, resources, operation, statuses)
+		*renderer = resourcegraph.NewTableWithPlan(s.out, resources, operation, statuses)
 	case resourcegraph.ModeCompact:
-		renderer = resourcegraph.NewCompactWithPlan(s.out, resources, operation, statuses)
+		*renderer = resourcegraph.NewCompactWithPlan(s.out, resources, operation, statuses)
 	case resourcegraph.ModeLog:
-		renderer = resourcegraph.NewLogWithPlan(s.out, resources, operation, statuses, logStartMessage)
+		*renderer = resourcegraph.NewLogWithPlan(s.out, resources, operation, statuses, logStartMessage)
 	default:
-		renderer = resourcegraph.NewLogWithPlan(s.out, resources, operation, statuses, logStartMessage)
+		*renderer = resourcegraph.NewLogWithPlan(s.out, resources, operation, statuses, logStartMessage)
 	}
-	renderer.Start()
-	exec.SetObserver(renderer)
-	return renderer
+	(*renderer).Start()
+	exec.SetObserver(*renderer)
 }
 
 func failRenderer(renderer resourcegraph.Renderer, err error) {

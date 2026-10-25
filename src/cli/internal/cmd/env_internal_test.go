@@ -17,6 +17,7 @@ import (
 	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	envregistry "altinn.studio/studioctl/internal/cmd/env/registry"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -67,8 +68,9 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 func testEnvCommand(t *testing.T, out io.Writer) *EnvCommand {
 	t.Helper()
 	return &EnvCommand{
-		cfg: testEnvCommandConfig(t),
-		out: ui.NewOutput(out, io.Discard, false),
+		newRuntimes: envregistry.Runtimes,
+		cfg:         testEnvCommandConfig(t),
+		out:         ui.NewOutput(out, io.Discard, false),
 		containerClient: func(context.Context) (container.ContainerClient, error) {
 			return mock.New(), nil
 		},
@@ -180,7 +182,7 @@ func TestRuntimeArg(t *testing.T) {
 func TestEnvUsageHidesDevWorkflowEngine(t *testing.T) {
 	t.Parallel()
 
-	command := &EnvCommand{}
+	command := &EnvCommand{newRuntimes: envregistry.Runtimes}
 	if got := command.Usage(); strings.Contains(got, "--dev-workflow-engine") {
 		t.Fatalf("Usage() includes hidden --dev-workflow-engine:\n%s", got)
 	}
@@ -209,6 +211,7 @@ func TestEnvHostsStatusJSON(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &EnvCommand{
+		newRuntimes: envregistry.Runtimes,
 		hostsFileTargets: func() ([]osutil.HostsTarget, error) {
 			return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
 		},
@@ -260,6 +263,7 @@ func TestEnvHostsAddJSON(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &EnvCommand{
+		newRuntimes: envregistry.Runtimes,
 		hostsFileTargets: func() ([]osutil.HostsTarget, error) {
 			return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
 		},

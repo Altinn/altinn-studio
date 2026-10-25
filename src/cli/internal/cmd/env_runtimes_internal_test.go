@@ -238,3 +238,14 @@ func TestUndefinedFlagErrorText(t *testing.T) {
 		t.Fatalf("Parse(--nosuch) = %v, want it to start with %q", err, undefinedFlagPrefix)
 	}
 }
+
+func TestEnvResetJSONWithoutYesIsRefusedBeforeTheContainerRuntime(t *testing.T) {
+	t.Parallel()
+	command := testEnvCommand(t, io.Discard)
+	failContainerRuntime(command)
+
+	err := command.Run(t.Context(), []string{"reset", "--json"})
+	if !errors.Is(err, ErrInvalidFlagValue) || !strings.Contains(err.Error(), "--json requires --yes") {
+		t.Fatalf("Run(reset --json) = %v, want --json requires --yes", err)
+	}
+}

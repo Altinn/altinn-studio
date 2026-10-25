@@ -54,6 +54,12 @@ func TestEnsureNoOtherActive(t *testing.T) {
 			wantErr: envtypes.ErrOtherRuntimeActive,
 		},
 		{
+			name:    "the runtime being started is not checked",
+			start:   "a",
+			envs:    []envtypes.Env{fakeEnv{name: "a", err: errInspect}, fakeEnv{name: "b"}},
+			wantErr: nil,
+		},
+		{
 			name:    "a runtime that cannot be checked",
 			start:   "a",
 			envs:    []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b", err: errInspect}},
@@ -91,40 +97,25 @@ func TestResolveRuntime(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		requested string
-		want      string
-		envs      []envtypes.Env
+		name string
+		want string
+		envs []envtypes.Env
 	}{
 		{
-			name:      "requested wins",
-			requested: "a",
-			envs:      []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b", active: true}},
-			want:      "a",
+			name: "the running runtime",
+			envs: []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b", active: true}},
+			want: "b",
 		},
 		{
-			name:      "the running runtime",
-			requested: "",
-			envs:      []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b", active: true}},
-			want:      "b",
-		},
-		{
-			name:      "the requested runtime while two run",
-			requested: "a",
-			envs:      []envtypes.Env{fakeEnv{name: "a", active: true}, fakeEnv{name: "b", active: true}},
-			want:      "a",
-		},
-		{
-			name:      "none running falls back",
-			requested: "",
-			envs:      []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b"}},
-			want:      "fallback",
+			name: "none running falls back",
+			envs: []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b"}},
+			want: "fallback",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := envtypes.ResolveRuntime(context.Background(), tt.requested, "fallback", tt.envs)
+			got, err := envtypes.ResolveRuntime(context.Background(), "fallback", tt.envs)
 			if err != nil {
 				t.Fatalf("ResolveRuntime() error = %v", err)
 			}
@@ -139,7 +130,7 @@ func TestResolveRuntimeRefusesToPickOneOfSeveralRunning(t *testing.T) {
 	t.Parallel()
 	envs := []envtypes.Env{fakeEnv{name: "a", active: true}, fakeEnv{name: "b", active: true}}
 
-	_, err := envtypes.ResolveRuntime(context.Background(), "", "fallback", envs)
+	_, err := envtypes.ResolveRuntime(context.Background(), "fallback", envs)
 	if !errors.Is(err, envtypes.ErrRuntimesActive) || !strings.Contains(err.Error(), "a, b; pick one with -r") {
 		t.Fatalf("ResolveRuntime() error = %v, want ErrRuntimesActive naming a and b", err)
 	}
@@ -149,7 +140,7 @@ func TestResolveRuntimeReportsARuntimeThatCannotBeChecked(t *testing.T) {
 	t.Parallel()
 	envs := []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b", err: errInspect}}
 
-	if _, err := envtypes.ResolveRuntime(context.Background(), "", "fallback", envs); !errors.Is(err, errInspect) {
+	if _, err := envtypes.ResolveRuntime(context.Background(), "fallback", envs); !errors.Is(err, errInspect) {
 		t.Fatalf("ResolveRuntime() error = %v, want %v", err, errInspect)
 	}
 }

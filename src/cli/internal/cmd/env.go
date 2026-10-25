@@ -232,6 +232,15 @@ func (c *EnvCommand) runtimeUsage() string {
 	)
 }
 
+// hostsRuntimeUsage is the -r help line of the hosts commands, which do not ask which runtime runs: every runtime
+// shares the hostnames, and -r only names the output.
+func (c *EnvCommand) hostsRuntimeUsage() string {
+	return fmt.Sprintf(
+		"  -r, --runtime    Runtime: %s (default: %s)",
+		strings.Join(c.runtimeNames(), " or "), c.defaultRuntime(),
+	)
+}
+
 // runtimeUpUsage is the help of every runtime's own env up flags, a section each.
 func (c *EnvCommand) runtimeUpUsage() string {
 	var lines []string
@@ -244,10 +253,7 @@ func (c *EnvCommand) runtimeUpUsage() string {
 
 // runtimes are the runtimes for one command, the default first.
 func (c *EnvCommand) runtimes() []envtypes.Runtime {
-	if c.newRuntimes != nil {
-		return c.newRuntimes(c.cfg)
-	}
-	return envregistry.Runtimes(c.cfg)
+	return c.newRuntimes(c.cfg)
 }
 
 func (c *EnvCommand) runtimeNames() []string {
@@ -319,7 +325,7 @@ func (c *EnvCommand) resolveRuntime(
 	if client == nil {
 		return c.defaultRuntime(), nil
 	}
-	runtime, err := envtypes.ResolveRuntime(ctx, "", c.defaultRuntime(), c.envs(client))
+	runtime, err := envtypes.ResolveRuntime(ctx, c.defaultRuntime(), c.envs(client))
 	if err != nil {
 		return "", fmt.Errorf("resolve runtime: %w", err)
 	}
@@ -455,7 +461,8 @@ func (c *EnvCommand) parseUpFlags(
 	if f.runtimeFlag != requested {
 		return f, conflictingRuntimesError(requested, f.runtimeFlag)
 	}
-	f.runtimeResolved = requested == ""
+	// Only a resolution that asked the container runtime found that no other runtime runs.
+	f.runtimeResolved = requested == "" && client != nil
 	return f, nil
 }
 
@@ -679,6 +686,9 @@ func (c *EnvCommand) runReset(ctx context.Context, args []string) error {
 	if helpShown {
 		return nil
 	}
+	if flags.jsonOutput && !flags.yes {
+		return fmt.Errorf("%w: --json requires --yes", ErrInvalidFlagValue)
+	}
 
 	target, err := c.target(ctx, flags.runtime, commandOutput(c.out, flags.jsonOutput))
 	defer c.closeContainerRuntime(target.conn)
@@ -710,9 +720,6 @@ func (c *EnvCommand) runReset(ctx context.Context, args []string) error {
 }
 
 func (c *EnvCommand) confirmResetIfNeeded(ctx context.Context, flags envResetFlags) (bool, error) {
-	if flags.jsonOutput && !flags.yes {
-		return false, fmt.Errorf("%w: --json requires --yes", ErrInvalidFlagValue)
-	}
 	if flags.yes {
 		return true, nil
 	}
@@ -835,7 +842,7 @@ func (c *EnvCommand) hostsUsage() string {
 		"  remove    Remove studioctl-managed localtest hosts entries",
 		"",
 		"Options:",
-		c.runtimeUsage(),
+		c.hostsRuntimeUsage(),
 		"  --json           Output as JSON",
 		"",
 		fmt.Sprintf("Run '%s env hosts <subcommand> --help' for more information.", osutil.CurrentBin()),

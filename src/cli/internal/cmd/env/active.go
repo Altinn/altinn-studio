@@ -32,15 +32,19 @@ func ActiveRuntimes(ctx context.Context, envs []Env) ([]Env, error) {
 
 // EnsureNoOtherActive refuses to start the runtime called name while another runtime of envs is running.
 func EnsureNoOtherActive(ctx context.Context, name string, envs []Env) error {
-	active, err := ActiveRuntimes(ctx, envs)
+	otherEnvs := make([]Env, 0, len(envs))
+	for _, env := range envs {
+		if env.Name() != name {
+			otherEnvs = append(otherEnvs, env)
+		}
+	}
+	active, err := ActiveRuntimes(ctx, otherEnvs)
 	if err != nil {
 		return err
 	}
-	var others []string
+	others := make([]string, 0, len(active))
 	for _, env := range active {
-		if env.Name() != name {
-			others = append(others, env.Name())
-		}
+		others = append(others, env.Name())
 	}
 	if len(others) == 0 {
 		return nil
@@ -49,12 +53,9 @@ func EnsureNoOtherActive(ctx context.Context, name string, envs []Env) error {
 		ErrOtherRuntimeActive, strings.Join(others, ", "), others[0])
 }
 
-// ResolveRuntime names the runtime a command acts on: the requested one, else the one runtime that is running, else
+// ResolveRuntime names the runtime a command acts on when none is named: the one runtime that is running, else
 // fallback. It refuses to pick one when more than one runs.
-func ResolveRuntime(ctx context.Context, requested, fallback string, envs []Env) (string, error) {
-	if requested != "" {
-		return requested, nil
-	}
+func ResolveRuntime(ctx context.Context, fallback string, envs []Env) (string, error) {
 	active, err := ActiveRuntimes(ctx, envs)
 	if err != nil {
 		return "", err
