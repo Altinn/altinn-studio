@@ -91,6 +91,7 @@ func newVolume(hostPath, containerPath string) types.VolumeMount {
 		ContainerPath:  containerPath,
 		Type:           types.VolumeMountTypeBind,
 		SELinuxRelabel: types.SELinuxRelabelNone,
+		Options:        "",
 		ReadOnly:       false,
 	}
 }
@@ -101,6 +102,7 @@ func newReadOnlyVolume(hostPath, containerPath string) types.VolumeMount {
 		ContainerPath:  containerPath,
 		Type:           types.VolumeMountTypeBind,
 		SELinuxRelabel: types.SELinuxRelabelNone,
+		Options:        "",
 		ReadOnly:       true,
 	}
 }
@@ -111,6 +113,7 @@ func newNamedVolume(name, containerPath string) types.VolumeMount {
 		ContainerPath:  containerPath,
 		Type:           types.VolumeMountTypeVolume,
 		SELinuxRelabel: types.SELinuxRelabelNone,
+		Options:        "",
 		ReadOnly:       false,
 	}
 }
