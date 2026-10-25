@@ -19,9 +19,8 @@ const envUpdateGolden = "STUDIOCTL_UPDATE_GOLDEN"
 var appEnvGoldenPath = filepath.Join("testdata", "app-environment.golden.json")
 
 // goldenAppEnv is the snapshot of the environment an app is started with, for the option combinations the run tests
-// cover. It held the manifest's app section (tasks 21e to 27a) to what the hand-written code built, and holds this code
-// to it now; the Aspire package (localtest/aspire/Altinn.App.Aspire) compares its own app environment against the case
-// it names.
+// cover. The Aspire package (https://github.com/ivarne-agent/localtest-research/tree/main/localtest/aspire/Altinn.App.Aspire) compares its own app environment
+// against the case it names.
 type goldenAppEnv struct {
 	Cases []goldenAppEnvCase `json:"cases"`
 }

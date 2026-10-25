@@ -96,18 +96,37 @@ A map from the container's name to:
 
 Nothing else is allowed (an unknown key is an error): no descriptions, routes, host ports, commands, health-check
 commands or build information. A container's notes belong in its component's README; a command belongs in its image
-(`localtest/postgres/Dockerfile`, `localtest/redis/Dockerfile`); a dev build is `env up --dev-<container>=<path>`.
+(the [Postgres](https://github.com/ivarne-agent/localtest-research/blob/main/localtest/postgres/Dockerfile) and [Redis](https://github.com/ivarne-agent/localtest-research/blob/main/localtest/redis/Dockerfile) images); a dev build is `env up --dev-<container>=<path>`.
 
-**Transitional (task 27a):** the component images still listen on their own ports (5010, 5020, …), so most containers
-name their `port`; the default 8080 applies to the localtest app and Dialogporten's hosts. The per-component image
-changes of task 25 move them to 8080 and drop the key. Redis runs this repository's image (`localtest/redis/`) at the
-same pin since `sha-6d928ad`. The conventions behind these rules (and the table of today's ports):
-[`localtest/CONVENTIONS.md`](../../../../../../CONVENTIONS.md).
+## Tags
+
+Every image built by the [research repository](https://github.com/ivarne-agent/localtest-research) carries the same `sha-<commit>` pin; pdf3 and
+the workflow engine run the monorepo's `tt02` tag, pulled again on every start. A pin is a statement that the stack was
+run with that build, so no workflow writes it: whoever proved a build moves every research tag at once with
+[`bump-tag.sh`](https://github.com/ivarne-agent/localtest-research/blob/main/localtest/tools/bump-tag.sh) and regenerates the snapshot (see [Changing it](#changing-it)).
+`env up --latest` runs each research image's `latest` tag instead.
+
+## Port and health
+
+The target is that every image built for the stack listens on 8080 and answers `GET /health` with 200, so the manifest
+names neither. Today most component images still listen on their own ports (Storage 5010, the Register 5020, …) and
+name their `port`; the localtest app and Dialogporten's hosts use the default 8080. Each image moves to 8080 in its own
+change, and its `port` goes from the manifest then. The runtime checks health itself, from a probe container on the
+stack's network, rather than relying on an image's `HEALTHCHECK`, which Podman's OCI images drop.
+
+## The certificate
+
+One test certificate signs and validates every platform access token, so the production token handlers run unchanged.
+It is public test material, published with its [README](https://github.com/ivarne-agent/localtest-research/blob/main/localtest/certs/README.md); studioctl embeds a
+byte-identical copy (`internal/cmd/env/localtestv2/assets/`), writes it under its data directory and mounts the
+directory read-only at `/certs` in every container. The components read `/certs/localtest-accesstoken.pfx` through
+their `envs`. The same file is also mounted at `/accesstoken/accesstokencredentials.pfx`, because Events,
+Notifications and Receipt read the production resolver's default path; that mount goes once their images read
+`/certs`. `studioctl run` points the app at the host copy.
 
 ## Service names
 
-A call from one component to another names the service, not the public origin (task 40, [`localtest/CONVENTIONS.md`,
-"Service discovery"](../../../../../../CONVENTIONS.md#service-discovery)). Most images bake theirs into their fakes'
+A call from one component to another names the service, not the public origin. Most images bake theirs into their fakes'
 defaults (`http://register/register/api/v1/`), so the manifest only sets them where the image reads them from the
 environment: the Register's PDP endpoint and Receipt's Storage, Register and Profile endpoints, as `http://<service>/<prefix>/`
 without a port (service discovery takes it from `services__<service>__http__0`). The Arbeidsflate BFF is Node, without
@@ -141,6 +160,7 @@ in the manifest: it is runner code (`internal/cmd/app/env.go`), held by `interna
 - Regenerate the snapshot after any change and review the diff:
   `STUDIOCTL_UPDATE_GOLDEN=1 go test ./internal/cmd/env/localtestv2/` (under `src/cli`).
 - Tags change only in a separate, tested step: the images workflow never writes the manifest; whoever proved a build
-  runs `localtest/tools/bump-tag.sh sha-<commit>` and regenerates the snapshot.
-- The Aspire package (`localtest/aspire/Altinn.App.Aspire`) embeds this file by relative path and compares what it
-  builds with the snapshots above (`.github/workflows/manifest-parity.yml`).
+  runs [`bump-tag.sh sha-<commit>`](https://github.com/ivarne-agent/localtest-research/blob/main/localtest/tools/bump-tag.sh) and regenerates the snapshot.
+- The research repository's [Aspire package](https://github.com/ivarne-agent/localtest-research/tree/main/localtest/aspire/Altinn.App.Aspire) embeds this file by relative path and
+  compares what it builds with the snapshots above
+  ([`manifest-parity.yml`](https://github.com/ivarne-agent/localtest-research/blob/main/.github/workflows/manifest-parity.yml)).

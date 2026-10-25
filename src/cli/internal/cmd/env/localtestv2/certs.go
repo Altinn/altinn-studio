@@ -13,7 +13,8 @@ import (
 
 // The shared test certificate: every app and component signs platform access tokens with it, and the
 // components validate the tokens against it, so the production token handlers run unchanged. It is a
-// test key pair, public in the localtest-research repository (localtest/certs/README.md).
+// test key pair, published with its README at
+// https://github.com/ivarne-agent/localtest-research/blob/main/localtest/certs/README.md.
 //
 //go:embed assets/localtest-accesstoken.pfx
 var accessTokenCertificate []byte

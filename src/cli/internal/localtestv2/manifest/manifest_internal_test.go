@@ -201,7 +201,8 @@ func TestTheDefaultsApply(t *testing.T) {
 	if postgres.HTTPPort() != 5432 || postgres.IsHTTP() {
 		t.Fatalf("postgres: port %d, health %q", postgres.HTTPPort(), postgres.HealthCheck())
 	}
-	// Redis is our own image since the sha-6d928ad pin (localtest/redis/Dockerfile bakes the command in).
+	// Redis is the stack's own image, whose Dockerfile bakes the command in
+	// (https://github.com/ivarne-agent/localtest-research/blob/main/localtest/redis/Dockerfile).
 	const redisImage = "ghcr.io/ivarne-agent/localtest-research/localtest-redis:sha-"
 	if got := m.Containers["redis"].Image(); !strings.HasPrefix(got, redisImage) {
 		t.Fatalf("redis image %s", got)
@@ -273,7 +274,8 @@ func TestTheEnvironmentIsTheContainersOwn(t *testing.T) {
 	}
 }
 
-// The research images change only together, by localtest/tools/bump-tag.sh, which rewrites every sha- tag.
+// The research images change only together, by bump-tag.sh, which rewrites every sha- tag
+// (https://github.com/ivarne-agent/localtest-research/blob/main/localtest/tools/bump-tag.sh).
 func TestTheResearchImagesShareOnePin(t *testing.T) {
 	t.Parallel()
 	m := MustDefault()

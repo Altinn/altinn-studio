@@ -1,5 +1,5 @@
 // Package localtestv2 runs the localtest-v2 environment from the manifest (internal/localtestv2/manifest): the
-// production platform components built by the localtest-research repository, the localtest app, a shared Postgres, the
+// production platform components built by https://github.com/ivarne-agent/localtest-research, the localtest app, a shared Postgres, the
 // PDF generator and the workflow engine, and the optional groups (Dialogporten, Receipt, Correspondence, Arbeidsflate).
 //
 // The localtest container is the front door: the runtime publishes its port as the public origin's

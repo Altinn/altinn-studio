@@ -10,7 +10,7 @@ import (
 )
 
 // appCodesGoldenPath holds the bytes WriteDevelopmentAppCodes writes. The Aspire package
-// (localtest/aspire/Altinn.App.Aspire) writes the same file for an app it runs and compares its bytes with this one.
+// (https://github.com/ivarne-agent/localtest-research/tree/main/localtest/aspire/Altinn.App.Aspire) writes the same file for an app it runs and compares its bytes with this one.
 //
 //nolint:gochecknoglobals // A test fixture path.
 var appCodesGoldenPath = filepath.Join("testdata", "app-codes.golden.json")
