@@ -146,8 +146,18 @@ Altinn Studio platform components.
   entry: `studioctl env hosts add`). A path whose group is off answers `503` naming the `--with` that starts it.
   Only one runtime runs at a time, and the other `env` commands act on the one that is running. `--latest` runs the
   newest images, and `--dev-<container>[=<path>]` builds one from a Dockerfile or its directory (default:
-  the current directory). Under localtest-v2 apps run as processes (`run --mode container` is refused), and
-  `studioctl run --dev-frontend` expects the frontend dev server on the host's port 8080.
+  the current directory). `studioctl run --mode container` (the app needs its `Dockerfile`) puts the app container
+  on the stack's network, where the localtest container reaches it; it calls the platform on `http://local.altinn.cloud:8000` like a process
+  and `env down` removes it. `studioctl run --dev-frontend` expects the frontend dev server on the host's port 8080 in
+  either mode.
+- `studioctl env up -r localtest-v2 --minimal` starts only Postgres, Storage, the workflow engine and the localtest
+  container, which emulates the other services in memory and permits every request (no 403s, no role checks; every
+  PDF is one static page). Nothing persists between starts. Use it for quick work and an app's own tests, not to test
+  authorization; it takes no `--with`.
+- `studioctl env up -r localtest-v2 --host <name> --port <n>` runs the stack on `http://<name>:<n>` instead of
+  `http://local.altinn.cloud:8000` (`--port 0` picks a free port); `env status` prints the `Origin:`, and `run`,
+  `app env` and the other `env` commands use it; `run --mode container` is refused there (default origin only). The name and its `pdf.`, `workflow-engine.`, `app-frontend.` and
+  `af.` subdomains must be in `/etc/hosts` (127.0.0.1); `env up` prints the line to add when they are not.
 
 ## Stop
 
