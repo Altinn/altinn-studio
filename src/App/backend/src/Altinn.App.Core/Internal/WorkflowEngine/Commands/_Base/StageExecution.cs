@@ -134,6 +134,7 @@ internal static class StageExecution
         new()
         {
             InstanceDataMutator = context.InstanceDataMutator,
+            Actor = context.Payload.Actor,
             CancellationToken = context.CancellationToken,
             WorkflowId = context.Payload.WorkflowId,
             StepId = context.Payload.StepId,

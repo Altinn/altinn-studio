@@ -879,6 +879,7 @@ public class FiksArkivServiceTaskTest
         new()
         {
             InstanceDataMutator = dataMutator,
+            Actor = new(),
             WorkflowId = _workflowId,
             StepId = stepId ?? _workflowStepId,
             ExecutionReferenceTime = _executionReferenceTime,

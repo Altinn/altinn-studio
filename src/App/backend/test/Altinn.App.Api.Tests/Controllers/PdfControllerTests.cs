@@ -595,6 +595,7 @@ public class PdfControllerTests
             new StageContext
             {
                 InstanceDataMutator = dataMutator.Object,
+                Actor = new(),
                 WorkflowId = Guid.NewGuid(),
                 StepId = Guid.NewGuid(),
             }
