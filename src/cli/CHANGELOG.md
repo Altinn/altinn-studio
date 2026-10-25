@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Localtest lets the app set the instance's substatus in an instance mutation, as Altinn Storage does. ([#21484](https://github.com/Altinn/altinn-studio/pull/21484))
+
 ### Changed
 
 - Localtest refuses, with `409 Conflict`, a change to a data type's data outside the tasks in its `taskIds`, as Altinn Storage does, also during a process transition. Once the process has ended it allows only the deletion `autoDeleteOnProcessEnd` asks for. A mutation that sets the process state cannot also change data elements. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
