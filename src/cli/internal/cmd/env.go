@@ -93,12 +93,12 @@ func (o envStatusOutput) Print(out *ui.Output) error {
 	if !o.Status.Running {
 		out.Printlnf("%s is running with issues.", o.Runtime)
 		out.Println("")
-		renderLocaltestStatus(out, o.Status)
+		renderEnvStatus(out, o.Status)
 		return nil
 	}
 	out.Printlnf("%s is running.", o.Runtime)
 	out.Println("")
-	renderLocaltestStatus(out, o.Status)
+	renderEnvStatus(out, o.Status)
 	return nil
 }
 
@@ -183,7 +183,7 @@ func (c *EnvCommand) Usage() string {
 		"",
 		"Options for 'env up':",
 		"  -d, --detach     Run in background (default: true)",
-		"  --open           Open localtest in browser after starting",
+		"  --open           Open the environment in the browser after starting",
 		c.runtimeUpUsage(),
 		"",
 		"Options for 'env reset':",
@@ -407,7 +407,7 @@ func (c *EnvCommand) upUsage() string {
 		"Options:",
 		c.runtimeUsage(),
 		"  -d, --detach     Run in background (default: true)",
-		"  --open           Open localtest in browser after starting",
+		"  --open           Open the environment in the browser after starting",
 		"  --json           Output as JSON",
 		c.runtimeUpUsage(),
 	)
@@ -421,7 +421,7 @@ func sharedUpFlags(f *envUpFlags) *flag.FlagSet {
 	fs.StringVar(&f.runtimeFlag, "runtime", "", "Runtime to use")
 	fs.BoolVar(&f.detach, "d", true, "Run in background")
 	fs.BoolVar(&f.detach, "detach", true, "Run in background")
-	fs.BoolVar(&f.openBrowser, "open", false, "Open localtest in browser after starting")
+	fs.BoolVar(&f.openBrowser, "open", false, "Open the environment in the browser after starting")
 	fs.BoolVar(&f.jsonOutput, "json", false, "Output as JSON")
 	return fs
 }
@@ -798,7 +798,7 @@ func (c *EnvCommand) runStatus(ctx context.Context, args []string) error {
 	}.Print(c.out)
 }
 
-func renderLocaltestStatus(out *ui.Output, status *envtypes.Status) {
+func renderEnvStatus(out *ui.Output, status *envtypes.Status) {
 	table := ui.NewTable(
 		ui.NewColumn("Container"),
 		ui.NewColumn("Status"),
