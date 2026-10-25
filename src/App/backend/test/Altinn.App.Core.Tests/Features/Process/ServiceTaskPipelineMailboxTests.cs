@@ -403,6 +403,7 @@ public class ServiceTaskPipelineMailboxTests
         new()
         {
             InstanceDataMutator = null!,
+            Actor = new(),
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
         };

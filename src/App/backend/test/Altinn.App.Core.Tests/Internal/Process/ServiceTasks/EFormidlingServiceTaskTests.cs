@@ -51,6 +51,7 @@ public class EFormidlingServiceTaskTests
         new()
         {
             InstanceDataMutator = instanceDataMutator,
+            Actor = new(),
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
             Wait = wait ?? new StageWait(),
