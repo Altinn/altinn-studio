@@ -19,10 +19,15 @@ import (
 // of its own; everything below is what every container gets alike, which is this runtime's to decide.
 const (
 	containerPrefix = "localtest-v2-"
-	networkName     = "localtest-v2_network"
+	networkName     = localtestv2.Network
 	// volumePrefix names this runtime's volumes: localtest-v2-<id> for the manifest's volume id. The Aspire package
 	// has its own prefix, so a reset in one runtime leaves the other's data alone.
 	volumePrefix = "localtest-v2-"
+
+	// publicSubdomainsVariable tells the front door the manifest's subdomains of the public host, comma-separated: it
+	// serves a route of its own on each one listed, refuses to start on one it does not know, and leaves a route off
+	// whose subdomain is not listed. The public host and port are in its Localtest__PlatformEndpoint.
+	publicSubdomainsVariable = "Localtest__PublicSubdomains"
 
 	// frontDoor is the container whose port the runtime publishes on the host, as the public origin's port (8000): the
 	// localtest app, which routes by host and path prefix to the other containers by their services__ variables.
@@ -73,12 +78,15 @@ type Options struct {
 	// Dev are the containers built from source instead of pulled, by manifest name.
 	Dev map[string]DevBuild
 	// Groups are the optional groups that are on, sorted; the default group always is.
-	Groups   []string
-	CertDir  string
-	Topology envtopology.Local
+	Groups  []string
+	CertDir string
+	// Origin is the public origin: its host and port, the front door's published port, and the subdomains.
+	Origin manifest.Origin
 	// LatestImages runs the research images at "latest" instead of their pinned sha- tag.
 	LatestImages bool
 	RelabelBinds bool
+	// Minimal starts the minimal group instead of the default one, the front door emulating the rest (minimal.go).
+	Minimal bool
 }
 
 func defaultOptions(certDir string) *Options {
@@ -86,15 +94,24 @@ func defaultOptions(certDir string) *Options {
 		Dev:          nil,
 		Groups:       nil,
 		CertDir:      certDir,
-		Topology:     envtopology.NewLocal(envtopology.DefaultIngressPortString()),
+		Origin:       stack().DefaultOrigin(),
 		LatestImages: false,
 		RelabelBinds: false,
+		Minimal:      false,
 	}
 }
 
+// topology is the public URLs at the options' origin.
+func (opts *Options) topology() envtopology.Local {
+	return envtopology.NewLocalAt(opts.Origin.Host, strconv.Itoa(opts.Origin.Port))
+}
+
 // selected lists the containers the options start, in start order: the default group's and the enabled groups' root
-// containers and everything they depend on.
+// containers and everything they depend on; in minimal mode the minimal group's instead.
 func selected(opts *Options) []string {
+	if opts.Minimal {
+		return stack().Select([]string{manifest.MinimalGroup})
+	}
 	return stack().Select(append([]string{manifest.DefaultGroup}, opts.Groups...))
 }
 
@@ -125,7 +142,7 @@ func resources(opts *Options, probes readinessProbes) []resource.Resource {
 		},
 	}
 	names := selected(opts)
-	services := serviceVariables(names)
+	services := serviceVariables(names, emulated(opts))
 	out := make([]resource.Resource, 0, 1+2*len(names))
 	out = append(out, network)
 	images := map[resource.ResourceID]bool{}
@@ -145,14 +162,18 @@ func resources(opts *Options, probes readinessProbes) []resource.Resource {
 }
 
 // serviceVariables announce every running HTTP container to every container, the way Aspire's service discovery
-// does: services__<name>__http__0=http://<name>:<port>, the container's name being its network alias.
-func serviceVariables(running []string) map[string]string {
+// does: services__<name>__http__0=http://<name>:<port>, the container's name being its network alias. An emulated
+// container (minimal mode) is announced at the front door, which answers for it.
+func serviceVariables(running, emulated []string) map[string]string {
 	vars := map[string]string{}
 	for _, name := range running {
 		c := stack().Containers[name]
 		if c.IsHTTP() {
 			vars["services__"+name+"__http__0"] = "http://" + name + ":" + strconv.Itoa(c.HTTPPort())
 		}
+	}
+	for _, name := range emulated {
+		vars["services__"+name+"__http__0"] = frontDoorAddress()
 	}
 	return vars
 }
@@ -201,7 +222,7 @@ func containerResource(
 	if name == frontDoor {
 		// Every interface, not loopback only: the containers reach the public origin through the host gateway.
 		ports = []types.PortMapping{{
-			HostPort:      opts.Topology.IngressPort(),
+			HostPort:      strconv.Itoa(opts.Origin.Port),
 			ContainerPort: strconv.Itoa(c.HTTPPort()),
 			HostIP:        "",
 			Protocol:      "",
@@ -216,7 +237,7 @@ func containerResource(
 		DependsOn:   deps,
 		Ports:       ports,
 		Volumes:     containerVolumes(opts, c),
-		Env:         containerEnv(c, services),
+		Env:         containerEnv(stack().Envs(name, opts.Origin), runnerEnv(opts, name), services),
 		Labels:      nil,
 		Command:     nil,
 		ExtraHosts:  extraHosts(opts),
@@ -235,11 +256,28 @@ func containerResource(
 	}
 }
 
-// containerEnv is the container's own environment from the manifest, then the services__ variables.
-func containerEnv(c manifest.Container, services map[string]string) []string {
-	env := make([]string, 0, len(c.Envs)+len(services))
-	for _, key := range slices.Sorted(maps.Keys(c.Envs)) {
-		env = append(env, key+"="+c.Envs[key])
+// runnerEnv is what the runner adds to a container's own environment: the front door gets the public subdomains, and
+// in minimal mode its app routes stay in memory.
+func runnerEnv(opts *Options, name string) map[string]string {
+	if name != frontDoor {
+		return nil
+	}
+	env := map[string]string{publicSubdomainsVariable: strings.Join(opts.Origin.Subdomains, ",")}
+	maps.Copy(env, minimalEnv(opts, name))
+	return env
+}
+
+// containerEnv is the container's own environment from the manifest, resolved for the origin, with what the runner
+// adds (frontDoorEnv, minimal mode), then the services__ variables.
+func containerEnv(envs, added, services map[string]string) []string {
+	own := maps.Clone(envs)
+	if own == nil {
+		own = map[string]string{}
+	}
+	maps.Copy(own, added)
+	env := make([]string, 0, len(own)+len(services))
+	for _, key := range slices.Sorted(maps.Keys(own)) {
+		env = append(env, key+"="+own[key])
 	}
 	for _, key := range slices.Sorted(maps.Keys(services)) {
 		env = append(env, key+"="+services[key])
@@ -262,7 +300,7 @@ func volumeNames() []string {
 	return names
 }
 
-// containerVolumes are the shared certificate, read-only, and the container's named volumes.
+// containerVolumes are the shared certificate, read-only, and the container's named volumes (tmpfs in minimal mode).
 func containerVolumes(opts *Options, c manifest.Container) []types.VolumeMount {
 	relabel := types.SELinuxRelabelNone
 	if opts.RelabelBinds {
@@ -275,6 +313,7 @@ func containerVolumes(opts *Options, c manifest.Container) []types.VolumeMount {
 			ContainerPath:  certificateDir,
 			Type:           types.VolumeMountTypeBind,
 			SELinuxRelabel: relabel,
+			Options:        "",
 			ReadOnly:       true,
 		},
 		types.VolumeMount{
@@ -282,32 +321,20 @@ func containerVolumes(opts *Options, c manifest.Container) []types.VolumeMount {
 			ContainerPath:  legacyCertificateFile,
 			Type:           types.VolumeMountTypeBind,
 			SELinuxRelabel: relabel,
+			Options:        "",
 			ReadOnly:       true,
 		},
 	)
 	for _, id := range slices.Sorted(maps.Keys(c.Volumes)) {
-		volumes = append(volumes, types.VolumeMount{
-			HostPath:       volumeName(id),
-			ContainerPath:  c.Volumes[id],
-			Type:           types.VolumeMountTypeVolume,
-			SELinuxRelabel: types.SELinuxRelabelNone,
-			ReadOnly:       false,
-		})
+		volumes = append(volumes, manifestVolume(opts, id, c.Volumes[id]))
 	}
 	return volumes
 }
 
-// extraHosts resolves the public host names and hostGatewayName to the host gateway, where the front door's port is
-// published and the apps run.
+// extraHosts resolves the public host names (the origin's host and the manifest's subdomains of it) and
+// hostGatewayName to the host gateway, where the front door's port is published and the apps run.
 func extraHosts(opts *Options) []string {
-	hosts := []string{
-		opts.Topology.AppHostName(),
-		opts.Topology.PDFHostName(),
-		opts.Topology.WorkflowEngineHostName(),
-		opts.Topology.FrontendDevServerHostName(),
-		opts.Topology.ArbeidsflateHostName(),
-		hostGatewayName,
-	}
+	hosts := append(opts.Origin.Hosts(), hostGatewayName)
 	entries := make([]string, 0, len(hosts))
 	for _, host := range hosts {
 		entries = append(entries, host+":"+hostGateway)

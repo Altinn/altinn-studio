@@ -9,8 +9,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/localtestv2/manifest"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -27,17 +30,51 @@ const (
 type State struct {
 	// CertificateDir holds CertificateFileName on the host.
 	CertificateDir string `json:"certificateDir"`
+	// PublicHost is the public origin's host (env up --host); empty is the manifest's default.
+	PublicHost string `json:"publicHost,omitempty"`
 	// Groups are the optional component groups the environment was started with.
 	Groups []string `json:"groups,omitempty"`
 	// Dev are the containers built from source (env up --dev-<container>), sorted.
 	Dev []string `json:"dev,omitempty"`
+	// PublicPort is the public origin's port, the front door's published port (env up --port; --port 0 records the
+	// port it picked); zero is the manifest's default.
+	PublicPort int `json:"publicPort,omitempty"`
 	// LatestImages is set when the environment runs the research images at latest (env up --latest).
 	LatestImages bool `json:"latestImages,omitempty"`
+	// Minimal is set when the environment runs in minimal mode (env up --minimal): the minimal group, the front door
+	// emulating the rest of the default group, nothing persisted.
+	Minimal bool `json:"minimal,omitempty"`
 }
 
 // CertificatePath is the host path of the shared test certificate.
 func (s State) CertificatePath() string {
 	return filepath.Join(s.CertificateDir, CertificateFileName)
+}
+
+// Origin is the environment's public origin: the recorded host and port, the manifest's defaults for what is not
+// recorded.
+func (s State) Origin() manifest.Origin {
+	return manifest.MustDefault().Origin(s.PublicHost, s.PublicPort)
+}
+
+// Topology is the environment's public URLs at its origin.
+func (s State) Topology() envtopology.Local {
+	origin := s.Origin()
+	return envtopology.NewLocalAt(origin.Host, strconv.Itoa(origin.Port))
+}
+
+// CurrentTopology is the public URLs of the running localtest-v2 environment, at the origin it was started with; the
+// default topology when it is not up. Everything that reaches the front door (a run's registration wait, the app's
+// environment, the frontend dev server's route) takes its URLs from here.
+func CurrentTopology(cfg *config.Config) (envtopology.Local, error) {
+	state, up, err := ReadState(cfg)
+	if err != nil {
+		return envtopology.NewLocal(envtopology.DefaultIngressPortString()), err
+	}
+	if !up {
+		return envtopology.NewLocal(envtopology.DefaultIngressPortString()), nil
+	}
+	return state.Topology(), nil
 }
 
 // StatePath returns where the runtime records that it is up.
@@ -67,7 +104,15 @@ func ReadState(cfg *config.Config) (State, bool, error) {
 }
 
 func noState() State {
-	return State{CertificateDir: "", Groups: nil, Dev: nil, LatestImages: false}
+	return State{
+		CertificateDir: "",
+		PublicHost:     "",
+		Groups:         nil,
+		Dev:            nil,
+		PublicPort:     0,
+		LatestImages:   false,
+		Minimal:        false,
+	}
 }
 
 // WriteState records that the runtime is up.

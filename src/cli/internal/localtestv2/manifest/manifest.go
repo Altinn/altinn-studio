@@ -20,6 +20,9 @@ import (
 const (
 	// DefaultGroup is the group that is always on.
 	DefaultGroup = "default"
+	// MinimalGroup is the group that replaces the default one in minimal mode: the front door, Storage and the
+	// workflow engine (and Postgres through dependsOn); the front door emulates the rest of the default group.
+	MinimalGroup = "minimal"
 	// DefaultPort is a container's HTTP port when the manifest names none.
 	DefaultPort = 8080
 	// DefaultHealth is a container's health path when the manifest names none.
@@ -50,12 +53,10 @@ var (
 
 // Manifest is the parsed manifest.
 type Manifest struct {
-	// Containers are the containers by name.
 	Containers map[string]Container
-	// Groups are the groups in file order.
-	Groups []Group
-	// names are the container names in file order.
-	names []string
+	Groups     []Group
+	names      []string
+	Public     Public
 }
 
 // Group names the root containers of one group; the group starts them and their transitive dependencies.
@@ -66,7 +67,8 @@ type Group struct {
 
 // Container is one container: its image, environment, start order, volumes, port and health.
 type Container struct {
-	// Envs are the container's environment variables, literal strings.
+	// Envs are the container's environment variables: literal strings but for the public origin's placeholders
+	// (origin.go), which Manifest.Envs resolves.
 	Envs map[string]string `json:"envs"`
 	// Volumes maps a volume id to where the volume is mounted in the container. The id names one volume for the whole
 	// manifest (containers naming the same id share it); the runtime prefixes it with its own prefix.
@@ -133,16 +135,17 @@ func MustDefault() *Manifest {
 }
 
 // Parse reads a manifest and checks it: known keys only, every reference resolves, no dependency cycle, every container
-// reached by a group, and the values in range.
+// reached by a group, the values in range, and every placeholder in envs one of the public origin's.
 func Parse(data []byte) (*Manifest, error) {
 	var file struct {
 		Containers json.RawMessage `json:"containers"`
 		Groups     []Group         `json:"groups"`
+		Public     Public          `json:"public"`
 	}
 	if err := strictDecode(data, &file); err != nil {
 		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
-	m := &Manifest{Containers: map[string]Container{}, Groups: file.Groups, names: nil}
+	m := &Manifest{Containers: map[string]Container{}, Groups: file.Groups, Public: file.Public, names: nil}
 	if err := m.readContainers(file.Containers); err != nil {
 		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
@@ -295,6 +298,9 @@ func (m *Manifest) startOrder(selected map[string]bool) []string {
 
 func (m *Manifest) check() error {
 	if err := m.checkContainers(); err != nil {
+		return err
+	}
+	if err := m.checkPublic(); err != nil {
 		return err
 	}
 	if err := m.checkGroups(); err != nil {

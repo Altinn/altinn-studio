@@ -1001,7 +1001,7 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 	if err != nil {
 		return startConfig{}, err
 	}
-	_, v2Up, err := localtestv2.ReadState(cfg)
+	v2State, v2Up, err := localtestv2.ReadState(cfg)
 	if err != nil {
 		return startConfig{}, fmt.Errorf("read localtest-v2 state: %w", err)
 	}
@@ -1009,6 +1009,9 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 	hostBridgeURL := HostBridgeURL(loadBalancerPort)
 	if v2Up {
 		hostBridgeURL = ""
+		// The front door is at the port the environment was started with (env up --port), whichever port the caller
+		// assumed.
+		loadBalancerPort = strconv.Itoa(v2State.Origin().Port)
 	}
 	return startConfig{
 		BinaryPath:                  cfg.StudioctlServerBinaryPath(),

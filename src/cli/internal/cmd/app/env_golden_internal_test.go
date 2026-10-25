@@ -31,11 +31,14 @@ type goldenAppEnvCase struct {
 	Name                    string            `json:"name"`
 	KestrelURL              string            `json:"kestrelUrl"`
 	IngressPort             string            `json:"ingressPort"`
+	PublicHost              string            `json:"publicHost,omitempty"`
 	AppFrontendAssetBaseURL string            `json:"appFrontendAssetBaseUrl"`
 	SecretsDir              string            `json:"secretsDir"`
 	KeysDir                 string            `json:"keysDir"`
 	Signing                 goldenSigning     `json:"signing"`
 	Current                 []string          `json:"current"`
+	// Arbeidsflate is set when localtest-v2 runs the arbeidsflate group.
+	Arbeidsflate bool `json:"arbeidsflate,omitempty"`
 }
 
 // goldenSigning is a case's certificate, as the runner finds it; empty for a run without localtest-v2.
@@ -47,12 +50,13 @@ type goldenSigning struct {
 	FileName   string `json:"FileName"`
 }
 
-func (g goldenSigning) certificate() *accessTokenSigning {
+func (g goldenSigning) certificate(arbeidsflate bool) *accessTokenSigning {
 	if g.FullPath == "" {
 		return nil
 	}
-	signing := accessTokenSigning(g)
-	return &signing
+	return &accessTokenSigning{
+		FullPath: g.FullPath, KeysFolder: g.KeysFolder, FileName: g.FileName, arbeidsflate: arbeidsflate,
+	}
 }
 
 const (
@@ -64,6 +68,12 @@ func goldenAppEnvCases() []goldenAppEnvCase {
 	native := goldenSigning{
 		FullPath:   goldenCertDir + "/localtest-accesstoken.pfx",
 		KeysFolder: "/../../.altinn-studio/localtest-v2/certs/",
+		FileName:   "localtest-accesstoken.pfx",
+	}
+	// An app container on the localtest-v2 network (onStackNetwork) finds the certificate where the components do.
+	container := goldenSigning{
+		FullPath:   containerCertificateDir + "/localtest-accesstoken.pfx",
+		KeysFolder: containerCertificateDir + "/",
 		FileName:   "localtest-accesstoken.pfx",
 	}
 	inherited := []string{
@@ -101,8 +111,32 @@ func goldenAppEnvCases() []goldenAppEnvCase {
 			SecretsDir: goldenSecretsDir, Signing: native,
 		},
 		{
-			Name: "container", KestrelURL: "http://*:5005", IngressPort: "8000", SecretsDir: "/mnt/app-secrets",
-			KeysDir: ContainerKeysDir,
+			Name: "native-localtest-v2-custom-origin", KestrelURL: "http://127.0.0.1:5005", IngressPort: "18000",
+			PublicHost: "origin.test", SecretsDir: goldenSecretsDir, Signing: native,
+		},
+		{
+			Name: "native-localtest-v2-arbeidsflate", KestrelURL: "http://127.0.0.1:5005", IngressPort: "8000",
+			SecretsDir: goldenSecretsDir, Signing: native, Arbeidsflate: true,
+		},
+		{
+			Name: "native-localtest-v2-custom-origin-arbeidsflate", KestrelURL: "http://127.0.0.1:5005",
+			IngressPort: "18000", PublicHost: "origin.test", SecretsDir: goldenSecretsDir, Signing: native,
+			Arbeidsflate: true,
+		},
+		{
+			Name: "container", KestrelURL: "http://0.0.0.0:5005", IngressPort: "8000", SecretsDir: "/mnt/app-secrets",
+			KeysDir: ContainerKeysDir, Signing: container,
+		},
+		{
+			Name: "container-arbeidsflate", KestrelURL: "http://0.0.0.0:5005", IngressPort: "8000",
+			SecretsDir: "/mnt/app-secrets", KeysDir: ContainerKeysDir, Signing: container, Arbeidsflate: true,
+		},
+		{
+			Name:        "container-localtest",
+			KestrelURL:  "http://*:5005",
+			IngressPort: "8000",
+			SecretsDir:  "/mnt/app-secrets",
+			KeysDir:     ContainerKeysDir,
 		},
 		{
 			Name: "container-frontend-option", KestrelURL: "http://*:5005", IngressPort: "8000",
@@ -118,11 +152,11 @@ func TestTheAppEnvironmentMatchesTheGoldenFile(t *testing.T) {
 		entries := newAppRunEnv(
 			c.Current,
 			c.KestrelURL,
-			envtopology.NewLocal(c.IngressPort),
+			envtopology.NewLocalAt(c.PublicHost, c.IngressPort),
 			c.AppFrontendAssetBaseURL,
 			c.SecretsDir,
 			c.KeysDir,
-			c.Signing.certificate(),
+			c.Signing.certificate(c.Arbeidsflate),
 		)
 		if c.Signing.FullPath != "" && c.Signing.FileName != localtestv2.CertificateFileName {
 			t.Fatalf("%s: the certificate file name is not the runtime's", c.Name)

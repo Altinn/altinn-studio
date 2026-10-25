@@ -17,11 +17,11 @@ var (
 	errDefaultGroup = errors.New("the " + manifest.DefaultGroup + " group is always on")
 )
 
-// OptionalGroups lists the manifest's groups other than the default one, in manifest order.
+// OptionalGroups lists the manifest's groups other than the default and the minimal one, in manifest order.
 func OptionalGroups() []string {
 	var names []string
 	for _, name := range stack().GroupNames() {
-		if name != manifest.DefaultGroup {
+		if name != manifest.DefaultGroup && name != manifest.MinimalGroup {
 			names = append(names, name)
 		}
 	}
@@ -44,6 +44,8 @@ func ResolveGroups(with, without []string) ([]string, error) {
 			return optional, nil
 		case name == manifest.DefaultGroup:
 			return nil, errDefaultGroup
+		case name == manifest.MinimalGroup:
+			return nil, errMinimalGroup
 		case slices.Contains(optional, name):
 			return []string{name}, nil
 		}

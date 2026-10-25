@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"altinn.studio/studioctl/internal/localtestv2"
+
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 )
@@ -332,6 +334,24 @@ func TestBuildStartConfig_IncludesBoundTopologyConfigPathsWhenPresent(t *testing
 			got.BoundTopologyConfigPath,
 			cfg.BoundTopologyConfigPath(),
 		)
+	}
+}
+
+func TestBuildStartConfig_RegistersWithTheFrontDoorAtTheRecordedPort(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfig(t)
+	if err := localtestv2.WriteState(cfg, localtestv2.State{
+		CertificateDir: "/certs", PublicHost: "origin.test", PublicPort: 18000,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := buildStartConfig(cfg, "8000", "/path/to/studioctl")
+	if err != nil {
+		t.Fatalf("buildStartConfig() error = %v", err)
+	}
+	if got.LocaltestURL != "http://127.0.0.1:18000" || !got.RegisterApps || got.HostBridgeURL != "" {
+		t.Fatalf("start config %+v", got)
 	}
 }
 

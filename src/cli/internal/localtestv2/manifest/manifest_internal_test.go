@@ -17,7 +17,7 @@ func TestTheEmbeddedManifestParses(t *testing.T) {
 	if len(m.Names()) != 22 {
 		t.Fatalf("%d containers, want 22", len(m.Names()))
 	}
-	want := []string{DefaultGroup, "dialogporten", "receipt", "correspondence", "arbeidsflate"}
+	want := []string{DefaultGroup, MinimalGroup, "dialogporten", "receipt", "correspondence", "arbeidsflate"}
 	if got := m.GroupNames(); !slices.Equal(got, want) {
 		t.Fatalf("groups %v, want %v", got, want)
 	}
@@ -235,6 +235,15 @@ func TestSelectStartsTheRootsAndTheirDependenciesInOrder(t *testing.T) {
 	}
 }
 
+func TestTheMinimalGroupStartsTheFrontDoorStorageAndTheWorkflowEngine(t *testing.T) {
+	t.Parallel()
+	m := MustDefault()
+	want := []string{"postgres", "storage", "localtest", "workflow-engine"}
+	if got := m.Select([]string{MinimalGroup}); !slices.Equal(got, want) {
+		t.Fatalf("minimal: %v, want %v", got, want)
+	}
+}
+
 func assertStartOrder(t *testing.T, m *Manifest, order []string) {
 	t.Helper()
 	for i, name := range order {
@@ -247,14 +256,18 @@ func assertStartOrder(t *testing.T, m *Manifest, order []string) {
 	}
 }
 
-// The manifest's values are the strings the containers get: nothing in them is resolved later.
-func TestTheEnvironmentIsLiteral(t *testing.T) {
+// The manifest's values are the container's own: the services__ variables are the runner's, and nothing but the public
+// origin's placeholders is resolved.
+func TestTheEnvironmentIsTheContainersOwn(t *testing.T) {
 	t.Parallel()
 	m := MustDefault()
 	for _, name := range m.Names() {
-		for key, value := range m.Containers[name].Envs {
+		for key, value := range m.Envs(name, m.Origin("origin.test", 18000)) {
 			if strings.Contains(value, "{{") || strings.HasPrefix(key, "services__") {
-				t.Errorf("%s: %s=%s is not a literal value of the container's own", name, key, value)
+				t.Errorf("%s: %s=%s is not a resolved value of the container's own", name, key, value)
+			}
+			if strings.Contains(value, "local.altinn.cloud") || strings.Contains(value, ":8000") {
+				t.Errorf("%s: %s=%s names the default origin instead of a placeholder", name, key, value)
 			}
 		}
 	}

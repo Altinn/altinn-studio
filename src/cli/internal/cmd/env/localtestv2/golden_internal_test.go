@@ -21,13 +21,18 @@ var goldenPath = filepath.Join("testdata", "environment.golden.json") //nolint:g
 // goldenEnvironment is what the runtime builds from the manifest. Each container's env is the manifest's envs plus the
 // services__ variables.
 type goldenEnvironment struct {
-	// Groups are the containers each group selects with the default group, in start order.
+	// Groups are the containers each group selects with the default group, in start order; the minimal group, which
+	// replaces the default one, alone.
 	Groups map[string][]string `json:"groups"`
 	// Default is `env up` with no flags: pulled images at the pin, no optional group.
 	Default goldenOptions `json:"default"`
 	// Everything is `env up --with everything --latest --dev-storage --dev-dialogporten-webapi=Dockerfile.webapi` on
 	// a runtime with SELinux relabelling.
 	Everything goldenOptions `json:"everything"`
+	// Minimal is `env up --minimal`: the minimal group, the emulated services at the front door, tmpfs volumes.
+	Minimal goldenOptions `json:"minimal"`
+	// CustomOrigin is `env up --host origin.test --port 18000`: the default group at another public origin.
+	CustomOrigin goldenOptions `json:"customOrigin"`
 	// VolumePrefix is this runtime's volume prefix; a mount's HostPath and each of Volumes is it plus a volume id.
 	VolumePrefix string `json:"volumePrefix"`
 	// Volumes are the volumes env reset removes.
@@ -57,16 +62,25 @@ func TestTheEnvironmentMatchesTheGoldenFile(t *testing.T) {
 		},
 	}
 
+	minimal := defaultOptions("/home/dev/.altinn-studio/certs")
+	minimal.Minimal = true
+
+	custom := defaultOptions("/home/dev/.altinn-studio/certs")
+	custom.Origin = stack().Origin("origin.test", 18000)
+
 	got := goldenEnvironment{
 		Groups:       map[string][]string{},
 		Volumes:      volumeNames(),
 		VolumePrefix: volumePrefix,
 		Default:      goldenOf(t, defaultOptions("/home/dev/.altinn-studio/certs")),
 		Everything:   goldenOf(t, everything),
+		Minimal:      goldenOf(t, minimal),
+		CustomOrigin: goldenOf(t, custom),
 	}
 	for _, name := range stack().GroupNames() {
 		got.Groups[name] = stack().Select([]string{manifest.DefaultGroup, name})
 	}
+	got.Groups[manifest.MinimalGroup] = stack().Select([]string{manifest.MinimalGroup})
 	data, err := json.MarshalIndent(got, "", "  ")
 	if err != nil {
 		t.Fatal(err)

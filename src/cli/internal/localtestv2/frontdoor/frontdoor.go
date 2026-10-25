@@ -97,7 +97,10 @@ func (c *Client) WaitForApp(ctx context.Context, org, app, url string, since tim
 				return nil
 			}
 		}
-		last = err
+		// A request cut short by ctx itself says nothing about the front door: keep the last real answer.
+		if ctx.Err() == nil || last == nil {
+			last = err
+		}
 		select {
 		case <-ctx.Done():
 			return errors.Join(ctx.Err(), last)

@@ -106,3 +106,34 @@ func TestEmbeddedTopologyYAMLRoundTrip(t *testing.T) {
 		)
 	}
 }
+
+func TestNewLocalAtMovesThePublicHostAndItsSubdomains(t *testing.T) {
+	t.Parallel()
+	l := envtopology.NewLocalAt("origin.test", "18000")
+	if got := l.LocaltestURL(); got != "http://origin.test:18000" {
+		t.Errorf("LocaltestURL() = %q", got)
+	}
+	if got := l.PlatformAPIBaseURL(); got != "http://origin.test:18000" {
+		t.Errorf("PlatformAPIBaseURL() = %q", got)
+	}
+	if got := l.AppBaseURL(); got != "http://origin.test:18000/{org}/{app}/" {
+		t.Errorf("AppBaseURL() = %q", got)
+	}
+	for got, want := range map[string]string{
+		l.PDFHostName():               "pdf.origin.test",
+		l.WorkflowEngineHostName():    "workflow-engine.origin.test",
+		l.FrontendDevServerHostName(): "app-frontend.origin.test",
+		l.ArbeidsflateHostName():      "af.origin.test",
+	} {
+		if got != want {
+			t.Errorf("host %q, want %q", got, want)
+		}
+	}
+	if envtopology.NewLocalAt("", "8000") != envtopology.NewLocal("8000") ||
+		envtopology.NewLocalAt(envtopology.DefaultPublicHost(), "8000") != envtopology.NewLocal("8000") {
+		t.Error("the default host is not the default topology")
+	}
+	if envtopology.NewLocal("8000").AppHostName() != envtopology.DefaultPublicHost() {
+		t.Error("NewLocalAt changed the default topology")
+	}
+}

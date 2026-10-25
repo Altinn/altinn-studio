@@ -2,6 +2,7 @@ package localtestv2
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -120,21 +121,65 @@ func TestTheServiceVariablesNameTheRunningHTTPContainers(t *testing.T) {
 	}
 }
 
-func TestTheManifestEnvironmentComesFirstAndUnchanged(t *testing.T) {
+func TestTheManifestEnvironmentComesFirstResolvedForTheOrigin(t *testing.T) {
 	t.Parallel()
-	opts := defaultOptions(testCertDir)
-	for name, c := range containersOf(t, opts) {
-		own := stack().Containers[name].Envs
-		env := envOf(c)
-		for key, value := range own {
-			if env[key] != value {
-				t.Errorf("%s: %s=%q, want %q", name, key, env[key], value)
+	custom := defaultOptions(testCertDir)
+	custom.Origin = stack().Origin("origin.test", 18000)
+	for _, opts := range []*Options{defaultOptions(testCertDir), custom} {
+		for name, c := range containersOf(t, opts) {
+			own := stack().Envs(name, opts.Origin)
+			if own == nil {
+				own = map[string]string{}
+			}
+			maps.Copy(own, runnerEnv(opts, name))
+			env := envOf(c)
+			for key, value := range own {
+				if env[key] != value {
+					t.Errorf("%s: %s=%q, want %q", name, key, env[key], value)
+				}
+				if strings.Contains(value, "{{") {
+					t.Errorf("%s: %s=%q is not resolved", name, key, value)
+				}
+			}
+			for i, entry := range c.Env {
+				key, _, _ := strings.Cut(entry, "=")
+				if _, isOwn := own[key]; isOwn != (i < len(own)) {
+					t.Errorf("%s: %s out of place at %d", name, key, i)
+				}
 			}
 		}
-		for i, entry := range c.Env {
-			key, _, _ := strings.Cut(entry, "=")
-			if _, isOwn := own[key]; isOwn != (i < len(own)) {
-				t.Errorf("%s: %s out of place at %d", name, key, i)
+	}
+}
+
+func TestACustomOriginMovesThePublishedPortTheHostsAndTheValues(t *testing.T) {
+	t.Parallel()
+	opts := defaultOptions(testCertDir)
+	opts.Origin = stack().Origin("origin.test", 18000)
+	containers := containersOf(t, opts)
+	if ports := containers[frontDoor].Ports; len(ports) != 1 || ports[0].HostPort != "18000" {
+		t.Errorf("front door ports %+v", ports)
+	}
+	wantHosts := []string{
+		"origin.test:host-gateway", "pdf.origin.test:host-gateway", "workflow-engine.origin.test:host-gateway",
+		"app-frontend.origin.test:host-gateway", "af.origin.test:host-gateway", "host.docker.internal:host-gateway",
+	}
+	if got := containers["storage"].ExtraHosts; !slices.Equal(got, wantHosts) {
+		t.Errorf("extra hosts %v, want %v", got, wantHosts)
+	}
+	front := envOf(containers[frontDoor])
+	if front["Localtest__PlatformEndpoint"] != "http://origin.test:18000/" {
+		t.Errorf("front door origin %q", front["Localtest__PlatformEndpoint"])
+	}
+	if front[publicSubdomainsVariable] != "pdf,workflow-engine,app-frontend,af" {
+		t.Errorf("front door subdomains %q", front[publicSubdomainsVariable])
+	}
+	if got := frontDoorHealthURL(opts); got != "http://origin.test:18000/health" {
+		t.Errorf("front door health %s", got)
+	}
+	for name, c := range containers {
+		for _, entry := range c.Env {
+			if strings.Contains(entry, "local.altinn.cloud") || strings.Contains(entry, ":8000") {
+				t.Errorf("%s: %s names the default origin", name, entry)
 			}
 		}
 	}

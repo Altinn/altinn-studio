@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,21 +39,23 @@ const (
 
 // Env implements envtypes.Env for the localtest-v2 runtime.
 type Env struct {
-	cfg    *config.Config
-	out    *ui.Output
-	client container.ContainerClient
-	stack  *envstack.Stack
-	flags  UpOptions
+	client     container.ContainerClient
+	cfg        *config.Config
+	out        *ui.Output
+	stack      *envstack.Stack
+	lookupHost lookupHostFunc
+	flags      UpOptions
 }
 
 // NewEnv creates the localtest-v2 environment manager.
 func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient) *Env {
 	return &Env{
-		cfg:    cfg,
-		out:    out,
-		client: client,
-		stack:  envstack.New(client, out, graphID, cfg.Verbose),
-		flags:  noUpOptions(),
+		cfg:        cfg,
+		out:        out,
+		client:     client,
+		stack:      envstack.New(client, out, graphID, cfg.Verbose),
+		flags:      noUpOptions(),
+		lookupHost: net.DefaultResolver.LookupHost,
 	}
 }
 
@@ -95,12 +99,15 @@ func (e *Env) Up(ctx context.Context, common envtypes.UpOptions) (envtypes.UpRes
 	return envtypes.UpResult{AlreadyRunning: false}, nil
 }
 
-// Preflight validates prerequisites before startup: no localtest started outside studioctl may hold port 8000, the
-// groups must be known, and a dev build must name a container and a Dockerfile. Another runtime that is running is
-// refused by env up (envtypes.EnsureNoOtherActive).
+// Preflight validates prerequisites before startup: no localtest started outside studioctl may hold the public origin,
+// the groups must be known, a dev build must name a container and a Dockerfile, and a custom public host must resolve to
+// this machine. Another runtime that is running is refused by env up (envtypes.EnsureNoOtherActive).
 func (e *Env) Preflight(ctx context.Context, opts UpOptions) error {
 	if err := envstack.CheckForLegacyLocaltest(ctx, e.client); err != nil {
 		return fmt.Errorf("check for legacy localtest: %w", err)
+	}
+	if err := checkMinimal(opts); err != nil {
+		return err
 	}
 	if _, err := e.devBuilds(opts.DevComponents); err != nil {
 		return err
@@ -108,24 +115,27 @@ func (e *Env) Preflight(ctx context.Context, opts UpOptions) error {
 	if _, err := ResolveGroups(opts.With, opts.Without); err != nil {
 		return err
 	}
-	return nil
+	return e.checkOrigin(ctx, opts)
 }
 
-// Changed reports whether `env up` asks for other optional groups, other images (--latest) or other dev builds than
-// the running environment was started with, in which case an environment that is already healthy still has to be
-// converged: a plain `env up` after `env up --dev-storage` runs the pinned Storage again.
+// Changed reports whether `env up` asks for another mode, another public origin, other optional groups, other images
+// (--latest) or other dev builds than the running environment was started with, in which case an environment that is
+// already healthy still has to be converged: a plain `env up` after `env up --dev-storage` runs the pinned Storage
+// again.
 func (e *Env) Changed(opts UpOptions) (bool, error) {
 	want, err := ResolveGroups(opts.With, opts.Without)
 	if err != nil {
 		return false, err
 	}
-	state, _, err := localtestv2.ReadState(e.cfg)
+	state, up, err := localtestv2.ReadState(e.cfg)
 	if err != nil {
 		return false, fmt.Errorf("read localtest-v2 state: %w", err)
 	}
 	have := slices.Clone(state.Groups)
 	slices.Sort(have)
-	return !slices.Equal(want, have) ||
+	return opts.Minimal != state.Minimal ||
+		originChanged(opts, state, up) ||
+		!slices.Equal(want, have) ||
 		opts.LatestImages != state.LatestImages ||
 		!slices.Equal(slices.Sorted(maps.Keys(opts.DevComponents)), state.Dev), nil
 }
@@ -137,18 +147,24 @@ func (e *Env) Start(ctx context.Context, upOpts UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	opts, err := e.options(upOpts)
+	opts, err := e.options(ctx, upOpts)
 	if err != nil {
 		return err
 	}
 	if err := ensureCertificate(opts.CertDir); err != nil {
 		return err
 	}
+	if err := e.stopOnSwitch(ctx, opts); err != nil {
+		return err
+	}
 	if err := localtestv2.WriteState(e.cfg, localtestv2.State{
 		CertificateDir: opts.CertDir,
+		PublicHost:     opts.Origin.Host,
+		PublicPort:     opts.Origin.Port,
 		Groups:         opts.Groups,
 		Dev:            slices.Sorted(maps.Keys(opts.Dev)),
 		LatestImages:   opts.LatestImages,
+		Minimal:        opts.Minimal,
 	}); err != nil {
 		return fmt.Errorf("record localtest-v2 state: %w", err)
 	}
@@ -156,21 +172,16 @@ func (e *Env) Start(ctx context.Context, upOpts UpOptions) error {
 	// and a registration provisions the app for the groups that are up now, so an app registered before
 	// `env up --with dialogporten` is synced to Dialogporten too. The front door keeps its registrations on its volume,
 	// so a server that kept running would see nothing to do.
-	if err := studioctlserver.Restart(ctx, e.cfg, opts.Topology.IngressPort()); err != nil {
+	if err := studioctlserver.Restart(ctx, e.cfg, strconv.Itoa(opts.Origin.Port)); err != nil {
 		return fmt.Errorf("restart studioctl-server: %w", err)
 	}
 
-	probes := newProber(e.client, e.out.Verbosef).probes
-	if err := e.applyResources(ctx, resources(opts, probes), len(opts.Dev) > 0); err != nil {
+	if err := e.startContainers(ctx, opts); err != nil {
 		return err
-	}
-	e.out.Println("Waiting for the front door to answer...")
-	if err := waitFrontDoor(ctx, e.out, frontDoorHealthURL(opts)); err != nil {
-		return fmt.Errorf("localtest-v2 did not become healthy: %w", err)
 	}
 	e.out.Success("Environment healthy")
 
-	localtestURL := opts.Topology.LocaltestURL()
+	localtestURL := opts.topology().LocaltestURL()
 	if upOpts.OpenBrowser {
 		if err := osutil.OpenContext(ctx, localtestURL); err != nil {
 			e.out.Warningf("Failed to open browser: %v", err)
@@ -196,7 +207,7 @@ func (e *Env) Down(ctx context.Context) error {
 	if !hasResources {
 		return e.forgetState(ctx, envtypes.ErrAlreadyStopped)
 	}
-	if err := e.destroyResources(ctx, resources(e.teardownOptions(), nil), stoppingMessage); err != nil {
+	if err := e.teardown(ctx, stoppingMessage); err != nil {
 		return fmt.Errorf("stop environment: %w", err)
 	}
 	if err := e.forgetState(ctx, nil); err != nil {
@@ -206,19 +217,29 @@ func (e *Env) Down(ctx context.Context) error {
 	return nil
 }
 
-// Reset stops the environment if needed and deletes its volumes: the manifest's, with this runtime's prefix only.
+// Reset stops the environment if needed and deletes its volumes: the manifest's, with this runtime's prefix only. In
+// minimal mode there are none to delete, and the default stack's are left alone.
 func (e *Env) Reset(ctx context.Context) error {
+	// An unreadable state file resets as before: the mode only spares the volumes when it is known to be minimal.
+	state, _, stateErr := localtestv2.ReadState(e.cfg)
+	if stateErr != nil {
+		e.out.Verbosef("read localtest-v2 state: %v", stateErr)
+	}
 	hasResources, err := e.hasManagedResources(ctx)
 	if err != nil {
 		return err
 	}
 	if hasResources {
-		if err := e.destroyResources(ctx, resources(e.teardownOptions(), nil), stoppingMessage); err != nil {
+		if err := e.teardown(ctx, stoppingMessage); err != nil {
 			return fmt.Errorf("stop environment: %w", err)
 		}
 	}
 	if err := e.forgetState(ctx, nil); err != nil {
 		return err
+	}
+	if state.Minimal {
+		e.out.Println(nothingToReset)
+		return nil
 	}
 	e.out.Println("Deleting persisted localtest-v2 data...")
 	for _, volume := range volumeNames() {
@@ -264,7 +285,17 @@ func (e *Env) Status(ctx context.Context) (*envtypes.Status, error) {
 	}
 	images := e.stack.ContainerImages(ctx, graph.All(), snapshot, pulledRef)
 
-	status := envtypes.Status{Containers: []envtypes.ContainerStatus{}, Running: false, AnyRunning: false}
+	status := envtypes.Status{
+		Origin:     current.Origin.URL(),
+		Mode:       "",
+		Emulated:   emulated(current),
+		Containers: []envtypes.ContainerStatus{},
+		Running:    false,
+		AnyRunning: false,
+	}
+	if current.Minimal {
+		status.Mode = ModeMinimal
+	}
 	ready := 0
 	for _, res := range graph.All() {
 		ctr, ok := res.(*resource.Container)
@@ -315,8 +346,8 @@ func (e *Env) defaultOptions() *Options {
 	return defaultOptions(localtestv2.CertificateDir(e.cfg))
 }
 
-// currentOptions are the options of the environment as it was started: the optional groups and the image tags come
-// from the state file, so status and logs cover the containers that exist, do not report a group that was never
+// currentOptions are the options of the environment as it was started: the optional groups, the image tags and the
+// public origin come from the state file, so status and logs cover the containers that exist, do not report a group that was never
 // started as missing, and name the images the containers were started from.
 func (e *Env) currentOptions() (*Options, error) {
 	opts := e.defaultOptions()
@@ -326,6 +357,8 @@ func (e *Env) currentOptions() (*Options, error) {
 	}
 	opts.Groups = state.Groups
 	opts.LatestImages = state.LatestImages
+	opts.Minimal = state.Minimal
+	opts.Origin = state.Origin()
 	return opts, nil
 }
 
@@ -337,10 +370,11 @@ func (e *Env) teardownOptions() *Options {
 	return opts
 }
 
-func (e *Env) options(upOpts UpOptions) (*Options, error) {
+func (e *Env) options(ctx context.Context, upOpts UpOptions) (*Options, error) {
 	opts := e.defaultOptions()
 	_, _, opts.RelabelBinds = envstack.RuntimeUser(e.client.Toolchain())
 	opts.LatestImages = upOpts.LatestImages
+	opts.Minimal = upOpts.Minimal
 	groups, err := ResolveGroups(upOpts.With, upOpts.Without)
 	if err != nil {
 		return nil, err
@@ -349,6 +383,17 @@ func (e *Env) options(upOpts UpOptions) (*Options, error) {
 	if opts.Dev, err = e.devBuilds(upOpts.DevComponents); err != nil {
 		return nil, err
 	}
+	state, up, err := localtestv2.ReadState(e.cfg)
+	if err != nil {
+		return nil, fmt.Errorf("read localtest-v2 state: %w", err)
+	}
+	host, port := requestedOrigin(upOpts, state, up, up && e.frontDoorRunning(ctx))
+	if port == 0 {
+		if port, err = freePort(ctx); err != nil {
+			return nil, err
+		}
+	}
+	opts.Origin = stack().Origin(host, port)
 	return opts, nil
 }
 
@@ -379,7 +424,7 @@ func (e *Env) runForeground(ctx context.Context, localtestURL string, opts *Opti
 	teardownCtx, cancel := context.WithTimeout(context.Background(), teardownTimeout)
 	defer cancel()
 	//nolint:contextcheck // intentionally using new context for cleanup after cancellation
-	if err := e.destroyResources(teardownCtx, resources(e.teardownOptions(), nil), ""); err != nil {
+	if err := e.teardown(teardownCtx, ""); err != nil {
 		e.out.Warningf("Failed to stop environment cleanly: %v", err)
 		return err
 	}
@@ -392,11 +437,25 @@ func (e *Env) runForeground(ctx context.Context, localtestURL string, opts *Opti
 }
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
-	has, err := e.stack.HasManagedResources(ctx, resources(e.teardownOptions(), nil))
+	managed, err := e.managedResources(ctx)
+	return len(managed) > 0, err
+}
+
+// managedResources lists the resources of this runtime that exist, sorted: its containers and its network.
+func (e *Env) managedResources(ctx context.Context) ([]string, error) {
+	_, snapshot, err := e.stack.Observe(ctx, resources(e.teardownOptions(), nil))
 	if err != nil {
-		return false, fmt.Errorf("observe localtest-v2: %w", err)
+		return nil, fmt.Errorf("observe localtest-v2: %w", err)
 	}
-	return has, nil
+	var managed []string
+	for id, observed := range snapshot.Resources {
+		if !observed.Managed || observed.Status == executor.StatusDestroyed {
+			continue
+		}
+		managed = append(managed, id.String())
+	}
+	slices.Sort(managed)
+	return managed, nil
 }
 
 func (e *Env) applyResources(ctx context.Context, resources []resource.Resource, building bool) error {

@@ -1,7 +1,10 @@
 package localtestv2
 
 import (
+	"errors"
 	"flag"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"altinn.studio/devenv/pkg/container"
@@ -10,27 +13,38 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
+var errPortFlag = errors.New("not a port number")
+
 // UpOptions configures the localtest-v2 environment's startup: the shared options and the runtime's own flags.
 type UpOptions struct {
 	// DevComponents are the containers to build from source instead of pulling, by manifest name: the path to the
 	// Dockerfile or to the directory holding it, empty for the current directory.
 	DevComponents map[string]string
+	// PublicPort is --port; nil keeps the recorded or default port, 0 picks a free one.
+	PublicPort *int
+	// PublicHost is --host; empty keeps the recorded or default host.
+	PublicHost string
 	// With and Without name the optional groups to start or leave out.
 	With    []string
 	Without []string
 	Detach  bool
 	// LatestImages runs the research images at "latest" instead of their pinned sha- tag.
 	LatestImages bool
-	OpenBrowser  bool
+	// Minimal runs the minimal stack.
+	Minimal     bool
+	OpenBrowser bool
 }
 
 func noUpOptions() UpOptions {
 	return UpOptions{
 		DevComponents: nil,
+		PublicPort:    nil,
+		PublicHost:    "",
 		With:          nil,
 		Without:       nil,
 		Detach:        false,
 		LatestImages:  false,
+		Minimal:       false,
 		OpenBrowser:   false,
 	}
 }
@@ -55,6 +69,12 @@ func (r *Runtime) Name() string {
 func (r *Runtime) UpUsage() []string {
 	return []string{
 		"  --latest         Run the research images at :latest instead of the pinned build",
+		"  --minimal        Run in minimal mode: Postgres, Storage, the workflow engine and the localtest container,",
+		"                   which emulates the other services; nothing is kept between starts",
+		"  --host HOST      The public host (default local.altinn.cloud); HOST and its subdomains pdf.,",
+		"                   workflow-engine., app-frontend. and af. must resolve to 127.0.0.1 (the hosts file)",
+		"  --port PORT      The public port (default 8000); 0 picks a free port",
+		"                   A running environment keeps its host and port; other values restart it",
 		"  --dev-NAME[=PATH]",
 		"                   Build the container NAME from PATH, a Dockerfile or a directory holding one",
 		"                   (default: the current directory), and run it instead of the pinned image; NAME is one of",
@@ -69,6 +89,16 @@ func (r *Runtime) UpUsage() []string {
 func (r *Runtime) BindUpFlags(fs *flag.FlagSet) {
 	r.flags.DevComponents = map[string]string{}
 	fs.BoolVar(&r.flags.LatestImages, "latest", false, "Run the research images at :latest")
+	fs.BoolVar(&r.flags.Minimal, "minimal", false, "Run in minimal mode")
+	fs.StringVar(&r.flags.PublicHost, "host", "", "The public host")
+	fs.Func("port", "The public port; 0 picks a free port", func(value string) error {
+		port, err := strconv.Atoi(strings.TrimSpace(value))
+		if err != nil {
+			return fmt.Errorf("%w: %q", errPortFlag, value)
+		}
+		r.flags.PublicPort = &port
+		return nil
+	})
 	for _, name := range DevContainers() {
 		fs.Var(
 			&devFlag{name: name, dev: r.flags.DevComponents},

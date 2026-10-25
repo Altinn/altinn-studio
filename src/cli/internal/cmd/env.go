@@ -92,16 +92,55 @@ func (o envStatusOutput) Print(out *ui.Output) error {
 		out.Printlnf("%s is not running.", o.Runtime)
 		return nil
 	}
-	if !o.Status.Running {
-		out.Printlnf("%s is running with issues.", o.Runtime)
-		out.Println("")
-		renderEnvStatus(out, o.Status)
-		return nil
+	mode := ""
+	if o.Status.Mode != "" {
+		mode = " (" + o.Status.Mode + " mode)"
 	}
-	out.Printlnf("%s is running.", o.Runtime)
+	switch {
+	case !o.Status.Running:
+		out.Printlnf("%s is running with issues%s.", o.Runtime, mode)
+	case mode != "":
+		out.Printlnf("%s is running%s", o.Runtime, mode)
+	default:
+		out.Printlnf("%s is running.", o.Runtime)
+	}
+	if o.Status.Origin != "" {
+		out.Printlnf("Origin: %s", o.Status.Origin)
+	}
 	out.Println("")
 	renderEnvStatus(out, o.Status)
+	if len(o.Status.Emulated) > 0 {
+		out.Print(emulatedLine(o.Status.Emulated))
+	}
 	return nil
+}
+
+// emulatedLineWidth is where emulatedLine wraps the list of emulated services.
+const emulatedLineWidth = 72
+
+// emulatedLine names the services the localtest container emulates, wrapped at emulatedLineWidth.
+func emulatedLine(names []string) string {
+	var b strings.Builder
+	column := 0
+	for i, name := range names {
+		word := name + ","
+		if i == len(names)-1 {
+			word = name + ": emulated in localtest"
+		}
+		switch {
+		case column == 0:
+		case column+1+len(word) > emulatedLineWidth:
+			b.WriteString("\n")
+			column = 0
+		default:
+			b.WriteByte(' ')
+			column++
+		}
+		b.WriteString(word)
+		column += len(word)
+	}
+	b.WriteString("\n")
+	return b.String()
 }
 
 type envResetOutput struct {

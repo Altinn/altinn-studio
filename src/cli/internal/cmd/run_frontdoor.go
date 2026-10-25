@@ -19,7 +19,7 @@ import (
 
 // Against localtest-v2, the front door (the localtest container) routes /{org}/{app}/ to an app once studioctl-server
 // has registered it, and provisions the app from its API on registration; a run waits for that. With --dev-frontend,
-// the run also routes app-frontend.local.altinn.cloud, where the app's assets then point, to the frontend dev server on
+// the run also routes app-frontend.<public host>, where the app's assets then point, to the frontend dev server on
 // the host's port 8080, where the localtest runtime's host bridge sent that host too (`yarn docker` in the app frontend
 // builds and serves dist there with CORS, `yarn start --port 8080` runs Vite there), and removes the route when the run
 // stops. Without localtest-v2 both do nothing.
@@ -27,34 +27,52 @@ const frontendDevServerPort = 8080
 
 var errFrontDoorRegistration = errors.New("the localtest-v2 front door has not registered the app")
 
-// waitForFrontDoorRegistration waits, while the localtest-v2 runtime is up, until the front door lists the app at the
-// address of baseURL's port with a provisioning that succeeded at or after since.
+// publicTopology is the public URLs an app run and its environment use: the running localtest-v2 environment's origin
+// (env up --host, --port), else the default.
+func publicTopology(cfg *config.Config) (envtopology.Local, error) {
+	if cfg == nil {
+		return envtopology.NewLocal(envtopology.DefaultIngressPortString()), nil
+	}
+	topology, err := localtestv2.CurrentTopology(cfg)
+	if err != nil {
+		return topology, fmt.Errorf("read localtest-v2 state: %w", err)
+	}
+	return topology, nil
+}
+
+// hostAppURL is the address the front door reaches an app on the host at: baseURL's port through the host gateway.
+func hostAppURL(baseURL string) (string, error) {
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return "", fmt.Errorf("parse app URL %q: %w", baseURL, err)
+	}
+	port, err := strconv.Atoi(parsed.Port())
+	if err != nil {
+		return "", fmt.Errorf("app URL %q has no port: %w", baseURL, err)
+	}
+	return frontdoor.AppURL(port), nil
+}
+
+// waitForFrontDoorRegistration waits, while the localtest-v2 runtime is up, until the front door lists the app at want
+// (hostAppURL for an app on the host, the alias on the localtest-v2 network for an app container) with a provisioning that
+// succeeded at or after since.
 func waitForFrontDoorRegistration(
 	ctx context.Context,
 	cfg *config.Config,
 	topology envtopology.Local,
 	appID string,
-	baseURL string,
+	want string,
 	since time.Time,
 	timeout time.Duration,
 ) error {
 	if _, up, err := localtestv2.ReadState(cfg); err != nil || !up {
 		return err //nolint:wrapcheck // ReadState's error names the state file.
 	}
-	parsed, err := url.Parse(baseURL)
-	if err != nil {
-		return fmt.Errorf("parse app URL %q: %w", baseURL, err)
-	}
-	port, err := strconv.Atoi(parsed.Port())
-	if err != nil {
-		return fmt.Errorf("app URL %q has no port: %w", baseURL, err)
-	}
 	org, app, _ := strings.Cut(appID, "/")
-	want := frontdoor.AppURL(port)
 
 	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	err = frontdoor.NewClient(topology.LocaltestURL()).WaitForApp(waitCtx, org, app, want, since)
+	err := frontdoor.NewClient(topology.LocaltestURL()).WaitForApp(waitCtx, org, app, want, since)
 	switch {
 	case err == nil:
 		return nil

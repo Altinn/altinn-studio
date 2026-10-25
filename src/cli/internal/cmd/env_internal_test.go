@@ -175,6 +175,7 @@ func TestEnvUpRefusesTheOtherRuntimesFlags(t *testing.T) {
 		args []string
 	}{
 		{args: []string{"--with", "dialogporten"}, want: "--with is not supported by the localtest runtime (it is localtest-v2's)"},
+		{args: []string{"-r", "localtest", "--minimal"}, want: "--minimal is not supported by the localtest runtime"},
 		{args: []string{"--dev-storage"}, want: "--dev-storage is not supported by the localtest runtime"},
 		{args: []string{"-r", "localtest-v2", "--monitoring"}, want: "--monitoring is not supported by the localtest-v2 runtime (it is localtest's)"},
 	} {

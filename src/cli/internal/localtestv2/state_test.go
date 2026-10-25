@@ -60,3 +60,34 @@ func TestRemoveStateIsIdempotent(t *testing.T) {
 		t.Fatalf("after remove: up=%v err=%v", up, err)
 	}
 }
+
+func TestTheStateRecordsTheOriginAndTheTopologyFollowsIt(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{DataDir: t.TempDir()}
+	if topology, err := localtestv2.CurrentTopology(
+		cfg,
+	); err != nil ||
+		topology.LocaltestURL() != "http://local.altinn.cloud:8000" {
+		t.Fatalf("no state: %s, %v", topology.LocaltestURL(), err)
+	}
+	if err := localtestv2.WriteState(cfg, localtestv2.State{
+		CertificateDir: "/certs", PublicHost: "origin.test", PublicPort: 18000,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	topology, err := localtestv2.CurrentTopology(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if topology.LocaltestURL() != "http://origin.test:18000" || topology.IngressPort() != "18000" ||
+		topology.ArbeidsflateHostName() != "af.origin.test" {
+		t.Errorf("topology at %s, port %s", topology.LocaltestURL(), topology.IngressPort())
+	}
+	if writeErr := localtestv2.WriteState(cfg, localtestv2.State{CertificateDir: "/certs"}); writeErr != nil {
+		t.Fatal(writeErr)
+	}
+	state, _, err := localtestv2.ReadState(cfg)
+	if err != nil || state.Origin().URL() != "http://local.altinn.cloud:8000" {
+		t.Errorf("a state without an origin is at the default one: %s, %v", state.Origin().URL(), err)
+	}
+}
