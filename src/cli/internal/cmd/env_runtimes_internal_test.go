@@ -24,10 +24,12 @@ type fakeRuntime struct {
 }
 
 type fakeRuntimeEnv struct {
-	widgets int
-	up      envtypes.UpOptions
-	verbose bool
-	started bool
+	widgets     int
+	activeCalls int
+	up          envtypes.UpOptions
+	verbose     bool
+	started     bool
+	active      bool
 }
 
 const fakeRuntimeName = "other"
@@ -47,9 +49,12 @@ func (r *fakeRuntime) BindUpFlags(fs *flag.FlagSet) {
 
 func (r *fakeRuntime) Env(container.ContainerClient, *ui.Output) envtypes.Env { return r.env }
 
-func (e *fakeRuntimeEnv) Name() string                         { return fakeRuntimeName }
-func (e *fakeRuntimeEnv) Active(context.Context) (bool, error) { return false, nil }
-func (e *fakeRuntimeEnv) Down(context.Context) error           { return nil }
+func (e *fakeRuntimeEnv) Name() string { return fakeRuntimeName }
+func (e *fakeRuntimeEnv) Active(context.Context) (bool, error) {
+	e.activeCalls++
+	return e.active, nil
+}
+func (e *fakeRuntimeEnv) Down(context.Context) error { return nil }
 
 func (e *fakeRuntimeEnv) Up(_ context.Context, opts envtypes.UpOptions) (envtypes.UpResult, error) {
 	e.up = opts
@@ -66,13 +71,11 @@ func (e *fakeRuntimeEnv) Logs(context.Context, envtypes.LogsOptions) error { ret
 func commandWithFakeRuntime(t *testing.T, out io.Writer) (*EnvCommand, *fakeRuntime) {
 	t.Helper()
 	fake := newFakeRuntime()
-	return &EnvCommand{
-		cfg: testEnvCommandConfig(t),
-		out: ui.NewOutput(out, io.Discard, false),
-		newRuntimes: func(cfg *config.Config) []envtypes.Runtime {
-			return []envtypes.Runtime{envlocaltest.NewRuntime(cfg), fake}
-		},
-	}, fake
+	command := testEnvCommand(t, out)
+	command.newRuntimes = func(cfg *config.Config) []envtypes.Runtime {
+		return []envtypes.Runtime{envlocaltest.NewRuntime(cfg), fake}
+	}
+	return command, fake
 }
 
 func TestEnvUpStartsTheChosenRuntimeWithItsOwnFlags(t *testing.T) {
@@ -80,8 +83,9 @@ func TestEnvUpStartsTheChosenRuntimeWithItsOwnFlags(t *testing.T) {
 	var out bytes.Buffer
 	command, fake := commandWithFakeRuntime(t, &out)
 
-	flags, _, err := command.parseUpFlags(
+	flags, err := command.parseUpFlags(
 		t.Context(),
+		mock.New(),
 		[]string{"-r", fakeRuntimeName, "--widgets", "3", "--monitoring", "--json"},
 	)
 	if err != nil {
@@ -106,12 +110,12 @@ func TestEnvUpNamesTheRuntimeAForeignFlagBelongsTo(t *testing.T) {
 	t.Parallel()
 	command, _ := commandWithFakeRuntime(t, io.Discard)
 
-	_, _, err := command.parseUpFlags(t.Context(), []string{"--widgets", "3"})
+	_, err := command.parseUpFlags(t.Context(), mock.New(), []string{"--widgets", "3"})
 	want := "--widgets is not supported by the localtest runtime (it is other's)"
 	if !errors.Is(err, ErrInvalidFlagValue) || !strings.Contains(err.Error(), want) {
 		t.Fatalf("parseUpFlags() = %v, want %q", err, want)
 	}
-	if _, _, err := command.parseUpFlags(t.Context(), []string{"--nosuch"}); err == nil ||
+	if _, err := command.parseUpFlags(t.Context(), mock.New(), []string{"--nosuch"}); err == nil ||
 		errors.Is(err, ErrInvalidFlagValue) {
 		t.Fatalf("parseUpFlags(--nosuch) = %v, want a plain undefined flag", err)
 	}
@@ -122,8 +126,8 @@ func TestEnvUsageHasASectionPerRuntime(t *testing.T) {
 	var out bytes.Buffer
 	command, _ := commandWithFakeRuntime(t, &out)
 
-	if _, shown, err := command.parseUpFlags(t.Context(), []string{"--help"}); err != nil || !shown {
-		t.Fatalf("parseUpFlags(--help) = %v, %v", shown, err)
+	if err := command.runUp(t.Context(), []string{"--help"}); err != nil {
+		t.Fatalf("runUp(--help) = %v", err)
 	}
 	for _, want := range []string{
 		"Runtime: localtest or other (default: the one running, else localtest)",
@@ -153,5 +157,84 @@ func TestEnvStatusAndResetReachEveryRuntime(t *testing.T) {
 	}
 	if _, err := command.env("nosuch", mock.New(), command.out); !errors.Is(err, ErrUnsupportedRuntime) {
 		t.Fatalf("env(nosuch) = %v, want ErrUnsupportedRuntime", err)
+	}
+}
+
+func TestEnvUpRefusesTwoDifferentRuntimes(t *testing.T) {
+	t.Parallel()
+	command, fake := commandWithFakeRuntime(t, io.Discard)
+
+	err := command.Run(t.Context(), []string{"up", "-r", envlocaltest.Name, "-r", fakeRuntimeName, "--widgets", "3"})
+	want := `-r is given as both "localtest" and "other"`
+	if !errors.Is(err, ErrInvalidFlagValue) || !strings.Contains(err.Error(), want) {
+		t.Fatalf("Run(up -r localtest -r other) = %v, want %q", err, want)
+	}
+	if fake.env.started {
+		t.Fatal("the other runtime started")
+	}
+	if _, err := command.parseUpFlags(
+		t.Context(), mock.New(), []string{"-r", fakeRuntimeName, "--runtime", fakeRuntimeName},
+	); err != nil {
+		t.Fatalf("parseUpFlags(-r other --runtime other) = %v, want the same runtime twice accepted", err)
+	}
+	// The flag package stops at the first argument that is not a flag, so it does not read this -r.
+	if _, err := command.parseUpFlags(
+		t.Context(), mock.New(), []string{"stray", "-r", fakeRuntimeName},
+	); !errors.Is(err, ErrInvalidFlagValue) {
+		t.Fatalf("parseUpFlags(stray -r other) = %v, want ErrInvalidFlagValue", err)
+	}
+}
+
+func TestEnvUpWithoutRuntimeConnectsAndChecksTheRuntimesOnce(t *testing.T) {
+	t.Parallel()
+	command, fake := commandWithFakeRuntime(t, io.Discard)
+	fake.env.active = true
+	connections := 0
+	command.containerClient = func(context.Context) (container.ContainerClient, error) {
+		connections++
+		return mock.New(), nil
+	}
+
+	if err := command.Run(t.Context(), []string{"up", "--widgets", "2"}); err != nil {
+		t.Fatalf("Run(up --widgets 2) = %v", err)
+	}
+	if !fake.env.started || fake.env.widgets != 2 {
+		t.Fatalf("fake env = %+v, want the running runtime started with its own flag", fake.env)
+	}
+	if connections != 1 || fake.env.activeCalls != 1 {
+		t.Fatalf("connections = %d, Active calls = %d, want 1 and 1", connections, fake.env.activeCalls)
+	}
+}
+
+func TestEnvUpWithRuntimeChecksNoOtherRuns(t *testing.T) {
+	t.Parallel()
+	command, fake := commandWithFakeRuntime(t, io.Discard)
+	fake.env.active = true
+
+	err := command.Run(t.Context(), []string{"up", "-r", envlocaltest.Name})
+	if !errors.Is(err, envtypes.ErrOtherRuntimeActive) {
+		t.Fatalf("Run(up -r localtest) = %v, want ErrOtherRuntimeActive", err)
+	}
+}
+
+func TestEnvResetRefusesARuntimeWithoutResetBeforeItPrompts(t *testing.T) {
+	t.Parallel()
+	command, _ := commandWithFakeRuntime(t, io.Discard)
+
+	// Without --yes and without a terminal, the prompt would fail with ErrInvalidFlagValue.
+	err := command.Run(t.Context(), []string{"reset", "-r", fakeRuntimeName})
+	if !errors.Is(err, errResetUnsupported) {
+		t.Fatalf("Run(reset -r other) = %v, want errResetUnsupported before the prompt", err)
+	}
+}
+
+func TestUndefinedFlagErrorText(t *testing.T) {
+	t.Parallel()
+	fs := flag.NewFlagSet("test", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+
+	err := fs.Parse([]string{"--nosuch"})
+	if err == nil || !strings.HasPrefix(err.Error(), undefinedFlagPrefix) {
+		t.Fatalf("Parse(--nosuch) = %v, want it to start with %q", err, undefinedFlagPrefix)
 	}
 }

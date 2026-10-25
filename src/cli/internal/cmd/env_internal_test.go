@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/mock"
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
@@ -42,10 +43,7 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	command := &EnvCommand{
-		cfg: testEnvCommandConfig(t),
-		out: ui.NewOutput(&out, io.Discard, false),
-	}
+	command := testEnvCommand(t, &out)
 	err := command.up(context.Background(), client, envUpFlags{
 		runtime:     envlocaltest.NewRuntime(command.cfg),
 		detach:      true,
@@ -64,6 +62,27 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 		t.Fatalf("output = %+v, want already running result", got)
 	}
 }
+
+// testEnvCommand is an env command on a mock container runtime, with the registry's runtimes.
+func testEnvCommand(t *testing.T, out io.Writer) *EnvCommand {
+	t.Helper()
+	return &EnvCommand{
+		cfg: testEnvCommandConfig(t),
+		out: ui.NewOutput(out, io.Discard, false),
+		containerClient: func(context.Context) (container.ContainerClient, error) {
+			return mock.New(), nil
+		},
+	}
+}
+
+// failContainerRuntime makes command's container runtime unreachable.
+func failContainerRuntime(command *EnvCommand) {
+	command.containerClient = func(context.Context) (container.ContainerClient, error) {
+		return nil, errNoContainerRuntime
+	}
+}
+
+var errNoContainerRuntime = errors.New("no container runtime")
 
 func testEnvCommandConfig(t *testing.T) *config.Config {
 	t.Helper()
@@ -94,7 +113,7 @@ func testLocaltestImages() config.ImagesConfig {
 func TestEnvUpJSONRejectsForeground(t *testing.T) {
 	t.Parallel()
 
-	command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	command := testEnvCommand(t, io.Discard)
 	err := command.runUp(context.Background(), []string{"--json", "--detach=false"})
 	if err == nil {
 		t.Fatal("runUp() error = nil, want error")
@@ -107,28 +126,26 @@ func TestEnvUpJSONRejectsForeground(t *testing.T) {
 func TestParseUpFlagsBindsTheChosenRuntimesOwnFlags(t *testing.T) {
 	t.Parallel()
 
-	command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
+	command := testEnvCommand(t, io.Discard)
+	client := mock.New()
 	for _, args := range [][]string{
 		{"--dev-workflow-engine", "--pgadmin"},
 		{"-r", "localtest", "--monitoring"},
 		{"--runtime=localtest", "--json"},
 	} {
-		got, helpShown, err := command.parseUpFlags(t.Context(), args)
-		if err != nil || helpShown {
-			t.Fatalf("parseUpFlags(%v) = %v, %v", args, helpShown, err)
+		got, err := command.parseUpFlags(t.Context(), client, args)
+		if err != nil {
+			t.Fatalf("parseUpFlags(%v) = %v", args, err)
 		}
 		if got.runtime.Name() != envlocaltest.Name {
 			t.Errorf("parseUpFlags(%v) runtime = %s, want %s", args, got.runtime.Name(), envlocaltest.Name)
 		}
 	}
-	if _, _, err := command.parseUpFlags(t.Context(), []string{"--nosuch"}); err == nil ||
+	if _, err := command.parseUpFlags(t.Context(), client, []string{"--nosuch"}); err == nil ||
 		errors.Is(err, ErrInvalidFlagValue) {
 		t.Fatalf("parseUpFlags(--nosuch) = %v, want an undefined flag", err)
 	}
-	if _, _, err := command.parseUpFlags(
-		t.Context(),
-		[]string{"-r", "nosuch"},
-	); !errors.Is(
+	if _, err := command.parseUpFlags(t.Context(), client, []string{"-r", "nosuch"}); !errors.Is(
 		err,
 		ErrUnsupportedRuntime,
 	) {
@@ -149,10 +166,14 @@ func TestRuntimeArg(t *testing.T) {
 		{want: "a", args: []string{"--json", "-runtime=a"}},
 		{want: "", args: []string{"--", "-r", "a"}},
 		{want: "", args: []string{"-r"}},
+		{want: "a", args: []string{"-r", "a", "--runtime=a"}},
 	} {
-		if got := runtimeArg(tc.args); got != tc.want {
-			t.Errorf("runtimeArg(%v) = %q, want %q", tc.args, got, tc.want)
+		if got, err := runtimeArg(tc.args); err != nil || got != tc.want {
+			t.Errorf("runtimeArg(%v) = %q, %v, want %q", tc.args, got, err, tc.want)
 		}
+	}
+	if _, err := runtimeArg([]string{"-r", "a", "--runtime", "b"}); !errors.Is(err, ErrInvalidFlagValue) {
+		t.Errorf("runtimeArg(-r a --runtime b) = %v, want ErrInvalidFlagValue", err)
 	}
 }
 
@@ -169,13 +190,10 @@ func TestParseUpFlagsHelpHidesDevWorkflowEngine(t *testing.T) {
 	t.Parallel()
 
 	var out bytes.Buffer
-	command := &EnvCommand{out: ui.NewOutput(&out, io.Discard, false)}
-	_, helpShown, err := command.parseUpFlags(t.Context(), []string{"--help"})
-	if err != nil {
-		t.Fatalf("parseUpFlags() error = %v", err)
-	}
-	if !helpShown {
-		t.Fatal("parseUpFlags() helpShown = false, want true")
+	command := testEnvCommand(t, &out)
+	failContainerRuntime(command) // help does not need the container runtime
+	if err := command.runUp(t.Context(), []string{"--help"}); err != nil {
+		t.Fatalf("runUp(--help) error = %v", err)
 	}
 	if got := out.String(); strings.Contains(got, "--dev-workflow-engine") {
 		t.Fatalf("help output includes hidden --dev-workflow-engine:\n%s", got)
@@ -194,11 +212,15 @@ func TestEnvHostsStatusJSON(t *testing.T) {
 		hostsFileTargets: func() ([]osutil.HostsTarget, error) {
 			return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
 		},
+		containerClient: func(context.Context) (container.ContainerClient, error) {
+			t.Error("env hosts status asked the container runtime")
+			return nil, errNoContainerRuntime
+		},
 		cfg: &config.Config{},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
 
-	if err := command.runHostsStatus(context.Background(), []string{"--json"}); err != nil {
+	if err := command.runHostsStatus([]string{"--json"}); err != nil {
 		t.Fatalf("runHostsStatus() error = %v", err)
 	}
 
@@ -241,11 +263,15 @@ func TestEnvHostsAddJSON(t *testing.T) {
 		hostsFileTargets: func() ([]osutil.HostsTarget, error) {
 			return []osutil.HostsTarget{{Label: "Linux", Path: hostsPath, Required: true}}, nil
 		},
+		containerClient: func(context.Context) (container.ContainerClient, error) {
+			t.Error("env hosts add asked the container runtime")
+			return nil, errNoContainerRuntime
+		},
 		cfg: &config.Config{},
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
 
-	if err := command.runHostsAdd(context.Background(), []string{"--json"}); err != nil {
+	if err := command.runHostsAdd([]string{"--json"}); err != nil {
 		t.Fatalf("runHostsAdd() error = %v", err)
 	}
 
@@ -292,4 +318,49 @@ func TestEnvHostsAddJSON(t *testing.T) {
 
 func defaultLocalHostnames() []string {
 	return envtopology.NewLocal(envtopology.DefaultIngressPortString()).HostFileHostnames()
+}
+
+func TestEnvHostsValidatesAnExplicitRuntime(t *testing.T) {
+	t.Parallel()
+	command := testEnvCommand(t, io.Discard)
+	failContainerRuntime(command)
+
+	if err := command.runHostsStatus([]string{"-r", "nosuch"}); !errors.Is(err, ErrUnsupportedRuntime) {
+		t.Fatalf("runHostsStatus(-r nosuch) = %v, want ErrUnsupportedRuntime", err)
+	}
+}
+
+func TestEnvCommandsWithoutAContainerRuntime(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		wantErr error
+		name    string
+		args    []string
+	}{
+		{name: "status", args: []string{"status"}, wantErr: errNoContainerRuntime},
+		{name: "logs", args: []string{"logs"}, wantErr: errNoContainerRuntime},
+		{name: "down", args: []string{"down"}, wantErr: errNoContainerRuntime},
+		{name: "reset", args: []string{"reset", "--yes"}, wantErr: errNoContainerRuntime},
+		{name: "up", args: []string{"up"}, wantErr: errNoContainerRuntime},
+		{name: "an unknown runtime first", args: []string{"status", "-r", "nosuch"}, wantErr: ErrUnsupportedRuntime},
+		{name: "a flag error first", args: []string{"up", "--nosuch"}, wantErr: nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			command := testEnvCommand(t, io.Discard)
+			failContainerRuntime(command)
+
+			err := command.Run(t.Context(), tc.args)
+			if tc.wantErr == nil {
+				if err == nil || errors.Is(err, errNoContainerRuntime) {
+					t.Fatalf("Run(%v) = %v, want a flag error", tc.args, err)
+				}
+				return
+			}
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("Run(%v) = %v, want %v", tc.args, err, tc.wantErr)
+			}
+		})
+	}
 }
