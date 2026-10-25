@@ -270,7 +270,10 @@ func signatureAlgorithmFromX509(algo x509.SignatureAlgorithm) (jose.SignatureAlg
 		x509.ECDSAWithSHA256,
 		x509.ECDSAWithSHA384,
 		x509.ECDSAWithSHA512,
-		x509.PureEd25519:
+		x509.PureEd25519,
+		x509.MLDSA44,
+		x509.MLDSA65,
+		x509.MLDSA87:
 		return "", false
 	}
 

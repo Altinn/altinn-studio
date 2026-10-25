@@ -694,7 +694,7 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 		}
 
 		// The request URL is validated against configured Maskinporten hosts immediately above.
-		//nolint:bodyclose,gosec // The caller closes successful responses; SSRF is mitigated by validateRequestURL's allowlist check.
+		//nolint:bodyclose // The caller closes successful responses.
 		resp, err = c.client.Do(req)
 		if err != nil {
 			return fmt.Errorf("execute Maskinporten request: %w", err)

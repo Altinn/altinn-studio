@@ -3,6 +3,7 @@
   "extends": [
     "local>Altinn/renovate-config",
     ":prHourlyLimit4",
+    "customManagers:makefileVersions",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
   "customManagers": [
@@ -44,6 +45,14 @@
       ],
       "datasourceTemplate": "rust-version",
       "depNameTemplate": "rust"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Go toolchain copies that cannot read go.mod: the Go releases the runner and Agent images install",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": ["ARG GO_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "golang-version",
+      "depNameTemplate": "go"
     }
   ],
   "separateMultipleMajor": true,
@@ -72,10 +81,10 @@
     },
     {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
-      "matchManagers": ["gomod"],
+      "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
-        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
@@ -85,10 +94,10 @@
     },
     {
       "description": "Require explicit approval for Kubernetes, Flux, and cluster tooling Go dependency minor/major updates after checking target cluster compatibility",
-      "matchManagers": ["gomod"],
+      "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
-        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
@@ -329,6 +338,42 @@
       "groupName": "Rust toolchain",
       "groupSlug": "rust-toolchain",
       "enabled": true
+    },
+    {
+      "description": "Move the go.mod go directives, every copy of their version and the golang build images in one pull request, so CI, the shipped binaries, the runner images and the Agent images build with the Go release the modules declare. Renovate treats the go directive as a minimum and leaves it alone unless rangeStrategy is bump. Patch releases get their own pull request, so security fixes are not held back while a minor release waits for approval.",
+      "matchDatasources": ["golang-version", "docker"],
+      "matchPackageNames": ["go", "golang", "docker.io/library/golang"],
+      "groupName": "Go toolchain",
+      "groupSlug": "go-toolchain",
+      "rangeStrategy": "bump",
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Refresh the golang image digests in the patch pull request, so they are not held back while a Go minor release waits for approval",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["golang", "docker.io/library/golang"],
+      "matchUpdateTypes": ["digest", "pinDigest"],
+      "groupSlug": "patch-go-toolchain"
+    },
+    {
+      "description": "Require approval for new Go minor releases: raising the go directive changes the language version and the GODEBUG defaults the modules run with, and golangci-lint must support the release first.",
+      "matchDatasources": ["golang-version", "docker"],
+      "matchPackageNames": ["go", "golang", "docker.io/library/golang"],
+      "matchUpdateTypes": ["major", "minor"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Let the go directives and GO_VERSION arguments wait longer than the golang images, which are published a day or two after a Go release, so a Go toolchain pull request does not pair a new go directive with the previous image and fail to build under the images' GOTOOLCHAIN=local",
+      "matchDatasources": ["golang-version"],
+      "matchPackageNames": ["go"],
+      "minimumReleaseAge": "5 days"
+    },
+    {
+      "description": "Move the golangci-lint every Go module's Makefile installs in one pull request, so the modules lint with the same release",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["github.com/golangci/golangci-lint/v2"],
+      "groupName": "golangci-lint",
+      "groupSlug": "golangci-lint"
     }
   ],
   "schedule": ["* 7-15 * * 1-5"],
