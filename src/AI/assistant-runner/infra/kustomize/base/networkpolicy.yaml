@@ -4,7 +4,8 @@
 #   the caller, because the pod has no token.
 # - Egress to cluster DNS, and to the internet on port 443 for NuGet. The ipBlock does not include the private ranges.
 #   Because of this, a job cannot reach other pods or Services (Designer, Gitea), the Azure instance metadata service or
-#   the Azure host. The allowlist in the job host is the first layer. This rule is the second.
+#   the Azure host. The job host checks only the host names and not the addresses, so only this rule blocks these
+#   addresses.
 #
 # A rule for the kubelet probes is not necessary, because Azure Network Policy Manager filters only forwarded traffic.
 # The kubelet connects from the node itself.
