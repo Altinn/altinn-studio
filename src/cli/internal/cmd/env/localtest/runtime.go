@@ -32,14 +32,19 @@ type Runtime struct {
 // NewRuntime returns the localtest runtime for one command.
 func NewRuntime(cfg *config.Config) *Runtime {
 	return &Runtime{
-		cfg: cfg,
-		flags: UpOptions{
-			Detach:            false,
-			DevWorkflowEngine: false,
-			Monitoring:        false,
-			OpenBrowser:       false,
-			PgAdmin:           false,
-		},
+		cfg:   cfg,
+		flags: defaultUpOptions(),
+	}
+}
+
+// defaultUpOptions are the options localtest starts with when no flag sets them.
+func defaultUpOptions() UpOptions {
+	return UpOptions{
+		Detach:            false,
+		DevWorkflowEngine: false,
+		Monitoring:        false,
+		OpenBrowser:       false,
+		PgAdmin:           false,
 	}
 }
 
@@ -68,7 +73,5 @@ func (r *Runtime) BindUpFlags(fs *flag.FlagSet) {
 //
 //nolint:ireturn // the registry hands out runtimes by interface
 func (r *Runtime) Env(client container.ContainerClient, out *ui.Output) envtypes.Env {
-	env := NewEnv(r.cfg, out, client)
-	env.flags = r.flags
-	return env
+	return newEnv(r.cfg, out, client, r.flags)
 }
