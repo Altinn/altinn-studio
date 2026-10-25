@@ -11,6 +11,9 @@ import (
 // public origin's port and host names, so only one runs at a time.
 var ErrOtherRuntimeActive = errors.New("another environment runtime is running")
 
+// ErrRuntimesActive is returned when no runtime is named and more than one runs, so there is no one runtime to act on.
+var ErrRuntimesActive = errors.New("more than one environment runtime is running")
+
 // ActiveRuntimes returns the runtimes of envs that have a running container. It is the one answer to which runtime is
 // up; callers do not keep their own record of it.
 func ActiveRuntimes(ctx context.Context, envs []Env) ([]Env, error) {
@@ -47,7 +50,7 @@ func EnsureNoOtherActive(ctx context.Context, name string, envs []Env) error {
 }
 
 // ResolveRuntime names the runtime a command acts on: the requested one, else the one runtime that is running, else
-// fallback.
+// fallback. It refuses to pick one when more than one runs.
 func ResolveRuntime(ctx context.Context, requested, fallback string, envs []Env) (string, error) {
 	if requested != "" {
 		return requested, nil
@@ -56,8 +59,16 @@ func ResolveRuntime(ctx context.Context, requested, fallback string, envs []Env)
 	if err != nil {
 		return "", err
 	}
-	if len(active) == 1 {
+	switch len(active) {
+	case 0:
+		return fallback, nil
+	case 1:
 		return active[0].Name(), nil
+	default:
+		names := make([]string, 0, len(active))
+		for _, env := range active {
+			names = append(names, env.Name())
+		}
+		return "", fmt.Errorf("%w: %s; pick one with -r", ErrRuntimesActive, strings.Join(names, ", "))
 	}
-	return fallback, nil
 }
