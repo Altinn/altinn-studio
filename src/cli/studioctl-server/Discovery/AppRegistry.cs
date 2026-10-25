@@ -210,8 +210,7 @@ internal sealed class AppRegistry : BackgroundService
             _changed?.Invoke();
         }
 
-        // Before the readiness check: on localtest-v2, Storage knows an app only once the front door has provisioned it.
-        await _frontDoor.Reconcile(apps, cancellationToken);
+        _frontDoor.Reconcile(apps, cancellationToken);
         await CompleteReadyStarts(apps, cancellationToken);
     }
 
@@ -349,6 +348,10 @@ internal sealed class AppRegistry : BackgroundService
 
             var app = apps.FirstOrDefault(waiter.Matches);
             if (app is null)
+                continue;
+
+            // Before the readiness check: on localtest-v2, Storage knows an app only once the front door has provisioned it.
+            if (!_frontDoor.Settled(app))
                 continue;
 
             if (
