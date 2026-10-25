@@ -62,9 +62,12 @@ internal sealed class FrontDoorRegistration
 
     public bool Enabled => _options.Enabled;
 
-    /// <summary>The app's address as the front door reaches it: its port on the host, through the host gateway.</summary>
+    /// <summary>
+    /// The app's address as the front door reaches it: the one discovery found for it (a container on the localtest-v2 network,
+    /// at its alias), else its port on the host, through the host gateway.
+    /// </summary>
     public static Uri FrontDoorUrl(DiscoveredApp app) =>
-        new UriBuilder(Uri.UriSchemeHttp, HostGatewayName, app.BaseUri.Value.Port).Uri;
+        app.FrontDoorUri ?? new UriBuilder(Uri.UriSchemeHttp, HostGatewayName, app.BaseUri.Value.Port).Uri;
 
     /// <summary>
     /// Brings the front door in line with the discovered apps. An app is registered when it is new, came back on

@@ -331,7 +331,8 @@ internal sealed class AppRegistry : BackgroundService
             candidate.Description,
             candidate.ContainerId,
             candidate.Name,
-            candidate.HostPort ?? baseUri.Port
+            candidate.HostPort ?? baseUri.Port,
+            candidate.FrontDoorUri
         );
     }
 

@@ -34,6 +34,31 @@ public sealed class FrontDoorRegistrationTests
     }
 
     [Fact]
+    public async Task RegistersAContainerOnTheLocaltestV2NetworkAtItsAlias()
+    {
+        var frontDoor = new FakeFrontDoor();
+        var registration = Registration(frontDoor, enabled: true);
+        var app = App("ttd/frontend-test", 5005) with
+        {
+            Source = "container",
+            ContainerId = "abc",
+            FrontDoorUri = new Uri("http://ttd-frontend-test:5005"),
+        };
+
+        await registration.Reconcile([app], TestContext.Current.CancellationToken);
+        await registration.Reconcile([app], TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            [
+                "PUT http://local.altinn.cloud:8000/localtest/api/apps/ttd/frontend-test {\"url\":\"http://ttd-frontend-test:5005\"}",
+                "GET http://local.altinn.cloud:8000/localtest/api/apps ",
+            ],
+            frontDoor.Calls
+        );
+        Assert.Equal(["ttd/frontend-test http://ttd-frontend-test:5005"], frontDoor.Apps);
+    }
+
+    [Fact]
     public async Task RetriesAFailedRegistrationOnTheNextRefresh()
     {
         var frontDoor = new FakeFrontDoor { PutStatus = HttpStatusCode.BadGateway };
