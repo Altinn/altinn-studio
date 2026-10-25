@@ -11,6 +11,7 @@ import (
 	"altinn.studio/devenv/pkg/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	envlocaltest "altinn.studio/studioctl/internal/cmd/env/localtest"
+	envregistry "altinn.studio/studioctl/internal/cmd/env/registry"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -70,9 +71,9 @@ func (o envDownOutput) Print(out *ui.Output) error {
 }
 
 type envStatusOutput struct {
-	Status     *envlocaltest.Status `json:"-"`
-	Runtime    string               `json:"-"`
-	JSONOutput bool                 `json:"-"`
+	Status     *envtypes.Status `json:"-"`
+	Runtime    string           `json:"-"`
+	JSONOutput bool             `json:"-"`
 }
 
 func (o envStatusOutput) Print(out *ui.Output) error {
@@ -323,6 +324,9 @@ func (c *EnvCommand) runUp(ctx context.Context, args []string) error {
 	}
 
 	return c.withContainerClient(ctx, func(client container.ContainerClient) error {
+		if err := c.ensureNoOtherRuntimeActive(ctx, client, flags.runtime); err != nil {
+			return err
+		}
 		switch flags.runtime {
 		case runtimeLocaltest:
 			return c.runLocaltestUp(ctx, client, flags)
@@ -330,6 +334,26 @@ func (c *EnvCommand) runUp(ctx context.Context, args []string) error {
 			return fmt.Errorf("%w: %s", ErrUnsupportedRuntime, flags.runtime)
 		}
 	})
+}
+
+// ensureNoOtherRuntimeActive refuses `env up` while another runtime runs.
+func (c *EnvCommand) ensureNoOtherRuntimeActive(
+	ctx context.Context,
+	client container.ContainerClient,
+	runtime string,
+) error {
+	envs, err := envregistry.Envs(
+		envregistry.WithConfig(c.cfg),
+		envregistry.WithOutput(c.out),
+		envregistry.WithContainerClient(client),
+	)
+	if err != nil {
+		return fmt.Errorf("build environment registry: %w", err)
+	}
+	if err := envtypes.EnsureNoOtherActive(ctx, runtime, envs); err != nil {
+		return fmt.Errorf("preflight check: %w", err)
+	}
+	return nil
 }
 
 func (c *EnvCommand) runLocaltestUp(
@@ -608,7 +632,7 @@ func (c *EnvCommand) runLocaltestStatus(
 	}.Print(c.out)
 }
 
-func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
+func renderLocaltestStatus(out *ui.Output, status *envtypes.Status) {
 	table := ui.NewTable(
 		ui.NewColumn("Container"),
 		ui.NewColumn("Status"),
@@ -622,7 +646,7 @@ func renderLocaltestStatus(out *ui.Output, status *envlocaltest.Status) {
 
 // containerImageCell renders what a container is running: its build, and the reference it was
 // started from when studioctl could confirm that reference still resolves to that build.
-func containerImageCell(ctr envlocaltest.ContainerStatus) string {
+func containerImageCell(ctr envtypes.ContainerStatus) string {
 	if ctr.ImageID == "" {
 		return "-"
 	}

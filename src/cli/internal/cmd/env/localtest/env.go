@@ -14,25 +14,18 @@ import (
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/resource/executor"
-	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
-	"altinn.studio/studioctl/internal/ui/resourcegraph"
 )
 
 // Sentinel errors for the localtest package.
 var (
-	// ErrUnknownComponent is returned when an unknown component is specified for logs.
-	ErrUnknownComponent = errors.New("unknown component")
-
-	// ErrNotRunning is returned when localtest is not running.
-	ErrNotRunning = errors.New("localtest not running")
-
 	// ErrLegacyLocaltestRunning is returned when legacy localtest containers are detected.
 	ErrLegacyLocaltestRunning = errors.New("legacy localtest is running (started outside this CLI)")
 
@@ -56,15 +49,8 @@ type Env struct {
 	cfg    *config.Config
 	out    *ui.Output
 	client container.ContainerClient
+	stack  *stack.Stack
 	paths  components.Paths
-}
-
-func newResourceExecutor(client container.ContainerClient) (*executor.Executor, error) {
-	exec := executor.New()
-	if err := exec.RegisterBackend(containerbackend.New(client)); err != nil {
-		return nil, fmt.Errorf("register container backend: %w", err)
-	}
-	return exec, nil
 }
 
 // NewEnv creates a new localtest environment manager.
@@ -73,9 +59,19 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 		cfg:    cfg,
 		out:    out,
 		client: client,
+		stack:  stack.New(client, out, graphID, cfg.Verbose),
 		paths:  components.NewPaths(cfg.DataDir),
 	}
 	return env
+}
+
+// Active reports whether any localtest container is running.
+func (e *Env) Active(ctx context.Context) (bool, error) {
+	active, err := e.stack.Active(ctx)
+	if err != nil {
+		return false, fmt.Errorf("check localtest containers: %w", err)
+	}
+	return active, nil
 }
 
 // Name returns the runtime name.
@@ -233,7 +229,7 @@ func (e *Env) ResetWorkflowEngineData(ctx context.Context) error {
 }
 
 // Status returns the localtest environment status.
-func (e *Env) Status(ctx context.Context) (*Status, error) {
+func (e *Env) Status(ctx context.Context) (*envtypes.Status, error) {
 	return e.status(ctx, statusOptions{
 		DevWorkflowEngine: e.devWorkflowEngineFromEnvironmentTopology(),
 		IncludeMonitoring: false,
@@ -243,7 +239,7 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 }
 
 // StatusForUp returns status for the containers requested by env up.
-func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status, error) {
+func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*envtypes.Status, error) {
 	return e.status(ctx, statusOptions{
 		DevWorkflowEngine: opts.DevWorkflowEngine,
 		IncludeMonitoring: opts.Monitoring,
@@ -254,7 +250,10 @@ func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*Status
 
 // Logs streams localtest environment logs.
 func (e *Env) Logs(ctx context.Context, opts envtypes.LogsOptions) error {
-	return e.logStreamer().Stream(ctx, opts.Component, opts.Follow, opts.JSON)
+	if err := e.logStreamer().Stream(ctx, opts.Component, opts.Follow, opts.JSON); err != nil {
+		return fmt.Errorf("stream localtest logs: %w", err)
+	}
+	return nil
 }
 
 type statusOptions struct {
@@ -264,7 +263,7 @@ type statusOptions struct {
 	RequireDesired    bool
 }
 
-func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
+func (e *Env) status(ctx context.Context, opts statusOptions) (*envtypes.Status, error) {
 	resourceOpts := e.releaseOptions(
 		opts.IncludeMonitoring,
 		opts.IncludePgAdmin,
@@ -272,71 +271,17 @@ func (e *Env) status(ctx context.Context, opts statusOptions) (*Status, error) {
 	)
 
 	manifest := components.NewManifest(resourceOpts)
-	graph, err := buildResourceGraph(manifest.Resources)
+	graph, snapshot, err := e.stack.Observe(ctx, manifest.Resources)
 	if err != nil {
-		return nil, fmt.Errorf("build resource graph: %w", err)
-	}
-
-	exec, err := newResourceExecutor(e.client)
-	if err != nil {
-		return nil, fmt.Errorf("create resource executor: %w", err)
-	}
-	snapshot, err := exec.Status(ctx, graph, executor.SkipResource(isImageResource))
-	if err != nil {
-		return nil, fmt.Errorf("get resource status: %w", err)
+		return nil, fmt.Errorf("observe localtest: %w", err)
 	}
 
 	return localtestStatus(
 		graph.All(),
 		snapshot,
-		e.containerImages(ctx, graph.All(), snapshot),
+		e.stack.ContainerImages(ctx, graph.All(), snapshot, containerImageRef),
 		opts.RequireDesired,
 	), nil
-}
-
-// containerImages resolves the image behind each container that exists, keyed by container
-// name. It reads the container rather than the configured reference because a moving tag no
-// longer identifies a build: a container keeps the one it was created from until the
-// environment is recreated, which is as true of a stopped container as a running one. The
-// image is read from the snapshot the status pass already collected.
-func (e *Env) containerImages(
-	ctx context.Context,
-	resources []resource.Resource,
-	snapshot executor.Snapshot,
-) map[string]ContainerImage {
-	images := make(map[string]ContainerImage)
-	for _, res := range resources {
-		containerResource, ok := res.(*resource.Container)
-		if !ok {
-			continue
-		}
-		observed, found := snapshot.Resources[containerResource.ID()]
-		if !found || observed.ImageID == "" {
-			continue
-		}
-		images[containerResource.Name] = e.resolveContainerImage(
-			ctx,
-			observed.ImageID,
-			containerImageRef(containerResource),
-		)
-	}
-	return images
-}
-
-// resolveContainerImage pairs an image with the reference it came from, and keeps the
-// reference only when it still resolves to that image. A reference this command builds can
-// name something the environment never ran - a tag that has moved since, or a component the
-// environment was started with differently - and reporting it would then misdescribe the
-// container.
-func (e *Env) resolveContainerImage(ctx context.Context, imageID, ref string) ContainerImage {
-	if ref == "" {
-		return ContainerImage{Ref: "", ImageID: imageID}
-	}
-	info, err := e.client.ImageInspect(ctx, ref)
-	if err != nil || info.ID != imageID {
-		return ContainerImage{Ref: "", ImageID: imageID}
-	}
-	return ContainerImage{Ref: ref, ImageID: imageID}
 }
 
 func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
@@ -357,31 +302,11 @@ func (e *Env) devWorkflowEngineFromEnvironmentTopology() bool {
 
 func (e *Env) hasManagedResources(ctx context.Context) (bool, error) {
 	manifest := components.NewManifest(e.buildDestroyOptions())
-	graph, err := buildResourceGraph(manifest.Resources)
+	has, err := e.stack.HasManagedResources(ctx, manifest.Resources)
 	if err != nil {
-		return false, fmt.Errorf("build resource graph: %w", err)
+		return false, fmt.Errorf("observe localtest: %w", err)
 	}
-
-	exec, err := newResourceExecutor(e.client)
-	if err != nil {
-		return false, fmt.Errorf("create resource executor: %w", err)
-	}
-	snapshot, err := exec.Status(ctx, graph, executor.SkipResource(isImageResource))
-	if err != nil {
-		return false, fmt.Errorf("get resource status: %w", err)
-	}
-
-	for _, observed := range snapshot.Resources {
-		if !observed.Managed || observed.Status == executor.StatusDestroyed {
-			continue
-		}
-		if observed.Resource != nil && !isRuntimeResource(observed.Resource) {
-			continue
-		}
-		return true, nil
-	}
-
-	return false, nil
+	return has, nil
 }
 
 func (e *Env) runForeground(
@@ -393,7 +318,7 @@ func (e *Env) runForeground(
 	e.out.Println("Localtest is running. Press Ctrl+C to stop.")
 	e.out.Printlnf("Access the platform at: %s", localtestURL)
 
-	streamer := newLogStreamer(e.client, e.out, components.EnabledContainerNames(resources))
+	streamer := stack.NewLogStreamer(e.client, e.out, components.EnabledContainerNames(resources))
 	if err := streamer.Stream(ctx, "", true, false); err != nil {
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
@@ -415,157 +340,38 @@ func (e *Env) runForeground(
 	return nil
 }
 
-func (e *Env) logStreamer() *logStreamer {
+func (e *Env) logStreamer() *stack.LogStreamer {
 	manifest := components.NewManifest(e.releaseOptions(true, true, e.devWorkflowEngineFromEnvironmentTopology()))
-	return newLogStreamer(e.client, e.out, components.EnabledContainerNames(manifest.Resources))
+	return stack.NewLogStreamer(e.client, e.out, components.EnabledContainerNames(manifest.Resources))
 }
 
 func (e *Env) applyResources(ctx context.Context, resources []resource.Resource, imageMode components.ImageMode) error {
-	graph, err := buildResourceGraph(resources)
-	if err != nil {
-		return err
-	}
-
-	exec, err := newResourceExecutor(e.client)
-	if err != nil {
-		return fmt.Errorf("create resource executor: %w", err)
-	}
 	spinnerMsg := "Starting localtest environment..."
 	if imageMode == components.DevMode {
 		spinnerMsg = "Building and starting localtest environment (dev mode)..."
 	}
-
-	var renderer resourcegraph.Renderer
-	outputs, err := exec.Apply(ctx, graph, executor.WithApplyPlan(func(plan executor.ApplyPlan) error {
-		e.startRenderer(
-			exec,
-			&renderer,
-			applyPlannedResources(plan),
-			resourcegraph.OperationApply,
-			plan.Snapshot.Statuses(),
-			spinnerMsg,
-		)
-		return nil
-	}))
-	if err != nil {
-		if renderer != nil {
-			renderer.FailAll(err.Error())
-			renderer.Stop()
-		}
-		return fmt.Errorf("start environment: %w", err)
+	if err := e.stack.Apply(ctx, resources, spinnerMsg); err != nil {
+		return fmt.Errorf("apply localtest: %w", err)
 	}
-
-	if renderer != nil {
-		renderer.Stop()
-	}
-	e.warnAboutStaleImages(resources, outputs)
 	e.out.Success("Environment started")
 	return nil
 }
 
-// warnAboutStaleImages reports images the registry could not be reached for. The environment
-// then runs whatever copy is on the machine, which can be any age, and the progress line
-// saying so is gone by the time the run finishes.
-func (e *Env) warnAboutStaleImages(resources []resource.Resource, outputs executor.Outputs) {
-	for _, res := range resources {
-		image, ok := res.(*resource.PulledImage)
-		if !ok {
-			continue
-		}
-		if output, found := outputs.Image(image.ID()); found && output.Stale {
-			e.out.Warningf("Could not reach the registry for %s; using the copy already on this machine.", image.Ref)
-		}
-	}
-}
-
 func (e *Env) destroyResources(ctx context.Context, resources []resource.Resource, logStartMessage string) error {
-	graph, err := buildResourceGraph(resources)
-	if err != nil {
-		return err
-	}
-
-	var renderer resourcegraph.Renderer
-	exec, err := newResourceExecutor(e.client)
-	if err != nil {
-		return fmt.Errorf("create resource executor: %w", err)
-	}
-	if err := exec.Destroy(ctx, graph, executor.WithDestroyPlan(func(plan executor.DestroyPlan) error {
-		e.startRenderer(
-			exec,
-			&renderer,
-			plan.Destroy,
-			resourcegraph.OperationDestroy,
-			plan.Snapshot.Statuses(),
-			logStartMessage,
-		)
-		return nil
-	})); err != nil {
-		if renderer != nil {
-			renderer.FailAll(err.Error())
-			renderer.Stop()
-		}
-		return fmt.Errorf("destroy resources: %w", err)
-	}
-
-	if renderer != nil {
-		renderer.Stop()
+	if err := e.stack.Destroy(ctx, resources, logStartMessage); err != nil {
+		return fmt.Errorf("destroy localtest: %w", err)
 	}
 	return nil
-}
-
-func (e *Env) startRenderer(
-	exec *executor.Executor,
-	renderer *resourcegraph.Renderer,
-	resources []executor.PlannedResource,
-	operation resourcegraph.Operation,
-	statuses map[resource.ResourceID]executor.Status,
-	logStartMessage string,
-) {
-	switch resourcegraph.DetectMode(e.out, e.cfg.Verbose) {
-	case resourcegraph.ModeTable:
-		*renderer = resourcegraph.NewTableWithPlan(
-			e.out,
-			resources,
-			operation,
-			statuses,
-		)
-	case resourcegraph.ModeCompact:
-		*renderer = resourcegraph.NewCompactWithPlan(
-			e.out,
-			resources,
-			operation,
-			statuses,
-		)
-	case resourcegraph.ModeLog:
-		*renderer = resourcegraph.NewLogWithPlan(
-			e.out,
-			resources,
-			operation,
-			statuses,
-			logStartMessage,
-		)
-	default:
-		*renderer = resourcegraph.NewLogWithPlan(e.out, resources, operation, statuses, logStartMessage)
-	}
-	(*renderer).Start()
-	exec.SetObserver(*renderer)
-}
-
-func applyPlannedResources(plan executor.ApplyPlan) []executor.PlannedResource {
-	resources := make([]executor.PlannedResource, 0, len(plan.Destroy)+len(plan.Reconcile))
-	resources = append(resources, plan.Destroy...)
-	resources = append(resources, plan.Reconcile...)
-	return resources
 }
 
 func localtestStatus(
 	resources []resource.Resource,
 	snapshot executor.Snapshot,
-	images map[string]ContainerImage,
+	images map[string]envtypes.ContainerImage,
 	requireDesired bool,
-) *Status {
-	status := Status{
-		Containers: []ContainerStatus{},
+) *envtypes.Status {
+	status := envtypes.Status{
+		Containers: []envtypes.ContainerStatus{},
 		Running:    false,
 		AnyRunning: false,
 	}
@@ -578,17 +384,17 @@ func localtestStatus(
 			continue
 		}
 
-		resourceStatus := managedResourceStatus(snapshot, containerResource.ID())
+		resourceStatus := stack.ManagedStatus(snapshot, containerResource.ID())
 		if !resource.IsEnabled(containerResource) && resourceStatus == executor.StatusDestroyed {
 			continue
 		}
 		status.Containers = append(
 			status.Containers,
-			ContainerStatus{
+			envtypes.ContainerStatus{
 				Name:    containerResource.Name,
 				Image:   images[containerResource.Name].Ref,
 				ImageID: images[containerResource.Name].ImageID,
-				Status:  localtestStatusString(resourceStatus),
+				Status:  stack.StatusString(resourceStatus),
 			},
 		)
 		containerCount++
@@ -615,18 +421,6 @@ func containerImageRef(containerResource *resource.Container) string {
 	return pulled.Ref
 }
 
-func managedResourceStatus(snapshot executor.Snapshot, id resource.ResourceID) executor.Status {
-	if !managedResourcePresent(snapshot, id) {
-		return executor.StatusDestroyed
-	}
-	return snapshot.Resources[id].Status
-}
-
-func managedResourcePresent(snapshot executor.Snapshot, id resource.ResourceID) bool {
-	observed, ok := snapshot.Resources[id]
-	return ok && observed.Managed && observed.Status != executor.StatusDestroyed
-}
-
 func containerConverged(containerResource *resource.Container, status executor.Status, requireDesired bool) bool {
 	if resource.IsEnabled(containerResource) {
 		return status.IsHealthy()
@@ -635,30 +429,6 @@ func containerConverged(containerResource *resource.Container, status executor.S
 		return status.IsHealthy()
 	}
 	return status == executor.StatusDestroyed
-}
-
-func localtestStatusString(status executor.Status) string {
-	if status == executor.StatusDestroyed {
-		return "not found"
-	}
-	if status == executor.StatusReady {
-		return "running"
-	}
-	return status.String()
-}
-
-func isRuntimeResource(res resource.Resource) bool {
-	switch res.(type) {
-	case *resource.Container, *resource.Network:
-		return true
-	default:
-		return false
-	}
-}
-
-func isImageResource(res resource.Resource) bool {
-	_, ok := res.(resource.ImageResource)
-	return ok
 }
 
 func (e *Env) buildDestroyOptions() *components.Options {
@@ -850,19 +620,6 @@ func resetTargetPath(dataDir, target string) (string, bool, error) {
 	}
 
 	return targetAbs, true, nil
-}
-
-func buildResourceGraph(resources []resource.Resource) (*resource.Graph, error) {
-	graph := resource.NewGraph(resource.GraphID(graphID))
-	for _, res := range resources {
-		if err := graph.Add(res); err != nil {
-			return nil, fmt.Errorf("add resource %q to graph: %w", res.ID(), err)
-		}
-	}
-	if err := graph.Validate(); err != nil {
-		return nil, fmt.Errorf("validate resource graph: %w", err)
-	}
-	return graph, nil
 }
 
 func (e *Env) buildResourceOptions(

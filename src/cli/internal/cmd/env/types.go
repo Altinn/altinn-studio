@@ -11,6 +11,9 @@ var ErrAlreadyStopped = errors.New("environment already stopped")
 
 // Env manages a development environment lifecycle.
 type Env interface {
+	// Active reports whether any of the runtime's containers is running, read from the container runtime rather
+	// than from a record studioctl keeps, so it holds after a reboot or a container removed by hand.
+	Active(ctx context.Context) (bool, error)
 	Preflight(ctx context.Context, opts UpOptions) error
 	Up(ctx context.Context, opts UpOptions) error
 	Down(ctx context.Context) error
