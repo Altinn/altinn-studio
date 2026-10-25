@@ -1,4 +1,4 @@
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::net::SocketAddr;
 
 use sandbox_authorization::{
     AuthorizationContext, AuthorizationDecision, AuthorizationRequest, AuthorizationValue, Error, LocalFuture,
@@ -18,29 +18,10 @@ const ALLOWED_HOSTS: &[&str] = &[
 
 const HTTPS_PORT: u16 = 443;
 
-/// Address ranges that are not on the internet: the cluster, the node, the Sandbox gateway, link-local addresses and
-/// the Azure services that are available only inside Azure.
-const BLOCKED_IPV4: &[(Ipv4Addr, u32)] = &[
-    (Ipv4Addr::UNSPECIFIED, 8),
-    (Ipv4Addr::new(10, 0, 0, 0), 8),
-    (Ipv4Addr::new(100, 64, 0, 0), 10),
-    (Ipv4Addr::new(127, 0, 0, 0), 8),
-    (Ipv4Addr::new(168, 63, 129, 16), 32),
-    (Ipv4Addr::new(169, 254, 0, 0), 16),
-    (Ipv4Addr::new(172, 16, 0, 0), 12),
-    (Ipv4Addr::new(192, 168, 0, 0), 16),
-    (Ipv4Addr::new(224, 0, 0, 0), 3),
-];
-
-const BLOCKED_IPV6: &[(Ipv6Addr, u32)] = &[
-    (Ipv6Addr::UNSPECIFIED, 128),
-    (Ipv6Addr::LOCALHOST, 128),
-    (Ipv6Addr::new(0xfc00, 0, 0, 0, 0, 0, 0, 0), 7),
-    (Ipv6Addr::new(0xfe80, 0, 0, 0, 0, 0, 0, 0), 10),
-    (Ipv6Addr::new(0xff00, 0, 0, 0, 0, 0, 0, 0), 8),
-];
-
 /// Lets a job VM resolve and reach the hosts in [`ALLOWED_HOSTS`] with HTTPS. It blocks all other network access.
+///
+/// This policy does not block address ranges. The Sandbox network layer verifies that the server has a valid
+/// certificate for the host name. The network policy of the runner namespace blocks the private address ranges.
 pub struct AllowlistPolicy;
 
 impl PolicyEngine for AllowlistPolicy {
@@ -69,22 +50,22 @@ fn is_allowed(request: &AuthorizationRequest) -> bool {
 fn is_allowed_connection(facts: &AuthorizationContext) -> bool {
     text(facts, context::NETWORK_TRANSPORT) == Some("tcp")
         && !is_true(facts, context::NETWORK_DESTINATION_IS_HOST)
-        && is_public_https_destination(facts)
+        && is_https_destination(facts)
         && text(facts, context::NETWORK_HOSTNAME).is_some_and(is_allowed_host)
 }
 
 fn is_allowed_http_request(facts: &AuthorizationContext) -> bool {
     text(facts, context::HTTP_SCHEME) == Some("https")
-        && is_public_https_destination(facts)
+        && is_https_destination(facts)
         && text(facts, context::HTTP_AUTHORITY)
             .and_then(https_host)
             .is_some_and(is_allowed_host)
 }
 
-fn is_public_https_destination(facts: &AuthorizationContext) -> bool {
+fn is_https_destination(facts: &AuthorizationContext) -> bool {
     text(facts, context::NETWORK_DESTINATION_ADDRESS)
         .and_then(|address| address.parse::<SocketAddr>().ok())
-        .is_some_and(|address| address.port() == HTTPS_PORT && is_public(address.ip()))
+        .is_some_and(|address| address.port() == HTTPS_PORT)
 }
 
 /// Returns the host of an HTTP authority if the authority has no port or port 443.
@@ -98,35 +79,6 @@ fn https_host(authority: &str) -> Option<&str> {
 fn is_allowed_host(host: &str) -> bool {
     let host = host.strip_suffix('.').unwrap_or(host);
     ALLOWED_HOSTS.iter().any(|allowed| host.eq_ignore_ascii_case(allowed))
-}
-
-fn is_public(address: IpAddr) -> bool {
-    match address {
-        IpAddr::V4(address) => is_public_ipv4(address),
-        IpAddr::V6(address) => address.to_ipv4_mapped().map_or_else(
-            || {
-                !BLOCKED_IPV6
-                    .iter()
-                    .any(|&(network, prefix)| same_prefix(address.to_bits(), network.to_bits(), prefix))
-            },
-            is_public_ipv4,
-        ),
-    }
-}
-
-fn is_public_ipv4(address: Ipv4Addr) -> bool {
-    !BLOCKED_IPV4.iter().any(|&(network, prefix)| {
-        same_prefix(
-            u128::from(address.to_bits()) << 96,
-            u128::from(network.to_bits()) << 96,
-            prefix,
-        )
-    })
-}
-
-fn same_prefix(address: u128, network: u128, prefix: u32) -> bool {
-    let mask = u128::MAX.checked_shl(128 - prefix).unwrap_or(0);
-    address & mask == network & mask
 }
 
 fn text<'a>(facts: &'a AuthorizationContext, name: &str) -> Option<&'a str> {
@@ -218,33 +170,6 @@ mod tests {
             http_request("https", "api.nuget.org", "13.107.246.40:80"),
         ] {
             assert!(!is_allowed(&denied), "{denied:?}");
-        }
-    }
-
-    #[test]
-    fn denies_addresses_that_are_not_on_the_internet() {
-        for destination in [
-            "10.1.2.3:443",
-            "100.64.0.1:443",
-            "127.0.0.1:443",
-            "168.63.129.16:443",
-            "169.254.169.254:443",
-            "172.20.0.1:443",
-            "192.168.1.1:443",
-            "0.0.0.0:443",
-            "[::1]:443",
-            "[fd00::1]:443",
-            "[fe80::1]:443",
-            "[::ffff:10.0.0.1]:443",
-        ] {
-            assert!(
-                !is_allowed(&connection(Some("api.nuget.org"), destination)),
-                "{destination}"
-            );
-            assert!(
-                !is_allowed(&http_request("https", "api.nuget.org", destination)),
-                "{destination}"
-            );
         }
     }
 

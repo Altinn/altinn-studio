@@ -21,12 +21,15 @@ It cannot get:
 
 - secrets: the guest image, the VM and the Job pod have none, and the pod has no service account token;
 - other hosts: the Sandbox network layer denies all DNS, connections and HTTP requests that the allowlist does not
-  allow. The network policy of the runner namespace is a second layer;
+  allow. The network policy of the runner namespace blocks the private address ranges, so a job cannot connect to the
+  cluster, the node or the Azure services;
 - other jobs: each job has its own pod and its own VM;
 - the node: the job runs as `app-build`, not root, in a VM.
 
 The Sandbox network layer intercepts TLS. The guest agent adds its CA to the trust store of the guest when the VM
-starts.
+starts. The network layer opens its own TLS connection to the server and verifies that the server has a valid
+certificate for the host name. Thus a job can send data only to the hosts in the allowlist, also when it connects to an
+address that is not theirs.
 
 ## API
 
