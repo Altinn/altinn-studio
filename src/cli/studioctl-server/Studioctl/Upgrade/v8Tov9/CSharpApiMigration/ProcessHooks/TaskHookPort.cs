@@ -18,18 +18,10 @@ internal static class TaskHookPort
 
     public static IEnumerable<HookCandidate> Find(
         IReadOnlyList<ScannedCSharpFile> files,
-        StorageCallReach reach,
         IReadOnlyDictionary<IMethodSymbol, string> calls
-    ) =>
-        _families
-            .SelectMany(family => HookImplementation.Find(family, files))
-            .Select(hook => Candidate(hook, reach, calls));
+    ) => _families.SelectMany(family => HookImplementation.Find(family, files)).Select(hook => Candidate(hook, calls));
 
-    private static HookCandidate Candidate(
-        HookImplementation hook,
-        StorageCallReach reach,
-        IReadOnlyDictionary<IMethodSymbol, string> calls
-    )
+    private static HookCandidate Candidate(HookImplementation hook, IReadOnlyDictionary<IMethodSymbol, string> calls)
     {
         if (HookCandidate.BlockingReason(hook, calls) is { } reason)
         {
@@ -39,6 +31,6 @@ internal static class TaskHookPort
         var method =
             hook.Declaration ?? throw new InvalidOperationException("A hook without a declaration is blocked.");
         var taskId = hook.Method.Parameters[hook.Family.V8Parameters.ToList().IndexOf(HookParameterRole.TaskId)];
-        return new HookCandidate(hook, null, reach.Reaches(hook.Method), TaskFilter.Of(method, taskId, hook.Model));
+        return new HookCandidate(hook, null, TaskFilter.Of(method, taskId, hook.Model));
     }
 }
