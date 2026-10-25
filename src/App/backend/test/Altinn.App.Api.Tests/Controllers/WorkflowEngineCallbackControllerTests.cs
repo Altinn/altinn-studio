@@ -1170,6 +1170,55 @@ public class WorkflowEngineCallbackControllerTests
         Assert.Equal(FailingServiceTask.ServiceTaskType, storedInstance.Process?.CurrentTask?.AltinnTaskType);
     }
 
+    [Theory]
+    [InlineData("dataValue")]
+    [InlineData("presentationText")]
+    [InlineData("substatus")]
+    [InlineData("elementMetadata")]
+    [InlineData("completeConfirmation")]
+    public async Task ExecuteCommand_ServiceTaskDefersAfterStagingAnInstanceChange_ReturnsNonRetryableProblem(
+        string stagedChange
+    )
+    {
+        var dataElement = new DataElement
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = DataTypeId,
+            ContentType = ContentType,
+        };
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(new DeferringServiceTask(stagedChange, dataElement));
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
+                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
+                ));
+            },
+            (_, instance) =>
+            {
+                dataElement.InstanceGuid = GetInstanceGuid(instance).ToString();
+                instance.Data.Add(dataElement);
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = DeferringServiceTask.ServiceTaskType,
+                };
+            }
+        );
+        string payload = CommandPayloadSerializer.Serialize(
+            new ExecuteServiceTaskPayload(DeferringServiceTask.ServiceTaskType, ItemIndex: 0)
+        )!;
+
+        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload);
+
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status422UnprocessableEntity, objectResult.StatusCode);
+        Assert.Equal("Deferral With Data Changes", Assert.IsType<ProblemDetails>(objectResult.Value).Title);
+        Assert.Empty(GetMutationRequests(setup.Services));
+    }
+
     private static ControllerSetup CreateSetup(IWorkflowEngineCommand command) =>
         CreateSetup(services => services.Services.AddSingleton<IWorkflowEngineCommand>(command));
 
@@ -1379,6 +1428,42 @@ public class WorkflowEngineCallbackControllerTests
                 "{}"u8.ToArray()
             );
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
+        }
+    }
+
+    private sealed class DeferringServiceTask(string stagedChange, DataElement dataElement) : IServiceTask
+    {
+        public const string ServiceTaskType = "DeferAfterStagingForCallbackTest";
+
+        public string Type => ServiceTaskType;
+
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
+        {
+            IInstanceDataMutator mutator = context.InstanceDataMutator;
+            switch (stagedChange)
+            {
+                case "dataValue":
+                    mutator.SetDataValue("status", "sent");
+                    break;
+                case "presentationText":
+                    mutator.SetPresentationText("status", "Sent");
+                    break;
+                case "substatus":
+                    mutator.SetSubstatus(new Substatus { Label = "sent" });
+                    break;
+                case "elementMetadata":
+                    mutator.UpdateDataElementMetadata(dataElement, new DataElementMetadataUpdate { Tags = ["sent"] });
+                    break;
+                case "completeConfirmation":
+                    mutator.AddCompleteConfirmation();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(stagedChange));
+            }
+
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Defer(TimeSpan.FromMinutes(1)));
         }
     }
 
