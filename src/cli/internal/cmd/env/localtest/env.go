@@ -26,9 +26,6 @@ import (
 
 // Sentinel errors for the localtest package.
 var (
-	// ErrLegacyLocaltestRunning is returned when legacy localtest containers are detected.
-	ErrLegacyLocaltestRunning = errors.New("legacy localtest is running (started outside this CLI)")
-
 	errResetTargetOutsideDataDir = errors.New("reset target outside data directory")
 	errResetCleanupFailed        = errors.New("workflow-engine data cleanup helper failed")
 	errResetTargetSymlink        = errors.New("reset target must not be a symlink")
@@ -41,7 +38,8 @@ const cleanupHelperLogTail = "100"
 
 const stoppingEnvironmentMessage = "Stopping localtest environment..."
 
-// graphID scopes devenv ownership labels to studioctl's localtest graph.
+// graphID scopes devenv ownership labels to studioctl's localtest graph. Every runtime's graph ID starts with
+// "studioctl-", which the legacy-localtest check relies on.
 const graphID = "studioctl-localtest"
 
 // Env implements envtypes.Env for the localtest runtime.
@@ -92,7 +90,7 @@ func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
 	if err := e.applyScheduledWorkflowEngineDataReset(ctx); err != nil {
 		return err
 	}
-	return CheckForLegacyLocaltest(ctx, e.client)
+	return e.checkForLegacyLocaltest(ctx)
 }
 
 // Up starts the localtest environment.
@@ -100,7 +98,7 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	runtimeUser, runtimeUsernsMode, relabelBinds := components.RuntimeUser(toolchain)
+	runtimeUser, runtimeUsernsMode, relabelBinds := stack.RuntimeUser(toolchain)
 	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
 
 	buildOpts, err := e.buildResourceOptions(ctx, runtimeUser, runtimeUsernsMode, relabelBinds, topology, opts)
@@ -171,7 +169,7 @@ func (e *Env) Reset(ctx context.Context) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	if err := CheckForLegacyLocaltest(ctx, e.client); err != nil {
+	if err := e.checkForLegacyLocaltest(ctx); err != nil {
 		return err
 	}
 
@@ -201,7 +199,7 @@ func (e *Env) ResetWorkflowEngineData(ctx context.Context) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
-	if err := CheckForLegacyLocaltest(ctx, e.client); err != nil {
+	if err := e.checkForLegacyLocaltest(ctx); err != nil {
 		return err
 	}
 
@@ -686,4 +684,11 @@ func resolveDevImageMode(studioRoot string) (components.ImageMode, *components.D
 	}
 
 	return components.DevMode, &devCfg, ""
+}
+
+func (e *Env) checkForLegacyLocaltest(ctx context.Context) error {
+	if err := stack.CheckForLegacyLocaltest(ctx, e.client); err != nil {
+		return fmt.Errorf("check for legacy localtest: %w", err)
+	}
+	return nil
 }

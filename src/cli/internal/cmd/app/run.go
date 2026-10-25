@@ -16,6 +16,7 @@ import (
 	"altinn.studio/studioctl/internal/appnaming"
 	"altinn.studio/studioctl/internal/appsecrets"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -298,7 +299,7 @@ func (s *Service) PrepareDockerRun(spec *DockerRunSpec, toolchain types.Containe
 			return fmt.Errorf("create app directory %s: %w", filepath.Base(spec.KeysDir), err)
 		}
 	}
-	user, usernsMode, relabel := components.RuntimeUser(toolchain)
+	user, usernsMode, relabel := stack.RuntimeUser(toolchain)
 	spec.Config.User = user
 	spec.Config.UsernsMode = usernsMode
 	spec.Config.Volumes = components.RelabelBindMounts(spec.Config.Volumes, relabel)

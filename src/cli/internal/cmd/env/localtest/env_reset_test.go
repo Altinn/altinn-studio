@@ -16,6 +16,7 @@ import (
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	"altinn.studio/studioctl/internal/cmd/env/localtest/components"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/ui"
@@ -168,7 +169,7 @@ func TestReset_RefusesLegacyLocaltest(t *testing.T) {
 		client,
 	)
 	err := env.Reset(context.Background())
-	if !errors.Is(err, ErrLegacyLocaltestRunning) {
+	if !errors.Is(err, stack.ErrLegacyLocaltestRunning) {
 		t.Fatalf("Reset() error = %v, want ErrLegacyLocaltestRunning", err)
 	}
 }

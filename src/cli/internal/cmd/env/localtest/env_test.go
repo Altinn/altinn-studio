@@ -26,6 +26,9 @@ var errStateUnavailable = errors.New("state unavailable")
 // testLocaltestImageRef is the localtest reference in testImages.
 const testLocaltestImageRef = "ghcr.io/altinn/test-localtest:latest"
 
+// testGraphID is the localtest runtime's devenv graph ID.
+const testGraphID = "studioctl-localtest"
+
 func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 	t.Parallel()
 
