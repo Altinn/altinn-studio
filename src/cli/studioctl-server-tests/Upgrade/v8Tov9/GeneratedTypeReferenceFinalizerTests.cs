@@ -132,6 +132,39 @@ public sealed class GeneratedTypeReferenceFinalizerTests : IDisposable
         );
     }
 
+    [Fact]
+    public async Task AFileThatStartsWithAByteOrderMark_KeepsIt()
+    {
+        var sdk = SemanticScannerFactory.EmitStubAssembly(
+            "Altinn.App.Core",
+            """
+            namespace Library;
+            public record Authentication
+            {
+                public static Authentication Default() => new();
+            }
+            """
+        );
+        _app.WriteBytes(
+            "App.cs",
+            [
+                0xEF,
+                0xBB,
+                0xBF,
+                .. System.Text.Encoding.UTF8.GetBytes("class App\n{\n    object Value() => Generated.Default();\n}\n"),
+            ]
+        );
+        var scanner = Rewrite("Library.Authentication");
+
+        var changed = (
+            await GeneratedTypeReferenceFinalizer.FinalizeAsync(scanner, [Project(sdk)], CancellationToken)
+        ).ChangedFiles;
+
+        Assert.Equal(1, changed);
+        Assert.Equal([0xEF, 0xBB, 0xBF], _app.ReadBytes("App.cs")[..3]);
+        Assert.Contains("Authentication.Default()", _app.Read("App.cs"));
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
