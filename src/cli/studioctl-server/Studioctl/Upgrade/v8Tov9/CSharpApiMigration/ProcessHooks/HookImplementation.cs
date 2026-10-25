@@ -19,7 +19,15 @@ internal sealed record HookImplementation(
 )
 {
     public SemanticModel Model =>
-        File.SemanticModel ?? throw new InvalidOperationException($"{File.RelativePath} has no semantic model.");
+        ReboundModel
+        ?? File.SemanticModel
+        ?? throw new InvalidOperationException($"{File.RelativePath} has no semantic model.");
+
+    /// <summary>
+    /// The model of a copy of the compilation in which <see cref="Declaration"/> is the hook with its Storage calls
+    /// rewritten, for the port of that body; <c>null</c> for the app's own code.
+    /// </summary>
+    public SemanticModel? ReboundModel { get; init; }
 
     /// <summary>The entry of the type's base list that names the v8 interface, or <c>null</c> when it gets it from another type.</summary>
     public BaseTypeSyntax? V8BaseType =>
