@@ -160,8 +160,19 @@ public class CommonTaskInitializationTests
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         appModelMock.Verify(x => x.Create("App.Models.TestModel"), Times.Once);
-        prefillMock.Verify(x => x.PrefillDataModel("1337", "model", testData, null), Times.Once);
-        instantiationProcessorMock.Verify(x => x.DataCreation(mutatorMock.Object, testData, null), Times.Once);
+        prefillMock.Verify(x => x.PrefillDataModel("1337", "model", testData, null, context.Payload.Actor), Times.Once);
+        instantiationProcessorMock.Verify(
+            x =>
+                x.DataCreation(
+                    It.Is<DataCreationContext>(c =>
+                        c.InstanceDataMutator == mutatorMock.Object
+                        && c.Data == testData
+                        && c.Prefill == null
+                        && c.Actor == context.Payload.Actor
+                    )
+                ),
+            Times.Once
+        );
         mutatorMock.Verify(x => x.AddFormDataElement("model", testData), Times.Once);
     }
 
@@ -252,7 +263,7 @@ public class CommonTaskInitializationTests
         var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
         var instantiationProcessorMock = new Mock<IInstantiationProcessor>();
         instantiationProcessorMock
-            .Setup(x => x.DataCreation(mutatorMock.Object, testData, null))
+            .Setup(x => x.DataCreation(It.Is<DataCreationContext>(c => c.Data == testData)))
             .Returns(async () =>
             {
                 await Task.Yield();
@@ -402,16 +413,19 @@ public class CommonTaskInitializationTests
                     "1337",
                     "model",
                     testData,
-                    It.Is<Dictionary<string, string>>(p => p["key1"] == "value1")
+                    It.Is<Dictionary<string, string>>(p => p["key1"] == "value1"),
+                    context.Payload.Actor
                 ),
             Times.Once
         );
         instantiationProcessorMock.Verify(
             x =>
                 x.DataCreation(
-                    mutatorMock.Object,
-                    testData,
-                    It.Is<Dictionary<string, string>>(p => p["key1"] == "value1")
+                    It.Is<DataCreationContext>(c =>
+                        c.InstanceDataMutator == mutatorMock.Object
+                        && c.Data == testData
+                        && c.Prefill!["key1"] == "value1"
+                    )
                 ),
             Times.Once
         );

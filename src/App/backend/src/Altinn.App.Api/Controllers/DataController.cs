@@ -20,6 +20,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Storage;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
@@ -294,7 +295,14 @@ public class DataController : ControllerBase
                     appModel
                 );
                 var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-                await instantiationProcessor.DataCreation(dataMutator, appModel, null);
+                await instantiationProcessor.DataCreation(
+                    new DataCreationContext
+                    {
+                        InstanceDataMutator = dataMutator,
+                        Data = appModel,
+                        Actor = await ProcessNextRequestFactory.ExtractActor(_authenticationContext.Current, language),
+                    }
+                );
 
                 // Just stage the element to be created. We don't get the element id before we call UpdateInstanceData
                 dataMutator.AddFormDataElement(dataType.Id, appModel);

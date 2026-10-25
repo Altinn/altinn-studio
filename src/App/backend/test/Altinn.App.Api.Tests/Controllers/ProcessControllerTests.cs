@@ -24,6 +24,7 @@ using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
@@ -375,6 +376,43 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             }
             """;
         CompareResult<AppProcessState>(expectedString, content);
+    }
+
+    [Theory]
+    [InlineData("user")]
+    [InlineData("serviceOwner")]
+    public async Task RunProcessNext_TaskEndingHandler_SeesTheActorWhoCalledProcessNext(string caller)
+    {
+        var taskEnd = new ActorCapturingTaskEndHandler();
+        OverrideServicesForThisTest = services =>
+        {
+            services.AddSingleton(SetupPdfGeneratorMock().Object);
+            services.AddSingleton<IOnTaskEndingHandler>(taskEnd);
+        };
+        using var client =
+            caller == "user"
+                ? GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId)
+                : GetRootedOrgClient(Org, App, serviceOwnerOrg: Org);
+
+        using var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+
+        Assert.True(nextResponse.IsSuccessStatusCode, await nextResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(taskEnd.Actor);
+        Assert.Equal(caller == "user" ? 1337 : null, taskEnd.Actor.UserId);
+        Assert.Equal(caller == "user" ? null : Org, taskEnd.Actor.OrgId);
+    }
+
+    private sealed class ActorCapturingTaskEndHandler : IOnTaskEndingHandler
+    {
+        public Actor? Actor { get; private set; }
+
+        public bool ShouldRunForTask(string taskId) => true;
+
+        public Task<HandlerResult> Execute(OnTaskEndingContext context)
+        {
+            Actor = context.Actor;
+            return Task.FromResult<HandlerResult>(HandlerResult.Success());
+        }
     }
 
     [Theory]

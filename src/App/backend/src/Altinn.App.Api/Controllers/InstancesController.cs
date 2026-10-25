@@ -2086,7 +2086,14 @@ public class InstancesController : ControllerBase
                 await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
 
                 var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-                await instantiationProcessor.DataCreation(dataMutator, data, null);
+                await instantiationProcessor.DataCreation(
+                    new DataCreationContext
+                    {
+                        InstanceDataMutator = dataMutator,
+                        Data = data,
+                        Actor = await ProcessNextRequestFactory.ExtractActor(_authenticationContext.Current, language),
+                    }
+                );
 
                 dataMutator.AddFormDataElement(dataType.Id, data);
             }

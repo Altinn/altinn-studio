@@ -95,6 +95,7 @@ public class OnTaskEndingHookTests
                     It.Is<OnTaskEndingContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
+                        && c.Actor == context.Payload.Actor
                     )
                 ),
             Times.Once

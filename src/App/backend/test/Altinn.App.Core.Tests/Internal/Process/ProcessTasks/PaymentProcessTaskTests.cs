@@ -500,6 +500,7 @@ public class PaymentProcessTaskTests
         var context = new StageContext
         {
             InstanceDataMutator = dataMutator,
+            Actor = new(),
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
         };

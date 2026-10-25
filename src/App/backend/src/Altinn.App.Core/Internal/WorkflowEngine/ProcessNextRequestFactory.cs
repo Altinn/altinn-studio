@@ -169,7 +169,7 @@ internal sealed class ProcessNextRequestFactory
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         InstanceIdentifier instanceId = new(instance);
-        Actor actor = await ExtractActor(language);
+        Actor actor = await ExtractActor(_authenticationContext.Current, language);
         List<WorkflowRequest> workflows =
         [
             new WorkflowRequest
@@ -266,7 +266,7 @@ internal sealed class ProcessNextRequestFactory
             ?? processStateChange.NewProcessState?.EndEvent
             ?? "End event";
 
-        Actor resolvedActor = actor ?? await ExtractActor(language);
+        Actor resolvedActor = actor ?? await ExtractActor(_authenticationContext.Current, language);
         InstanceIdentifier instanceId = new(instance);
 
         string ns = $"{_appIdentifier.Org}/{_appIdentifier.App}";
@@ -590,17 +590,18 @@ internal sealed class ProcessNextRequestFactory
         ?? throw new InvalidOperationException($"Workflow event {eventType} is missing current task information.");
 
     /// <summary>
-    /// The actor the chain's callbacks run on behalf of, from the current request's authentication.
+    /// The actor of the current request: the one a chain's callbacks run on behalf of, and the one
+    /// <c>DataCreation</c> gets in a request.
     /// </summary>
+    /// <param name="currentAuth">The current request's authentication.</param>
     /// <param name="language">
     /// The language the caller chose in the app, sent with process/next or instantiation, or null when the request
     /// has none. Every callback of the chain restores its data mutator in the actor's language, so the caller's
     /// profile language (nb for anyone but a user) is only the fallback. Like the rest of the actor it
     /// rides in the context, outside the engine's idempotency hash and the callback token's actor hash.
     /// </param>
-    private async Task<Actor> ExtractActor(string? language)
+    internal static async Task<Actor> ExtractActor(Authenticated currentAuth, string? language)
     {
-        Authenticated currentAuth = _authenticationContext.Current;
         if (currentAuth is Authenticated.User user)
         {
             Authenticated.User.Details details = await user.LoadDetails(validateSelectedParty: true);

@@ -10,6 +10,7 @@ public class ServiceTaskContextTests
         new()
         {
             InstanceDataMutator = Mock.Of<IInstanceDataMutator>(),
+            Actor = new(),
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
             Wait = new StageWait { Deadline = waitDeadline },

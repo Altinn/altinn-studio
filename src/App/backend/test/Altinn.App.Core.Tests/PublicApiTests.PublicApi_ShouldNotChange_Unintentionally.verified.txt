@@ -1428,6 +1428,15 @@ namespace Altinn.App.Core.Features
         public static Altinn.App.Core.Features.CorrespondenceAuthenticationMethod Custom(System.Func<System.Threading.Tasks.Task<Altinn.App.Core.Models.JwtToken>> tokenProvider) { }
         public static Altinn.App.Core.Features.CorrespondenceAuthenticationMethod Default() { }
     }
+    public sealed class DataCreationContext
+    {
+        public DataCreationContext() { }
+        public required Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor Actor { get; init; }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
+        public required object Data { get; init; }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public System.Collections.Generic.Dictionary<string, string>? Prefill { get; init; }
+    }
     public static class FeatureFlags
     {
         public const string AddInstanceIdentifierToLayoutRequests = "addInstanceIdentifierToLayoutRequests";
@@ -1552,6 +1561,7 @@ namespace Altinn.App.Core.Features
     }
     public interface IInstantiationProcessor
     {
+        System.Threading.Tasks.Task DataCreation(Altinn.App.Core.Features.DataCreationContext context);
         System.Threading.Tasks.Task DataCreation(Altinn.App.Core.Features.IInstanceDataMutator instanceDataMutator, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
         System.Threading.Tasks.Task DataCreation(Altinn.Platform.Storage.Interface.Models.Instance instance, object data, System.Collections.Generic.Dictionary<string, string>? prefill);
     }
@@ -2198,12 +2208,14 @@ namespace Altinn.App.Core.Features.Process
     public sealed class OnProcessEndedContext
     {
         public OnProcessEndedContext() { }
+        public required Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor Actor { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
     public sealed class OnTaskAbandoningContext
     {
         public OnTaskAbandoningContext() { }
+        public required Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor Actor { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
@@ -2211,6 +2223,7 @@ namespace Altinn.App.Core.Features.Process
     public sealed class OnTaskEndingContext
     {
         public OnTaskEndingContext() { }
+        public required Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor Actor { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
@@ -2218,6 +2231,7 @@ namespace Altinn.App.Core.Features.Process
     public sealed class OnTaskStartingContext
     {
         public OnTaskStartingContext() { }
+        public required Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor Actor { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
@@ -2328,6 +2342,7 @@ namespace Altinn.App.Core.Features.Process
     public sealed class StageContext : System.IEquatable<Altinn.App.Core.Features.Process.StageContext>
     {
         public StageContext() { }
+        public required Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor Actor { get; init; }
         public Altinn.App.Core.Features.Process.StageAttempt Attempt { get; init; }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public System.DateTimeOffset ExecutionReferenceTime { get; }
@@ -3285,6 +3300,7 @@ namespace Altinn.App.Core.Internal.Prefill
     {
         void PrefillDataModel(object dataModel, System.Collections.Generic.Dictionary<string, string> externalPrefill, bool continueOnError = false);
         System.Threading.Tasks.Task PrefillDataModel(string partyId, string dataModelName, object dataModel, System.Collections.Generic.Dictionary<string, string>? externalPrefill = null);
+        System.Threading.Tasks.Task PrefillDataModel(string partyId, string dataModelName, object dataModel, System.Collections.Generic.Dictionary<string, string>? externalPrefill, Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand.Actor actor);
     }
 }
 namespace Altinn.App.Core.Internal.Process.Authorization

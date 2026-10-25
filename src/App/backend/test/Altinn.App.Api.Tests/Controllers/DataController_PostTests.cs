@@ -138,6 +138,38 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
     }
 
     [Fact]
+    public async Task PostFormElement_DataCreationGetsTheCallerAsTheActor()
+    {
+        var storage = CreateStorageInterceptorFromTestData(_org, _app, _instanceOwnerPartyId, _instanceGuid);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        SendAsync = message => storageInvoker.SendAsync(message, CancellationToken.None);
+        var instantiationProcessor = new Mock<IInstantiationProcessor>();
+        OverrideServicesForThisTest = services =>
+        {
+            UseHttpDataClient(services);
+            services.AddSingleton(instantiationProcessor.Object);
+            services.AddSingleton(
+                AppFilesMutationHook.ApplicationMetadata(appMetadata =>
+                    appMetadata.DataTypes.Single(d => d.Id == "default").MaxCount = 2
+                )
+            );
+        };
+        RegisterProcessWriterDataWrite("Task_1", (_, _, _) => Task.CompletedTask, Times.Once());
+
+        HttpClient client = GetRootedUserClient(_org, _app, 1337, _instanceOwnerPartyId);
+        var response = await client.PostAsync(
+            $"/{_org}/{_app}/instances/{_instanceOwnerPartyId}/{_instanceGuid}/data/default",
+            JsonContent.Create(new Skjema())
+        );
+
+        await VerifyStatusAndDeserialize<DataPostResponse>(response, HttpStatusCode.OK);
+        instantiationProcessor.Verify(
+            p => p.DataCreation(It.Is<DataCreationContext>(c => c.Actor.UserId == 1337)),
+            Times.Once
+        );
+    }
+
+    [Fact]
     public async Task PostBinaryElement_DataProcessorAbandons_ReturnsIssues()
     {
         // Setup test data
