@@ -44,11 +44,12 @@ const graphID = "studioctl-localtest"
 
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
+	client container.ContainerClient
 	cfg    *config.Config
 	out    *ui.Output
-	client container.ContainerClient
 	stack  *stack.Stack
 	paths  components.Paths
+	flags  UpOptions
 }
 
 // NewEnv creates a new localtest environment manager.
@@ -58,7 +59,14 @@ func NewEnv(cfg *config.Config, out *ui.Output, client container.ContainerClient
 		out:    out,
 		client: client,
 		stack:  stack.New(client, out, graphID, cfg.Verbose),
-		paths:  components.NewPaths(cfg.DataDir),
+		flags: UpOptions{
+			Detach:            false,
+			DevWorkflowEngine: false,
+			Monitoring:        false,
+			OpenBrowser:       false,
+			PgAdmin:           false,
+		},
+		paths: components.NewPaths(cfg.DataDir),
 	}
 	return env
 }
@@ -74,7 +82,7 @@ func (e *Env) Active(ctx context.Context) (bool, error) {
 
 // Name returns the runtime name.
 func (e *Env) Name() string {
-	return "localtest"
+	return Name
 }
 
 // OnInstall prepares localtest-owned filesystem state after bundled resources are installed.
@@ -85,16 +93,39 @@ func (e *Env) OnInstall(_ context.Context) error {
 	return nil
 }
 
+// Up checks the prerequisites and starts the environment with the bound flags, unless it already runs with the
+// containers they ask for.
+func (e *Env) Up(ctx context.Context, common envtypes.UpOptions) (envtypes.UpResult, error) {
+	opts := e.flags
+	opts.Detach = common.Detach
+	opts.OpenBrowser = common.OpenBrowser
+	if err := e.Preflight(ctx, opts); err != nil {
+		return envtypes.UpResult{AlreadyRunning: false}, fmt.Errorf("preflight check: %w", err)
+	}
+	status, err := e.StatusForUp(ctx, opts)
+	if err != nil {
+		return envtypes.UpResult{AlreadyRunning: false}, fmt.Errorf("get status: %w", err)
+	}
+	// A host-bound workflow engine is re-routed on every up.
+	if status.Running && !opts.DevWorkflowEngine {
+		return envtypes.UpResult{AlreadyRunning: true}, nil
+	}
+	if err := e.Start(ctx, opts); err != nil {
+		return envtypes.UpResult{AlreadyRunning: false}, err
+	}
+	return envtypes.UpResult{AlreadyRunning: false}, nil
+}
+
 // Preflight validates prerequisites before startup.
-func (e *Env) Preflight(ctx context.Context, _ envtypes.UpOptions) error {
+func (e *Env) Preflight(ctx context.Context, _ UpOptions) error {
 	if err := e.applyScheduledWorkflowEngineDataReset(ctx); err != nil {
 		return err
 	}
 	return e.checkForLegacyLocaltest(ctx)
 }
 
-// Up starts the localtest environment.
-func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
+// Start starts the localtest environment.
+func (e *Env) Start(ctx context.Context, opts UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
@@ -237,7 +268,7 @@ func (e *Env) Status(ctx context.Context) (*envtypes.Status, error) {
 }
 
 // StatusForUp returns status for the containers requested by env up.
-func (e *Env) StatusForUp(ctx context.Context, opts envtypes.UpOptions) (*envtypes.Status, error) {
+func (e *Env) StatusForUp(ctx context.Context, opts UpOptions) (*envtypes.Status, error) {
 	return e.status(ctx, statusOptions{
 		DevWorkflowEngine: opts.DevWorkflowEngine,
 		IncludeMonitoring: opts.Monitoring,
@@ -626,7 +657,7 @@ func (e *Env) buildResourceOptions(
 	runtimeUsernsMode string,
 	relabelBinds bool,
 	topology envtopology.Local,
-	upOpts envtypes.UpOptions,
+	upOpts UpOptions,
 ) (*components.Options, error) {
 	cwd, err := os.Getwd()
 	if err != nil {

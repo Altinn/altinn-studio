@@ -45,3 +45,19 @@ func EnsureNoOtherActive(ctx context.Context, name string, envs []Env) error {
 	return fmt.Errorf("%w: %s; stop it first with 'env down -r %s'",
 		ErrOtherRuntimeActive, strings.Join(others, ", "), others[0])
 }
+
+// ResolveRuntime names the runtime a command acts on: the requested one, else the one runtime that is running, else
+// fallback.
+func ResolveRuntime(ctx context.Context, requested, fallback string, envs []Env) (string, error) {
+	if requested != "" {
+		return requested, nil
+	}
+	active, err := ActiveRuntimes(ctx, envs)
+	if err != nil {
+		return "", err
+	}
+	if len(active) == 1 {
+		return active[0].Name(), nil
+	}
+	return fallback, nil
+}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -45,20 +46,21 @@ func TestEnvUpJSON_AlreadyRunning(t *testing.T) {
 		cfg: testEnvCommandConfig(t),
 		out: ui.NewOutput(&out, io.Discard, false),
 	}
-	err := command.runLocaltestUp(context.Background(), client, envUpFlags{
-		runtime:    runtimeLocaltest,
-		detach:     true,
-		jsonOutput: true,
+	err := command.up(context.Background(), client, envUpFlags{
+		runtime:     envlocaltest.NewRuntime(command.cfg),
+		detach:      true,
+		openBrowser: false,
+		jsonOutput:  true,
 	})
 	if err != nil {
-		t.Fatalf("runLocaltestUp() error = %v", err)
+		t.Fatalf("up() error = %v", err)
 	}
 
 	var got envUpOutput
 	if err := json.Unmarshal([]byte(strings.TrimSpace(out.String())), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
-	if got.Runtime != runtimeLocaltest || !got.Running || got.Started || !got.AlreadyRunning {
+	if got.Runtime != envlocaltest.Name || !got.Running || got.Started || !got.AlreadyRunning {
 		t.Fatalf("output = %+v, want already running result", got)
 	}
 }
@@ -102,19 +104,55 @@ func TestEnvUpJSONRejectsForeground(t *testing.T) {
 	}
 }
 
-func TestParseUpFlagsDevWorkflowEngine(t *testing.T) {
+func TestParseUpFlagsBindsTheChosenRuntimesOwnFlags(t *testing.T) {
 	t.Parallel()
 
 	command := &EnvCommand{out: ui.NewOutput(io.Discard, io.Discard, false)}
-	got, helpShown, err := command.parseUpFlags([]string{"--dev-workflow-engine"})
-	if err != nil {
-		t.Fatalf("parseUpFlags() error = %v", err)
+	for _, args := range [][]string{
+		{"--dev-workflow-engine", "--pgadmin"},
+		{"-r", "localtest", "--monitoring"},
+		{"--runtime=localtest", "--json"},
+	} {
+		got, helpShown, err := command.parseUpFlags(t.Context(), args)
+		if err != nil || helpShown {
+			t.Fatalf("parseUpFlags(%v) = %v, %v", args, helpShown, err)
+		}
+		if got.runtime.Name() != envlocaltest.Name {
+			t.Errorf("parseUpFlags(%v) runtime = %s, want %s", args, got.runtime.Name(), envlocaltest.Name)
+		}
 	}
-	if helpShown {
-		t.Fatal("parseUpFlags() helpShown = true, want false")
+	if _, _, err := command.parseUpFlags(t.Context(), []string{"--nosuch"}); err == nil ||
+		errors.Is(err, ErrInvalidFlagValue) {
+		t.Fatalf("parseUpFlags(--nosuch) = %v, want an undefined flag", err)
 	}
-	if !got.devWorkflowEngine {
-		t.Fatal("devWorkflowEngine = false, want true")
+	if _, _, err := command.parseUpFlags(
+		t.Context(),
+		[]string{"-r", "nosuch"},
+	); !errors.Is(
+		err,
+		ErrUnsupportedRuntime,
+	) {
+		t.Fatalf("parseUpFlags(-r nosuch) = %v, want ErrUnsupportedRuntime", err)
+	}
+}
+
+func TestRuntimeArg(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		want string
+		args []string
+	}{
+		{want: "", args: []string{"--monitoring"}},
+		{want: "a", args: []string{"-r", "a"}},
+		{want: "a", args: []string{"--runtime", "a", "--json"}},
+		{want: "a", args: []string{"--json", "-runtime=a"}},
+		{want: "", args: []string{"--", "-r", "a"}},
+		{want: "", args: []string{"-r"}},
+	} {
+		if got := runtimeArg(tc.args); got != tc.want {
+			t.Errorf("runtimeArg(%v) = %q, want %q", tc.args, got, tc.want)
+		}
 	}
 }
 
@@ -132,7 +170,7 @@ func TestParseUpFlagsHelpHidesDevWorkflowEngine(t *testing.T) {
 
 	var out bytes.Buffer
 	command := &EnvCommand{out: ui.NewOutput(&out, io.Discard, false)}
-	_, helpShown, err := command.parseUpFlags([]string{"--help"})
+	_, helpShown, err := command.parseUpFlags(t.Context(), []string{"--help"})
 	if err != nil {
 		t.Fatalf("parseUpFlags() error = %v", err)
 	}
@@ -168,8 +206,8 @@ func TestEnvHostsStatusJSON(t *testing.T) {
 	if err := json.Unmarshal(bytes.TrimSpace(out.Bytes()), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
-	if got.Runtime != runtimeLocaltest {
-		t.Fatalf("Runtime = %q, want %q", got.Runtime, runtimeLocaltest)
+	if got.Runtime != envlocaltest.Name {
+		t.Fatalf("Runtime = %q, want %q", got.Runtime, envlocaltest.Name)
 	}
 	if got.Path != hostsPath {
 		t.Fatalf("Path = %q, want %q", got.Path, hostsPath)
@@ -215,8 +253,8 @@ func TestEnvHostsAddJSON(t *testing.T) {
 	if err := json.Unmarshal(bytes.TrimSpace(out.Bytes()), &got); err != nil {
 		t.Fatalf("json.Unmarshal() error = %v", err)
 	}
-	if got.Runtime != runtimeLocaltest {
-		t.Fatalf("Runtime = %q, want %q", got.Runtime, runtimeLocaltest)
+	if got.Runtime != envlocaltest.Name {
+		t.Fatalf("Runtime = %q, want %q", got.Runtime, envlocaltest.Name)
 	}
 	if len(got.Targets) != 1 {
 		t.Fatalf("len(Targets) = %d, want 1", len(got.Targets))

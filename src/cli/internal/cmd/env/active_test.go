@@ -17,12 +17,14 @@ type fakeEnv struct {
 	active bool
 }
 
-func (f fakeEnv) Active(context.Context) (bool, error)                { return f.active, f.err }
-func (f fakeEnv) Preflight(context.Context, envtypes.UpOptions) error { return nil }
-func (f fakeEnv) Up(context.Context, envtypes.UpOptions) error        { return nil }
-func (f fakeEnv) Down(context.Context) error                          { return nil }
-func (f fakeEnv) Logs(context.Context, envtypes.LogsOptions) error    { return nil }
-func (f fakeEnv) Name() string                                        { return f.name }
+func (f fakeEnv) Active(context.Context) (bool, error) { return f.active, f.err }
+func (f fakeEnv) Up(context.Context, envtypes.UpOptions) (envtypes.UpResult, error) {
+	return envtypes.UpResult{}, nil
+}
+func (f fakeEnv) Status(context.Context) (*envtypes.Status, error) { return &envtypes.Status{}, nil }
+func (f fakeEnv) Down(context.Context) error                       { return nil }
+func (f fakeEnv) Logs(context.Context, envtypes.LogsOptions) error { return nil }
+func (f fakeEnv) Name() string                                     { return f.name }
 
 func TestEnsureNoOtherActive(t *testing.T) {
 	t.Parallel()
@@ -82,5 +84,47 @@ func TestEnsureNoOtherActiveNamesTheRunningRuntime(t *testing.T) {
 	err := envtypes.EnsureNoOtherActive(context.Background(), "a", envs)
 	if err == nil || !strings.Contains(err.Error(), "env down -r b") {
 		t.Fatalf("EnsureNoOtherActive() error = %v, want it to name 'env down -r b'", err)
+	}
+}
+
+func TestResolveRuntime(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		requested string
+		want      string
+		envs      []envtypes.Env
+	}{
+		{
+			name:      "requested wins",
+			requested: "a",
+			envs:      []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b", active: true}},
+			want:      "a",
+		},
+		{
+			name:      "the running runtime",
+			requested: "",
+			envs:      []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b", active: true}},
+			want:      "b",
+		},
+		{
+			name:      "none running falls back",
+			requested: "",
+			envs:      []envtypes.Env{fakeEnv{name: "a"}, fakeEnv{name: "b"}},
+			want:      "fallback",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := envtypes.ResolveRuntime(context.Background(), tt.requested, "fallback", tt.envs)
+			if err != nil {
+				t.Fatalf("ResolveRuntime() error = %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("ResolveRuntime() = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }

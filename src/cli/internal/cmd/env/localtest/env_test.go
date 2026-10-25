@@ -166,7 +166,7 @@ func TestStatusForUp_IncludesPgAdminWhenRequested(t *testing.T) {
 	}
 
 	env := newTestEnv(client)
-	status, err := env.StatusForUp(context.Background(), envtypes.UpOptions{PgAdmin: true})
+	status, err := env.StatusForUp(context.Background(), localtest.UpOptions{PgAdmin: true})
 	if err != nil {
 		t.Fatalf("StatusForUp() error = %v", err)
 	}
@@ -184,7 +184,7 @@ func TestStatusForUp_RequiresUnrequestedPgAdminDestroyed(t *testing.T) {
 	}
 
 	env := newTestEnv(client)
-	status, err := env.StatusForUp(context.Background(), envtypes.UpOptions{})
+	status, err := env.StatusForUp(context.Background(), localtest.UpOptions{})
 	if err != nil {
 		t.Fatalf("StatusForUp() error = %v", err)
 	}
@@ -230,7 +230,7 @@ func TestStatusForUp_IncludesMonitoringWhenRequested(t *testing.T) {
 	}
 
 	env := newTestEnv(client)
-	status, err := env.StatusForUp(context.Background(), envtypes.UpOptions{Monitoring: true})
+	status, err := env.StatusForUp(context.Background(), localtest.UpOptions{Monitoring: true})
 	if err != nil {
 		t.Fatalf("StatusForUp() error = %v", err)
 	}
