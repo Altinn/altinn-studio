@@ -1,10 +1,15 @@
 package app
 
 import (
+	"context"
 	"slices"
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/container/mock"
+	"altinn.studio/devenv/pkg/container/types"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/localtestv2"
@@ -83,7 +88,8 @@ func TestTheSigningCarriesTheArbeidsflateGroupFromTheState(t *testing.T) {
 		}); err != nil {
 			t.Fatal(err)
 		}
-		signing, err := NewService(cfg).nativeAccessTokenSigning(t.TempDir())
+		signing, err := NewService(cfg, WithContainerClient(localtestV2Containers(true))).
+			nativeAccessTokenSigning(t.Context(), t.TempDir())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -96,6 +102,39 @@ func TestTheSigningCarriesTheArbeidsflateGroupFromTheState(t *testing.T) {
 				tc.want,
 			)
 		}
+	}
+}
+
+// A state file whose containers are gone (a reboot, a docker rm) gives a process run no certificate.
+func TestAStateFileWithoutContainersGivesNoSigning(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir()}
+	if err := localtestv2.WriteState(
+		cfg,
+		localtestv2.State{CertificateDir: localtestv2.CertificateDir(cfg)},
+	); err != nil {
+		t.Fatal(err)
+	}
+	signing, err := NewService(cfg, WithContainerClient(localtestV2Containers(false))).
+		nativeAccessTokenSigning(t.Context(), t.TempDir())
+	if err != nil || signing != nil {
+		t.Fatalf("signing %+v, %v, want none", signing, err)
+	}
+}
+
+// localtestV2Containers is a container runtime where a localtest-v2 container runs or none does.
+func localtestV2Containers(running bool) localtestv2.ContainerClientFunc {
+	return func(context.Context) (container.ContainerClient, error) {
+		client := mock.New()
+		client.ListContainersFunc = func(_ context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+			if !running || filter.Labels[containerbackend.GraphIDLabel] != localtestv2.GraphID {
+				return nil, nil
+			}
+			return []types.ContainerInfo{
+				{Name: "localtest-v2-localtest", State: types.ContainerState{Running: true}},
+			}, nil
+		}
+		return client, nil
 	}
 }
 

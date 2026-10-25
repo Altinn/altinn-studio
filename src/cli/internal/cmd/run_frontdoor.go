@@ -25,17 +25,48 @@ import (
 // stops. Without localtest-v2 both do nothing.
 const frontendDevServerPort = 8080
 
-var errFrontDoorRegistration = errors.New("the localtest-v2 front door has not registered the app")
+var (
+	errFrontDoorRegistration = errors.New("the localtest-v2 front door has not registered the app")
+	errFrontDoorUnreachable  = errors.New("the localtest-v2 front door does not answer")
+)
 
-// publicTopology is the public URLs an app run and its environment use: the running localtest-v2 environment's origin
-// (env up --host, --port), else the default.
-func publicTopology(cfg *config.Config) (envtopology.Local, error) {
+// findLocaltestV2 is the localtest-v2 environment an app run and its environment go by (localtestv2.Current); none
+// without a config.
+func findLocaltestV2(
+	ctx context.Context,
+	cfg *config.Config,
+	containers localtestv2.ContainerClientFunc,
+) (localtestv2.Environment, error) {
 	if cfg == nil {
-		return envtopology.NewLocal(envtopology.DefaultIngressPortString()), nil
+		var none localtestv2.Environment
+		return none, nil
 	}
-	topology, err := localtestv2.CurrentTopology(cfg)
+	v2, err := localtestv2.Current(ctx, cfg, containers)
 	if err != nil {
-		return topology, fmt.Errorf("read localtest-v2 state: %w", err)
+		return v2, fmt.Errorf("find localtest-v2: %w", err)
+	}
+	return v2, nil
+}
+
+// runTopology is the public URLs an app run uses: the running localtest-v2 environment's origin (env up --host,
+// --port), else the default. A recorded environment whose containers are gone (a reboot, a docker rm) is down, so the
+// run goes on without it. A running one whose front door does not answer stops the run here, before the app is built,
+// rather than when the registration wait times out.
+func (c *RunCommand) runTopology(ctx context.Context) (envtopology.Local, error) {
+	v2, err := findLocaltestV2(ctx, c.cfg, c.containers)
+	if err != nil {
+		return v2.Topology(), err
+	}
+	topology := v2.Topology()
+	if !v2.Running {
+		return topology, nil
+	}
+	if _, err := frontdoor.NewClient(topology.LocaltestURL()).Apps(ctx); errors.Is(err, frontdoor.ErrUnreachable) {
+		bin := osutil.CurrentBin()
+		return topology, fmt.Errorf(
+			"%w at %s; start it with '%s env up -r %s', or stop localtest-v2 with '%s env down -r %s'",
+			errFrontDoorUnreachable, topology.LocaltestURL(), bin, envlocaltestv2.Name, bin, envlocaltestv2.Name,
+		)
 	}
 	return topology, nil
 }
@@ -53,20 +84,21 @@ func hostAppURL(baseURL string) (string, error) {
 	return frontdoor.AppURL(port), nil
 }
 
-// waitForFrontDoorRegistration waits, while the localtest-v2 runtime is up, until the front door lists the app at want
+// waitForFrontDoorRegistration waits, while the localtest-v2 runtime runs, until the front door lists the app at want
 // (hostAppURL for an app on the host, the alias on the localtest-v2 network for an app container) with a provisioning that
 // succeeded at or after since.
 func waitForFrontDoorRegistration(
 	ctx context.Context,
 	cfg *config.Config,
+	containers localtestv2.ContainerClientFunc,
 	topology envtopology.Local,
 	appID string,
 	want string,
 	since time.Time,
 	timeout time.Duration,
 ) error {
-	if _, up, err := localtestv2.ReadState(cfg); err != nil || !up {
-		return err //nolint:wrapcheck // ReadState's error names the state file.
+	if v2, err := findLocaltestV2(ctx, cfg, containers); err != nil || !v2.Running {
+		return err
 	}
 	org, app, _ := strings.Cut(appID, "/")
 
@@ -89,7 +121,7 @@ func waitForFrontDoorRegistration(
 }
 
 // registerDevFrontend routes the frontend dev server host to the dev server for a `--dev-frontend` run against
-// localtest-v2, and returns what removes the route again; without the flag or the runtime it does nothing.
+// localtest-v2, and returns what removes the route again; without the flag or the running runtime it does nothing.
 func (c *RunCommand) registerDevFrontend(
 	ctx context.Context,
 	topology envtopology.Local,
@@ -99,8 +131,8 @@ func (c *RunCommand) registerDevFrontend(
 	if !flags.devFrontend || c.cfg == nil {
 		return noop, nil
 	}
-	if _, up, err := localtestv2.ReadState(c.cfg); err != nil || !up {
-		return noop, err //nolint:wrapcheck // ReadState's error names the state file.
+	if v2, err := findLocaltestV2(ctx, c.cfg, c.containers); err != nil || !v2.Running {
+		return noop, err
 	}
 	client := frontdoor.NewClient(topology.LocaltestURL())
 	if err := client.PutFrontendDevServer(ctx, frontdoor.AppURL(frontendDevServerPort)); err != nil {

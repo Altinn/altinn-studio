@@ -28,6 +28,7 @@ import (
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/localtestv2"
 	"altinn.studio/studioctl/internal/localtestv2/frontdoor"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studioctlserver"
@@ -63,6 +64,8 @@ type RunCommand struct {
 	out     *ui.Output
 	cfg     *config.Config
 	service *appsvc.Service
+	// containers connects to the container runtime, to find out whether localtest-v2 runs.
+	containers localtestv2.ContainerClientFunc
 }
 
 // NewRunCommand creates a new top-level run alias command.
@@ -72,9 +75,10 @@ func NewRunCommand(cfg *config.Config, out *ui.Output) *RunCommand {
 
 func newRunCommand(cfg *config.Config, out *ui.Output, service *appsvc.Service) *RunCommand {
 	return &RunCommand{
-		out:     out,
-		cfg:     cfg,
-		service: service,
+		out:        out,
+		cfg:        cfg,
+		service:    service,
+		containers: containerruntime.Detect,
 	}
 }
 
@@ -358,7 +362,7 @@ func (c *RunCommand) runTarget(
 	dotnetArgs []string,
 	flags runFlags,
 ) error {
-	topology, err := publicTopology(c.cfg)
+	topology, err := c.runTopology(ctx)
 	if err != nil {
 		return err
 	}
@@ -841,7 +845,16 @@ func (c *RunCommand) registerPortAndWaitForApp(
 	if err != nil {
 		return "", err
 	}
-	if err := waitForFrontDoorRegistration(ctx, c.cfg, topology, appID, want, since, startupTimeout); err != nil {
+	if err := waitForFrontDoorRegistration(
+		ctx,
+		c.cfg,
+		c.containers,
+		topology,
+		appID,
+		want,
+		since,
+		startupTimeout,
+	); err != nil {
 		return "", err
 	}
 
@@ -915,7 +928,7 @@ func (c *RunCommand) registerContainerAndWaitForApp(
 	}
 
 	if err := waitForFrontDoorRegistration(
-		ctx, c.cfg, topology, appID, frontDoorURL, since, startupTimeout,
+		ctx, c.cfg, c.containers, topology, appID, frontDoorURL, since, startupTimeout,
 	); err != nil {
 		return "", err
 	}
@@ -962,7 +975,16 @@ func (c *RunCommand) registerProcessAndWaitForApp(
 	if err != nil {
 		return "", err
 	}
-	if err := waitForFrontDoorRegistration(ctx, c.cfg, topology, appID, want, since, startupTimeout); err != nil {
+	if err := waitForFrontDoorRegistration(
+		ctx,
+		c.cfg,
+		c.containers,
+		topology,
+		appID,
+		want,
+		since,
+		startupTimeout,
+	); err != nil {
 		return "", err
 	}
 
@@ -1374,7 +1396,7 @@ func (c *RunCommand) runDocker(
 	flags runFlags,
 ) error {
 	result := target.Detection
-	spec, specErr := c.service.BuildDockerRunSpec(result, args, topology, appsvc.DockerRunOptions{
+	spec, specErr := c.service.BuildDockerRunSpec(ctx, result, args, topology, appsvc.DockerRunOptions{
 		ImageTag:                flags.imageTag,
 		RandomHostPort:          flags.randomHostPort,
 		AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),

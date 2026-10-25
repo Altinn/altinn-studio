@@ -31,7 +31,7 @@ const (
 	Name = "localtest-v2"
 
 	// graphID scopes devenv ownership labels to this runtime's graph.
-	graphID = "studioctl-localtest-v2"
+	graphID = localtestv2.GraphID
 
 	teardownTimeout = 30 * time.Second
 	stoppingMessage = "Stopping localtest-v2 environment..."
@@ -140,9 +140,9 @@ func (e *Env) Changed(opts UpOptions) (bool, error) {
 		!slices.Equal(slices.Sorted(maps.Keys(opts.DevComponents)), state.Dev), nil
 }
 
-// Start starts the environment: writes the certificate and the state file, restarts studioctl-server so that it
-// registers the apps it discovers with the front door, applies the containers (each one's health checked before what
-// depends on it starts), and waits until the front door answers on the public origin.
+// Start starts the environment: writes the certificate and the state file, applies the containers (each one's health
+// checked before what depends on it starts), waits until the front door answers on the public origin, and restarts
+// studioctl-server so that it registers the apps it discovers with the front door.
 func (e *Env) Start(ctx context.Context, upOpts UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
@@ -168,18 +168,18 @@ func (e *Env) Start(ctx context.Context, upOpts UpOptions) error {
 	}); err != nil {
 		return fmt.Errorf("record localtest-v2 state: %w", err)
 	}
-	// A restart, not only a start: the server then registers every running app again once the front door answers,
-	// and a registration provisions the app for the groups that are up now, so an app registered before
-	// `env up --with dialogporten` is synced to Dialogporten too. The front door keeps its registrations on its volume,
-	// so a server that kept running would see nothing to do.
-	if err := studioctlserver.Restart(ctx, e.cfg, strconv.Itoa(opts.Origin.Port)); err != nil {
-		return fmt.Errorf("restart studioctl-server: %w", err)
-	}
-
 	if err := e.startContainers(ctx, opts); err != nil {
 		return err
 	}
 	e.out.Success("Environment healthy")
+
+	// After the containers, since studioctl-server registers apps with the front door only while they run. A restart,
+	// not only a start: the server then registers every running app again, and a registration provisions the app for
+	// the groups that are up now, so an app registered before `env up --with dialogporten` is synced to Dialogporten
+	// too. The front door keeps its registrations on its volume, so a server that kept running would see nothing to do.
+	if err := studioctlserver.Restart(ctx, e.cfg, strconv.Itoa(opts.Origin.Port)); err != nil {
+		return fmt.Errorf("restart studioctl-server: %w", err)
+	}
 
 	localtestURL := opts.topology().LocaltestURL()
 	if upOpts.OpenBrowser {

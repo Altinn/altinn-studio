@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/httpclient"
@@ -567,7 +568,7 @@ func EnsureStartedWithStudioctlPath(
 		err = errors.Join(err, closeStudioctlServerLifecycleLock(lock))
 	}()
 
-	desired, err := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
+	desired, err := buildStartConfig(ctx, cfg, loadBalancerPort, studioctlPath, container.Detect)
 	if err != nil {
 		return err
 	}
@@ -992,26 +993,32 @@ func Restart(ctx context.Context, cfg *config.Config, loadBalancerPort string) e
 	return EnsureStarted(ctx, cfg, loadBalancerPort)
 }
 
-// buildStartConfig describes how studioctl-server should run now. While the localtest-v2 runtime is up
-// (it leaves a state file), the server registers the apps it discovers with the front door in the localtest
-// container, and the host bridge is off: that container reaches the apps through the runtime's host gateway and has
-// no bridge endpoint.
-func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) (startConfig, error) {
+// buildStartConfig describes how studioctl-server should run now. While the localtest-v2 runtime runs (its
+// containers, not only its state file: a reboot leaves the file behind), the server registers the apps it discovers
+// with the front door in the localtest container, and the host bridge is off: that container reaches the apps through
+// the runtime's host gateway and has no bridge endpoint. Every start and reconcile decides it afresh, so the next one
+// after the containers are gone runs the server as without localtest-v2.
+func buildStartConfig(
+	ctx context.Context,
+	cfg *config.Config,
+	loadBalancerPort, studioctlPath string,
+	containers localtestv2.ContainerClientFunc,
+) (startConfig, error) {
 	boundTopologyBaseConfigPath, boundTopologyConfigPath, err := boundTopologyConfigPathsIfBaseExists(cfg)
 	if err != nil {
 		return startConfig{}, err
 	}
-	v2State, v2Up, err := localtestv2.ReadState(cfg)
+	v2, err := localtestv2.Current(ctx, cfg, containers)
 	if err != nil {
-		return startConfig{}, fmt.Errorf("read localtest-v2 state: %w", err)
+		return startConfig{}, fmt.Errorf("find localtest-v2: %w", err)
 	}
 
 	hostBridgeURL := HostBridgeURL(loadBalancerPort)
-	if v2Up {
+	if v2.Running {
 		hostBridgeURL = ""
 		// The front door is at the port the environment was started with (env up --port), whichever port the caller
 		// assumed.
-		loadBalancerPort = strconv.Itoa(v2State.Origin().Port)
+		loadBalancerPort = strconv.Itoa(v2.State.Origin().Port)
 	}
 	return startConfig{
 		BinaryPath:                  cfg.StudioctlServerBinaryPath(),
@@ -1022,7 +1029,7 @@ func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string
 		StudioctlPath:               studioctlPath,
 		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPath,
 		BoundTopologyConfigPath:     boundTopologyConfigPath,
-		RegisterApps:                v2Up,
+		RegisterApps:                v2.Running,
 	}, nil
 }
 

@@ -116,7 +116,7 @@ func (s *Service) ResolveRunTarget(ctx context.Context, appPath string) (RunTarg
 
 // BuildDotnetRunSpec builds arguments/environment for native app run.
 func (s *Service) BuildDotnetRunSpec(
-	_ context.Context,
+	ctx context.Context,
 	appPath string,
 	args, env []string,
 	topology envtopology.Local,
@@ -142,7 +142,7 @@ func (s *Service) BuildDotnetRunSpec(
 	if err := s.provisionAppSecrets(secretsDir); err != nil {
 		return DotnetRunSpec{}, err
 	}
-	signing, signingErr := s.nativeAccessTokenSigning(appPath)
+	signing, signingErr := s.nativeAccessTokenSigning(ctx, appPath)
 	if signingErr != nil {
 		return DotnetRunSpec{}, signingErr
 	}
@@ -166,16 +166,17 @@ func (s *Service) BuildDotnetRunSpec(
 }
 
 // nativeAccessTokenSigning points a process run at the localtest-v2 certificate, or returns nil when that
-// runtime is not up. KeysFolder is a traversal from the app root (the parent of the App/ working
+// runtime does not run. KeysFolder is a traversal from the app root (the parent of the App/ working
 // directory) to the certificate directory, which is what the 1.x client resolves.
-func (s *Service) nativeAccessTokenSigning(appPath string) (*accessTokenSigning, error) {
-	state, up, err := localtestv2.ReadState(s.cfg)
+func (s *Service) nativeAccessTokenSigning(ctx context.Context, appPath string) (*accessTokenSigning, error) {
+	v2, err := localtestv2.Current(ctx, s.cfg, s.containers)
 	if err != nil {
-		return nil, fmt.Errorf("read localtest-v2 state: %w", err)
+		return nil, fmt.Errorf("find localtest-v2: %w", err)
 	}
-	if !up {
+	if !v2.Running {
 		return nil, nil //nolint:nilnil // nil is "no localtest-v2", not a failure.
 	}
+	state := v2.State
 	appRoot, err := filepath.Abs(appPath)
 	if err != nil {
 		return nil, fmt.Errorf("resolve app path: %w", err)
@@ -265,19 +266,20 @@ func validAppID(appID string) bool {
 }
 
 // BuildDockerRunSpec builds image/container configuration for an app container: on the localtest runtime's network,
-// or, while localtest-v2 is up, on its network (onStackNetwork).
+// or, while localtest-v2 runs, on its network (onStackNetwork).
 func (s *Service) BuildDockerRunSpec(
+	ctx context.Context,
 	result repocontext.Detection,
 	args []string,
 	topology envtopology.Local,
 	opts DockerRunOptions,
 ) (DockerRunSpec, error) {
-	state, v2, err := localtestv2.ReadState(s.cfg)
+	v2, err := localtestv2.Current(ctx, s.cfg, s.containers)
 	if err != nil {
-		return DockerRunSpec{}, fmt.Errorf("read localtest-v2 state: %w", err)
+		return DockerRunSpec{}, fmt.Errorf("find localtest-v2: %w", err)
 	}
-	if v2 {
-		if originErr := checkContainerOrigin(state); originErr != nil {
+	if v2.Running {
+		if originErr := checkContainerOrigin(v2.State); originErr != nil {
 			return DockerRunSpec{}, originErr
 		}
 	}
@@ -311,12 +313,12 @@ func (s *Service) BuildDockerRunSpec(
 	}
 	kestrelURL := "http://*:" + appcontainers.DefaultContainerPort
 	var signing *accessTokenSigning
-	if v2 {
+	if v2.Running {
 		appID, idErr := ReadAppID(appPath)
 		if idErr != nil {
 			return DockerRunSpec{}, fmt.Errorf("read app id: %w", idErr)
 		}
-		signing = onStackNetwork(&spec.Config, state, appID)
+		signing = onStackNetwork(&spec.Config, v2.State, appID)
 		kestrelURL = "http://" + allInterfacesHost + ":" + appcontainers.DefaultContainerPort
 	}
 	// The container is named the mount point its secrets directory is mounted at, and is told where its keys go,
