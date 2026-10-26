@@ -13,10 +13,10 @@ import (
 // err's message, if any, becomes the status description, which internal spans keep. On an
 // HTTP server span otelhttp sets the status again after the handler, with no description for
 // a 5xx, so error.type and that log record are what describe the failure there.
+//
+// It sets them even on a span that isn't recording, since a span that wraps it may track the
+// outcome whether or not the trace is sampled.
 func SetError(span trace.Span, errorType string, err error) {
-	if !span.IsRecording() {
-		return
-	}
 	description := ""
 	if err != nil {
 		description = err.Error()
