@@ -43,6 +43,7 @@ export interface DeriveNodesInputs {
   includedNodeIds?: Iterable<string>;
   descendantScope?: { nodeId: string; includeSelf: boolean; restriction?: number };
   pdfLayoutName: string | undefined;
+  pdfExcludedComponents?: readonly string[];
   hiddenDataSources: ExpressionDataSources;
 }
 
@@ -77,7 +78,7 @@ export function deriveNodes(state: FormStoreState, inputs: DeriveNodesInputs): D
       return cached;
     }
 
-    const hiddenSources = collectHiddenSources(baseId, state.bootstrap.layoutLookups);
+    const hiddenSources = collectHiddenSources(baseId, state.bootstrap.layoutLookups, inputs.pdfExcludedComponents);
     hiddenSourcesByBaseId.set(baseId, hiddenSources);
     return hiddenSources;
   }

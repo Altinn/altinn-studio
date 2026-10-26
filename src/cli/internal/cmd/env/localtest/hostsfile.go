@@ -490,10 +490,10 @@ func trimTrailingBlankLines(content string) string {
 		if trimmed == content {
 			return content
 		}
-		lineStart := strings.LastIndex(trimmed, "\n")
+		_, after, ok := strings.CutLast(trimmed, "\n")
 		lastLine := trimmed
-		if lineStart >= 0 {
-			lastLine = trimmed[lineStart+1:]
+		if ok {
+			lastLine = after
 		}
 		if strings.TrimSpace(strings.TrimSuffix(lastLine, "\r")) != "" {
 			return trimmed

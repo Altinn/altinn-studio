@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
+	"slices"
 	"time"
 )
 
@@ -106,6 +108,10 @@ func (s Streamer) emitAll(files []File) (map[string]int64, error) {
 	offsetByPath := make(map[string]int64, len(files))
 	for _, candidate := range files {
 		file, err := os.Open(candidate.Path)
+		if errors.Is(err, fs.ErrNotExist) {
+			// Retention may delete an old file between listing and reading it.
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("open log: %w", err)
 		}
@@ -226,6 +232,10 @@ func readTailSnapshot(paths []string, tail int) (tailSnapshot, error) {
 	for i := len(paths) - 1; i >= 0 && remaining > 0; i-- {
 		path := paths[i]
 		fileTail, err := readFileTail(path, remaining)
+		if errors.Is(err, fs.ErrNotExist) {
+			// Retention may delete an old file between listing and reading it.
+			continue
+		}
 		if err != nil {
 			return tailSnapshot{}, err
 		}
@@ -241,8 +251,8 @@ func readTailSnapshot(paths []string, tail int) (tailSnapshot, error) {
 		remaining -= len(lines)
 	}
 
-	for i := len(chunks) - 1; i >= 0; i-- {
-		snapshot.lines = append(snapshot.lines, chunks[i]...)
+	for _, chunk := range slices.Backward(chunks) {
+		snapshot.lines = append(snapshot.lines, chunk...)
 	}
 	return snapshot, nil
 }

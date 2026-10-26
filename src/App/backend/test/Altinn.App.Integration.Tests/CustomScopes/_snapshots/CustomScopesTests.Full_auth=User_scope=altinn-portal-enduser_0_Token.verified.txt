@@ -7,7 +7,7 @@
   nbf: {Scrubbed},
   scope: altinn:portal/enduser,
   urn:altinn:authenticatemethod: BankID,
-  urn:altinn:authlevel: 2,
+  urn:altinn:authlevel: 3,
   urn:altinn:partyid: 501337,
   urn:altinn:userid: 1337
 }

@@ -89,6 +89,13 @@ Pushes workflow arrays. Uses PG NOTIFY to wake up on changes (2s timeout fallbac
 
 ## REST Endpoints
 
+### `GET /dashboard/config`
+
+The host's dashboard settings, read once at startup before anything renders. Response:
+`{ grafanaUrl?, grafanaTracesDatasourceUid? }` — `EngineSettings.Dashboard`, each omitted while unset (an
+empty or whitespace value counts as unset). The page draws [Grafana links](#grafana-link) only when both are
+present.
+
 ### `GET /dashboard/query`
 
 Paginated workflow search.
@@ -360,7 +367,7 @@ Left to right:
 7. **Timestamps** — Created → Updated, with elapsed duration. Timers tick for active workflows.
 8. **Copy idempotency key button**
 9. **Relation chips** — One chip per non-empty relation group: `↑` dependsOn, `↓` dependents, chain icon for links. Each chip shows a status-colored dot per related workflow (capped at 5, then `+N`); the tooltip lists `operationId (status)` pairs. Click behavior: exactly one relation whose card is on screen → smooth-scroll to it and flash it (`rel-flash`); otherwise → toggle the collection filter (connected workflows share a collection). Relation arrays are tri-state: active/scheduled cards carry them inline from their source queries; recent/query cards don't — a ghost `rel?` chip (full cards only) or expanding a compact card fetches them via `/dashboard/relations` and re-renders. Relation dot colors on active cards refresh via the live fingerprint (which includes relation statuses).
-10. **Action buttons** — Collection filter funnel, chain modal (tree icon, all cards), open state modal, Grafana trace link.
+10. **Action buttons** — Collection filter funnel, chain modal (tree icon, all cards), open state modal, Grafana trace link (only where the host configures a Grafana, see [Grafana Link](#grafana-link)).
 
 ### Pipeline
 
@@ -467,7 +474,7 @@ The modal has four distinct DOM zones:
     - Max Execution Time (formatted duration, if set)
     - Webhook-specific: URI, Content-Type (extracted from `command.data`, supports both camelCase and PascalCase keys)
     - Error History (collapsible section, see below)
-    - Grafana trace link (if traceId exists)
+    - Grafana trace link (if traceId exists and the host configures a Grafana)
 
 2. **State** (conditional) — Only shown if step has stateIn or stateOut.
     - **Both stateIn and stateOut exist**: Shows sub-tabs (Diff, State In, State Out). Diff tab is default.
@@ -493,7 +500,13 @@ While the modal is open, if the workflow's fingerprint changes (from live SSE up
 
 ### Grafana Link
 
-Opens Grafana Tempo trace view using the workflow's `traceId`. The URL targets `localhost:7070/explore` with a Tempo datasource query. Link text: "Open Grafana". Opens in new tab.
+Opens the workflow's engine trace, the one its `WorkflowHandler.Handle` span roots, by the workflow's `traceId` in
+Grafana Explore. The host decides which Grafana: the link is `<grafanaUrl>/explore`, querying the trace ID in TraceQL
+on the Tempo datasource `{ type: 'tempo', uid: <grafanaTracesDatasourceUid> }`, both from
+[`GET /dashboard/config`](#get-dashboardconfig) (`EngineSettings.Dashboard`). While the host leaves either unset, the
+dashboard draws no Grafana link anywhere: no _Open Grafana_ here and no trace icon on the cards. Built by
+`grafanaTraceUrl()` in `modules/core/helpers.js`, which the cards' trace icon uses too and which returns `null` while
+the link is off. Link text: "Open Grafana". Opens in new tab.
 
 ### Error History
 
@@ -892,7 +905,7 @@ The C# `DashboardMapper` transforms domain models into dashboard DTOs. Key mappi
 - **`commandDetail`** — Set to `step.OperationId` (not a separate field; the operation ID doubles as the display label for the step).
 - **`labels`** — The step's own labels, passed through verbatim from what the caller enqueued. Omitted from the JSON when the step has none. This is what carries `processNextElement` (see BPMN Element Grouping); the dashboard reads that one key and ignores the rest, so a caller may put anything else here without the UI reacting to it.
 - **`deferCount` / `firstDeferredAt` / `lastDeferReason`** — Passed through from the step's defer anchors (`Step.DeferCount`, `Step.FirstDeferredAt`, `Step.LastDeferReason`) so a card can say what a `Waiting` step is waiting for. Null anchors are omitted from the JSON.
-- **`executionStartedAt`** — On the workflow and on each step: the start of the **most recent attempt** (`Workflow.ExecutionStartedAt` / `Step.ExecutionStartedAt`), stamped by the worker and persisted by that attempt's write-backs, so it survives a round trip through the database. Null while the workflow is `Enqueued` (before the first attempt; again after resume, stale reclaim or dependency recovery), and overwritten by every new attempt. Settled card and chain durations fall back to `createdAt` only for a workflow with no attempt to show; on a settled step, `updatedAt − executionStartedAt` is the last attempt's duration, and the step modal's Processing counter counts up from it. The **live** counter falls back to `updatedAt` before `createdAt`, because a live workflow with no stamp is `Enqueued` or `Held` and for those `updatedAt` is when it entered the queue — the enqueue leaves it null, every later path back into the queue sets it — so a workflow the operator has just resumed counts from the resume instead of showing its whole age until a worker claims it. A settled workflow must never take that fallback: there `updatedAt` is when it finished. The persisted value trails the worker by at most one write-back — the `step.started` write-back is fire-and-forget and dropped under buffer pressure — so a `Processing` step's counter is indicative until the step settles.
+- **`executionStartedAt`** — On the workflow and on each step: the start of the **most recent attempt** (`Workflow.ExecutionStartedAt` / `Step.ExecutionStartedAt`), stamped by the worker and persisted by that attempt's write-backs, so it survives a round trip through the database. Null while the workflow is `Enqueued` (before the first attempt; again after resume, stale reclaim or dependency recovery), and overwritten by every new attempt. Settled card and chain durations fall back to `createdAt` only for a workflow with no attempt to show; on a settled step, `updatedAt − executionStartedAt` is the last attempt's duration, and the step modal's Processing counter counts up from it. The **live** counter falls back to `updatedAt` before `createdAt`, because a live workflow with no stamp is `Enqueued` or `Held` and for those `updatedAt` is when it entered the queue — the enqueue leaves it null, every later path back into the queue sets it — so a workflow the operator has just resumed counts from the resume instead of showing its whole age until a worker claims it. A settled workflow must never take that fallback: there `updatedAt` is when it finished. The persisted value trails the worker by at most one write-back — the `step_started` write-back is fire-and-forget and dropped under buffer pressure — so a `Processing` step's counter is indicative until the step settles.
 - **`stateChanged`** — For each step (in processing order), compares `step.StateOut` against the previous step's `StateOut` (or `workflow.InitialState` for the first step). `true` if `StateOut` is non-null and differs from the previous state.
 - **`hasState`** — `true` if `workflow.InitialState` is non-null OR any step has a non-null `StateOut`.
 - **`traceId`** — Extracted from `EngineTraceContext` or `EngineActivity` on the workflow.

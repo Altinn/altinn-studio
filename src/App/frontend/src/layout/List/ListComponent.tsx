@@ -180,7 +180,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
           <Fieldset>
             <Fieldset.Legend>
               {description && (
-                <Fieldset.Description>
+                <Fieldset.Description className={classes.description}>
                   <Lang id={description} />
                 </Fieldset.Description>
               )}
@@ -228,7 +228,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
               </Heading>
             </Fieldset.Legend>
             {description && (
-              <Fieldset.Description>
+              <Fieldset.Description className={classes.description}>
                 <Lang id={description} />
               </Fieldset.Description>
             )}

@@ -630,8 +630,20 @@ public class DeploymentService : IDeploymentService
         var payload = new NotificationPayload(buildId, status, fields, links, Emoji: "❌");
 
         await Task.WhenAll(
-            _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
-            _notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
+            _notificationService.NotifyInternalAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            ),
+            _notificationService.NotifyServiceOwnersAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            )
         );
     }
 

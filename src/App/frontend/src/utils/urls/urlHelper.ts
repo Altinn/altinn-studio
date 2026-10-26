@@ -32,14 +32,22 @@ function isRecognizedAltinnHost(host: string): boolean {
   return extractAltinnHost(host) !== undefined;
 }
 
-function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
+/**
+ * The platform link for a host: the configured URL on a recognized Altinn host, nothing on a host we do
+ * not recognize, and on localtest the configured URL when one is set (a local arbeidsflate, for example),
+ * otherwise localtest's front page.
+ */
+function platformUrlForHost(host: string, configuredUrl: string | undefined): string | undefined {
   if (isLocalEnvironment(host)) {
-    return `http://${host}/`;
+    return configuredUrl || `http://${host}/`;
   }
   if (!isRecognizedAltinnHost(host)) {
     return undefined;
   }
+  return configuredUrl;
+}
 
+function configuredArbeidsflateRedirectUrl(partyId?: number, dialogId?: string): string | undefined {
   const settings = GlobalData.platformFrontendSettings;
   const inboxUrl = settings.arbeidsflateInboxUrl;
   if (!inboxUrl) {
@@ -53,6 +61,10 @@ function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?:
 
   // Use access management changeandredirect endpoint to switch party and redirect to A3 arbeidsflate
   return fillUrlTemplate(settings.accessManagementChangeAndRedirectUrl, { partyId, goTo: targetUrl }) ?? targetUrl;
+}
+
+function buildArbeidsflateRedirectUrl(host: string, partyId?: number, dialogId?: string): string | undefined {
+  return platformUrlForHost(host, configuredArbeidsflateRedirectUrl(partyId, dialogId));
 }
 
 export const getMessageBoxUrl = (partyId?: number, dialogId?: string): string | undefined =>
@@ -73,58 +85,23 @@ export function getDialogIdFromDataValues(dataValues: unknown): string | undefin
 export const returnUrlToArchive = (host: string, partyId?: number, dialogId?: string): string | undefined =>
   buildArbeidsflateRedirectUrl(host, partyId, dialogId);
 
-export const returnUrlToProfile = (host: string, _partyId?: number | undefined): string | undefined => {
-  if (isLocalEnvironment(host)) {
-    // localtest serves no profile page, so its front page is the closest equivalent
-    return `http://${host}/`;
-  }
-  if (!isRecognizedAltinnHost(host)) {
-    return undefined;
-  }
+export const returnUrlToProfile = (host: string, _partyId?: number | undefined): string | undefined =>
+  platformUrlForHost(host, GlobalData.platformFrontendSettings.arbeidsflateProfileUrl);
 
-  return GlobalData.platformFrontendSettings.arbeidsflateProfileUrl;
-};
-
-export const returnUrlToAllForms = (host: string): string | undefined => {
-  if (isLocalEnvironment(host)) {
-    return `http://${host}/`;
-  }
-  if (!isRecognizedAltinnHost(host)) {
-    return undefined;
-  }
-
-  return GlobalData.platformFrontendSettings.allFormsUrl;
-};
-
-/** Links from texts on the instantiation pages, which localtest has no equivalent of beyond its front page. */
-function instantiationHelpUrl(host: string, url: string | undefined): string | undefined {
-  if (isLocalEnvironment(host)) {
-    return `http://${host}/`;
-  }
-  if (!isRecognizedAltinnHost(host)) {
-    return undefined;
-  }
-  return url;
-}
+export const returnUrlToAllForms = (host: string): string | undefined =>
+  platformUrlForHost(host, GlobalData.platformFrontendSettings.allFormsUrl);
 
 export const returnUrlToAccessManagement = (host: string): string | undefined =>
-  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.accessManagementUrl);
+  platformUrlForHost(host, GlobalData.platformFrontendSettings.accessManagementUrl);
 
 export const returnUrlToRolesAndRightsHelp = (host: string): string | undefined =>
-  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.rolesAndRightsHelpUrl);
+  platformUrlForHost(host, GlobalData.platformFrontendSettings.rolesAndRightsHelpUrl);
 
 export const returnUrlToPartiesSettings = (host: string): string | undefined =>
-  instantiationHelpUrl(host, GlobalData.platformFrontendSettings.arbeidsflatePartiesUrl);
+  platformUrlForHost(host, GlobalData.platformFrontendSettings.arbeidsflatePartiesUrl);
 
 export function logoutUrlAltinn(host: string): string | undefined {
-  if (isLocalEnvironment(host)) {
-    return `http://${host}/`;
-  }
-
-  if (!isRecognizedAltinnHost(host)) {
-    return;
-  }
-  return GlobalData.platformFrontendSettings.logoutUrl;
+  return platformUrlForHost(host, GlobalData.platformFrontendSettings.logoutUrl);
 }
 
 export function customEncodeURI(uri: string): string {

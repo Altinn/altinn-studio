@@ -51,7 +51,7 @@ public partial class AppFixture : IAsyncDisposable
         public async Task<string> GetUserToken(
             int userId = 1337,
             int? partyId = null,
-            int authenticationLevel = 2,
+            int authenticationLevel = 3,
             string? scope = null
         )
         {
@@ -59,7 +59,7 @@ public partial class AppFixture : IAsyncDisposable
             var queryParams = new List<string> { $"userId={userId}" };
             if (partyId.HasValue)
                 queryParams.Add($"partyId={partyId}");
-            if (authenticationLevel != 2)
+            if (authenticationLevel != 3)
                 queryParams.Add($"authenticationLevel={authenticationLevel}");
             if (!string.IsNullOrEmpty(scope))
                 queryParams.Add($"scope={Uri.EscapeDataString(scope)}");

@@ -15,7 +15,7 @@ public class CanUseAiAssistantEvaluator : ICanUseAiAssistantEvaluator
     /// <summary>
     /// Service owners with access during the beta.
     /// </summary>
-    private static readonly string[] s_allowedServiceOwners = ["ttd", "nfk", "ssb", "dat", "brg", "staf", "ikta"];
+    private static readonly string[] s_allowedServiceOwners = ["ttd", "nfk", "ssb", "dat", "brg", "staf", "ikta", "nb"];
 
     private readonly IGiteaClient _giteaClient;
     private readonly IHttpContextAccessor _httpContextAccessor;

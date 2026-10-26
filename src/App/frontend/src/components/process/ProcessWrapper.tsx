@@ -152,7 +152,8 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // classifies and renders as a Data task) is followed the same way as the default waiting view.
   const isParkedOnServiceTask =
     process?.currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK && (workflow?.status ?? 'idle') === 'idle';
-  useFollowProcess(!isPdfMode && isParkedOnServiceTask);
+  // Follow feedback here as well, so observing a new task cannot unmount the component owning navigation.
+  useFollowProcess(!isPdfMode && (isParkedOnServiceTask || taskType === ProcessTaskType.Feedback));
 
   if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
