@@ -11,7 +11,7 @@ COPY --from=sdk10 /usr/share/dotnet/sdk-manifests /usr/share/dotnet/sdk-manifest
 COPY --from=sdk10 /usr/share/dotnet/shared /usr/share/dotnet/shared
 
 # Only a reviewed change of these two values can put a new studioctl version into production.
-# AGENTS.md gives the procedure to update them.
+# docs/update-studioctl.md gives the procedure to update them.
 ARG STUDIOCTL_VERSION=v0.1.0-preview.29
 ARG STUDIOCTL_INSTALL_SCRIPT_SHA256=9a723f023a4e9625c0a5d8be262f54b25c52f563b2e8ca06fe9c5c1e1e575959
 
