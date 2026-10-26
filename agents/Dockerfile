@@ -1,9 +1,10 @@
 # The Altinn Agents' images, built on the agentctl base image. The base carries the Agent user, the
 # harnesses at the versions agentctl is tested with, Node.js, gh with gh-stack, asciinema and agg,
-# Neovim and the boot settings a Sandbox needs, and offers the browser and desktop as features:
+# Neovim, shellcheck, actionlint and the common build and archive tools, and the boot settings a
+# Sandbox needs, and offers the browser, containers and desktop as features:
 # https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base
 # Renovate moves the digest, and with it the harness versions.
-FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:390d420ab678360ef8b16f595440130c551db25095669499a7adddc39c6d9748 AS minimal
+FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04@sha256:2ee51d4619a9e13b1d1e6037b48c76fcc6bbed46ef6203aadde1270c1a2fb790 AS minimal
 
 # The base ends as the unprivileged Agent user; installing packages needs root again.
 USER root
@@ -182,8 +183,10 @@ USER root
 # comes first in this stage, so that updating a tool below does not reinstall the browser.
 RUN agent-feature install desktop
 
+# Keep the Norwegian keyboard layout, so that people reaching the desktop type æøå and ÆØÅ.
+COPY common/agent-desktop.conf /etc/agent-desktop.conf.d/altinn.conf
+
 # What `agent-feature env desktop` prints; agent-image-check fails the image without it.
-ENV NODE_PATH=/usr/local/lib/node_modules
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 ENV DISPLAY=:1
 ENV DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
@@ -203,41 +206,35 @@ ENV CARGO_HOME=/home/agent/.cargo
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV PATH=/home/agent/.local/bin:/home/agent/.cargo/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# Podman's netavark backend invokes nft for rootful bridge networking and aardvark-dns for
-# container-name resolution between compose services. libcap-ng-dev links the Microsandbox runtime,
-# as in the self-dev example. python3-venv and pip let the Python projects under src/AI create their
+# Podman, the `docker` command and Docker Compose, which agentd serves to the agent user at
+# /run/docker.sock.
+RUN agent-feature install containers
+
+# `podman run --init` looks up catatonit by name. libcap-ng-dev links the Microsandbox runtime, as
+# in the self-dev example. python3-venv and pip let the Python projects under src/AI create their
 # own virtual environments; the system interpreter stays externally managed. postgresql-client
 # inspects the Postgres instances the compose stacks start, and the network tools debug LocalTest,
 # studioctl and container ports.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
-        aardvark-dns \
         bind9-dnsutils \
         catatonit \
         clang \
-        file \
         hyperfine \
         libcap-ng-dev \
         lldb \
         linux-perf \
         lsof \
         netcat-openbsd \
-        nftables \
-        podman \
-        podman-compose \
-        podman-docker \
         postgresql-client \
         python3-pip \
         python3-venv \
         qemu-system \
         rsync \
         rustup \
-        shellcheck \
         socat \
         strace \
         tcpdump \
-        unzip \
-        zip \
     && rm -rf /var/lib/apt/lists/* \
     && CARGO_HOME=/usr/local/cargo rustup set profile minimal \
     && CARGO_HOME=/usr/local/cargo rustup default "${RUST_VERSION}" \
@@ -310,31 +307,21 @@ RUN case "${TARGETARCH}" in \
     && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
     && rm -rf /tmp/flux.tar.gz /tmp/helm.tar.gz /tmp/kind /tmp/kubectl /tmp/linux-*
 
-# yq edits the manifests the deploy workflows patch, actionlint checks the GitHub workflows, and
-# cargo-deny runs the root deny.toml that CI checks with cargo-deny-action. All three are static
-# binaries published per architecture, so the digests are pinned here and must move together with
-# the version.
-ARG ACTIONLINT_VERSION=1.7.12
+# yq edits the manifests the deploy workflows patch, and cargo-deny runs the root deny.toml that CI
+# checks with cargo-deny-action. Both are static binaries published per architecture, so the digests
+# are pinned here and must move together with the version.
 ARG CARGO_DENY_VERSION=0.20.2
 ARG YQ_VERSION=4.54.1
 
 RUN case "${TARGETARCH}" in \
         amd64) PORTABLE_ARCH=amd64; RUST_ARCH=x86_64; \
-            ACTIONLINT_SHA256=8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8; \
             CARGO_DENY_SHA256=9f12ed4c49936e09b48bf862b595cde2fe64fcbd9d74dfacac6131ca824c8d5f; \
             YQ_SHA256=8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f ;; \
         arm64) PORTABLE_ARCH=arm64; RUST_ARCH=aarch64; \
-            ACTIONLINT_SHA256=325e971b6ba9bfa504672e29be93c24981eeb1c07576d730e9f7c8805afff0c6; \
             CARGO_DENY_SHA256=995c82be0defc7a025cae49a2aa2644ce8245c9a3318fc4103907c6a285e8c7d; \
             YQ_SHA256=189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b ;; \
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
-    && curl -fsSL \
-        "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_${PORTABLE_ARCH}.tar.gz" \
-        -o /tmp/actionlint.tar.gz \
-    && echo "${ACTIONLINT_SHA256}  /tmp/actionlint.tar.gz" | sha256sum -c - \
-    && tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint \
-    && install -m 0755 /tmp/actionlint /usr/local/bin/actionlint \
     && CARGO_DENY_NAME="cargo-deny-${CARGO_DENY_VERSION}-${RUST_ARCH}-unknown-linux-musl" \
     && curl -fsSL \
         "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/${CARGO_DENY_NAME}.tar.gz" \
@@ -347,39 +334,27 @@ RUN case "${TARGETARCH}" in \
         -o /tmp/yq \
     && echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c - \
     && install -m 0755 /tmp/yq /usr/local/bin/yq \
-    && rm -rf /tmp/actionlint /tmp/actionlint.tar.gz /tmp/cargo-deny.tar.gz "/tmp/${CARGO_DENY_NAME}" /tmp/yq \
-    && test "$(actionlint --version | head -1)" = "${ACTIONLINT_VERSION}" \
+    && rm -rf /tmp/cargo-deny.tar.gz "/tmp/${CARGO_DENY_NAME}" /tmp/yq \
     && test "$(cargo-deny --version)" = "cargo-deny ${CARGO_DENY_VERSION}" \
     && yq --version | grep -qF "v${YQ_VERSION}"
-
-# Docker API clients such as agentctl's image builds and Testcontainers read DOCKER_HOST, not the
-# CONTAINER_HOST that agentd gives a Session. podman-docker's profile script would otherwise point
-# it at a rootless socket under XDG_RUNTIME_DIR that nothing serves, so use the rootful socket the
-# agent group can reach, as /run/docker.sock does.
-ENV DOCKER_HOST=unix:///run/podman/podman.sock
 
 # devenv provisions kind clusters with the CA bundle this variable names: it registers the bundle in
 # each node's trust store and mounts it into the Flux controllers. Without it the mediated CA is
 # unknown inside the cluster and every Helm repository fetch fails certificate verification.
 ENV STUDIO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
-# A nested Microsandbox runtime needs /dev/kvm; the tmpfiles rule hands the device to the kvm group.
-COPY common/kvm-tmpfiles.conf /usr/lib/tmpfiles.d/agent-kvm.conf
 COPY common/dev-hosts-init.service /etc/systemd/system/agent-dev-hosts-init.service
 
 # Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
 # source path is missing where Docker would create it, and the Sandbox kernel is built without
 # loadable modules, so nothing else creates the directory the mount needs.
 RUN install -d /lib/modules \
-    && { getent group kvm >/dev/null || groupadd --system kvm; } \
-    && usermod --append --groups kvm agent \
     && systemctl enable agent-dev-hosts-init.service \
     && scratch="$(mktemp -d)" \
     && HOME="${scratch}" TMPDIR="${scratch}" sh -c ' \
         cargo --version \
         && cargo machete --version \
         && podman --version \
-        && podman-compose --version \
         && kind version \
         && kubectl version --client \
         && helm version --short \
@@ -387,12 +362,10 @@ RUN install -d /lib/modules \
         && python3 -m venv "${TMPDIR}/venv-check" \
         && "${TMPDIR}/venv-check/bin/pip" --version \
         && psql --version \
-        && shellcheck --version \
         && hyperfine --version \
         && socat -V | head -1 \
         && tcpdump --version \
-        && dig -v \
-        && unzip -v | head -1' \
+        && dig -v' \
     && rm -rf "${scratch}" \
     && agent-image-check
 

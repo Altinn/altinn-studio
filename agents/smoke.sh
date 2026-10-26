@@ -185,15 +185,13 @@ cargo machete --version
 cargo deny --version
 
 echo "## developer tools"
-actionlint --version | head -1
 yq --version
-shellcheck --version | sed -n 2p
 psql --version
 hyperfine --version
 socat -V | sed -n 2p
 tcpdump --version | head -1
 dig -v
-for tool in file less lsof nc rsync unzip zip; do
+for tool in less lsof nc rsync; do
     command -v "$tool" >/dev/null || fail "$tool is missing"
 done
 python3 -m venv venv
@@ -211,17 +209,14 @@ echo "## container tooling"
 # `podman run --init` looks this up by name; without it the flag fails instead of running.
 command -v catatonit >/dev/null || fail "catatonit is missing, so podman run --init cannot work"
 echo "catatonit: $(command -v catatonit)"
-# A login shell runs podman-docker's profile script, which must keep the image's DOCKER_HOST.
-login_docker_host="$(bash -lc 'echo "$DOCKER_HOST"')"
-test "$login_docker_host" = unix:///run/podman/podman.sock \
-    || fail "a login shell points DOCKER_HOST at $login_docker_host"
-echo "DOCKER_HOST: $login_docker_host"
 
 echo "## playwright"
 browsers=(/opt/ms-playwright/chromium-*)
 test "${#browsers[@]}" -eq 1 || fail "expected exactly one Chromium build, found: ${browsers[*]}"
-cli_playwright="$(node -p "require('/usr/local/lib/node_modules/@playwright/cli/package.json').dependencies.playwright")"
-global_playwright="$(node -p "require('playwright/package.json').version")"
+# The image sets no NODE_PATH, so scripts outside a project name the global packages themselves.
+global_modules="$(npm root -g)"
+cli_playwright="$(node -p "require('$global_modules/@playwright/cli/package.json').dependencies.playwright")"
+global_playwright="$(NODE_PATH="$global_modules" node -p "require('playwright/package.json').version")"
 test "$cli_playwright" = "$global_playwright" \
     || fail "playwright-cli depends on playwright $cli_playwright but $global_playwright is installed"
 systemctl is-enabled agent-browser-ca-init.service >/dev/null \
@@ -270,7 +265,7 @@ playwright-cli screenshot --filename=after.png
 playwright-cli close
 
 echo "## media helpers"
-node -e "require('playwright'); console.log('require(\"playwright\") resolves from', process.cwd())"
+NODE_PATH="$global_modules" node -e "require('playwright'); console.log('require(\"playwright\") resolves from', process.cwd())"
 for image in before.png after.png; do
     IFS=, read -r width height < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$image")
     test "$width" = 1280 && test "$height" = 720 || fail "$image is ${width}x${height}, expected 1280x720"
@@ -283,8 +278,18 @@ media-preview "$work/missing.png" && fail "media-preview accepted a missing file
 # The desktop image boots this stack from systemd units; CI runs the image under Docker, where
 # there is no init, so the same three processes are started here from the same configuration.
 echo "## desktop"
+# The units read the image's overrides after the defaults, and pass them to the session.
+set -a
 . /etc/agent-desktop.conf
+for conf in /etc/agent-desktop.conf.d/*.conf; do
+    # shellcheck source=/dev/null
+    . "$conf"
+done
+set +a
 export DISPLAY="$AGENT_DESKTOP_DISPLAY"
+# Screenshots are sized for the Session's harness. Claude Code's budget, the default these Agents
+# start Sessions with, keeps the sizes below the same wherever this runs.
+export AGENT_HARNESS=claudeCode
 for unit in agent-desktop-display agent-desktop-session; do
     systemctl is-enabled "${unit}.service" >/dev/null || fail "${unit}.service is not enabled"
 done
@@ -339,8 +344,8 @@ for _ in $(seq 1 150); do desktop windows 2>/dev/null | grep -qi tint2 && break;
 geometry="$(xdpyinfo | awk '/dimensions:/ { print $2 }')"
 test "$geometry" = "$AGENT_DESKTOP_GEOMETRY" \
     || fail "display is $geometry, expected $AGENT_DESKTOP_GEOMETRY"
-# xdotool cannot type ÆØÅ under a layout that does not carry those characters: it loses the shift
-# level when it has to bind one itself, and Norwegian form input is full of them.
+# The image keeps the Norwegian layout over the base's US default, for the people who share the
+# desktop's keyboard.
 layout="$(setxkbmap -query | awk '/^layout/ { print $2 }')"
 test "$layout" = no || fail "keyboard layout is $layout, expected the Norwegian layout"
 test -S "$AGENT_DESKTOP_SOCKET" || fail "the VNC server has no Unix socket at $AGENT_DESKTOP_SOCKET"
@@ -377,20 +382,26 @@ tree="$(desktop tree chromium)" || fail "desktop tree chromium failed"
 grep -q '^ *document web "smoke headed" @' <<<"$tree" \
     || fail "the headed playwright-cli browser is missing from desktop tree"
 (cd headed && PLAYWRIGHT_CLI_SESSION=smoke-headed playwright-cli close >/dev/null)
+test "$AGENT_DESKTOP_GEOMETRY" = 1600x900 || fail "the display is $AGENT_DESKTOP_GEOMETRY, expected 1600x900"
+# Codex takes the display at full size.
+shot="$(AGENT_HARNESS=codex desktop --json screenshot)"
+test "$(jq -r '"\(.width)x\(.height)"' <<<"$shot")" = 1600x900 \
+    || fail "a Codex screenshot is $(jq -r '"\(.width)x\(.height)"' <<<"$shot"), expected 1600x900"
 shot="$(desktop --json screenshot)"
 echo "$shot"
 path="$(jq -r .path <<<"$shot")"
-test "$(jq -r .width <<<"$shot")" = 1456 || fail "screenshot is not 1456 pixels wide"
-test "$(jq -r .height <<<"$shot")" = 819 || fail "screenshot is not 819 pixels high"
+test "$(jq -r .width <<<"$shot")" = 1445 || fail "screenshot is not 1445 pixels wide"
+test "$(jq -r .height <<<"$shot")" = 812 || fail "screenshot is not 812 pixels high"
 test "$(jq -r .frames <<<"$shot")" -ge 2 || fail "the capture did not wait for the screen to settle"
 test "$(jq -r .bytes <<<"$shot")" -gt 20000 || fail "the screenshot is too small to hold a page"
 cp "$path" desktop.jpg
 ! desktop zoom 0 0 400 200 --out zoom.png >/dev/null 2>&1 || fail "zoom accepted a non-JPEG path"
+# A zoom takes its region in screenshot pixels and captures it at the display's resolution.
 desktop zoom 0 0 400 200 --out zoom.jpg
 IFS=, read -r zoom_width zoom_height < <(ffprobe -v error -select_streams v:0 \
     -show_entries stream=width,height -of csv=p=0 zoom.jpg)
-test "$zoom_width" = 400 && test "$zoom_height" = 200 \
-    || fail "zoom wrote ${zoom_width}x${zoom_height}, expected 400x200"
+test "$zoom_width" = 443 && test "$zoom_height" = 222 \
+    || fail "zoom wrote ${zoom_width}x${zoom_height}, expected 443x222"
 
 echo "## desktop input"
 # Norwegian text through the whole path: the batch parser, xdotool, the keyboard layout, the page.
@@ -400,7 +411,7 @@ type https://localhost:8321/?søk=Blåbær ÆØÅ
 key Return
 wait 2
 BATCH
-desktop zoom 0 40 1456 40 --out address.jpg
+desktop zoom 0 40 1445 40 --out address.jpg
 # The fixture puts the decoded query in its title, so this fails if any character was lost,
 # changed case or arrived through the wrong layout.
 title="$(desktop windows | grep -i chromium)"
@@ -432,7 +443,7 @@ grep -q 'Not executed' <<<"$halted" || fail "a batch carried on after xdotool fa
 desktop batch <<'BATCH' >trailing.txt
 wait 0.2
 BATCH
-grep -qE '\.jpg \(1456x819' trailing.txt || fail "a batch did not end with a screenshot"
+grep -qE '\.jpg \(1445x812' trailing.txt || fail "a batch did not end with a screenshot"
 
 echo "## desktop terminal"
 # The terminal a person opens with Ctrl+Alt+T or the panel launcher.
@@ -506,10 +517,10 @@ socket.on('unexpected-response', (_request, response) => {
 });
 socket.on('error', (error) => { console.error(error.message); process.exit(1); });
 PROBE
-node ws-probe.js ws://127.0.0.1:6080/websockify http://127.0.0.1:6080 \
+NODE_PATH="$global_modules" node ws-probe.js ws://127.0.0.1:6080/websockify http://127.0.0.1:6080 \
     || fail "the browser viewer does not bridge the desktop"
 status=0
-node ws-probe.js ws://127.0.0.1:6080/websockify https://example.com || status=$?
+NODE_PATH="$global_modules" node ws-probe.js ws://127.0.0.1:6080/websockify https://example.com || status=$?
 test "$status" = 2 || fail "the browser viewer bridged a page from another origin to the desktop"
 
 media-preview desktop.jpg

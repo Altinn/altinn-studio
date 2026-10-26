@@ -23,7 +23,7 @@ harnesses and the desktop.
 
 ## Getting started
 
-1. Install `agentctl` 0.1.0-preview.12 or later and run `agentctl claude login`. If your `agentctl` was installed from
+1. Install `agentctl` 0.1.0-preview.13 or later and run `agentctl claude login`. If your `agentctl` was installed from
    an altinn-studio release, install it again from digdir-agents to keep receiving updates.
 2. Copy the chosen Agent's `.env.sample` to `.env` and fill it in (see [Credentials](#credentials)).
 3. Run `agentctl tui` from this checkout. The footer lists the keys for what is selected; the common ones:
