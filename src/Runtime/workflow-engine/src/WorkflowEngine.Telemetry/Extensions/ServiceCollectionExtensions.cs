@@ -18,24 +18,21 @@ namespace WorkflowEngine.Telemetry.Extensions;
 public static class ServiceCollectionExtensions
 {
     private const string OtlpEndpointVariable = "OTEL_EXPORTER_OTLP_ENDPOINT";
-    private const string OtlpTracesEndpointVariable = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT";
-    private const string OtlpMetricsEndpointVariable = "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT";
-    private const string OtlpLogsEndpointVariable = "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT";
 
     extension(IServiceCollection services)
     {
         /// <summary>
-        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs), and an OTLP exporter for each
-        /// signal whose endpoint the deployment sets.
+        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs), and the OTLP exporter when the
+        /// deployment sets the OTLP endpoint.
         /// </summary>
         /// <remarks>
-        /// A signal is exported exactly when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> or its own
-        /// <c>OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT</c> is set, so an engine without a collector sends
-        /// nothing and logs no export errors, rather than falling back to the SDK's default
-        /// <c>http://localhost:4317</c>. The exporter reads the endpoint, the protocol and every other
-        /// <c>OTEL_*</c> setting itself. The instrumentation, sources and meters are registered either way.
+        /// Traces, metrics and logs are exported exactly when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> is set, so an engine
+        /// without a collector sends nothing and logs no export errors, rather than falling back to the SDK's
+        /// default endpoint. The per-signal endpoint variables do not turn exporting on. The exporter reads the
+        /// endpoint, the protocol and every other <c>OTEL_*</c> setting itself. The instrumentation, sources and
+        /// meters are registered either way.
         /// </remarks>
-        /// <param name="configuration">The host's configuration, from which the OTLP endpoint variables are read.</param>
+        /// <param name="configuration">The host's configuration, from which the OTLP endpoint variable is read.</param>
         /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
         /// <param name="enableDatabaseInstrumentation">Enable EF Core and Npgsql tracing instrumentation. Implies <paramref name="enableDatabaseMetrics"/>.</param>
         /// <param name="enableDatabaseMetrics">Enable Npgsql connection pool and command metrics.</param>
@@ -48,10 +45,7 @@ public static class ServiceCollectionExtensions
             double traceSamplingRate = 1.0
         )
         {
-            bool exportAll = IsSet(configuration, OtlpEndpointVariable);
-            bool exportTraces = exportAll || IsSet(configuration, OtlpTracesEndpointVariable);
-            bool exportMetrics = exportAll || IsSet(configuration, OtlpMetricsEndpointVariable);
-            bool exportLogs = exportAll || IsSet(configuration, OtlpLogsEndpointVariable);
+            bool export = !string.IsNullOrWhiteSpace(configuration[OtlpEndpointVariable]);
 
             services
                 .AddOpenTelemetry()
@@ -119,7 +113,7 @@ public static class ServiceCollectionExtensions
                         });
                     }
 
-                    if (exportTraces)
+                    if (export)
                     {
                         builder.AddOtlpExporter(opts =>
                         {
@@ -246,7 +240,7 @@ public static class ServiceCollectionExtensions
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation();
 
-                    if (exportMetrics)
+                    if (export)
                     {
                         // The export interval is the deployment's to set, through OTEL_METRIC_EXPORT_INTERVAL.
                         builder.AddOtlpExporter();
@@ -258,7 +252,7 @@ public static class ServiceCollectionExtensions
                 logging.AddOpenTelemetry(options =>
                 {
                     options.IncludeFormattedMessage = true;
-                    if (exportLogs)
+                    if (export)
                     {
                         options.AddOtlpExporter();
                     }
@@ -268,9 +262,6 @@ public static class ServiceCollectionExtensions
             return services;
         }
     }
-
-    private static bool IsSet(IConfiguration configuration, string variable) =>
-        !string.IsNullOrWhiteSpace(configuration[variable]);
 
     /// <summary>
     /// Sets one <c>db.query.parameter.&lt;name&gt;</c> attribute per parameter, as the semantic conventions name

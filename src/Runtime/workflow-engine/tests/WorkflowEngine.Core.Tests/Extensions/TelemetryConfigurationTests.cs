@@ -141,27 +141,25 @@ public sealed class TelemetryConfigurationTests
     }
 
     [Theory]
-    [InlineData(OtlpEndpoint, "http://collector:4317", true, true, true)]
-    [InlineData(OtlpTracesEndpoint, "http://collector:4318/v1/traces", true, false, false)]
-    [InlineData(OtlpMetricsEndpoint, "http://collector:4318/v1/metrics", false, true, false)]
-    [InlineData(OtlpLogsEndpoint, "http://collector:4318/v1/logs", false, false, true)]
-    [InlineData(OtlpEndpoint, " ", false, false, false)]
-    public void AddTelemetry_EndpointVariable_ExportsTheSignalsItNames(
+    [InlineData(OtlpEndpoint, "http://collector:4317", true)]
+    [InlineData(OtlpEndpoint, " ", false)]
+    [InlineData(OtlpTracesEndpoint, "http://collector:4318/v1/traces", false)]
+    [InlineData(OtlpMetricsEndpoint, "http://collector:4318/v1/metrics", false)]
+    [InlineData(OtlpLogsEndpoint, "http://collector:4318/v1/logs", false)]
+    public void AddTelemetry_EndpointVariable_OnlyTheSharedEndpointTurnsOnEverySignal(
         string variable,
         string endpoint,
-        bool traces,
-        bool metrics,
-        bool logs
+        bool exported
     )
     {
         // Arrange
         using var sp = BuildProvider(new() { [variable] = endpoint });
 
         // Act
-        var exported = ExportedSignals(sp);
+        var signals = ExportedSignals(sp);
 
-        // Assert
-        Assert.Equal((traces, metrics, logs), exported);
+        // Assert — a per-signal endpoint alone exports nothing, so no signal falls back to the SDK's default
+        Assert.Equal((exported, exported, exported), signals);
     }
 
     [Fact]
