@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Pdf;
@@ -82,19 +81,19 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Uri uri, CancellationToken cancellationToken)
+    public async Task<byte[]> GeneratePdf(Uri uri, CancellationToken cancellationToken)
     {
         return await GeneratePdf(uri, null, null, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken cancellationToken)
+    public async Task<byte[]> GeneratePdf(Uri uri, string? footerContent, CancellationToken cancellationToken)
     {
         return await GeneratePdf(uri, footerContent, null, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(
+    public async Task<byte[]> GeneratePdf(
         Uri uri,
         string? footerContent,
         StorageAuthenticationMethod? authenticationMethod,
@@ -151,7 +150,7 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
 
         string requestContent = JsonSerializer.Serialize(generatorRequest, _jsonSerializerOptions);
         using StringContent stringContent = new(requestContent, Encoding.UTF8, "application/json");
-        HttpResponseMessage httpResponseMessage = await _httpClient.PostAsync(
+        using HttpResponseMessage httpResponseMessage = await _httpClient.PostAsync(
             _platformSettings.ApiPdf2Endpoint,
             stringContent,
             cancellationToken
@@ -159,22 +158,16 @@ internal sealed class PdfGeneratorClient : IPdfGeneratorClient
 
         if (!httpResponseMessage.IsSuccessStatusCode)
         {
-            // Nothing takes the response over on the failure path, so this scope owns it. The diagnostic
-            // content is copied onto the exception, which outlives the response.
-            using (httpResponseMessage)
-            {
-                var content = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
-                var ex = new PdfGenerationException("Pdf generation failed");
-                ex.Data.Add("responseContent", content);
-                ex.Data.Add("responseStatusCode", httpResponseMessage.StatusCode.ToString());
-                ex.Data.Add("responseReasonPhrase", httpResponseMessage.ReasonPhrase);
+            // The diagnostic content is copied onto the exception, which outlives the response.
+            var content = await httpResponseMessage.Content.ReadAsStringAsync(cancellationToken);
+            var ex = new PdfGenerationException("Pdf generation failed");
+            ex.Data.Add("responseContent", content);
+            ex.Data.Add("responseStatusCode", httpResponseMessage.StatusCode.ToString());
+            ex.Data.Add("responseReasonPhrase", httpResponseMessage.ReasonPhrase);
 
-                throw ex;
-            }
+            throw ex;
         }
 
-        // Ownership of the response moves to the returned stream — a `using` here would dispose the
-        // content the caller is about to read.
-        return await ResponseWrapperStream.Create(httpResponseMessage, cancellationToken);
+        return await httpResponseMessage.Content.ReadAsByteArrayAsync(cancellationToken);
     }
 }

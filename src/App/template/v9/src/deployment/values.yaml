@@ -1,23 +1,21 @@
 # Additional configurations are available. See: https://docs.altinn.studio/nb/altinn-studio/v8/reference/configuration/deployment/
 
-deployment:
+volumeMounts:
+  - name: datakeys
+    mountPath: /mnt/keys
+  - name: accesstoken
+    mountPath: "/accesstoken"
 
-  volumeMounts:
-    - name: datakeys
-      mountPath: /mnt/keys
-    - name: accesstoken
-      mountPath: "/accesstoken"
+volumes:
+  - name : datakeys
+    persistentVolumeClaim:
+      claimName: keys
+  - name: accesstoken
+    secret:
+      secretName: accesstoken
 
-  volumes:
-    - name : datakeys
-      persistentVolumeClaim:
-        claimName: keys
-    - name: accesstoken
-      secret:
-        secretName: accesstoken
+readiness:
+  enabled: true
 
-  readiness:
-    enabled: true
-
-  liveness:
-    enabled: true
+liveness:
+  enabled: true

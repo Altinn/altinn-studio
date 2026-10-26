@@ -193,4 +193,63 @@ public class DataHelperTests
 
         Assert.Empty(updated);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetUpdatedDataValues_Does_Not_Report_An_Empty_Value_For_An_Absent_Key(string? emptyValue)
+    {
+        // Storage removes a key set to null or empty, so reporting one for a key that is already absent
+        // asked for the same removal on every comparison and made every save carry a no-op update.
+        List<DataField> fields =
+        [
+            Field("Navn", "Soknad.NavnElev", "datamodel"),
+            Field("NavnManuelt", "Soknad.NavnElevManuelt", "datamodel"),
+        ];
+        Model data = new()
+        {
+            Soknad = new Soknad { NavnElev = "Kari", NavnElevManuelt = emptyValue },
+        };
+
+        var updated = DataHelper.GetUpdatedDataValues(fields, [], "datamodel", data, "presentationFields");
+
+        Assert.Equal(new Dictionary<string, string?> { ["Navn"] = "Kari" }, updated);
+    }
+
+    [Fact]
+    public void GetUpdatedDataValues_Does_Not_Report_An_Empty_Value_When_The_Instance_Has_No_Values()
+    {
+        // Instance.DataValues and Instance.PresentationTexts are null until something has been stored.
+        List<DataField> fields =
+        [
+            Field("Navn", "Soknad.NavnElev", "datamodel"),
+            Field("NavnManuelt", "Soknad.NavnElevManuelt", "datamodel"),
+        ];
+        Model data = new()
+        {
+            Soknad = new Soknad { NavnElev = "Kari", NavnElevManuelt = null },
+        };
+
+        var updated = DataHelper.GetUpdatedDataValues(fields, null!, "datamodel", data);
+
+        Assert.Equal(new Dictionary<string, string?> { ["Navn"] = "Kari" }, updated);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void GetUpdatedDataValues_Reports_A_Present_Value_That_Became_Empty(string? emptyValue)
+    {
+        // The stored value has to be removed, so this is still a change.
+        List<DataField> fields = [Field("NavnManuelt", "Soknad.NavnElevManuelt", "datamodel")];
+        Dictionary<string, string?> current = new() { ["NavnManuelt"] = "Ola" };
+        Model data = new()
+        {
+            Soknad = new Soknad { NavnElev = "Kari", NavnElevManuelt = emptyValue },
+        };
+
+        var updated = DataHelper.GetUpdatedDataValues(fields, current, "datamodel", data, "presentationFields");
+
+        Assert.Equal(new Dictionary<string, string?> { ["NavnManuelt"] = emptyValue }, updated);
+    }
 }

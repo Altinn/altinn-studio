@@ -116,7 +116,7 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             bool isCollectionRoot = workflow.DependsOn is null || workflow.DependsOn.All(dependency => dependency.IsId);
             List<Guid> dependencyIds = ResolveWorkflowRefs(workflow.DependsOn, refMap);
             // Mirrors the engine: only roots that opted in via DependsOnHeads pick up the current
-            // collection heads as dependencies. A DependsOnHeads=false root (e.g. the side-effects
+            // collection heads as dependencies. A DependsOnHeads=false root (e.g. an auxiliary
             // workflow enqueued at the commit boundary) starts independently.
             if (isCollectionRoot && workflow.DependsOnHeads)
             {
@@ -798,20 +798,20 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
         IReadOnlyList<StoredWorkflow> createdWorkflows
     )
     {
-        // Mirrors the engine's IsHead semantics: IsHead == false workflows are invisible to head
-        // tracking - excluded from the heads set, and their dependency edges neither consume
+        // Mirrors the engine's IsHead semantics: IsHead == false (auxiliary) workflows take no part
+        // in head tracking - excluded from the heads set, and their dependency edges neither consume
         // existing heads nor remove leaf status from batch workflows they depend on.
         HashSet<Guid> previousHeadSet = [.. previousHeads];
-        List<StoredWorkflow> visibleWorkflows = createdWorkflows.Where(workflow => workflow.IsHead != false).ToList();
+        List<StoredWorkflow> primaryWorkflows = createdWorkflows.Where(workflow => workflow.IsHead != false).ToList();
         HashSet<Guid> consumedHeads =
         [
-            .. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
+            .. primaryWorkflows.SelectMany(workflow => workflow.DependencyIds).Where(previousHeadSet.Contains),
         ];
-        HashSet<Guid> dependedOnByVisibleBatch = [.. visibleWorkflows.SelectMany(workflow => workflow.DependencyIds)];
+        HashSet<Guid> dependedOnByPrimaryBatch = [.. primaryWorkflows.SelectMany(workflow => workflow.DependencyIds)];
         List<Guid> newHeads = createdWorkflows
             .Where(workflow =>
                 workflow.IsHead == true
-                || (workflow.IsHead is null && !dependedOnByVisibleBatch.Contains(workflow.DatabaseId))
+                || (workflow.IsHead is null && !dependedOnByPrimaryBatch.Contains(workflow.DatabaseId))
             )
             .Select(workflow => workflow.DatabaseId)
             .ToList();

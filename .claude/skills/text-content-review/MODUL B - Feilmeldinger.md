@@ -1,6 +1,7 @@
 # Beskrivelse
 
 Vurder feilmeldingene nedenfor mot disse kriteriene:
+
 1. Forteller den hva som gikk galt – uten teknisk sjargong?
 2. Forklarer den hvorfor (bare hvis det hjelper brukeren)?
 3. Sier den hva brukeren skal gjøre nå – konkret?

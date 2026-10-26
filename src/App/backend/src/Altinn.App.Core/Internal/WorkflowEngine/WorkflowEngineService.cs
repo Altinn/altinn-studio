@@ -270,9 +270,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         // A failed transition additionally needs its failure detail, which lives in the workflow's
         // steps - list the collection's workflows once to build it. The list goes through
-        // ScopeToCurrentChain (no anchor) so failure classification here obeys the same visibility
-        // rules as the enqueue wait: workflows that must never be classified as transition failures
-        // (and so never picked as process/resume's target) are stripped in that one place.
+        // ScopeToCurrentChain (no anchor) so failure classification here obeys the same scoping
+        // rules as the enqueue wait: auxiliary workflows, which must never be classified as transition
+        // failures (and so never picked as process/resume's target), are stripped in that one place.
         IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ScopeToCurrentChain(
             await _workflowEngineClient.ListWorkflows(
                 GetNamespace(),
@@ -574,35 +574,35 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// strictly-newer timestamp, so a stale workflow sharing the anchor's exact timestamp cannot
     /// leak in (dependents are enqueued after the anchor's steps have run, so they are always
     /// meaningfully newer). Falls back to the full list when the anchor is unknown or not present.
-    /// Fire-and-forget side-effects workflows are excluded from every path: they are invisible to
-    /// the collection heads frontier and must not extend the wait or be classified as transition
-    /// failures. Exclusion cannot rely on the timestamp filter alone - a same-batch side-effects
-    /// workflow shares the anchor's timestamp, but a dependent batch's side-effects
-    /// workflow is strictly newer and would otherwise leak into the chain.
+    /// Auxiliary workflows are excluded from every path: the process never waits on them, so they
+    /// must not extend the wait or be classified as transition failures. Exclusion cannot rely on
+    /// the timestamp filter alone - a same-batch auxiliary workflow shares the anchor's timestamp,
+    /// but a dependent batch's auxiliary workflow is strictly newer and would otherwise leak into
+    /// the chain.
     /// </summary>
     internal static IReadOnlyList<WorkflowStatusResponse> ScopeToCurrentChain(
         IReadOnlyList<WorkflowStatusResponse> workflows,
         Guid? sinceWorkflowId
     )
     {
-        IReadOnlyList<WorkflowStatusResponse> visibleWorkflows = workflows.Any(IsAuxiliaryWorkflow)
+        IReadOnlyList<WorkflowStatusResponse> primaryWorkflows = workflows.Any(IsAuxiliaryWorkflow)
             ? workflows.Where(workflow => !IsAuxiliaryWorkflow(workflow)).ToList()
             : workflows;
 
         if (sinceWorkflowId is null)
         {
-            return visibleWorkflows;
+            return primaryWorkflows;
         }
 
-        WorkflowStatusResponse? anchor = visibleWorkflows.FirstOrDefault(workflow =>
+        WorkflowStatusResponse? anchor = primaryWorkflows.FirstOrDefault(workflow =>
             workflow.DatabaseId == sinceWorkflowId
         );
         if (anchor is null)
         {
-            return visibleWorkflows;
+            return primaryWorkflows;
         }
 
-        return visibleWorkflows
+        return primaryWorkflows
             .Where(workflow => workflow.DatabaseId == anchor.DatabaseId || workflow.CreatedAt > anchor.CreatedAt)
             .ToList();
     }
@@ -611,7 +611,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary command) by the
     /// <see cref="WorkflowStatusResponse.Role"/> the engine reports. An auxiliary workflow runs beside the
     /// process: it never blocks or moves it. The
-    /// <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/> OperationId marker is purely a
+    /// <see cref="ProcessNextRequestFactory.AuxiliaryOperationIdPrefix"/> OperationId marker is purely a
     /// human-readable naming convention for ops queries and logs, not load-bearing for identification.
     /// </summary>
     internal static bool IsAuxiliaryWorkflow(WorkflowStatusResponse workflow) =>

@@ -8,6 +8,7 @@ using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.Platform.Storage.Interface.Models;
@@ -94,21 +95,20 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        await using Stream pdfStream = await _pdfService.GeneratePdf(
-            dataMutator,
+        // The actor's language, the one the user chose for the transition, or nb if it has none
+        byte[] pdf = await _pdfService.GeneratePdf(
+            dataMutator.Instance,
             taskId,
-            false,
+            language: dataMutator.Language ?? LanguageConst.Nb,
             cancellationToken: cancellationToken
         );
-        using var memoryStream = new MemoryStream();
-        await pdfStream.CopyToAsync(memoryStream, cancellationToken);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
         dataMutator.AddBinaryDataElement(
             validatedPaymentConfiguration.PaymentReceiptPdfDataType,
             PdfContentType,
             ReceiptFileName,
-            memoryStream.ToArray(),
+            pdf,
             generatedFromTask: taskId
         );
     }

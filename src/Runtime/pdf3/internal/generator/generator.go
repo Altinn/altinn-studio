@@ -296,8 +296,7 @@ func mapCustomError(err error) *types.PDFError {
 	}
 
 	// Check if it's already our custom error type
-	var pdfErr *types.PDFError
-	if errors.As(err, &pdfErr) {
+	if pdfErr, ok := errors.AsType[*types.PDFError](err); ok {
 		return pdfErr
 	}
 

@@ -7,6 +7,7 @@ type NavigationMenuItemLink = {
   type: 'link';
   href: string;
   openInNewTab?: boolean;
+  isOutsideRouter?: boolean;
 };
 
 export type NavigationMenuSmallItem = {

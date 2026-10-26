@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
@@ -44,6 +46,9 @@ internal sealed class AlertsService(
 
         if (apps.Count > 0)
         {
+            // Every alert that notifies anyone is kept in traces, so each of its deliveries can be looked up.
+            Activity.Current.SetAlwaysSample();
+
             var fields = new List<(string, string)>
             {
                 ("Organisasjon", org),
@@ -63,8 +68,20 @@ internal sealed class AlertsService(
 
             var payload = new NotificationPayload(alert.Id, alert.Name, fields, links, Emoji: "❌");
             await Task.WhenAll(
-                notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
-                notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
+                notificationService.NotifyInternalAsync(
+                    org,
+                    environment,
+                    NotificationKind.Alert,
+                    payload,
+                    cancellationToken
+                ),
+                notificationService.NotifyServiceOwnersAsync(
+                    org,
+                    environment,
+                    NotificationKind.Alert,
+                    payload,
+                    cancellationToken
+                )
             );
         }
 

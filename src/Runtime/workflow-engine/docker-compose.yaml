@@ -44,52 +44,6 @@ services:
       - pgadmin_data:/var/lib/pgadmin
       - ./.docker/servers.json:/pgadmin4/servers.json
 
-  blackbox-exporter:
-    image: prom/blackbox-exporter:latest
-    container_name: workflow-engine-blackbox
-    restart: unless-stopped
-    volumes:
-      - ./.docker/blackbox.yml:/config/blackbox.yml:ro
-    entrypoint: ["/bin/sh", "-c", "/bin/blackbox_exporter --config.file=/config/blackbox.yml 2>/dev/null"]
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - workflow-engine-network
-
-  postgres-exporter:
-    image: quay.io/prometheuscommunity/postgres-exporter
-    container_name: workflow-engine-postgres-exporter
-    restart: unless-stopped
-    environment:
-      DATA_SOURCE_URI: postgres:5432/workflow_engine?sslmode=disable
-      DATA_SOURCE_USER: postgres
-      DATA_SOURCE_PASS: postgres123
-    ports:
-      - "9187:9187"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - workflow-engine-network
-
-  lgtm:
-    image: grafana/otel-lgtm:0.30.0
-    container_name: workflow-engine-lgtm
-    restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - workflow-engine-network
-    ports:
-      - '7070:3000'
-      - '4317:4317'
-      - '4318:4318'
-    volumes:
-      - ./.docker/grafana-datasources.yml:/otel-lgtm/grafana/conf/provisioning/datasources/postgres.yaml:ro
-      - ./.docker/grafana-dashboards.yml:/otel-lgtm/grafana/conf/provisioning/dashboards/workflow-engine.yaml:ro
-      - ./.docker/dashboards:/etc/grafana/dashboards:ro
-      - ./.docker/prometheus.yaml:/otel-lgtm/prometheus.yaml:ro
-
   workflow-engine-testapp:
     build:
       context: ../../
@@ -100,11 +54,20 @@ services:
       - workflow-engine-network
     ports:
       - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_HTTP_PORTS: "9090"
       ConnectionStrings__WorkflowEngine: "Host=postgres;Database=workflow_engine;Username=postgres;Password=postgres123"
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://lgtm:4317
+      # Any OTLP collector on the host; with none listening, export fails quietly. On Docker Engine for
+      # Linux a collector published on the host's loopback is out of reach: run the engine on the host.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://host.docker.internal:4317}
+      OTEL_SERVICE_NAME: workflow-engine-testapp
+      OTEL_METRIC_EXPORT_INTERVAL: "15000"
+      # Unset in the shell, these stay empty and the dashboard draws no trace links (docs/docker.md#monitoring).
+      EngineSettings__Dashboard__GrafanaUrl: ${EngineSettings__Dashboard__GrafanaUrl:-}
+      EngineSettings__Dashboard__GrafanaTracesDatasourceUid: ${EngineSettings__Dashboard__GrafanaTracesDatasourceUid:-}
     volumes:
       - ./src/WorkflowEngine.Core/wwwroot:/app/wwwroot:ro
     depends_on:

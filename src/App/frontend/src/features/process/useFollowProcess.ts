@@ -1,7 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { usePollingWithBackoff } from 'src/hooks/usePollingWithBackoff';
 import { TaskKeys } from 'src/routesBuilder';
@@ -17,6 +19,25 @@ export function useFollowProcess(enabled = true) {
   const navigateToTask = useNavigateToTask();
   const optimisticallyUpdateProcess = useOptimisticallyUpdateProcess();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
+
+  const taskId = useNavigationParam('taskId');
+  const followedTask = useRef<string | undefined>(undefined);
+  const targetTask = getTargetTaskFromProcess(previousData);
+
+  useEffect(() => {
+    if (enabled && targetTask === taskId) {
+      followedTask.current = taskId;
+      return;
+    }
+
+    // Another reader can advance the cache before our poll. Follow tasks observed as current
+    // in this session, while preserving manual recovery for an initially stale URL.
+    const wasFollowingTask = followedTask.current !== undefined && followedTask.current === taskId;
+    followedTask.current = undefined;
+    if (wasFollowingTask && targetTask && targetTask !== taskId) {
+      navigateToTask(targetTask);
+    }
+  }, [enabled, navigateToTask, targetTask, taskId]);
 
   const callback = useCallback(async () => {
     const result = await reFetchProcessData();

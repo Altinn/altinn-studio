@@ -190,5 +190,5 @@ def ctx() -> LoopContext:
         repo_path="/tmp/test-repo",
         allow_app_changes=True,
         developer="tester",
-        org="ttd",
+        repo_owner="ttd",
     )

@@ -33,7 +33,8 @@ internal sealed record TaskStartContext
     public required bool IsInitialTaskStart { get; init; }
 
     /// <summary>
-    /// True when this task start is part of instance creation and should emit instantiation side effects.
+    /// True when this task start is part of instance creation and should enqueue the instantiation auxiliary
+    /// workflows.
     /// </summary>
     public bool IsInstantiation { get; init; }
 

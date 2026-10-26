@@ -20,6 +20,7 @@ public class TestAuthenticationService
     public const string DefaultOrgScope = "altinn:instances.read altinn:instances.write";
     public const string DefaultUserScope = "altinn:portal/enduser";
     public const string DefaultIssuer = "https://platform.tt02.altinn.no/authentication/api/v1/openid/";
+    public const int DefaultUserAuthenticationLevel = 3;
 
     public TestAuthenticationService(IAuthentication authenticationService, TestDataService testDataService)
     {
@@ -31,7 +32,7 @@ public class TestAuthenticationService
         AuthenticationTypes type,
         int? userId = null,
         int? partyId = null,
-        int authenticationLevel = 2,
+        int authenticationLevel = DefaultUserAuthenticationLevel,
         string? username = null,
         string? orgNumber = null,
         string? org = null,
@@ -57,12 +58,12 @@ public class TestAuthenticationService
     public async Task<string> GetUserToken(
         int? userId = null,
         int? partyId = null,
-        int authenticationLevel = 2,
+        int authenticationLevel = DefaultUserAuthenticationLevel,
         string? scope = null
     )
     {
         var testData = await _testDataService.GetTestData();
-        
+
         // Validate and resolve userId and partyId
         var (actualUserId, actualPartyId) = ValidateAndResolveUserIds(testData, userId, partyId);
 
@@ -73,7 +74,7 @@ public class TestAuthenticationService
     public static JwtPayload GetUserPayload(
         int userId,
         int partyId,
-        int authLevel = 2,
+        int authLevel = DefaultUserAuthenticationLevel,
         string? scope = null
     )
     {
@@ -99,7 +100,7 @@ public class TestAuthenticationService
     )
     {
         var testData = await _testDataService.GetTestData();
-        
+
         // Find user by username
         var user = testData.Profile.User.Values.FirstOrDefault(u => u.UserName == username);
         if (user is null)
@@ -231,7 +232,7 @@ public class TestAuthenticationService
     )
     {
         var testData = await _testDataService.GetTestData();
-        
+
         // Find the system user by ID
         var systemUser = testData.Authorization.SystemUsers.Values.FirstOrDefault(su => su.Id == systemUserId);
         if (systemUser == null)
@@ -239,13 +240,13 @@ public class TestAuthenticationService
             var availableSystemUsers = testData.Authorization.SystemUsers.Values.Select(su => su.Id).ToList();
             throw new InvalidOperationException($"SystemUser with ID '{systemUserId}' not found in test data. Available system users: {string.Join(", ", availableSystemUsers)}");
         }
-        
+
         // Validate that the system user belongs to the specified system
         if (systemUser.SystemId != systemId)
         {
             throw new InvalidOperationException($"SystemUser '{systemUserId}' belongs to system '{systemUser.SystemId}', but '{systemId}' was requested");
         }
-        
+
         // Get supplier org number from system ID
         var system = testData.Authorization.Systems.Values.FirstOrDefault(s => s.Id == systemId);
         if (system == null)
@@ -253,11 +254,11 @@ public class TestAuthenticationService
             var availableSystems = testData.Authorization.Systems.Values.Select(s => s.Id).ToList();
             throw new InvalidOperationException($"System with ID '{systemId}' not found in test data. Available systems: {string.Join(", ", availableSystems)}");
         }
-        
+
         var supplierOrgNumber = systemId.Split('_')[0];
 
         var payload = GetSystemUserPayload(systemId, systemUserId, systemUser.OrgNumber, supplierOrgNumber, scope ?? DefaultOrgScope);
-        
+
         return _authenticationService.GenerateToken(payload);
     }
 
@@ -306,7 +307,7 @@ public class TestAuthenticationService
     public async Task<object> GetInfo()
     {
         var testData = await _testDataService.GetTestData();
-        
+
         var info = new
         {
             AuthenticationTypes = new[]
@@ -338,7 +339,7 @@ public class TestAuthenticationService
     private static (int UserId, int PartyId) ValidateAndResolveUserIds(TestDataModel testData, int? userId, int? partyId)
     {
         var users = testData.Profile.User.Values.ToList();
-        
+
         if (users.Count == 0)
         {
             throw new InvalidOperationException("No users found in test data");
@@ -352,20 +353,20 @@ public class TestAuthenticationService
             {
                 throw new InvalidOperationException($"User with ID {userId.Value} not found in test data. Available users: {string.Join(", ", users.Select(u => u.UserId))}");
             }
-            
+
             // Check if user can represent the requested party
             var userPartyList = testData.Authorization.PartyList.GetValueOrDefault(userId.Value.ToString(), new List<Party>());
             var canRepresentParty = userPartyList.Any(p => p.PartyId == partyId.Value);
-            
+
             if (!canRepresentParty)
             {
                 var availableParties = userPartyList.Select(p => p.PartyId).ToList();
                 throw new InvalidOperationException($"User {userId.Value} cannot represent PartyId {partyId.Value}. Available parties for this user: {string.Join(", ", availableParties)}");
             }
-            
+
             return (userId.Value, partyId.Value);
         }
-        
+
         // Case 2: Only userId provided - find user and use their primary partyId (or first available party)
         if (userId.HasValue)
         {
@@ -374,7 +375,7 @@ public class TestAuthenticationService
             {
                 throw new InvalidOperationException($"User with ID {userId.Value} not found in test data. Available users: {string.Join(", ", users.Select(u => u.UserId))}");
             }
-            
+
             // Check if user has parties they can represent
             var userPartyList = testData.Authorization.PartyList.GetValueOrDefault(userId.Value.ToString(), new List<Party>());
             if (userPartyList.Count > 0)
@@ -389,7 +390,7 @@ public class TestAuthenticationService
                 return (userId.Value, user.PartyId);
             }
         }
-        
+
         // Case 3: Only partyId provided - find a user who can represent that party
         if (partyId.HasValue)
         {
@@ -405,14 +406,14 @@ public class TestAuthenticationService
                     }
                 }
             }
-            
+
             // Fallback: check if any user has this as their own partyId
             var user = users.FirstOrDefault(u => u.PartyId == partyId.Value);
             if (user is not null)
             {
                 return (user.UserId, partyId.Value);
             }
-            
+
             // Get all available parties for better error message
             var allAvailableParties = new List<int>();
             allAvailableParties.AddRange(users.Select(u => u.PartyId));
@@ -420,14 +421,14 @@ public class TestAuthenticationService
             {
                 allAvailableParties.AddRange(partyList.Select(p => p.PartyId));
             }
-            
+
             throw new InvalidOperationException($"No user found who can represent PartyId {partyId.Value}. Available parties: {string.Join(", ", allAvailableParties.Distinct().OrderBy(x => x))}");
         }
-        
+
         // Case 4: Neither provided - use first available user and their first available party
         var firstUser = users.First();
         var firstUserPartyList = testData.Authorization.PartyList.GetValueOrDefault(firstUser.UserId.ToString(), new List<Party>());
-        
+
         if (firstUserPartyList.Count > 0)
         {
             // Use first party from party list
@@ -444,7 +445,7 @@ public class TestAuthenticationService
     private static string ValidateAndResolveOrgNumber(TestDataModel testData, string? orgNumber)
     {
         var availableOrgs = testData.Register.Org.Keys.ToList();
-        
+
         if (availableOrgs.Count == 0)
         {
             throw new InvalidOperationException("No organizations found in test data");

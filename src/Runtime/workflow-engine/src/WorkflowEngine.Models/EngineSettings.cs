@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace WorkflowEngine.Models;
@@ -7,14 +8,6 @@ namespace WorkflowEngine.Models;
 /// </summary>
 public sealed record EngineSettings
 {
-    /// <summary>
-    /// Whether to enable OpenTelemetry tracing, metrics, and log export.
-    /// Defaults to <c>true</c>. Set to <c>false</c> to skip all OTEL registration
-    /// (useful for local stress testing without a collector).
-    /// </summary>
-    [JsonPropertyName("enableTelemetry")]
-    public bool EnableTelemetry { get; set; } = true;
-
     /// <summary>
     /// Trace sampling rate between 0.0 (drop all traces) and 1.0 (keep all traces).
     /// Defaults to <c>1.0</c>. Lower this during stress testing to reduce OTLP export volume
@@ -263,6 +256,12 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("throttling")]
     public ThrottlingSettings Throttling { get; set; } = new();
+
+    /// <summary>
+    /// Dashboard settings: the Grafana its trace links open. Unset by default, so the dashboard draws no trace links.
+    /// </summary>
+    [JsonPropertyName("dashboard")]
+    public DashboardSettings Dashboard { get; set; } = new();
 }
 
 /// <summary>
@@ -489,6 +488,32 @@ public sealed record PaginationSettings
     /// </remarks>
     [JsonPropertyName("maxAnnotateKeys")]
     public int MaxAnnotateKeys { get; set; } = 100;
+}
+
+/// <summary>
+/// Settings for the dashboard's trace links, which open a workflow's trace in Grafana Explore. A host that runs a
+/// Grafana sets both; the dashboard draws the links only when both are set. An empty or whitespace value counts as
+/// unset.
+/// </summary>
+public sealed record DashboardSettings
+{
+    /// <summary>
+    /// The Grafana base URL as a browser reaches it, such as <c>https://grafana.example.com</c>. Unset by default.
+    /// </summary>
+    [JsonPropertyName("grafanaUrl")]
+    [SuppressMessage(
+        "Design",
+        "CA1056:URI-like properties should not be strings",
+        Justification = "Passed to the browser as written, and an empty value must bind as unset"
+    )]
+    public string? GrafanaUrl { get; set; }
+
+    /// <summary>
+    /// The UID of the Grafana Tempo datasource that holds the engine's traces: the links query it in TraceQL.
+    /// Unset by default.
+    /// </summary>
+    [JsonPropertyName("grafanaTracesDatasourceUid")]
+    public string? GrafanaTracesDatasourceUid { get; set; }
 }
 
 /// <summary>

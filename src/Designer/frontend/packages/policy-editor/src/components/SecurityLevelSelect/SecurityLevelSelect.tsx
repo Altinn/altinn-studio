@@ -1,19 +1,18 @@
 import type { ReactNode } from 'react';
 import classes from './SecurityLevelSelect.module.css';
 import {
-  StudioHelpText,
   StudioSelect,
-  StudioLabel,
   StudioLink,
   StudioHeading,
   StudioParagraph,
   StudioAlert,
   StudioCheckbox,
 } from '@studio/components';
+import { ExternalLinkIcon } from '@studio/icons';
+import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import type { RequiredAuthLevel } from '../../types';
+import type { RemovedAuthLevel, RequiredAuthLevel } from '../../types';
 
-const SELECT_AUTH_LEVEL_ID: string = 'select-auth-level';
 const URL_TO_SECURITY_LEVEL_PAGE: string =
   'https://info.altinn.no/hjelp/innlogging/diverse-om-innlogging/hva-er-sikkerhetsniva/';
 
@@ -22,16 +21,17 @@ const SYSTEM_USER_AUTH_LEVEL_VALUE: string = 'system-user-auth-level';
 const AUTH_LEVEL_3: RequiredAuthLevel = '3';
 const AUTH_LEVEL_4: RequiredAuthLevel = '4';
 
-export const authlevelOptions = [
+export const authLevelOptions = [
   { value: '0', label: 'policy_editor.auth_level_option_0' },
-  { value: '1', label: 'policy_editor.auth_level_option_1' },
-  { value: '2', label: 'policy_editor.auth_level_option_2' },
   { value: AUTH_LEVEL_3, label: 'policy_editor.auth_level_option_3' },
   { value: AUTH_LEVEL_4, label: 'policy_editor.auth_level_option_4' },
 ];
 
+const isAuthLevel4 = (authLevel: RequiredAuthLevel | RemovedAuthLevel): authLevel is '4' =>
+  authLevel === AUTH_LEVEL_4;
+
 export type SecurityLevelSelectProps = {
-  requiredAuthenticationLevelEndUser: RequiredAuthLevel;
+  requiredAuthenticationLevelEndUser: RequiredAuthLevel | RemovedAuthLevel;
   requiredAuthenticationLevelSystemUser?: RequiredAuthLevel;
   onSave: (
     authLevel: RequiredAuthLevel,
@@ -45,6 +45,9 @@ export const SecurityLevelSelect = ({
   onSave,
 }: SecurityLevelSelectProps): ReactNode => {
   const { t } = useTranslation();
+  const hasRemovedAuthLevel: boolean = !authLevelOptions.some(
+    (option) => option.value === requiredAuthenticationLevelEndUser,
+  );
 
   const isSystemUserAllowed: boolean = requiredAuthenticationLevelSystemUser === AUTH_LEVEL_3;
 
@@ -55,7 +58,9 @@ export const SecurityLevelSelect = ({
   };
 
   const handleSystemUserAllowedChange = (allowSystemUser: boolean): void => {
-    onSave(requiredAuthenticationLevelEndUser, allowSystemUser ? AUTH_LEVEL_3 : undefined);
+    if (isAuthLevel4(requiredAuthenticationLevelEndUser)) {
+      onSave(requiredAuthenticationLevelEndUser, allowSystemUser ? AUTH_LEVEL_3 : undefined);
+    }
   };
 
   return (
@@ -63,39 +68,42 @@ export const SecurityLevelSelect = ({
       <StudioHeading level={4} data-size='xs' spacing>
         {t('policy_editor.security_level_label')}
       </StudioHeading>
-      <StudioParagraph spacing>{t('policy_editor.security_level_description')}</StudioParagraph>
+      <StudioParagraph spacing>
+        {t('policy_editor.security_level_description')}{' '}
+        <StudioLink
+          href={URL_TO_SECURITY_LEVEL_PAGE}
+          target='_blank'
+          rel='noopener noreferrer'
+          icon={<ExternalLinkIcon title={t('general.link_opens_in_new_tab')} />}
+          iconPlacement='right'
+        >
+          {t('policy_editor.security_level_read_more')}
+        </StudioLink>
+      </StudioParagraph>
       <div>
-        <div className={classes.labelAndHelpTextWrapper}>
-          <StudioLabel htmlFor={SELECT_AUTH_LEVEL_ID}>
-            {t('policy_editor.select_auth_level_label')}
-          </StudioLabel>
-          <StudioHelpText aria-label={t('policy_editor.select_auth_level_help_text')}>
-            <StudioLink
-              href={URL_TO_SECURITY_LEVEL_PAGE}
-              target='_newTab'
-              rel='noopener noreferrer'
-              className={classes.link}
-            >
-              {t('policy_editor.select_auth_level_help_text_content')}
-            </StudioLink>
-          </StudioHelpText>
-        </div>
         <StudioSelect
-          label={''}
-          className={classes.bottomSpacing}
+          label={t('policy_editor.select_auth_level_label')}
+          className={cn(classes.select, classes.bottomSpacing)}
+          error={hasRemovedAuthLevel && t('policy_editor.auth_level_removed_error')}
           onChange={(event) =>
             handleEndUserAuthLevelChange(event.target.value as RequiredAuthLevel)
           }
           value={requiredAuthenticationLevelEndUser}
-          id={SELECT_AUTH_LEVEL_ID}
         >
-          {authlevelOptions.map((option) => (
+          {hasRemovedAuthLevel && (
+            <StudioSelect.Option value={requiredAuthenticationLevelEndUser} disabled>
+              {t('policy_editor.auth_level_option_removed', {
+                level: requiredAuthenticationLevelEndUser,
+              })}
+            </StudioSelect.Option>
+          )}
+          {authLevelOptions.map((option) => (
             <StudioSelect.Option key={option.value} value={option.value}>
               {t(option.label)}
             </StudioSelect.Option>
           ))}
         </StudioSelect>
-        {requiredAuthenticationLevelEndUser === AUTH_LEVEL_4 && (
+        {isAuthLevel4(requiredAuthenticationLevelEndUser) && (
           <StudioAlert data-color='info'>
             <StudioHeading level={5} data-size='xs'>
               {t('policy_editor.system_user_auth_level_heading')}
