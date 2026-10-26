@@ -339,7 +339,7 @@ RUN case "${TARGETARCH}" in \
 
 # agentctl and agentd run nested Agents: this image asks for nested Sandboxes and has the Podman the
 # nested-build variants build their images with. Renovate moves the digest.
-COPY --from=ghcr.io/digdir/agentctl:main@sha256:2374c65d96d61d91df1a6416e444a067d825f9650151d933b8563cad77e02d2a \
+COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.13@sha256:5451dd5e912865d7ed4544f0bf2e6d0912cd274b878515224cd05896a286b28f \
     /agentctl /agentd /usr/local/bin/
 
 # devenv provisions kind clusters with the CA bundle this variable names: it registers the bundle in
