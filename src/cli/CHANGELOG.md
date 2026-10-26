@@ -20,6 +20,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- In an app run with `studioctl run`, the inbox and log-out links go to localtest's start page. Other Altinn links, such as profile and all forms, are not configured in localtest and show as broken links that say so when clicked. ([#21481](https://github.com/Altinn/altinn-studio/pull/21481))
 - `studioctl app upgrade v9` no longer asks you to grant the app owner task-specific actions in `policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - `studioctl app upgrade v9` now verifies that the app can use .NET SDK 11.0.100-rc.2 or newer before changing any files. ([#21229](https://github.com/Altinn/altinn-studio/pull/21229))
 - `studioctl app upgrade v9` keeps your validation message texts showing: ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
