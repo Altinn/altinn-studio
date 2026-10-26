@@ -229,7 +229,6 @@ RUN apt-get update \
         postgresql-client \
         python3-pip \
         python3-venv \
-        qemu-system \
         rsync \
         rustup \
         socat \

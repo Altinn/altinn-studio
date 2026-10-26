@@ -69,7 +69,7 @@ their own hosts. `GIT_USER_NAME` and `GIT_USER_EMAIL` enter the Agent in plainte
 
 ## Pi
 
-Both Agents offer Pi beside Claude Code and Codex, on the aivar gateway. Pi has no `agentctl` login: each Agent's home
-overlay supplies `home/.pi/agent/models.json` with the `aivar` provider (`https://api.aivar.no/v1`, key from
+Both Agents offer Pi beside Claude Code and Codex, on the aivar gateway. Pi has no `agentctl` login: the home overlay both
+Agents share supplies `home/.pi/agent/models.json` with the `aivar` provider (`https://api.aivar.no/v1`, key from
 `$AIVAR_API_KEY`), and new Pi Sessions default to `aivar/sigma2:Qwen3.8-27B`. Without the key Pi starts, but a prompt's
 wait times out.

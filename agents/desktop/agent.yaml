@@ -21,7 +21,7 @@ spec:
       nestedSandboxes: preferred
     initSystem: image
   home:
-    source: home
+    source: ../home
   instructions:
     - source: ../instructions.md
     - source: environment.md
