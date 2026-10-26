@@ -7,7 +7,10 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync/atomic"
 	"time"
+
+	"go.opentelemetry.io/otel/metric"
 
 	commontelemetry "altinn.studio/common/telemetry"
 	"altinn.studio/operator/internal/telemetry"
@@ -110,8 +113,41 @@ type InactivityScalerReconciler struct {
 	k8sReader    client.Reader
 	runtime      rt.Runtime
 	location     *time.Location
+	observed     atomic.Pointer[observedState]
 	logger       logr.Logger
 	pollInterval time.Duration
+}
+
+// observedState is the cluster state the last sync applied, which StateMetric reports.
+type observedState struct {
+	state  clusterState
+	forced bool
+}
+
+// StateMetric is the gauge of the state the inactivity scaler last applied: 1, with the state and
+// whether an override forced it as attributes. It explains why apps in a cluster are scaled down.
+const StateMetric = "altinn.operator.inactivityscaler.state"
+
+func (r *InactivityScalerReconciler) registerStateMetric() error {
+	_, err := r.runtime.Meter().Int64ObservableGauge(
+		StateMetric,
+		metric.WithDescription("1 for the cluster state the inactivity scaler last applied."),
+		metric.WithInt64Callback(func(_ context.Context, observer metric.Int64Observer) error {
+			observed := r.observed.Load()
+			if observed == nil || !telemetry.IsLeader() {
+				return nil
+			}
+			observer.Observe(1, metric.WithAttributes(
+				attribute.String(StateMetric, string(observed.state)),
+				attribute.Bool("altinn.operator.inactivityscaler.state_forced", observed.forced),
+			))
+			return nil
+		}),
+	)
+	if err != nil {
+		return fmt.Errorf("register %s: %w", StateMetric, err)
+	}
+	return nil
 }
 
 func NewReconciler(runtime rt.Runtime, k8sClient client.Client, k8sReader client.Reader) *InactivityScalerReconciler {
@@ -157,6 +193,9 @@ func (r *InactivityScalerReconciler) NeedLeaderElection() bool {
 func (r *InactivityScalerReconciler) Start(ctx context.Context) error {
 	clock := r.runtime.GetClock()
 	r.logger.Info("starting InactivityScaler controller", "pollInterval", r.pollInterval)
+	if err := r.registerStateMetric(); err != nil {
+		return err
+	}
 
 	if err := r.SyncAll(ctx); err != nil {
 		r.logger.Error(err, "initial sync failed")
@@ -210,8 +249,9 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		now,
 		len(appDeployments),
 	)
+	r.observed.Store(&observedState{state: state, forced: stateForced})
 	span.SetAttributes(
-		attribute.String("altinn.operator.inactivityscaler.state", string(state)),
+		attribute.String(StateMetric, string(state)),
 		attribute.Bool("altinn.operator.inactivityscaler.state_forced", stateForced),
 		attribute.Int("altinn.operator.inactivityscaler.app_deployments", len(appDeployments)),
 		attribute.Int("altinn.operator.inactivityscaler.app_hpas", len(appHpas)),
