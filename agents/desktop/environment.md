@@ -12,8 +12,11 @@ host-mediated API key.
 root `deny.toml`.
 Python 3 with `venv` and `pip`; create a virtual environment per project, as the system interpreter is externally
 managed.
+`golangci-lint` for the Go modules, `typst`, which renders the augmenter-agent's PDFs, and `hurl` for the gitea-proxy
+tests (Ubuntu's 7.1, where CI uses 8.0).
 `yq`, `actionlint` and `shellcheck` for manifests, workflows and shell scripts. `psql`, `unzip`, `zip`, `rsync` and
 `file`.
+`dotnet-ef` for the Designer's Entity Framework migrations.
 Debugging and profiling: `dotnet-trace`, `dotnet-counters` and `dotnet-dump` alongside `perf`, `lldb` and `strace`;
 `ilspycmd` to decompile .NET assemblies; `hyperfine` for benchmarks; `lsof`, `tcpdump`, `socat`, `nc` and `dig`.
 
@@ -24,6 +27,10 @@ describes them.
 Pull request evidence: `asciinema` and `agg` for terminal recordings; `playwright-cli` with Chromium (open it with
 `--browser chromium`), `ffmpeg`, and the `video-to-gif` and `media-preview` helpers for browser captures.
 
+App frontend's Cypress tests run in the same Chromium: `CHROME_PATH` names it, and Cypress finds it only by path, so
+pass `--browser "$CHROME_PATH"`. Yarn does not run the Cypress postinstall, so run `yarn cypress install` once per
+Cypress version first. `k6` runs App frontend's `yarn k6:browser:*` scripts.
+
 The clock is Norwegian local time (Europe/Oslo), not UTC. Dates and times you read from this computer, and any
 you write into commits, changelogs or files, are in that zone.
 
@@ -33,7 +40,13 @@ Containers receive mediated CA configuration automatically. Build steps receive 
 exists; the import finishes in the background seconds after boot, so if a browser reports a certificate error shortly
 after the Session starts, wait for that file and reopen the browser. A current Buildah bug drops default environment
 variables from build stages, so a `RUN` that downloads through Node exports
-`NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem` when that file is readable; never persist it with `ENV`.
+`NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem` when that file is readable, and one that downloads through uv
+exports `SSL_CERT_FILE` with the same path; never persist either with `ENV`.
+
+Podman ignores a Dockerfile's own `<Dockerfile>.dockerignore` when the build context has a `.dockerignore`, where
+Docker prefers it. Pass it with `--ignorefile`, for example
+`docker build -f src/AI/assistant/dockerfile --ignorefile src/AI/assistant/dockerfile.dockerignore .`. Compose has no
+such option, so a compose service whose Dockerfile has its own ignore file builds with the context's instead.
 
 Kind clusters run here. Kind detects Podman on its own, so `KIND_EXPERIMENTAL_PROVIDER` is unnecessary, and
 `STUDIO_CA_BUNDLE` is preset so that devenv registers the mediated CA in the node trust stores and in the Flux

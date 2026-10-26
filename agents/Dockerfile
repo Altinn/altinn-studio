@@ -120,6 +120,41 @@ RUN case "${TARGETARCH}" in \
     && rm -f /tmp/typos.tar.gz /tmp/typos \
     && test "$(typos --version)" = "typos-cli ${TYPOS_VERSION}"
 
+# golangci-lint at the version the Go modules' Makefiles pin, for the modules whose `make lint` runs it
+# from PATH and for linting outside make; the Makefiles that pin it still install their own copy.
+# Typst renders the augmenter-agent's PDFs, which its tests generate. Both are static binaries
+# published per architecture, so the digests are pinned here and must move together with the version.
+ARG GOLANGCI_LINT_VERSION=2.15.0
+ARG TYPST_VERSION=0.15.1
+
+RUN case "${TARGETARCH}" in \
+        amd64) PORTABLE_ARCH=amd64; RUST_ARCH=x86_64; \
+            GOLANGCI_LINT_SHA256=9b7fe6a6bf6334b98decf8d86b11415ea7889afdabdd1959fdce23af2a9ebcea; \
+            TYPST_SHA256=a6d077d0a95eed5a2eba715b2dae06be954f624ccbf85758a03f389ded33118c ;; \
+        arm64) PORTABLE_ARCH=arm64; RUST_ARCH=aarch64; \
+            GOLANGCI_LINT_SHA256=b4d8f17068b35ee6060cc2f69a16fb48740d706fbba81661c318649c114a6998; \
+            TYPST_SHA256=5aa8d74a3d906e60ea12a66ac2f37f8eef1b14cbad7182a745e393a10c23dcee ;; \
+        *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && GOLANGCI_LINT_NAME="golangci-lint-${GOLANGCI_LINT_VERSION}-linux-${PORTABLE_ARCH}" \
+    && curl -fsSL \
+        "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/${GOLANGCI_LINT_NAME}.tar.gz" \
+        -o /tmp/golangci-lint.tar.gz \
+    && echo "${GOLANGCI_LINT_SHA256}  /tmp/golangci-lint.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/golangci-lint.tar.gz -C /tmp "${GOLANGCI_LINT_NAME}/golangci-lint" \
+    && install -m 0755 "/tmp/${GOLANGCI_LINT_NAME}/golangci-lint" /usr/local/bin/golangci-lint \
+    && TYPST_NAME="typst-${RUST_ARCH}-unknown-linux-musl" \
+    && curl -fsSL "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/${TYPST_NAME}.tar.xz" \
+        -o /tmp/typst.tar.xz \
+    && echo "${TYPST_SHA256}  /tmp/typst.tar.xz" | sha256sum -c - \
+    && tar -xJf /tmp/typst.tar.xz -C /tmp "${TYPST_NAME}/typst" \
+    && install -m 0755 "/tmp/${TYPST_NAME}/typst" /usr/local/bin/typst \
+    && rm -rf /tmp/golangci-lint.tar.gz "/tmp/${GOLANGCI_LINT_NAME}" /tmp/typst.tar.xz "/tmp/${TYPST_NAME}" \
+    && scratch="$(mktemp -d)" \
+    && HOME="${scratch}" golangci-lint version | grep -qF " ${GOLANGCI_LINT_VERSION} " \
+    && HOME="${scratch}" typst --version | grep -qF "typst ${TYPST_VERSION} " \
+    && rm -rf "${scratch}"
+
 # Installs the .NET tools listed in dotnet-tools.json, kept in the .NET tool manifest format so
 # Renovate updates it, to a shared path because the host resynchronizes the Agent's home directory.
 # .NET 11 keeps its named mutexes in XDG_RUNTIME_DIR and refuses one another user owns, and the base
@@ -214,6 +249,9 @@ ENV DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 ENV ACCESSIBILITY_ENABLED=1
 ENV PLAYWRIGHT_MCP_EXECUTABLE_PATH=/usr/local/libexec/agent-playwright-chromium
 ENV XDG_CURRENT_DESKTOP=X-Openbox:XFCE
+# App frontend's Cypress runs pass `--browser "${CHROME_PATH:-chrome}"`, as the CI runner image sets
+# it. Cypress does not recognize the desktop's Chrome for Testing by name, only by path.
+ENV CHROME_PATH=/usr/local/libexec/agent-browser/chrome
 
 # The repository's rust-toolchain.toml selects the toolchain inside a checkout, and Renovate moves
 # this ARG together with it. The agent user owns RUSTUP_HOME, so a checkout pinned ahead of this
@@ -231,16 +269,18 @@ ENV PATH=/home/agent/.local/bin:/home/agent/.cargo/bin:/usr/local/go/bin:/usr/lo
 # /run/docker.sock.
 RUN agent-feature install containers
 
-# `podman run --init` looks up catatonit by name. libcap-ng-dev links the Microsandbox runtime, as
-# in the self-dev example. python3-venv and pip let the Python projects under src/AI create their
-# own virtual environments; the system interpreter stays externally managed. postgresql-client
-# inspects the Postgres instances the compose stacks start, and the network tools debug LocalTest,
-# studioctl and container ports.
+# `podman run --init` looks up catatonit by name. hurl runs the gitea-proxy tests; CI installs 8.0.1,
+# but its release builds link a libxml2 ABI Ubuntu 26.04 no longer ships, so this is Ubuntu's build.
+# libcap-ng-dev links the Microsandbox runtime, as in the self-dev example. python3-venv and pip let
+# Python projects create their own virtual environments; the system interpreter stays externally
+# managed. postgresql-client inspects the Postgres instances the compose stacks start, and the
+# network tools debug LocalTest, studioctl and container ports.
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         bind9-dnsutils \
         catatonit \
         clang \
+        hurl \
         hyperfine \
         libcap-ng-dev \
         lldb \
@@ -327,18 +367,22 @@ RUN case "${TARGETARCH}" in \
     && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
     && rm -rf /tmp/flux.tar.gz /tmp/helm.tar.gz /tmp/kind /tmp/kubectl /tmp/linux-*
 
-# yq edits the manifests the deploy workflows patch, and cargo-deny runs the root deny.toml that CI
-# checks with cargo-deny-action. Both are static binaries published per architecture, so the digests
-# are pinned here and must move together with the version.
+# yq edits the manifests the deploy workflows patch, cargo-deny runs the root deny.toml that CI
+# checks with cargo-deny-action, and k6 runs App frontend's `yarn k6:browser:*` scripts at the
+# version of the grafana/k6 image app-frontend-k6-browser.yml runs them with. All are static binaries
+# published per architecture, so the digests are pinned here and must move together with the version.
 ARG CARGO_DENY_VERSION=0.20.2
+ARG K6_VERSION=1.6.1
 ARG YQ_VERSION=4.54.1
 
 RUN case "${TARGETARCH}" in \
         amd64) PORTABLE_ARCH=amd64; RUST_ARCH=x86_64; \
             CARGO_DENY_SHA256=9f12ed4c49936e09b48bf862b595cde2fe64fcbd9d74dfacac6131ca824c8d5f; \
+            K6_SHA256=68df4958a1b089dc6f70a234e07c7ec818922f83b261ca24f3abf79882b13343; \
             YQ_SHA256=8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f ;; \
         arm64) PORTABLE_ARCH=arm64; RUST_ARCH=aarch64; \
             CARGO_DENY_SHA256=995c82be0defc7a025cae49a2aa2644ce8245c9a3318fc4103907c6a285e8c7d; \
+            K6_SHA256=698e47804a8cf679237dc7f19813e2967e0a892d4b9387f6f6de46da259069f9; \
             YQ_SHA256=189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b ;; \
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac \
@@ -354,8 +398,15 @@ RUN case "${TARGETARCH}" in \
         -o /tmp/yq \
     && echo "${YQ_SHA256}  /tmp/yq" | sha256sum -c - \
     && install -m 0755 /tmp/yq /usr/local/bin/yq \
-    && rm -rf /tmp/cargo-deny.tar.gz "/tmp/${CARGO_DENY_NAME}" /tmp/yq \
+    && K6_NAME="k6-v${K6_VERSION}-linux-${PORTABLE_ARCH}" \
+    && curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VERSION}/${K6_NAME}.tar.gz" \
+        -o /tmp/k6.tar.gz \
+    && echo "${K6_SHA256}  /tmp/k6.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/k6.tar.gz -C /tmp "${K6_NAME}/k6" \
+    && install -m 0755 "/tmp/${K6_NAME}/k6" /usr/local/bin/k6 \
+    && rm -rf /tmp/cargo-deny.tar.gz "/tmp/${CARGO_DENY_NAME}" /tmp/yq /tmp/k6.tar.gz "/tmp/${K6_NAME}" \
     && test "$(cargo-deny --version)" = "cargo-deny ${CARGO_DENY_VERSION}" \
+    && k6 version | grep -qF "v${K6_VERSION}" \
     && yq --version | grep -qF "v${YQ_VERSION}"
 
 # agentctl and agentd run nested Agents: this image asks for nested Sandboxes and has the Podman the
@@ -391,6 +442,7 @@ RUN install -d /lib/modules \
         && python3 -m venv "${TMPDIR}/venv-check" \
         && "${TMPDIR}/venv-check/bin/pip" --version \
         && psql --version \
+        && hurl --version | head -1 \
         && hyperfine --version \
         && socat -V | head -1 \
         && tcpdump --version \

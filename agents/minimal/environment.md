@@ -8,7 +8,8 @@ External Altinn app repositories belong under `/home/agent/code/apps`.
 host-mediated API key.
 `typos` and `hunspell` for the repository spell check (`yarn spell:quick`, `yarn spell:check`).
 `ilspycmd` decompiles .NET assemblies, such as NuGet package dependencies; `dotnet-trace`, `dotnet-counters` and
-`dotnet-dump` diagnose running .NET processes.
+`dotnet-dump` diagnose running .NET processes, and `dotnet-ef` runs the Designer's Entity Framework migrations.
+`golangci-lint` for the Go modules and `typst`, which renders the augmenter-agent's PDFs.
 `shellcheck` and `actionlint` for shell scripts and workflows; `make`, `file`, `unzip`, `zip` and `wget`.
 
 No container, Kubernetes or browser tooling: `studioctl` can support authentication, repository and app work, but

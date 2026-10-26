@@ -27,11 +27,14 @@ typos --version
 hunspell -v | head -1
 ilspycmd --version | head -1
 sudo ilspycmd --version >/dev/null || fail "ilspycmd does not find the .NET runtime under sudo"
+dotnet-ef --version | tail -1
 for tool in dotnet-counters dotnet-dump dotnet-trace; do
     echo "$tool $("$tool" --version)"
 done
 studioctl version
 uv --version
+golangci-lint version
+typst --version
 # Every .NET major a global.json in the repository pins needs its own SDK; latestFeature roll-forward
 # never crosses a major.
 for major in 8 10 11; do
@@ -134,6 +137,8 @@ echo "## developer tools"
 agentctl --version
 agentd --version
 yq --version
+k6 version
+hurl --version | head -1
 psql --version
 hyperfine --version
 socat -V | sed -n 2p
@@ -152,6 +157,12 @@ systemctl is-enabled agent-dev-hosts-init.service >/dev/null \
 grep -qxF 'ExecStart=/home/agent/.local/bin/studioctl env hosts add' \
     /etc/systemd/system/agent-dev-hosts-init.service \
     || fail "the local development hosts service does not prepare studioctl hostnames"
+
+echo "## browser tests"
+# App frontend's Cypress runs pass --browser "$CHROME_PATH"; Cypress finds the desktop's Chromium only
+# by path.
+test -x "${CHROME_PATH:?CHROME_PATH is not set}" || fail "CHROME_PATH does not name a browser"
+"$CHROME_PATH" --version
 
 echo "## container tooling"
 # `podman run --init` looks this up by name; without it the flag fails instead of running.
