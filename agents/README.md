@@ -23,7 +23,7 @@ harnesses and the desktop.
 
 ## Getting started
 
-1. Install `agentctl` 0.1.0-preview.12 or later and run `agentctl claude login`. If your `agentctl` was installed from
+1. Install `agentctl` 0.1.0-preview.13 or later and run `agentctl claude login`. If your `agentctl` was installed from
    an altinn-studio release, install it again from digdir-agents to keep receiving updates.
 2. Copy the chosen Agent's `.env.sample` to `.env` and fill it in (see [Credentials](#credentials)).
 3. Run `agentctl tui` from this checkout. The footer lists the keys for what is selected; the common ones:
@@ -69,7 +69,7 @@ their own hosts. `GIT_USER_NAME` and `GIT_USER_EMAIL` enter the Agent in plainte
 
 ## Pi
 
-Both Agents offer Pi beside Claude Code and Codex, on the aivar gateway. Pi has no `agentctl` login: each Agent's home
-overlay supplies `home/.pi/agent/models.json` with the `aivar` provider (`https://api.aivar.no/v1`, key from
+Both Agents offer Pi beside Claude Code and Codex, on the aivar gateway. Pi has no `agentctl` login: the home overlay both
+Agents share supplies `home/.pi/agent/models.json` with the `aivar` provider (`https://api.aivar.no/v1`, key from
 `$AIVAR_API_KEY`), and new Pi Sessions default to `aivar/sigma2:Qwen3.8-27B`. Without the key Pi starts, but a prompt's
 wait times out.
