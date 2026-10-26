@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/metric"
+
 	commontelemetry "altinn.studio/common/telemetry"
 	sharedattr "altinn.studio/common/telemetry/attr"
 	"altinn.studio/operator/internal/telemetry"
@@ -996,7 +998,54 @@ func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	if err := mgr.Add(newRotationRolloutProcessor(r)); err != nil {
 		return fmt.Errorf("add Maskinporten rotation rollout processor: %w", err)
 	}
+	return r.registerClientsMetric()
+}
+
+// ClientsMetric is the gauge of MaskinportenClients in the cluster by their Ready condition:
+// ready, not_ready or unknown (no condition yet). Apps with a client that isn't ready can't get
+// Maskinporten tokens.
+const ClientsMetric = "altinn.operator.maskinporten.clients"
+
+func (r *MaskinportenClientReconciler) registerClientsMetric() error {
+	_, err := r.runtime.Meter().Int64ObservableGauge(
+		ClientsMetric,
+		metric.WithDescription("MaskinportenClients in the cluster by their Ready condition."),
+		metric.WithInt64Callback(func(ctx context.Context, observer metric.Int64Observer) error {
+			if !telemetry.IsLeader() {
+				return nil
+			}
+			list := &resourcesv1alpha1.MaskinportenClientList{}
+			if err := r.List(ctx, list); err != nil {
+				return fmt.Errorf("list MaskinportenClients: %w", err)
+			}
+			counts := map[string]int64{"ready": 0, "not_ready": 0, "unknown": 0}
+			for i := range list.Items {
+				counts[clientReadiness(&list.Items[i])]++
+			}
+			for state, count := range counts {
+				observer.Observe(count, metric.WithAttributes(
+					attribute.String("altinn.operator.maskinporten.client.state", state),
+				))
+			}
+			return nil
+		}),
+	)
+	if err != nil {
+		return fmt.Errorf("register %s: %w", ClientsMetric, err)
+	}
 	return nil
+}
+
+func clientReadiness(instance *resourcesv1alpha1.MaskinportenClient) string {
+	ready := apimeta.FindStatusCondition(instance.Status.Conditions, maskinporten.ConditionTypeReady)
+	switch {
+	case ready == nil || ready.Status == metav1.ConditionUnknown:
+		return "unknown"
+	case ready.Status == metav1.ConditionTrue:
+		return "ready"
+	default:
+		return "not_ready"
+	}
 }
 
 // rotateAnnotationPredicate triggers reconciliation when the rotate-jwk annotation is added.
