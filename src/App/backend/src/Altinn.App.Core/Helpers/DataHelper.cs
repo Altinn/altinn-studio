@@ -17,7 +17,11 @@ public static class DataHelper
     /// <param name="currentDataValues">The current dictionary of data values </param>
     /// <param name="dataType">The type of the updated data objects</param>
     /// <param name="updatedData">The updated data object</param>
-    /// <returns>A dictionary with the new or changed data values</returns>
+    /// <returns>
+    /// A dictionary with the new or changed data values. A field that is null or empty and not yet present in
+    /// <paramref name="currentDataValues"/> is left out: Storage removes keys set to null or empty, so the
+    /// instance already holds that value.
+    /// </returns>
     public static Dictionary<string, string?> GetUpdatedDataValues(
         List<DataField>? dataFields,
         Dictionary<string, string?> currentDataValues,
@@ -208,17 +212,15 @@ public static class DataHelper
     /// </summary>
     /// <param name="originalDictionary">The original dictionary</param>
     /// <param name="newDictionary">The updated dictionary</param>
-    /// <returns>A dictionary containing changed and new entries not represented in the original dictionary.</returns>
+    /// <returns>
+    /// A dictionary containing changed and new entries not represented in the original dictionary. A new
+    /// entry whose value is null or empty is not included.
+    /// </returns>
     private static Dictionary<string, string?> CompareDictionaries(
         Dictionary<string, string?>? originalDictionary,
         Dictionary<string, string?> newDictionary
     )
     {
-        if (originalDictionary == null)
-        {
-            return newDictionary;
-        }
-
         Dictionary<string, string?> updatedValues = [];
 
         foreach (KeyValuePair<string, string?> entry in newDictionary)
@@ -226,11 +228,17 @@ public static class DataHelper
             string key = entry.Key;
             string? value = entry.Value;
 
-            if (originalDictionary.TryGetValue(key, out string? originalValue) && originalValue != value)
+            if (originalDictionary is not null && originalDictionary.TryGetValue(key, out string? originalValue))
             {
-                updatedValues.Add(key, value);
+                if (originalValue != value)
+                {
+                    updatedValues.Add(key, value);
+                }
             }
-            else if (!originalDictionary.ContainsKey(key))
+            // Storage removes a key set to null or empty instead of storing it, so an absent key already
+            // holds that value. Reporting it would request the same removal on every comparison, and every
+            // save would carry an update that changes nothing.
+            else if (!string.IsNullOrEmpty(value))
             {
                 updatedValues.Add(key, value);
             }

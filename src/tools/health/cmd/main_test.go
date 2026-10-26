@@ -184,6 +184,7 @@ func TestInitFetchThenPrune(t *testing.T) {
 		"AZ_RESPONSE",
 		`{"data":[{"name":"ttd-tt02-aks","resourceGroup":"rg","subscriptionId":"sub"}],"count":1,"total_records":1}`,
 	)
+	//nolint:dupword // Answers yes to both prompts.
 	output, err := invokeCommand(t, "y\ny\n", "init", "--kubeconfig", path, "--prune", "tt02")
 	if err != nil {
 		t.Fatalf("init error: %v; output:\n%s", err, output)

@@ -194,7 +194,7 @@ export const buildPipelineHTML = (wf, isStatic) => {
     }
 
     // The grouped padding reserves headroom for the bracket labels — skip it when
-    // no step belongs to a group (e.g. a lone side-effect step), the brackets never render.
+    // no step belongs to a group (e.g. an auxiliary workflow's lone step), the brackets never render.
     const hasPhases = keys.some((k) => k !== null);
     let html = `<div class="pipeline${hasPhases ? ' pipeline-grouped' : ''}${isStatic ? ' pipeline-static' : ''}">`;
     steps.forEach((step, i) => {

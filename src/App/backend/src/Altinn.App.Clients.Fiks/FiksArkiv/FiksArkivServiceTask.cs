@@ -356,7 +356,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
         _logger.LogInformation("Staging archive receipt: {DataType}/{Filename}", settings.DataType, filename);
         dataMutator.AddBinaryDataElement(
             settings.DataType,
-            "application/xml",
+            FiksArkivConstants.RecordContentType,
             filename,
             receipt.Details.SerializeXml(),
             generatedFromTask: dataMutator.Instance.Process?.CurrentTask?.ElementId

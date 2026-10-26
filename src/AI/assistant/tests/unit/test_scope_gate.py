@@ -37,7 +37,8 @@ def _state(**overrides) -> AgentState:
         "repo_path": "/tmp/repo",
         "app_name": "test-app",
         "developer": "dev",
-        "org": "ttd",
+        "repo_owner": "ttd",
+        "cost_org": "ttd",
     }
     base.update(overrides)
     return AgentState(**base)

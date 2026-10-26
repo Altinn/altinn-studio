@@ -96,7 +96,7 @@ internal sealed class WorkflowProcessor(
                     {
                         consecutiveDbFailures++;
                         engineStatus.SetDatabaseUnavailable();
-                        Metrics.Errors.Add(1, ("operation", "fetchAndLock"));
+                        Metrics.Errors.Add(1, (TelemetryAttributes.Operation, "fetch_and_lock"));
 
                         var delay = _databaseBackoff.CalculateDelay(consecutiveDbFailures);
                         logger.DatabaseUnavailable(consecutiveDbFailures, delay, ex);
@@ -143,6 +143,9 @@ internal sealed class WorkflowProcessor(
         logger.ProcessorStopped();
     }
 
+    /// <summary>
+    /// The worker for one fetched workflow, started fire-and-forget: nothing awaits it, so it must never fault.
+    /// </summary>
     private async Task ProcessWorkflow(Workflow workflow, CancellationToken stoppingToken)
     {
         using var workflowCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
@@ -168,13 +171,21 @@ internal sealed class WorkflowProcessor(
             var handler = scope.ServiceProvider.GetRequiredService<WorkflowHandler>();
             await handler.Handle(workflow, workflowCts.Token);
         }
+        catch (OperationCanceledException) when (workflowCts.IsCancellationRequested)
+        {
+            // The handler's own cancellation: shutdown, or the workflow canceled
+        }
+        catch (Exception ex)
+        {
+            // Thrown outside the handler, which reports its own
+            logger.WorkflowProcessingError(workflow.DatabaseId, ex);
+        }
         finally
         {
             tracker.Remove(workflow.DatabaseId);
             limiter.ReleaseWorkerSlot();
+            workflowSignal.Signal();
         }
-
-        workflowSignal.Signal();
     }
 }
 

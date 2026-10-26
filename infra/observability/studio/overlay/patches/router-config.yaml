@@ -97,7 +97,7 @@ spec:
           exporters: [load_balancing/traces]
         metrics:
           receivers: [otlp]
-          processors: [resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
+          processors: [filter/exporter_calls, resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
           exporters: [load_balancing/metrics]
         logs:
           receivers: [otlp]

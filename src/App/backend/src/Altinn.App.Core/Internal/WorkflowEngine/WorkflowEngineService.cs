@@ -270,9 +270,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
         // A failed transition additionally needs its failure detail, which lives in the workflow's
         // steps - list the collection's workflows once to build it. The list goes through
-        // ScopeToCurrentChain (no anchor) so failure classification here obeys the same visibility
-        // rules as the enqueue wait: workflows that must never be classified as transition failures
-        // (and so never picked as process/resume's target) are stripped in that one place.
+        // ScopeToCurrentChain (no anchor) so failure classification here obeys the same scoping
+        // rules as the enqueue wait: auxiliary workflows, which must never be classified as transition
+        // failures (and so never picked as process/resume's target), are stripped in that one place.
         IReadOnlyList<WorkflowStatusResponse> collectionWorkflows = ScopeToCurrentChain(
             await _workflowEngineClient.ListWorkflows(
                 GetNamespace(),
@@ -356,7 +356,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 && workflow.CollectionKey == collectionKey
                 && workflow.IdempotencyKey == bundle.IdempotencyKey
                 && workflow.OverallStatus != PersistentItemStatus.Abandoned
-                && workflow.IsHead is not false
+                && !IsAuxiliaryWorkflow(workflow)
                 && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceTaskLabel)
                     == sourceTask
                 && workflow.Labels?.GetValueOrDefault(ProcessNextRequestFactory.ProcessNextSourceFlowLabel)
@@ -574,50 +574,48 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// strictly-newer timestamp, so a stale workflow sharing the anchor's exact timestamp cannot
     /// leak in (dependents are enqueued after the anchor's steps have run, so they are always
     /// meaningfully newer). Falls back to the full list when the anchor is unknown or not present.
-    /// Fire-and-forget side-effects workflows are excluded from every path: they are invisible to
-    /// the collection heads frontier and must not extend the wait or be classified as transition
-    /// failures. Exclusion cannot rely on the timestamp filter alone - a same-batch side-effects
-    /// workflow shares the anchor's timestamp, but a dependent batch's side-effects
-    /// workflow is strictly newer and would otherwise leak into the chain.
+    /// Auxiliary workflows are excluded from every path: the process never waits on them, so they
+    /// must not extend the wait or be classified as transition failures. Exclusion cannot rely on
+    /// the timestamp filter alone - a same-batch auxiliary workflow shares the anchor's timestamp,
+    /// but a dependent batch's auxiliary workflow is strictly newer and would otherwise leak into
+    /// the chain.
     /// </summary>
     internal static IReadOnlyList<WorkflowStatusResponse> ScopeToCurrentChain(
         IReadOnlyList<WorkflowStatusResponse> workflows,
         Guid? sinceWorkflowId
     )
     {
-        IReadOnlyList<WorkflowStatusResponse> visibleWorkflows = workflows.Any(IsSideEffectsWorkflow)
-            ? workflows.Where(workflow => !IsSideEffectsWorkflow(workflow)).ToList()
+        IReadOnlyList<WorkflowStatusResponse> primaryWorkflows = workflows.Any(IsAuxiliaryWorkflow)
+            ? workflows.Where(workflow => !IsAuxiliaryWorkflow(workflow)).ToList()
             : workflows;
 
         if (sinceWorkflowId is null)
         {
-            return visibleWorkflows;
+            return primaryWorkflows;
         }
 
-        WorkflowStatusResponse? anchor = visibleWorkflows.FirstOrDefault(workflow =>
+        WorkflowStatusResponse? anchor = primaryWorkflows.FirstOrDefault(workflow =>
             workflow.DatabaseId == sinceWorkflowId
         );
         if (anchor is null)
         {
-            return visibleWorkflows;
+            return primaryWorkflows;
         }
 
-        return visibleWorkflows
+        return primaryWorkflows
             .Where(workflow => workflow.DatabaseId == anchor.DatabaseId || workflow.CreatedAt > anchor.CreatedAt)
             .ToList();
     }
 
     /// <summary>
-    /// Identifies the fire-and-forget side-effects workflows a transition may schedule (one per
-    /// side effect), by the engine-persisted head-visibility directive: side-effects workflows are
-    /// enqueued with <c>IsHead = false</c> (invisible to the collection heads frontier), which the
-    /// engine now exposes on status responses. The
-    /// <see cref="ProcessNextRequestFactory.SideEffectsOperationIdPrefix"/> OperationId marker
-    /// remains purely a human-readable naming convention for ops queries and logs; it is no longer
-    /// load-bearing for identification. Requires an engine that persists/exposes <c>isHead</c> -
-    /// the same ship-together requirement the state-inheritance feature already imposes.
+    /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary command). An
+    /// auxiliary workflow runs beside the process: it never blocks or moves it. It is enqueued with the
+    /// engine-persisted <c>IsHead = false</c> directive, which the engine exposes on status responses;
+    /// a workflow with <c>IsHead</c> true or unset is primary. The
+    /// <see cref="ProcessNextRequestFactory.AuxiliaryOperationIdPrefix"/> OperationId marker is purely a
+    /// human-readable naming convention for ops queries and logs, not load-bearing for identification.
     /// </summary>
-    internal static bool IsSideEffectsWorkflow(WorkflowStatusResponse workflow) => workflow.IsHead == false;
+    internal static bool IsAuxiliaryWorkflow(WorkflowStatusResponse workflow) => workflow.IsHead == false;
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 

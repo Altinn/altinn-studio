@@ -2,9 +2,9 @@
  *
  * Chains mode groups the recent window by collectionKey and renders each group as a
  * dependency-ordered spine (shared chain renderer): the story of the collection, oldest
- * transition first, side chains indented under the head that produced them. In-flight
- * workflows of a rendered collection are merged in so the story includes "now". The
- * group chrome and per-group history control live in shared/chain-groups.js. */
+ * transition first, auxiliary workflows indented under the primary workflow that produced
+ * them. In-flight workflows of a rendered collection are merged in so the story includes
+ * "now". The group chrome and per-group history control live in shared/chain-groups.js. */
 
 import { dom, state, workflowData } from '../core/state.js';
 import { cssId } from '../core/helpers.js';

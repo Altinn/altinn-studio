@@ -85,6 +85,7 @@ public class DeploymentServiceTest
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -95,6 +96,7 @@ public class DeploymentServiceTest
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -309,6 +311,92 @@ public class DeploymentServiceTest
                 ),
             Times.Once
         );
+    }
+
+    [Fact]
+    public async Task CreateAsync_TwoDeploysAtTheSameTime_CreateApiKeysWithDifferentNames()
+    {
+        // Arrange
+        DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
+
+        _releaseRepository
+            .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(GetReleases("updatedRelease.json").First());
+        _applicationInformationService
+            .Setup(ais =>
+                ais.PublishToResourceRegistryAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>()
+                )
+            )
+            .ReturnsAsync(new ResourceRegistryPublishResult(true));
+        _azureDevOpsBuildClient
+            .Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GetBuild());
+        _deploymentRepository
+            .Setup(r => r.Create(It.IsAny<DeploymentEntity>()))
+            .ReturnsAsync((DeploymentEntity entity) => entity);
+
+        List<string> apiKeyNames = [];
+        _apiKeyService
+            .Setup(s =>
+                s.CreateAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(
+                (
+                    string _,
+                    string name,
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType _,
+                    DateTimeOffset _,
+                    string _,
+                    CancellationToken _
+                ) => apiKeyNames.Add(name)
+            )
+            .ReturnsAsync(("generated-api-key", new Altinn.Studio.Designer.Models.ApiKey.ApiKey()));
+
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
+        );
+
+        AltinnAuthenticatedRepoEditingContext authenticatedContext =
+            AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
+                "ttd",
+                "apps-test-tba",
+                "testUser",
+                "dummyToken"
+            );
+
+        // Act
+        await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+        await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
+
+        // Assert
+        Assert.Equal(2, apiKeyNames.Count);
+        Assert.All(apiKeyNames, name => Assert.StartsWith("deploy-", name));
+        Assert.NotEqual(apiKeyNames[0], apiKeyNames[1]);
     }
 
     [Theory]
@@ -926,6 +1014,62 @@ public class DeploymentServiceTest
                 b.QueueAsync(
                     It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
                     azureDevOpsSettings.GitOpsManagerDefinitionId,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task SendToSlackAsync_WhenInstallFailed_ShouldNotifyAboutTheDeployment()
+    {
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
+        );
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        await deploymentService.SendToSlackAsync(
+            "ttd",
+            environment,
+            "test-app",
+            DeployEventType.InstallFailed,
+            "123",
+            startedDate: null,
+            CancellationToken.None
+        );
+
+        _notificationService.Verify(
+            s =>
+                s.NotifyInternalAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _notificationService.Verify(
+            s =>
+                s.NotifyServiceOwnersAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

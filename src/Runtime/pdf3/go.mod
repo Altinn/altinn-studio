@@ -1,10 +1,9 @@
 module altinn.studio/pdf3
 
-go 1.26.4
-
-require github.com/google/uuid v1.6.0
+go 1.27.3
 
 require (
+	github.com/google/uuid v1.6.0
 	go.opentelemetry.io/contrib/bridges/otelslog v0.20.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.69.0

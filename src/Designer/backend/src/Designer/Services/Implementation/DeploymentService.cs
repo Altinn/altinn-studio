@@ -550,7 +550,7 @@ public class DeploymentService : IDeploymentService
     {
         var (rawKey, _) = await _apiKeyService.CreateAsync(
             username,
-            $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+            $"deploy-{Guid.NewGuid()}",
             Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
             _timeProvider.GetUtcNow().AddHours(1)
         );
@@ -630,8 +630,20 @@ public class DeploymentService : IDeploymentService
         var payload = new NotificationPayload(buildId, status, fields, links, Emoji: "❌");
 
         await Task.WhenAll(
-            _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
-            _notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
+            _notificationService.NotifyInternalAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            ),
+            _notificationService.NotifyServiceOwnersAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            )
         );
     }
 

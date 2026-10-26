@@ -3,6 +3,7 @@
   line-height: var(--ds-size-6);
   color: var(--semantic-text-neutral-subtle);
   display: inline-block;
+  max-width: var(--running-text-max-width);
   font-weight: normal;
   font-size: var(--ds-size-4);
 }

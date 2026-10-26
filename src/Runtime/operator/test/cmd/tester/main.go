@@ -366,17 +366,17 @@ func operatorImageResources(
 	}
 
 	return []resource.Resource{
-			controllerImage,
-			fakesImage,
-			localtestAppImage,
-			controllerPublished,
-			fakesPublished,
-			localtestAppPublished,
-		}, []resource.ResourceRef{
-			resource.Ref(controllerPublished),
-			resource.Ref(fakesPublished),
-			resource.Ref(localtestAppPublished),
-		}
+		controllerImage,
+		fakesImage,
+		localtestAppImage,
+		controllerPublished,
+		fakesPublished,
+		localtestAppPublished,
+	}, []resource.ResourceRef{
+		resource.Ref(controllerPublished),
+		resource.Ref(fakesPublished),
+		resource.Ref(localtestAppPublished),
+	}
 }
 
 func operatorArtifactResources(
@@ -421,13 +421,13 @@ func operatorArtifactResources(
 	}
 
 	return []resource.Resource{
-			operatorArtifact,
-			chartCheckout,
-			chartArtifact,
-		}, []resource.ResourceRef{
-			resource.Ref(operatorArtifact),
-			resource.Ref(chartArtifact),
-		}, preparedArtifact.Cleanup, nil
+		operatorArtifact,
+		chartCheckout,
+		chartArtifact,
+	}, []resource.ResourceRef{
+		resource.Ref(operatorArtifact),
+		resource.Ref(chartArtifact),
+	}, preparedArtifact.Cleanup, nil
 }
 
 func addOperatorDeploymentResources(

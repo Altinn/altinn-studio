@@ -1,6 +1,6 @@
 module altinn.studio/devenv
 
-go 1.26.4
+go 1.27.3
 
 require (
 	github.com/containerd/errdefs v1.0.0
