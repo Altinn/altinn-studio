@@ -56,7 +56,6 @@ export function getSelectionMode(bindings: IDataModelBindingsForList | undefined
 type ListComponentProps = Pick<PropsFromGenericComponent<'List'>, 'baseComponentId'> & { isSummary?: boolean };
 
 export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps) => {
-  const summaryId = React.useId();
   const isMobile = useIsMobile();
   const { langAsString } = useLanguage();
   const config = useComponentConfig(baseComponentId, 'List');
@@ -153,7 +152,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       </div>
     ));
   const indexedId = useIndexedId(baseComponentId);
-  const componentId = isSummary ? summaryId : indexedId;
+  const componentId = isSummary ? `${indexedId}-summary` : indexedId;
   const getRowLabel = (row: Row): string =>
     Object.entries(row)
       .map(([key]) => {
