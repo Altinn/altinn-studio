@@ -43,7 +43,10 @@ type Row = Record<string, string | number | boolean>;
 type SelectionMode = 'readonly' | 'single' | 'multiple';
 
 export function getSelectionMode(bindings: IDataModelBindingsForList | undefined): SelectionMode {
-  if (!bindings || !Object.values(bindings).some((binding) => binding !== undefined)) {
+  const hasValidBindings =
+    bindings && Object.keys(bindings).length > 0 && Object.values(bindings).some((binding) => binding !== undefined);
+
+  if (!hasValidBindings) {
     return 'readonly';
   }
 
