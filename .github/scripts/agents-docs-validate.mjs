@@ -2,14 +2,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-// Validates the AGENTS.md hierarchy (see /AGENTS.md "Conventions across the repo"):
+// Validates the documentation structure described in docs/documentation.md:
 //   1. Single instruction file — AGENTS.md is the only agent-guidance file, read directly by
 //      every agent, so a CLAUDE.md anywhere in the repository is a regression.
 //   2. Links — every relative markdown link inside an AGENTS.md resolves to a real path.
 //   3. Coverage — every tracked top-level directory and every tracked directory directly
-//      under src/ is mentioned in the root AGENTS.md repository map.
+//      under src/ is mentioned in the root README.md repository map.
 
-const ROOT_DOC = 'AGENTS.md';
+const ROOT_DOC = 'README.md';
 // Directories that intentionally have no entry in the root map.
 const COVERAGE_EXEMPT = new Set(['node_modules']);
 
@@ -88,7 +88,7 @@ if (!fs.existsSync(ROOT_DOC)) {
 if (errors.length > 0) {
   console.error(`AGENTS.md validation failed with ${errors.length} problem(s):\n`);
   for (const error of errors) console.error(`  - ${error}`);
-  console.error('\nSee the "Conventions across the repo" section of /AGENTS.md.');
+  console.error('\nSee docs/documentation.md.');
   process.exit(1);
 }
 

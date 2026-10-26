@@ -1,107 +1,21 @@
 # AGENTS.md
 
-This file provides guidance to AI agents working anywhere in this repository. It is the top of a
-hierarchy: every major area has its own `AGENTS.md` with more detail, and the deeper you go, the more
-specific the guidance becomes.
+Follow [CONTRIBUTING.md](CONTRIBUTING.md). The [README](README.md) maps the repository.
 
-## Altinn Studio
+- Read the code, not the docs, to learn how something works.
+- Projects use different languages and versions. Check the project's `global.json`, `go.mod`, `package.json` or
+  `pyproject.toml` before you assume a version.
+- Before you report a change complete, run the checks that CONTRIBUTING.md and the component's README ask for. If you
+  could not run one, or a test run rewrote snapshots, name them in your report.
+- Skills are in [agents/\_skills/](agents/_skills). If one is not installed in your harness, read its `SKILL.md`
+  there, or copy its directory into your harness's skill directory.
+- What you learn about the product or how we work goes into the repository through a pull request, not into your
+  harness's memory, so that the rest of the team can read and review it.
+- An `AGENTS.md` deeper in the tree adds to this one for its directory.
 
-Altinn Studio is a product for developing, operating, and managing public digital services for citizens
-and businesses in Norway. It runs on a secure, isolated, scalable platform integrated with common shared
-services and open APIs, and supports both user-facing submissions and machine-to-machine APIs.
+## Writing
 
-You can build anything from simple form services to complex workflows with payments and signing. It is a
-hybrid of low-code and traditional code, so you can start in Designer and switch to full-code tools when
-needed. Key principles: open source, open standards, cloud-based infrastructure, modern frameworks,
-built-in security, and tenant isolation.
-
-Docs: https://docs.altinn.studio/nb/altinn-studio/v8/about/
-
-### The three pillars of Altinn 3
-
-- **Altinn Studio** — the tooling where developers build and deploy apps (the Designer product).
-- **Altinn Apps** — the runtime an individual deployed service is built on (backend libraries + frontend).
-- **Altinn Platform** — the shared cloud services apps depend on (Storage, Process, Authorization, …),
-  emulated locally by `localtest`.
-
-This monorepo contains the Studio tooling, the App runtime libraries, several runtime/platform services,
-developer tooling, and the supporting infrastructure to run it all.
-
-## Repository map
-
-Product code and shared libraries live under `src/`.
-Each area below links to its own `AGENTS.md` where one exists.
-
-### Product surfaces
-
-| Area                                     | What it is                                                                                                                                                                                                                                                                                                                                                                                |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/Designer`](src/Designer/AGENTS.md) | **Altinn Studio Designer** — React + .NET web app where users build apps (forms, data models, policies, BPMN processes). Split into [`backend`](src/Designer/backend/AGENTS.md) (.NET) and [`frontend`](src/Designer/frontend/AGENTS.md) (React/TS).                                                                                                                                      |
-| [`src/App`](src/App/AGENTS.md)           | The **Altinn 3 app runtime** every deployed service builds on: [`backend`](src/App/backend/AGENTS.md) (Altinn.App .NET libraries), [`frontend`](src/App/frontend/AGENTS.md) (React form renderer), plus support libs [`codelists`](src/App/codelists/AGENTS.md), [`fileanalyzers`](src/App/fileanalyzers/AGENTS.md), the [`template`](src/App/template/AGENTS.md), and `azure-pipelines`. |
-
-### Runtime & platform services — [`src/Runtime`](src/Runtime/AGENTS.md)
-
-.NET and Go services supporting apps in production and local dev (one-liners + stacks in the area doc):
-[`workflow-engine`](src/Runtime/workflow-engine/AGENTS.md) (+ its host
-[`workflow-engine-app`](src/Runtime/workflow-engine-app/AGENTS.md)),
-[`gateway`](src/Runtime/gateway/AGENTS.md), [`operator`](src/Runtime/operator/AGENTS.md),
-[`pdf3`](src/Runtime/pdf3/AGENTS.md), [`localtest`](src/Runtime/localtest/AGENTS.md),
-[`devenv`](src/Runtime/devenv/AGENTS.md), and
-[`kubernetes-wrapper`](src/Runtime/kubernetes-wrapper/AGENTS.md).
-
-### Developer tooling
-
-| Area                               | What it is                                                                                                                           |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| [`agents`](agents)                 | Published Altinn development Agent images and manifests on the agentctl base image: minimal, and desktop with the full toolchain.    |
-| [`src/cli`](src/cli/AGENTS.md)     | **`studioctl`** — the primary local-dev CLI (Go + an embedded .NET companion server) for cloning, running, and testing apps locally. |
-| [`src/tools`](src/tools/AGENTS.md) | Standalone utilities used by the Studio team. See [`src/tools/AGENTS.md`](src/tools/AGENTS.md) for the list of tools.                |
-
-### AI — [`src/AI`](src/AI/AGENTS.md)
-
-R&D projects from the AI lab (to be handed off to the Studio team): `assistant` (Studio Assistant natural-language
-app builder) and `augmenter-agent` (document/PDF augmentation microservice).
-
-### Continuous integration — [`src/ci`](src/ci/AGENTS.md)
-
-Runner images and cluster integration used to execute GitHub and Gitea CI workloads.
-
-### Shared code
-
-| Area                                                 | What it is                                                                                                                             |
-| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries.                        |
-| [`src/Runtime/common`](src/Runtime/common/AGENTS.md) | Runtime-wide common code grouped by stack, including `Altinn.Studio.Runtime.Common` and its cross-language local-runtime capabilities. |
-
-### Testing — [`src/test`](src/test/AGENTS.md)
-
-`K6` load/performance scripts and `apps` (sample Altinn apps used as E2E/frontend test targets).
-
-### Infrastructure (Docker/ops)
-
-Small build/ops images and configs, documented here rather than individually:
-
-- `gitea` — custom image for the self-hosted Gitea (Studio's "Repositories" Git server).
-- `gitea-proxy` — nginx+njs proxy restricting Gitea API-key/basic-auth to git + REST API only.
-- `lhci-server` — Lighthouse CI server (Node + Postgres) tracking frontend performance.
-- `load-balancer` — nginx edge proxy (with OpenTelemetry) fronting Studio services; local + k8s configs.
-- `observability-proxy` — .NET/YARP edge proxy terminating auth and rate limiting for the Studio
-  observability backend, routing OTLP ingest and Grafana read traffic to the Victoria stack.
-
-Other top-level dirs: `charts/` (Helm), `infra/` (deployment infra), `docs/` (ADRs, diagrams),
-`scripts/`, [`.github/`](.github/AGENTS.md) (workflows + composite actions, incl. the CI caching
-architecture and its cross-repo couplings), and root Docker/compose files for the Designer dev
-stack (see `README.md`).
-
-## Conventions across the repo
-
-- Follow [CONTRIBUTING.md](CONTRIBUTING.md).
-- **Skills:** Skills are developed and maintained in [`agents/_skills/`](agents/_skills). If a skill
-  is not installed in your harness, read `agents/_skills/<name>/SKILL.md` directly, or copy that
-  directory into your harness's skill directory.
-- **Docs:** Follow the [documentation rules](docs/documentation.md), and run
-  `yarn docs:validate` after changing documentation. CI runs it too.
-- **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
-  Framework versions differ per project and are documented at the leaf, not here — check the project's
-  own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.
-- **Prefer the guidance closest to the code.** More-specific `AGENTS.md` files override this one.
+The [writing rules](docs/documentation.md#writing) do not apply to your conversation with the person prompting you.
+In everything else, write for the reader, not as a record of your work. Leave out the steps you took, what you tried
+first and lists the diff already shows, such as every test you added. Say what the diff cannot show, such as why the
+change looks like this.

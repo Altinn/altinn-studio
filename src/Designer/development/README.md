@@ -1,70 +1,54 @@
-# Development
+# Running Designer locally
 
-## Setup script
+The local stack runs Designer in containers with Gitea, PostgreSQL, Redis and mock services for the systems Designer
+calls, behind a load balancer at <http://studio.localhost>. [compose.yaml](../compose.yaml) defines it.
 
-Run the setup script in this folder with node. This script should be immutable, so that it can be run multiple times
-without breaking anything. This is great for introducing new environment variables and so on. It will not overwrite
-any changes you do to the `.env`-file, and it's wise to run this after you change something.
-Then, for instance, it will update passwords and ownership in Gitea for that user.
+## Before you start
 
-```bash
-node ./setup.js
-```
+- Docker or Podman with Compose, and Node.js with Yarn. To work on the backend, the .NET SDK that
+  [global.json](../backend/global.json) names.
+- `studio.localhost` and `host.docker.internal` resolve to `127.0.0.1`. Add them to your hosts file if they don't:
 
-## Your local environment variables
+  ```plaintext
+  127.0.0.1 studio.localhost
+  127.0.0.1 host.docker.internal
+  ```
 
-These are created by the script and are found at the root in the `.env`-file.
+## Start the stack
 
-```dotenv
-DEVELOP_APP_DEVELOPMENT=0
-DEVELOP_RESOURCE_ADMIN=0
-DEVELOP_ADMIN=0
-DEVELOP_BACKEND=1
-DEVELOP_DASHBOARD=0
-DEVELOP_PREVIEW=0
-DEVELOP_STUDIO_ROOT=0
-DEVELOP_SETTINGS=0
-GITEA_ADMIN_PASS=<gitea-admin-password>
-GITEA_ADMIN_USER=<gitea-admin-user>
-GITEA_CYPRESS_USER=<gitea-cypress-user>
-GITEA_CYPRESS_PASS=<gitea-cypress-user-password>
-GITEA_ORG_USER=ttd
-POSTGRES_PASSWORD=<postgres-password>
-CLIENT_ID=<client-id>
-CLIENT_SECRET=<client-secret>
-COMMIT=<commit-id>
-```
-
-## Some useful commands
-
-Commands are meant to run relative to this file.
-
-### Executing commands against the running Gitea instance
+From the repository root:
 
 ```bash
-docker exec -it studio-repos gitea admin user create --username testuser --password yoursecurepasshere --email testuser@digdir.no --admin
+yarn && yarn setup
 ```
 
-### Reloading the loadbalancer
+[setup.js](setup.js) writes `src/Designer/.env` with generated passwords, sets up Gitea with an admin user, the `ttd`
+organization and an OAuth client for Designer, and starts the stack. It keeps what you have changed in `.env`, so run
+it again after you change something. Log in as `localgiteaadmin` with the password in `GITEA_ADMIN_PASS`.
 
-Need to do this to get a new config loaded, for instance when changing which apps to run.
+To rebuild one service after a change, run this from `src/Designer`:
 
 ```bash
-docker rm --force studio-loadbalancer
-docker compose -f ../compose.yaml up -d
+docker compose up -d --build studio_designer
 ```
 
-### Beautify the nginx config in the load balancer
+## Work on one part
 
-To format the nginx file if needed.
+To run a part of Designer from your own dev server, set its `DEVELOP_*` variable in `.env` to `1` and rebuild the load
+balancer with `docker compose up -d --build studio_loadbalancer`. The load balancer then sends that part's traffic to
+your dev server instead of the container. [ensure-dot-env.js](utils/ensure-dot-env.js) lists the variables.
+
+- Start the backend from `src/Designer/backend` with `dotnet run --project src/Designer`. In Development it reads
+  its login client from `.env`.
+- Start a frontend app from `src/Designer/frontend` with its script in [package.json](../frontend/package.json), such
+  as `yarn start-dashboard`.
+
+## Useful commands
+
+Create another Gitea user:
 
 ```bash
-npx nginxbeautifier -i ./load-balancer/nginx.conf.conf
+docker exec -it studio-repositories gitea admin user create --username testuser --password <password> --email testuser@digdir.no --admin
 ```
 
-### To work with the deploy-page
-
-You need to have an app in the `ttd`-organization, just as in the environments. This
-organization is created by default and the default user is added to it. So, if you're
-using the script, this should already be there.
-If not you will need to add yourself to this organization in Gitea.
+The deploy page needs an app in the `ttd` organization, as in the real environments. Setup adds your user to `ttd`.
