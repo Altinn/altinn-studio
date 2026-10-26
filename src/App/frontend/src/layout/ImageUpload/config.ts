@@ -82,4 +82,4 @@ export const Config = asAttachmentUploader(
   )
   .addDataModelBinding(CG.common('IDataModelBindingsSimple').optional())
   .extends(CG.common('LabeledComponentProps'))
-  .addSummaryOverrides((obj) => obj.addProperty(CG.common('summaryShowNextButton')));
+  .addSummaryOverrides();

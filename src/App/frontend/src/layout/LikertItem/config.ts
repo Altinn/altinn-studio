@@ -26,7 +26,7 @@ export const Config = asOptionsComponent(
   { supportsPreselection: true },
 )
   .makeSummarizable()
-  .addSummaryOverrides((obj) => obj.addProperty(CG.common('summaryShowNextButton')))
+  .addSummaryOverrides()
   .addProperty(CG.common('renderAsSummary'))
   .addProperty(CG.common('forceShowInSummary'))
   .extendTextResources(CG.common('TRBSummarizable'))
