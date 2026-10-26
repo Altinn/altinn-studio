@@ -334,13 +334,15 @@ func operatorImageResources(
 	projectRoot string,
 	runtime *kind.KindContainerRuntime,
 ) ([]resource.Resource, []resource.ResourceRef) {
+	// src/ is the build context, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(projectRoot, "../.."))
 	controllerImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		Tag:         "operator-controller:latest",
 	}
 	fakesImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		Tag:         "operator-fakes:latest",
 	}

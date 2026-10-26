@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -84,9 +85,12 @@ func NewOrgRegistry(ctx context.Context, url string, opts ...OrgRegistryOption) 
 	defer span.End()
 
 	r := &OrgRegistry{
-		url:            url,
-		orgs:           atomic.Pointer[map[string]Org]{},
-		httpClient:     &http.Client{Timeout: defaultHTTPTimeout},
+		url:  url,
+		orgs: atomic.Pointer[map[string]Org]{},
+		httpClient: &http.Client{
+			Timeout:   defaultHTTPTimeout,
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+		},
 		initialBackoff: DefaultInitialBackoff,
 		maxBackoff:     DefaultMaxBackoff,
 		maxRetries:     DefaultMaxRetries,
@@ -95,8 +99,6 @@ func NewOrgRegistry(ctx context.Context, url string, opts ...OrgRegistryOption) 
 	for _, opt := range opts {
 		opt(r)
 	}
-
-	span.SetAttributes(attribute.String("url", r.url))
 
 	if err := r.fetchWithRetry(ctx); err != nil {
 		span.RecordError(err)
@@ -184,8 +186,6 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 	ctx, span := tracer.Start(ctx, "OrgRegistry.Fetch")
 	defer span.End()
 
-	span.SetAttributes(attribute.String("url", r.url))
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, r.url, nil)
 	if err != nil {
 		span.RecordError(err)
@@ -200,8 +200,6 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 		return fmt.Errorf("failed to fetch orgs: %w", err)
 	}
 	defer closeResponseBody(resp)
-
-	span.SetAttributes(attribute.Int("http.status_code", resp.StatusCode))
 
 	if resp.StatusCode != http.StatusOK {
 		statusErr := fmt.Errorf("%w: %d", errUnexpectedStatus, resp.StatusCode)

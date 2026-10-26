@@ -10,7 +10,7 @@ The Go module `altinn.studio/common`, for code that Go services in several produ
 
 ## Consumers
 
-pdf3 (`src/Runtime/pdf3`) uses it. Each consumer requires `altinn.studio/common v0.0.0` and replaces it
+pdf3 (`src/Runtime/pdf3`) and the operator (`src/Runtime/operator`) use it. Each consumer requires `altinn.studio/common v0.0.0` and replaces it
 with this directory in its `go.mod`, and so does a test module that builds the consumer
 (`replace altinn.studio/common => ../../../common/go` in `pdf3/test`). A consumer's images build with
 `src/` as the context and a `<Dockerfile>.dockerignore` that sends only the modules they need; its
