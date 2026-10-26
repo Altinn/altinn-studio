@@ -1,6 +1,6 @@
 # Isolate assistant tools that can run code
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Team
 - Date: 13.10.2026
 
