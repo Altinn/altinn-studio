@@ -1,30 +1,32 @@
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Altinn/app-lib-dotnet/dotnet-test.yml?branch=main)](https://github.com/Altinn/app-lib-dotnet/actions)
-[![GitHub](https://img.shields.io/github/license/Altinn/app-lib-dotnet?style=flat-square)](https://github.com/Altinn/app-lib-dotnet/blob/main/LICENSE)<br/>
-
-[![NuGet / Altinn.App.Core](https://img.shields.io/nuget/v/Altinn.App.Core?label=Altinn.App.Core)](https://www.nuget.org/packages/Altinn.App.Core)
-[![NuGet / Altinn.App.Api](https://img.shields.io/nuget/v/Altinn.App.Api?label=Altinn.App.Api)](https://www.nuget.org/packages/Altinn.App.Api)
-
 # Altinn.App .NET libraries
 
-Altinn.App .NET libraries for apps running on Altinn 3, part of the [Altinn Studio product](https://docs.altinn.studio/altinn-studio/about/).
+The Altinn.App libraries are what the backend of an Altinn 3 app is built on. An app references `Altinn.App.Api` and
+`Altinn.App.Core`. The libraries serve the API that the app frontend and service owners' systems call, run the app's
+process, and call the Altinn platform services on the app's behalf. Apps add their own logic by implementing the
+interfaces in `Altinn.App.Core`.
 
-These libraries support the runtime of Altinn apps by
+[docs.altinn.studio](https://docs.altinn.studio) documents how to develop apps. The
+[changelog](https://github.com/Altinn/altinn-studio/blob/main/src/App/backend/CHANGELOG.md) lists the changes in each
+release.
 
-- Exposing APIs used by service owners and the [frontend (app-frontend-react)](https://github.com/Altinn/app-frontend-react) of an Altinn app
-- Exposing abstractions to interact with features of Altinn Studio and Altinn 3 Platform services
+## How it fits
 
-## Contributing
+This README is also the readme of the NuGet packages, so its links are absolute.
 
-See [/CONTRIBUTING.md](/CONTRIBUTING.md).
+- These are the libraries for v9 apps. The v8 libraries live in
+  [app-lib-dotnet](https://github.com/Altinn/app-lib-dotnet), and we merge their fixes into this folder as
+  [upstream sync](https://github.com/Altinn/altinn-studio/blob/main/src/App/docs/upstream-sync.md) describes.
+- `Altinn.App.Api` carries the build of the
+  [app frontend](https://github.com/Altinn/altinn-studio/blob/main/src/App/frontend/README.md), and an app serves it as
+  static files. The two are released together.
+- The app runs process transitions through the
+  [workflow engine](https://github.com/Altinn/altinn-studio/blob/main/src/Runtime/workflow-engine/README.md), which
+  calls back into the app for each step.
+- [Codelists](https://github.com/Altinn/altinn-studio/blob/main/src/App/codelists/README.md) and
+  [FileAnalyzers](https://github.com/Altinn/altinn-studio/blob/main/src/App/fileanalyzers/README.md) are packages
+  built on `Altinn.App.Core`.
 
-## Documentation
+## Development
 
-Documentation on how to develop Altinn apps can be found [here](https://docs.altinn.studio/).
-
-## Architecture
-
-This template is built using .NET
-
-The below diagram shows the different layers.
-
-![Template](./apptemplate.drawio.svg)
+[Development](https://github.com/Altinn/altinn-studio/blob/main/src/App/backend/docs/development.md) covers building,
+testing and the compatibility rules for these libraries.
