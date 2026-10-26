@@ -10,7 +10,9 @@ describe('List component', () => {
     const source = '[data-componentid=ListPage-InformationalList]';
     const summary = '[data-summary-target=ListPage-InformationalList]';
     cy.get(source).findByRole('cell', { name: 'Kari' }).should('be.visible');
+    cy.get(source).find('caption').should('have.attr', 'id', 'label-ListPage-InformationalList');
     cy.get(summary).findByRole('table', { name: 'Personoversikt' }).should('be.visible');
+    cy.get(summary).find('caption').should('have.attr', 'id', 'label-ListPage-InformationalList-summary');
     cy.get(summary).findByRole('cell', { name: 'Kari' }).should('be.visible');
     cy.get(summary).findByRole('cell', { name: 'Johanne' }).should('be.visible');
     cy.get(summary).findByRole('button', { name: 'Endre', timeout: 0 }).should('not.exist');
