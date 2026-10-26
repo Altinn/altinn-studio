@@ -120,6 +120,8 @@ cargo machete --version
 cargo deny --version
 
 echo "## developer tools"
+agentctl --version
+agentd --version
 yq --version
 psql --version
 hyperfine --version

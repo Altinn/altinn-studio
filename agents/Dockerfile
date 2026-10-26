@@ -337,6 +337,11 @@ RUN case "${TARGETARCH}" in \
     && test "$(cargo-deny --version)" = "cargo-deny ${CARGO_DENY_VERSION}" \
     && yq --version | grep -qF "v${YQ_VERSION}"
 
+# agentctl and agentd run nested Agents: this image asks for nested Sandboxes and has the Podman the
+# nested-build variants build their images with. Renovate moves the digest.
+COPY --from=ghcr.io/digdir/agentctl:main@sha256:2374c65d96d61d91df1a6416e444a067d825f9650151d933b8563cad77e02d2a \
+    /agentctl /agentd /usr/local/bin/
+
 # devenv provisions kind clusters with the CA bundle this variable names: it registers the bundle in
 # each node's trust store and mounts it into the Flux controllers. Without it the mediated CA is
 # unknown inside the cluster and every Helm repository fetch fails certificate verification.
@@ -353,6 +358,8 @@ RUN install -d /lib/modules \
     && HOME="${scratch}" TMPDIR="${scratch}" sh -c ' \
         cargo --version \
         && cargo machete --version \
+        && agentctl --version \
+        && agentd --version \
         && podman --version \
         && kind version \
         && kubectl version --client \
