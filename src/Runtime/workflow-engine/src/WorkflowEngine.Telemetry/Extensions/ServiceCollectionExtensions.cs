@@ -2,6 +2,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
@@ -16,22 +17,36 @@ namespace WorkflowEngine.Telemetry.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    private const string OtlpEndpointVariable = "OTEL_EXPORTER_OTLP_ENDPOINT";
+
     extension(IServiceCollection services)
     {
         /// <summary>
-        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs) and the OTLP exporter.
+        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs), and the OTLP exporter when the
+        /// deployment sets the OTLP endpoint.
         /// </summary>
+        /// <remarks>
+        /// Traces, metrics and logs are exported exactly when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> is set, so an engine
+        /// without a collector sends nothing and logs no export errors, rather than falling back to the SDK's
+        /// default endpoint. The per-signal endpoint variables do not turn exporting on. The exporter reads the
+        /// endpoint, the protocol and every other <c>OTEL_*</c> setting itself. The instrumentation, sources and
+        /// meters are registered either way.
+        /// </remarks>
+        /// <param name="configuration">The host's configuration, from which the OTLP endpoint variable is read.</param>
         /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
         /// <param name="enableDatabaseInstrumentation">Enable EF Core and Npgsql tracing instrumentation. Implies <paramref name="enableDatabaseMetrics"/>.</param>
         /// <param name="enableDatabaseMetrics">Enable Npgsql connection pool and command metrics.</param>
         /// <param name="traceSamplingRate">Trace sampling rate between 0.0 (drop all) and 1.0 (keep all). Metrics and logs are always exported at full fidelity.</param>
         public IServiceCollection AddTelemetry(
+            IConfiguration configuration,
             bool emitQueryParameters = false,
             bool enableDatabaseInstrumentation = false,
             bool enableDatabaseMetrics = true,
             double traceSamplingRate = 1.0
         )
         {
+            bool export = !string.IsNullOrWhiteSpace(configuration[OtlpEndpointVariable]);
+
             services
                 .AddOpenTelemetry()
                 .ConfigureResource(r =>
@@ -98,13 +113,16 @@ public static class ServiceCollectionExtensions
                         });
                     }
 
-                    builder.AddOtlpExporter(opts =>
+                    if (export)
                     {
-                        opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
-                        opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
-                        opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
-                        opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
-                    });
+                        builder.AddOtlpExporter(opts =>
+                        {
+                            opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                            opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                            opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
+                        });
+                    }
                 })
                 .WithMetrics(builder =>
                 {
@@ -220,9 +238,13 @@ public static class ServiceCollectionExtensions
                         .AddView(Metrics.StepWaitDuration.Name, waitBudgetView)
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation()
+                        .AddAspNetCoreInstrumentation();
+
+                    if (export)
+                    {
                         // The export interval is the deployment's to set, through OTEL_METRIC_EXPORT_INTERVAL.
-                        .AddOtlpExporter();
+                        builder.AddOtlpExporter();
+                    }
                 });
 
             services.AddLogging(logging =>
@@ -230,7 +252,10 @@ public static class ServiceCollectionExtensions
                 logging.AddOpenTelemetry(options =>
                 {
                     options.IncludeFormattedMessage = true;
-                    options.AddOtlpExporter();
+                    if (export)
+                    {
+                        options.AddOtlpExporter();
+                    }
                 });
             });
 

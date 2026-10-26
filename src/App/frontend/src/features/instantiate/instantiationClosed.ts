@@ -1,8 +1,11 @@
 import { GlobalData } from 'src/GlobalData';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import { isProductionHost } from 'src/utils/urls/urlHelper';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+
+function isProductionHost(host: string): boolean {
+  return /^\w+\.apps\.altinn\.no$/.test(host);
+}
 
 type InstantiationPreconditions = Pick<ApplicationMetadata, 'validFrom' | 'validTo' | 'disallowUserInstantiation'>;
 
