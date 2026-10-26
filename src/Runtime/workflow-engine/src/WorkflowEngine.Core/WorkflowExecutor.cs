@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Telemetry;
@@ -106,6 +107,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 );
             }
 
+            SetDomainAttributes(descriptor, typedCommandData, typedWorkflowContext, workflow, step);
+
             var stateIn = ResolveStateIn(workflow, step);
 
             var rendezvous = await ResolveMailboxReceipt(workflow, step, cts.Token);
@@ -180,6 +183,45 @@ internal class WorkflowExecutor : IWorkflowExecutor
     }
 
     /// <summary>
+    /// Sets the attributes the command names for the domain object the step works on — for an Altinn app, its
+    /// service owner, app and instance — on the step's span and on the workflow's entry span, so a search for the
+    /// object finds both.
+    /// </summary>
+    /// <remarks>
+    /// Skipped when neither span is recorded, so an unsampled step costs the command nothing. A throwing command is
+    /// logged and otherwise ignored: what telemetry says about a step must never decide how the step runs.
+    /// </remarks>
+    private void SetDomainAttributes(
+        ICommand descriptor,
+        object? commandData,
+        object? workflowContext,
+        Workflow workflow,
+        Step step
+    )
+    {
+        var stepActivity = step.EngineActivity;
+        var workflowActivity = workflow.EngineActivity;
+
+        if (stepActivity?.IsAllDataRequested is not true && workflowActivity?.IsAllDataRequested is not true)
+            return;
+
+        try
+        {
+            var attributes = descriptor.GetTelemetryAttributes(commandData, workflowContext);
+            for (int i = 0; i < attributes.Count; i++)
+            {
+                var (key, value) = attributes[i];
+                stepActivity?.SetTag(key, value);
+                workflowActivity?.SetTag(key, value);
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.TelemetryAttributesFailed(step, descriptor.CommandType, e);
+        }
+    }
+
+    /// <summary>
     /// Reads the mailbox rendezvous for a receive workflow's first step; every other step answers "nothing to
     /// read" from two field comparisons and no SQL.
     /// </summary>
@@ -206,7 +248,10 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             case MailboxReceiptResult.Unregistered:
                 _logger.MailboxReceiverUnregistered(step, workflow, workflow.MailboxId.Value);
-                Metrics.MailboxRendezvousViolations.Add(1, ("state", "unregistered"));
+                Metrics.MailboxRendezvousViolations.Add(
+                    1,
+                    (TelemetryAttributes.MailboxRendezvousState, "unregistered")
+                );
                 return new MailboxRendezvous(
                     null,
                     ExecutionResult.CriticalError(
@@ -218,7 +263,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             case MailboxReceiptResult.Undecided(var mailboxId, var seq):
                 _logger.MailboxReceiverUndecided(step, workflow, mailboxId, seq);
-                Metrics.MailboxRendezvousViolations.Add(1, ("state", "undecided"));
+                Metrics.MailboxRendezvousViolations.Add(1, (TelemetryAttributes.MailboxRendezvousState, "undecided"));
                 return new MailboxRendezvous(
                     null,
                     ExecutionResult.CriticalError(
@@ -327,6 +372,17 @@ internal static partial class WorkflowExecutorLogs
         Workflow workflow,
         Guid mailboxId,
         long seq
+    );
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Command '{CommandType}' failed to describe step {Step} for telemetry; the step runs without those attributes"
+    )]
+    internal static partial void TelemetryAttributesFailed(
+        this ILogger<WorkflowExecutor> logger,
+        Step step,
+        string commandType,
+        Exception ex
     );
 
     [LoggerMessage(LogLevel.Error, "Execution of step {Step} failed after {Elapsed}: {Message}")]

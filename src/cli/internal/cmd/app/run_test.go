@@ -64,7 +64,50 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
+		"PlatformFrontendSettings__ArbeidsflateInboxUrl=http://local.altinn.cloud:8000/",
+		"PlatformFrontendSettings__LogoutUrl=http://local.altinn.cloud:8000/",
 	})
+}
+
+// The app frontend no longer falls back to localtest's start page from the page's host: the run sets the inbox and
+// logout links to it (http://<host>/, without the port on port 80), and leaves the other Arbeidsflate links unset.
+func TestBuildDotnetRunSpec_LinksTheInboxAndLogoutToTheLocaltestStartPage(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		port string
+		want string
+	}{
+		{port: "8000", want: "http://local.altinn.cloud:8000/"},
+		{port: "80", want: "http://local.altinn.cloud/"},
+	} {
+		appPath := t.TempDir()
+		writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+		writeAppProject(t, appPath)
+		spec, err := testRunService(t).BuildDotnetRunSpec(
+			t.Context(),
+			appPath,
+			nil,
+			nil,
+			envtopology.NewLocal(tc.port),
+			appsvc.DotnetRunOptions{},
+		)
+		if err != nil {
+			t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+		}
+
+		assertEnvContainsAll(t, spec.Env, []string{
+			"PlatformFrontendSettings__ArbeidsflateInboxUrl=" + tc.want,
+			"PlatformFrontendSettings__LogoutUrl=" + tc.want,
+		})
+		for _, key := range []string{
+			"PlatformFrontendSettings__ArbeidsflateDialogUrl",
+			"PlatformFrontendSettings__ArbeidsflateProfileUrl",
+			"PlatformFrontendSettings__ArbeidsflatePartiesUrl",
+		} {
+			assertEnvMissing(t, spec.Env, key)
+		}
+	}
 }
 
 func TestBuildDockerRunSpec_DoesNotAddAppFrontendAssetBaseUrlByDefault(t *testing.T) {

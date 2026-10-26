@@ -52,7 +52,7 @@ public class AppsInstanceDelegationController(LocalInstanceDelegationsRepository
     [ProducesResponseType(typeof(void), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(void), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-    public ActionResult Revoke([FromBody] AppsInstanceDelegationRequestDto appInstanceDelegationRequestDto, [FromRoute] string resourceId, [FromRoute] string instanceId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult> Revoke([FromBody] AppsInstanceDelegationRequestDto appInstanceDelegationRequestDto, [FromRoute] string resourceId, [FromRoute] string instanceId, CancellationToken cancellationToken = default)
     {
         var delegation = new AppsInstanceDelegationResponseDto
         {
@@ -68,7 +68,7 @@ public class AppsInstanceDelegationController(LocalInstanceDelegationsRepository
             }).ToArray()
         };
 
-        _repository.Delete(delegation);
+        await _repository.Delete(delegation);
         return Ok(delegation);
     }
 }
@@ -169,6 +169,7 @@ public class RightDto
     /// <summary>
     /// Gets or sets the list of resource matches which uniquely identifies the resource this right applies to.
     /// </summary>
+    [Required]
     public IEnumerable<UrnValue> Resource { get; set; }
 
     /// <summary>

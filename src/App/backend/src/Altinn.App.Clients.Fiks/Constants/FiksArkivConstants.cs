@@ -12,6 +12,11 @@ public static class FiksArkivConstants
     internal const string AltinnSystemId = "Altinn Studio";
 
     /// <summary>
+    /// The content type the archive record and the confirmation record are stored with.
+    /// </summary>
+    internal const string RecordContentType = "application/xml";
+
+    /// <summary>
     /// Known filenames used in Fiks Arkiv messages.
     /// </summary>
     public static class Filenames

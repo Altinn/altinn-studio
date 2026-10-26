@@ -186,8 +186,7 @@ func runTest() (exitCode int) {
 			return exitCodeCanceled
 		}
 
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
+		if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 			writeStdoutf("\n=== Tests FAILED (exit code %d) ===\n", exitErr.ExitCode())
 			return exitErr.ExitCode()
 		}

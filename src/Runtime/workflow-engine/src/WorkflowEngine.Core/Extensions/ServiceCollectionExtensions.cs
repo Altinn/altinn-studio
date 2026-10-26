@@ -344,6 +344,13 @@ public static class OptionsBuilderExtensions
 
                 if (config.Throttling.MaxWindow <= TimeSpan.Zero)
                     config.Throttling.MaxWindow = Defaults.EngineSettings.Throttling.MaxWindow;
+
+                // A compose file passes an unset variable as an empty string.
+                if (string.IsNullOrWhiteSpace(config.Dashboard.GrafanaUrl))
+                    config.Dashboard.GrafanaUrl = null;
+
+                if (string.IsNullOrWhiteSpace(config.Dashboard.GrafanaTracesDatasourceUid))
+                    config.Dashboard.GrafanaTracesDatasourceUid = null;
             });
 
             return builder;

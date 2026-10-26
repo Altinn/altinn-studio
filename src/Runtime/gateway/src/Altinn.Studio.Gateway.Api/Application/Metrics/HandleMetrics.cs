@@ -55,13 +55,16 @@ internal static class HandleMetrics
         HelmReleaseClient helmReleaseClient,
         ILogger<Program> logger,
         string originEnvironment,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     )
     {
-        if (range < 1 || range > AzureMonitorClient.MaxReportRange)
+        if (!AzureMonitorClient.IsValidReportPeriod(from, to))
         {
-            return TypedResults.BadRequest($"range must be between 1 and {AzureMonitorClient.MaxReportRange}.");
+            return TypedResults.BadRequest(
+                $"from must be before to, and at most {AzureMonitorClient.MaxReportPeriod.TotalHours} hours earlier."
+            );
         }
 
         IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
@@ -69,9 +72,7 @@ internal static class HandleMetrics
         );
         var currentGatewayContext = gatewayContext.CurrentValue;
 
-        var now = DateTimeOffset.UtcNow;
-        var from = now.AddMinutes(-range);
-        var bucketSize = AzureMonitorClient.GetBucketSize(range);
+        var bucketSize = AzureMonitorClient.GetBucketSize(AzureMonitorClient.GetPeriodMinutes(from, to));
 
         var labelSelector = HelmReleaseLabelSelector.ForOrgAndSourceEnvironment(
             currentGatewayContext.ServiceOwner,
@@ -82,8 +83,8 @@ internal static class HandleMetrics
             labelSelector: labelSelector,
             cancellationToken: cancellationToken
         );
-        var metricsTask = metricsClient.GetMetrics(range, cancellationToken);
-        var failedRequestsTask = metricsClient.GetAllAppsFailedRequests(range, cancellationToken);
+        var metricsTask = metricsClient.GetMetrics(from, to, cancellationToken);
+        var failedRequestsTask = metricsClient.GetAllAppsFailedRequests(from, to, cancellationToken);
 
         var helmReleases = await appsTask;
         var amMetrics = await metricsTask;
@@ -153,7 +154,7 @@ internal static class HandleMetrics
                     [app],
                     name,
                     from,
-                    now
+                    to
                 );
                 return errorMetricsLookup.TryGetValue(
                     (app.ToLowerInvariant(), name.ToLowerInvariant()),

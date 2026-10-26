@@ -22,14 +22,14 @@ public class TestAuthenticationController : ControllerBase
     /// </summary>
     /// <param name="userId">User ID (if not provided, uses first user from test data)</param>
     /// <param name="partyId">Party ID (if not provided, uses first user from test data)</param>
-    /// <param name="authenticationLevel">Authentication level (default: 2)</param>
+    /// <param name="authenticationLevel">Authentication level (default: <see cref="TestAuthenticationService.DefaultUserAuthenticationLevel"/>)</param>
     /// <param name="scope">Token scope (default: altinn:portal/enduser)</param>
     /// <returns>JWT token</returns>
     [HttpGet("user")]
     public async Task<ActionResult> GetUserToken(
         [FromQuery] int? userId = null,
         [FromQuery] int? partyId = null,
-        [FromQuery] int authenticationLevel = 2,
+        [FromQuery] int authenticationLevel = TestAuthenticationService.DefaultUserAuthenticationLevel,
         [FromQuery] string? scope = null
     )
     {
@@ -184,7 +184,7 @@ public class TestAuthenticationController : ControllerBase
         [FromQuery] AuthenticationTypes type,
         [FromQuery] int? userId = null,
         [FromQuery] int? partyId = null,
-        [FromQuery] int authenticationLevel = 2,
+        [FromQuery] int authenticationLevel = TestAuthenticationService.DefaultUserAuthenticationLevel,
         [FromQuery] string? username = null,
         [FromQuery] string? orgNumber = null,
         [FromQuery] string? org = null,

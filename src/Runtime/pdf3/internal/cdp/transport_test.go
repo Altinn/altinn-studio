@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"testing"
 	"time"
 )
@@ -67,8 +68,7 @@ func TestPipeConnectionRoutesSessionsAndEvents(t *testing.T) {
 			commands[i] = command
 		}
 		// Responses arrive in the opposite order; session IDs must not be confused.
-		for i := len(commands) - 1; i >= 0; i-- {
-			command := commands[i]
+		for _, command := range slices.Backward(commands) {
 			if err := peer.WriteJSON(ctx, CDPMessage{ID: &command.ID, Result: command.SessionID}); err != nil {
 				peerResult <- err
 				return

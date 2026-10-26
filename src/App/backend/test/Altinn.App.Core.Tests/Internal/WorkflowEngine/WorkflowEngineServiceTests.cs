@@ -209,7 +209,7 @@ public class WorkflowEngineServiceTests
     [InlineData("wrong-source-task")]
     [InlineData("wrong-source-flow")]
     [InlineData("missing-source-flow")]
-    [InlineData("side-effect")]
+    [InlineData("auxiliary")]
     [InlineData("abandoned")]
     [InlineData("ambiguous")]
     [InlineData("missing")]
@@ -269,7 +269,7 @@ public class WorkflowEngineServiceTests
             {
                 Labels = new() { [ProcessNextRequestFactory.ProcessNextSourceTaskLabel] = "Task_1" },
             },
-            "side-effect" => accepted with { IsHead = false },
+            "auxiliary" => accepted with { IsHead = false },
             "abandoned" => accepted with { OverallStatus = PersistentItemStatus.Abandoned },
             _ => accepted,
         };
@@ -1127,28 +1127,28 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public void ScopeToCurrentChain_ExcludesSideEffectsWorkflowsFromTheChain()
+    public void ScopeToCurrentChain_ExcludesAuxiliaryWorkflowsFromTheChain()
     {
-        // The fire-and-forget side-effects workflows must never extend the wait or influence
+        // Auxiliary workflows must never extend the wait or influence
         // failure classification. The same-batch one shares the anchor's timestamp, but a
-        // dependent batch's side-effects workflow is strictly newer than the
+        // dependent batch's auxiliary workflow is strictly newer than the
         // anchor - only the IsHead=false directive excludes it.
         var anchorCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-2);
         var anchor = CreateWorkflowStatus(createdAt: anchorCreatedAt);
-        var sameBatchSideEffects = CreateWorkflowStatus(
+        var sameBatchAuxiliary = CreateWorkflowStatus(
             createdAt: anchorCreatedAt,
-            operationId: "Process next side-effects: Task_1 -> Task_2",
+            operationId: "Process next auxiliary: Task_1 -> Task_2",
             status: PersistentItemStatus.Enqueued,
             isHead: false
         );
         var dependent = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
-        var dependentBatchSideEffects = CreateWorkflowStatus(
+        var dependentBatchAuxiliary = CreateWorkflowStatus(
             createdAt: DateTimeOffset.UtcNow,
-            operationId: "Process next side-effects: Task_2 -> Task_3",
+            operationId: "Process next auxiliary: Task_2 -> Task_3",
             status: PersistentItemStatus.Enqueued,
             isHead: false
         );
-        var workflows = new[] { anchor, sameBatchSideEffects, dependent, dependentBatchSideEffects };
+        var workflows = new[] { anchor, sameBatchAuxiliary, dependent, dependentBatchAuxiliary };
 
         IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
             workflows,
@@ -1159,54 +1159,54 @@ public class WorkflowEngineServiceTests
     }
 
     [Fact]
-    public void ScopeToCurrentChain_ExcludesSideEffectsWorkflowsFromTheUnscopedFallback()
+    public void ScopeToCurrentChain_ExcludesAuxiliaryWorkflowsFromTheUnscopedFallback()
     {
-        var mainWorkflow = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
-        var failedSideEffects = CreateWorkflowStatus(
+        var primaryWorkflow = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
+        var failedAuxiliary = CreateWorkflowStatus(
             createdAt: DateTimeOffset.UtcNow,
-            operationId: "Process next side-effects: Task_1 -> Task_2",
+            operationId: "Process next auxiliary: Task_1 -> Task_2",
             status: PersistentItemStatus.Failed,
             isHead: false
         );
 
         IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
-            [mainWorkflow, failedSideEffects],
+            [primaryWorkflow, failedAuxiliary],
             sinceWorkflowId: null
         );
 
-        Assert.Equal([mainWorkflow.DatabaseId], scoped.Select(w => w.DatabaseId));
+        Assert.Equal([primaryWorkflow.DatabaseId], scoped.Select(w => w.DatabaseId));
     }
 
     [Fact]
-    public void IsSideEffectsWorkflow_MatchesOnlyTheIsHeadFalseDirective()
+    public void IsAuxiliaryWorkflow_MatchesOnlyTheIsHeadFalseDirective()
     {
-        // Identification is by the engine-persisted head-visibility directive, not the
-        // OperationId naming convention: a side-effects OperationId without IsHead=false is not
+        // Identification is by the engine-persisted IsHead directive, not the
+        // OperationId naming convention: an auxiliary OperationId without IsHead=false is not
         // matched, and IsHead=false is matched regardless of naming.
         Assert.True(
-            WorkflowEngineService.IsSideEffectsWorkflow(
+            WorkflowEngineService.IsAuxiliaryWorkflow(
                 CreateWorkflowStatus(
                     createdAt: DateTimeOffset.UtcNow,
-                    operationId: "Process next side-effects: Task_1 -> Task_2",
+                    operationId: "Process next auxiliary: Task_1 -> Task_2",
                     isHead: false
                 )
             )
         );
         Assert.True(
-            WorkflowEngineService.IsSideEffectsWorkflow(
+            WorkflowEngineService.IsAuxiliaryWorkflow(
                 CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: false)
             )
         );
         Assert.False(
-            WorkflowEngineService.IsSideEffectsWorkflow(
+            WorkflowEngineService.IsAuxiliaryWorkflow(
                 CreateWorkflowStatus(
                     createdAt: DateTimeOffset.UtcNow,
-                    operationId: "Process next side-effects: Task_1 -> Task_2"
+                    operationId: "Process next auxiliary: Task_1 -> Task_2"
                 )
             )
         );
         Assert.False(
-            WorkflowEngineService.IsSideEffectsWorkflow(
+            WorkflowEngineService.IsAuxiliaryWorkflow(
                 CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: true)
             )
         );
@@ -1509,18 +1509,18 @@ public class WorkflowEngineServiceTests
     {
         // Heads can look inactive while the chain is unsettled — the anchored-chain guard's case. Observable
         // because a settled read returns at once where an unsettled one polls to timeout.
-        Guid mainWorkflowId = Guid.NewGuid();
+        Guid primaryWorkflowId = Guid.NewGuid();
         Guid receiverWorkflowId = Guid.NewGuid();
         var instance = CreateInstance(Guid.NewGuid());
         string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
 
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
-            .Setup(c => c.ResumeWorkflow(Namespace, mainWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ResumeWorkflowResponse(mainWorkflowId, DateTimeOffset.UtcNow, []));
+            .Setup(c => c.ResumeWorkflow(Namespace, primaryWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(primaryWorkflowId, DateTimeOffset.UtcNow, []));
         client
             .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateCollection(collectionKey, mainWorkflowId, PersistentItemStatus.Completed));
+            .ReturnsAsync(CreateCollection(collectionKey, primaryWorkflowId, PersistentItemStatus.Completed));
         client
             .Setup(c =>
                 c.ListWorkflows(
@@ -1532,12 +1532,12 @@ public class WorkflowEngineServiceTests
                 )
             )
             .ReturnsAsync([
-                // Main explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created strictly
-                // after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
+                // Primary workflow explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created
+                // strictly after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
                 CreateWorkflowStatus(
                     DateTimeOffset.UtcNow.AddSeconds(-1),
                     status: PersistentItemStatus.Completed,
-                    databaseId: mainWorkflowId,
+                    databaseId: primaryWorkflowId,
                     steps:
                     [
                         CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
@@ -1576,7 +1576,7 @@ public class WorkflowEngineServiceTests
 
         ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
             instance,
-            mainWorkflowId,
+            primaryWorkflowId,
             CancellationToken.None
         );
 
@@ -1589,15 +1589,15 @@ public class WorkflowEngineServiceTests
     {
         // A receiver may stay parked for days by design, so the committed chain releases early and the
         // read-path annotation takes over — as for a deferring service task.
-        Guid mainWorkflowId = Guid.NewGuid();
+        Guid primaryWorkflowId = Guid.NewGuid();
         Guid receiverWorkflowId = Guid.NewGuid();
         var instance = CreateInstance(Guid.NewGuid());
         string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
 
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
-            .Setup(c => c.ResumeWorkflow(Namespace, mainWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ResumeWorkflowResponse(mainWorkflowId, DateTimeOffset.UtcNow, []));
+            .Setup(c => c.ResumeWorkflow(Namespace, primaryWorkflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ResumeWorkflowResponse(primaryWorkflowId, DateTimeOffset.UtcNow, []));
         client
             .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
             .ReturnsAsync(
@@ -1609,7 +1609,7 @@ public class WorkflowEngineServiceTests
                     [
                         new CollectionHeadStatus
                         {
-                            DatabaseId = mainWorkflowId,
+                            DatabaseId = primaryWorkflowId,
                             Status = PersistentItemStatus.Completed,
                         },
                         new CollectionHeadStatus
@@ -1632,12 +1632,12 @@ public class WorkflowEngineServiceTests
                 )
             )
             .ReturnsAsync([
-                // Main explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created strictly
-                // after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
+                // Primary workflow explicitly older: ScopeToCurrentChain keeps the anchor by id plus everything created
+                // strictly after it, and two UtcNow reads are not guaranteed to differ at one-second granularity.
                 CreateWorkflowStatus(
                     DateTimeOffset.UtcNow.AddSeconds(-1),
                     status: PersistentItemStatus.Completed,
-                    databaseId: mainWorkflowId,
+                    databaseId: primaryWorkflowId,
                     steps:
                     [
                         CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
@@ -1676,7 +1676,7 @@ public class WorkflowEngineServiceTests
 
         ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
             instance,
-            mainWorkflowId,
+            primaryWorkflowId,
             CancellationToken.None
         );
 
@@ -1781,7 +1781,7 @@ public class WorkflowEngineServiceTests
             steps:
             [
                 CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed),
-                CreateStep(EnqueueSideEffectsWorkflow.Key, PersistentItemStatus.Enqueued),
+                CreateStep(EnqueueAuxiliaryWorkflows.Key, PersistentItemStatus.Enqueued),
             ]
         );
         var acquire = CreateWorkflowStatus(

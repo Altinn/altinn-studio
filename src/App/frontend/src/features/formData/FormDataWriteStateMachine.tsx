@@ -217,10 +217,15 @@ function makeActions(
     changeInstance,
     getCachedInitialValidations,
     getCalculationDataSources,
+    locked,
   }: FormDataSliceProps,
 ): FormDataMethods {
   const debounceOnBlur = getFeature('saveOnBlur').value;
   let calculationsInitialized = false;
+
+  function isWritable(dataElementId: string | null) {
+    return !locked && isDataElementWritable(dataElementId, selectFromInstance);
+  }
 
   function setDebounceTimeout(state: FormStoreState, change: FDChange) {
     state.data.debounceTimeout = change.debounceTimeout ?? DEFAULT_DEBOUNCE_TIMEOUT;
@@ -337,7 +342,7 @@ function makeActions(
       (model) => !deepEqual(model.currentData, model.debouncedCurrentData),
     );
     if (!calculationsInitialized || hasChanges) {
-      runCalculations(state, getCalculationDataSources(), (id) => isWritable(id, selectFromInstance));
+      runCalculations(state, getCalculationDataSources(), isWritable);
       calculationsInitialized = true;
     }
 
@@ -406,7 +411,7 @@ function makeActions(
       }),
     setLeafValue: ({ reference, newValue, callback, ...rest }) =>
       set((state) => {
-        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           callback?.(FDSetValueReadOnly);
           return;
@@ -427,7 +432,7 @@ function makeActions(
     appendToListUnique: ({ reference, newValue }) =>
       set((state) => {
         const dataState = state.data;
-        if (!isWritable(dataState.models[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(dataState.models[reference.dataType].dataElementId)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -444,7 +449,7 @@ function makeActions(
       }),
     appendToList: ({ reference, newValue }) =>
       set((state) => {
-        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -473,7 +478,7 @@ function makeActions(
       }),
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
-        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -488,7 +493,7 @@ function makeActions(
 
     removeValueFromList: ({ reference, value }) =>
       set((state) => {
-        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -502,7 +507,7 @@ function makeActions(
       }),
     removeFromListCallback: ({ reference, startAtIndex, callback }) =>
       set((state) => {
-        if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
+        if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -536,7 +541,7 @@ function makeActions(
       set((state) => {
         const changedTypes = new Set<string>();
         for (const { reference, newValue } of changes) {
-          if (!isWritable(state.data.models[reference.dataType].dataElementId, selectFromInstance)) {
+          if (!isWritable(state.data.models[reference.dataType].dataElementId)) {
             window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
             continue;
           }
@@ -670,7 +675,7 @@ export function createFormDataWriteSlice(props: FormDataSliceProps, set: FormSto
   };
 }
 
-function isWritable(dataElementId: string | null, selectFromInstance: InstanceDataSelector) {
+function isDataElementWritable(dataElementId: string | null, selectFromInstance: InstanceDataSelector) {
   if (!dataElementId) {
     return true;
   }

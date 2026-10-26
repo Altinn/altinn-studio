@@ -52,7 +52,11 @@ public class TestDataService
                         return diskModel;
                     }
                 }
-                catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
+                // A cancelled caller is not a failing app: falling back here would cache the built-in users alone
+                catch (Exception e) when (
+                    e is HttpRequestException
+                    || (e is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+                )
                 {
                     _logger.LogInformation(e, "Fetching Test data from app failed.");
                 }

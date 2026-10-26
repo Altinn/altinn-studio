@@ -10,7 +10,6 @@ namespace Altinn.Studio.Gateway.Api.Tests;
 [Trait("Category", "Kubernetes")]
 public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
 {
-    private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
     private const string PodInfoRepoName = "podinfo-test";
     private const string PodInfoRepoUrl = "https://stefanprodan.github.io/podinfo";
@@ -22,9 +21,7 @@ public sealed class IsAppDeployedIntegrationTests : IAsyncLifetime
 
     public IsAppDeployedIntegrationTests()
     {
-        // Custom types are registered with the k8s JSON serializer by KubernetesJsonTestMetadata.
-        var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(currentContext: KindContextName);
-        _k8sClient = new Kubernetes(config);
+        _k8sClient = KindKubernetesClient.Create();
         _httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:8020") };
     }
 

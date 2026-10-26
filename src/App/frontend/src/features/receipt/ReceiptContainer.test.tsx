@@ -9,6 +9,7 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/routesBuilder';
+import { expectConfiguredPlatformLink, expectNotConfiguredPlatformLink } from 'src/test/platformLink';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -142,6 +143,26 @@ describe('ReceiptContainer', () => {
 
     const links = screen.getAllByRole('link').filter((link) => link.textContent?.includes('pdf'));
     expect(links.length).toBe(2);
+  });
+
+  it('links the receipt to the configured inbox', async () => {
+    await render();
+
+    expectConfiguredPlatformLink(
+      screen.getByRole('link', { name: /Din kvittering er lagret og tilgjengelig i din innboks/i }),
+      'https://am.ui.tt02.altinn.no/accessmanagement/api/v1/reportee/changeandredirect?partyId=50001&goTo=https%3A%2F%2Faf.tt02.altinn.no%2F',
+    );
+  });
+
+  it('shows the receipt link as not configured when no inbox url is configured', async () => {
+    window.altinnAppGlobalData.platformFrontendSettings.arbeidsflateInboxUrl = undefined;
+
+    await render();
+
+    expectNotConfiguredPlatformLink(
+      screen.getByRole('link', { name: /Din kvittering er lagret og tilgjengelig i din innboks/i }),
+      'ArbeidsflateInboxUrl',
+    );
   });
 
   it('should show complex receipt when autoDeleteOnProcessEnd is false', async () => {

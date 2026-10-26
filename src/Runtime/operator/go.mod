@@ -1,6 +1,6 @@
 module altinn.studio/operator
 
-go 1.26.4
+go 1.27.3
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.22.0

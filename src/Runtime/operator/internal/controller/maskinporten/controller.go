@@ -135,8 +135,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	currentState, err := r.fetchCurrentState(ctx, req)
 	if err != nil {
 		// Check if this is a missing secret error (expected/recoverable condition)
-		var missingSecretErr *maskinporten.MissingSecretError
-		if errors.As(err, &missingSecretErr) {
+		if _, ok := errors.AsType[*maskinporten.MissingSecretError](err); ok {
 			requeueAfter, age := r.getMissingSecretRequeueAfter(configValue, req.Instance)
 			logger.Info(
 				"App secret not found yet, will retry later",

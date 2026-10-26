@@ -20,6 +20,7 @@ public class FiksArkivUnreferencedTaskWarningTest
         var services = new ServiceCollection();
         var reader = new Mock<IProcessReader>();
         reader.Setup(r => r.GetProcessTasks()).Returns([]);
+        reader.Setup(r => r.GetExclusiveGateways()).Returns([]);
         services.AddSingleton(reader.Object);
         var metadata = new Mock<IAppMetadata>();
         metadata.Setup(m => m.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/app"));

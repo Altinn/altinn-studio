@@ -5,4 +5,5 @@ export interface SearchRepoFilterParams {
   order?: string;
   page?: number;
   limit?: number;
+  excludeNonAppRepos?: boolean;
 }

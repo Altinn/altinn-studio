@@ -39,9 +39,9 @@ app — but the app may omit optional engine fields and engine-only response var
 
 1. Change the engine model(s).
 2. Regenerate the snapshot:
-   ```
-   UPDATE_WIRE_CONTRACT=1 dotnet test --filter FullyQualifiedName~EngineWireContractTests
-   ```
+    ```
+    UPDATE_WIRE_CONTRACT=1 dotnet test --filter FullyQualifiedName~EngineWireContractTests
+    ```
 3. Review the `wire-contract.verified.json` diff and commit it.
 4. Reconcile the app's copies in
    `src/App/backend/src/Altinn.App.Core/Internal/WorkflowEngine/Models/` until `AppWireContractTests`

@@ -143,8 +143,9 @@ public sealed class MockedServiceCollection
             .Returns(
                 (string taskid) =>
                 {
+                    // Like the app, a task without a UI folder has no layouts
                     var layouts = _uiFolderComponents.ToList();
-                    return new LayoutModel(layouts, taskid);
+                    return layouts.Exists(layout => layout.Name == taskid) ? new LayoutModel(layouts, taskid) : null;
                 }
             );
         // Just ensure that there exists a mock for IAppModel

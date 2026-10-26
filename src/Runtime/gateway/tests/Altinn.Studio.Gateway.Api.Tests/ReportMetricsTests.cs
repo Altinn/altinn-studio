@@ -17,12 +17,21 @@ namespace Altinn.Studio.Gateway.Api.Tests;
 
 public sealed class ReportMetricsTests
 {
-    private const int MonthlyReportRange = 30 * 24 * 60;
+    // October 2026 in Norwegian time: 31 days, plus the hour gained when daylight saving time ends on the 25th.
+    private static readonly DateTimeOffset s_octoberStart = new(2026, 10, 1, 0, 0, 0, TimeSpan.FromHours(2));
+    private static readonly DateTimeOffset s_octoberEnd = new(2026, 11, 1, 0, 0, 0, TimeSpan.FromHours(1));
+
+    [Fact]
+    public void IsValidReportPeriod_WhenPeriodIsTheLongestMonth_ReturnsTrue()
+    {
+        Assert.True(AzureMonitorClient.IsValidReportPeriod(s_octoberStart, s_octoberEnd));
+    }
 
     [Theory]
     [InlineData(0)]
-    [InlineData(MonthlyReportRange + 1)]
-    public async Task GetReportMetrics_WhenRangeIsOutsideReportWindow_ReturnsBadRequest(int range)
+    [InlineData(-60)]
+    [InlineData((31 * 24 + 1) * 60 + 1)]
+    public async Task GetReportMetrics_WhenPeriodIsNotAReportPeriod_ReturnsBadRequest(int periodMinutes)
     {
         using var serviceProvider = new ServiceCollection().BuildServiceProvider();
         using var kubernetes = new Kubernetes(new KubernetesClientConfiguration { Host = "http://localhost" });
@@ -36,36 +45,43 @@ public sealed class ReportMetricsTests
             new HelmReleaseClient(kubernetes),
             NullLogger<Program>.Instance,
             originEnvironment: "prod",
-            range,
+            from: s_octoberStart,
+            to: s_octoberStart.AddMinutes(periodMinutes),
             TestContext.Current.CancellationToken
         );
 
         var badRequestResult = Assert.IsType<BadRequest<string>>(result);
-        Assert.Equal($"range must be between 1 and {MonthlyReportRange}.", badRequestResult.Value);
+        Assert.Equal("from must be before to, and at most 745 hours earlier.", badRequestResult.Value);
     }
 
     [Fact]
-    public async Task GetMetrics_WhenRangeIsMonthly_QueriesTheWholeWindow()
+    public async Task GetMetrics_QueriesExactlyTheRequestedPeriod()
     {
         var logsQueryClient = new RecordingLogsQueryClient();
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
-        await metricsClient.GetMetrics(MonthlyReportRange, TestContext.Current.CancellationToken);
+        await metricsClient.GetMetrics(s_octoberStart, s_octoberEnd, TestContext.Current.CancellationToken);
 
         var timeRange = Assert.Single(logsQueryClient.TimeRanges);
-        Assert.Equal(TimeSpan.FromDays(30), timeRange.Duration);
+        Assert.Equal(s_octoberStart, timeRange.Start);
+        Assert.Equal(s_octoberEnd, timeRange.End);
     }
 
     [Fact]
-    public async Task GetAllAppsFailedRequests_WhenRangeIsMonthly_QueriesTheWholeWindow()
+    public async Task GetAllAppsFailedRequests_QueriesExactlyTheRequestedPeriod()
     {
         var logsQueryClient = new RecordingLogsQueryClient();
         var metricsClient = CreateAzureMonitorClient(logsQueryClient);
 
-        await metricsClient.GetAllAppsFailedRequests(MonthlyReportRange, TestContext.Current.CancellationToken);
+        await metricsClient.GetAllAppsFailedRequests(
+            s_octoberStart,
+            s_octoberEnd,
+            TestContext.Current.CancellationToken
+        );
 
         var timeRange = Assert.Single(logsQueryClient.TimeRanges);
-        Assert.Equal(TimeSpan.FromDays(30), timeRange.Duration);
+        Assert.Equal(s_octoberStart, timeRange.Start);
+        Assert.Equal(s_octoberEnd, timeRange.End);
     }
 
     private static AzureMonitorClient CreateAzureMonitorClient(LogsQueryClient logsQueryClient) =>
