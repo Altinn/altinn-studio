@@ -75,6 +75,7 @@ describe('Dynamics', () => {
     cy.get('u-option[label="Blue"][aria-selected="false"]').click();
     cy.get('#ColorsLabelsVerify').should('have.value', 'Green,Blue');
 
+    cy.get('#colorsCheckboxes').type('{esc}');
     changeToLang('nb');
     cy.get('#ColorsLabelsVerify').should('have.value', 'Grønn,Blå');
   });
