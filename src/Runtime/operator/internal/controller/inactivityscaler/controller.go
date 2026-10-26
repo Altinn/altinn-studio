@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
+
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -175,8 +178,10 @@ func (r *InactivityScalerReconciler) Start(ctx context.Context) error {
 	}
 }
 
+const controllerName = "inactivityscaler"
+
 func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
-	ctx, span := r.runtime.Tracer().Start(ctx, "inactivityscaler.SyncAll")
+	ctx, span := telemetry.StartRun(ctx, controllerName, "inactivityscaler.SyncAll")
 	defer span.End()
 
 	opCtx := r.runtime.GetOperatorContext()
@@ -187,15 +192,13 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	)
 	appDeployments, err := r.listAppDeployments(ctx, opCtx.ServiceOwner.Id)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "list app deployments")
+		commontelemetry.SetError(span, "list_app_deployments", err)
 		return fmt.Errorf("list app deployments: %w", err)
 	}
 	deploymentNames := appDeploymentNameSet(appDeployments)
 	appHpas, err := r.listAppHpas(ctx, deploymentNames)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "list app hpas")
+		commontelemetry.SetError(span, "list_app_hpas", err)
 		return fmt.Errorf("list app HPAs: %w", err)
 	}
 
@@ -208,12 +211,10 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		len(appDeployments),
 	)
 	span.SetAttributes(
-		attribute.String("serviceOwner", opCtx.ServiceOwner.Id),
-		attribute.String("environment", opCtx.Environment),
-		attribute.String("state", string(state)),
-		attribute.Bool("stateForced", stateForced),
-		attribute.Int("appDeployments", len(appDeployments)),
-		attribute.Int("appHPAs", len(appHpas)),
+		attribute.String("altinn.operator.inactivityscaler.state", string(state)),
+		attribute.Bool("altinn.operator.inactivityscaler.state_forced", stateForced),
+		attribute.Int("altinn.operator.inactivityscaler.app_deployments", len(appDeployments)),
+		attribute.Int("altinn.operator.inactivityscaler.app_hpas", len(appHpas)),
 	)
 
 	r.logger.Info("reconciling inactivity scaler state",
@@ -229,8 +230,7 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	for i := range appDeployments {
 		key := client.ObjectKey{Name: appDeployments[i].Name, Namespace: appDeployments[i].Namespace}
 		if err := r.reconcileDeployment(ctx, key, state.scaleApps(), scaleDownReplicaOne); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "reconcile app deployment")
+			commontelemetry.SetError(span, "reconcile_app_deployment", err)
 			return err
 		}
 	}
@@ -238,8 +238,7 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	for i := range appHpas {
 		key := client.ObjectKey{Name: appHpas[i].Name, Namespace: appHpas[i].Namespace}
 		if err := r.reconcileHpa(ctx, key, state.scaleApps(), scaleDownReplicaOne); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "reconcile app hpa")
+			commontelemetry.SetError(span, "reconcile_app_hpa", err)
 			return err
 		}
 	}
@@ -250,8 +249,7 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		state.scaleGateway(),
 		scaleDownReplicaOne,
 	); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "reconcile gateway")
+		commontelemetry.SetError(span, "reconcile_gateway", err)
 		return err
 	}
 
@@ -261,8 +259,7 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		state.scaleRelay(),
 		scaleDownReplicaOne,
 	); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "reconcile pdf3-relay")
+		commontelemetry.SetError(span, "reconcile_pdf3_relay", err)
 		return err
 	}
 
@@ -410,9 +407,9 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 		ctx,
 		"inactivityscaler.reconcileWithRetry",
 		trace.WithAttributes(
-			attribute.String("kind", kind),
-			attribute.String("namespace", key.Namespace),
-			attribute.String("name", key.Name),
+			telemetry.AttrObjectKind.String(kind),
+			telemetry.AttrObjectNamespace.String(key.Namespace),
+			telemetry.AttrObjectName.String(key.Name),
 		),
 	)
 	defer span.End()
@@ -422,14 +419,14 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 		if apierrors.IsNotFound(err) {
 			return nil
 		}
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_workload", err)
 		return fmt.Errorf("get %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 	}
 
 	for attempt := 1; attempt <= maxUpdateRetries; attempt++ {
 		changed, err := applyState(obj)
 		if err != nil {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "apply_state", err)
 			return fmt.Errorf("apply state %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 		}
 		if !changed {
@@ -439,10 +436,10 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 		if err := r.k8sClient.Update(ctx, obj); err == nil {
 			return nil
 		} else if !apierrors.IsConflict(err) {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "update_workload", err)
 			return fmt.Errorf("update %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 		} else if attempt == maxUpdateRetries {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "update_conflict", err)
 			return fmt.Errorf(
 				"update %s %s/%s after %d retries: %w",
 				kind,
@@ -458,7 +455,7 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 			if apierrors.IsNotFound(err) {
 				return nil
 			}
-			span.RecordError(err)
+			commontelemetry.SetError(span, "refresh_workload", err)
 			return fmt.Errorf("refresh %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 		}
 	}

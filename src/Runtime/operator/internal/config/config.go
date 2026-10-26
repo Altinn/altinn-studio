@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+
 	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
 	"go.opentelemetry.io/otel/trace"
@@ -92,7 +94,7 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 
 	newBaseConfig, err := loadFromKoanf(ctx, m.configFilePath)
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "load_config_file", err)
 		return fmt.Errorf("failed to reload config file: %w", err)
 	}
 
@@ -102,7 +104,7 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 	if m.kvClient != nil {
 		tempCfg := cfg
 		if err := m.kvClient.loadSecrets(ctx, &tempCfg); err != nil {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "load_key_vault_secrets", err)
 			copyOldSecrets(&cfg, oldCfg)
 			log.FromContext(ctx).
 				Error(err, "failed to load secrets from Key Vault, using base config values and old secrets if available")
@@ -113,13 +115,13 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(&cfg); err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "validate_config", err)
 		return fmt.Errorf("config validation failed: %w", err)
 	}
 
 	isLocal := m.environment == operatorcontext.EnvironmentLocal
 	if err := ValidateMaskinportenControllerConfig(&cfg.MaskinportenController, isLocal); err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "validate_maskinporten_config", err)
 		return fmt.Errorf("maskinporten controller config validation failed: %w", err)
 	}
 

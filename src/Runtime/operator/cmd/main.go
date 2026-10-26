@@ -107,7 +107,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx, span := telemetry.Tracer().Start(ctx, "Main")
+	ctx, span := telemetry.Tracer().Start(ctx, "operator.Startup")
 
 	rt, err := internal.NewRuntime(ctx, internal.WithLogger(&setupLog))
 	if err != nil {

@@ -10,9 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"altinn.studio/operator/internal/assert"
@@ -101,8 +102,7 @@ func NewOrgRegistry(ctx context.Context, url string, opts ...OrgRegistryOption) 
 	}
 
 	if err := r.fetchWithRetry(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
+		commontelemetry.SetError(span, "fetch_org_registry", err)
 		return nil, fmt.Errorf("failed to fetch org registry: %w", err)
 	}
 
@@ -188,57 +188,50 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, r.url, nil)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
+		commontelemetry.SetError(span, "create_request", err)
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
+		commontelemetry.SetError(span, "request_failed", err)
 		return fmt.Errorf("failed to fetch orgs: %w", err)
 	}
 	defer closeResponseBody(resp)
 
 	if resp.StatusCode != http.StatusOK {
 		statusErr := fmt.Errorf("%w: %d", errUnexpectedStatus, resp.StatusCode)
-		span.RecordError(statusErr)
-		span.SetStatus(codes.Error, statusErr.Error())
+		commontelemetry.SetError(span, "unexpected_status", statusErr)
 		return statusErr
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
+		commontelemetry.SetError(span, "read_response", err)
 		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	var registry orgRegistryResponse
 	if err := json.Unmarshal(body, &registry); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
+		commontelemetry.SetError(span, "decode_response", err)
 		return fmt.Errorf("failed to unmarshal orgs: %w", err)
 	}
 
 	if registry.Orgs == nil {
 		err := errMissingOrgsKey
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
+		commontelemetry.SetError(span, "missing_orgs", err)
 		return err
 	}
 
 	if len(registry.Orgs) == 0 {
 		err := errEmptyOrgsPayload
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
+		commontelemetry.SetError(span, "empty_orgs", err)
 		return err
 	}
 
 	r.orgs.Store(&registry.Orgs)
 
-	span.SetAttributes(attribute.Int("orgs.count", len(registry.Orgs)))
+	span.SetAttributes(attribute.Int("altinn.operator.org_registry.orgs", len(registry.Orgs)))
 
 	return nil
 }
