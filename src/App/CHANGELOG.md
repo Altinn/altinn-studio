@@ -25,7 +25,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 - Build check `ALTINNAPP1017` reports each `taskIds` entry that names no task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 - Breaking: a data type in `applicationmetadata.json` is bound to tasks with `taskIds`, so it can belong to several tasks; `taskId` is no longer read. `studioctl app upgrade v9` rewrites it, and build checks `ALTINNAPP0603` and `ALTINNAPP0604` report any that remain. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
-- Breaking: Altinn Storage refuses writes to a data type in tasks its `taskIds` does not list, including those your code makes with the app's own token, such as through `IDataClient`; only process transitions are exempt. Add those tasks to `taskIds`. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: Altinn Storage refuses writes to a data type in tasks its `taskIds` does not list, including those from process hooks, service tasks and `IDataClient` calls with the app's own token. Add those tasks to `taskIds`. Task-start hooks run after the new task is saved, so they write in that task. After process end, only `autoDeleteOnProcessEnd` deletions are allowed. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 
 ### Fixed
 

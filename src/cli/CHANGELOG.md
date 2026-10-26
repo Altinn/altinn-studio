@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
-- Localtest refuses, with `409 Conflict`, a change to a data type's data outside the tasks in its `taskIds`, as Altinn Storage does, unless it is part of a process transition. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Localtest refuses, with `409 Conflict`, a change to a data type's data outside the tasks in its `taskIds`, as Altinn Storage does, also during a process transition. Once the process has ended it allows only the deletion `autoDeleteOnProcessEnd` asks for. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 
 ## [0.1.0-preview.31] - 2026-11-06
 

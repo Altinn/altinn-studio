@@ -256,9 +256,6 @@ public class InstanceMutationsController(
             return ProcessStatusConflict(exception);
         }
 
-        // Only a process transition asserts Processing, and EnsureExpectedStatus has checked the assertion.
-        bool isPartOfProcessTransition = mutationRequest.ExpectedProcessStatus == ProcessStatus.Processing;
-
         ActionResult duplicateDataElementIdError = ValidateDuplicateDataElementMutationIds(
             mutationRequest
         );
@@ -339,7 +336,7 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition) is { } taskBindingConflict)
+                if (dataType.GetTaskBindingConflict(instance, isDelete: false) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
                     return Conflict(taskBindingConflict);
@@ -441,7 +438,7 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition) is { } taskBindingConflict)
+                if (dataType.GetTaskBindingConflict(instance, isDelete: false) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
                     return Conflict(taskBindingConflict);
@@ -591,7 +588,7 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition) is { } taskBindingConflict)
+                if (dataType.GetTaskBindingConflict(instance, isDelete: true) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
                     return Conflict(taskBindingConflict);

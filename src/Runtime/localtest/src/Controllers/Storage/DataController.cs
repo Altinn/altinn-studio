@@ -173,7 +173,7 @@ public class DataController : ControllerBase
         }
 
         if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isPartOfProcessTransition: false)
+            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: true)
             is { } taskBindingConflict
         )
         {
@@ -528,7 +528,7 @@ public class DataController : ControllerBase
         }
 
         if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isPartOfProcessTransition: false)
+            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false)
             is { } taskBindingConflict
         )
         {
@@ -767,7 +767,7 @@ public class DataController : ControllerBase
         }
 
         if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isPartOfProcessTransition: false)
+            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false)
             is { } taskBindingConflict
         )
         {
@@ -1081,7 +1081,7 @@ public class DataController : ControllerBase
         }
 
         if (
-            dataTypeDefinition.GetTaskBindingConflict(instance, isPartOfProcessTransition: false)
+            dataTypeDefinition.GetTaskBindingConflict(instance, isDelete: false)
             is { } taskBindingConflict
         )
         {
