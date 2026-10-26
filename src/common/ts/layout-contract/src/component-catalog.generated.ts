@@ -3521,6 +3521,66 @@ const DropdownSummaryOverridesWithRef = {
   ],
 } as const;
 
+const FileUploadSummaryOverrides = {
+  type: 'object',
+  properties: {
+    hidden: ISummaryOverridesCommon['properties']['hidden'],
+    emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+    showNextButton: {
+      type: 'boolean',
+      title: { en: 'Show next button after editing', nb: 'Vis neste-knappen etter redigering' },
+      description: {
+        en: 'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+        nb: 'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
+const FileUploadSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: FileUploadSummaryOverrides['properties']['showNextButton'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for FileUpload',
+        nb: 'Overstyringer av oppsummering for FileUpload',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this FileUpload component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne FileUpload-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        showNextButton: FileUploadSummaryOverrides['properties']['showNextButton'],
+        componentType: { type: 'constant', value: 'FileUpload', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all FileUpload',
+        nb: 'Overstyringer av oppsummering for alle FileUpload-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all FileUpload components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle FileUpload-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
 const GridSummaryOverrides = {
   type: 'object',
   properties: {
@@ -4989,6 +5049,7 @@ const AnySummaryOverride = {
     DatepickerSummaryOverridesWithRef,
     DividerSummaryOverridesWithRef,
     DropdownSummaryOverridesWithRef,
+    FileUploadSummaryOverridesWithRef,
     GridSummaryOverridesWithRef,
     GroupSummaryOverridesWithRef,
     HeadingSummaryOverridesWithRef,

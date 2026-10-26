@@ -1184,6 +1184,9 @@
           "$ref": "#/definitions/DropdownSummaryOverridesWithRef"
         },
         {
+          "$ref": "#/definitions/FileUploadSummaryOverridesWithRef"
+        },
+        {
           "$ref": "#/definitions/GridSummaryOverridesWithRef"
         },
         {
@@ -8301,6 +8304,95 @@
               "properties": {
                 "componentType": {
                   "const": "Dropdown"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "FileUploadSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "FileUploadSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "FileUploadSummaryOverridesWithRef": {
+      "title": "FileUploadSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FileUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for FileUpload",
+              "description": "Properties for how to display the summary of this FileUpload component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FileUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all FileUpload",
+              "description": "Properties for how to display the summary of all FileUpload components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "FileUpload"
                 }
               },
               "required": [

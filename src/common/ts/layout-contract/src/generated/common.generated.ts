@@ -4,6 +4,7 @@ import { AddressSummaryOverridesWithRef } from '@app/layout-contract/generated/c
 import { CheckboxesSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
 import { DatepickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Datepicker/config.generated';
 import { DropdownSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Dropdown/config.generated';
+import { FileUploadSummaryOverridesWithRef } from '@app/layout-contract/generated/components/FileUpload/config.generated';
 import { GridSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Grid/config.generated';
 import { ImageUploadSummaryOverridesWithRef } from '@app/layout-contract/generated/components/ImageUpload/config.generated';
 import { InputSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Input/config.generated';
@@ -46,6 +47,7 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Divider' } & ISummaryOverridesCommon)
   | DropdownSummaryOverridesWithRef
+  | FileUploadSummaryOverridesWithRef
   | GridSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Group' } & ISummaryOverridesCommon)
@@ -656,4 +658,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 9251bad55d2d131f18f4efb05c957a025a6b4a4cd97bf09ed6c6e1cd3e499151
+// Source hash: 3fcf9d1f1d197c4cf40ba79d6397e991b7f1fc4633698be74274324d8cf834d6
