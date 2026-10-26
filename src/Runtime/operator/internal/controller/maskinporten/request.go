@@ -49,7 +49,7 @@ func (r *MaskinportenClientReconciler) mapRequest(
 	ctx context.Context,
 	req ctrl.Request,
 ) (*maskinportenClientRequest, error) {
-	_, span := r.runtime.Tracer().Start(ctx, "Reconcile.mapRequest")
+	_, span := r.runtime.Tracer().Start(ctx, "maskinporten.mapRequest")
 	defer span.End()
 
 	parsed, err := resourcename.ParseMaskinportenClientName(req.Name)
