@@ -62,20 +62,6 @@
         ]
       },
       {
-        "id": "show-group-navigation",
-        "type": "RadioButtons",
-        "textResourceBindings": {
-          "title": "Vis sider for navigering i repeterende grupper?"
-        },
-        "dataModelBindings": {
-          "simpleBinding": "ShowGroupNavigation"
-        },
-        "options": [
-          { "label": "Ja", "value": true },
-          { "label": "Nei", "value": false }
-        ]
-      },
-      {
         "id": "nav-buttons-prefill",
         "type": "NavigationButtons",
         "textResourceBindings": {

@@ -96,9 +96,6 @@
           "type": "integer",
           "@xsdType": "XmlAttribute"
         },
-        "ShowGroupNavigation": {
-          "type": "boolean"
-        },
         "useBothRepGroups": {
           "type": "boolean",
           "@xsdType": "XmlAttribute"

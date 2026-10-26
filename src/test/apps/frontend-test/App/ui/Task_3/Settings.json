@@ -7,16 +7,14 @@
       "repeating2",
       "repeating3",
       "option-comp",
-      "group-navigation",
-      "group-navigation-summary",
       "hide",
       "summary"
     ],
-    "excludeFromPdf": ["summary", "group-navigation", "group-navigation-summary"],
+    "excludeFromPdf": ["summary"],
     "showLanguageSelector": true
   },
   "components": {
-    "excludeFromPdf": ["show-group-navigation"]
+    "excludeFromPdf": []
   },
   "defaultDataType": "nested-group"
 }

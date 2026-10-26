@@ -77,11 +77,6 @@ namespace Altinn.App.Models
     [JsonPropertyName("PrefillValuesEnabled")]
     public bool PrefillValuesEnabled { get; set; } = true;
 
-    [XmlElement("ShowGroupNavigation")]
-    [JsonProperty("ShowGroupNavigation")]
-    [JsonPropertyName("ShowGroupNavigation")]
-    public bool ShowGroupNavigation { get; set; }
-
     [XmlElement("Group2Teller")]
     [JsonProperty("Group2Teller")]
     [JsonPropertyName("Group2Teller")]
