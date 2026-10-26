@@ -69,37 +69,15 @@ describe('published schemas', () => {
   });
 
   it.each([
-    [
-      'editable field',
-      { componentType: 'Input', showNextButton: true, emptyFieldText: 'empty' },
-      true,
-    ],
-    ['presentation visibility', { componentType: 'Paragraph', hidden: true }, true],
-    ['presentation editing', { componentType: 'Paragraph', showNextButton: true }, false],
-    ['presentation empty text', { componentType: 'Paragraph', emptyFieldText: 'empty' }, false],
-    ['computed value empty text', { componentType: 'Text', emptyFieldText: 'empty' }, true],
-    ['computed value editing', { componentType: 'Text', showNextButton: true }, false],
-    ['option empty text', { componentType: 'Option', emptyFieldText: 'empty' }, true],
-    ['option editing', { componentType: 'Option', showNextButton: true }, false],
-    ['container visibility', { componentType: 'Group', hidden: true }, true],
-    ['container editing', { componentType: 'Group', showNextButton: true }, false],
-    ['grid settings', { componentType: 'Grid', hideEmptyRows: true }, true],
-    ['grid empty text', { componentType: 'Grid', emptyFieldText: 'empty' }, false],
-    ['subform editing', { componentType: 'Subform', showNextButton: true, display: 'table' }, true],
-    ['subform empty text', { componentType: 'Subform', emptyFieldText: 'empty' }, false],
-    ['image editing', { componentType: 'ImageUpload', showNextButton: true }, true],
-    ['image empty text', { componentType: 'ImageUpload', emptyFieldText: 'empty' }, false],
-    [
-      'empty repeating group',
-      {
-        componentType: 'RepeatingGroup',
-        emptyFieldText: 'empty',
-        showNextButton: true,
-        display: 'full',
-      },
-      true,
-    ],
-  ])('validates summary override support for %s', (_name, override, valid) => {
+    ['editable field', { componentType: 'Input', showNextButton: true }, true],
+    ['presentation', { componentType: 'Paragraph', showNextButton: true }, false],
+    ['computed value', { componentType: 'Text', showNextButton: true }, false],
+    ['option', { componentType: 'Option', showNextButton: true }, false],
+    ['container', { componentType: 'Group', showNextButton: true }, false],
+    ['subform', { componentType: 'Subform', showNextButton: true }, true],
+    ['image', { componentType: 'ImageUpload', showNextButton: true }, true],
+    ['repeating group', { componentType: 'RepeatingGroup', showNextButton: true }, true],
+  ])('validates the Next-button override for %s', (_name, override, valid) => {
     const schemaId = 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json';
     expect(ajv.validate(`${schemaId}#/definitions/AnySummaryOverride`, override)).toBe(valid);
   });

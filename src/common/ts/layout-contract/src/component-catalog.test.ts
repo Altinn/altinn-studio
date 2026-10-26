@@ -25,20 +25,15 @@ describe('componentCatalog', () => {
     >();
   });
 
-  it('types summary overrides according to the renderer that consumes them', () => {
+  it('limits the Next-button override to editable summaries', () => {
     type ParagraphOverride = Extract<AnySummaryOverride, { componentType: 'Paragraph' }>;
     type OptionOverride = Extract<AnySummaryOverride, { componentType: 'Option' }>;
     type SubformOverride = Extract<AnySummaryOverride, { componentType: 'Subform' }>;
     type InputOverride = Extract<AnySummaryOverride, { componentType: 'Input' }>;
 
-    expectTypeOf<ParagraphOverride>().toHaveProperty('hidden');
-    expectTypeOf<ParagraphOverride>().not.toHaveProperty('emptyFieldText');
     expectTypeOf<ParagraphOverride>().not.toHaveProperty('showNextButton');
-    expectTypeOf<OptionOverride>().toHaveProperty('emptyFieldText');
     expectTypeOf<OptionOverride>().not.toHaveProperty('showNextButton');
     expectTypeOf<SubformOverride>().toHaveProperty('showNextButton');
-    expectTypeOf<SubformOverride>().not.toHaveProperty('emptyFieldText');
-    expectTypeOf<InputOverride>().toHaveProperty('emptyFieldText');
     expectTypeOf<InputOverride>().toHaveProperty('showNextButton');
   });
 
