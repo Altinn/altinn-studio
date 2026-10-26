@@ -24,7 +24,8 @@ yarn && yarn setup
 
 [setup.js](setup.js) writes `src/Designer/.env` with generated passwords, sets up Gitea with an admin user, the `ttd`
 organization and an OAuth client for Designer, and starts the stack. It keeps what you have changed in `.env`, so run
-it again after you change something. Log in as `localgiteaadmin` with the password in `GITEA_ADMIN_PASS`.
+it again after you change something. Log in as `localgiteaadmin` with the password in `GITEA_ADMIN_PASS`. Setup adds
+that user to the deploy teams of `ttd`, so create an app in `ttd` to try the deploy page.
 
 To rebuild one service after a change, run this from `src/Designer`:
 
@@ -43,12 +44,8 @@ your dev server instead of the container. [ensure-dot-env.js](utils/ensure-dot-e
 - Start a frontend app from `src/Designer/frontend` with its script in [package.json](../frontend/package.json), such
   as `yarn start-dashboard`.
 
-## Useful commands
-
-Create another Gitea user:
+## Add a Gitea user
 
 ```bash
 docker exec -it studio-repositories gitea admin user create --username testuser --password <password> --email testuser@digdir.no --admin
 ```
-
-The deploy page needs an app in the `ttd` organization, as in the real environments. Setup adds your user to `ttd`.
