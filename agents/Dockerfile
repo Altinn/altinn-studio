@@ -420,6 +420,7 @@ COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.13@sha256:5451dd5e912865d7ed4
 ENV STUDIO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 COPY common/dev-hosts-init.service /etc/systemd/system/agent-dev-hosts-init.service
+COPY common/kind-network-init.service /etc/systemd/system/agent-kind-network-init.service
 # Keep the Norwegian keyboard layout, so that people reaching the desktop type æøå and ÆØÅ.
 COPY common/agent-desktop.conf /etc/agent-desktop.conf.d/altinn.conf
 
@@ -427,7 +428,7 @@ COPY common/agent-desktop.conf /etc/agent-desktop.conf.d/altinn.conf
 # source path is missing where Docker would create it, and the Sandbox kernel is built without
 # loadable modules, so nothing else creates the directory the mount needs.
 RUN install -d /lib/modules \
-    && systemctl enable agent-dev-hosts-init.service \
+    && systemctl enable agent-dev-hosts-init.service agent-kind-network-init.service \
     && scratch="$(mktemp -d)" \
     && HOME="${scratch}" TMPDIR="${scratch}" sh -c ' \
         cargo --version \

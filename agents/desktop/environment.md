@@ -50,4 +50,9 @@ such option, so a compose service whose Dockerfile has its own ignore file build
 
 Kind clusters run here. Kind detects Podman on its own, so `KIND_EXPERIMENTAL_PROVIDER` is unnecessary, and
 `STUDIO_CA_BUNDLE` is preset so that devenv registers the mediated CA in the node trust stores and in the Flux
-controllers.
+controllers. The `kind` Podman network is created IPv4-only at boot: on the dual-stack network kind would create,
+connections to a published port on `[::1]` hang, and .NET clients calling `localhost` time out instead of falling back
+to IPv4. Keep that network rather than deleting it.
+
+Podman tags an unqualified image name as `localhost/<name>`, where Docker uses `docker.io/library/<name>`, so an image
+built here and loaded with `kind load` matches a manifest only when both use the fully qualified name.

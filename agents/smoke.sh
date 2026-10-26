@@ -164,6 +164,12 @@ echo "## browser tests"
 test -x "${CHROME_PATH:?CHROME_PATH is not set}" || fail "CHROME_PATH does not name a browser"
 "$CHROME_PATH" --version
 
+echo "## kind network"
+systemctl is-enabled agent-kind-network-init.service >/dev/null \
+    || fail "the kind network service is not enabled"
+grep -qF 'podman network create kind' /etc/systemd/system/agent-kind-network-init.service \
+    || fail "the kind network service does not create the IPv4-only kind network"
+
 echo "## container tooling"
 # `podman run --init` looks this up by name; without it the flag fails instead of running.
 command -v catatonit >/dev/null || fail "catatonit is missing, so podman run --init cannot work"
