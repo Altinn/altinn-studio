@@ -389,6 +389,65 @@ public sealed class DataTypeTaskBindingTests
     }
 
     [Fact]
+    public async Task CommitMutation_RefusesAWriteInARequestThatSetsTheProcessState()
+    {
+        await using var storage = new LocalStorageFixture();
+        (Instance instance, DataElement dataElement) = await SeedInTask(storage, "Task_1");
+
+        foreach (InstanceMutationRequest request in SingleWrites(Guid.Parse(dataElement.Id)))
+        {
+            request.ProcessState = new ProcessStateUpdate { State = Process("Task_2") };
+            InstanceMutationsController controller = CreateMutationsController(storage, ["Task_1"], request, AppOwner);
+
+            ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
+                int.Parse(instance.InstanceOwner.PartyId),
+                InstanceGuid(instance),
+                CancellationToken.None
+            );
+
+            Assert.Equal(
+                "processState.state cannot be combined with data element creates, updates or deletes.",
+                Assert.IsType<BadRequestObjectResult>(result.Result).Value
+            );
+        }
+
+        Assert.False(Assert.Single(await storage.DataRepository.ReadAll(InstanceGuid(instance))).Locked);
+        Assert.False(HasBlobs(storage, instance));
+    }
+
+    [Fact]
+    public async Task CommitMutation_AllowsAWriteInARequestThatOnlyAddsProcessEvents()
+    {
+        await using var storage = new LocalStorageFixture();
+        (Instance instance, DataElement dataElement) = await SeedInTask(storage, "Task_1");
+        InstanceMutationsController controller = CreateMutationsController(
+            storage,
+            ["Task_1"],
+            new InstanceMutationRequest
+            {
+                UpdateDataElements =
+                [
+                    new InstanceMutationUpdateDataElement { DataElementId = Guid.Parse(dataElement.Id), Locked = true },
+                ],
+                ProcessState = new ProcessStateUpdate
+                {
+                    Events = [new InstanceEvent { EventType = "process_StartTask" }],
+                },
+            },
+            AppOwner
+        );
+
+        ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
+            int.Parse(instance.InstanceOwner.PartyId),
+            InstanceGuid(instance),
+            CancellationToken.None
+        );
+
+        Assert.IsType<OkObjectResult>(result.Result);
+        Assert.True(Assert.Single(await storage.DataRepository.ReadAll(InstanceGuid(instance))).Locked);
+    }
+
+    [Fact]
     public async Task CommitMutation_AllowsTheDeletionAutoDeleteOnProcessEndAsksForAfterTheProcessEnded()
     {
         await using var storage = new LocalStorageFixture();
