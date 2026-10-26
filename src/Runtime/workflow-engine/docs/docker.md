@@ -81,11 +81,15 @@ Docker Engine on Linux does not route `host.docker.internal` to the host's loopb
 is usually published, so there only an engine on the host reaches it unless you point the variable
 elsewhere. For the observability playground, that is `make playground-host`.
 
-The engine dashboard links each workflow to its trace in Grafana only once the engine is told which
-Grafana: `EngineSettings__Dashboard__GrafanaUrl`, the Grafana a browser opens, and
+The engine dashboard links each workflow to its trace only once the engine is told where traces
+open: `EngineSettings__Dashboard__TraceUrlTemplate`, the URL of one trace's page with `{traceId}`
+where the trace ID goes (for the .NET Aspire dashboard,
+`http://localhost:18888/traces/detail/{traceId}`), or the Grafana pair
+`EngineSettings__Dashboard__GrafanaUrl`, the Grafana a browser opens, and
 `EngineSettings__Dashboard__GrafanaTracesDatasourceUid`, the Tempo datasource holding the traces.
-Both are unset by default, and the dashboard then draws no trace links. `workflow-engine-testapp`
-takes them from the shell that starts the stack, and an engine on the host from its own environment.
+The template wins when both are set. All three are unset by default, and the dashboard then draws no
+trace links. `workflow-engine-testapp` takes them from the shell that starts the stack, and an
+engine on the host from its own environment.
 
 For example, `studioctl env up --monitoring` publishes an OpenTelemetry collector on the host's ports
 4317 and 4318 and serves Grafana at <http://local.altinn.cloud:8000/grafana>, where the _Workflow
