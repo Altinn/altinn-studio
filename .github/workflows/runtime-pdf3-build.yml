@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/Runtime/pdf3/**'
       - 'src/Runtime/devenv/**'
+      - 'src/common/go/**'
       - '.github/workflows/runtime-pdf3-build.yml'
       - '!**/AGENTS.md'
       - '!**/README.md'

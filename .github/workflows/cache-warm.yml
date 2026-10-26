@@ -92,6 +92,7 @@ jobs:
           - { module: src/Runtime/gateway, runner: ubuntu-latest }
           - { module: src/Runtime/operator, runner: ubuntu-latest }
           - { module: src/Runtime/pdf3, runner: ubuntu-latest }
+          - { module: src/common/go, runner: ubuntu-latest }
           - { module: src/ci/sandbox-node, runner: ubuntu-latest }
     steps:
       - name: Enable long paths for git on Windows

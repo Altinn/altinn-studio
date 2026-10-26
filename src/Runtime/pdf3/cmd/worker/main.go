@@ -19,6 +19,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 
+	commontelemetry "altinn.studio/common/telemetry"
 	"altinn.studio/pdf3/internal/appurl"
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/config"
@@ -587,6 +588,6 @@ func recordPDFError(ctx context.Context, logger *slog.Logger, span trace.Span, p
 	errorType := pdfErr.ErrorType()
 	labeler, _ := otelhttp.LabelerFromContext(ctx)
 	labeler.Add(semconv.ErrorTypeKey.String(errorType))
-	telemetry.SetError(span, errorType, pdfErr)
+	commontelemetry.SetError(span, errorType, pdfErr)
 	logger.ErrorContext(ctx, "PDF generation failed", attr.ErrorType, errorType, attr.Error, pdfErr)
 }

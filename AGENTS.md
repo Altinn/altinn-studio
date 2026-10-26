@@ -70,7 +70,7 @@ Runner images and cluster integration used to execute GitHub and Gitea CI worklo
 
 | Area                                                 | What it is                                                                                                                             |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common` and shared TypeScript libraries.                        |
+| [`src/common`](src/common/AGENTS.md)                 | Repository-wide common code grouped by stack, including `Altinn.Studio.Common`, shared TypeScript libraries and Go telemetry setup.    |
 | [`src/Runtime/common`](src/Runtime/common/AGENTS.md) | Runtime-wide common code grouped by stack, including `Altinn.Studio.Runtime.Common` and its cross-language local-runtime capabilities. |
 
 ### Testing — [`src/test`](src/test/AGENTS.md)

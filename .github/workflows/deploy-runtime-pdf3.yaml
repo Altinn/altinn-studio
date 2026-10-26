@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - src/Runtime/pdf3/**
+      - src/common/go/**
       - .github/workflows/deploy-runtime-pdf3.yaml
       - "!**/AGENTS.md"
       # DIS Edge's routing, published by deploy-runtime-pdf3-edge.yaml.
@@ -107,6 +108,8 @@ jobs:
         uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
 
       - name: docker build
+        # src/ is the build context, for the shared Go module in src/common/go.
+        working-directory: src
         run: |
           set -e
           docker build --platform linux/amd64,linux/arm64 \
@@ -114,14 +117,14 @@ jobs:
             --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-proxy:buildcache,mode=max \
             --label org.opencontainers.image.revision=${GITHUB_SHA} \
             --build-arg SERVICE_VERSION=${{ steps.vars.outputs.short-sha }} \
-            -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Dockerfile.proxy . &
+            -t ${{ steps.vars.outputs.ghcr-image-proxy-repo }} -f Runtime/pdf3/Dockerfile.proxy . &
           PROXY_PID=$!
           docker build --platform linux/amd64,linux/arm64 \
             --cache-from type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:buildcache \
             --cache-to type=registry,ref=ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:buildcache,mode=max \
             --label org.opencontainers.image.revision=${GITHUB_SHA} \
             --build-arg SERVICE_VERSION=${{ steps.vars.outputs.short-sha }} \
-            -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Dockerfile.worker . &
+            -t ${{ steps.vars.outputs.ghcr-image-worker-repo }} -f Runtime/pdf3/Dockerfile.worker . &
           WORKER_PID=$!
           wait $PROXY_PID
           wait $WORKER_PID

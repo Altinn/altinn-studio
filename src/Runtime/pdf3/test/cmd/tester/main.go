@@ -246,13 +246,15 @@ func addPDF3PublishResources(
 	bundle *cabundle.Bundle,
 	workloads []cabundle.KubernetesWorkload,
 ) (pdf3PublishedResources, func() error, error) {
+	// src/ is the build context, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(root, "../.."))
 	proxyImage := &resource.BuiltImage{
-		ContextPath: root,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(root, "Dockerfile.proxy"),
 		Tag:         "pdf3-proxy:latest",
 	}
 	workerImage := &resource.BuiltImage{
-		ContextPath: root,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(root, "Dockerfile.worker"),
 		Tag:         "pdf3-worker:latest",
 	}

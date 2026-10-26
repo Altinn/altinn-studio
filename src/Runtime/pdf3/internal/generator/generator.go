@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
+	commontelemetry "altinn.studio/common/telemetry"
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/cdp"
 	"altinn.studio/pdf3/internal/config"
@@ -73,7 +74,7 @@ func New() (*Custom, error) {
 
 		version, err := cdp.GetBrowserVersion(session.conn)
 		if err != nil {
-			telemetry.SetError(span, "get_browser_version_failed", err)
+			commontelemetry.SetError(span, "get_browser_version_failed", err)
 			assert.That(err == nil, "Failed to get browser version", attr.Error, err)
 		}
 
@@ -203,7 +204,7 @@ func (g *Custom) postProcessPDF(ctx context.Context, data []byte) ([]byte, *type
 
 	converted, err := g.pdfaConverter.Convert(data)
 	if err != nil {
-		telemetry.SetError(span, "pdfa_conversion_failed", err)
+		commontelemetry.SetError(span, "pdfa_conversion_failed", err)
 		return nil, types.NewPDFError(types.ErrGenerationFail, "PDF/A conversion failed", err)
 	}
 	return converted, nil
@@ -308,5 +309,5 @@ func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
 	if pdfErr == nil {
 		return
 	}
-	telemetry.SetError(span, pdfErr.ErrorType(), pdfErr)
+	commontelemetry.SetError(span, pdfErr.ErrorType(), pdfErr)
 }
