@@ -84,6 +84,7 @@ const GROUPS = [
       'src/Runtime/common',
       'src/Runtime/devenv',
       'src/common/dotnet',
+      'src/common/go',
       'src/Designer/development/fake-ansattporten',
       'src/test/K6',
       'src/tools/health',
