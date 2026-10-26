@@ -153,7 +153,10 @@ internal static class V8Tov9Upgrade
 
         // Also before the other C# rewrites: the scenarios bind against the same v8 compilation.
         options.CancellationToken.ThrowIfCancellationRequested();
-        returnCode = CombineExitCodes(returnCode, ApplyKnownScenarios(scanner));
+        returnCode = CombineExitCodes(
+            returnCode,
+            ApplyKnownScenarios(scanner, Path.GetDirectoryName(projectFile) ?? projectFolder)
+        );
 
         // After the known scenarios, which take the exact shapes they know first, and still on the v8 compilation; the
         // removed-API check below then lists only the hooks this could not move.
@@ -1140,7 +1143,7 @@ internal static class V8Tov9Upgrade
     /// Every scenario binds symbols, so without the app's v8 compilation nothing is checked, and the step says so rather
     /// than claiming the app is clean.
     /// </summary>
-    static int ApplyKnownScenarios(CSharpSourceScanner scanner)
+    static int ApplyKnownScenarios(CSharpSourceScanner scanner, string projectFolder)
     {
         UpgradeConsole.BeginStep("Known scenarios");
         if (!scanner.HasSemanticModels)
@@ -1151,7 +1154,7 @@ internal static class V8Tov9Upgrade
 
         try
         {
-            var result = new KnownScenarioMigration(scanner).Migrate();
+            var result = new KnownScenarioMigration(scanner, projectFolder).Migrate();
             return ReportMigrationResult(
                 result,
                 cleanText: "No code matches a known scenario",
