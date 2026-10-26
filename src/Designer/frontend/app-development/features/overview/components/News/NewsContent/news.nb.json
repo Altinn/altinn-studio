@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2026-10-23",
+      "title": "Ny funksjonalitet: Publiser fra grener",
+      "content": "Nå kan du publisere appen din direkte fra forskjellige grener i Studio. Dette gjør at du kan teste ut endringer i testmiljø uten å påvirke hovedgrenen."
+    },
+    {
       "date": "2026-04-07",
       "title": "Ny funksjonalitet: Forhindre navigasjon i appen når det finnes valideringsfeil på side navigasjonen",
       "content": "Nå kan du legge til validering på sidenavigasjonen i appen under <strong>Utforming > Andre innstillinger</strong>. Dette gjør at brukere hindres i å gå videre dersom det finnes valideringsfeil på siden. Regler satt på sidenavigasjonen vil overstyre andre navigeringsregler i appen."

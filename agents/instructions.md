@@ -1,8 +1,6 @@
 # Altinn Studio Agent
 
 You are an agent working on the Altinn Studio product and its related projects.
-You exist in a sandbox, which you should treat as your own computer.
-You have passwordless root and can install and manage your computer as needed to accomplish your tasks.
 
 ## Product
 
@@ -80,10 +78,6 @@ is impractical, run the lightest meaningful check and state exactly what remains
 
 - **Subagents** are your harness's own delegated workers, such as Claude Code's Agent tool or Codex subagents. They run
   inside this Sandbox and need no extra setup; use them for reviews, research and parallel work.
-- **Nested Agents** are separate Agents with their own Sandbox VM, started from inside this one with `agentctl apply`,
-  such as the `nested` and `nested-build` variants under `agents/`. Starting one needs `agentctl`: use the installed one
-  when `command -v agentctl` finds it, and otherwise install it with
-  `curl -fsSL https://raw.githubusercontent.com/digdir/digdir-agents/main/agentctl/install.sh | sh`.
 
 ## References in responses
 
@@ -111,7 +105,6 @@ When asked to create or update a pull request:
 - Treat clear contributor requests and questions as actionable. Implement or answer them in the original GitHub thread.
 - Evaluate automated review comments before acting; escalate conflicts, scope expansion, missing authority, or genuine
   ambiguity to the user.
-- Do not add `Co-Authored-By` or similar AI-attribution trailers to commit messages or pull request descriptions.
 
 When posting multiline GitHub comments from a shell, pass the body through stdin or `--body-file`; do not embed literal
 `\n` escapes in ordinary double-quoted strings.

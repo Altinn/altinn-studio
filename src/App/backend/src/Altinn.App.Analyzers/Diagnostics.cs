@@ -236,16 +236,19 @@ public static class Diagnostics
             "The id '{0}' is used by {1} elements of the process. Give each element its own id."
         );
 
-        // A condition on one listed flow makes the app evaluate them all with ExpressionsExclusiveGateway, which
-        // counts a flow without a condition as a match, and more than one match fails. '{1}' lists the flows
-        // without a condition, and '{2}' completes the sentence with when that fails: one such flow fails only
-        // alongside a condition that holds, two or more always match together.
+        // A condition on one listed flow makes the app evaluate every listed flow but the default with
+        // ExpressionsExclusiveGateway, which counts a flow without a condition as a match, and more than one match
+        // fails. The default is taken only when nothing else matches, so it is the one flow that needs no condition.
+        // '{1}' lists the other flows without a condition, '{2}' completes the sentence with when that fails (one
+        // such flow fails only alongside a condition that holds, two or more always match together), and '{3}' is
+        // the fix.
         public static readonly DiagnosticDescriptor GatewayMixesConditions = Error(
             "ALTINNAPP1010",
             Category.Process,
             "Exclusive gateway mixes flows with and without a condition",
-            "Exclusive gateway '{0}' has a condition on some outgoing sequence flows, but none on {1}. The app "
-                + "treats a flow without a condition as always true, {2}. Give every outgoing flow a condition."
+            "Exclusive gateway '{0}' has a condition on some outgoing sequence flows, but none on {1}. Only the "
+                + "gateway's default may leave out the condition: the app treats any other flow without one as always "
+                + "true, {2}. {3}."
         );
 
         // Only a warning: the conditions on the flows may keep every instance out of the loop. '{1}' completes the
@@ -258,8 +261,9 @@ public static class Diagnostics
                 + "recurse until the process crashes. Put a task in the loop, or remove one of its sequence flows."
         );
 
-        // ExpressionsExclusiveGateway evaluates every listed flow, and parsing an empty condition throws
-        // (GetExpressionFromCondition), so the gateway fails whatever the instance data. '{1}' names the flow.
+        // ExpressionsExclusiveGateway evaluates every listed flow but the default, and parsing an empty condition
+        // throws (GetExpressionFromCondition), so the gateway fails whatever the instance data. '{1}' names the flow.
+        // An empty condition on the default is ALTINNAPP1023.
         public static readonly DiagnosticDescriptor GatewayEmptyCondition = Error(
             "ALTINNAPP1012",
             Category.Process,
@@ -377,6 +381,18 @@ public static class Diagnostics
             Category.Process,
             "Task configuration has an env attribute the app cannot use",
             "Task '{0}' has {1} on {2}, {3}. {4}."
+        );
+
+        // The app never evaluates the default's condition, and also fails to start on one, so a condition that
+        // seems to work in a test does not decide anything.
+        public static readonly DiagnosticDescriptor GatewayDefaultHasCondition = Error(
+            "ALTINNAPP1023",
+            Category.Process,
+            "Exclusive gateway's default flow has a condition",
+            "Exclusive gateway '{0}' has a condition on its default, sequence flow '{1}'. The gateway takes its "
+                + "default only when no other flow's condition holds, and never evaluates the default's own "
+                + "condition, so the app does not start. Remove the <bpmn:conditionExpression> from '{1}', or remove "
+                + "default=\"{1}\" from the gateway so the condition is evaluated."
         );
     }
 

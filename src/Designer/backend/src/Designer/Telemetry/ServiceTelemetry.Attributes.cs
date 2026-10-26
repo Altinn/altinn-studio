@@ -141,10 +141,19 @@ internal static partial class ServiceTelemetry
         {
             private const string Prefix = "altinn.designer.notification.";
 
+            /// <summary>
+            /// Who a delivery goes to: the service owner's contact points, or the Studio team's internal channel.
+            /// </summary>
+            public const string Audience = Prefix + "audience";
             public const string ContactMethodType = Prefix + "contact_method.type";
             public const string ContactPointId = Prefix + "contact_point.id";
             public const string DeliveryCount = Prefix + "delivery_count";
             public const string DeliveryFailedCount = Prefix + "delivery_failed_count";
+
+            /// <summary>
+            /// What a notification is about, such as an alert or a periodic report.
+            /// </summary>
+            public const string Kind = Prefix + "kind";
             public const string Title = Prefix + "title";
         }
 

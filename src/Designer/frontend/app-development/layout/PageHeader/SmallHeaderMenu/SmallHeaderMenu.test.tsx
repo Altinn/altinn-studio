@@ -98,6 +98,23 @@ describe('SmallHeaderMenu', () => {
     });
     expect(heading).toBeInTheDocument();
   });
+
+  it('should render a profile menu item with a link action as a plain link', async () => {
+    const user = userEvent.setup();
+    const profileLinkHref = '/settings/ttd';
+    renderSmallHeaderMenu({
+      profileMenuItems: [
+        { action: { type: 'link', href: profileLinkHref }, itemName: 'profileLink' },
+      ],
+    });
+
+    await user.click(screen.getByRole('button', { name: textMock('top_menu.menu') }));
+
+    expect(screen.getByRole('menuitem', { name: 'profileLink' })).toHaveAttribute(
+      'href',
+      profileLinkHref,
+    );
+  });
 });
 
 const renderSmallHeaderMenu = (contextProps: Partial<PageHeaderContextProps> = {}) => {

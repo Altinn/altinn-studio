@@ -20,6 +20,7 @@ public sealed class ProcessFlowAnalyzer : DiagnosticAnalyzer
             Diagnostics.Process.GatewayMixesConditions,
             Diagnostics.Process.GatewayLoop,
             Diagnostics.Process.GatewayEmptyCondition,
+            Diagnostics.Process.GatewayDefaultHasCondition,
         ];
 
     public override void Initialize(AnalysisContext context)

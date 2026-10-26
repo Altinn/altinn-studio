@@ -180,11 +180,10 @@ internal class WorkflowWriteBuffer : BackgroundService
             "WorkflowWriteBuffer.FlushBatch",
             tags:
             [
-                ("batch.size", batch.Count),
-                ("batch.workflows", totalWorkflows),
-                ("batch.steps", totalSteps),
-                ("batch.namespaces", distinctNamespaces),
-                ("db.operation", "batch_enqueue_workflows"),
+                (TelemetryAttributes.BatchSize, batch.Count),
+                (TelemetryAttributes.BatchWorkflowCount, totalWorkflows),
+                (TelemetryAttributes.BatchStepCount, totalSteps),
+                (TelemetryAttributes.BatchNamespaceCount, distinctNamespaces),
             ],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Metadata.TraceContext)).ToActivityLinks()
         );

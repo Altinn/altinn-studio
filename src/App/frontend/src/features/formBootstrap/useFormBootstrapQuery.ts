@@ -91,7 +91,9 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
           };
         }
       : skipToken,
-    staleTime: 0,
+    // PDF summaries can mount several forms for the same task or subform. Reuse their
+    // bootstrap snapshot so mounting one cannot reset and remount the others.
+    staleTime: isPdf ? Infinity : 0,
     gcTime: 0,
   });
 }

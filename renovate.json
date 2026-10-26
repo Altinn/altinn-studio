@@ -3,6 +3,7 @@
   "extends": [
     "local>Altinn/renovate-config",
     ":prHourlyLimit4",
+    "customManagers:makefileVersions",
     "helpers:pinGitHubActionDigestsToSemver"
   ],
   "customManagers": [
@@ -44,6 +45,14 @@
       ],
       "datasourceTemplate": "rust-version",
       "depNameTemplate": "rust"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Go toolchain copies that cannot read go.mod: the Go releases the runner and Agent images install",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": ["ARG GO_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "golang-version",
+      "depNameTemplate": "go"
     }
   ],
   "separateMultipleMajor": true,
@@ -72,10 +81,10 @@
     },
     {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
-      "matchManagers": ["gomod"],
+      "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
-        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
@@ -85,10 +94,10 @@
     },
     {
       "description": "Require explicit approval for Kubernetes, Flux, and cluster tooling Go dependency minor/major updates after checking target cluster compatibility",
-      "matchManagers": ["gomod"],
+      "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [
         "/^k8s\\.io\\//",
-        "/^sigs\\.k8s\\.io\\/(controller-runtime|gateway-api|kind)$/",
+        "/^sigs\\.k8s\\.io\\/(controller-runtime|controller-tools|gateway-api|kind)$/",
         "/^sigs\\.k8s\\.io\\/(kustomize|structured-merge-diff)\\//",
         "/^github\\.com\\/fluxcd\\/(flux2\\/v2|.*-controller\\/api|pkg\\/.*)$/"
       ],
@@ -125,17 +134,47 @@
       "pinDigests": true
     },
     {
+      "description": "Read the Gitea runner base image tag as an Ubuntu release (ubuntu-24.04). Docker versioning treats it as unversioned and would only ever move its digest, so a newer Ubuntu release would never be offered",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner-images"],
+      "versioning": "regex:^ubuntu-(?<major>\\d+)\\.(?<minor>\\d+)$"
+    },
+    {
+      "description": "Moving service owners' Gitea Actions jobs to a new Ubuntu release is a deliberate choice: give it its own PR, named after the new tag, and create it only after approval on the Dependency Dashboard",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/ci/gitea-runner/Dockerfile"],
+      "matchPackageNames": ["docker.io/gitea/runner-images"],
+      "matchUpdateTypes": ["major", "minor"],
+      "groupSlug": "gitea-runner-ubuntu",
+      "commitMessageTopic": "Gitea runner base image",
+      "commitMessageExtra": "to {{{newValue}}}",
+      "dependencyDashboardApproval": true
+    },
+    {
       "description": "Only update nginx Docker images to stable release lines because installed nginx.org modules come from the stable package repository",
       "matchManagers": ["dockerfile"],
-      "matchPackageNames": ["nginx"],
+      "matchPackageNames": ["nginx", "docker.io/library/nginx"],
       "allowedVersions": "/^\\d+\\.(?:\\d*[02468])\\./"
     },
     {
-      "description": "Move uv in the Studio Assistant CI and image, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
+      "description": "Keep the version-pinned .NET images of kubernetes-wrapper and localtest on the latest patch. Docker versioning reads -alpine3.23 as a compatibility suffix and never leaves it, but new .NET patches ship only for the newest Alpine, so read the Alpine release as part of the version. MCR publishes no release timestamps, so minimumReleaseAge would hold these updates pending forever",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": [
+        "src/Runtime/kubernetes-wrapper/src/Dockerfile",
+        "src/Runtime/localtest/Dockerfile"
+      ],
+      "matchPackageNames": ["mcr.microsoft.com/dotnet/aspnet", "mcr.microsoft.com/dotnet/sdk"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-alpine(?<build>\\d+)\\.(?<revision>\\d+)$",
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "Move uv in the Studio Assistant CI and image, the Agent images, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
       "matchFileNames": [
         ".github/workflows/altinity-build-test.yaml",
         ".github/workflows/assistant-evals.yaml",
         ".github/workflows/assistant-prompts.yaml",
+        "agents/Dockerfile",
         "src/AI/assistant/dockerfile",
         "src/AI/assistant/.python-version"
       ],
@@ -197,13 +236,21 @@
       "allowedVersions": "<9"
     },
     {
-      "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with, and the image smoke test gates the update",
+      "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with and is tested where it is built, and the image build, agent-image-check and smoke test gate the update",
       "matchManagers": ["dockerfile"],
       "matchFileNames": ["agents/Dockerfile"],
       "matchPackageNames": ["ghcr.io/digdir/agentctl-base"],
       "matchUpdateTypes": ["digest"],
       "addLabels": ["approve"],
       "automerge": true
+    },
+    {
+      "description": "agentctl and agentd in the desktop Agent image follow agentctl's releases, which are semver previews such as v0.1.0-preview.13; Docker versioning would read the preview as a compatibility suffix and never update it",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["ghcr.io/digdir/agentctl"],
+      "versioning": "semver",
+      "ignoreUnstable": false
     },
     {
       "matchFileNames": ["src/Runtime/localtest/**"],
@@ -294,12 +341,48 @@
       "enabled": false
     },
     {
-      "description": "Move rust-toolchain.toml and every copy of its version in one pull request, so CI, the runner image and the Agent images build with the toolchain the checkout selects.",
-      "matchDatasources": ["rust-version"],
-      "matchPackageNames": ["rust"],
+      "description": "Move rust-toolchain.toml, every copy of its version and the rust build image in one pull request, so CI, the runner images and the Agent images build with the toolchain the checkout selects.",
+      "matchDatasources": ["rust-version", "docker"],
+      "matchPackageNames": ["rust", "docker.io/library/rust"],
       "groupName": "Rust toolchain",
       "groupSlug": "rust-toolchain",
       "enabled": true
+    },
+    {
+      "description": "Move the go.mod go directives, every copy of their version and the golang build images in one pull request, so CI, the shipped binaries, the runner images and the Agent images build with the Go release the modules declare. Renovate treats the go directive as a minimum and leaves it alone unless rangeStrategy is bump. Patch releases get their own pull request, so security fixes are not held back while a minor release waits for approval.",
+      "matchDatasources": ["golang-version", "docker"],
+      "matchPackageNames": ["go", "golang", "docker.io/library/golang"],
+      "groupName": "Go toolchain",
+      "groupSlug": "go-toolchain",
+      "rangeStrategy": "bump",
+      "separateMinorPatch": true
+    },
+    {
+      "description": "Refresh the golang image digests in the patch pull request, so they are not held back while a Go minor release waits for approval",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["golang", "docker.io/library/golang"],
+      "matchUpdateTypes": ["digest", "pinDigest"],
+      "groupSlug": "patch-go-toolchain"
+    },
+    {
+      "description": "Require approval for new Go minor releases: raising the go directive changes the language version and the GODEBUG defaults the modules run with, and golangci-lint must support the release first.",
+      "matchDatasources": ["golang-version", "docker"],
+      "matchPackageNames": ["go", "golang", "docker.io/library/golang"],
+      "matchUpdateTypes": ["major", "minor"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Let the go directives and GO_VERSION arguments wait longer than the golang images, which are published a day or two after a Go release, so a Go toolchain pull request does not pair a new go directive with the previous image and fail to build under the images' GOTOOLCHAIN=local",
+      "matchDatasources": ["golang-version"],
+      "matchPackageNames": ["go"],
+      "minimumReleaseAge": "5 days"
+    },
+    {
+      "description": "Move the golangci-lint every Go module's Makefile installs in one pull request, so the modules lint with the same release",
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["github.com/golangci/golangci-lint/v2"],
+      "groupName": "golangci-lint",
+      "groupSlug": "golangci-lint"
     }
   ],
   "schedule": ["* 7-15 * * 1-5"],

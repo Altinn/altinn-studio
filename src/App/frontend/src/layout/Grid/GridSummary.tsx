@@ -410,7 +410,18 @@ function SummaryCellWithComponentNodeCheck(props: CellWithComponentProps) {
   );
 }
 
-function SummaryCellWithComponent({
+function SummaryCellWithComponent(props: CellWithComponentProps & { baseComponentId: string }) {
+  const hidden = useIsHidden(props.baseComponentId);
+  return hidden ? <HiddenSummaryCell isHeader={props.isHeader} /> : <VisibleSummaryCellWithComponent {...props} />;
+}
+
+function HiddenSummaryCell({ isHeader }: { isHeader?: boolean }) {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  const CellComponent = isHeader ? Table.HeaderCell : Table.Cell;
+  return <CellComponent />;
+}
+
+function VisibleSummaryCellWithComponent({
   baseComponentId,
   columnStyleOptions,
   isHeader = false,
@@ -422,7 +433,6 @@ function SummaryCellWithComponent({
   const displayData = useDisplayData(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const isHidden = useIsHidden(baseComponentId);
   const columnStyles = columnStyleOptions && getColumnStyles(columnStyleOptions);
   const config = useComponentConfig(baseComponentId);
 
@@ -439,10 +449,6 @@ function SummaryCellWithComponent({
         : SummaryContains.EmptyValueNotRequired
       : SummaryContains.SomeUserContent,
   );
-
-  if (isHidden) {
-    return <CellComponent />;
-  }
 
   return (
     <CellComponent

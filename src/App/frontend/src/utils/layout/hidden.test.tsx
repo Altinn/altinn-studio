@@ -6,13 +6,16 @@ import { createStore } from 'zustand';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { useIsValidPageId } from 'src/hooks/useNavigatePage';
-import { useHiddenPages, useIsHiddenPage } from 'src/utils/layout/hidden';
+import { useHiddenPages, useIsHidden, useIsHiddenMulti, useIsHiddenPage } from 'src/utils/layout/hidden';
 import type { FormStoreApi } from 'src/features/form/FormContext';
 import type { ILayoutCollection } from 'src/layout/layout';
 
 let layouts: ILayoutCollection;
 let displayValues: Record<string, string>;
 let store: FormStoreApi;
+let pdfMode = false;
+let pdfExcludedComponents: string[] = [];
+let forcedVisible = false;
 const displayListeners = new Set<() => void>();
 const pageOrder = ['First', 'Second', 'Controls'];
 const queryCacheObserver = { subscribe: vi.fn(() => vi.fn()) };
@@ -34,6 +37,7 @@ vi.mock('src/features/form/FormContext', () => ({
   FormStore: {
     raw: { useLaxStore: () => store },
     bootstrap: {
+      useLayoutLookups: () => store.getState().bootstrap.layoutLookups,
       useLayoutCollection: () => layouts,
       useLaxLayoutCollection: () => layouts,
     },
@@ -41,9 +45,11 @@ vi.mock('src/features/form/FormContext', () => ({
 }));
 vi.mock('src/features/form/layoutSettings/processLayoutSettings', () => ({
   useRawPageOrder: () => pageOrder,
+  usePdfExclusions: () => ({ pages: [], components: pdfExcludedComponents }),
 }));
+vi.mock('src/hooks/useIsPdf', () => ({ useIsPdf: () => pdfMode }));
 vi.mock('src/features/devtools/data/DevToolsStore', () => ({
-  useDevToolsStore: () => false,
+  useDevToolsStore: () => forcedVisible,
 }));
 vi.mock('src/features/applicationSettings/ApplicationSettingsProvider', () => ({
   useApplicationSettings: () => null,
@@ -87,6 +93,9 @@ vi.mock('src/core/queries/expressionQueryReaders', () => ({
 }));
 
 beforeEach(() => {
+  pdfMode = false;
+  pdfExcludedComponents = [];
+  forcedVisible = false;
   useDisplayDataFor.mockClear();
   displayValues = { 'page-control': 'show', 'other-page-control': 'show' };
   layouts = {
@@ -126,6 +135,60 @@ beforeEach(() => {
       layoutLookups: makeLayoutLookups(processLayouts(layouts, 'model'), layouts),
     },
   })) as unknown as FormStoreApi;
+});
+
+describe('PDF component visibility', () => {
+  beforeEach(() => {
+    layouts.First.data.layout = [
+      { id: 'group', type: 'Group', children: ['input'] },
+      { id: 'input', type: 'Input', dataModelBindings: { simpleBinding: { dataType: 'model', field: 'Value' } } },
+      { id: 'other', type: 'Input', dataModelBindings: { simpleBinding: { dataType: 'model', field: 'Other' } } },
+    ];
+    store.setState({
+      bootstrap: {
+        ...store.getState().bootstrap,
+        layoutLookups: makeLayoutLookups(processLayouts(layouts, 'model'), layouts),
+      },
+    });
+  });
+
+  it.each(['input', 'group'])('hides exclusions inherited from %s only in PDF mode', (excludedId) => {
+    pdfExcludedComponents = [excludedId];
+    const { result, rerender } = renderHook(() => ({
+      single: useIsHidden('input', { includeReason: true }),
+      multiple: useIsHiddenMulti(['input', 'other']),
+    }));
+
+    expect(result.current.single).toEqual({ hidden: false, reason: undefined });
+    expect(result.current.multiple).toEqual({ input: false, other: false });
+
+    pdfMode = true;
+    rerender();
+    expect(result.current.single).toEqual({ hidden: true, reason: 'pdfExcluded' });
+    expect(result.current.multiple).toEqual({ input: true, other: false });
+
+    pdfMode = false;
+    rerender();
+    expect(result.current.single.hidden).toBe(false);
+    expect(result.current.multiple.input).toBe(false);
+  });
+
+  it('applies the same DevTools visibility rules to PDF exclusions as other hidden sources', () => {
+    pdfMode = true;
+    pdfExcludedComponents = ['group'];
+    forcedVisible = true;
+    const { result } = renderHook(() => ({
+      visible: useIsHidden('input', { includeReason: true }),
+      hidden: useIsHidden('input', { respectDevTools: false }),
+      multipleVisible: useIsHiddenMulti(['input']),
+      multipleHidden: useIsHiddenMulti(['input'], { respectDevTools: false }),
+    }));
+
+    expect(result.current.visible).toEqual({ hidden: false, reason: 'forcedByDeVTools' });
+    expect(result.current.hidden).toBe(true);
+    expect(result.current.multipleVisible.input).toBe(false);
+    expect(result.current.multipleHidden.input).toBe(true);
+  });
 });
 
 function changeDisplayValue(id: string, value: string) {

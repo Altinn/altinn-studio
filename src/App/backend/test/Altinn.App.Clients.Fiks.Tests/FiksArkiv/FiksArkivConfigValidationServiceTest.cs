@@ -68,6 +68,64 @@ public class FiksArkivConfigValidationServiceTest
         instanceClientMock.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData("archive-record-type", "Receipt.ArchiveRecord.DataType")]
+    [InlineData("confirmation-record-type", "Receipt.ConfirmationRecord.DataType")]
+    public async Task StartAsync_Throws_WhenAReceiptDataTypeDoesNotAllowXml(string dataTypeId, string setting)
+    {
+        // Arrange: v8 stored the records as application/xml whatever the data type allowed, so an upgraded app can
+        // still restrict them to other content types.
+        var payloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
+        var instanceClientMock = new Mock<IFiksArkivInstanceClient>();
+        await using var fixture = CreateFixture(ValidSettings(), payloadGeneratorMock, instanceClientMock, out _);
+        fixture
+            .AppMetadataMock.Setup(x => x.ApplicationMetadata)
+            .Returns(ReceiptDataTypes(dataTypeId, ["application/pdf"]));
+
+        // Act
+        var record = await Record.ExceptionAsync(() =>
+            fixture.FiksArkivConfigValidationService.StartAsync(CancellationToken.None)
+        );
+
+        // Assert
+        var exception = Assert.IsType<FiksArkivConfigurationException>(record);
+        Assert.Contains($"{setting} refers to the data type {dataTypeId}", exception.Message);
+        Assert.Contains("leaves out application/xml", exception.Message);
+        payloadGeneratorMock.VerifyNoOtherCalls();
+    }
+
+    public static TheoryData<List<string>?> AllowedContentTypesThatAcceptXml =>
+        new()
+        {
+            null,
+            new List<string>(),
+            new List<string> { "application/pdf", "application/xml" },
+        };
+
+    [Theory]
+    [MemberData(nameof(AllowedContentTypesThatAcceptXml))]
+    public async Task StartAsync_Accepts_ReceiptDataTypesThatAllowXml(List<string>? allowedContentTypes)
+    {
+        // Arrange
+        var payloadGeneratorMock = new Mock<IFiksArkivPayloadGenerator>();
+        var instanceClientMock = new Mock<IFiksArkivInstanceClient>();
+        await using var fixture = CreateFixture(
+            ValidSettings(),
+            payloadGeneratorMock,
+            instanceClientMock,
+            out var processTasks
+        );
+        var appMetadata = ReceiptDataTypes("archive-record-type", allowedContentTypes);
+        appMetadata.DataTypes.Single(x => x.Id == "confirmation-record-type").AllowedContentTypes = allowedContentTypes;
+        fixture.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(appMetadata);
+
+        // Act
+        await fixture.FiksArkivConfigValidationService.StartAsync(CancellationToken.None);
+
+        // Assert
+        payloadGeneratorMock.Verify(x => x.ValidateConfiguration(appMetadata.DataTypes, processTasks), Times.Once);
+    }
+
     [Fact]
     public async Task StartAsync_AcceptsAFiksArkivTask_FollowedByAnExclusiveGatewayWithTwoFlows()
     {
@@ -246,6 +304,16 @@ public class FiksArkivConfigValidationServiceTest
                 },
             },
         };
+
+    private static ApplicationMetadata ReceiptDataTypes(string restrictedDataTypeId, List<string>? allowedContentTypes)
+    {
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes = [new DataType { Id = "archive-record-type" }, new DataType { Id = "confirmation-record-type" }],
+        };
+        appMetadata.DataTypes.Single(x => x.Id == restrictedDataTypeId).AllowedContentTypes = allowedContentTypes;
+        return appMetadata;
+    }
 
     private static TestFixture CreateFixture(
         FiksArkivSettings settings,

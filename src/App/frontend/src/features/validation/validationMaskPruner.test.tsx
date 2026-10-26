@@ -16,6 +16,7 @@ import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext
 import type { ILayoutCollection } from 'src/layout/layout';
 
 const pageOrder = ['First'];
+const pdfExclusions = { components: [], pages: [] };
 const instanceData: never[] = [];
 const expressionDataSources = {};
 let store: FormStoreApi;
@@ -23,6 +24,7 @@ let store: FormStoreApi;
 vi.mock('src/features/form/layoutSettings/processLayoutSettings', () => ({
   useRawPageOrder: () => pageOrder,
   usePdfLayoutName: () => undefined,
+  usePdfExclusions: () => pdfExclusions,
 }));
 vi.mock('src/features/expressions/runtime/useExpressionDataSources', () => ({
   useExpressionDataSourcesBaseForStoreSelector: () => expressionDataSources,

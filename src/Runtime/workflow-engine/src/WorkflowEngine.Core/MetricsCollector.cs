@@ -97,7 +97,7 @@ internal sealed class MetricsCollector(
             }
             catch (Exception ex)
             {
-                Metrics.Errors.Add(1, ("operation", "metricsCollector"));
+                Metrics.Errors.Add(1, (TelemetryAttributes.Operation, "metrics_collector"));
                 logger.FailedToQueryCounts(ex.Message, ex);
             }
 
