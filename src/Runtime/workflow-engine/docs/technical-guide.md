@@ -1446,9 +1446,8 @@ decides how the step runs.
 A command returns identifiers, never personal data or secrets, and keeps the call cheap and free of I/O.
 The keys are the host's: `TelemetryAttributes` holds only the engine's own, so a host defines the keys of
 its domain itself and returns them here. `workflow-engine-app` does that for the Altinn app instance, with
-the `AppTelemetryAttributes` its `AppCommand` returns (listed in
-[its `AGENTS.md`](../../workflow-engine-app/AGENTS.md#appcommand)). `WebhookCommand` returns nothing. So
-every engine span for one domain object is one search away on the traces datasource, by a key and value
+the `AppTelemetryAttributes` its `AppCommand` returns (see [AppCommand](#appcommand)). `WebhookCommand`
+returns nothing. So every engine span for one domain object is one search away on the traces datasource, by a key and value
 its command returns: `{span.<key>="<value>"}` in TraceQL.
 
 #### Errors and exceptions
@@ -1486,19 +1485,9 @@ to give the TestApp trace links, and the one studioctl flag that clashes with th
 
 ## Dashboard
 
-Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine.Core`.
-
-- SSE streams for engine health and active workflows
-- Visual step pipeline with status colors
-- Step detail modal (command, retry strategy, trace ID, errors)
-- Operator actions on a step: _Retry_ a failed one, _Retry now_ / _Check now_ a parked one ([nudge](#nudge)),
-  or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
-  exercises the same contract external callers use
-- State evolution viewer
-- A link from each workflow to its trace, in Grafana or another trace viewer the host configures (see [Dashboard trace links](#dashboard-trace-links))
-- Paginated query interface with namespace/status/label filters
-- Mailboxes rendered under their collections, log laid out position by position
-  (`GET /dashboard/mailboxes` — payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`)
+The engine serves a dashboard at its root, embedded in `WorkflowEngine.Core`. It reads its own
+read-only endpoints under `/dashboard/`, and its operator actions call the public `/api/v1` endpoints, so the
+UI exercises the same contract external callers use. [Dashboard](dashboard.md) specifies it.
 
 ## API Reference
 
@@ -2036,7 +2025,10 @@ Response includes worker counts, connection pool utilization, and queue depths.
 
 ## Configuration
 
-All via `EngineSettings` (bound from `appsettings.json`):
+All via `EngineSettings` (bound from `appsettings.json`). The engine reads its settings once at startup, with
+`IOptions<T>` rather than `IOptionsMonitor<T>`, since the settings worth tuning, such as semaphore, pool and buffer
+sizes, cannot change while the process runs. Tune a deployment through environment variables in its overlay, such
+as `EngineSettings__Concurrency__MaxWorkers`, and restart it.
 
 ### Processing
 
@@ -2285,12 +2277,18 @@ The `workflow-engine-app` project is the Altinn-specific host. It adds `AppComma
 - **Type string**: `"app"`
 - **Data**: `AppCommandData` — `{ commandKey, payload? }`
 - **Context**: `AppWorkflowContext` — `{ actor, callbackToken, org, app, instanceOwnerPartyId, instanceGuid }`
-- **Execution**: HTTP POST to a templated URL expanded from the workflow context
+- **Execution**: HTTP POST to a templated URL expanded from the workflow context. The callback carries
+  `executionReferenceTime`, the workflow's `startAt` or else the step's creation time.
+- **Validation**: the engine validates every context field at enqueue, so an invalid request never enters
+  the queue.
+- **Mailbox**: on a receive workflow's first step, the callback carries the `mailbox` block described in
+  [What the app is handed](#what-the-app-is-handed). It is `null` on every other callback.
 - **Telemetry**: names the app instance on the step's span and the workflow's entry span through
-  [`GetTelemetryAttributes`](#domain-attributes-on-spans), never the instance owner's party ID or the
-  actor, and its `AppCommand.Execute` client span carries the command key. All of these keys are this
-  host's own, in `AppTelemetryAttributes` (listed in
-  [its `AGENTS.md`](../../workflow-engine-app/AGENTS.md#appcommand))
+  [`GetTelemetryAttributes`](#domain-attributes-on-spans), so `{span.altinn.instance.guid="<guid>"}` in
+  TraceQL finds the engine's work on an instance. Its `AppCommand.Execute` client span carries the command
+  key. All of these keys are this host's own, in `AppTelemetryAttributes`. The
+  [App host's README](../../workflow-engine-app/README.md#telemetry) says why the instance owner's party ID and the
+  actor stay off telemetry.
 
 ### Error Classification
 
@@ -2310,7 +2308,6 @@ AppCommand reads `{ "state": "..." }` from the response body and returns it on t
 ```json
 {
     "AppCommandSettings": {
-        "ApiKey": "your-api-key",
         "CommandEndpoint": "http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks"
     }
 }
