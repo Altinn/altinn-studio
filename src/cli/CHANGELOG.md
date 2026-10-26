@@ -15,6 +15,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl app upgrade v9` replaces `taskId` with `taskIds` on the data types in `applicationmetadata.json`, so each data type stays bound to its task in v9. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
 - `studioctl app upgrade v9` removes code in `ProcessDataRead` that unlocks, writes and locks the form being read, which v9 refuses while it creates the payment receipt. Changes the method makes to the form are still shown, but no longer saved. ([#21480](https://github.com/Altinn/altinn-studio/pull/21480))
 - `studioctl app upgrade v9` moves classes that implement the removed `IProcessEnd`, `IProcessTaskStart`, `IProcessTaskEnd` and `IProcessTaskAbandon` to the v9 handlers, such as `IOnProcessEndedHandler`, with their registrations, and moves their `IDataClient` and `IInstanceClient` calls to the instance data mutator. It lists what it could not move, such as writes to other instances or another task's data, and calls inside NuGet packages. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- `studioctl app upgrade v9` replaces an `IProcessTaskStart` class that only unlocks an earlier task's form when a later data task starts with that task in the form's `taskIds`, unless the form creates a PDF; for other tasks, such as signing, it explains the choice. It replaces an `IProcessEnd` class that only deletes app-owned data with `autoDeleteOnProcessEnd` on that data type. ([#21531](https://github.com/Altinn/altinn-studio/pull/21531))
 
 ### Changed
 
