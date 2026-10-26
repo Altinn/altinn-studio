@@ -70,8 +70,11 @@ The dashboard is served by the engine host itself, at the root — <http://local
 ## Monitoring
 
 The stack has no monitoring of its own. The engine exports its telemetry over OTLP to a collector on
-the host, and any collector listening on port 4317 receives it. An engine on the host exports to the
-SDK's default, `http://localhost:4317`. `workflow-engine-testapp` exports to
+the host, and any collector listening on port 4317 receives it. The engine exports only when
+`OTEL_EXPORTER_OTLP_ENDPOINT` is set, and sends nothing without it. An engine on the host exports to the
+variable from the shell that starts it; the launch profiles do not set it, and `make playground-host`
+uses `http://localhost:4317` when the shell has none.
+`workflow-engine-testapp` exports to
 `OTEL_EXPORTER_OTLP_ENDPOINT` from the shell that starts the stack, `http://host.docker.internal:4317`
 when that is unset. When nothing listens there, the exporter fails quietly and the engine runs on.
 Docker Engine on Linux does not route `host.docker.internal` to the host's loopback, where a collector
