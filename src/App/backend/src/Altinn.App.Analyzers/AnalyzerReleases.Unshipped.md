@@ -43,3 +43,4 @@ ALTINNAPP1019 | Process | Warning | Exclusive gateway references an unknown data
 ALTINNAPP1020 | Process | Error | Task configuration is missing a required setting or has an invalid value
 ALTINNAPP1021 | Process | Warning | Task configuration contains an element the app ignores
 ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the app cannot use
+ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition

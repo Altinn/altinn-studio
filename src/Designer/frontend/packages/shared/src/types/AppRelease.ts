@@ -8,6 +8,7 @@ export interface AppRelease {
   app: string;
   org: string;
   targetCommitish: string;
+  branch?: string;
   buildInputs?: AppReleaseBuildInputs;
   createdBy: string;
   created: string;

@@ -410,14 +410,14 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
+        Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, (TelemetryAttributes.Endpoint, "enqueue"));
 
         var ns = NormalizeNamespace(@namespace);
         var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext, ns);
 
-        Activity.Current?.SetTag("workflow.collection.key", inbound.CollectionKey);
-        Activity.Current?.SetTag("workflow.idempotency.key", inbound.IdempotencyKey);
-        Activity.Current?.SetTag("workflow.namespace", inbound.Namespace);
+        Activity.Current?.SetTag(TelemetryAttributes.CollectionKey, inbound.CollectionKey);
+        Activity.Current?.SetTag(TelemetryAttributes.WorkflowIdempotencyKey, inbound.IdempotencyKey);
+        Activity.Current?.SetTag(TelemetryAttributes.Namespace, inbound.Namespace);
 
         var metadata = new WorkflowRequestMetadata(
             inbound.Namespace,
@@ -431,8 +431,8 @@ internal static class EngineRequestHandlers
         if (response is WorkflowEnqueueResponse.Accepted accepted)
         {
             Activity.Current?.SetTag(
-                "workflow.database.ids",
-                string.Join(", ", accepted.Workflows.Select(w => w.DatabaseId))
+                TelemetryAttributes.WorkflowIds,
+                accepted.Workflows.Select(w => w.DatabaseId.ToString()).ToArray()
             );
         }
 
@@ -472,7 +472,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "list"));
 
         if (!TryParseStatuses(statuses, out var effectiveStatuses, out var invalidStatus))
             return TypedResults.Problem(
@@ -533,7 +533,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get"));
 
         var ns = NormalizeNamespace(@namespace);
         var workflow = await repository.GetWorkflow(workflowId, ns, cancellationToken);
@@ -551,7 +551,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "dependency-graph"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "dependency_graph"));
 
         var ns = NormalizeNamespace(@namespace);
         var dependencyGraph = await repository.GetWorkflowDependencyGraph(
@@ -582,7 +582,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "cancel"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.CancelWorkflow(workflowId, ns, cancellationToken);
@@ -619,7 +619,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "resume"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.ResumeWorkflow(workflowId, ns, cascade ?? false, cancellationToken);
@@ -652,7 +652,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "abandon"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "abandon"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.AbandonWorkflow(workflowId, ns, cancellationToken);
@@ -688,7 +688,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "nudge"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "nudge"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.NudgeWorkflow(workflowId, ns, cancellationToken);
@@ -731,7 +731,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "fail"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "fail"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.FailWorkflow(workflowId, ns, request?.Reason ?? DefaultFailReason, cancellationToken);
@@ -910,7 +910,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "list_collections"));
 
         var pagination = settings.Value.Pagination;
 
@@ -1000,7 +1000,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-collection"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get_collection"));
 
         ns = NormalizeNamespace(ns);
 
@@ -1017,7 +1017,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-throttles"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "list_throttles"));
 
         var throttles = await repository.GetNamespaceThrottles(cancellationToken);
         if (throttles.Count == 0)
@@ -1038,7 +1038,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-throttle"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get_throttle"));
 
         var ns = NormalizeNamespace(@namespace);
         var throttle = (await repository.GetNamespaceThrottles(cancellationToken)).FirstOrDefault(t =>
@@ -1057,7 +1057,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-trip"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "throttle_force_trip"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await throttleOperator.ForceTrip(ns, cancellationToken);
@@ -1081,7 +1081,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "mint-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "mint_mailbox"));
 
         ns = NormalizeNamespace(ns);
 
@@ -1114,7 +1114,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get_mailbox"));
 
         ns = NormalizeNamespace(ns);
 
@@ -1130,7 +1130,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "close-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "close_mailbox"));
 
         ns = NormalizeNamespace(ns);
 
@@ -1153,7 +1153,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-clear"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "throttle_force_clear"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await throttleOperator.ForceClear(ns, cancellationToken);
@@ -1184,7 +1184,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "deliver-to-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "deliver_to_mailbox"));
 
         ns = NormalizeNamespace(ns);
 

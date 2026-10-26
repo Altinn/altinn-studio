@@ -4,7 +4,6 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { LangAsParagraph } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useFollowProcess } from 'src/features/process/useFollowProcess';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
 export function Feedback() {
@@ -12,10 +11,7 @@ export function Feedback() {
   const appOwner = useAppOwner();
   const { langAsString } = useLanguage();
 
-  // Continually re-fetch process data while the user is on the feedback page, and navigate
-  // forward when the process moves on.
-  useFollowProcess();
-
+  // ProcessWrapper uses useFollowProcess to watch the process and redirect when it advances.
   return (
     <div id='FeedbackContainer'>
       <title>{`${getPageTitle(appName, langAsString('feedback.title'), appOwner)}`}</title>

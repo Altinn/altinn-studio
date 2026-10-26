@@ -64,7 +64,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
     private const string BetaStage = "SendBeta";
     private const string RecordStage = "RecordOutcome";
 
-    private const string MainOperationIdPrefix = "Process next:";
+    private const string PrimaryOperationIdPrefix = "Process next:";
     private const string MailboxReceiveOperationIdPrefix = "Mailbox receive:";
     private const string MailboxContinueOperationIdPrefix = "Mailbox continue:";
 
@@ -133,7 +133,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
         // ================= Exchange A: the transition only opens the first mailbox =================
 
-        EngineWorkflow sequentialMain = await WaitForCompletedMainWorkflow(
+        EngineWorkflow sequentialPrimary = await WaitForCompletedPrimaryWorkflow(
             engineClient,
             ns,
             collectionKey,
@@ -144,13 +144,13 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         // after a reply handler is *not* in the transition. If SendToJournal's mint appeared here, the
         // second exchange's deadline would start burning during the first exchange - which is the shape
         // Task_Upfront asks for on purpose and this one must not have.
-        Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(sequentialMain));
+        Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(sequentialPrimary));
 
-        // Main ends with the segment's last stage, whose completion enqueues the first receiver from inside
-        // the still-unsettled step, so the frontier is never empty while the exchange is open. Read off the
-        // full step list, not the pipeline subset: a transition step appended after the hand-over would
-        // break this and be invisible to the assertion above.
-        Assert.Equal("ExecuteServiceTask: 0", OperationIds(sequentialMain)[^1]);
+        // The primary workflow ends with the segment's last stage, whose completion enqueues the first receiver from
+        // inside the still-unsettled step, so the frontier is never empty while the exchange is open. Read off the full
+        // step list, not the pipeline subset: a transition step appended after the hand-over would break this and be
+        // invisible to the assertion above.
+        Assert.Equal("ExecuteServiceTask: 0", OperationIds(sequentialPrimary)[^1]);
 
         MultiExchangeState afterSend = await WaitForState(fixture, state => state.Mailboxes.ContainsKey(ArchiveStage));
         Guid archiveId = afterSend.Mailboxes[ArchiveStage].Id;
@@ -380,14 +380,19 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
 
         // ================= Task_Upfront: both sends on the transition =================
 
-        EngineWorkflow upfrontMain = await WaitForCompletedMainWorkflow(engineClient, ns, collectionKey, UpfrontTaskId);
+        EngineWorkflow upfrontPrimary = await WaitForCompletedPrimaryWorkflow(
+            engineClient,
+            ns,
+            collectionKey,
+            UpfrontTaskId
+        );
 
         // The other side of decision 3, and the split rule that carries it: a mailbox-opening stage always
         // ends its workflow, so the transition carries the *first* send only and the second rides a
         // continuation of its own. Both are still composed before either handler, which is what makes the
         // sequential task's claim above falsifiable rather than a restatement of whatever the code does.
-        Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(upfrontMain));
-        Assert.Equal("ExecuteServiceTask: 0", OperationIds(upfrontMain)[^1]);
+        Assert.Equal(new List<string> { "MintMailbox: 0", "ExecuteServiceTask: 0" }, PipelineSteps(upfrontPrimary));
+        Assert.Equal("ExecuteServiceTask: 0", OperationIds(upfrontPrimary)[^1]);
 
         MultiExchangeState afterUpfrontSends = await WaitForState(
             fixture,
@@ -406,7 +411,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             $"{MailboxContinueOperationIdPrefix} {UpfrontTaskId} · after 0"
         );
         Assert.Equal(new List<string> { "MintMailbox: 1", "ExecuteServiceTask: 1" }, OperationIds(upfrontSecondSend));
-        Assert.Equal(upfrontMain.Steps[^1].DatabaseId.ToString(), upfrontSecondSend.IdempotencyKey);
+        Assert.Equal(upfrontPrimary.Steps[^1].DatabaseId.ToString(), upfrontSecondSend.IdempotencyKey);
 
         // ---- Each exchange gets its declared budget, measured from its own mint ----
         // Which hop minted which mailbox is pinned by the step id the engine keyed the mailbox on, not by
@@ -420,7 +425,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         Assert.Equal(_declaredTimeout, alphaMailbox.Timeout);
         Assert.Equal(_declaredTimeout, betaMailbox.Timeout);
         Assert.Equal(
-            upfrontMain.Steps.Single(step => step.OperationId == "MintMailbox: 0").DatabaseId.ToString(),
+            upfrontPrimary.Steps.Single(step => step.OperationId == "MintMailbox: 0").DatabaseId.ToString(),
             alphaMailbox.IdempotencyKey
         );
         Assert.Equal(
@@ -656,8 +661,8 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         workflow.Steps.OrderBy(step => step.ProcessingOrder).Select(step => step.OperationId).ToList();
 
     /// <summary>
-    /// The pipeline's own steps within a workflow, in order. A Main workflow also carries the transition's
-    /// steps (task end/start hooks, the state commit, the side-effects enqueue), which have nothing to do
+    /// The pipeline's own steps within a workflow, in order. The primary workflow also carries the transition's
+    /// steps (task end/start hooks, the state commit, the auxiliary enqueue), which have nothing to do
     /// with the pipeline's expansion and would make an exact-list assertion a restatement of the whole
     /// transition. A continuation carries nothing else, so its full step list is asserted directly.
     /// </summary>
@@ -743,7 +748,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         return state;
     }
 
-    private static async Task<EngineWorkflow> WaitForCompletedMainWorkflow(
+    private static async Task<EngineWorkflow> WaitForCompletedPrimaryWorkflow(
         HttpClient engineClient,
         string ns,
         string collectionKey,
@@ -757,7 +762,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
             List<EngineWorkflow> workflows = await ListWorkflows(engineClient, ns, collectionKey);
             List<EngineWorkflow> candidates = workflows
                 .Where(w =>
-                    w.OperationId.StartsWith(MainOperationIdPrefix, StringComparison.Ordinal)
+                    w.OperationId.StartsWith(PrimaryOperationIdPrefix, StringComparison.Ordinal)
                     && w.OperationId.EndsWith($"-> {targetTask}", StringComparison.Ordinal)
                 )
                 .ToList();
@@ -769,7 +774,7 @@ public class WorkflowEngineMailboxMultiExchangeTests(ITestOutputHelper output, A
         }
 
         Assert.Fail(
-            $"No completed '{MainOperationIdPrefix} ... -> {targetTask}' workflow within "
+            $"No completed '{PrimaryOperationIdPrefix} ... -> {targetTask}' workflow within "
                 + $"{_exchangeTimeout.TotalSeconds:0}s. Saw: [{seen}]"
         );
         throw new UnreachableException();

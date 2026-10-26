@@ -91,13 +91,13 @@ If the task after the current one is a service task (PDF, signing, payment), the
 
 The entire chain runs synchronously inside one HTTP request/response cycle.
 
-| Failure point                                | What happens                                                  |
-| -------------------------------------------- | ------------------------------------------------------------- |
-| Service task crashes (PDF, signing, payment) | In-memory changes lost. Instance stays at previous state.     |
-| Storage API call times out                   | State unknown. May or may not have persisted. No idempotency. |
+| Failure point                                | What happens                                                                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Service task crashes (PDF, signing, payment) | In-memory changes lost. Instance stays at previous state.                                                                |
+| Storage API call times out                   | State unknown. May or may not have persisted. No idempotency.                                                            |
 | Workflow fails or pod is killed mid-process  | Instance remains durably `processing` and fenced; stuck or terminal work requires `POST process/resume` or ops recovery. |
-| Timeout during auto-loop iteration N         | Iterations 1..N-1 persisted. Iteration N partially executed.  |
-| Network failure to Platform Storage          | Client gets 5xx. No retry. Manual intervention required.      |
+| Timeout during auto-loop iteration N         | Iterations 1..N-1 persisted. Iteration N partially executed.                                                             |
+| Network failure to Platform Storage          | Client gets 5xx. No retry. Manual intervention required.                                                                 |
 
 Durable processing status keeps incomplete work fenced and visible. Stuck or terminal work has no expiry or automatic unlock and requires explicit `POST process/resume` or operations recovery.
 
@@ -133,14 +133,14 @@ The app enqueues and returns immediately. The engine handles execution, retries,
 
 # How it handles the same failures
 
-| Failure point             | Current behaviour               | Workflow Engine behaviour                               |
-| ------------------------- | ------------------------------- | ------------------------------------------------------- |
-| Service task crashes      | Lost. Manual recovery.          | Requeued with backoff. Retried automatically.           |
-| Storage/network timeout   | Unknown state. No retry.        | Step marked retryable. Engine retries.                  |
-| Pod killed mid-processing | Instance remains `processing`; explicit resume or ops recovery is required. | Heartbeat expires. Another worker reclaims. |
-| Retries exhausted         | N/A (no retries exist)          | Workflow marked Failed with error detail. Queryable.    |
-| Downstream 5xx            | Request fails. User sees error. | Retried with exponential backoff up to deadline.        |
-| Downstream 4xx            | Request fails. User sees error. | Marked as critical error. No retry. Clear in dashboard. |
+| Failure point             | Current behaviour                                                           | Workflow Engine behaviour                               |
+| ------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Service task crashes      | Lost. Manual recovery.                                                      | Requeued with backoff. Retried automatically.           |
+| Storage/network timeout   | Unknown state. No retry.                                                    | Step marked retryable. Engine retries.                  |
+| Pod killed mid-processing | Instance remains `processing`; explicit resume or ops recovery is required. | Heartbeat expires. Another worker reclaims.             |
+| Retries exhausted         | N/A (no retries exist)                                                      | Workflow marked Failed with error detail. Queryable.    |
+| Downstream 5xx            | Request fails. User sees error.                                             | Retried with exponential backoff up to deadline.        |
+| Downstream 4xx            | Request fails. User sees error.                                             | Marked as critical error. No retry. Clear in dashboard. |
 
 Every failure path ends in either **successful retry** or **explicit, visible failure**.
 
@@ -148,14 +148,14 @@ Every failure path ends in either **successful retry** or **explicit, visible fa
 
 # Tech stack
 
-| Component        | Technology                                                   |
-| ---------------- | ------------------------------------------------------------ |
-| Runtime          | .NET 10, C# 14                                               |
-| Database         | PostgreSQL (EF Core + raw SQL for hot paths)                 |
-| Telemetry        | OpenTelemetry &rarr; OTLP &rarr; Grafana (Tempo, Prometheus) |
-| Testing          | xUnit v3, Testcontainers (PostgreSQL), WireMock, Verify.Net  |
-| Dashboard        | Vanilla JS ES modules (no build step), embedded in Core      |
-| Containerization | Docker, multi-stage build                                    |
+| Component        | Technology                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| Runtime          | .NET 10, C# 14                                                                           |
+| Database         | PostgreSQL (EF Core + raw SQL for hot paths)                                             |
+| Telemetry        | OpenTelemetry &rarr; OTLP &rarr; Grafana (VictoriaMetrics, VictoriaTraces, VictoriaLogs) |
+| Testing          | xUnit v3, Testcontainers (PostgreSQL), WireMock, Verify.Net                              |
+| Dashboard        | Vanilla JS ES modules (no build step), embedded in Core                                  |
+| Containerization | Docker, multi-stage build                                                                |
 
 ---
 
@@ -225,7 +225,7 @@ Retries are per-step with configurable backoff (exponential, linear, constant), 
 
 - Real-time SSE streams: engine health, active workflows, step pipelines
 - Query interface with namespace/status/label filters
-- Click-through to Grafana Tempo traces
+- Click-through to each workflow's trace in Grafana
 
 ---
 

@@ -670,10 +670,10 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
-    public async Task MissingFlagOnFormData_GetsPdfServiceTask()
+    public async Task MissingFlagOnFormData_GetsNoPdfServiceTask()
     {
-        // enablePdfCreation defaults to true in v8, so a form data type without the flag generated a
-        // PDF at the end of its task and needs a PDF service task to keep doing so.
+        // v8 counted a missing flag as true, but the upgrade does not: on a re-run it cannot tell a missing
+        // flag from a false that the first run removed.
         var metadata = Metadata(
             """
                 {
@@ -690,12 +690,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
             "config/process/process.bpmn",
             Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
         );
+        var processBefore = _app.Read("config/process/process.bpmn");
 
         var result = await MigrateResult();
 
-        var process = ProcessAfter();
-        Assert.NotNull(ElementById(process, "PdfTask_Task_1"));
-        Assert.Equal("PdfTask_Task_1", ElementById(process, "Flow_end")?.Attribute("targetRef")?.Value);
+        Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
         Assert.Empty(result.Warnings);
         Assert.Empty(result.Todos);
         Assert.Equal(metadata, _app.Read("config/applicationmetadata.json"));
@@ -727,10 +726,34 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
     }
 
     [Fact]
+    public async Task SecondRun_AfterExplicitFalseWasStripped_AddsNoPdfTask()
+    {
+        // The first run removes the false, so the second sees no flag at all, and must still add nothing.
+        _app.Write(
+            "config/applicationmetadata.json",
+            Metadata(FormDataType("model", "Task_1", enablePdfCreation: false))
+        );
+        _app.Write(
+            "config/process/process.bpmn",
+            Process(Task("Task_1", "data"), Flow("Flow_end", "Task_1", "EndEvent_1"), EndEvent("EndEvent_1"))
+        );
+        var processBefore = _app.Read("config/process/process.bpmn");
+
+        await MigrateResult();
+        var metadataAfterFirst = _app.Read("config/applicationmetadata.json");
+        var result = await MigrateResult();
+
+        Assert.Equal(processBefore, _app.Read("config/process/process.bpmn"));
+        Assert.Equal(metadataAfterFirst, _app.Read("config/applicationmetadata.json"));
+        Assert.Empty(result.Warnings);
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
     public async Task MissingFlagOnAttachmentOrTaskLessData_GetsNoPdfTaskAndNoWarning()
     {
-        // The implicit default never generated a PDF without a classRef or a taskId either, and it is on
-        // every such data type, so unlike an explicit flag it is not worth a warning.
+        // As on a form data type, a missing flag means no PDF here, so unlike an explicit flag it is not
+        // worth a warning.
         _app.Write(
             "config/applicationmetadata.json",
             Metadata(

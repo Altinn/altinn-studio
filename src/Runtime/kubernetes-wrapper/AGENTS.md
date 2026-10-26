@@ -17,7 +17,7 @@ make clean       # tear down the kind cluster
 ```
 
 `make test-e2e` runs `clean` at the end (`kind delete cluster`), so nothing is left running. To keep a
-port-forward on `8080` for manual API calls, run `make build run-test` *without* `clean` (the
+port-forward on `8080` for manual API calls, run `make build run-test` _without_ `clean` (the
 `run-test` step opens the forward via `integrationtests/curl-test.sh`).
 
 ## Working here

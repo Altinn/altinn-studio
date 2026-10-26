@@ -189,7 +189,10 @@ public class MetricsCollectorTests
         {
             InstrumentPublished = (instrument, l) =>
             {
-                if (instrument.Meter.Name == Metrics.Meter.Name && instrument.Name == "engine.health.status")
+                if (
+                    instrument.Meter.Name == Metrics.Meter.Name
+                    && instrument.Name == "altinn.workflow_engine.health.status"
+                )
                     l.EnableMeasurementEvents(instrument);
             },
         };
@@ -208,7 +211,10 @@ public class MetricsCollectorTests
         {
             InstrumentPublished = (instrument, l) =>
             {
-                if (instrument.Meter.Name == Metrics.Meter.Name && instrument.Name == "engine.mailboxes.open.overdue")
+                if (
+                    instrument.Meter.Name == Metrics.Meter.Name
+                    && instrument.Name == "altinn.workflow_engine.mailbox.open.overdue"
+                )
                     l.EnableMeasurementEvents(instrument);
             },
         };
@@ -270,7 +276,7 @@ public class MetricsCollectorTests
                 ["close"] = 1,
                 ["delivery"] = 3,
             },
-            meters.ByTag("engine.mailbox_buffer.depth", "operation")
+            meters.ByTag("altinn.workflow_engine.mailbox_buffer.depth", "altinn.workflow_engine.mailbox.operation")
         );
     }
 }

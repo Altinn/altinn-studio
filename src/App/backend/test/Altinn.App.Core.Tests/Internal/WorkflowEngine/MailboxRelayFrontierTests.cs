@@ -237,8 +237,8 @@ public class MailboxRelayFrontierTests
     }
 
     /// <summary>
-    /// Both sends up front, so the first send's own step ends Main and the second rides a continuation — the
-    /// hop where a workflow hands over to the next segment with no exchange in between.
+    /// Both sends up front, so the first send's own step ends the primary workflow and the second rides a continuation
+    /// — the hop where a workflow hands over to the next segment with no exchange in between.
     /// </summary>
     private sealed class UpFrontSendsTask : IPipelineServiceTask
     {
@@ -386,15 +386,15 @@ public class MailboxRelayFrontierTests
         WorkflowEngineService reader = CreateReader(collection);
         Instance instance = CreateInstance();
 
-        Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
+        Guid primary = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Held);
-        collection.Settle(main);
+        collection.Settle(primary);
         await AssertFrontierHeldOpenBy(
             reader,
             collection,
             instance,
             receiver,
-            "Main settled after enqueueing receiver 1"
+            "primary workflow settled after enqueueing receiver 1"
         );
 
         for (long hop = 0; hop < 3; hop++)
@@ -449,7 +449,7 @@ public class MailboxRelayFrontierTests
         MailboxRelay relay = CreateRelay(collection, new ArchiveThenJournalTask());
         WorkflowEngineService reader = CreateReader(collection);
 
-        Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Completed);
+        Guid primary = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Completed);
         Guid receiver = collection.Seed("Mailbox receive: Task_1 -> Task_2", PersistentItemStatus.Processing);
 
         int headsBefore = collection.EnqueuedByTheRelay.Count;
@@ -477,20 +477,20 @@ public class MailboxRelayFrontierTests
             "the concluding receiver settled"
         );
 
-        collection.Purge(main, receiver);
+        collection.Purge(primary, receiver);
         await AssertFrontierHeldOpenBy(
             reader,
             collection,
             CreateInstance(),
             continuation,
-            "retention purged Main and receiver 1"
+            "retention purged the primary workflow and receiver 1"
         );
     }
 
     /// <summary>
     /// The invariant on the hop that has no exchange to lean on: a mailbox-opening stage ends its workflow, so
     /// the segment carrying what follows it is enqueued from inside that stage's still-unsettled step. Get the
-    /// order wrong and Main settles with no head at all while a mailbox it just opened is waiting for a
+    /// order wrong and the primary workflow settles with no head at all while a mailbox it just opened is waiting for a
     /// receiver nothing will enqueue.
     /// </summary>
     [Fact]
@@ -500,7 +500,7 @@ public class MailboxRelayFrontierTests
         MailboxRelay relay = CreateRelay(collection, new UpFrontSendsTask());
         WorkflowEngineService reader = CreateReader(collection);
 
-        Guid main = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
+        Guid primary = collection.Seed("Process next: Task_1 -> Task_2", PersistentItemStatus.Processing);
 
         int headsBefore = collection.EnqueuedByTheRelay.Count;
         await relay.Continue(
@@ -508,14 +508,14 @@ public class MailboxRelayFrontierTests
                 ServiceTaskType,
                 Handover(new UpFrontSendsTask().ResolvePipeline(), OpeningStageIndex)
             ),
-            CreateRequest(main, Guid.NewGuid()),
+            CreateRequest(primary, Guid.NewGuid()),
             CancellationToken.None
         );
         Assert.Equal(headsBefore + 1, collection.EnqueuedByTheRelay.Count);
         Guid continuation = collection.EnqueuedByTheRelay[^1];
 
         // Only now does the engine settle the step that ran the send.
-        collection.Settle(main);
+        collection.Settle(primary);
         await AssertFrontierHeldOpenBy(
             reader,
             collection,
@@ -524,8 +524,14 @@ public class MailboxRelayFrontierTests
             "the sending step's workflow settled"
         );
 
-        collection.Purge(main);
-        await AssertFrontierHeldOpenBy(reader, collection, CreateInstance(), continuation, "retention purged Main");
+        collection.Purge(primary);
+        await AssertFrontierHeldOpenBy(
+            reader,
+            collection,
+            CreateInstance(),
+            continuation,
+            "retention purged the primary workflow"
+        );
     }
 
     private static async Task AssertFrontierHeldOpenBy(

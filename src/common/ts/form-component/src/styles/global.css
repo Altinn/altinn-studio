@@ -53,6 +53,9 @@
 
   --button-margin-top: 2rem;
   --button-gap: 0.75rem;
+
+  /* Limits the line length of running text to improve readability */
+  --running-text-max-width: 70ch;
 }
 
 :root[data-font='inter'] {

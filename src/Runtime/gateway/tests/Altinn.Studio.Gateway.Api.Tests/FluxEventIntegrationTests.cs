@@ -12,7 +12,6 @@ namespace Altinn.Studio.Gateway.Api.Tests;
 [Trait("Category", "Kubernetes")]
 public sealed class FluxEventIntegrationTests : IAsyncLifetime
 {
-    private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
     private static readonly TimeSpan FluxEventTimeout = TimeSpan.FromMinutes(2);
     private static readonly TimeSpan FluxEventPollInterval = TimeSpan.FromSeconds(1);
@@ -22,9 +21,7 @@ public sealed class FluxEventIntegrationTests : IAsyncLifetime
 
     public FluxEventIntegrationTests()
     {
-        // Custom types are registered with the k8s JSON serializer by KubernetesJsonTestMetadata.
-        var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(currentContext: KindContextName);
-        _client = new Kubernetes(config);
+        _client = KindKubernetesClient.Create();
     }
 
     public ValueTask InitializeAsync() => ValueTask.CompletedTask;

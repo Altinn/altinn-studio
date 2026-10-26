@@ -13,14 +13,17 @@ namespace Altinn.App.Analyzers.Process;
 /// <c>sourceRef</c> is the node, and skips one whose <c>targetRef</c> names no node, which fails only when no flow
 /// out of the node names one. From an exclusive gateway it takes every flow whose id the gateway lists in
 /// <c>&lt;bpmn:outgoing&gt;</c>, whatever the flow's own <c>sourceRef</c>, and ignores listed ids that name no
-/// flow; when one of those flows has a condition, it evaluates every one of them, treating a flow without a
-/// condition as true and failing on an empty one. A flow it cannot follow fails only when an instance tries to leave
-/// the node, so these rules move that failure to the build.
+/// flow; when one of those flows has a condition, it evaluates every one of them but the gateway's default,
+/// treating a flow without a condition as true and failing on an empty one, and takes the default only when none of
+/// them holds. A flow it cannot follow fails only when an instance tries to leave the node, so these rules move that
+/// failure to the build.
 /// </para>
 /// <para>
-/// An instance stands only on a start event or on a node it reaches from one over those flows, so the rules check
-/// only the reachable nodes and the flows out of them. A node nothing reaches never fails, such as a task placed in
-/// Studio's process editor and not yet connected.
+/// The app's startup check rejects a condition on a gateway's default (ALTINNAPP1023), and a flow other than the
+/// default without a condition beside flows that have one (ALTINNAPP1010), on every gateway, so these two rules check
+/// unreachable gateways too. The other rules check only the reachable nodes and the flows out of them: an instance
+/// stands only on a start event or a node it reaches from one, so a node nothing reaches never fails to navigate,
+/// such as a task placed in Studio's process editor and not yet connected.
 /// </para>
 /// <para>
 /// Two rules go beyond what fails at runtime, deliberately. A flow that starts at a gateway but is not listed in its
@@ -81,8 +84,17 @@ internal static class ProcessFlowUtils
         foreach (var node in graph.Nodes)
         {
             token.ThrowIfCancellationRequested();
+            if (Id(node) is not { } nodeId)
+            {
+                continue;
+            }
+            // Startup checks the conditions of every gateway, even one no instance can reach.
+            if (node.Name == ProcessFile.ExclusiveGateway)
+            {
+                CheckGatewayConditions(node, nodeId);
+            }
             // The process ends at an end event, so the runtime never follows a flow out of one.
-            if (node.Name == ProcessFile.EndEvent || Id(node) is not { } nodeId || !reachable.Contains(nodeId))
+            if (node.Name == ProcessFile.EndEvent || !reachable.Contains(nodeId))
             {
                 continue;
             }
@@ -167,6 +179,50 @@ internal static class ProcessFlowUtils
             }
         }
 
+        // The rules the startup check also enforces.
+        void CheckGatewayConditions(XElement gateway, string gatewayId)
+        {
+            var taken = graph.ListedFlows(gateway);
+            var defaultFlow = gateway.Attribute("default")?.Value is { Length: > 0 } defaultId
+                ? taken.Find(flow => Id(flow) == defaultId)
+                : null;
+            if (defaultFlow?.Element(ProcessFile.ConditionExpression) is not null)
+            {
+                diagnostics.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.GatewayDefaultHasCondition,
+                        LocationOf(gateway),
+                        gatewayId,
+                        Id(defaultFlow)
+                    )
+                );
+            }
+
+            // One condition switches the gateway to ExpressionsExclusiveGateway, which evaluates every flow but the
+            // default and counts a flow without a condition as a match, and ProcessNavigator fails when more than one
+            // flow matches. An empty <bpmn:conditionExpression> still counts as a condition here, as the runtime
+            // reads it as "".
+            var evaluated = taken.Where(f => f != defaultFlow).ToList();
+            var unconditioned = evaluated.Where(f => f.Element(ProcessFile.ConditionExpression) is null).ToList();
+            if (unconditioned.Count > 0 && unconditioned.Count < evaluated.Count)
+            {
+                diagnostics.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.GatewayMixesConditions,
+                        LocationOf(gateway),
+                        gatewayId,
+                        string.Join(", ", unconditioned.Select(FlowReference)),
+                        unconditioned.Count == 1
+                            ? "so leaving the gateway fails whenever a condition holds"
+                            : "so those flows always match together and leaving the gateway always fails",
+                        unconditioned.Count > 1 ? "Give each of them a condition"
+                            : defaultFlow is null ? "Give it a condition, or make it the gateway's default"
+                            : "Give it a condition"
+                    )
+                );
+            }
+        }
+
         // Returns the flows the gateway takes.
         List<XElement> CheckGateway(XElement gateway, string gatewayId, List<XElement> leaving)
         {
@@ -201,19 +257,21 @@ internal static class ProcessFlowUtils
             }
 
             // The runtime looks the default up among the flows it takes, and ignores it when it is not there.
-            if (
-                gateway.Attribute("default")?.Value is { Length: > 0 } defaultFlow
-                && !taken.Exists(f => Id(f) == defaultFlow)
-            )
+            XElement? defaultFlow = null;
+            if (gateway.Attribute("default")?.Value is { Length: > 0 } defaultId)
             {
-                diagnostics.Add(
-                    Diagnostic.Create(
-                        Diagnostics.Process.GatewayDefaultNotOutgoing,
-                        LocationOf(gateway),
-                        gatewayId,
-                        defaultFlow
-                    )
-                );
+                defaultFlow = taken.Find(f => Id(f) == defaultId);
+                if (defaultFlow is null)
+                {
+                    diagnostics.Add(
+                        Diagnostic.Create(
+                            Diagnostics.Process.GatewayDefaultNotOutgoing,
+                            LocationOf(gateway),
+                            gatewayId,
+                            defaultId
+                        )
+                    );
+                }
             }
 
             if (taken.Count == 0 && leaving.Count == 0)
@@ -228,27 +286,8 @@ internal static class ProcessFlowUtils
                 );
             }
 
-            // One condition switches the gateway to ExpressionsExclusiveGateway, which counts a flow without a
-            // condition as a match, and ProcessNavigator fails unless exactly one flow matches. An empty
-            // <bpmn:conditionExpression> still counts as a condition here, as the runtime reads it as "".
-            var unconditioned = taken.Where(f => f.Element(ProcessFile.ConditionExpression) is null).ToList();
-            if (unconditioned.Count > 0 && unconditioned.Count < taken.Count)
-            {
-                diagnostics.Add(
-                    Diagnostic.Create(
-                        Diagnostics.Process.GatewayMixesConditions,
-                        LocationOf(gateway),
-                        gatewayId,
-                        string.Join(", ", unconditioned.Select(FlowReference)),
-                        unconditioned.Count == 1
-                            ? "so leaving the gateway fails whenever a condition holds"
-                            : "so those flows always match together and leaving the gateway always fails"
-                    )
-                );
-            }
-
-            // The gateway evaluates every flow it takes, and an empty condition fails to parse.
-            foreach (var flow in taken)
+            // The gateway evaluates every flow it takes but the default, and an empty condition fails to parse.
+            foreach (var flow in taken.Where(f => f != defaultFlow))
             {
                 if (
                     flow.Element(ProcessFile.ConditionExpression) is { } condition

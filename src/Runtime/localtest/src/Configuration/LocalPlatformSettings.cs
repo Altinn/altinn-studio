@@ -67,5 +67,7 @@ namespace LocalTest.Configuration
         public string TenorDataFolder { get; set; } = "tenorUsers";
 
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
+
+        public string CorrespondenceDataFolder { get; set; } = "correspondence";
     }
 }

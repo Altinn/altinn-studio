@@ -590,6 +590,99 @@ public class CustomOpenApiController : Controller
             }
         );
 
+        document.Paths.Add(
+            $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/pdf/preview",
+            new OpenApiPathItem()
+            {
+                Summary = "Preview a PDF",
+                Operations = new Dictionary<HttpMethod, OpenApiOperation>
+                {
+                    [HttpMethod.Get] = new OpenApiOperation()
+                    {
+                        Tags = instanceTags,
+                        Summary = "Preview a PDF",
+                        Description =
+                            "Generate a preview of the PDF of the current task, or of a PDF or subform PDF service task, also one the instance has not reached yet. The preview is in the language given by `language`, or the user's language, and is marked as a preview in its footer. Previews are rate limited across all instances.",
+                        Parameters =
+                        [
+                            new OpenApiParameter()
+                            {
+                                Name = "taskId",
+                                Description =
+                                    "The PDF or subform PDF service task to preview. Defaults to the current task.",
+                                In = ParameterLocation.Query,
+                                Required = false,
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String },
+                            },
+                            new OpenApiParameter()
+                            {
+                                Name = "dataElementId",
+                                Description =
+                                    "The subform data element to preview. Required when previewing a subform PDF service task.",
+                                In = ParameterLocation.Query,
+                                Required = false,
+                                Schema = new OpenApiSchema() { Type = JsonSchemaType.String, Format = "uuid" },
+                            },
+                        ],
+                        Responses = Snippets.AddCommonErrorResponses(
+                            new OpenApiResponses()
+                            {
+                                ["200"] = new OpenApiResponse()
+                                {
+                                    Description = "The PDF preview",
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["application/pdf"] = new OpenApiMediaType()
+                                        {
+                                            Schema = new OpenApiSchema()
+                                            {
+                                                Type = JsonSchemaType.String,
+                                                Format = "binary",
+                                            },
+                                        },
+                                    },
+                                },
+                                ["400"] = new OpenApiResponse()
+                                {
+                                    Description =
+                                        "The task is not a PDF or subform PDF service task, or the subform is missing or of the wrong data type",
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["text/plain"] = new OpenApiMediaType()
+                                        {
+                                            Schema = new OpenApiSchema() { Type = JsonSchemaType.String },
+                                        },
+                                    },
+                                },
+                                ["404"] = new OpenApiResponse()
+                                {
+                                    Description = "The instance has no current task, or the task does not exist",
+                                    Content = new Dictionary<string, OpenApiMediaType>
+                                    {
+                                        ["text/plain"] = new OpenApiMediaType()
+                                        {
+                                            Schema = new OpenApiSchema() { Type = JsonSchemaType.String },
+                                        },
+                                    },
+                                },
+                                ["429"] = new OpenApiResponse()
+                                {
+                                    Description =
+                                        "Too many previews. Try again after the number of seconds in the Retry-After header",
+                                },
+                            }
+                        ),
+                    },
+                },
+                Parameters =
+                [
+                    Snippets.InstanceOwnerPartyIdParameterReference,
+                    Snippets.InstanceGuidParameterReference,
+                    Snippets.LanguageParameterReference,
+                ],
+            }
+        );
+
         var commonTags = new HashSet<OpenApiTagReference> { new OpenApiTagReference("Static") };
         document.Tags.Add(new OpenApiTag() { Name = "Static", Description = "Static info about the application" });
 

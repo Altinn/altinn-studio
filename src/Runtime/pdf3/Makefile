@@ -49,7 +49,7 @@ lint-config: golangci-lint ## Verify linter configuration
 test: ## Run unit tests
 	@echo "Running unit tests..."
 	@go test ./internal/... ./cmd/...
-	@cd test && go test -count=1 -timeout 5m ./integration/pdfa/...
+	@cd test && go test -count=1 -timeout 5m ./harness/... ./integration/pdfa/...
 	@echo "✓ Unit tests passed"
 
 test-e2e: ## Run all e2e tests (simple first, then smoke)
@@ -108,7 +108,8 @@ $(LOCALBIN):
 	mkdir -p "$(LOCALBIN)"
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.11.2
+# renovate: datasource=go depName=github.com/golangci/golangci-lint/v2
+GOLANGCI_LINT_VERSION ?= v2.15.0
 
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.

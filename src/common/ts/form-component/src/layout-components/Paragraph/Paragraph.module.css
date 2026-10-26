@@ -3,3 +3,11 @@
   align-items: center;
   overflow-wrap: anywhere;
 }
+
+/*
+ * Limits the line length of each text element rather than the container, since ch follows the
+ * element's own font size. If done on the container, headings would get the width of the smaller body text.
+ */
+.paragraphText :is(p, li, h1, h2, h3, h4, h5, h6) {
+  max-width: var(--running-text-max-width);
+}

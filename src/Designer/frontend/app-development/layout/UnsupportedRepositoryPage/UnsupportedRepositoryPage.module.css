@@ -1,0 +1,4 @@
+.alert {
+  max-width: 40rem;
+  margin: var(--ds-size-4);
+}

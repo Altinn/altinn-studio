@@ -70,7 +70,8 @@ internal sealed record WorkflowRequest
     ///   <item><c>true</c> — Force-include: always a head, even if other batch workflows depend on it.</item>
     ///   <item><c>null</c> (default) — Neutral: natural leaf detection applies (head if nothing in the batch depends on it).</item>
     ///   <item><c>false</c> — Force-exclude: never a head, and this workflow's dependency edges do not consume
-    ///         existing heads.</item>
+    ///         existing heads. This is what makes a workflow auxiliary; <c>true</c> and <c>null</c> make it
+    ///         primary.</item>
     /// </list>
     /// </summary>
     [JsonPropertyName("isHead")]
@@ -79,7 +80,7 @@ internal sealed record WorkflowRequest
     /// <summary>
     /// Declares this workflow a mailbox <em>receive workflow</em>: its first step consumes one message from the
     /// named mailbox, and every later step is ordinary. It cannot also carry <see cref="StartAt"/> — a receiver that
-    /// finds neither its delivery nor a closed mailbox is born <see cref="PersistentItemStatus.Held"/>, and a held
+    /// finds neither its delivery nor a closed mailbox is created <see cref="PersistentItemStatus.Held"/>, and a held
     /// row has no schedule to run on. There is no per-receiver timeout either; the mailbox's deadline bounds the
     /// whole exchange.
     /// </summary>
