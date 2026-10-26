@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 
 describe('Group summary test', () => {
   it('Evaluates readOnly expressions inside nested groups in Summary2', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Input' && component.id === 'RepeatingGroup-With-Group-Input-Name') {
         component.readOnly = [
           'or',
@@ -42,10 +42,10 @@ describe('Group summary test', () => {
 
   it('Renders the different options for add buttons and limits cell text without truncating headers', () => {
     const tableTitle = 'A long column heading that must remain fully visible. '.repeat(8).trim();
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
         component.tableColumns = {
-          'RepeatingGroup-Input-Name': { width: '160px', textOverflow: { maxHeight: 4 } },
+          'RepeatingGroup-Input-Name': { width: '20%', textOverflow: { maxHeight: 4 } },
         };
       }
       if (component.type === 'Input' && component.id === 'RepeatingGroup-Input-Name') {
