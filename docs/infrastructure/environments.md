@@ -1,12 +1,8 @@
 # Environments
 
-Altinn Studio hosts services and applications on Kubernetes clusters:
-
-- Studio clusters, for control plane.
-- Runtime clusters, for service owner apps and our runtime-services.
-- DIS Core and platform clusters for shared platform-services.
-- DIS Edge, the platform's ingress in front of DIS Core.
-- Admin services clusters for non-dataplane shared services.
+Studio clusters run Designer and Gitea. Runtime clusters run service owners' apps and our runtime services. The
+platform team runs DIS Core and its ingress DIS Edge, the older platform clusters, and adminservices for shared
+resources such as databases.
 
 ## Studio clusters
 

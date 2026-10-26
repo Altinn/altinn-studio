@@ -162,9 +162,8 @@ stack (see `README.md`).
   `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
   must also `git grep` the old segment.
 
-- **Docs:** `AGENTS.md` is the only agent-guidance file in a directory; never add a `CLAUDE.md`.
-  These invariants (no `CLAUDE.md`, resolvable links, root-map coverage of tracked directories)
-  are enforced by `yarn docs:validate` in CI.
+- **Docs:** Follow the [documentation rules](docs/documentation.md), and run
+  `yarn docs:validate` after changing documentation. CI runs it too.
 - **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
   Framework versions differ per project and are documented at the leaf, not here — check the project's
   own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.
