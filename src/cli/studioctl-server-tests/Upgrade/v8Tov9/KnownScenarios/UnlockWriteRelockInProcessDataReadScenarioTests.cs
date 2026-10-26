@@ -308,8 +308,8 @@ public sealed class UnlockWriteRelockInProcessDataReadScenarioTests : IDisposabl
         return SemanticScannerFactory.CreateScanner(AppFolder, Stub(surface));
     }
 
-    private static MigrationResult Apply(CSharpSourceScanner scanner) =>
-        new UnlockWriteRelockInProcessDataReadScenario().Apply(scanner);
+    private MigrationResult Apply(CSharpSourceScanner scanner) =>
+        new UnlockWriteRelockInProcessDataReadScenario().Apply(scanner, AppFolder);
 
     /// <summary>The line <paramref name="text"/> first occurs on in <paramref name="source"/>.</summary>
     private static int LineOf(string source, string text)
@@ -740,7 +740,7 @@ public sealed class UnlockWriteRelockInProcessDataReadScenarioTests : IDisposabl
     {
         var scanner = Scanner(Surface.New, ProcessorPath, Kept);
 
-        var result = new KnownScenarioMigration(scanner).Migrate();
+        var result = new KnownScenarioMigration(scanner, AppFolder).Migrate();
 
         Assert.Equal([Warning(Message(ProcessorPath, LineOf(Kept, Unlock)))], result.Messages);
         Assert.Equal(Rewritten, _app.Read(ProcessorPath));
