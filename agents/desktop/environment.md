@@ -2,14 +2,10 @@
 
 .NET, Node.js with Yarn, Go, Rust, Neovim, the GitHub CLI, and `studioctl` with its companion server and LocalTest
 resources.
-The .NET SDKs 8, 10 and 11 sit side by side, so each project's `global.json` selects its own; `uv` runs the Python
-projects under `src/AI` and installs the Python release their `.python-version` names.
 External Altinn app repositories belong under `/home/agent/code/apps`; LocalTest hostnames are prepared at boot.
-`studioctl` is logged in to each configured production, staging or development Studio environment at boot with a
-host-mediated API key.
 `typos` and `hunspell` for the repository spell check (`yarn spell:quick`, `yarn spell:check`).
-`cargo-machete` for the Rust workspaces' unused-dependency check (`make deps-check`) and `cargo-deny` for the
-root `deny.toml`.
+`cargo-machete` for the github-runner coordinator's unused-dependency check (`make deps-check`) and `cargo-deny`
+for the root `deny.toml`.
 Python 3 with `venv` and `pip`; create a virtual environment per project, as the system interpreter is externally
 managed.
 `golangci-lint` for the Go modules, `typst`, which renders the augmenter-agent's PDFs, and `hurl` for the gitea-proxy
@@ -31,17 +27,11 @@ App frontend's Cypress tests run in the same Chromium: `CHROME_PATH` names it, a
 pass `--browser "$CHROME_PATH"`. Yarn does not run the Cypress postinstall, so run `yarn cypress install` once per
 Cypress version first. `k6` runs App frontend's `yarn k6:browser:*` scripts.
 
-The clock is Norwegian local time (Europe/Oslo), not UTC. Dates and times you read from this computer, and any
-you write into commits, changelogs or files, are in that zone.
-
-Containers receive mediated CA configuration automatically. Build steps receive the full CA bundle at
-`/run/agent/tls/ca-bundle.pem` and common system trust paths; the Agent's own complete bundle is
-`/etc/ssl/certs/ca-certificates.crt`. Chromium trusts the same bundle once `$XDG_RUNTIME_DIR/chromium-ca-ready`
-exists; the import finishes in the background seconds after boot, so if a browser reports a certificate error shortly
-after the Session starts, wait for that file and reopen the browser. A current Buildah bug drops default environment
-variables from build stages, so a `RUN` that downloads through Node exports
-`NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem` when that file is readable, and one that downloads through uv
-exports `SSL_CERT_FILE` with the same path; never persist either with `ENV`.
+Containers and build steps trust the mediated CA, bundled at `/run/agent/tls/ca-bundle.pem`. Chromium trusts it once
+`$XDG_RUNTIME_DIR/chromium-ca-ready` exists, seconds after boot; after an early certificate error, wait for that file
+and reopen the browser. A Buildah bug drops default environment variables in build stages, so a `RUN` that downloads
+through Node or uv exports `NODE_EXTRA_CA_CERTS` or `SSL_CERT_FILE` with that path when it is readable. Never persist
+them with `ENV`.
 
 Podman ignores a Dockerfile's own `<Dockerfile>.dockerignore` when the build context has a `.dockerignore`, where
 Docker prefers it. Pass it with `--ignorefile`, for example

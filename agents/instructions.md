@@ -4,39 +4,9 @@ You are an agent working on the Altinn Studio product and its related projects.
 
 ## Product
 
-Altinn Studio is the tooling for developing, operating, and managing public digital services in the Altinn 3
-platform. It supports low-code and traditional development, open standards, open source collaboration, tenant
-isolation, and integration with shared platform services.
-
-The main repository is `Altinn/altinn-studio`. It contains the Designer product, Altinn Apps runtime libraries,
-platform and development services, CLI tooling, test applications, and supporting infrastructure. Product roadmap
-and backlog work is managed in that repository and related Altinn repositories on GitHub.
-
-Other relevant repositories include:
-
-- `Altinn/altinn-studio-docs`: docs site, also for other Altinn products
-- `Altinn/app-lib-dotnet`: app v8 backend code
-- `Altinn/app-frontend-react`: app v4 frontend code (matches v8)
-- `Altinn/app-localtest`: old localtest repo, soon to be archived
-- `Altinn/altinn-studio-charts`: Helm chart currently used for app deployment, see src/App/azure-pipelines/deploy-app.yaml in altinn-studio
-- `brreg/altinn-studio-ops/altinn-studio-infra`: Azure DevOps repository for Altinn Studio infrastructure
-- `Altinn/altinn-storage`: Storage platform service
-- `Altinn/altinn-file-scan`
-- `Altinn/altinn-receipt`
-- `Altinn/altinn-decision-log`
-- `Altinn/altinn-authentication`
-- `Altinn/altinn-auth`
-- `Altinn/altinn-register`
-- `Altinn/altinn-notifications`
-- `Altinn/altinn-correspondence`
-- `Altinn/altinn-profile`
-- `Altinn/altinn-events`
-- `Altinn/altinn-resource-registry`
-
-Clone repos as needed to the code folder.
-
-New code is generally developed in the monorepo. Code outside it may be legacy, independently owned, or in the
-process of moving into the monorepo; inspect the repository and current project context rather than assuming.
+Altinn Studio is the tooling for developing, operating and managing public digital services on Altinn 3. Its main
+repository is `Altinn/altinn-studio`. In a checkout, `README.md` says what the product is and maps the repository,
+and `docs/repositories.md` lists the related repositories and what lives where.
 
 ## Workspace
 
@@ -60,24 +30,17 @@ default branch. Never push to `main`, protected release branches, or merge pull 
 
 ## Development
 
-- Read the nearest repository and subdirectory `AGENTS.md` files before editing code.
 - State important assumptions when they affect the implementation.
 - Stop and ask when requirements remain materially ambiguous after inspecting the relevant code and context.
 - Challenge flawed approaches and change code at the appropriate architectural layer.
 - Keep changes focused on the requested outcome; separate unrelated work.
-- Prefer simple, readable implementations and remove obsolete paths instead of retaining dead compatibility code.
-- Make invalid state unrepresentable at the appropriate outer layer when practical.
 - Check relevant code, tests, specifications, logs, or primary documentation before presenting assumptions as facts.
 - Run the closest formatting, lint, build, and test targets before reporting completion.
-- For user-facing changes, determine whether `altinn-studio-docs` also needs an update.
 
 Define success before nontrivial changes. Debug with a reproduction or failing test, make the smallest coherent change,
 and rerun the evidence that demonstrates the outcome. Benchmark and profile performance work. When full verification
 is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
 “I cannot confirm” instead of guessing.
-
-- **Subagents** are your harness's own delegated workers, such as Claude Code's Agent tool or Codex subagents. They run
-  inside this Sandbox and need no extra setup; use them for reviews, research and parallel work.
 
 ## References in responses
 
@@ -94,13 +57,9 @@ When asked to create or update a pull request:
 
 - Push the branch explicitly before `gh pr create`, and pass `--base`, `--head`, `--title`, and
   `--body-file` rather than relying on interactive inference.
-- Use a conventional commit-style title such as `feat:`, `fix:`, or `chore:` and follow the repository template.
-- Explain what changed, why it changed, and how it was verified.
-- Show visible results instead of describing them: screenshots for user-interface changes, recordings for terminal
-  behavior, attached to the pull request. The `pr-evidence` skill has the workflow and the tool commands.
-- For `Altinn/altinn-studio`, push a feature branch to `origin` and target `main`; never merge it yourself.
+- Follow the repository's contributing guide and pull request template for the title and description.
+- Show visible results as the `pr-evidence` skill describes, instead of describing them.
 - For repositories without direct write access, configure or use a fork and target the upstream default branch.
-- Keep each pull request focused. Use separate, dependent pull requests when independent review or rollout is useful.
 - After review feedback, fetch the complete current discussion rather than acting on a shortened notification.
 - Treat clear contributor requests and questions as actionable. Implement or answer them in the original GitHub thread.
 - Evaluate automated review comments before acting; escalate conflicts, scope expansion, missing authority, or genuine
@@ -120,3 +79,13 @@ the package is missing from the distribution rather than from your index.
 
 Store reusable local scripts under `/home/agent/code/.scripts/` and downloaded reference repositories or source
 material under `/home/agent/code/.reference/`. Check for existing material before downloading another copy.
+
+Subagents are your harness's own delegated workers, such as Claude Code's Agent tool or Codex subagents. They run
+inside this Sandbox and need no extra setup; use them for reviews, research and parallel work.
+
+The .NET SDKs 8, 10 and 11 sit side by side, so each project's `global.json` selects its own; `uv` runs the Python
+projects under `src/AI` and installs the Python release their `.python-version` names. `studioctl` is logged in to each
+configured production, staging or development Studio environment at boot with a host-mediated API key.
+
+The clock is Norwegian local time (Europe/Oslo), not UTC. Dates and times you read from this computer, and any you
+write into commits, changelogs or files, are in that zone.
