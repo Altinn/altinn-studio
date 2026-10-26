@@ -13,7 +13,10 @@ export function useOptionsFor<T extends CompWithBehavior<'canHaveOptions'>>(
   valueType: 'single' | 'multi',
 ): OptionsResult {
   const config = useComponentConfig(baseComponentId) as CompExternalExact<T>;
-  const { unsorted, isFetching } = useFetchOptions({ config });
+  const { unsorted, isFetching, error } = useFetchOptions({ config });
   const { options } = useFilteredAndSortedOptions({ unsorted, valueType, config });
+  if (error) {
+    throw error;
+  }
   return { isFetching, options };
 }

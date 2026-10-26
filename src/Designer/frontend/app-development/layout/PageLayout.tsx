@@ -14,15 +14,40 @@ import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
 import { buildDocumentTitle } from 'app-development/utils/documentTitleUtils';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import {
+  UnsupportedRepositoryPage,
+  isUnsupportedRepositoryType,
+} from './UnsupportedRepositoryPage';
 
 /**
  * Displays the layout for the app development pages
  */
 export const PageLayout = (): React.ReactNode => {
-  const { t } = useTranslation();
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
+  const repositoryType = getRepositoryType(org, app);
+
+  if (isUnsupportedRepositoryType(repositoryType)) {
+    return (
+      <>
+        <title>{buildDocumentTitle(app)}</title>
+        <UnsupportedRepositoryPage org={org} repoName={app} repositoryType={repositoryType} />
+      </>
+    );
+  }
+
+  return <AppPageLayout org={org} app={app} />;
+};
+
+type AppPageLayoutProps = {
+  org: string;
+  app: string;
+};
+
+const AppPageLayout = ({ org, app }: AppPageLayoutProps): React.ReactNode => {
+  const { t } = useTranslation();
   const documentTitle = buildDocumentTitle(app);
 
   const {

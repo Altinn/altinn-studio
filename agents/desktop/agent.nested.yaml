@@ -13,3 +13,5 @@ spec:
       rootFilesystem:
         capacity: "24Gi"
         mode: direct
+      # A nested Agent runs no Agents of its own.
+      nestedSandboxes: null

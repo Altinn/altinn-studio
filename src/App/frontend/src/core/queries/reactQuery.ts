@@ -1,5 +1,6 @@
 import {
   skipToken as tanStackSkipToken,
+  useIsFetching as useTanStackIsFetching,
   useIsMutating as useTanStackIsMutating,
   useMutation as useTanStackMutation,
   useQuery as useTanStackQuery,
@@ -11,6 +12,7 @@ import type {
 } from '@tanstack/react-query';
 
 export const skipToken: typeof tanStackSkipToken = tanStackSkipToken;
+export const useIsFetching: typeof useTanStackIsFetching = useTanStackIsFetching;
 export const useIsMutating: typeof useTanStackIsMutating = useTanStackIsMutating;
 export const useMutation: typeof useTanStackMutation = useTanStackMutation;
 export const useQuery: typeof useTanStackQuery = useTanStackQuery;

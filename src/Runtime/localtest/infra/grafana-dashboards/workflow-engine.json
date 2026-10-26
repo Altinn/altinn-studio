@@ -1,0 +1,6230 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "altinn-studio-metrics"
+        },
+        "enable": true,
+        "filter": {
+          "exclude": false,
+          "ids": [
+            59,
+            11,
+            12,
+            13,
+            81,
+            82,
+            83,
+            92,
+            93,
+            21,
+            22,
+            23,
+            53,
+            31,
+            32,
+            33,
+            34,
+            41,
+            42,
+            43,
+            65,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            51,
+            52,
+            61,
+            62,
+            63,
+            74,
+            75
+          ]
+        },
+        "hide": false,
+        "iconColor": "#5794F2",
+        "name": "Deploys (first start of version)",
+        "tagKeys": "deployment.environment.name,service.version",
+        "target": {
+          "expr": "((min by (\"deployment.environment.name\", \"service.version\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[90d] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "refId": "Anno"
+        },
+        "textFormat": "{{deployment.environment.name}}. Earliest retained process start for this version (90d history). Rollbacks to a retained version do not add a deploy dot.",
+        "titleFormat": "Version {{service.version}} first start",
+        "useValueForTime": true
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "altinn-studio-metrics"
+        },
+        "enable": false,
+        "filter": {
+          "exclude": false,
+          "ids": [
+            59,
+            11,
+            12,
+            13,
+            81,
+            82,
+            83,
+            92,
+            93,
+            21,
+            22,
+            23,
+            53,
+            31,
+            32,
+            33,
+            34,
+            41,
+            42,
+            43,
+            65,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            51,
+            52,
+            61,
+            62,
+            63,
+            74,
+            75
+          ]
+        },
+        "hide": false,
+        "iconColor": "#FF9830",
+        "name": "Process starts",
+        "tagKeys": "deployment.environment.name,service.version",
+        "target": {
+          "expr": "((min by (\"deployment.environment.name\", \"service.version\", \"service.name\", \"service.instance.id\", \"k8s.pod.uid\") (min_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[1m${__range_ms}ms] @ (${__to} / 1000))) >= (${__from} / 1000)) <= (${__to} / 1000)) * 1000",
+          "format": "time_series",
+          "instant": true,
+          "range": false,
+          "refId": "Anno"
+        },
+        "textFormat": "{{deployment.environment.name}} · {{service.version}} · {{service.instance.id}} · pod {{k8s.pod.uid}}. Includes rollout, restart and scale-up; telemetry cannot distinguish their cause.",
+        "titleFormat": "{{service.name}} instance started",
+        "useValueForTime": true
+      }
+    ]
+  },
+  "description": "The workflow engine's altinn.workflow_engine.* OpenTelemetry metrics: health, workflow lifecycle, latency, resources, mailboxes and throttling.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 55,
+      "panels": [],
+      "title": "Health & Failures",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Engine self-assessed health, the worst across the selected processes: 0=Healthy, 1=Degraded, 2=Unhealthy. No data means no engine process is reporting; see Processes reporting.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "Healthy"
+                },
+                "1": {
+                  "color": "orange",
+                  "index": 1,
+                  "text": "Degraded"
+                },
+                "2": {
+                  "color": "red",
+                  "index": 2,
+                  "text": "Unhealthy"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 1
+      },
+      "id": 56,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "max({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Engine Health",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Processes with at least one start-time sample in the preceding minute, evaluated at the dashboard range end. Counts processes exporting telemetry, not Kubernetes readiness or health. Replaced processes remain for up to one minute; missing telemetry stays No data.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 1
+      },
+      "id": 110,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {
+          "titleSize": 14,
+          "valueSize": 32
+        },
+        "textMode": "value_and_name",
+        "wideLayout": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "count by (\"deployment.environment.name\", \"service.name\") (group by (\"deployment.environment.name\", \"service.name\", \"service.instance.id\") (present_over_time({\"altinn.workload.start_time\", \"service.name\"=~\"$service\", \"deployment.environment.name\"=~\"$env\"}[1m])))",
+          "instant": true,
+          "legendFormat": "{{deployment.environment.name}} · {{service.name}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Processes reporting",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "All failure signals: errors broken down by subsystem, workflow failures by reason, plus step/DB failures and the consecutive maintenance failure count of the worst instance (right axis).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "cps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Maintenance failures"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    5
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 14,
+        "x": 10,
+        "y": 1
+      },
+      "id": 59,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.operation\") (increase_pure({\"altinn.workflow_engine.errors\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Errors ({{altinn.workflow_engine.operation}})",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Workflow Failures ({{altinn.workflow_engine.reason}})",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Step Failures",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "DB Failures",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "max({\"altinn.workflow_engine.maintenance.consecutive_failures\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "Maintenance failures",
+          "refId": "E"
+        }
+      ],
+      "title": "Failures",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.active\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Active",
+          "refId": "A"
+        }
+      ],
+      "title": "Active",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.scheduled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Scheduled",
+          "refId": "A"
+        }
+      ],
+      "title": "Scheduled",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 5
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Failed",
+          "refId": "A"
+        }
+      ],
+      "title": "Failed",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Inbox queue utilization. At 100% the engine activates backpressure and rejects new work (429). Every replica reports the same database-wide count, so replicas are combined with max() rather than sum().",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 5
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) / (sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) + sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))) * 100",
+          "legendFormat": "Queue",
+          "refId": "A"
+        }
+      ],
+      "title": "Queue Fill",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Successful workflow completions per second",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 5
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Throughput",
+          "refId": "A"
+        }
+      ],
+      "title": "Throughput",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Total retry events per second: every step retry plus every shutdown-driven workflow requeue. Step retries already imply a workflow requeue with reason=step_retry, so that path is counted once via the step counter only.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.01
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 5
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "((sum(increase_pure({\"altinn.workflow_engine.step.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or vector(0)) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.workflow_engine.reason\"=\"shutdown\"}[$__rate_interval])) or vector(0))) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Retries",
+          "refId": "A"
+        }
+      ],
+      "title": "Retries",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Percentage of completed workflows that succeeded",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 90
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 5
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) * 0) + (sum(increase_pure({\"altinn.workflow_engine.workflow.execution.canceled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) * 0)) * 100",
+          "legendFormat": "Success %",
+          "refId": "A"
+        }
+      ],
+      "title": "Success Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "95th percentile workflow duration for a single attempt (queue + processing). Retries land as separate samples.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 120
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 5
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P95",
+          "refId": "A"
+        }
+      ],
+      "title": "P95 Duration",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 10,
+      "panels": [],
+      "title": "Workflow Lifecycle",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of incoming workflow write requests vs accepted, plus read-side query traffic",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Received"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Accepted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Queries"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 10
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.request.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Received",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.request.accepted\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Accepted",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.query.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Queries",
+          "refId": "C"
+        }
+      ],
+      "title": "Workflow Requests",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of workflow lifecycle events. Failed/Canceled/Requeued broken down by reason — failed: execution / dependency_failed / poisoned / wait_expired (a step's wait budget ran out) / manual (a caller failed a parked workflow through the fail endpoint); canceled: before_processing / during_processing; requeued: step_retry / shutdown.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Succeeded"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Canceled"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Requeued"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Resumed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 10
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Succeeded",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Failed ({{altinn.workflow_engine.reason}})",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.canceled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Canceled ({{altinn.workflow_engine.reason}})",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.workflow.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Requeued ({{altinn.workflow_engine.reason}})",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.resumed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Resumed",
+          "refId": "E"
+        }
+      ],
+      "title": "Workflow Outcomes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Current workflow counts by state (gauge values over time). Finished = all terminal (success + failed + canceled + dep-failed). Every replica reports the same database-wide counts, so replicas are combined with max() and only separate services, each with its own database, are added up.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Active"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Scheduled"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Successful"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Finished"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#8e8e8e",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 10
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.active\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Active",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.scheduled\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Scheduled",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Failed",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.successful\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Successful",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.finished\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Finished",
+          "refId": "E"
+        }
+      ],
+      "title": "Workflow Inventory",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 80,
+      "panels": [],
+      "title": "Durable Yield & Waiting",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of durable yields. A deferral is a command reporting “ran fine, the awaited outcome is not available yet” — it is not a failure and does not consume a retry. Step deferrals exceed workflow deferrals whenever one workflow parks repeatedly. Wait Budget Expired is the failure mode this row is here to make visible: a step that kept deferring until its waitBudget ran out, failed with reason=wait_expired — deliberately excluded from the default ops alert, so this is where it surfaces.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workflow attempts parked"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Step deferrals"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wait budget expired"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 19
+      },
+      "id": 81,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.deferred\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Workflow attempts parked",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.deferred\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Step deferrals",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"altinn.workflow_engine.reason\"=\"wait_expired\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Wait budget expired",
+          "refId": "C"
+        }
+      ],
+      "title": "Deferrals",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Workflows currently parked in Waiting because a step deferred. Waiting is in the Incomplete/active set — no lease, no worker slot, no backoff timer of its own — so this population is invisible in the Active/Scheduled gauges on the Workflow Inventory panel. A level that only ever rises means deferring commands are never resolving. Every replica reports the same database-wide count, so replicas are combined with max() rather than sum().",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Waiting"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 19
+      },
+      "id": 82,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.workflow.waiting\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Waiting",
+          "refId": "A"
+        }
+      ],
+      "title": "Waiting Workflows",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Percentiles of the wait budget a deferring step actually consumed, from its first deferral to the moment it resolved — completed, expired, or failed. Recorded once per deferring step, so a step that deferred forty times contributes one sample. Compare the upper percentiles against the configured command.waitBudget (default 24h): this is the only signal that shows budgets being approached rather than blown.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P50"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P99"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
+      "id": 83,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.step.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Wait Budget Consumed (per deferring step)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "id": 90,
+      "panels": [],
+      "title": "Throttling (namespace circuit breaker)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Namespace circuit breakers currently in the Tripped state. Zero is the normal reading. The gauge carries no namespace label — it is a per-process scalar — and every replica reports its own snapshot of the same shared state table, so replicas are combined with max() rather than sum(). The feature ships dark: with EngineSettings:Throttling:Enabled left false the sweep never runs and this stays flat at zero. workflow-engine-app turns it on; the engine's own test host only does with the playground compose override.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 0,
+        "y": 28
+      },
+      "id": 91,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.throttle.breaker.tripped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) or vector(0)",
+          "legendFormat": "Tripped",
+          "refId": "A"
+        }
+      ],
+      "title": "Breakers Tripped",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Circuit-breaker state changes in the last 5 minutes, per namespace. These are rare discrete events, so this is a count over the window rather than a per-second rate like the throughput panels — one trip reads as 1, not as 0.003/s, including the first trip in a namespace, which starts a new series. Tripped includes re-trips from a failed recovery. Extended means every canary failed its probe and the throttle window doubled. Cleared means recovery drained the parked population. Handler Parked counts workflows the handler parked the moment they failed retryably in an already-tripped namespace — the sweep's own parking is not counted there, so this series stays flat when the storm is not producing fresh failures.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Tripped .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Extended .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Cleared .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Handler parked .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 5,
+        "y": 28
+      },
+      "id": 92,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.tripped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "legendFormat": "Tripped — {{altinn.workflow_engine.namespace}}",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.extended\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "legendFormat": "Extended — {{altinn.workflow_engine.namespace}}",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.cleared\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "legendFormat": "Cleared — {{altinn.workflow_engine.namespace}}",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.handler_parked\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "legendFormat": "Handler parked — {{altinn.workflow_engine.namespace}}",
+          "refId": "D"
+        }
+      ],
+      "title": "Breaker Transitions by Namespace",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate at which recovery cohorts hand parked workflows back to the fetch gate, per namespace. Counted by the number of rows actually released, not once per cohort, and cohorts double every sweep — so a healthy recovery is a rising curve that stops abruptly when the last cohort comes back empty and the breaker clears. This is the only throttle counter with a population large enough to read as a rate.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 9,
+        "x": 15,
+        "y": 28
+      },
+      "id": 93,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.namespace\") (increase_pure({\"altinn.workflow_engine.throttle.released\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "{{altinn.workflow_engine.namespace}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Workflows Released from Throttling by Namespace",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "id": 20,
+      "panels": [],
+      "title": "Latency & Timing",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Workflow duration percentiles for a single attempt (queue + processing). Retries land as separate samples; see Outcomes for retry rate.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P50"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P99"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 37
+      },
+      "id": 21,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.workflow.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Workflow Duration (per attempt)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Per-attempt P95 of queue wait and active execution, stacked. Stack height is the sum of two marginal P95s — useful for seeing where tail latency is concentrated, but it does not reconcile arithmetically with the Workflow Duration panel's P95(total) because percentiles are not additive across the queue/processing decomposition. Within a single attempt, queue + processing does equal total by construction.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Queue Wait"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Execution"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 37
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.queue.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Queue Wait",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.workflow.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Execution",
+          "refId": "B"
+        }
+      ],
+      "title": "Workflow Time Breakdown (P95, per attempt)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Step duration percentiles for a single attempt (queue + processing). Step retries land as separate samples — see Step Failures for retry rate.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P50"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P99"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 37
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.step.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Step Duration (per attempt)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Per-attempt P95 of step queue wait (engine/DB overhead between steps) and active execution, stacked. Stack height is the sum of two marginal P95s — useful for seeing whether queue or processing drives tail latency, but it does not reconcile arithmetically with the Step Duration panel's P95(total) because percentiles are not additive across the queue/processing decomposition. Within a single attempt, queue + processing does equal total by construction.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Queue Wait"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Execution"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 37
+      },
+      "id": 53,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.queue.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Queue Wait",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.step.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Execution",
+          "refId": "B"
+        }
+      ],
+      "title": "Step Time Breakdown (P95, per attempt)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 45
+      },
+      "id": 30,
+      "panels": [],
+      "title": "Resource Utilization",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Worker concurrency slots: used vs total capacity",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 46
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"altinn.workflow_engine.slot.worker.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"altinn.workflow_engine.slot.worker.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) + sum({\"altinn.workflow_engine.slot.worker.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "Available",
+          "refId": "B"
+        }
+      ],
+      "title": "Worker Slots",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Database operation concurrency slots: used vs total capacity",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 46
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"altinn.workflow_engine.slot.db.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"altinn.workflow_engine.slot.db.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) + sum({\"altinn.workflow_engine.slot.db.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "Available",
+          "refId": "B"
+        }
+      ],
+      "title": "DB Slots",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "HTTP call concurrency slots: used vs total capacity",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 46
+      },
+      "id": 33,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"altinn.workflow_engine.slot.http.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"altinn.workflow_engine.slot.http.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) + sum({\"altinn.workflow_engine.slot.http.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "Available",
+          "refId": "B"
+        }
+      ],
+      "title": "HTTP Slots",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Inbox slots: active workflows against the backpressure threshold, used vs total capacity. Both are derived from the database-wide active workflow count, which every replica reports identically, so replicas are combined with max() rather than sum().",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "scheme",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 5
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 46
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Used",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.used\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) + sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.slot.inbox.available\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}))",
+          "legendFormat": "Available",
+          "refId": "B"
+        }
+      ],
+      "title": "Inbox Slots",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      },
+      "id": 40,
+      "panels": [],
+      "title": "Engine Internals",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Processing loop iterations per minute",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ipm"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Iterations"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 0,
+        "y": 54
+      },
+      "id": 41,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.main_loop.iterations\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 60000)",
+          "legendFormat": "Iterations",
+          "refId": "A"
+        }
+      ],
+      "title": "Main Loop Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "P95 of each main-loop iteration broken down: Queue (post-fetch wait — debounce or ~500ms idle ceiling) and Active Work (fetch + dispatch), stacked. Total is the joint P95 of the same iterations, drawn outside the stack: percentiles are not additive, so it will not equal the stack height, and the gap between them is exactly how much that non-additivity costs you here. For iteration throughput see Main Loop Rate.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Queue Wait"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Active Work"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total (unstacked)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total (unstacked)"
+            },
+            "properties": [
+              {
+                "id": "custom.stacking",
+                "value": {
+                  "group": "B",
+                  "mode": "none"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 6,
+        "y": 54
+      },
+      "id": 42,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "noDataMessage": "No data",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.wait.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Queue Wait",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.processing.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Active Work",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.main_loop.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Total (unstacked)",
+          "refId": "C"
+        }
+      ],
+      "title": "Main Loop Time (P95)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of database operations by outcome",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Success"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Retried"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 12,
+        "y": 54
+      },
+      "id": 43,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Success",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Retried",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.db.operation.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Failed",
+          "refId": "C"
+        }
+      ],
+      "title": "Database Operations",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Update buffer throughput: total submitted (deduped + flushed), items flushed to DB, and items eliminated by deduplication",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Submitted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    10
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Flushed to DB"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Deduplicated"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 54
+      },
+      "id": 65,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.update_buffer.deduplicated\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) + sum(increase_pure({\"altinn.workflow_engine.update_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval]))) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Submitted",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.update_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Flushed to DB",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.update_buffer.deduplicated\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Deduplicated",
+          "refId": "C"
+        }
+      ],
+      "title": "Update Buffer Throughput",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 63
+      },
+      "id": 100,
+      "panels": [],
+      "title": "Mailboxes",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Receive workflows the rendezvous could not answer for — tagged unregistered or undecided. Both mean the engine is violating an invariant of its own rendezvous, which is why they fail the step critically rather than retryably: a retry would launder the violation. ALERT ON ANY VALUE ABOVE ZERO; this is a different pager from a step failing because the app returned an error. The `or vector(0)` keeps the panel reading a true zero rather than “No data” before the counter has ever fired.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 64
+      },
+      "id": 101,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.rendezvous.violations\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[1h])) or vector(0)",
+          "legendFormat": "Last 1h",
+          "refId": "A"
+        }
+      ],
+      "title": "Rendezvous Violations",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Mailboxes still open more than one MailboxSweepInterval past their deadline. Exactly zero is the only healthy reading — anything else means the deadline sweep is not running or not draining. A mass timeout can make it briefly non-zero while one tick drains, so alert on persistence rather than on a single sample. The count saturates at 10 000, so never read it as an exact backlog size. Every replica reports the same database-wide count, so replicas are combined with max() rather than sum().",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 64
+      },
+      "id": 102,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(max by (\"deployment.environment.name\", \"service.name\") ({\"altinn.workflow_engine.mailbox.open.overdue\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})) or vector(0)",
+          "legendFormat": "Overdue",
+          "refId": "A"
+        }
+      ],
+      "title": "Overdue Open Mailboxes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Accepted deliveries that no receiver was ever enqueued for, counted when a mailbox closes at its deadline. Not an engine fault — the message was accepted and stored exactly as promised — but it means a saga stopped reading before the other side stopped writing, so the reply was never consumed. Non-zero deserves a look at the owning app, not a page.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 64
+      },
+      "id": 103,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.delivery.unpaired\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[1h])) or vector(0)",
+          "legendFormat": "Last 1h",
+          "refId": "A"
+        }
+      ],
+      "title": "Unpaired Deliveries",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Mints and closures per second. Minted excludes idempotent replays, which create nothing. Closures are split by reason: `request` is a DELETE from the owning saga (the healthy path), `deadline` is the sweep closing a mailbox nobody came back for. A `deadline` share that climbs means sagas are abandoning exchanges rather than finishing them.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Minted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Closed (request)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Closed (deadline)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 69
+      },
+      "id": 104,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.mailbox.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Minted",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.reason\") (increase_pure({\"altinn.workflow_engine.mailbox.closed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Closed ({{altinn.workflow_engine.reason}})",
+          "refId": "B"
+        }
+      ],
+      "title": "Mailbox Lifecycle",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Every delivery request the engine answered, by verdict. `accepted` appended a message; `duplicate` replayed a stored idempotency key and is a healthy forwarder retrying, not an error. The refusals — `closed`, `not_found`, `log_full`, `too_large`, `invalid` — store nothing, so their keys stay free for a corrected replay. Note that the idempotency lookup runs before the refusals, so a kept message still replays 200 after the mailbox closed.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "accepted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "duplicate"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "closed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "not_found"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "log_full"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "too_large"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "invalid"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 69
+      },
+      "id": 105,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.delivery.outcome\") (increase_pure({\"altinn.workflow_engine.mailbox.delivery.received\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "{{altinn.workflow_engine.mailbox.delivery.outcome}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Deliveries by Outcome",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Receive workflows entering and leaving the rendezvous. Every receiver registers, not only the parked ones. Created, by enqueue outcome: `held` is created waiting for a message that has not arrived, `delivered` is created already holding one, `closed` is created against a mailbox that had already closed. Released, by cause: `delivered` is a message arriving for a parked receiver, `closed` is closure releasing every receiver at once. Receivers created `held` and total releases should track each other over time; a persistent gap is receivers that never got woken.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Created (held)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Created (delivered)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Created (closed)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Released (delivered)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Released (closed)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 69
+      },
+      "id": 106,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.enqueue_outcome\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.created\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Created ({{altinn.workflow_engine.mailbox.receiver.enqueue_outcome}})",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.receiver.release_cause\") (increase_pure({\"altinn.workflow_engine.mailbox.receiver.released\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Released ({{altinn.workflow_engine.mailbox.receiver.release_cause}})",
+          "refId": "B"
+        }
+      ],
+      "title": "Receivers: Created & Released",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Percentiles of the gap between a parked receiver being released and a worker first claiming it. NOTIFY is issued inside the releasing transaction and the processor debounces it by 10ms, so the healthy population is tens of milliseconds; a release whose NOTIFY was missed is claimed on the next fetch cycle, which puts a soft ceiling around the 500ms idle poll. Anything materially above that is worker starvation, not mailbox latency. Values are clamped at zero because the two ends come from two pods' clocks.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P50"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P95"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P99"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 77
+      },
+      "id": 107,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.99, sum(increase_pure({\"altinn.workflow_engine.mailbox.receiver.wake.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Receiver Wake Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "The one thing the engine emits that answers “is mailbox batching actually happening?” — requests answered by a flush divided by flushes, per operation, over the same window. Both counters are recorded at the same point once a batch is known answered, so a faulted flush counts in neither. 1.0 means every request flushed alone, and for deliveries that is worse than the bespoke path it replaced: the break-even is a mean batch of about 1.25 (the batched delivery flush issues a fixed five statements). The ceiling is MaxBatchSize, 100 for all three buffers; a ratio pinned there means the buffer is saturated and that setting is what to tune next. altinn.workflow_engine.mailbox_buffer.depth cannot answer this question — see the Buffer Depth panel.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 2,
+            "axisSoftMin": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1.25
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 77
+      },
+      "id": 108,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.operation\") (increase_pure({\"altinn.workflow_engine.mailbox_buffer.flushed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / sum by (\"altinn.workflow_engine.mailbox.operation\") (increase_pure({\"altinn.workflow_engine.mailbox_buffer.batches\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "{{altinn.workflow_engine.mailbox.operation}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Mean Batch Size (flushed ÷ batches)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Mailbox requests waiting for a batch flush, per operation. Read this as LATENCY, not capacity: the queues wait rather than refuse when full, so a sustained depth means callers waiting longer for a verdict, never requests turned away. Read only the sustained value — it is a 5s sample of a queue that fills and drains between flushes, and a storm accepting 3.86 messages per flush held it at zero throughout. A zero here is therefore no evidence the queue never filled, and this panel cannot tell you whether batching is happening. Mean Batch Size is what does.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 77
+      },
+      "id": 109,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.mailbox.operation\") ({\"altinn.workflow_engine.mailbox_buffer.depth\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"})",
+          "legendFormat": "{{altinn.workflow_engine.mailbox.operation}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Buffer Depth",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 86
+      },
+      "id": 50,
+      "panels": [],
+      "title": "Steps & Errors",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of step executions by outcome",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Accepted"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Succeeded"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Requeued"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 87
+      },
+      "id": 51,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.request.accepted\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Accepted",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.success\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Succeeded",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.requeued\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Requeued",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.step.execution.failed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Failed",
+          "refId": "D"
+        }
+      ],
+      "title": "Step Execution",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Error rate broken down by subsystem (workflow_handling / fetch_and_lock / db_maintenance / metrics_collector / throttle_sweep / mailbox_deadline_close / mailbox_deadline_sweep) plus stale-workflow reclaim rate.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^Errors"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reclaimed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "semi-dark-orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 87
+      },
+      "id": 52,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"altinn.workflow_engine.operation\") (increase_pure({\"altinn.workflow_engine.errors\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Errors ({{altinn.workflow_engine.operation}})",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.reclaimed\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Reclaimed",
+          "refId": "B"
+        }
+      ],
+      "title": "Errors & Recovery",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 95
+      },
+      "id": 60,
+      "panels": [],
+      "title": "Connection Pool (Npgsql) (local only)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Npgsql connection pool: idle vs active connections. Stacked area shows total pool usage over time. These are Npgsql's standard db.client.* metrics, which the metric allowlist in Altinn's environments drops (only altinn.*, http.* and signalr.server.* pass), so this row shows data only locally.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "idle"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "used"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 96
+      },
+      "id": 61,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum by (\"db.client.connection.state\") ({\"db.client.connection.count\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "legendFormat": "{{db.client.connection.state}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Pool Utilization",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Npgsql connection creation time and command execution duration. High create time = network/PG issue. High command duration = slow queries. These are Npgsql's standard db.client.* metrics, which the metric allowlist in Altinn's environments drops (only altinn.*, http.* and signalr.server.* pass), so this row shows data only locally.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 96
+      },
+      "id": 62,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"db.client.connection.npgsql.create_time_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Connection Create P95",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.95, sum(increase_pure({\"db.client.operation.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Command Duration P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "histogram_quantile(0.50, sum(increase_pure({\"db.client.operation.duration_bucket\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Command Duration P50",
+          "refId": "C"
+        }
+      ],
+      "title": "Latency (P95 / P50)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Currently executing commands, total open connections, and pool max boundary. Executing near pool limit = saturation. These are Npgsql's standard db.client.* metrics, which the metric allowlist in Altinn's environments drops (only altinn.*, http.* and signalr.server.* pass), so this row shows data only locally.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Executing"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 30
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pool Limit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    5
+                  ],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total Connections"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 15
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 96
+      },
+      "id": 63,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"db.client.operation.npgsql.executing\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "legendFormat": "Executing",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"db.client.connection.max\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "legendFormat": "Pool Limit",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum({\"db.client.connection.count\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\", \"db.client.connection.pool.name\"=~\".*Maximum Pool Size.*\"})",
+          "legendFormat": "Total Connections",
+          "refId": "C"
+        }
+      ],
+      "title": "Connections & Pool Limits",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 104
+      },
+      "id": 70,
+      "panels": [],
+      "title": "Lease & Recovery Signals",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of in-flight workflows abandoned because the row's lease token no longer matches at write-back. Non-zero indicates heartbeat lag or aggressive maintenance reclaim — workflows self-heal via reclaim, but downstream side effects may have been duplicated. Reads 0 rather than No data while the engine reports and this has not happened.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 105
+      },
+      "id": 71,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.workflow.execution.lease_lost\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) * 0) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Lease Lost",
+          "refId": "A"
+        }
+      ],
+      "title": "Lease Lost",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of fetched workflows skipped because they were already in-flight on this host — same-host DbMaintenance reclaim raced the main fetch loop. Self-heals on the next maintenance sweep. Reads 0 rather than No data while the engine reports and this has not happened.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 105
+      },
+      "id": 72,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.workflow.fetch.race_dropped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) * 0) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Fetch Race Dropped",
+          "refId": "A"
+        }
+      ],
+      "title": "Fetch Race Dropped",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Rate of fire-and-forget status updates dropped because the update-buffer channel was full. These are real losses (intermediate progress updates) — non-zero signals backpressure exceeding the buffer's capacity. Reads 0 rather than No data while the engine reports and this has not happened.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 105
+      },
+      "id": 73,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "(sum(increase_pure({\"altinn.workflow_engine.update_buffer.dropped\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[$__rate_interval])) or sum({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}) * 0) / ($__rate_interval_ms / 1000)",
+          "legendFormat": "Update Buffer Dropped",
+          "refId": "A"
+        }
+      ],
+      "title": "Update Buffer Dropped",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "Operator actions on workflows the engine had already placed, in the last 5 minutes. Discrete and rare, so a count over the window rather than a per-second rate. Nudged cleared a parked workflow's backoff so it runs on the next fetch cycle instead of when its timer elapses — the engine's push channel, an acceleration that is never load-bearing for correctness. Abandoned wrote off an unsuccessful terminal workflow, which stops it condemning dependents evaluated afterwards and atomically releases its enqueue idempotency key, so replaying the same fingerprint creates a fresh workflow instead of deduplicating onto the write-off.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Nudged"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Abandoned"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 110
+      },
+      "id": 74,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.nudged\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "legendFormat": "Nudged",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.abandoned\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "legendFormat": "Abandoned",
+          "refId": "B"
+        }
+      ],
+      "title": "Operator Interventions",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "altinn-studio-metrics"
+      },
+      "description": "DependencyFailed workflows re-enqueued in the last 5 minutes because their dependencies have all completed since — the engine healing itself, and the only counter on this row nobody triggered by hand. The maintenance sweep that does it runs once a minute, so this lags its cause. On its own panel rather than beside the interventions because abandonments outrun recoveries by two orders of magnitude and would flatten this to the baseline.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Dependency recovered"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 110
+      },
+      "id": 75,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "altinn-studio-metrics"
+          },
+          "expr": "sum(increase_pure({\"altinn.workflow_engine.workflow.execution.dependency_recovered\", \"deployment.environment.name\"=~\"$env\", \"service.name\"=~\"$service\"}[5m]))",
+          "legendFormat": "Dependency recovered",
+          "refId": "A"
+        }
+      ],
+      "title": "Dependency Recovery",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 42,
+  "tags": [
+    "workflow-engine"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "local",
+          "value": "local"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "altinn-studio-metrics"
+        },
+        "definition": "label_values({\"altinn.workflow_engine.health.status\"}, \"deployment.environment.name\")",
+        "description": "The deployment.environment.name of the engines. Locally it is always local.",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Environment",
+        "multi": false,
+        "name": "env",
+        "options": [],
+        "query": {
+          "query": "label_values({\"altinn.workflow_engine.health.status\"}, \"deployment.environment.name\")",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "altinn-studio-metrics"
+        },
+        "definition": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\"}, \"service.name\")",
+        "description": "The engine services to show. All is every engine service reporting in the environment rather than any service, so the Npgsql panels leave out other services' connection pools.",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "query": "label_values({\"altinn.workflow_engine.health.status\", \"deployment.environment.name\"=~\"$env\"}, \"service.name\")",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Workflow Engine",
+  "uid": "gdhhpf"
+}

@@ -1,4 +1,4 @@
-﻿[basic/custom-scopes-placeholders] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337, AuthLevel: 2, AuthMethod: BankID
+﻿[basic/custom-scopes-placeholders] [INFO] ### Request: Instances.PostSimplified - User: User/1337/501337, AuthLevel: 3, AuthMethod: BankID
 [basic/custom-scopes-placeholders] [INFO] IInstantiationValidator.Validate
 [basic/custom-scopes-placeholders] [INFO] IInstantiationProcessor.DataCreation
 [basic/custom-scopes-placeholders] [INFO] IProcessTask.Start

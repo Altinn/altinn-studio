@@ -5,6 +5,7 @@
 # k8s_attributes, which needs a ClusterRole, the pods set their own k8s.* attributes. Without its
 # resource_detection/aks, resource/environment sets k8s.cluster.name from pdf3-environment, and
 # only where it is missing, as the detector doesn't override a value either.
+# The router's resource/service_owner is left out, as DIS Core serves every service owner.
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133 # the kubelet probes the pod IP; the default binds localhost

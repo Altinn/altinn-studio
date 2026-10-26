@@ -47,7 +47,7 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     }
 
     [Fact]
-    public async Task Receipt_OfAReceiverBornOntoABacklogDelivery_CarriesThatMessage()
+    public async Task Receipt_OfAReceiverEnqueuedOntoABacklogDelivery_CarriesThatMessage()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -122,7 +122,7 @@ public sealed class MailboxReceiptTests(PostgresFixture fixture) : IAsyncLifetim
     }
 
     [Fact]
-    public async Task Receipt_OfAReceiverBornOntoAClosedMailbox_IsTheClosingSignal()
+    public async Task Receipt_OfAReceiverEnqueuedOntoAClosedMailbox_IsTheClosingSignal()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);

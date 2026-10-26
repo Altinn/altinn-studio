@@ -7,6 +7,26 @@ import { typedBoolean } from 'src/utils/typing';
 const appFrontend = new AppFrontend();
 
 describe('Options', () => {
+  it('reports a failed options request even when no option is selected', () => {
+    cy.ignoreConsoleMessages([
+      /Failed to fetch options for node reference/,
+      /Request failed with status code 500/,
+      /Exception thrown when rendering node "reference"/,
+    ]);
+    cy.allowFailureOnEnd();
+    cy.intercept({ method: 'GET', pathname: '**/api/options/references', query: { fail: 'true' } }).as('failedOptions');
+    cy.goto('changename');
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', '');
+
+    cy.findByRole('checkbox', { name: 'La lasting av referanser feile' }).check();
+
+    cy.wait('@failedOptions').its('response.statusCode').should('eq', 500);
+    cy.get('[data-fatal-error]').should('contain.text', 'Request failed with status code 500');
+    cy.get(appFrontend.changeOfName.reference, { timeout: 0 }).should('not.exist');
+    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+  });
+
   it('is possible to retrieve options dynamically', () => {
     cy.goto('changename');
     // Case: options are dynamically refetched based on what the user selects as source, so we should wait until

@@ -70,8 +70,7 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
         using var activity = Metrics.Source.StartActivity(
             "WebhookCommand.Execute",
             parentContext: context.ParentTraceContext ?? context.Step.EngineActivity?.Context,
-            kind: ActivityKind.Client,
-            tags: [("command.uri", commandData.Uri)]
+            kind: ActivityKind.Client
         );
 
         using var slot = await _limiter.AcquireHttpSlot(activity?.Context, cancellationToken);

@@ -71,7 +71,7 @@ internal sealed class MailboxDeadlineService(
             catch (Exception ex)
             {
                 consecutiveFailures++;
-                Metrics.Errors.Add(1, ("operation", "mailboxDeadlineSweep"));
+                Metrics.Errors.Add(1, (TelemetryAttributes.Operation, "mailbox_deadline_sweep"));
 
                 var delay = _databaseBackoff.CalculateDelay(consecutiveFailures);
                 logger.MailboxDeadlineSweepFailed(consecutiveFailures, delay, ex.Message, ex);

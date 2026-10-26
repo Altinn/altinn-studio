@@ -114,7 +114,6 @@ export interface WorkflowRequest {
   branch: string;
   allow_app_changes: boolean;
   attachments?: UserAttachment[];
-  repo_url?: string; // Optional - will be built by backend if org/app provided
 }
 
 export interface ParsedIntent {

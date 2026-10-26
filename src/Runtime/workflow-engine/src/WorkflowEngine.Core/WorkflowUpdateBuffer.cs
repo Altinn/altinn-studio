@@ -94,19 +94,10 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     {
         dirtySteps ??= [];
 
-        reason ??= $"workflow.{JsonNamingPolicy.CamelCase.ConvertName(workflow.Status.ToString())}";
-
         using var activity = Metrics.Source.StartActivity(
             "WorkflowUpdateBuffer.Submit",
             parentContext: parentActivity?.Context ?? workflow.EngineActivity?.Context,
-            tags:
-            [
-                ("workflow.database.id", workflow.DatabaseId),
-                ("workflow.operation.id", workflow.OperationId),
-                ("workflow.status", workflow.Status.ToString()),
-                ("dirty.steps.count", dirtySteps.Count),
-                ("submit.reason", reason),
-            ]
+            tags: SubmitTags(workflow, dirtySteps, reason)
         );
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -133,20 +124,11 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
     {
         dirtySteps ??= [];
 
-        reason ??= $"workflow.{JsonNamingPolicy.CamelCase.ConvertName(workflow.Status.ToString())}";
-
         Metrics
             .Source.StartActivity(
                 "WorkflowUpdateBuffer.SubmitAndForget",
                 parentContext: parentActivity?.Context ?? workflow.EngineActivity?.Context,
-                tags:
-                [
-                    ("workflow.database.id", workflow.DatabaseId),
-                    ("workflow.operation.id", workflow.OperationId),
-                    ("workflow.status", workflow.Status.ToString()),
-                    ("dirty.steps.count", dirtySteps.Count),
-                    ("submit.reason", reason),
-                ]
+                tags: SubmitTags(workflow, dirtySteps, reason)
             )
             ?.Dispose();
 
@@ -159,6 +141,26 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             _logger.UpdateBufferDropped(workflow.DatabaseId, workflow.OperationId);
         }
     }
+
+    /// <summary>
+    /// The attributes on a submission's span. Without an explicit <paramref name="reason"/>, the submission is
+    /// the workflow's own write-back, named after its status: <c>workflow_completed</c>, <c>workflow_requeued</c>.
+    /// </summary>
+    private static (string key, object? value)[] SubmitTags(
+        Workflow workflow,
+        IReadOnlyList<Step> dirtySteps,
+        string? reason
+    ) =>
+        [
+            (TelemetryAttributes.WorkflowId, workflow.DatabaseId),
+            (TelemetryAttributes.WorkflowOperationId, workflow.OperationId),
+            (TelemetryAttributes.WorkflowStatus, workflow.Status.ToString()),
+            (TelemetryAttributes.UpdateDirtyStepCount, dirtySteps.Count),
+            (
+                TelemetryAttributes.UpdateReason,
+                reason ?? $"workflow_{JsonNamingPolicy.SnakeCaseLower.ConvertName(workflow.Status.ToString())}"
+            ),
+        ];
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -304,12 +306,11 @@ internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateB
             "WorkflowUpdateBuffer.FlushBatch",
             tags:
             [
-                ("batch.received", batch.Count + deduplicated),
-                ("batch.deduplicated", deduplicated),
-                ("batch.flushed", batch.Count),
-                ("batch.dirty.steps", totalDirtySteps),
-                ("batch.namespaces", distinctNamespaces),
-                ("db.operation", "batch_update_workflows_and_steps"),
+                (TelemetryAttributes.BatchReceivedCount, batch.Count + deduplicated),
+                (TelemetryAttributes.BatchDeduplicatedCount, deduplicated),
+                (TelemetryAttributes.BatchFlushedCount, batch.Count),
+                (TelemetryAttributes.BatchDirtyStepCount, totalDirtySteps),
+                (TelemetryAttributes.BatchNamespaceCount, distinctNamespaces),
             ],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Workflow.EngineTraceContext)).ToActivityLinks()
         );

@@ -24,7 +24,8 @@ internal sealed class NotificationService(
     IContactPointsRepository contactPointsRepository,
     IAltinnNotificationClient altinnNotificationsClient,
     ISlackClient slackClient,
-    AlertsSettings alertsSettings
+    AlertsSettings alertsSettings,
+    NotificationMetrics metrics
 ) : INotificationService
 {
     private const int SlackSectionTextLimit = 3000;
@@ -45,6 +46,7 @@ internal sealed class NotificationService(
     public async Task NotifyInternalAsync(
         string org,
         AltinnEnvironment environment,
+        NotificationKind kind,
         NotificationPayload payload,
         CancellationToken cancellationToken
     )
@@ -52,6 +54,9 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(NotifyInternalAsync)}"
         );
+        activity.SetServiceOwner(org);
+        activity.SetTargetEnvironment(environment.Name);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.Kind, ServiceTelemetry.EnumValue(kind));
         activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
 
         try
@@ -61,9 +66,11 @@ internal sealed class NotificationService(
                 FormatSlackMessage(payload),
                 cancellationToken
             );
+            metrics.RecordInternalDelivery(kind, org, environment, error: null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            metrics.RecordInternalDelivery(kind, org, environment, ex);
             activity?.SetStatus(ActivityStatusCode.Error, "Failed to send internal Slack notification.");
             activity?.AddException(ex);
         }
@@ -72,6 +79,7 @@ internal sealed class NotificationService(
     public async Task NotifyServiceOwnersAsync(
         string org,
         AltinnEnvironment environment,
+        NotificationKind kind,
         NotificationPayload payload,
         CancellationToken cancellationToken
     )
@@ -79,6 +87,7 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(NotifyServiceOwnersAsync)}"
         );
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.Kind, ServiceTelemetry.EnumValue(kind));
         activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
 
         IReadOnlyList<ContactPointEntity> contactPoints;
@@ -100,7 +109,7 @@ internal sealed class NotificationService(
         List<Task<bool>> notificationTasks = contactPoints
             .SelectMany(contactPoint =>
                 contactPoint.Methods.Select(method =>
-                    SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
+                    SendContactMethodAsync(contactPoint, method, environment, kind, payload, cancellationToken)
                 )
             )
             .ToList();
@@ -119,6 +128,10 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(NotifyReportContactPointsAsync)}"
         );
+        activity?.SetTag(
+            ServiceTelemetry.Attributes.Notification.Kind,
+            ServiceTelemetry.EnumValue(NotificationKind.PeriodicReport)
+        );
         activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
 
         IReadOnlyList<ContactPointEntity> contactPoints =
@@ -129,7 +142,14 @@ internal sealed class NotificationService(
                 .Where(cp => cp.ReportFrequency == frequency)
                 .SelectMany(contactPoint =>
                     contactPoint.Methods.Select(method =>
-                        SendContactMethodAsync(contactPoint, method, payload, cancellationToken)
+                        SendContactMethodAsync(
+                            contactPoint,
+                            method,
+                            environment,
+                            NotificationKind.PeriodicReport,
+                            payload,
+                            cancellationToken
+                        )
                     )
                 )
         );
@@ -149,6 +169,8 @@ internal sealed class NotificationService(
     private async Task<bool> SendContactMethodAsync(
         ContactPointEntity contactPoint,
         ContactMethodEntity method,
+        AltinnEnvironment environment,
+        NotificationKind kind,
         NotificationPayload payload,
         CancellationToken cancellationToken
     )
@@ -156,9 +178,15 @@ internal sealed class NotificationService(
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(NotificationService)}.{nameof(SendContactMethodAsync)}"
         );
+        activity.SetServiceOwner(contactPoint.Org);
+        activity.SetTargetEnvironment(environment.Name);
+        activity?.SetTag(ServiceTelemetry.Attributes.Notification.Kind, ServiceTelemetry.EnumValue(kind));
         activity?.SetTag(ServiceTelemetry.Attributes.Notification.Title, payload.Title);
         activity?.SetTag(ServiceTelemetry.Attributes.Notification.ContactPointId, contactPoint.Id);
-        activity?.SetTag(ServiceTelemetry.Attributes.Notification.ContactMethodType, method.MethodType.ToString());
+        activity?.SetTag(
+            ServiceTelemetry.Attributes.Notification.ContactMethodType,
+            ServiceTelemetry.EnumValue(method.MethodType)
+        );
 
         try
         {
@@ -192,10 +220,12 @@ internal sealed class NotificationService(
                     );
                     break;
             }
+            metrics.RecordServiceOwnerDelivery(kind, method.MethodType, contactPoint.Org, environment, error: null);
             return true;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            metrics.RecordServiceOwnerDelivery(kind, method.MethodType, contactPoint.Org, environment, ex);
             activity?.SetStatus(ActivityStatusCode.Error, "Failed to send notification.");
             activity?.AddException(ex);
             return false;

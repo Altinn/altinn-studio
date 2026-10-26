@@ -61,19 +61,51 @@ k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 
 ### perpetual-mix.js
 
-A generator that never stops, whose job is to make every panel on the Grafana dashboard show
-something true. The other scripts measure; this one **populates**. Point it at the playground stack,
-leave it running, and open <http://localhost:7070>.
+A generator that never stops, whose job is to make every panel on the _Workflow Engine_ Grafana
+dashboard show something true. The other scripts measure; this one **populates**. Point it at the
+playground, leave it running, and watch the engine's telemetry wherever the OTLP collector on the
+host sends it. With studioctl's monitoring as the collector, that is the _Workflow Engine_
+dashboard (folder _Altinn Studio_) in studioctl's Grafana, <http://local.altinn.cloud:8000/grafana>,
+with the `workflow-engine-testapp` service selected.
+
+The playground runs its engine in a container or on the host, with the same settings either way. In
+a container:
 
 ```bash
+studioctl env up --monitoring   # once — a collector on the host, and Grafana
 make playground                 # from src/Runtime/workflow-engine — throttling ON, fast windows
 k6 run .k6/perpetual-mix.js     # Ctrl+C to stop
 make playground-stop            # stack down; `make reset` also drops the database volume
 ```
 
-It needs the playground stack rather than `make run` for one reason: the namespace circuit breaker
-ships dark, and without it the throttle arm has nothing to show. See
-`.k6/docker-compose.playground.yaml` for exactly what the overrides change and why.
+On the host, which reaches a collector published on the host's loopback on any OS. A container on
+Docker Engine for Linux cannot, so this is the way to use studioctl's collector there:
+
+```bash
+studioctl env up --monitoring   # once — a collector on the host, and Grafana
+make playground-host            # dependencies up, then the engine in the foreground until Ctrl+C
+k6 run -e WIREMOCK_URL=http://localhost:6060 .k6/perpetual-mix.js   # from a second terminal
+make stop                       # dependencies down, once the engine has stopped
+```
+
+`WIREMOCK_URL` is WireMock as the engine reaches it, and its default, `http://wiremock:8080`,
+resolves only on the compose network. Nothing else changes: k6 reaches the engine and WireMock's
+admin API on `localhost` either way.
+
+It needs the playground rather than `make run` or `make dev` for one reason: the namespace circuit
+breaker ships dark, and without it the throttle arm has nothing to show. Both ways load the same
+settings, from `.k6/playground.env`; it and the header of `.k6/docker-compose.playground.yaml` say
+exactly what they change and why.
+
+The playground has no monitoring of its own: its engine exports to an OTLP collector on the host,
+such as the one studioctl publishes. How, where that does not work, and how to give the dashboard trace
+links, are in [`docs/docker.md`](../docs/docker.md#monitoring).
+
+The playground and studioctl's environment publish no host port in common as long as studioctl runs
+without `--dev-workflow-engine`. That flag publishes studioctl's engine database on port 9543, which
+the playground's `postgres` holds, and routes the environment's engine traffic to port 9090 on the
+host, where the playground's engine listens, in a container or not. Leave it off while the
+playground runs.
 
 Give the throttle panels about eight minutes before reading anything into them. `storm-a` trips
 within a sweep of its first burst and its trip → extend → release → clear arc takes two to three
@@ -83,19 +115,19 @@ the same panel.
 
 Eleven arms run concurrently, each independently tunable. Setting a rate to `0` removes its scenario:
 
-| Arm            | What it produces                                                                                                                                     |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `healthy`      | Webhooks that complete first time — the line the rest is read against                                                                                |
-| `scheduled`    | Webhooks enqueued with a future `startAt`, so a population sits in `Scheduled` until its start time comes round                                      |
-| `flaky`        | Webhooks against a downstream answering 500 to two requests in three, so steps requeue and recover on their own                                      |
-| `doomed`       | Permanent failures: half a non-retryable 422, half a 500 retried until a short budget runs out                                                       |
-| `reaper`       | Abandons a share of those failures, the way an operator writes off work                                                                              |
-| `deferring`    | Durable yield — steps that park in `Waiting` and resume, plus a slice whose wait budget expires                                                      |
-| `nudger`       | Clears the backoff on parked workflows (`Requeued` and `Waiting` alike)                                                                              |
-| `dependencies` | A failed workflow with a dependent, resumed until it completes, so the dependent is dependency-recovered                                             |
-| `mailboxes`    | Full exchanges: mints, receivers born before and after their message, duplicates, four kinds of refusal, closes, and some mailboxes left to time out |
-| `storm`        | One namespace per arm, each with its own switchable WireMock downstream — break it and the breaker trips, repair it and it recovers                  |
-| `monitor`      | The health-poll sidecar the other scripts use                                                                                                        |
+| Arm            | What it produces                                                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `healthy`      | Webhooks that complete first time — the line the rest is read against                                                                                   |
+| `scheduled`    | Webhooks enqueued with a future `startAt`, so a population sits in `Scheduled` until its start time comes round                                         |
+| `flaky`        | Webhooks against a downstream answering 500 to two requests in three, so steps requeue and recover on their own                                         |
+| `doomed`       | Permanent failures: half a non-retryable 422, half a 500 retried until a short budget runs out                                                          |
+| `reaper`       | Abandons a share of those failures, the way an operator writes off work                                                                                 |
+| `deferring`    | Durable yield — steps that park in `Waiting` and resume, plus a slice whose wait budget expires                                                         |
+| `nudger`       | Clears the backoff on parked workflows (`Requeued` and `Waiting` alike)                                                                                 |
+| `dependencies` | A failed workflow with a dependent, resumed until it completes, so the dependent is dependency-recovered                                                |
+| `mailboxes`    | Full exchanges: mints, receivers created before and after their message, duplicates, four kinds of refusal, closes, and some mailboxes left to time out |
+| `storm`        | One namespace per arm, each with its own switchable WireMock downstream — break it and the breaker trips, repair it and it recovers                     |
+| `monitor`      | The health-poll sidecar the other scripts use                                                                                                           |
 
 **The Scheduled panels are a level, not a rate.** `SCHEDULED_RATE` x the mean of the horizon is what
 the population settles at — roughly a hundred at the defaults — so the horizon is the cheaper knob
@@ -108,8 +140,8 @@ inside one tick can be claimed before any sample sees it.
 namespace that stays _absent_ while the storm namespaces come and go, which is the attribution story
 those panels exist to tell. `playground-retries` holds the work that fails, kept apart so a pile of
 retrying workflows can never get the mailbox and durable-yield arms throttled. `storm-a` and
-`storm-b` get one breaker each, their cycles phase-offset by half a period so `by (namespace)` shows
-two series in different phases at once.
+`storm-b` get one breaker each, their cycles phase-offset by half a period so a split by namespace
+shows two series in different phases at once.
 
 **How the storm works.** `setup()` gives each storm namespace its own WireMock target backed by a
 two-state scenario, and the arm switches that scenario as it goes. It breaks the target, fires a batch
@@ -125,8 +157,8 @@ back empty and the breaker clears. So `tripped`, `extended`, `handler_parked`, `
 **`STORM_RETRY_BUDGET` must comfortably outlast `STORM_DOWN_SECONDS`,** and this is the one setting
 that is easy to get wrong. If the parked workflows die of exhausted retries before the downstream
 comes back, recovery opens onto an empty parked population, releases nothing, and jumps straight from
-Tripped to Clear — leaving `engine.throttle.released` flat and the recovery panel empty. That is not
-hypothetical: it is what the first version of this arm did.
+Tripped to Clear — leaving `altinn.workflow_engine.throttle.released` flat and the recovery panel
+empty. That is not hypothetical: it is what the first version of this arm did.
 
 The two stubs per namespace cannot be committed as mapping files the way `/flaky` and
 `/permanent-error` are, because there is one pair per entry in `STORM_NAMESPACES` and that list is
@@ -239,15 +271,16 @@ The three storm arms are those three consequences:
   shape: concurrent deliveries to one mailbox serialize on that mailbox's row, which every delivery
   locks. The 429s it collects are the cap doing its job.
 - `early_deliveries` — the message posted **before** its receiver is enqueued, so the enqueue flush
-  finds `seq < next_idx` under the mailbox row lock and the receiver is born runnable carrying its
+  finds `seq < next_idx` under the mailbox row lock and the receiver is created runnable carrying its
   backlog delivery. No wake is involved at all. Together with the relay arm this covers both
   interleavings of the design's central race, of which there are exactly two.
 
-Birth state is **sampled, not asserted**: the enqueue response carries no status, so every
-`BIRTH_SAMPLE_EVERY`-th receiver is read back (before its message can change the answer, in the relay
-arm's case) and the rates are reported as `receiver_born_held` / `receiver_born_runnable`. That is a
-weaker instrument than v2's, which read the status straight off the ingestion response, and the
-comparator's fidelity assertions say so by gating on the sampled rate rather than on a count.
+The enqueue outcome is **sampled, not asserted**: the enqueue response carries no status, so every
+`ENQUEUE_OUTCOME_SAMPLE_EVERY`-th receiver is read back (before its message can change the answer, in
+the relay arm's case) and the rates are reported as `receiver_created_held` /
+`receiver_created_runnable`. That is a weaker instrument than v2's, which read the status straight off
+the ingestion response, and the comparator's fidelity assertions say so by gating on the sampled rate
+rather than on a count.
 
 Run every arm and apply the gates with the wrapper — a single `k6 run` produces one arm only:
 
@@ -472,26 +505,26 @@ aimed at one of the plan's claims:
 
 Variables of `mailbox-storm.js` (the wrapper passes the first eight through):
 
-| Variable                 | Default       | Description                                                                                |
-| ------------------------ | ------------- | ------------------------------------------------------------------------------------------ |
-| `MODE`                   | `storm`       | `baseline`, `storm`, `control`, or `low`                                                   |
-| `DURATION`               | `3m`          | Scenario duration                                                                          |
-| `BASELINE_RATE`          | `100`         | Ordinary (non-mailbox) workflow enqueues per second (wrapper: 200)                         |
-| `EXCHANGE_RATE`          | `25`          | Relay exchanges started per second                                                         |
-| `BUFFER_RATE`            | `25`          | Deliveries per second into one mailbox with no receiver, to the log cap                    |
-| `EARLY_RATE`             | `5`           | Message-before-receiver exchanges per second                                               |
-| `CONTROL_RATE`           | `80`          | Extra ordinary workflows per second in `MODE=control`                                      |
-| `CONTROL_SHAPE`          | `webhook`     | `webhook` (a receive workflow minus its mailbox block) or `inproc` (an in-process step)    |
-| `RESULTS_DIR`            | `.k6/results` | Where the per-run JSON summary is written                                                  |
-| `RUN_TAG`                | _(empty)_     | Suffix for the summary filename, so repeats do not overwrite                               |
-| `MESSAGES_PER_EXCHANGE`  | `2`           | Messages per relay exchange; the last one is followed by the `DELETE`                      |
-| `LOW_GAP`                | `0.2`         | Seconds of idle between one measured request and the next in `MODE=low`                    |
-| `MAILBOX_TIMEOUT`        | `01:00:00`    | Declared mailbox timeout; below the run length the deadline sweep joins in                 |
-| `REPLAY_EVERY`           | `10`          | Re-post message 0's `idempotencyKey` on every Nth exchange (`0` disables); asserts the 200 |
-| `BIRTH_SAMPLE_EVERY`     | `10`          | Read back every Nth receiver's birth state (`0` disables)                                  |
-| `DELIVERY_PAYLOAD_BYTES` | `2048`        | Message payload size, stored verbatim in `mailbox_deliveries.payload`                      |
-| `MONITOR_INTERVAL`       | `2`           | Seconds between backlog/health samples                                                     |
-| `MAILBOX_URL`            | derived       | Mailbox endpoint base, derived from `NAMESPACE`                                            |
+| Variable                       | Default       | Description                                                                                |
+| ------------------------------ | ------------- | ------------------------------------------------------------------------------------------ |
+| `MODE`                         | `storm`       | `baseline`, `storm`, `control`, or `low`                                                   |
+| `DURATION`                     | `3m`          | Scenario duration                                                                          |
+| `BASELINE_RATE`                | `100`         | Ordinary (non-mailbox) workflow enqueues per second (wrapper: 200)                         |
+| `EXCHANGE_RATE`                | `25`          | Relay exchanges started per second                                                         |
+| `BUFFER_RATE`                  | `25`          | Deliveries per second into one mailbox with no receiver, to the log cap                    |
+| `EARLY_RATE`                   | `5`           | Message-before-receiver exchanges per second                                               |
+| `CONTROL_RATE`                 | `80`          | Extra ordinary workflows per second in `MODE=control`                                      |
+| `CONTROL_SHAPE`                | `webhook`     | `webhook` (a receive workflow minus its mailbox block) or `inproc` (an in-process step)    |
+| `RESULTS_DIR`                  | `.k6/results` | Where the per-run JSON summary is written                                                  |
+| `RUN_TAG`                      | _(empty)_     | Suffix for the summary filename, so repeats do not overwrite                               |
+| `MESSAGES_PER_EXCHANGE`        | `2`           | Messages per relay exchange; the last one is followed by the `DELETE`                      |
+| `LOW_GAP`                      | `0.2`         | Seconds of idle between one measured request and the next in `MODE=low`                    |
+| `MAILBOX_TIMEOUT`              | `01:00:00`    | Declared mailbox timeout; below the run length the deadline sweep joins in                 |
+| `REPLAY_EVERY`                 | `10`          | Re-post message 0's `idempotencyKey` on every Nth exchange (`0` disables); asserts the 200 |
+| `ENQUEUE_OUTCOME_SAMPLE_EVERY` | `10`          | Read back every Nth receiver's enqueue outcome (`0` disables)                              |
+| `DELIVERY_PAYLOAD_BYTES`       | `2048`        | Message payload size, stored verbatim in `mailbox_deliveries.payload`                      |
+| `MONITOR_INTERVAL`             | `2`           | Seconds between backlog/health samples                                                     |
+| `MAILBOX_URL`                  | derived       | Mailbox endpoint base, derived from `NAMESPACE`                                            |
 
 Variables of `mailbox-storm-compare.sh`:
 
@@ -549,7 +582,7 @@ mailboxes minted, 5 402
 closed, 9 903 receivers (55.0/s), 14 364 accepted deliveries (79.8/s)** of which 4 461 buffered;
 450 replays, every one answering `200`; 39 log-cap `429`s; **0** late `409`s and **0** unroutable
 `404`s. Every relay receiver reached `Completed` and **none was left `Held`**; the sampled
-`receiver_born_held` and `receiver_born_runnable` rates were **1.000** in every run.
+`receiver_created_held` and `receiver_created_runnable` rates were **1.000** in every run.
 
 **One run is excluded from the control arm's latency table. The suite identified it; a human excluded
 it.** `control-5` took 48 dropped iterations against 0 in every other run of both sessions, and a 165 ms

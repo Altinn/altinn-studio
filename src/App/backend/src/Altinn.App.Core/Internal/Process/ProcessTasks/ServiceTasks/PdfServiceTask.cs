@@ -2,8 +2,10 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Microsoft.Extensions.Logging;
 
@@ -17,6 +19,7 @@ internal interface IPdfServiceTask : IServiceTask { }
 internal sealed class PdfServiceTask : IPdfServiceTask
 {
     private readonly IPdfService _pdfService;
+    private readonly ITranslationService _translationService;
     private readonly IProcessReader _processReader;
     private readonly IAppResources _appResources;
     private readonly ILogger<PdfServiceTask> _logger;
@@ -26,12 +29,14 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// </summary>
     public PdfServiceTask(
         IPdfService pdfService,
+        ITranslationService translationService,
         IProcessReader processReader,
         IAppResources appResources,
         ILogger<PdfServiceTask> logger
     )
     {
         _pdfService = pdfService;
+        _translationService = translationService;
         _processReader = processReader;
         _appResources = appResources;
         _logger = logger;
@@ -43,7 +48,8 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// <inheritdoc/>
     public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
     {
-        string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
+        IInstanceDataMutator dataMutator = context.InstanceDataMutator;
+        string taskId = dataMutator.Instance.Process.CurrentTask.ElementId;
 
         _logger.LogDebug("Calling PdfService for PDF Service Task {TaskId}.", LogSanitizer.Sanitize(taskId));
 
@@ -57,12 +63,28 @@ internal sealed class PdfServiceTask : IPdfServiceTask
             return ServiceTaskResult.FailedPermanent(reason);
         }
 
-        _ = await _pdfService.GenerateAndStorePdf(
-            context.InstanceDataMutator,
-            config.FilenameTextResourceKey,
+        // The actor's language, the one the user chose for the transition, or nb if it has none
+        byte[] pdf = await _pdfService.GeneratePdf(
+            dataMutator.Instance,
+            taskId,
+            dataMutator.Language ?? LanguageConst.Nb,
             config.AutoPdfTaskIds,
-            StorageAuthenticationMethod.ServiceOwner(),
+            authenticationMethod: StorageAuthenticationMethod.ServiceOwner(),
             cancellationToken: context.CancellationToken
+        );
+        string fileName = await PdfFileNameResolver.GetFileName(
+            _translationService,
+            dataMutator,
+            config.FilenameTextResourceKey
+        );
+
+        // Generated from the task, so the PDF is removed if the task starts again
+        dataMutator.AddBinaryDataElement(
+            PdfService.PdfElementType,
+            PdfService.PdfContentType,
+            fileName,
+            pdf,
+            generatedFromTask: taskId
         );
 
         _logger.LogDebug(

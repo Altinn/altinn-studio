@@ -67,6 +67,8 @@ export const branchStatus: BranchStatus = {
     author: '',
     committer: '',
     id: '',
+    message: '',
+    timestamp: '',
   },
   name: '',
 };

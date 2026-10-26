@@ -13,6 +13,11 @@ namespace WorkflowEngine.Telemetry.Extensions;
 /// </summary>
 public static class TelemetryExtensions
 {
+    /// <summary>
+    /// The <c>error.type</c> of a failure that has no more specific class: the semantic conventions' fallback.
+    /// </summary>
+    public const string OtherErrorType = "_OTHER";
+
     extension(ActivitySource source)
     {
         /// <summary>
@@ -91,44 +96,43 @@ public static class TelemetryExtensions
     extension(Activity activity)
     {
         /// <summary>
-        /// Sets the activity status to error and associates the specified exception with the activity, if applicable.
+        /// Marks the activity as failed by <paramref name="exception"/>: status Error with the exception's message,
+        /// and <c>error.type</c> set to the exception's full type name.
         /// </summary>
-        public void Errored(
-            Exception? exception = null,
-            string? errorMessage = null,
-            IEnumerable<(string tag, object? value)>? tags = null,
-            IEnumerable<ActivityEvent>? events = null
-        )
+        /// <remarks>
+        /// The exception is not recorded on the span. Its details, stack trace included, belong in an ERROR log
+        /// written in the same trace, by the caller or wherever the exception ends up handled.
+        /// </remarks>
+        public void Errored(Exception exception)
         {
-            activity.SetStatus(ActivityStatusCode.Error, errorMessage ?? exception?.Message);
-            if (exception is not null)
-            {
-                activity.AddException(exception);
-            }
-
-            if (tags is not null)
-            {
-                foreach (var (tag, value) in tags)
-                {
-                    activity.SetTag(tag, value);
-                }
-            }
-
-            if (events is not null)
-            {
-                foreach (var @event in events)
-                {
-                    activity.AddEvent(@event);
-                }
-            }
+            activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+            activity.SetTag(TelemetryAttributes.ErrorType, exception.GetType().FullName ?? exception.GetType().Name);
         }
 
         /// <summary>
-        /// Explicitly sets the activity status to successful (overrides past .Errored() calls).
+        /// Marks the activity as failed without an exception: status Error with <paramref name="errorMessage"/>,
+        /// and <c>error.type</c> set to <paramref name="errorType"/>.
+        /// </summary>
+        /// <param name="errorType">
+        /// The class of the failure: a low-cardinality reason the engine already names at the call site, such as
+        /// <c>lease_lost</c> or <c>canceled</c>, or <see cref="OtherErrorType"/> when there is none. Never a
+        /// value from a request.
+        /// </param>
+        /// <param name="errorMessage">The span's status description.</param>
+        public void Errored(string errorType, string? errorMessage = null)
+        {
+            activity.SetStatus(ActivityStatusCode.Error, errorMessage);
+            activity.SetTag(TelemetryAttributes.ErrorType, errorType);
+        }
+
+        /// <summary>
+        /// Explicitly sets the activity status to successful, overriding an earlier <c>Errored</c> call along with
+        /// the <c>error.type</c> it set.
         /// </summary>
         public void Succeeded()
         {
             activity.SetStatus(ActivityStatusCode.Ok);
+            activity.SetTag(TelemetryAttributes.ErrorType, null);
         }
 
         /// <summary>

@@ -97,14 +97,15 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     public async Task<ReportMetrics> GetReportMetricsAsync(
         string org,
         AltinnEnvironment environment,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     )
     {
         using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
         var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
         string requestUrl =
-            $"{baseUrl}/runtime/gateway/api/v1/metrics/report?range={range}&originEnvironment={Uri.EscapeDataString(_generalSettings.OriginEnvironment)}";
+            $"{baseUrl}/runtime/gateway/api/v1/metrics/report?from={FormatQueryTime(from)}&to={FormatQueryTime(to)}&originEnvironment={Uri.EscapeDataString(_generalSettings.OriginEnvironment)}";
 
         return await client.GetFromJsonAsync<ReportMetrics>(requestUrl, cancellationToken) ?? new ReportMetrics();
     }
@@ -505,4 +506,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
     }
 
     private record TriggerReconcileRequest(bool IsUndeploy);
+
+    private static string FormatQueryTime(DateTimeOffset value) =>
+        Uri.EscapeDataString(value.ToString("O", CultureInfo.InvariantCulture));
 }

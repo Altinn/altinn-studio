@@ -31,7 +31,8 @@ public interface IRuntimeGatewayClient
     Task<ReportMetrics> GetReportMetricsAsync(
         string org,
         AltinnEnvironment environment,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     );
     Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(

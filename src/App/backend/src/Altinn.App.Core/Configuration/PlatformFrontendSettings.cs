@@ -4,6 +4,11 @@ namespace Altinn.App.Core.Configuration;
 /// Platform-controlled configuration values exposed to the frontend via the bootstrap global data.
 /// Populated from Kubernetes ConfigMaps/environment variables using the section name "PlatformFrontendSettings".
 /// </summary>
+/// <remarks>
+/// The app frontend takes every platform link from these URLs and never derives one from the page's host. A link whose
+/// URL is null (or empty) is still shown, visibly marked as not configured, and clicking it names the missing setting
+/// instead of navigating, so a misconfigured environment is obvious rather than masked.
+/// </remarks>
 internal class PlatformFrontendSettings
 {
     /// <summary>
@@ -22,7 +27,7 @@ internal class PlatformFrontendSettings
     public Uri HelpCircleIllustrationUrl { get; set; } = new("https://altinncdn.no/img/illustration-help-circle.svg");
 
     /// <summary>
-    /// URL that logs the user out of Altinn.
+    /// URL that logs the user out of Altinn. Null shows the logout link as not configured.
     /// </summary>
     public string? LogoutUrl { get; set; }
 
@@ -37,13 +42,13 @@ internal class PlatformFrontendSettings
     public string? UpgradeAuthenticationLevelUrl { get; set; }
 
     /// <summary>
-    /// URL of the Altinn overview of all forms. Null hides the link to it.
+    /// URL of the Altinn overview of all forms. Null shows the link to it as not configured.
     /// </summary>
     public string? AllFormsUrl { get; set; }
 
     /// <summary>
     /// URL of the Altinn 3 "arbeidsflate" inbox. Null in environments where the arbeidsflate is not
-    /// deployed, which hides every link to it.
+    /// deployed, which shows every link to it as not configured.
     /// </summary>
     /// <remarks>
     /// This and the other arbeidsflate URLs are templates rather than <see cref="Uri"/>s: the frontend substitutes the
@@ -59,7 +64,7 @@ internal class PlatformFrontendSettings
     public string? ArbeidsflateDialogUrl { get; set; }
 
     /// <summary>
-    /// URL of the user profile in the arbeidsflate.
+    /// URL of the user profile in the arbeidsflate. Null shows the link to it as not configured.
     /// </summary>
     public string? ArbeidsflateProfileUrl { get; set; }
 
@@ -71,17 +76,18 @@ internal class PlatformFrontendSettings
     public string? AccessManagementChangeAndRedirectUrl { get; set; }
 
     /// <summary>
-    /// URL of the access management front page, where users can see who can delegate rights. Null hides the link to it.
+    /// URL of the access management front page, where users can see who can delegate rights. Null shows the link to
+    /// it as not configured.
     /// </summary>
     public string? AccessManagementUrl { get; set; }
 
     /// <summary>
-    /// URL of the Altinn help page about roles and rights. Null hides the link to it.
+    /// URL of the Altinn help page about roles and rights. Null shows the link to it as not configured.
     /// </summary>
     public string? RolesAndRightsHelpUrl { get; set; }
 
     /// <summary>
-    /// URL of the arbeidsflate profile settings for parties. Null hides the link to it.
+    /// URL of the arbeidsflate profile settings for parties. Null shows the link to it as not configured.
     /// </summary>
     public string? ArbeidsflatePartiesUrl { get; set; }
 }

@@ -213,18 +213,7 @@ public class AssistantProxyHubTests
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
-        _apiKeyServiceMock
-            .Setup(a =>
-                a.CreateAsync(
-                    TestDeveloper,
-                    It.IsAny<string>(),
-                    It.IsAny<ApiKeyType>(),
-                    It.IsAny<DateTimeOffset>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(("test-api-key", new ApiKey()));
+        SetupApiKey();
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
 
@@ -254,9 +243,82 @@ public class AssistantProxyHubTests
 
     private void SetupAssistantAccess(string org, bool hasAccess)
     {
+        SetupCostOrg(org, resolvedCostOrg: hasAccess ? org : null);
+    }
+
+    private void SetupCostOrg(string org, string resolvedCostOrg)
+    {
         _canUseAiAssistantEvaluatorMock
-            .Setup(e => e.CanUseFeatureAsync(org, It.IsAny<string>()))
-            .ReturnsAsync(hasAccess);
+            .Setup(e => e.ResolveCostOrg(org, It.IsAny<string>()))
+            .ReturnsAsync(resolvedCostOrg);
+    }
+
+    private void SetupApiKey()
+    {
+        _apiKeyServiceMock
+            .Setup(a =>
+                a.CreateAsync(
+                    TestDeveloper,
+                    It.IsAny<string>(),
+                    It.IsAny<ApiKeyType>(),
+                    It.IsAny<DateTimeOffset>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(("test-api-key", new ApiKey()));
+    }
+
+    [Fact]
+    public async Task StartWorkflow_ForwardsRepoUrlAndResolvedCostOrg()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        SetupApiKey();
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestOrg,
+                app = TestApp,
+            }
+        );
+
+        await hub.StartWorkflow(request);
+
+        JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
+        Assert.Equal(TestOrg, forwarded.GetProperty("cost_org").GetString());
+        Assert.Equal($"http://test-repos/{TestOrg}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
+    }
+
+    [Fact]
+    public async Task StartWorkflow_ForwardsResolvedCostOrg_IgnoringCostOrgFromClient()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestDeveloper, TestApp);
+        SetupCostOrg(TestDeveloper, resolvedCostOrg: "nfk");
+        SetupApiKey();
+        var hub = CreateHub();
+        await hub.RegisterSession(TestDeveloper, TestApp, threadId.ToString());
+
+        var request = JsonSerializer.SerializeToElement(
+            new
+            {
+                session_id = threadId.ToString(),
+                org = TestDeveloper,
+                app = TestApp,
+                cost_org = "other-org",
+            }
+        );
+
+        await hub.StartWorkflow(request);
+
+        JsonElement forwarded = Assert.Single(_agentHttpHandler.RequestBodies);
+        Assert.Equal("nfk", forwarded.GetProperty("cost_org").GetString());
+        Assert.Equal($"http://test-repos/{TestDeveloper}/{TestApp}.git", forwarded.GetProperty("repo_url").GetString());
     }
 
     private void SetupThreadOwnership(Guid threadId, string org, string app)
@@ -322,15 +384,22 @@ public class AssistantProxyHubTests
     {
         public List<HttpRequestMessage> Requests { get; } = new();
 
-        protected override Task<HttpResponseMessage> SendAsync(
+        public List<JsonElement> RequestBodies { get; } = new();
+
+        protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
         )
         {
             Requests.Add(request);
-            return Task.FromResult(
-                new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"accepted": true}""") }
-            );
+            if (request.Content != null)
+            {
+                RequestBodies.Add(
+                    JsonSerializer.Deserialize<JsonElement>(await request.Content.ReadAsStringAsync(cancellationToken))
+                );
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"accepted": true}""") };
         }
     }
 

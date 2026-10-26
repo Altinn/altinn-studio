@@ -1,0 +1,2 @@
+# The repositories the base image's agent-workspace-init.service clones into /home/agent/code at boot.
+Altinn/altinn-studio
