@@ -390,6 +390,7 @@ func (c *RunCommand) runDotnet(
 		os.Environ(),
 		topology,
 		appsvc.DotnetRunOptions{
+			OTLPCollector:           runningOTLPCollector(ctx, c.out, topology),
 			RandomHostPort:          flags.randomHostPort,
 			AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
 		},
@@ -1338,6 +1339,7 @@ func (c *RunCommand) runDocker(
 ) error {
 	result := target.Detection
 	spec, specErr := c.service.BuildDockerRunSpec(result, args, topology, appsvc.DockerRunOptions{
+		OTLPCollector:           runningOTLPCollector(ctx, c.out, topology),
 		ImageTag:                flags.imageTag,
 		RandomHostPort:          flags.randomHostPort,
 		AppFrontendAssetBaseUrl: runAppFrontendAssetBaseUrl(topology, flags),
