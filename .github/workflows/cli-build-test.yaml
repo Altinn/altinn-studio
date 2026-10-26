@@ -6,6 +6,8 @@ on:
     paths:
       - "src/cli/**"
       - "src/Runtime/common/dotnet/**"
+      # studioctl imports Go packages from devenv through a go.mod replace directive.
+      - "src/Runtime/devenv/**"
       - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
       - "!**/AGENTS.md"

@@ -14,6 +14,11 @@ on:
       - 'src/cli/**'
       - '!src/cli/**/*.md'
       - 'src/Runtime/common/dotnet/**'
+      # Only the devenv packages compiled into studioctl; the rest of devenv never ships in it.
+      - 'src/Runtime/devenv/pkg/container/**'
+      - 'src/Runtime/devenv/pkg/processutil/**'
+      - 'src/Runtime/devenv/pkg/resource/**'
+      - '!src/Runtime/devenv/**/*.md'
       - '.github/workflows/cli-changelog.yaml'
 
 concurrency:
