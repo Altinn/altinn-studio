@@ -1,7 +1,7 @@
 ## Health utility
 
 Run health checks and commands across Kubernetes clusters from `src/tools/health`.
-Requires Go 1.26.4, `kubectl`, and `az` logged into an account with cluster access.
+Requires the Go release named in `go.mod`, `kubectl`, and `az` logged into an account with cluster access.
 Run `az graph query -h` once to install the Resource Graph extension if prompted.
 
 ### Usage

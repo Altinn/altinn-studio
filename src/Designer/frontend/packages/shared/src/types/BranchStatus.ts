@@ -21,6 +21,8 @@ export interface BranchStatus {
     author: any; //unused
     committer: any; //unused
     id: string;
+    message: string;
+    timestamp: string;
   };
   name: string;
 }

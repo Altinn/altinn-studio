@@ -10,6 +10,7 @@ import type { GridCell, GridRows, ITableColumnFormatting } from '@app/layout-con
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
+import { usePdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -30,6 +31,7 @@ import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryCo
 import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles, useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -56,12 +58,18 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const title = summaryTitle || resolvedTitle;
   const tableIds = useTableComponentIds(baseComponentId);
   const hiddenColumns = useHiddenColumns(config.tableColumns);
+  const pdfExclusions = usePdfExclusions();
   const columnSettings = Object.fromEntries(
     Object.entries(config.tableColumns ?? {}).map(([id, column]) => [
       id,
       { ...column, hidden: hiddenColumns.includes(id) },
     ]),
   );
+  if (pdfModeActive) {
+    for (const id of pdfExclusions.components) {
+      columnSettings[id] = { ...columnSettings[id], hidden: true };
+    }
+  }
   const showEditColumn = !pdfModeActive && !isSmall;
   return (
     <div
@@ -267,7 +275,17 @@ type DataCellProps = {
   errors: ReturnType<typeof useDeepValidationsForNode>;
 };
 
-function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
+function DataCell(props: DataCellProps) {
+  const hidden = useIsHidden(props.baseComponentId);
+  return hidden ? <HiddenDataCell /> : <VisibleDataCell {...props} />;
+}
+
+function HiddenDataCell() {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  return <Table.Cell />;
+}
+
+function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
   const { langAsString } = useLanguage();
   const headerTitle = langAsString(useTableTitle(baseComponentId));
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);

@@ -19,7 +19,7 @@ internal sealed class MailboxReceiverEntity
     public Guid WorkflowId { get; set; }
 
     /// <summary>
-    /// When the receiver parked; <c>null</c> when it was born runnable. What keeps the wake-to-claim histogram
+    /// When the receiver parked; <c>null</c> when it was created runnable. What keeps the wake-to-claim histogram
     /// measuring a wake, and what tells "waiting" from "ran straight away" after settlement.
     /// </summary>
     public DateTimeOffset? HeldAt { get; set; }

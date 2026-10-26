@@ -14,7 +14,7 @@ export const useRepoCommitAndPushMutation = (owner: string, app: string) => {
       }),
     onSuccess: () => {
       q.invalidateQueries({ queryKey: [QueryKey.RepoStatus, owner, app] }).then();
-      q.invalidateQueries({ queryKey: [QueryKey.BranchStatus, owner, app, 'master'] }).then();
+      q.invalidateQueries({ queryKey: [QueryKey.BranchStatus, owner, app] }).then();
     },
   });
 };

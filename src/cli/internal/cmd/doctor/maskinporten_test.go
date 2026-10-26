@@ -122,7 +122,7 @@ func TestBuildDisk_WithAnUnidentifiableApp_DoesNotReportIssues(t *testing.T) {
 	withoutApp := service.buildDisk(&App{Found: false})
 
 	for _, check := range withApp.Checks {
-		if check.ID == maskinportenCheckID {
+		if check.ID == DiskCheckMaskinportenClient {
 			t.Fatalf("maskinporten check present for an app with no readable id: %+v", check)
 		}
 	}
@@ -142,7 +142,7 @@ func TestBuildDisk_WithoutADetectedApp_OmitsTheMaskinportenCheck(t *testing.T) {
 	disk := service.buildDisk(&App{Found: false})
 
 	for _, check := range disk.Checks {
-		if check.ID == maskinportenCheckID {
+		if check.ID == DiskCheckMaskinportenClient {
 			t.Fatalf("maskinporten check present without a detected app: %+v", check)
 		}
 	}
@@ -157,7 +157,7 @@ func TestBuildDisk_WithADetectedApp_IncludesTheMaskinportenCheck(t *testing.T) {
 
 	var found bool
 	for _, check := range disk.Checks {
-		if check.ID == maskinportenCheckID {
+		if check.ID == DiskCheckMaskinportenClient {
 			found = true
 		}
 	}

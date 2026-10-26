@@ -161,7 +161,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:6.0.5"
     classnames: "npm:2.5.1"
     date-fns: "npm:4.4.0"
-    dompurify: "npm:3.4.16"
+    dompurify: "npm:3.4.17"
     eslint: "npm:10.8.1"
     eslint-config-prettier: "npm:10.1.8"
     eslint-plugin-import: "npm:2.32.0"
@@ -186,7 +186,7 @@ __metadata:
     react-dom: "npm:19.2.8"
     react-dropzone: "npm:15.0.0"
     react-number-format: "npm:5.4.5"
-    storybook: "npm:10.5.10"
+    storybook: "npm:10.6.2"
     typescript: "npm:@typescript/typescript6@6.0.2"
     typescript-plugin-css-modules: "npm:5.2.0"
     vite: "npm:8.2.2"
@@ -3123,9 +3123,9 @@ __metadata:
   linkType: hard
 
 "@oddbird/popover-polyfill@npm:^0.7.0":
-  version: 0.7.2
-  resolution: "@oddbird/popover-polyfill@npm:0.7.2"
-  checksum: 10/87d807d3d2525b2f2bb069d505dcc9408d9d571abf8cd639760fe091786535e9f2ea9d5026c6446f0de22d01beae3ea4e57b80721801ad0014e89ef3fa97bc94
+  version: 0.7.3
+  resolution: "@oddbird/popover-polyfill@npm:0.7.3"
+  checksum: 10/ecf5c31f04413cf14acceb5b4b1286aed386b49a4554f1ec812b5bf72617a60e4170d49f01fe346cdb8f3fedbc4fb8e3769fc791b4ba6a20e76f758015e998ad
   languageName: node
   linkType: hard
 
@@ -4761,7 +4761,7 @@ __metadata:
   resolution: "@studio/assistant@workspace:src/Designer/frontend/libs/studio-assistant"
   dependencies:
     "@studio/components": "workspace:^"
-    dompurify: "npm:^3.2.6"
+    dompurify: "npm:^3.4.17"
     marked: "npm:^17.0.6"
   languageName: unknown
   linkType: soft
@@ -5262,15 +5262,6 @@ __metadata:
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
   checksum: 10/afeb8ecb496c35c51a5cac0c94266808cfff748022c868a7682712d58cce6a93b649d1a667bb0b134ab93d9ce5bc9d113bfb28436b7f1b89203e589120b087d2
-  languageName: node
-  linkType: hard
-
-"@testing-library/user-event@npm:^14.6.1":
-  version: 14.6.1
-  resolution: "@testing-library/user-event@npm:14.6.1"
-  peerDependencies:
-    "@testing-library/dom": ">=7.21.4"
-  checksum: 10/34b74fff56a0447731a94b40d4cf246deb8dbc1c1e3aec93acd1c3377a760bb062e979f1572bb34ec164ad28ee2a391744b42d0d6d6cc16c4ce527e5e09610e1
   languageName: node
   linkType: hard
 
@@ -9146,15 +9137,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.16, dompurify@npm:^3.2.6, dompurify@npm:^3.4.12":
-  version: 3.4.16
-  resolution: "dompurify@npm:3.4.16"
+"dompurify@npm:3.4.17, dompurify@npm:^3.4.12, dompurify@npm:^3.4.17":
+  version: 3.4.17
+  resolution: "dompurify@npm:3.4.17"
   dependencies:
     "@types/trusted-types": "npm:^2.0.7"
   dependenciesMeta:
     "@types/trusted-types":
       optional: true
-  checksum: 10/a571d0e2bede4f739666afd640398a86854abd27c71ce0724910249e2fd2ca7ddb8098a9ab579d3a5b39058419af694421f8fe859a81fd6d8acda16019a8ab9d
+  checksum: 10/ae03c068bd351d1201a24a9667cb302c65939f45a0c357edec8b84133108e19ac74f355c2d8b0f30baadadd7f0be2db300d269aa80d3ee15872712ca9ff4e1a8
   languageName: node
   linkType: hard
 
@@ -15963,7 +15954,7 @@ __metadata:
   resolution: "resourceadm@workspace:src/Designer/frontend/resourceadm"
   dependencies:
     "@typescript/native": "npm:typescript@7.0.2"
-    dompurify: "npm:^3.2.6"
+    dompurify: "npm:^3.4.17"
     html-react-parser: "npm:^6.0.0"
     markdown-to-jsx: "npm:7.7.17"
     react: "npm:19.2.8"
@@ -16836,44 +16827,6 @@ __metadata:
     es-errors: "npm:^1.3.0"
     internal-slot: "npm:^1.1.0"
   checksum: 10/ff36c4db171ee76c936ccfe9541946b77017f12703d4c446652017356816862d3aa029a64e7d4c4ceb484e00ed4a81789333896390d808458638f3a216aa1f41
-  languageName: node
-  linkType: hard
-
-"storybook@npm:10.5.10":
-  version: 10.5.10
-  resolution: "storybook@npm:10.5.10"
-  dependencies:
-    "@storybook/global": "npm:^5.0.0"
-    "@storybook/icons": "npm:^2.0.2"
-    "@testing-library/dom": "npm:^10.4.1"
-    "@testing-library/jest-dom": "npm:6.9.1"
-    "@testing-library/user-event": "npm:^14.6.1"
-    "@vitest/expect": "npm:3.2.4"
-    "@vitest/spy": "npm:3.2.4"
-    "@webcontainer/env": "npm:^1.1.1"
-    esbuild: "npm:^0.18.0 || ^0.19.0 || ^0.20.0 || ^0.21.0 || ^0.22.0 || ^0.23.0 || ^0.24.0 || ^0.25.0 || ^0.26.0 || ^0.27.0 || ^0.28.0"
-    jsonc-parser: "npm:^3.3.1"
-    open: "npm:^10.2.0"
-    oxc-parser: "npm:^0.127.0"
-    oxc-resolver: "npm:11.21.2"
-    recast: "npm:^0.23.5"
-    semver: "npm:^7.7.3"
-    use-sync-external-store: "npm:^1.5.0"
-    ws: "npm:^8.21.1"
-  peerDependencies:
-    "@types/react": ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    prettier: ^2 || ^3
-    vite-plus: ^0.1.15 || ^0.2.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    prettier:
-      optional: true
-    vite-plus:
-      optional: true
-  bin:
-    storybook: ./dist/bin/dispatcher.js
-  checksum: 10/b85093a512ff500a14ad56e950c14baa7cf01b17f4e53e76f0305f7ed6495089d52776a470b49a34ce31d4fbc20f9967021e14d7bc7515220462f979030e7738
   languageName: node
   linkType: hard
 

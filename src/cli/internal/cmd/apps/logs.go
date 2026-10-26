@@ -3,7 +3,9 @@ package apps
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -91,6 +93,10 @@ func LogFiles(dir string) ([]logstream.File, error) {
 			continue
 		}
 		info, err := entry.Info()
+		if errors.Is(err, fs.ErrNotExist) {
+			// Retention may delete a log between listing and stat.
+			continue
+		}
 		if err != nil {
 			return nil, fmt.Errorf("stat app log %s: %w", entry.Name(), err)
 		}
@@ -128,6 +134,10 @@ func FindMetadataByID(dir string, id string) (RunMetadata, bool, error) {
 		}
 		path := filepath.Join(dir, entry.Name())
 		metadata, err := readMetadata(path)
+		if errors.Is(err, fs.ErrNotExist) {
+			// Retention may delete metadata between listing and reading.
+			continue
+		}
 		if err != nil {
 			return zeroRunMetadata(), false, err
 		}
@@ -135,6 +145,9 @@ func FindMetadataByID(dir string, id string) (RunMetadata, bool, error) {
 			continue
 		}
 		info, err := entry.Info()
+		if errors.Is(err, fs.ErrNotExist) {
+			continue
+		}
 		if err != nil {
 			return zeroRunMetadata(), false, fmt.Errorf("stat app log metadata %s: %w", entry.Name(), err)
 		}

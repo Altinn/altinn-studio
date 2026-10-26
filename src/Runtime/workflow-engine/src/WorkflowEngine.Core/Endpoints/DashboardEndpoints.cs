@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -32,8 +33,7 @@ internal static class DashboardEndpoints
     };
 
     /// <summary>
-    /// Maps the dashboard UI: static files (embedded or physical), <c>/api/config</c>,
-    /// and the <c>/api/hot-reload</c> dev endpoint.
+    /// Maps the dashboard UI: static files (embedded or physical) and the <c>/dashboard/hot-reload</c> dev endpoint.
     /// </summary>
     public static WebApplication MapDashboardUI(this WebApplication app)
     {
@@ -117,6 +117,23 @@ internal static class DashboardEndpoints
 
     public static WebApplication MapDashboardEndpoints(this WebApplication app)
     {
+        app.MapGet(
+                "/dashboard/config",
+                (IOptions<EngineSettings> settings) =>
+                {
+                    DashboardSettings dashboard = settings.Value.Dashboard;
+                    return Results.Json(
+                        new
+                        {
+                            grafanaUrl = dashboard.GrafanaUrl,
+                            grafanaTracesDatasourceUid = dashboard.GrafanaTracesDatasourceUid,
+                        },
+                        _jsonCompact
+                    );
+                }
+            )
+            .ExcludeFromDescription();
+
         app.MapGet(
                 "/dashboard/stream",
                 async (

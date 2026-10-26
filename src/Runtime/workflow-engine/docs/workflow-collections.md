@@ -27,15 +27,17 @@ Tri-state control over head membership and head consumption:
 
 A workflow with `IsHead` `true` or unset is a **primary workflow**; one with `IsHead = false` is an **auxiliary workflow** (see [primary and auxiliary workflows](technical-guide.md#primary-and-auxiliary-workflows) for the vocabulary). An auxiliary workflow can still depend on heads for execution ordering (via `DependsOnHeads`), but the collection's heads are unchanged by it, so no later enqueue waits on it through the heads.
 
-The directive is persisted verbatim (`is_head`) and exposed on `WorkflowStatusResponse.isHead`, so
-status consumers can identify auxiliary workflows without relying on naming conventions, and the
-`engine.workflows.execution.failed` metric is tagged `is_head` (`true`, `false` or `unset`) on every
-`reason` (`execution`, `dependency_failed`, `poisoned`, `wait_expired`, `manual`). Alert on `reason`
-in (`execution`, `poisoned`) regardless of `is_head`, and use `is_head` as a routing/severity
-dimension: `false` marks auxiliary workflows, whose terminal failures gate nothing and are otherwise
-silent. Exclude `reason="dependency_failed"` — such an increment for an auxiliary workflow just
-mirrors the failure of a dependency, which fires the alert in its own right, and a cascade
-resume of that dependency revives the auxiliary dependent.
+The directive is persisted verbatim (the `is_head` column) and exposed on `WorkflowStatusResponse.isHead`,
+so status consumers can identify auxiliary workflows without relying on naming conventions, and the
+`altinn.workflow_engine.workflow.execution.failed` metric carries it as
+`altinn.workflow_engine.workflow.is_head` (`true`/`false`/`unset`) whatever its
+`altinn.workflow_engine.reason` (`execution`, `poisoned`, `dependency_failed`, `wait_expired`, `manual`).
+Alert on the reasons `execution` and `poisoned` regardless of `is_head`, and use `is_head` as a
+routing/severity dimension: `false` marks auxiliary workflows, whose terminal failures gate
+nothing and are otherwise silent. Exclude `dependency_failed` — such an increment for an auxiliary
+workflow just mirrors the failure of a dependency, which fires the alert in its own right, and a
+cascade resume of that dependency revives the auxiliary dependent. `wait_expired` and `manual` stay out of
+the alert as well; the [technical guide](technical-guide.md#alerting-on-terminal-failures) has the query.
 
 ---
 

@@ -25,7 +25,10 @@ const runtime = {
 vi.mock('src/features/form/FormContext', () => ({ FormStore: { raw: { useStore: () => store } } }));
 vi.mock('src/core/queries/instance', () => ({ useGetCachedInstanceData: () => () => undefined }));
 vi.mock('src/core/contexts/TaskOverrides', () => ({ useTaskOverrides: () => undefined }));
-vi.mock('src/hooks/navigation', () => ({ useAllNavigationParams: () => ({ taskId: 'Task_1' }) }));
+vi.mock('src/hooks/navigation', () => ({
+  useAllNavigationParams: () => ({ taskId: 'Task_1' }),
+  useQueryKey: () => undefined,
+}));
 vi.mock('src/features/form/layoutSettings/processLayoutSettings', () => ({
   processLayoutSettings: () => ({ order: ['Form'], pdfLayoutName: undefined }),
   useRawPageOrder: vi.fn(),

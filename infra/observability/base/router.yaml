@@ -99,6 +99,14 @@ spec:
         logs:
           log_record:
             - 'severity_number < SEVERITY_NUMBER_WARN'
+      # A service's OTLP exports to this router are HTTP calls too, and .NET's HttpClient counts
+      # them in http.client.*. They're the pipeline's work, not the service's, so they're dropped
+      # here for every service rather than in each query. The SDK already keeps them out of traces.
+      filter/exporter_calls:
+        error_mode: ignore
+        metrics:
+          datapoint:
+            - 'IsMatch(metric.name, "^http\\.client\\.") and IsMatch(datapoint.attributes["server.address"], "^otel-router\\.(runtime-obs|observability)\\.svc\\.cluster\\.local$")'
       transform/drop:
         metric_statements:
           - context: datapoint

@@ -8,7 +8,8 @@ import { useExpressionDataSources } from 'src/features/expressions/runtime/useEx
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
-import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { usePdfExclusions, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvalExprOptions } from 'src/features/expressions';
@@ -47,7 +48,9 @@ export function useIsHidden<Reason extends boolean = false>(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups);
+  const isPdf = useIsPdf();
+  const pdfExclusions = usePdfExclusions();
+  const hiddenSources = collectHiddenSources(baseComponentId, layoutLookups, isPdf ? pdfExclusions.components : []);
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();
   const pageOrder = useRawPageOrder();
@@ -85,9 +88,14 @@ export function useIsHiddenMulti(
   }
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
+  const isPdf = useIsPdf();
+  const pdfExclusions = usePdfExclusions();
   const hiddenSources = useMemo(
-    () => baseComponentIds.map((baseComponentId) => collectHiddenSources(baseComponentId, layoutLookups)),
-    [baseComponentIds, layoutLookups],
+    () =>
+      baseComponentIds.map((baseComponentId) =>
+        collectHiddenSources(baseComponentId, layoutLookups, isPdf ? pdfExclusions.components : []),
+      ),
+    [baseComponentIds, layoutLookups, isPdf, pdfExclusions.components],
   );
   const dataSources = useExpressionDataSources(hiddenSources);
   const forcedVisible = useIsForcedVisibleByDevTools();

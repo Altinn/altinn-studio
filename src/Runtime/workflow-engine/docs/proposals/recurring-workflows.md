@@ -80,7 +80,7 @@ Cancel the latest pending/scheduled workflow in the chain. Since each occurrence
 - **History**: Follow the `Links` chain backwards to see every past execution.
 - **Dashboard**: Scheduled successors appear in the "Scheduled" section with countdown timers, just like any deferred workflow.
 - **Command-agnostic**: Works for webhooks, app commands, or any future command type. The recurrence logic is orthogonal to command execution.
-- **Observability**: Each occurrence is a separate workflow with its own trace, so Grafana/Tempo traces are clean and per-execution.
+- **Observability**: Each occurrence is a separate workflow with its own trace, so its traces in Grafana are clean and per-execution.
 
 ## Open questions
 
