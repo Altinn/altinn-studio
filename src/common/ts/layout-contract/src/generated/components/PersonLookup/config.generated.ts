@@ -34,7 +34,6 @@ export interface IDataModelBindingsForPersonLookup {
 }
 
 export interface PersonLookupSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -70,4 +69,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 39d041bf55047f51503ea8fccb70d42b20e18ee42eaf17c043defa025ecd09c0
+// Source hash: e95b074dccf154616a30ff76c303f4f05a41e35d834899dc0497b04f4bf26ff8

@@ -25,7 +25,6 @@ export interface CompDropdownExternal
 }
 
 export interface DropdownSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -61,4 +60,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DropdownSummaryOverridesWithRef;
 };
 
-// Source hash: c9911fa42fe14ee7a132e07807e7548a9e6a10aa976fed83a2303febf1aab0e6
+// Source hash: b25e626953fe7e7c0eca0e9cd280f49b115331dd98b3da65539fa1d9acc7a7ff

@@ -55,8 +55,8 @@ const common = {
           .exportAs('ButtonPosition'),
       ),
     ),
-  ISummaryOverridesCommon: () => new CG.obj(new CG.prop('hidden', new CG.bool().optional())),
-  summaryEmptyFieldText: () => new CG.prop('emptyFieldText', new CG.str().optional()),
+  ISummaryOverridesCommon: () =>
+    new CG.obj(new CG.prop('hidden', new CG.bool().optional()), new CG.prop('emptyFieldText', new CG.str().optional())),
   summaryShowNextButton: () =>
     new CG.prop(
       'showNextButton',

@@ -27,7 +27,6 @@ export interface CompTimePickerExternal
 }
 
 export interface TimePickerSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -63,4 +62,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TimePickerSummaryOverridesWithRef;
 };
 
-// Source hash: 0cc2a38f1cde96aba7d671ebf0963b8be470830e2ef51d8f5903f7c6a0865a0c
+// Source hash: 26bda881ce89ad0541ee5d08fb5353adc2d3d6958534728569937a8f22fa35d1

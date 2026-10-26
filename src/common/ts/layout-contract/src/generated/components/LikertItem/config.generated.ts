@@ -37,7 +37,6 @@ export interface CompLikertItemExternal
 }
 
 export interface LikertItemSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -73,4 +72,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: LikertItemSummaryOverridesWithRef;
 };
 
-// Source hash: 853e39fbab901394b936c7af6937341db957ac1f3d95e68042729e974511d12b
+// Source hash: 5c9e249081c4dfc979606ec1b6ff2d1e37a9c60f8ed6003ff04a0105d8ddf556

@@ -11,7 +11,6 @@ import {
 } from '@app/layout-contract/generated/common.generated';
 
 export interface AddressSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -76,4 +75,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: AddressSummaryOverridesWithRef;
 };
 
-// Source hash: 2e8a03e00a95cd092a399ac553c75baa30ab2980a3495945bf5a1818392d1124
+// Source hash: 25cae86bdb9c484887d56da8470e9c6f3aae9716a7588b6f550ff1c77717e3d6

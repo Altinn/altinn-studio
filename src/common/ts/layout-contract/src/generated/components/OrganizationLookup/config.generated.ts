@@ -26,7 +26,6 @@ export interface CompOrganizationLookupExternal
 }
 
 export interface OrganizationLookupSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -62,4 +61,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: OrganizationLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 1c4b210ac84eb144d01f11d87671eb220913c2571fe5befc4622dd067362cc5e
+// Source hash: aaf544f2a62d5d5980c9b95d9474d913ae828d9471b115fa01a958b87131789b

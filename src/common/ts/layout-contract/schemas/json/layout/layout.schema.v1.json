@@ -977,9 +977,6 @@
           "title": "AddressSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -1095,6 +1092,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -1126,6 +1124,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -1298,6 +1297,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -1329,6 +1329,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -1395,6 +1396,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -1426,6 +1428,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -1547,9 +1550,6 @@
           "title": "CheckboxesSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -8017,9 +8017,6 @@
           "title": "DatepickerSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -8100,29 +8097,13 @@
         }
       ]
     },
-    "DateSummaryOverrides": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/ISummaryOverridesCommon"
-        },
-        {
-          "title": "DateSummaryOverrides",
-          "type": "object",
-          "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    },
     "DateSummaryOverridesWithRef": {
       "title": "DateSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/DateSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for Date",
@@ -8154,7 +8135,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/DateSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for all Date",
@@ -8210,6 +8191,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -8241,6 +8223,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -8261,9 +8244,6 @@
           "title": "DropdownSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -8609,6 +8589,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "hideEmptyRows": true,
                 "componentId": true
               },
@@ -8641,6 +8622,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "hideEmptyRows": true,
                 "componentType": true
               },
@@ -8678,6 +8660,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -8709,6 +8692,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -8755,6 +8739,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -8786,6 +8771,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -9452,6 +9438,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -9483,6 +9470,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -9949,6 +9937,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -9980,6 +9969,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -10034,6 +10024,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "showNextButton": true,
                 "componentId": true
               },
@@ -10066,6 +10057,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "showNextButton": true,
                 "componentType": true
               },
@@ -10087,9 +10079,6 @@
           "title": "InputSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -10195,6 +10184,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -10226,6 +10216,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -10556,6 +10547,9 @@
       "properties": {
         "hidden": {
           "type": "boolean"
+        },
+        "emptyFieldText": {
+          "type": "string"
         }
       }
     },
@@ -10664,9 +10658,6 @@
           "title": "LikertItemSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -10756,9 +10747,6 @@
           "title": "LikertSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -10857,9 +10845,6 @@
           "title": "ListSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -10978,9 +10963,6 @@
           "title": "MapSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -11182,9 +11164,6 @@
           "title": "MultipleSelectSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -11383,29 +11362,13 @@
       },
       "additionalProperties": false
     },
-    "NumberSummaryOverrides": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/ISummaryOverridesCommon"
-        },
-        {
-          "title": "NumberSummaryOverrides",
-          "type": "object",
-          "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    },
     "NumberSummaryOverridesWithRef": {
       "title": "NumberSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/NumberSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for Number",
@@ -11437,7 +11400,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/NumberSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for all Number",
@@ -11468,29 +11431,13 @@
         }
       ]
     },
-    "OptionSummaryOverrides": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/ISummaryOverridesCommon"
-        },
-        {
-          "title": "OptionSummaryOverrides",
-          "type": "object",
-          "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    },
     "OptionSummaryOverridesWithRef": {
       "title": "OptionSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/OptionSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for Option",
@@ -11522,7 +11469,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/OptionSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for all Option",
@@ -11562,9 +11509,6 @@
           "title": "OrganizationLookupSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -11693,6 +11637,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -11724,6 +11669,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -11770,6 +11716,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -11801,6 +11748,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -11869,6 +11817,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -11900,6 +11849,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -11936,6 +11886,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -11967,6 +11918,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -11987,9 +11939,6 @@
           "title": "PersonLookupSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -12099,9 +12048,6 @@
           "title": "RadioButtonsSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -12191,9 +12137,6 @@
           "title": "RepeatingGroupSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -12371,6 +12314,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "showNextButton": true,
                 "display": true,
                 "componentId": true
@@ -12404,6 +12348,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "showNextButton": true,
                 "display": true,
                 "componentType": true
@@ -12593,6 +12538,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -12624,6 +12570,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [
@@ -12644,9 +12591,6 @@
           "title": "TextAreaSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -12727,29 +12671,13 @@
         }
       ]
     },
-    "TextSummaryOverrides": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/ISummaryOverridesCommon"
-        },
-        {
-          "title": "TextSummaryOverrides",
-          "type": "object",
-          "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    },
     "TextSummaryOverridesWithRef": {
       "title": "TextSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/TextSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for Text",
@@ -12781,7 +12709,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/TextSummaryOverrides"
+              "$ref": "#/definitions/ISummaryOverridesCommon"
             },
             {
               "title": "Summary overrides for all Text",
@@ -12821,9 +12749,6 @@
           "title": "TimePickerSummaryOverrides",
           "type": "object",
           "properties": {
-            "emptyFieldText": {
-              "type": "string"
-            },
             "showNextButton": {
               "title": "Show next button after editing",
               "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
@@ -13050,6 +12975,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentId": true
               },
               "required": [
@@ -13081,6 +13007,7 @@
               "type": "object",
               "properties": {
                 "hidden": true,
+                "emptyFieldText": true,
                 "componentType": true
               },
               "required": [

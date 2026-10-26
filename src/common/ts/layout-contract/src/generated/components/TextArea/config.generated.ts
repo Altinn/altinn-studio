@@ -28,7 +28,6 @@ export interface CompTextAreaExternal
 }
 
 export interface TextAreaSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -64,4 +63,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: TextAreaSummaryOverridesWithRef;
 };
 
-// Source hash: 7762c27a71b8e25d74fe082fd99b4eaa302709481a76956e280a2d2e94bec3f8
+// Source hash: 49325d3f6d55bfb40fac0652f81f537d012f62f3e3172b60dbc1a45154401c56

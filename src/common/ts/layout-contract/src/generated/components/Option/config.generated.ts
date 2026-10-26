@@ -17,13 +17,9 @@ export interface CompOptionExternal extends ComponentBase, ISelectionComponent {
   dataModelBindings?: undefined;
 }
 
-export interface OptionSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
-}
-
 export type OptionSummaryOverridesWithRef =
-  | ({ componentId: string } & OptionSummaryOverrides)
-  | ({ componentType: 'Option' } & OptionSummaryOverrides);
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Option' } & ISummaryOverridesCommon);
 
 export const componentConfig = {
   category: CompCategory.Presentation,
@@ -49,8 +45,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompOptionExternal;
-  summaryOverrides: OptionSummaryOverrides;
+  summaryOverrides: ISummaryOverridesCommon;
   summaryOverridesWithRef: OptionSummaryOverridesWithRef;
 };
 
-// Source hash: 9c7294f910065ade2808f222ef1bdd4413b5537437bb5d35cc50ed41b7eb8ef8
+// Source hash: de3b312f6b152cd76483fbc48efb747782cfe572d681508fc2f5e348fb8bcbd6

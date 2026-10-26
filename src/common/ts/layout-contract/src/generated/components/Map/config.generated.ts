@@ -46,7 +46,6 @@ export interface Location {
 export type MapLayer = MapTileLayer | MapWMSLayer;
 
 export interface MapSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -113,4 +112,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: MapSummaryOverridesWithRef;
 };
 
-// Source hash: c2222bf67d6566fccedd3d6322dc7887ddd12b6977b9112d9a01113c0259e01d
+// Source hash: d3239a15708e6bb5a40d29bb883e699fd2f8ed595e30c94a4926b526160fe741

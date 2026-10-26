@@ -23,7 +23,7 @@ export const Config = new CG.component({
   .addProperty(CG.common('renderAsSummary'))
   .addProperty(CG.common('forceShowInSummary'))
   .extendTextResources(CG.common('TRBSummarizable'))
-  .addSummaryOverrides({}, (obj) => {
+  .addSummaryOverrides((obj) => {
     obj.addProperty(
       new CG.prop(
         'hideEmptyRows',

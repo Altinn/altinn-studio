@@ -97,4 +97,4 @@ export const Config = new CG.component({
   )
   .extends(CG.common('LabeledComponentProps'))
   .extendTextResources(CG.common('TRBLabel'))
-  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true });
+  .addSummaryOverrides((obj) => obj.addProperty(CG.common('summaryShowNextButton')));

@@ -17,13 +17,9 @@ export interface CompDateExternal extends ComponentBase {
   dataModelBindings?: undefined;
 }
 
-export interface DateSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
-}
-
 export type DateSummaryOverridesWithRef =
-  | ({ componentId: string } & DateSummaryOverrides)
-  | ({ componentType: 'Date' } & DateSummaryOverrides);
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Date' } & ISummaryOverridesCommon);
 
 export const componentConfig = {
   category: CompCategory.Presentation,
@@ -49,8 +45,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompDateExternal;
-  summaryOverrides: DateSummaryOverrides;
+  summaryOverrides: ISummaryOverridesCommon;
   summaryOverridesWithRef: DateSummaryOverridesWithRef;
 };
 
-// Source hash: 3eb76340d45625b4f1b04a8575d423a7fd691c50b71432caaa8be6b8ff3fe3fa
+// Source hash: 11fdf3fcb0d1ba07c87f14003e66e91cbb9c56974f83b39202cc1c9b62a7ee4f

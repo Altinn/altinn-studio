@@ -29,7 +29,6 @@ export interface CompRadioButtonsExternal
 }
 
 export interface RadioButtonsSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -65,4 +64,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RadioButtonsSummaryOverridesWithRef;
 };
 
-// Source hash: ed1353b1baead837ef788117af9777161dbace53b9a98e42f6d301ab0425f051
+// Source hash: a82aa4d43e7574cac967644d4e7b6934951acdb4a2bbcce16f4d7f8115daf547

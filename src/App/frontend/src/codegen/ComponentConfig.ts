@@ -55,7 +55,7 @@ export class ComponentConfig {
   };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected createSummaryOverrides: (() => MaybeOptionalCodeGenerator<any>) | undefined;
-  protected hasSpecificSummaryOverrides = false;
+  protected hasSummaryOverridesExtender = false;
 
   constructor(public readonly config: RequiredComponentConfig) {
     this.inner.extends(CG.common('ComponentBase'));
@@ -210,19 +210,15 @@ export class ComponentConfig {
   }
 
   /**
-   * Enable only properties consumed by this component's summary renderer.
    * @see generateSummaryOverrides
    */
-  public addSummaryOverrides(
-    { showNextButton = false, emptyFieldText = false }: { showNextButton?: boolean; emptyFieldText?: boolean } = {},
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    extender?: (arg: GenerateObject<any>) => void,
-  ): this {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public addSummaryOverrides(extender?: (arg: GenerateObject<any>) => void): this {
     if (this.createSummaryOverrides) {
       throw new Error(`Component already has Summary2 overrides! Do not call this twice.`);
     }
 
-    this.hasSpecificSummaryOverrides = showNextButton || emptyFieldText || !!extender;
+    this.hasSummaryOverridesExtender = !!extender;
     this.createSummaryOverrides = () => {
       if (!this.type) {
         throw new Error('Type not specified yet');
@@ -235,18 +231,12 @@ export class ComponentConfig {
         );
       }
 
-      const overrides = this.hasSpecificSummaryOverrides
+      const overrides = extender
         ? new CG.obj().extends(CG.common('ISummaryOverridesCommon')).exportAs(`${this.type}SummaryOverrides`)
         : CG.common('ISummaryOverridesCommon');
 
-      if (overrides instanceof GenerateObject) {
-        if (emptyFieldText) {
-          overrides.addProperty(CG.common('summaryEmptyFieldText'));
-        }
-        if (showNextButton) {
-          overrides.addProperty(CG.common('summaryShowNextButton'));
-        }
-        extender?.(overrides);
+      if (extender && overrides instanceof GenerateObject) {
+        extender(overrides);
       }
 
       return this.makeSummaryOverridesUnion(overrides).exportAs(`${this.type}SummaryOverridesWithRef`);
@@ -291,7 +281,7 @@ export class ComponentConfig {
       return undefined;
     }
 
-    if (variant === 'plain' && !this.hasSpecificSummaryOverrides) {
+    if (variant === 'plain' && !this.hasSummaryOverridesExtender) {
       return CG.common('ISummaryOverridesCommon');
     }
     if (variant === 'plain') {
@@ -300,7 +290,7 @@ export class ComponentConfig {
       });
     }
 
-    if (!this.hasSpecificSummaryOverrides) {
+    if (!this.hasSummaryOverridesExtender) {
       return this.makeSummaryOverridesUnion(CG.common('ISummaryOverridesCommon'));
     }
 

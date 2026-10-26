@@ -456,7 +456,8 @@ export const Config = new CG.component({
         ),
     ),
   )
-  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true }, (obj) => {
+  .addSummaryOverrides((obj) => {
+    obj.addProperty(CG.common('summaryShowNextButton'));
     obj.addProperty(
       new CG.prop(
         'display',

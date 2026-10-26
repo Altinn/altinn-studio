@@ -40,7 +40,6 @@ export interface CompDatepickerExternal
 }
 
 export interface DatepickerSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -76,4 +75,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: DatepickerSummaryOverridesWithRef;
 };
 
-// Source hash: 69e453abbf79ccc404533cd065e603052f7f59663e0d22408b135b1a9581b91b
+// Source hash: 51e13dcbd9fd71c0dfc75683a3e3c5c9c360606034524e297e4b222294d9844f

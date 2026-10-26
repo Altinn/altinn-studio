@@ -18,13 +18,9 @@ export interface CompNumberExternal extends ComponentBase {
   dataModelBindings?: undefined;
 }
 
-export interface NumberSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
-}
-
 export type NumberSummaryOverridesWithRef =
-  | ({ componentId: string } & NumberSummaryOverrides)
-  | ({ componentType: 'Number' } & NumberSummaryOverrides);
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Number' } & ISummaryOverridesCommon);
 
 export const componentConfig = {
   category: CompCategory.Presentation,
@@ -50,8 +46,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompNumberExternal;
-  summaryOverrides: NumberSummaryOverrides;
+  summaryOverrides: ISummaryOverridesCommon;
   summaryOverridesWithRef: NumberSummaryOverridesWithRef;
 };
 
-// Source hash: 6813698e3a8de0cd2667d873bab5e4cfc6b98db8b1627421e6b7bb62f115c88e
+// Source hash: 38fb3c5a02116c0d43b72f514d27cf39a47c19e18609430c25cefb8e8452308e

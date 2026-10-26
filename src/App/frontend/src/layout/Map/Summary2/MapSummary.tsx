@@ -22,7 +22,7 @@ import { useFormDataFor } from 'src/utils/layout/useFormData';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function MapSummary({ targetBaseComponentId }: Summary2Props) {
-  const emptyFieldText = useSummaryOverrides<'Map'>(targetBaseComponentId)?.emptyFieldText;
+  const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const config = useComponentConfig(targetBaseComponentId, 'Map');
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'Map');

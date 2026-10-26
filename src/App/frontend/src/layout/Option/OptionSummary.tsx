@@ -15,7 +15,7 @@ import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEval
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export const OptionSummary = ({ targetBaseComponentId }: Summary2Props) => {
-  const emptyFieldText = useSummaryOverrides<'Option'>(targetBaseComponentId)?.emptyFieldText;
+  const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const { langAsString } = useLanguage();
   const config = useComponentConfig(targetBaseComponentId, 'Option');

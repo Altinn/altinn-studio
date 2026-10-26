@@ -88,7 +88,6 @@ export interface CompInputExternal
 }
 
 export interface InputSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -124,4 +123,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: InputSummaryOverridesWithRef;
 };
 
-// Source hash: d44ca42ff8589e72797111919f63ab40b2730b533ec9ba4dea542c7b77ae1688
+// Source hash: ae19a22d6a2161be7826776c77f877da21d34b913fbe59607dfd7955d7f45a10

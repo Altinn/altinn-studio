@@ -2,7 +2,6 @@ import { CompExternal } from '@app/layout-contract/generated/components.generate
 import { ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 import { AddressSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Address/config.generated';
 import { CheckboxesSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Checkboxes/config.generated';
-import { DateSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Date/config.generated';
 import { DatepickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Datepicker/config.generated';
 import { DropdownSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Dropdown/config.generated';
 import { GridSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Grid/config.generated';
@@ -13,14 +12,11 @@ import { LikertItemSummaryOverridesWithRef } from '@app/layout-contract/generate
 import { ListSummaryOverridesWithRef } from '@app/layout-contract/generated/components/List/config.generated';
 import { MapSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Map/config.generated';
 import { MultipleSelectSummaryOverridesWithRef } from '@app/layout-contract/generated/components/MultipleSelect/config.generated';
-import { NumberSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Number/config.generated';
-import { OptionSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Option/config.generated';
 import { OrganizationLookupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/OrganizationLookup/config.generated';
 import { PersonLookupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/PersonLookup/config.generated';
 import { RadioButtonsSummaryOverridesWithRef } from '@app/layout-contract/generated/components/RadioButtons/config.generated';
 import { RepeatingGroupSummaryOverridesWithRef } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 import { SubformSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Subform/config.generated';
-import { TextSummaryOverridesWithRef } from '@app/layout-contract/generated/components/Text/config.generated';
 import { TextAreaSummaryOverridesWithRef } from '@app/layout-contract/generated/components/TextArea/config.generated';
 import { TimePickerSummaryOverridesWithRef } from '@app/layout-contract/generated/components/TimePicker/config.generated';
 
@@ -44,7 +40,8 @@ export type AnySummaryOverride =
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Audio' } & ISummaryOverridesCommon)
   | CheckboxesSummaryOverridesWithRef
-  | DateSummaryOverridesWithRef
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Date' } & ISummaryOverridesCommon)
   | DatepickerSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Divider' } & ISummaryOverridesCommon)
@@ -67,8 +64,10 @@ export type AnySummaryOverride =
   | ListSummaryOverridesWithRef
   | MapSummaryOverridesWithRef
   | MultipleSelectSummaryOverridesWithRef
-  | NumberSummaryOverridesWithRef
-  | OptionSummaryOverridesWithRef
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Number' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Option' } & ISummaryOverridesCommon)
   | OrganizationLookupSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Panel' } & ISummaryOverridesCommon)
@@ -84,7 +83,8 @@ export type AnySummaryOverride =
   | SubformSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Tabs' } & ISummaryOverridesCommon)
-  | TextSummaryOverridesWithRef
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'Text' } & ISummaryOverridesCommon)
   | TextAreaSummaryOverridesWithRef
   | TimePickerSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
@@ -553,6 +553,7 @@ export interface ISelectionComponentFull extends ISelectionComponent {
 
 export interface ISummaryOverridesCommon {
   hidden?: boolean;
+  emptyFieldText?: string;
 }
 
 export interface ITableColumnFormatting {
@@ -655,4 +656,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 0d5a3cde206fad59316d7a3b684afcdd9dca3cc220c51739ad1963bb236eef84
+// Source hash: 9251bad55d2d131f18f4efb05c957a025a6b4a4cd97bf09ed6c6e1cd3e499151

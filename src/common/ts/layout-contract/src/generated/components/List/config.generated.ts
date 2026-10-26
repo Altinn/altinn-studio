@@ -42,7 +42,6 @@ export interface IPagination {
 }
 
 export interface ListSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -78,4 +77,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: be7acf19e3c90db87be849c3a543c607ea9d411549b0de88c3c2bbcc9f34193f
+// Source hash: 5bf25d846ccc4dc9dce5c441c5885ee094e130879af554e450868db41539a49d

@@ -39,7 +39,6 @@ export interface CompLikertExternal
 export type ILikertFilter = { key: 'start' | 'stop'; value: string | number }[];
 
 export interface LikertSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
 }
 
@@ -75,4 +74,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: LikertSummaryOverridesWithRef;
 };
 
-// Source hash: 297d129e1fbf25126e0ae01c67695c1aace0a7f3f4fa71754d1000db28e6a730
+// Source hash: 5566c8f5188131429b531c4b6ab767ecc240bef0fd311311dd0684b9b1422ea5

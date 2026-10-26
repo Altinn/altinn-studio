@@ -74,7 +74,6 @@ export interface IGroupEditProperties {
 }
 
 export interface RepeatingGroupSummaryOverrides extends ISummaryOverridesCommon {
-  emptyFieldText?: string;
   showNextButton?: boolean;
   display?: 'table' | 'full';
 }
@@ -111,4 +110,4 @@ export type TypeConfig = {
   summaryOverridesWithRef: RepeatingGroupSummaryOverridesWithRef;
 };
 
-// Source hash: 05eb7bfb892a9761045bdbbc1ef6a9fee1d59dea6a55a476a1b60a847f2bd5b7
+// Source hash: 72144f041af224e4edfa25e324d159084cb2973cf840307e84a0dc7b88c455bc

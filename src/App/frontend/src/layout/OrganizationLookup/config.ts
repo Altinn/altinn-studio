@@ -24,7 +24,7 @@ export const Config = new CG.component({
   .extendTextResources(CG.common('TRBSummarizable'))
   .addProperty(CG.common('required'))
   .addProperty(CG.common('readOnly'))
-  .addSummaryOverrides({ showNextButton: true, emptyFieldText: true })
+  .addSummaryOverrides((obj) => obj.addProperty(CG.common('summaryShowNextButton')))
   .extends(CG.common('LabeledComponentProps'))
   .addDataModelBinding(
     new CG.obj(
