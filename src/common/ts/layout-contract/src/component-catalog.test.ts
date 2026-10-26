@@ -30,11 +30,13 @@ describe('componentCatalog', () => {
     type OptionOverride = Extract<AnySummaryOverride, { componentType: 'Option' }>;
     type SubformOverride = Extract<AnySummaryOverride, { componentType: 'Subform' }>;
     type InputOverride = Extract<AnySummaryOverride, { componentType: 'Input' }>;
+    type FileUploadOverride = Extract<AnySummaryOverride, { componentType: 'FileUpload' }>;
 
     expectTypeOf<ParagraphOverride>().not.toHaveProperty('showNextButton');
     expectTypeOf<OptionOverride>().not.toHaveProperty('showNextButton');
     expectTypeOf<SubformOverride>().toHaveProperty('showNextButton');
     expectTypeOf<InputOverride>().toHaveProperty('showNextButton');
+    expectTypeOf<FileUploadOverride>().toHaveProperty('showNextButton');
   });
 
   it('includes component lifecycle metadata', () => {

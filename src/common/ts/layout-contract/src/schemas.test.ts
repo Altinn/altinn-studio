@@ -70,10 +70,13 @@ describe('published schemas', () => {
 
   it.each([
     ['editable field', { componentType: 'Input', showNextButton: true }, true],
+    ['file upload', { componentType: 'FileUpload', showNextButton: true }, true],
     ['presentation', { componentType: 'Paragraph', showNextButton: true }, false],
     ['computed value', { componentType: 'Text', showNextButton: true }, false],
     ['option', { componentType: 'Option', showNextButton: true }, false],
     ['container', { componentType: 'Group', showNextButton: true }, false],
+    ['grid', { componentType: 'Grid', showNextButton: true }, false],
+    ['likert', { componentType: 'Likert', showNextButton: true }, true],
     ['subform', { componentType: 'Subform', showNextButton: true }, true],
     ['image', { componentType: 'ImageUpload', showNextButton: true }, true],
     ['repeating group', { componentType: 'RepeatingGroup', showNextButton: true }, true],
