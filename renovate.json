@@ -235,7 +235,7 @@
       "allowedVersions": "<9"
     },
     {
-      "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with, and the image smoke test gates the update",
+      "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with and is tested where it is built, and the image build, agent-image-check and smoke test gate the update",
       "matchManagers": ["dockerfile"],
       "matchFileNames": ["agents/Dockerfile"],
       "matchPackageNames": ["ghcr.io/digdir/agentctl-base"],
