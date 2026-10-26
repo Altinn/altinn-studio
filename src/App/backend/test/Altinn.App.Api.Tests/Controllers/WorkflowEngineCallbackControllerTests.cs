@@ -889,60 +889,6 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
-    public async Task ExecuteCommand_WhenStorageReplaysPreCommitDataMutation_PreservesAdvancedProcessSnapshot()
-    {
-        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
-        await using ControllerSetup setup = CreateSetup(
-            new AddBinaryDataCommand(),
-            (_, instance) =>
-            {
-                instance.Process = new ProcessState
-                {
-                    Status = ProcessStatus.Processing,
-                    Ended = ended,
-                    EndEvent = "EndEvent_1",
-                    CurrentTask = null,
-                };
-            }
-        );
-        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(InstanceOwnerPartyId, setup.InstanceGuid);
-        storedInstance.Process = new ProcessState
-        {
-            Status = ProcessStatus.Processing,
-            CurrentTask = new ProcessElementInfo { ElementId = "Task_1" },
-        };
-
-        Guid replayedStepId = Guid.NewGuid();
-        IActionResult firstResult = await setup.Execute(AddBinaryDataCommand.Key, stepId: replayedStepId);
-        IActionResult replayResult = await setup.Execute(AddBinaryDataCommand.Key, stepId: replayedStepId);
-
-        var firstResponse = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(firstResult).Value);
-        var replayOk = Assert.IsType<OkObjectResult>(replayResult);
-        var replayResponse = Assert.IsType<AppCallbackResponse>(replayOk.Value);
-        WorkflowCallbackState firstState = setup.DeserializeState(firstResponse.State!);
-        WorkflowCallbackState replayedState = setup.DeserializeState(replayResponse.State!);
-        Assert.Equal(ended, firstState.Instance.Process?.Ended);
-        Assert.Equal("EndEvent_1", firstState.Instance.Process?.EndEvent);
-        Assert.Null(firstState.Instance.Process?.CurrentTask);
-        Assert.Equal(ProcessStatus.Processing, firstState.Instance.Process?.Status);
-        Assert.Equal(ended, replayedState.Instance.Process?.Ended);
-        Assert.Equal("EndEvent_1", replayedState.Instance.Process?.EndEvent);
-        Assert.Null(replayedState.Instance.Process?.CurrentTask);
-        Assert.Equal(ProcessStatus.Processing, replayedState.Instance.Process?.Status);
-        Assert.Single(replayedState.Instance.Data);
-
-        var (storedAfterReplay, storedData) = setup.Services.Storage.GetInstanceAndData(
-            InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        Assert.Equal("Task_1", storedAfterReplay.Process?.CurrentTask?.ElementId);
-        Assert.Null(storedAfterReplay.Process?.Ended);
-        Assert.Null(storedAfterReplay.Process?.EndEvent);
-        Assert.Equal(ProcessStatus.Processing, storedAfterReplay.Process?.Status);
-        Assert.Single(storedData);
-    }
-
-    [Fact]
     public async Task ExecuteCommand_WhenCommandEndsProcess_ArchivesStoredAndCapturedState()
     {
         var ended = new DateTime(2026, 7, 10, 12, 34, 56, DateTimeKind.Utc);

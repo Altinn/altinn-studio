@@ -56,7 +56,7 @@ public class WorkflowStepSetTests
                 CommonTaskInitialization.Key,
                 StartTask.Key,
             ],
-            Keys(stepSet.PreCommitSteps)
+            Keys(stepSet.LifecycleSteps)
         );
 
         // ExecuteServiceTask is primary - the next transition must wait on it.
@@ -92,7 +92,7 @@ public class WorkflowStepSetTests
     {
         var stepSet = WorkflowStepSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true });
 
-        Assert.Empty(stepSet.PreCommitSteps);
+        Assert.Empty(stepSet.LifecycleSteps);
         Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(stepSet.PrimaryPostCommitSteps));
         Assert.Equal([CompletedAltinnEvent.Key], Keys(stepSet.AuxiliarySteps));
     }
@@ -104,7 +104,7 @@ public class WorkflowStepSetTests
 
         Assert.Equal(
             [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
-            Keys(stepSet.PreCommitSteps)
+            Keys(stepSet.LifecycleSteps)
         );
         Assert.Empty(stepSet.PrimaryPostCommitSteps);
         Assert.Empty(stepSet.AuxiliarySteps);
@@ -115,7 +115,7 @@ public class WorkflowStepSetTests
     {
         var stepSet = WorkflowStepSet.GetTaskAbandonSteps(SingleStagePipeline());
 
-        Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(stepSet.PreCommitSteps));
+        Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(stepSet.LifecycleSteps));
         Assert.Empty(stepSet.PrimaryPostCommitSteps);
         Assert.Empty(stepSet.AuxiliarySteps);
     }
@@ -136,7 +136,7 @@ public class WorkflowStepSetTests
             }
         );
 
-        PlannedStep startStep = Assert.Single(stepSet.PreCommitSteps, step => step.CommandKey == StartTask.Key);
+        PlannedStep startStep = Assert.Single(stepSet.LifecycleSteps, step => step.CommandKey == StartTask.Key);
         Assert.Equal($"{StartTask.Key}: 0", startStep.OperationId);
         Assert.Equal(0, Assert.IsType<ProcessTaskStagePayload>(startStep.Payload).StageIndex);
         Assert.Same(options, startStep.DeclaredOptions);
@@ -166,10 +166,10 @@ public class WorkflowStepSetTests
                 StartTask.Key,
                 StartTask.Key,
             ],
-            Keys(stepSet.PreCommitSteps)
+            Keys(stepSet.LifecycleSteps)
         );
 
-        List<PlannedStep> stageSteps = stepSet.PreCommitSteps.Where(step => step.CommandKey == StartTask.Key).ToList();
+        List<PlannedStep> stageSteps = stepSet.LifecycleSteps.Where(step => step.CommandKey == StartTask.Key).ToList();
         Assert.Equal(["StartTask: 0", "StartTask: 1", "StartTask: 2"], stageSteps.Select(step => step.OperationId));
         Assert.Equal(
             [0, 1, 2],
@@ -183,11 +183,11 @@ public class WorkflowStepSetTests
     {
         Assert.Equal(
             [EndTask.Key, EndTask.Key, EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
-            Keys(WorkflowStepSet.GetTaskEndSteps("Task_1", ThreeStagePipeline()).PreCommitSteps)
+            Keys(WorkflowStepSet.GetTaskEndSteps("Task_1", ThreeStagePipeline()).LifecycleSteps)
         );
         Assert.Equal(
             [AbandonTask.Key, AbandonTask.Key, AbandonTask.Key, OnTaskAbandonHook.Key],
-            Keys(WorkflowStepSet.GetTaskAbandonSteps(ThreeStagePipeline()).PreCommitSteps)
+            Keys(WorkflowStepSet.GetTaskAbandonSteps(ThreeStagePipeline()).LifecycleSteps)
         );
     }
 
@@ -204,7 +204,7 @@ public class WorkflowStepSetTests
             }
         );
 
-        Assert.DoesNotContain(StartTask.Key, Keys(stepSet.PreCommitSteps));
+        Assert.DoesNotContain(StartTask.Key, Keys(stepSet.LifecycleSteps));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ public class WorkflowStepSetTests
 
         List<PlannedStep> stageSteps = WorkflowStepSet
             .GetTaskEndSteps("Task_1", pipeline)
-            .PreCommitSteps.Where(step => step.CommandKey == EndTask.Key)
+            .LifecycleSteps.Where(step => step.CommandKey == EndTask.Key)
             .ToList();
 
         Assert.Equal(["Store receipt", "Revoke signee rights", null], stageSteps.Select(StepName));

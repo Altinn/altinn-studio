@@ -110,7 +110,6 @@ public class WorkflowEngineCommandRegistrationTests
         CollectCommandKeys(WorkflowStepSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }), keys);
 
         // ProcessNextRequestFactory adds these around the step sets.
-        keys.Add(MutateProcessState.Key);
         keys.Add(CommitProcessState.Key);
         keys.Add(ReleaseProcessingStatus.Key);
         keys.Add(EnqueueAuxiliaryWorkflows.Key);
@@ -143,7 +142,7 @@ public class WorkflowEngineCommandRegistrationTests
     private static void CollectCommandKeys(WorkflowStepSet stepSet, HashSet<string> keys)
     {
         IEnumerable<PlannedStep> steps = stepSet
-            .PreCommitSteps.Concat(stepSet.PrimaryPostCommitSteps)
+            .LifecycleSteps.Concat(stepSet.PrimaryPostCommitSteps)
             .Concat(stepSet.AuxiliarySteps);
         foreach (PlannedStep step in steps)
         {
