@@ -39,3 +39,4 @@ spec:
   postBuild:
     substitute:
       ENVIRONMENT: ${ENVIRONMENT}
+      SERVICEOWNER_ID: ${SERVICEOWNER_ID}

@@ -1,5 +1,8 @@
+import React, { useEffect } from 'react';
+
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FormStore, type FormStoreSet, type FormStoreState } from 'src/features/form/FormContext';
+import { useIsHiddenPage } from 'src/utils/layout/hidden';
 
 export type PageNavigationSliceState = {
   /**
@@ -52,3 +55,28 @@ export const pageNavigationHooks = {
     return func === ContextNotProvided ? undefined : func;
   },
 };
+
+export function ClearHiddenSummaryReturnState() {
+  const returnToView = FormStore.pageNavigation.useReturnToView();
+  return returnToView ? (
+    <ClearReturnStateForHiddenPage
+      key={returnToView}
+      pageId={returnToView}
+    />
+  ) : null;
+}
+
+function ClearReturnStateForHiddenPage({ pageId }: { pageId: string }) {
+  const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const setSummaryNodeOfOrigin = FormStore.pageNavigation.useSetSummaryNodeOfOrigin();
+  const hidden = useIsHiddenPage(pageId, { respectPageOrder: true, respectDevTools: false });
+
+  useEffect(() => {
+    if (hidden) {
+      setReturnToView?.(undefined);
+      setSummaryNodeOfOrigin?.(undefined);
+    }
+  }, [hidden, setReturnToView, setSummaryNodeOfOrigin]);
+
+  return null;
+}
