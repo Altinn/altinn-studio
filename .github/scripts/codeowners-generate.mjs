@@ -96,6 +96,7 @@ const GROUPS = [
     ],
     extraPaths: [
       '.github/workflows/cli-build-test.yaml',
+      '.github/workflows/common-go-build.yaml',
       '.github/workflows/construct-environments-script-test.yaml',
       '.github/workflows/deploy-gitea-runners.yaml',
       '.github/workflows/deploy-github-runners.yaml',

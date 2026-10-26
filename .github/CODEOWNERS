@@ -38,6 +38,7 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 
 # Squad Kjøring
 .github/workflows/cli-build-test.yaml                                     @altinn/team-altinn-studio-kjoring
+.github/workflows/common-go-build.yaml                                    @altinn/team-altinn-studio-kjoring
 .github/workflows/construct-environments-script-test.yaml                 @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                               @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-github-runners.yaml                              @altinn/team-altinn-studio-kjoring
