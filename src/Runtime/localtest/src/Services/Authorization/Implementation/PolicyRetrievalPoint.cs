@@ -9,7 +9,6 @@ using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
 using LocalTest.Configuration;
-using LocalTest.Helpers.Authorization;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.LocalApp.Interface;
 using Microsoft.Extensions.Options;
@@ -46,7 +45,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             if (app != null && org != null)
             {
                 string policyString = await _localApp.GetXACMLPolicy($"{org}/{app}");
-                policyString = PolicyPlaceholders.Replace(policyString, org, app);
+                policyString = policyString
+                    .Replace("[org]", org)
+                    .Replace("[ORG]", org)
+                    .Replace("[app]", app)
+                    .Replace("[APP]", app);
                 return ParsePolicyContent(policyString);
             }
             else

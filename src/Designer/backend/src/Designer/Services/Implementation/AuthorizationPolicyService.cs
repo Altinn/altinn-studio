@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
@@ -63,7 +62,11 @@ public class AuthorizationPolicyService : IAuthorizationPolicyService
 
     public string ReplacePolicyPlaceholderTokens(string policyFileContent, string org, string app)
     {
-        return PolicyPlaceholders.Replace(policyFileContent, org, app);
+        return policyFileContent
+            .Replace("[ORG]", org)
+            .Replace("[org]", org)
+            .Replace("[APP]", app)
+            .Replace("[app]", app);
     }
 
     private string GetAuthorizationPolicyFilePath()
