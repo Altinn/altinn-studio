@@ -1,5 +1,6 @@
 .container {
-  --page-max-width: 1056px;
+  /* --page-max-width must match Presentation.module.css, so the header and footer stay in place between pages. */
+  --page-max-width: 1152px;
   --page-padding-x: 24px;
   --footer-padding: var(--page-padding-x);
 
