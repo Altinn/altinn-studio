@@ -1477,10 +1477,10 @@ App host. In Explore, its datasources are _Metrics_ (uid `altinn-studio-metrics`
 (`altinn-studio-traces`, Grafana's Tempo datasource over VictoriaTraces, so it takes TraceQL) and _Logs_
 (`altinn-studio-logs`).
 
-The engine dashboard's trace links — the Grafana icon on a workflow card, _Open Grafana_ in the step
-modal — open the workflow's trace in the Grafana the host names in its
-[dashboard settings](#dashboard-trace-links), and are not drawn while it names none. studioctl names its
-own for the engine it runs. How an engine on the host or in the compose stack reaches a collector, how
+The engine dashboard's trace links — the Grafana icon on a workflow card, _Open trace_ in the step
+modal — open the workflow's trace in the viewer the host names in its
+[dashboard settings](#dashboard-trace-links), a Grafana or any viewer with a page per trace, and are not
+drawn while it names none. studioctl names its own Grafana for the engine it runs. How an engine on the host or in the compose stack reaches a collector, how
 to give the TestApp trace links, and the one studioctl flag that clashes with the compose stack, are in
 [Monitoring](docker.md#monitoring).
 
@@ -1495,7 +1495,7 @@ Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine
   or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
   exercises the same contract external callers use
 - State evolution viewer
-- A link from each workflow to its trace in Grafana, where the host configures one (see [Dashboard trace links](#dashboard-trace-links))
+- A link from each workflow to its trace, in Grafana or another trace viewer the host configures (see [Dashboard trace links](#dashboard-trace-links))
 - Paginated query interface with namespace/status/label filters
 - Mailboxes rendered under their collections, log laid out position by position
   (`GET /dashboard/mailboxes` — payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`)
@@ -2140,19 +2140,32 @@ Window growth (×2), release cohort growth (×2), and jitter (±20%) are named c
 
 ### Dashboard trace links
 
-The dashboard links each workflow to its trace in Grafana Explore once the host names its Grafana. Both
-settings are unset by default, and while either is unset the dashboard draws no trace links. An empty or
-whitespace value counts as unset, so a compose file can pass an unset variable through. The dashboard
-reads them once, from `GET /dashboard/config`, when it loads.
+The dashboard links each workflow to its trace once the host names its trace viewer, in one of two ways:
+
+- **`Dashboard.TraceUrlTemplate`**: the URL of one trace's page, with `{traceId}` where the trace ID goes,
+  for any viewer that has such a page. For the .NET Aspire dashboard that is
+  `http://localhost:18888/traces/detail/{traceId}` (its trace page is `/traces/detail/{traceId}`; use the
+  address and port the browser reaches it at).
+- **The Grafana pair**, `Dashboard.GrafanaUrl` and `Dashboard.GrafanaTracesDatasourceUid`: the link opens the
+  trace in Grafana Explore, querying the trace ID in TraceQL on that Tempo datasource.
+
+The template wins when both are set. With neither, or only half the Grafana pair, the dashboard draws no
+trace links. All three are unset by default. An empty or whitespace value counts as unset, so a compose
+file can pass an unset variable through. The engine refuses to start when the template is set but is not
+an absolute `http` or `https` URL containing `{traceId}`, spelled exactly so.
 
 | Setting                                | Default | Description                                                                         |
 | -------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| `Dashboard.TraceUrlTemplate`           | unset   | Absolute http(s) URL of one trace's page, with `{traceId}` where the trace ID goes  |
 | `Dashboard.GrafanaUrl`                 | unset   | Grafana's base URL as the browser reaches it, such as `https://grafana.example.com` |
 | `Dashboard.GrafanaTracesDatasourceUid` | unset   | UID of the Tempo datasource holding the engine's traces; the link queries TraceQL   |
 
-A host sets them like any other setting, for example `EngineSettings__Dashboard__GrafanaUrl` in its
-environment. studioctl, for one, sets both on the engine it runs with `--monitoring`, naming its own
-Grafana.
+The server resolves the settings into one template, which `GET /dashboard/config` returns as
+`traceUrlTemplate`: the configured template, or a Grafana Explore URL with `{traceId}` in its query. The
+dashboard reads it once, when it loads, and builds every trace link by putting the URL-encoded trace ID in
+place of `{traceId}`. A host sets them like any other setting, for example
+`EngineSettings__Dashboard__TraceUrlTemplate` in its environment. studioctl, for one, sets the Grafana pair on
+the engine it runs with `--monitoring`, naming its own Grafana.
 
 ## Testing
 
