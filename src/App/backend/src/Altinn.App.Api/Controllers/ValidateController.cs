@@ -1,3 +1,4 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -188,11 +189,8 @@ public class ValidateController : ControllerBase
         // A data type bound only to other tasks is validated at the first of them, with a warning, since the current
         // task's validators would likely skip it. Should this be a BadRequest instead?
         IReadOnlyList<string> dataTypeTaskIds = dataType.TaskIds ?? [];
-        string validationTaskId =
-            dataTypeTaskIds.FirstOrDefault(t => string.Equals(t, taskId, StringComparison.OrdinalIgnoreCase))
-            ?? dataTypeTaskIds.FirstOrDefault()
-            ?? taskId;
-        if (!validationTaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
+        string validationTaskId = dataType.IsBoundToTask(taskId) ? taskId : dataTypeTaskIds.FirstOrDefault() ?? taskId;
+        if (validationTaskId != taskId)
         {
             string dataTypeTasks = string.Join(", ", dataTypeTaskIds);
             ValidationIssueWithSource message = new()

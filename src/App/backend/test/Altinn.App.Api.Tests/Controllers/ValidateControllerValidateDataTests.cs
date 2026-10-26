@@ -254,6 +254,8 @@ public class ValidationControllerValidateDataTests
     [InlineData(new[] { "Task_1", "Task_2" }, "Task_2", null)]
     [InlineData(new[] { "Task_1" }, "Task_1", "Task_1")]
     [InlineData(new[] { "Task_1", "Task_3" }, "Task_1", "Task_1, Task_3")]
+    // Task IDs are case-sensitive, as in Storage.
+    [InlineData(new[] { "task_2" }, "task_2", "task_2")]
     // A data type bound to no task is validated at the current task.
     [InlineData(null, "Task_2", null)]
     [InlineData(new string[0], "Task_2", null)]
