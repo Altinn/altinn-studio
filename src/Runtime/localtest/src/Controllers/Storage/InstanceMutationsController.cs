@@ -69,7 +69,8 @@ public class InstanceMutationsController(
     /// instance returns 404 before a possible delete-policy 403. A complete confirmation is subject
     /// to the <c>InstanceComplete</c> policy and is recorded for the calling organization only; an
     /// organization that already has a confirmation keeps the one it has, and the remaining
-    /// operations commit either way.
+    /// operations commit either way. A mutation that sets the process state cannot also create,
+    /// update, or delete data elements (400), so every data element write is made in the current task.
     /// </remarks>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPost]
@@ -126,6 +127,20 @@ public class InstanceMutationsController(
         if (deleteInstanceRequestError is not null)
         {
             return deleteInstanceRequestError;
+        }
+
+        if (
+            mutationRequest.ProcessState?.State is not null
+            && (
+                mutationRequest.CreateDataElements?.Count > 0
+                || mutationRequest.UpdateDataElements?.Count > 0
+                || mutationRequest.DeleteDataElements?.Count > 0
+            )
+        )
+        {
+            return BadRequest(
+                "processState.state cannot be combined with data element creates, updates or deletes."
+            );
         }
 
         ActionResult instanceEventError = ValidateMutationInstanceEvents(
