@@ -74,4 +74,46 @@ public class AddContactPointTests
             }
         );
     }
+
+    [Fact]
+    public async Task AddContactPoint_WhenPhoneNumberIsFormatted_ShouldStoreItWithCountryCode()
+    {
+        var payload = CreateRequest(
+            $"contact-points-post-{Guid.NewGuid():N}",
+            true,
+            ["prod"],
+            [CreateMethodRequest(ContactMethodType.Sms, "987 65 432")]
+        );
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(AllowedOrg))
+        {
+            Content = CreateJsonContent(payload),
+        };
+
+        using var response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await DeserializeAsync<ContactPointResponse>(response.Content);
+        Assert.Equal("+4798765432", Assert.Single(created.Methods).Value);
+    }
+
+    [Fact]
+    public async Task AddContactPoint_WhenPhoneNumberLacksCountryCode_ShouldReturnBadRequest()
+    {
+        var name = $"contact-points-post-{Guid.NewGuid():N}";
+        var payload = CreateRequest(name, true, ["prod"], [CreateMethodRequest(ContactMethodType.Sms, "12345678")]);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(AllowedOrg))
+        {
+            Content = CreateJsonContent(payload),
+        };
+
+        using var response = await HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        DesignerDbFixture.DbContext.ChangeTracker.Clear();
+        Assert.False(
+            await DesignerDbFixture.DbContext.ContactPoints.AnyAsync(contactPoint => contactPoint.Name == name)
+        );
+    }
 }

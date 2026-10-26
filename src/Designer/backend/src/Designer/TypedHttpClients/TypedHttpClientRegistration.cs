@@ -101,10 +101,15 @@ public static class TypedHttpClientRegistration
         IHostEnvironment env
     )
     {
-        var clientBuilder = services.AddAuthenticatedAltinnPlatformTypedHttpClient<
-            IAltinnNotificationClient,
-            AltinnNotificationClient
-        >();
+        // Without EnsureSuccessHandler, so that the client can report why Notifications rejected an order
+        var clientBuilder = services
+            .AddHttpClient<IAltinnNotificationClient, AltinnNotificationClient>(httpClient =>
+                httpClient.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json)
+                )
+            )
+            .AddHttpMessageHandler<PlatformBearerTokenHandler>()
+            .AddHttpMessageHandler<PlatformSubscriptionAuthDelegatingHandler>();
         if (env.IsStaging() || env.IsProduction())
         {
             var settings = GetMaskinportenClientForNotifications(config, env);
