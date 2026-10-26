@@ -3,7 +3,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import { componentCatalog } from './component-catalog.generated';
 import type { ConfigurableComponent } from './generated/components.generated';
 import type { SerializedComponent } from './generated/serialized-components.generated';
-import type { IDataModelReference } from './generated/common.generated';
+import type { AnySummaryOverride, IDataModelReference } from './generated/common.generated';
 
 describe('componentCatalog', () => {
   it('only exposes components that may be authored in layout files', () => {
@@ -23,6 +23,20 @@ describe('componentCatalog', () => {
     expectTypeOf<SerializedMap['dataModelBindings']['simpleBinding']>().toEqualTypeOf<
       string | IDataModelReference | undefined
     >();
+  });
+
+  it('limits the Next-button override to editable summaries', () => {
+    type ParagraphOverride = Extract<AnySummaryOverride, { componentType: 'Paragraph' }>;
+    type OptionOverride = Extract<AnySummaryOverride, { componentType: 'Option' }>;
+    type SubformOverride = Extract<AnySummaryOverride, { componentType: 'Subform' }>;
+    type InputOverride = Extract<AnySummaryOverride, { componentType: 'Input' }>;
+    type FileUploadOverride = Extract<AnySummaryOverride, { componentType: 'FileUpload' }>;
+
+    expectTypeOf<ParagraphOverride>().not.toHaveProperty('showNextButton');
+    expectTypeOf<OptionOverride>().not.toHaveProperty('showNextButton');
+    expectTypeOf<SubformOverride>().toHaveProperty('showNextButton');
+    expectTypeOf<InputOverride>().toHaveProperty('showNextButton');
+    expectTypeOf<FileUploadOverride>().toHaveProperty('showNextButton');
   });
 
   it('includes component lifecycle metadata', () => {
