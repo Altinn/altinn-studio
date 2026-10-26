@@ -9,12 +9,14 @@ namespace WorkflowEngine.Models;
 public sealed record EngineSettings
 {
     /// <summary>
-    /// Whether to enable OpenTelemetry tracing, metrics, and log export.
-    /// Defaults to <c>true</c>. Set to <c>false</c> to skip all OTEL registration
-    /// (useful for local stress testing without a collector).
+    /// Whether to export every signal even when no OTLP endpoint is set, to the SDK's default endpoint
+    /// (<c>http://localhost:4317</c>): a shorthand for setting that endpoint, for a collector on the same host.
+    /// Defaults to <c>false</c>. The engine exports a signal whenever it knows where to send it:
+    /// <c>OTEL_EXPORTER_OTLP_ENDPOINT</c>, or the signal's own <c>OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT</c>,
+    /// with or without this setting, and those variables override the default endpoint.
     /// </summary>
     [JsonPropertyName("enableTelemetry")]
-    public bool EnableTelemetry { get; set; } = true;
+    public bool EnableTelemetry { get; set; }
 
     /// <summary>
     /// Trace sampling rate between 0.0 (drop all traces) and 1.0 (keep all traces).

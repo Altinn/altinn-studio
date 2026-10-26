@@ -2,6 +2,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
@@ -16,22 +17,45 @@ namespace WorkflowEngine.Telemetry.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    private const string OtlpEndpointVariable = "OTEL_EXPORTER_OTLP_ENDPOINT";
+    private const string OtlpTracesEndpointVariable = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT";
+    private const string OtlpMetricsEndpointVariable = "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT";
+    private const string OtlpLogsEndpointVariable = "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT";
+
     extension(IServiceCollection services)
     {
         /// <summary>
-        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs) and the OTLP exporter.
+        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs), and an OTLP exporter for each
+        /// signal whose endpoint the deployment sets.
         /// </summary>
+        /// <remarks>
+        /// A signal is exported whenever the engine knows where to send it: when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> or
+        /// the signal's own <c>OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT</c> is set, or when
+        /// <paramref name="exportToDefaultEndpoint"/> asks for the SDK's default <c>http://localhost:4317</c>.
+        /// Otherwise an engine without a collector sends nothing and logs no export errors. The exporter reads the
+        /// endpoint, the protocol and every other <c>OTEL_*</c> setting itself. The instrumentation, sources and
+        /// meters are registered either way.
+        /// </remarks>
+        /// <param name="configuration">The host's configuration, from which the OTLP endpoint variables are read.</param>
+        /// <param name="exportToDefaultEndpoint">Export every signal even when no endpoint variable is set, to the SDK's default endpoint.</param>
         /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
         /// <param name="enableDatabaseInstrumentation">Enable EF Core and Npgsql tracing instrumentation. Implies <paramref name="enableDatabaseMetrics"/>.</param>
         /// <param name="enableDatabaseMetrics">Enable Npgsql connection pool and command metrics.</param>
         /// <param name="traceSamplingRate">Trace sampling rate between 0.0 (drop all) and 1.0 (keep all). Metrics and logs are always exported at full fidelity.</param>
         public IServiceCollection AddTelemetry(
+            IConfiguration configuration,
+            bool exportToDefaultEndpoint = false,
             bool emitQueryParameters = false,
             bool enableDatabaseInstrumentation = false,
             bool enableDatabaseMetrics = true,
             double traceSamplingRate = 1.0
         )
         {
+            bool exportAll = exportToDefaultEndpoint || IsSet(configuration, OtlpEndpointVariable);
+            bool exportTraces = exportAll || IsSet(configuration, OtlpTracesEndpointVariable);
+            bool exportMetrics = exportAll || IsSet(configuration, OtlpMetricsEndpointVariable);
+            bool exportLogs = exportAll || IsSet(configuration, OtlpLogsEndpointVariable);
+
             services
                 .AddOpenTelemetry()
                 .ConfigureResource(r =>
@@ -98,13 +122,16 @@ public static class ServiceCollectionExtensions
                         });
                     }
 
-                    builder.AddOtlpExporter(opts =>
+                    if (exportTraces)
                     {
-                        opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
-                        opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
-                        opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
-                        opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
-                    });
+                        builder.AddOtlpExporter(opts =>
+                        {
+                            opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                            opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                            opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
+                        });
+                    }
                 })
                 .WithMetrics(builder =>
                 {
@@ -220,9 +247,13 @@ public static class ServiceCollectionExtensions
                         .AddView(Metrics.StepWaitDuration.Name, waitBudgetView)
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation()
+                        .AddAspNetCoreInstrumentation();
+
+                    if (exportMetrics)
+                    {
                         // The export interval is the deployment's to set, through OTEL_METRIC_EXPORT_INTERVAL.
-                        .AddOtlpExporter();
+                        builder.AddOtlpExporter();
+                    }
                 });
 
             services.AddLogging(logging =>
@@ -230,13 +261,19 @@ public static class ServiceCollectionExtensions
                 logging.AddOpenTelemetry(options =>
                 {
                     options.IncludeFormattedMessage = true;
-                    options.AddOtlpExporter();
+                    if (exportLogs)
+                    {
+                        options.AddOtlpExporter();
+                    }
                 });
             });
 
             return services;
         }
     }
+
+    private static bool IsSet(IConfiguration configuration, string variable) =>
+        !string.IsNullOrWhiteSpace(configuration[variable]);
 
     /// <summary>
     /// Sets one <c>db.query.parameter.&lt;name&gt;</c> attribute per parameter, as the semantic conventions name

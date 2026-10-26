@@ -1,5 +1,8 @@
 using System.Data;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,8 +21,8 @@ namespace WorkflowEngine.Core.Tests.Extensions;
 
 /// <summary>
 /// Tests the OpenTelemetry SDK configuration <c>AddTelemetry</c> registers: what a deployment can override
-/// through the standard <c>OTEL_*</c> variables, how a process identifies itself and reports its start, and the
-/// custom histogram buckets.
+/// through the standard <c>OTEL_*</c> variables, which signals it exports, how a process identifies itself and
+/// reports its start, and the custom histogram buckets.
 /// </summary>
 /// <remarks>
 /// The <c>OTEL_*</c> values reach the SDK through <see cref="IConfiguration"/>, which a real host fills from the
@@ -111,7 +114,99 @@ public sealed class TelemetryConfigurationTests
 
     private static readonly string[] _arrayParameter = ["a", "b"];
 
+    private static readonly Action<ILogger, Exception?> _logExportTest = LoggerMessage.Define(
+        LogLevel.Warning,
+        new EventId(1),
+        "export test"
+    );
+
     public static TheoryData<string> CustomBucketHistograms => new(_histogramBuckets.Keys);
+
+    private const string OtlpEndpoint = "OTEL_EXPORTER_OTLP_ENDPOINT";
+    private const string OtlpTracesEndpoint = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT";
+    private const string OtlpMetricsEndpoint = "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT";
+    private const string OtlpLogsEndpoint = "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT";
+
+    [Fact]
+    public void AddTelemetry_NoEndpointVariable_NoSignalIsExported()
+    {
+        // Arrange
+        using var sp = BuildProvider();
+
+        // Act
+        var exported = ExportedSignals(sp);
+
+        // Assert — no exporter falls back to the SDK's default endpoint, where no collector listens
+        Assert.Equal((false, false, false), exported);
+    }
+
+    [Theory]
+    [InlineData(OtlpEndpoint, "http://collector:4317", true, true, true)]
+    [InlineData(OtlpTracesEndpoint, "http://collector:4318/v1/traces", true, false, false)]
+    [InlineData(OtlpMetricsEndpoint, "http://collector:4318/v1/metrics", false, true, false)]
+    [InlineData(OtlpLogsEndpoint, "http://collector:4318/v1/logs", false, false, true)]
+    [InlineData(OtlpEndpoint, " ", false, false, false)]
+    public void AddTelemetry_EndpointVariable_ExportsTheSignalsItNames(
+        string variable,
+        string endpoint,
+        bool traces,
+        bool metrics,
+        bool logs
+    )
+    {
+        // Arrange
+        using var sp = BuildProvider(new() { [variable] = endpoint });
+
+        // Act
+        var exported = ExportedSignals(sp);
+
+        // Assert
+        Assert.Equal((traces, metrics, logs), exported);
+    }
+
+    [Fact]
+    public void AddTelemetry_ExportToDefaultEndpointWithoutVariable_EverySignalIsExported()
+    {
+        // Arrange
+        using var sp = BuildProvider(exportToDefaultEndpoint: true);
+
+        // Act
+        var exported = ExportedSignals(sp);
+
+        // Assert — the SDK's default endpoint, http://localhost:4317, stands in for the variable
+        Assert.Equal((true, true, true), exported);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AddTelemetry_EndpointAndProtocolVariables_EverySignalReachesTheEndpoint(
+        bool exportToDefaultEndpoint
+    )
+    {
+        // Arrange — with exportToDefaultEndpoint as well, the variable still decides where the signals go
+        using var collector = new OtlpHttpCollector();
+        using var sp = BuildProvider(
+            new() { [OtlpEndpoint] = collector.Endpoint.ToString(), ["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/protobuf" },
+            exportToDefaultEndpoint: exportToDefaultEndpoint
+        );
+        var tracerProvider = sp.GetRequiredService<TracerProvider>();
+        var meterProvider = sp.GetRequiredService<MeterProvider>();
+        var loggerProvider = sp.GetRequiredService<LoggerProvider>();
+
+        // Act
+        var activity = Metrics.Source.StartActivity("export-test");
+        Assert.NotNull(activity);
+        activity.Dispose();
+        _logExportTest(sp.GetRequiredService<ILoggerFactory>().CreateLogger("export-test"), null);
+        Assert.True(tracerProvider.ForceFlush(5000));
+        Assert.True(meterProvider.ForceFlush(5000));
+        Assert.True(loggerProvider.ForceFlush(5000));
+
+        // Assert
+        var received = await collector.WaitForPaths(["/v1/traces", "/v1/metrics", "/v1/logs"]);
+        Assert.Equal(["/v1/logs", "/v1/metrics", "/v1/traces"], received.Order(StringComparer.Ordinal));
+    }
 
     [Fact]
     public void AddTelemetry_NoResourceVariables_ResourceTakesTheInCodeServiceIdentity()
@@ -259,7 +354,13 @@ public sealed class TelemetryConfigurationTests
     public void AddTelemetry_MetricExportInterval_IsLeftToTheEnvironment(string? configured, int? expected)
     {
         // Arrange
-        using var sp = BuildProvider(new() { ["OTEL_METRIC_EXPORT_INTERVAL"] = configured });
+        using var sp = BuildProvider(
+            new()
+            {
+                [OtlpMetricsEndpoint] = "http://127.0.0.1:1/v1/metrics",
+                ["OTEL_METRIC_EXPORT_INTERVAL"] = configured,
+            }
+        );
 
         // Act
         // Building the provider runs the OTLP exporter's reader factory, which hands these options — the
@@ -369,19 +470,42 @@ public sealed class TelemetryConfigurationTests
         Dictionary<string, string?>? configuration = null,
         Action<IServiceCollection>? configureServices = null,
         bool enableDatabaseInstrumentation = false,
-        bool emitQueryParameters = false
+        bool emitQueryParameters = false,
+        bool exportToDefaultEndpoint = false
     )
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(
-            new ConfigurationBuilder().AddInMemoryCollection(configuration ?? []).Build()
-        );
+        var config = new ConfigurationBuilder().AddInMemoryCollection(configuration ?? []).Build();
+        services.AddSingleton<IConfiguration>(config);
         services.AddTelemetry(
+            config,
+            exportToDefaultEndpoint: exportToDefaultEndpoint,
             emitQueryParameters: emitQueryParameters,
             enableDatabaseInstrumentation: enableDatabaseInstrumentation
         );
         configureServices?.Invoke(services);
         return services.BuildServiceProvider();
+    }
+
+    /// <summary>
+    /// Whether the tracer, meter and logger providers each have an exporter. The engine adds nothing to a pipeline
+    /// but its OTLP exporter, so a provider without a processor or reader exports nothing. The SDK does not expose
+    /// its pipeline, so this reads it by reflection, and fails loudly if the SDK renames it.
+    /// </summary>
+    private static (bool Traces, bool Metrics, bool Logs) ExportedSignals(ServiceProvider sp) =>
+        (
+            PipelineMember(sp.GetRequiredService<TracerProvider>(), "Processor") is not null,
+            PipelineMember(sp.GetRequiredService<MeterProvider>(), "Reader") is not null,
+            PipelineMember(sp.GetRequiredService<LoggerProvider>(), "Processor") is not null
+        );
+
+    private static object? PipelineMember(object provider, string name)
+    {
+        var property = provider
+            .GetType()
+            .GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        Assert.NotNull(property);
+        return property.GetValue(provider);
     }
 
     private static Dictionary<string, object> Attributes(Resource resource) =>
@@ -440,6 +564,75 @@ public sealed class TelemetryConfigurationTests
     private sealed record ExportedMetric(string Name, string Unit, MetricType Type, List<ExportedPoint> Points);
 
     private sealed record ExportedPoint(double Value, int TagCount);
+
+    /// <summary>
+    /// A stand-in OTLP/HTTP collector on a free loopback port that answers every request with 200 and keeps the
+    /// path it was sent to.
+    /// </summary>
+    private sealed class OtlpHttpCollector : IDisposable
+    {
+        private readonly HttpListener _listener = new();
+        private readonly List<string> _paths = [];
+        private readonly Lock _lock = new();
+
+        public OtlpHttpCollector()
+        {
+            Endpoint = new Uri($"http://127.0.0.1:{FreePort()}/");
+            _listener.Prefixes.Add(Endpoint.ToString());
+            _listener.Start();
+            _ = Task.Run(Serve);
+        }
+
+        public Uri Endpoint { get; }
+
+        public async Task<IReadOnlyList<string>> WaitForPaths(string[] expected)
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (!timeout.IsCancellationRequested)
+            {
+                lock (_lock)
+                {
+                    if (expected.All(_paths.Contains))
+                        return [.. _paths.Distinct(StringComparer.Ordinal)];
+                }
+
+                await Task.Delay(50, CancellationToken.None);
+            }
+
+            lock (_lock)
+                return [.. _paths.Distinct(StringComparer.Ordinal)];
+        }
+
+        public void Dispose() => _listener.Close();
+
+        private async Task Serve()
+        {
+            while (_listener.IsListening)
+            {
+                HttpListenerContext context;
+                try
+                {
+                    context = await _listener.GetContextAsync();
+                }
+                catch (Exception e) when (e is HttpListenerException or ObjectDisposedException)
+                {
+                    return;
+                }
+
+                lock (_lock)
+                    _paths.Add(context.Request.Url?.AbsolutePath ?? "");
+                context.Response.StatusCode = 200;
+                context.Response.Close();
+            }
+        }
+
+        private static int FreePort()
+        {
+            using var socket = new TcpListener(IPAddress.Loopback, 0);
+            socket.Start();
+            return ((IPEndPoint)socket.LocalEndpoint).Port;
+        }
+    }
 
     /// <summary>
     /// Keeps the explicit bucket boundaries of every histogram it is handed, by instrument name.
