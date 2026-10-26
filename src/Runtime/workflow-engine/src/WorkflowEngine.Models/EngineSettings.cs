@@ -9,14 +9,6 @@ namespace WorkflowEngine.Models;
 public sealed record EngineSettings
 {
     /// <summary>
-    /// Whether to enable OpenTelemetry tracing, metrics, and log export.
-    /// Defaults to <c>true</c>. Set to <c>false</c> to skip all OTEL registration
-    /// (useful for local stress testing without a collector).
-    /// </summary>
-    [JsonPropertyName("enableTelemetry")]
-    public bool EnableTelemetry { get; set; } = true;
-
-    /// <summary>
     /// Trace sampling rate between 0.0 (drop all traces) and 1.0 (keep all traces).
     /// Defaults to <c>1.0</c>. Lower this during stress testing to reduce OTLP export volume
     /// while keeping metrics and logs at full fidelity.

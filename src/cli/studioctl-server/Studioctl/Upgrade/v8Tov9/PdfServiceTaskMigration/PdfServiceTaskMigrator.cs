@@ -184,10 +184,9 @@ internal sealed class PdfServiceTaskMigrator
 
             // If any insertion was skipped, keep the legacy flag: stripping it now would leave the
             // app with neither the v8 flag nor the v9 service task (silently dropping PDF generation),
-            // and the analyzer error is what tells the developer the migration needs manual work. A task
-            // that relied on the flag's implicit default has no flag to keep, so the to-do is its only
-            // signal. Successful insertions are kept; a re-run treats them as already migrated, so the
-            // flag is stripped once the remaining task(s) have been handled manually.
+            // and the analyzer error is what tells the developer the migration needs manual work.
+            // Successful insertions are kept; a re-run treats them as already migrated, so the flag
+            // is stripped once the remaining task(s) have been handled manually.
             var skippedTasks = tasks
                 .Select(t => t.TaskId)
                 .Where(taskId => blockedTasks.Contains(taskId) || processRewriter.GetSkippedTasks().Contains(taskId))

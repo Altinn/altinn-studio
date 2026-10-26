@@ -8,6 +8,7 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
+import { expectConfiguredPlatformLink, expectNotConfiguredPlatformLink } from 'src/test/platformLink';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -90,6 +91,28 @@ describe('presentation/AppHeader', () => {
         hidden: true,
       }),
     ).toBeInTheDocument();
+  });
+
+  it('links logout to the configured url', async () => {
+    window.altinnAppGlobalData.userProfile = getProfileMock();
+    await render({ party: partyOrg });
+
+    await act(() => userEvent.click(screen.getByRole('button', { name: /Profil ikon knapp/i })));
+
+    expectConfiguredPlatformLink(
+      screen.getByRole('link', { name: /logg ut/i, hidden: true }),
+      'https://platform.tt02.altinn.no/authentication/api/v1/logout',
+    );
+  });
+
+  it('shows logout as not configured when no logout url is configured', async () => {
+    window.altinnAppGlobalData.userProfile = getProfileMock();
+    window.altinnAppGlobalData.platformFrontendSettings.logoutUrl = undefined;
+    await render({ party: partyOrg });
+
+    await act(() => userEvent.click(screen.getByRole('button', { name: /Profil ikon knapp/i })));
+
+    expectNotConfiguredPlatformLink(screen.getByRole('link', { name: /logg ut/i, hidden: true }), 'LogoutUrl');
   });
 
   it('Should render Altinn logo if logo options are not set', async () => {

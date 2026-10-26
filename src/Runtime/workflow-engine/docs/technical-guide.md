@@ -1150,9 +1150,13 @@ used for this concept, and "head" is kept for the frontier and the `isHead` dire
 
 ## Telemetry & Observability
 
-The engine reports through OpenTelemetry: traces, metrics and logs, each exported over OTLP to
-`OTEL_EXPORTER_OTLP_ENDPOINT` (the SDK's default, `http://localhost:4317`, when it is unset). The
-activity source and the meter are both named `WorkflowEngine`.
+The engine reports through OpenTelemetry: traces, metrics and logs, all exported over OTLP exactly when
+the deployment sets `OTEL_EXPORTER_OTLP_ENDPOINT`. The per-signal endpoint variables do not turn
+exporting on. The protocol is `OTEL_EXPORTER_OTLP_PROTOCOL` (`grpc` when unset). Without the endpoint
+the engine sends nothing and logs no export errors: it never falls back to the SDK's default endpoint,
+and there is no setting that turns telemetry on or off. Every deployment sets the variable, and so does the compose stack; the hosts'
+launch profiles leave it to the shell. The activity source and the meter are both named
+`WorkflowEngine`, and are registered whether or not anything is exported.
 
 The deployment owns two settings the code would otherwise default. The resource's `service.name` comes
 from `OTEL_SERVICE_NAME` or `OTEL_RESOURCE_ATTRIBUTES`, which take precedence over the code's
