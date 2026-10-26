@@ -165,30 +165,12 @@ public sealed class TelemetryConfigurationTests
     }
 
     [Fact]
-    public void AddTelemetry_ExportToDefaultEndpointWithoutVariable_EverySignalIsExported()
+    public async Task AddTelemetry_EndpointAndProtocolVariables_EverySignalReachesTheEndpoint()
     {
         // Arrange
-        using var sp = BuildProvider(exportToDefaultEndpoint: true);
-
-        // Act
-        var exported = ExportedSignals(sp);
-
-        // Assert — the SDK's default endpoint, http://localhost:4317, stands in for the variable
-        Assert.Equal((true, true, true), exported);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task AddTelemetry_EndpointAndProtocolVariables_EverySignalReachesTheEndpoint(
-        bool exportToDefaultEndpoint
-    )
-    {
-        // Arrange — with exportToDefaultEndpoint as well, the variable still decides where the signals go
         using var collector = new OtlpHttpCollector();
         using var sp = BuildProvider(
-            new() { [OtlpEndpoint] = collector.Endpoint.ToString(), ["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/protobuf" },
-            exportToDefaultEndpoint: exportToDefaultEndpoint
+            new() { [OtlpEndpoint] = collector.Endpoint.ToString(), ["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/protobuf" }
         );
         var tracerProvider = sp.GetRequiredService<TracerProvider>();
         var meterProvider = sp.GetRequiredService<MeterProvider>();
@@ -470,8 +452,7 @@ public sealed class TelemetryConfigurationTests
         Dictionary<string, string?>? configuration = null,
         Action<IServiceCollection>? configureServices = null,
         bool enableDatabaseInstrumentation = false,
-        bool emitQueryParameters = false,
-        bool exportToDefaultEndpoint = false
+        bool emitQueryParameters = false
     )
     {
         var services = new ServiceCollection();
@@ -479,7 +460,6 @@ public sealed class TelemetryConfigurationTests
         services.AddSingleton<IConfiguration>(config);
         services.AddTelemetry(
             config,
-            exportToDefaultEndpoint: exportToDefaultEndpoint,
             emitQueryParameters: emitQueryParameters,
             enableDatabaseInstrumentation: enableDatabaseInstrumentation
         );

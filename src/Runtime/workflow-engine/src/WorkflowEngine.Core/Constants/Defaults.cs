@@ -9,7 +9,6 @@ internal static class Defaults
 {
     public static readonly EngineSettings EngineSettings = new()
     {
-        EnableTelemetry = false,
         MaxWorkflowsPerRequest = 100,
         MaxStepsPerWorkflow = 50,
         MaxLabels = 50,

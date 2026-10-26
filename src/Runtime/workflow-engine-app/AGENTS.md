@@ -119,7 +119,7 @@ Run with `dotnet test`.
 
 Use `studioctl env up --dev-workflow-engine` to start localtest with the workflow-engine route bound to the host, then run `dotnet run --project src/WorkflowEngine.App`.
 
-The launch profiles do not set `OTEL_EXPORTER_OTLP_ENDPOINT`; without it the engine exports nothing, so set it in the shell, or set `EngineSettings__EnableTelemetry=true` to export to `http://localhost:4317`, where `studioctl env up --monitoring` publishes its collector. The profiles point the dashboard's trace links (`EngineSettings__Dashboard__GrafanaUrl` and `EngineSettings__Dashboard__GrafanaTracesDatasourceUid`) at studioctl's Grafana and its traces datasource, so the links resolve only while `studioctl env up --monitoring` runs. studioctl sets the same two on the engine container it runs with monitoring.
+The launch profiles do not set `OTEL_EXPORTER_OTLP_ENDPOINT`; without it the engine exports nothing, so set it in the shell (`http://localhost:4317`, where `studioctl env up --monitoring` publishes its collector) to see its telemetry. The profiles point the dashboard's trace links (`EngineSettings__Dashboard__GrafanaUrl` and `EngineSettings__Dashboard__GrafanaTracesDatasourceUid`) at studioctl's Grafana and its traces datasource, so the links resolve only while `studioctl env up --monitoring` runs. studioctl sets the same two on the engine container it runs with monitoring.
 
 | Service           | Port | Purpose          |
 | ----------------- | ---- | ---------------- |

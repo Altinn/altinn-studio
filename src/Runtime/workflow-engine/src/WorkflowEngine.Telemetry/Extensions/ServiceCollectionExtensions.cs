@@ -29,29 +29,26 @@ public static class ServiceCollectionExtensions
         /// signal whose endpoint the deployment sets.
         /// </summary>
         /// <remarks>
-        /// A signal is exported whenever the engine knows where to send it: when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> or
-        /// the signal's own <c>OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT</c> is set, or when
-        /// <paramref name="exportToDefaultEndpoint"/> asks for the SDK's default <c>http://localhost:4317</c>.
-        /// Otherwise an engine without a collector sends nothing and logs no export errors. The exporter reads the
-        /// endpoint, the protocol and every other <c>OTEL_*</c> setting itself. The instrumentation, sources and
-        /// meters are registered either way.
+        /// A signal is exported exactly when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> or its own
+        /// <c>OTEL_EXPORTER_OTLP_{TRACES,METRICS,LOGS}_ENDPOINT</c> is set, so an engine without a collector sends
+        /// nothing and logs no export errors, rather than falling back to the SDK's default
+        /// <c>http://localhost:4317</c>. The exporter reads the endpoint, the protocol and every other
+        /// <c>OTEL_*</c> setting itself. The instrumentation, sources and meters are registered either way.
         /// </remarks>
         /// <param name="configuration">The host's configuration, from which the OTLP endpoint variables are read.</param>
-        /// <param name="exportToDefaultEndpoint">Export every signal even when no endpoint variable is set, to the SDK's default endpoint.</param>
         /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
         /// <param name="enableDatabaseInstrumentation">Enable EF Core and Npgsql tracing instrumentation. Implies <paramref name="enableDatabaseMetrics"/>.</param>
         /// <param name="enableDatabaseMetrics">Enable Npgsql connection pool and command metrics.</param>
         /// <param name="traceSamplingRate">Trace sampling rate between 0.0 (drop all) and 1.0 (keep all). Metrics and logs are always exported at full fidelity.</param>
         public IServiceCollection AddTelemetry(
             IConfiguration configuration,
-            bool exportToDefaultEndpoint = false,
             bool emitQueryParameters = false,
             bool enableDatabaseInstrumentation = false,
             bool enableDatabaseMetrics = true,
             double traceSamplingRate = 1.0
         )
         {
-            bool exportAll = exportToDefaultEndpoint || IsSet(configuration, OtlpEndpointVariable);
+            bool exportAll = IsSet(configuration, OtlpEndpointVariable);
             bool exportTraces = exportAll || IsSet(configuration, OtlpTracesEndpointVariable);
             bool exportMetrics = exportAll || IsSet(configuration, OtlpMetricsEndpointVariable);
             bool exportLogs = exportAll || IsSet(configuration, OtlpLogsEndpointVariable);

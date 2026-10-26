@@ -59,12 +59,7 @@ public static class WorkflowEngineBuilderExtensions
             // Built-in commands
             builder.Services.AddCommand<WebhookCommand>();
 
-            // Telemetry is exported wherever the engine knows where to send it, as AddTelemetry documents:
-            // the deployment's OTLP endpoint, or the SDK's default endpoint when EnableTelemetry asks for it.
-            bool enableTelemetry = builder.Configuration.GetValue(
-                $"EngineSettings:{nameof(EngineSettings.EnableTelemetry)}",
-                defaultValue: Defaults.EngineSettings.EnableTelemetry
-            );
+            // Telemetry is exported wherever the deployment sets the OTLP endpoint, as AddTelemetry documents.
             bool enableDatabaseInstrumentation = builder.Configuration.GetValue(
                 $"EngineSettings:{nameof(EngineSettings.EnableDatabaseInstrumentation)}",
                 defaultValue: Defaults.EngineSettings.EnableDatabaseInstrumentation
@@ -79,7 +74,6 @@ public static class WorkflowEngineBuilderExtensions
             );
             builder.Services.AddTelemetry(
                 builder.Configuration,
-                exportToDefaultEndpoint: enableTelemetry,
                 emitQueryParameters: isDev,
                 enableDatabaseInstrumentation: enableDatabaseInstrumentation,
                 enableDatabaseMetrics: enableDatabaseMetrics,
