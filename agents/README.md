@@ -15,7 +15,7 @@ See its [README](https://github.com/digdir/digdir-agents/blob/main/agentctl/READ
 | `desktop` `nested-build` | Reduced resources and a desktop image built from this checkout       |
 | `desktop` `worktree`     | Desktop published image with the current checkout mounted read-write |
 
-`minimal` has the .NET, Go and Node.js toolchains, `studioctl` and the pull request tools, and suits code and review
+`minimal` has the .NET (SDKs 8, 10 and 11), Go, Node.js and uv toolchains, `studioctl` and the pull request tools, and suits code and review
 work. `desktop` adds Podman, kind, Rust and the other developer tools, Chromium and a graphical desktop, for LocalTest,
 browser evidence and computer use. Both build on the
 [agentctl base image](https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base), which provides the

@@ -31,6 +31,13 @@ for tool in dotnet-counters dotnet-dump dotnet-trace; do
     echo "$tool $("$tool" --version)"
 done
 studioctl version
+uv --version
+# Every .NET major a global.json in the repository pins needs its own SDK; latestFeature roll-forward
+# never crosses a major.
+for major in 8 10 11; do
+    dotnet --list-sdks | grep -q "^${major}\." || fail ".NET SDK ${major} is missing"
+done
+dotnet --list-sdks
 test "$(id -un)" = agent || fail "expected to run as agent, got $(id -un)"
 
 echo "## app development"

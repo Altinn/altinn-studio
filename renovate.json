@@ -169,11 +169,12 @@
       "minimumReleaseAgeBehaviour": "timestamp-optional"
     },
     {
-      "description": "Move uv in the Studio Assistant CI and image, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
+      "description": "Move uv in the Studio Assistant CI and image, the Agent images, and .python-version, in one PR. uv installs the Python in .python-version, so uv must know that Python release",
       "matchFileNames": [
         ".github/workflows/altinity-build-test.yaml",
         ".github/workflows/assistant-evals.yaml",
         ".github/workflows/assistant-prompts.yaml",
+        "agents/Dockerfile",
         "src/AI/assistant/dockerfile",
         "src/AI/assistant/.python-version"
       ],

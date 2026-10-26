@@ -29,7 +29,11 @@ RUN apt-get update \
 RUN ln -sf /usr/share/zoneinfo/Europe/Oslo /etc/localtime
 
 ARG TARGETARCH
-ARG DOTNET_VERSION=10.0.402
+# One SDK per .NET major the repository's global.json files pin, each at the highest pin of that
+# major: rollForward latestFeature never crosses a major, so an SDK 10 cannot build a project pinned
+# to SDK 8 or 11. App v8 and its template are on 8, Designer and the Runtime services on 10, and App
+# v9 with its libraries and test apps on 11. Move a version together with its global.json pins.
+ARG DOTNET_SDK_VERSIONS="8.0.426 10.0.402 11.0.100-rc.2.26504.105"
 ARG DOTNET_INSTALL_SCRIPT_COMMIT=6f559c420847ded38591392dafe785ad511f39f5
 ARG DOTNET_INSTALL_SCRIPT_SHA256=082f7685e156738a1b2e2ed8381a621870d4ce8e8c59278034556f05c186eb2e
 ARG GO_VERSION=1.27.3
@@ -52,28 +56,34 @@ RUN case "${TARGETARCH}" in \
         "https://raw.githubusercontent.com/dotnet/install-scripts/${DOTNET_INSTALL_SCRIPT_COMMIT}/src/dotnet-install.sh" \
         -o /tmp/dotnet-install.sh \
     && echo "${DOTNET_INSTALL_SCRIPT_SHA256}  /tmp/dotnet-install.sh" | sha256sum -c - \
-    && bash /tmp/dotnet-install.sh \
-        --architecture "${DOTNET_ARCH}" \
-        --install-dir "${DOTNET_ROOT}" \
-        --no-path \
-        --version "${DOTNET_VERSION}" \
+    && for version in ${DOTNET_SDK_VERSIONS}; do \
+        bash /tmp/dotnet-install.sh \
+            --architecture "${DOTNET_ARCH}" \
+            --install-dir "${DOTNET_ROOT}" \
+            --no-path \
+            --version "${version}" \
+        || exit 1; \
+    done \
     && ln -s "${DOTNET_ROOT}/dotnet" /usr/local/bin/dotnet \
     && install -d /etc/dotnet \
     && printf '%s\n' "${DOTNET_ROOT}" >/etc/dotnet/install_location \
     && rm -f /tmp/dotnet-install.sh /tmp/go.tar.gz
 
-ARG YARN_VERSION=4.18.1
+# Matches packageManager in the root package.json, so a checkout's Yarn is ready offline.
+ARG YARN_VERSION=4.18.0
 
 ENV COREPACK_HOME=/usr/local/share/corepack
 
-# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it.
+# Agent Sandboxes mount their CA bundle here; this step's Node downloads trust it. The agent user
+# owns COREPACK_HOME, so a checkout pinning another Yarn release installs it on first use instead
+# of failing to create Corepack's cache.
 RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
       export NODE_EXTRA_CA_CERTS=/run/agent/tls/ca-bundle.pem; \
     fi; \
     mkdir -p "${COREPACK_HOME}" \
     && corepack enable \
     && corepack install --global "yarn@${YARN_VERSION}" \
-    && chmod -R a+rX "${COREPACK_HOME}"
+    && chown -R agent:agent "${COREPACK_HOME}"
 
 # The base routes GitHub credentials through gh; Azure DevOps goes through a helper too, so plain
 # git commands authenticate with the host-mediated token. Written system-wide, below any user
@@ -82,6 +92,12 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then \
 # authentication.
 COPY --chmod=0755 common/bin/azure-devops-git-credential /usr/local/bin/
 RUN git config --system credential.https://dev.azure.com.helper '!/usr/local/bin/azure-devops-git-credential'
+
+# uv runs the Python projects under src/AI: `uv sync` installs the Python release a project's
+# .python-version names and the dependencies its uv.lock pins, so the system Python's version does
+# not matter. Renovate moves it together with the Studio Assistant's CI and image.
+COPY --from=ghcr.io/astral-sh/uv:0.13.0@sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168 \
+    /uv /uvx /usr/local/bin/
 
 # The repository spell check (scripts/spellcheck, run by `yarn spell:*` and the pre-commit hook)
 # drives typos for code and English text and hunspell for Norwegian text. The version and x86_64
@@ -106,10 +122,13 @@ RUN case "${TARGETARCH}" in \
 
 # Installs the .NET tools listed in dotnet-tools.json, kept in the .NET tool manifest format so
 # Renovate updates it, to a shared path because the host resynchronizes the Agent's home directory.
+# .NET 11 keeps its named mutexes in XDG_RUNTIME_DIR and refuses one another user owns, and the base
+# sets it to the Agent user's, so root build steps that run the SDK point it at their scratch.
 COPY dotnet-tools.json /tmp/dotnet-tools.json
 RUN set -eu; \
     scratch="$(mktemp -d)"; \
-    export HOME="${scratch}" TMPDIR="${scratch}" DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1; \
+    export HOME="${scratch}" TMPDIR="${scratch}" XDG_RUNTIME_DIR="${scratch}" \
+        DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1; \
     for tool in $(jq -r '.tools | keys[]' /tmp/dotnet-tools.json); do \
         dotnet tool install "${tool}" --tool-path /usr/local/share/dotnet-tools \
             --version "$(jq -r --arg tool "${tool}" '.tools[$tool].version' /tmp/dotnet-tools.json)"; \
@@ -158,9 +177,14 @@ COPY --chmod=0755 common/studioctl-auth-init.sh /usr/local/libexec/agent-studioc
 # root-owned one would lock the Agent out of its own.
 RUN systemctl enable agent-studioctl-auth-init.service \
     && scratch="$(mktemp -d)" \
-    && HOME="${scratch}" TMPDIR="${scratch}" sh -c ' \
-        dotnet --version \
+    && HOME="${scratch}" TMPDIR="${scratch}" XDG_RUNTIME_DIR="${scratch}" \
+        DOTNET_SDK_VERSIONS="${DOTNET_SDK_VERSIONS}" sh -c ' \
+        dotnet --list-sdks \
+        && for version in ${DOTNET_SDK_VERSIONS}; do \
+            dotnet --list-sdks | grep -q "^${version} " || exit 1; \
+        done \
         && go version \
+        && uv --version \
         && yarn --version \
         && hunspell -v' \
     && rm -rf "${scratch}" \
