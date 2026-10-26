@@ -28,6 +28,10 @@ function extractAltinnHost(host: string): string | undefined {
  * hold one. In practice the configuration only reaches apps deployed on these hosts, so this is a
  * guard rather than a decision — but it is the guard the tests for Studio and unknown hosts rely on.
  */
+export function isProductionHost(host: string): boolean {
+  return extractAltinnHost(host) === 'altinn.no';
+}
+
 function isRecognizedAltinnHost(host: string): boolean {
   return extractAltinnHost(host) !== undefined;
 }

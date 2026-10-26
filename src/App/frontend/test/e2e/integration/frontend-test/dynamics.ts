@@ -33,16 +33,50 @@ describe('Dynamics', () => {
   it('Should save the labels of multiple chosen options and radio buttons', () => {
     cy.gotoHiddenPage('label-data-bindings');
 
+    cy.findByRole('checkbox', { name: 'Grønn' }).click();
     cy.findByRole('checkbox', { name: 'Blå' }).click();
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Grønn,Blå');
+
+    cy.reload();
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Grønn,Blå');
+
+    cy.findByRole('checkbox', { name: 'Grønn' }).click();
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Blå');
     cy.findByRole('checkbox', { name: 'Grønn' }).click();
     cy.get('#ColorsLabelsVerify').should('have.value', 'Blå,Grønn');
+
+    cy.findByRole('checkbox', { name: 'Blå' }).click();
+    cy.findByRole('checkbox', { name: 'Blå' }).click();
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Grønn,Blå');
 
     cy.findByRole('radio', { name: 'Gulrot' }).click();
     cy.get('#colorLabel').should('have.value', 'Gulrot');
 
     changeToLang('en');
-    cy.get('#ColorsLabelsVerify').should('have.value', 'Blue,Green');
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Green,Blue');
     cy.get('#colorLabel').should('have.value', 'Carrot');
+
+    cy.changeLayout((component) => {
+      if (component.id === 'colorsCheckboxes' && component.type === 'Checkboxes') {
+        Object.assign(component, { type: 'MultipleSelect' });
+      }
+    });
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Green,Blue');
+
+    cy.findByRole('option', { name: /Green,/ }).click('right', { force: true });
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Blue');
+    cy.get('#form-content-colorsCheckboxes').click();
+    cy.get('u-option[label="Green"][aria-selected="false"]').click();
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Blue,Green');
+
+    cy.findByRole('option', { name: /Blue,/ }).click('right', { force: true });
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Green');
+    cy.get('#form-content-colorsCheckboxes').click();
+    cy.get('u-option[label="Blue"][aria-selected="false"]').click();
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Green,Blue');
+
+    changeToLang('nb');
+    cy.get('#ColorsLabelsVerify').should('have.value', 'Grønn,Blå');
   });
 
   it('Remove validation message when field disappears', () => {

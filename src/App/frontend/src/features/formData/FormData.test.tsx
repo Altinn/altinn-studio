@@ -16,6 +16,7 @@ import { FormProvider } from 'src/features/form/FormProvider';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import {
+  ALTINN_ROW_ID,
   DEFAULT_DEBOUNCE_TIMEOUT,
   IDataModelMultiPatchRequest,
   IDataModelMultiPatchResponse,
@@ -966,6 +967,82 @@ describe('FormData', () => {
       await user.click(screen.getByRole('button', { name: 'Update list' }));
 
       await waitFor(() => expect(screen.getByTestId('list-value')).toHaveTextContent('id-2,id-1'));
+    });
+  });
+
+  describe('setLeafValueInList', () => {
+    const rowsSchema: JSONSchema7 = {
+      type: 'object',
+      properties: {
+        rows: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              [ALTINN_ROW_ID]: { type: 'string' },
+              value: { type: 'string' },
+            },
+          },
+        },
+      },
+    };
+
+    function RowWriter() {
+      const setLeafValueInList = FormStore.data.useSetLeafValueInList();
+      const rows = FormStore.data.useCurrentPick({ field: 'rows', dataType: defaultDataTypeMock }) as
+        { [ALTINN_ROW_ID]: string; value: string }[] | undefined;
+      const setValueInRow = (rowId: string) =>
+        setLeafValueInList({
+          reference: { field: 'rows', dataType: defaultDataTypeMock },
+          findRow: (row) => row[ALTINN_ROW_ID] === rowId,
+          field: 'value',
+          newValue: 'changed',
+        });
+
+      return (
+        <>
+          <div data-testid='rows'>{rows?.map((row) => `${row[ALTINN_ROW_ID]}=${row.value}`).join(',')}</div>
+          <button onClick={() => setValueInRow('row2')}>Update row2</button>
+          <button onClick={() => setValueInRow('missing')}>Update missing</button>
+        </>
+      );
+    }
+
+    async function render() {
+      return statefulRender({
+        renderer: <RowWriter />,
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((bootstrap) => {
+              bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
+                schema: rowsSchema,
+                initialData: {
+                  rows: [
+                    { [ALTINN_ROW_ID]: 'row1', value: 'one' },
+                    { [ALTINN_ROW_ID]: 'row2', value: 'two' },
+                  ],
+                },
+              });
+            }),
+        },
+      });
+    }
+
+    it('should set the value in the row found by the callback', async () => {
+      const user = userEvent.setup();
+      await render();
+      expect(screen.getByTestId('rows')).toHaveTextContent('row1=one,row2=two');
+
+      await user.click(screen.getByRole('button', { name: 'Update row2' }));
+      expect(screen.getByTestId('rows')).toHaveTextContent('row1=one,row2=changed');
+    });
+
+    it('should not change anything when no row matches', async () => {
+      const user = userEvent.setup();
+      await render();
+
+      await user.click(screen.getByRole('button', { name: 'Update missing' }));
+      expect(screen.getByTestId('rows')).toHaveTextContent('row1=one,row2=two');
     });
   });
 });

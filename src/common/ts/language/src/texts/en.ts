@@ -266,7 +266,12 @@ export function en() {
     'instance_selection.last_changed': 'Last changed',
     'instance_selection.left_of': 'Continue where you left of',
     'instance_selection.new_instance': 'Start over',
-    'instantiate.all_forms': 'all forms',
+      'instantiate.not_yet_open_error_title': 'This service has not opened yet',
+    'instantiate.not_yet_open_error_text': 'The service opens {0}. It is not possible to start new forms before then.',
+    'instantiate.closed_error_title': 'You cannot start this service',
+    'instantiate.closed_error_text':
+      'It is not possible to start new forms in this service. You can still complete forms you have already started from your inbox.',
+  'instantiate.all_forms': 'all forms',
     'instantiate.inbox': 'inbox',
     'instantiate.profile': 'profile',
     'instantiate.unknown_error_title': 'Unknown error',
