@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Hosting;
+using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -32,6 +33,8 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using Xunit;
+using AltinnEnvironment = Altinn.Studio.Designer.Models.AltinnEnvironment;
+using NotificationKind = Altinn.Studio.Designer.Models.NotificationKind;
 
 namespace Designer.Tests.Hosting;
 
@@ -185,6 +188,37 @@ public class OpenTelemetryTests
             .RequestMessage!;
         Assert.Equal("application/x-protobuf", Assert.Single(request.Headers!["Content-Type"]));
         Assert.Contains("altinn.workload.start_time", Encoding.UTF8.GetString(request.BodyData!.BodyAsBytes!));
+    }
+
+    [Fact]
+    public async Task NotificationMetrics_AreExportedAsCumulativeCounters()
+    {
+        await StartAsync();
+        NotificationMetrics notificationMetrics = Services.GetRequiredService<NotificationMetrics>();
+        notificationMetrics.RecordPeriodicReport(ReportFrequency.Weekly, "ttd", "tt02", error: null);
+        notificationMetrics.RecordInternalDelivery(
+            NotificationKind.Alert,
+            "ttd",
+            AltinnEnvironment.FromName("tt02"),
+            error: null
+        );
+
+        _metrics.Clear();
+        Services.GetRequiredService<MeterProvider>().ForceFlush();
+
+        foreach (
+            string name in new[]
+            {
+                NotificationMetrics.PeriodicReportsMetricName,
+                NotificationMetrics.DeliveriesMetricName,
+            }
+        )
+        {
+            Metric metric = Assert.Single(_metrics, metric => metric.Name == name);
+            Assert.Equal(MetricType.LongSum, metric.MetricType);
+            Assert.Equal(AggregationTemporality.Cumulative, metric.Temporality);
+            Assert.Equal(1, Assert.Single(MetricPoints(name)).GetSumLong());
+        }
     }
 
     [Fact]

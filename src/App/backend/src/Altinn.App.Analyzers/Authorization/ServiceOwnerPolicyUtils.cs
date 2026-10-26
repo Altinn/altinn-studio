@@ -10,18 +10,13 @@ namespace Altinn.App.Analyzers.Authorization;
 internal static class ServiceOwnerPolicyUtils
 {
     private const string PolicyPath = "config/authorization/policy.xml";
-    private const string ProcessPath = "config/process/process.bpmn";
 
     private const string InconclusiveRule =
         "the policy grants it only through a rule this analysis cannot decide statically (a condition, "
         + "a grant scoped to a single task, or an attribute or match function it does not model)";
 
-    internal static bool IsPolicyFile(AdditionalText text) => HasPath(text, PolicyPath);
-
-    internal static bool IsProcessFile(AdditionalText text) => HasPath(text, ProcessPath);
-
-    private static bool HasPath(AdditionalText text, string suffix) =>
-        text.Path.Replace('\\', '/').EndsWith(suffix, StringComparison.OrdinalIgnoreCase);
+    internal static bool IsPolicyFile(AdditionalText text) =>
+        text.Path.Replace('\\', '/').EndsWith(PolicyPath, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Appends a diagnostic for every action the app owner needs but the policy does not grant

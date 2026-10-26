@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +22,6 @@ public interface IRuntimeGatewayClient
         AltinnEnvironment environment,
         CancellationToken cancellationToken
     );
-    Task<bool> IsAppDeployedWithGitOpsAsync(
-        string org,
-        string app,
-        AltinnEnvironment environment,
-        CancellationToken cancellationToken
-    );
     Task<IEnumerable<AlertRule>> GetAlertRulesAsync(
         string org,
         AltinnEnvironment environment,
@@ -35,7 +30,8 @@ public interface IRuntimeGatewayClient
     Task<ReportMetrics> GetReportMetricsAsync(
         string org,
         AltinnEnvironment environment,
-        int range,
+        DateTimeOffset from,
+        DateTimeOffset to,
         CancellationToken cancellationToken
     );
     Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(

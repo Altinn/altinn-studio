@@ -97,6 +97,7 @@ func TestLocaltestManifest_DevWorkflowEngineBinding(t *testing.T) {
 func newOptions(dataDir string, includeMonitoring bool, includePgAdmin bool) *Options {
 	return &Options{
 		Paths:             NewPaths(dataDir),
+		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		IncludeMonitoring: includeMonitoring,
 		IncludePgAdmin:    includePgAdmin,
 	}

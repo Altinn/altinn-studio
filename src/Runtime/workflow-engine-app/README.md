@@ -30,17 +30,21 @@ To include the localtest monitoring stack, start localtest with:
 studioctl env up --dev-workflow-engine --monitoring
 ```
 
+The engine then exports its traces, metrics and logs to the stack's collector, and Grafana shows them on
+the _Workflow Engine_ dashboard in the _Altinn Studio_ folder, under the service `workflow-engine-app`.
+
 The database is migrated automatically on startup.
 
 ### Ports & URLs
 
-| Service    | URL                               | Notes                       |
-| ---------- | --------------------------------- | --------------------------- |
-| Engine API | http://localhost:9090             | Swagger UI at `/swagger`    |
-| Dashboard  | http://localhost:9090             | Real-time monitoring at `/` |
-| Localtest  | http://local.altinn.cloud:8000    | Platform and app callbacks  |
-| PostgreSQL | localhost:9543                    | Localtest workflow database |
-| Public API | http://workflow-engine.local.altinn.cloud:8000 | Proxied through localtest |
+| Service    | URL                                            | Notes                       |
+| ---------- | ---------------------------------------------- | --------------------------- |
+| Engine API | http://localhost:9090                          | Swagger UI at `/swagger`    |
+| Dashboard  | http://localhost:9090                          | Real-time monitoring at `/` |
+| Localtest  | http://local.altinn.cloud:8000                 | Platform and app callbacks  |
+| PostgreSQL | localhost:9543                                 | Localtest workflow database |
+| Public API | http://workflow-engine.local.altinn.cloud:8000 | Proxied through localtest   |
+| Grafana    | http://local.altinn.cloud:8000/grafana         | With `--monitoring`         |
 
 ### Running tests
 
@@ -75,4 +79,4 @@ least one studioctl release, and change studioctl in the same pull request.
 
 - [Workflow Engine README](../workflow-engine/README.md) — core engine documentation
 - [Technical guide](../workflow-engine/docs/technical-guide.md) — architecture, API reference, configuration
-- [Batch enqueue & dependency graphs](../workflow-engine/docs/batch-enqueue.md)
+- [Batch enqueue & dependency graphs](../workflow-engine/docs/technical-guide.md#dependency-graphs)

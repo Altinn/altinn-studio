@@ -39,7 +39,8 @@ reconciles the overlays in this directory, as it does the real ones in a cluster
 
 Everything else is production's: tail sampling (errors, slow traces and 10% of the rest, or
 `altinn.studio.sampling=always`), logs at WARN and above, and the metric allowlist
-(`altinn*` and `http*`). Telemetry that production drops is missing here as well.
+(`altinn*`, `http*`, `signalr.server*` and a few of the collectors' own `otelcol_*` metrics).
+Telemetry that production drops is missing here as well.
 
 ## Grafana
 

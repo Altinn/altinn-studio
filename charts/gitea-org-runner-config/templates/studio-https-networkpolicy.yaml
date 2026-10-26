@@ -1,0 +1,26 @@
+# Add to the infrastructure-managed runner egress policy without changing its
+# isolation rules. Public Studio HTTPS can be routed to the nginx pod inside
+# the cluster, so runners also need an explicit allowance to that destination.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.releaseName }}-studio-https
+  namespace: studio-runners
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.releaseName | quote }}
+      app.kubernetes.io/instance: {{ .Values.releaseName | quote }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              run: altinn-loadbalancer
+      ports:
+        - protocol: TCP
+          port: 443

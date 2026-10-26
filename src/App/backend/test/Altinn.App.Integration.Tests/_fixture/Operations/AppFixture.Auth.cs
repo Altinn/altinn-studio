@@ -51,7 +51,7 @@ public partial class AppFixture : IAsyncDisposable
         public async Task<string> GetUserToken(
             int userId = 1337,
             int? partyId = null,
-            int authenticationLevel = 2,
+            int authenticationLevel = 3,
             string? scope = null
         )
         {
@@ -59,15 +59,18 @@ public partial class AppFixture : IAsyncDisposable
             var queryParams = new List<string> { $"userId={userId}" };
             if (partyId.HasValue)
                 queryParams.Add($"partyId={partyId}");
-            if (authenticationLevel != 2)
+            if (authenticationLevel != 3)
                 queryParams.Add($"authenticationLevel={authenticationLevel}");
             if (!string.IsNullOrEmpty(scope))
                 queryParams.Add($"scope={Uri.EscapeDataString(scope)}");
 
             var queryString = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
             using var response = await client.GetAsync($"/Home/auth/user{queryString}");
-            Assert.True(response.IsSuccessStatusCode, $"Failed to get user token");
             var token = await response.Content.ReadAsStringAsync();
+            Assert.True(
+                response.IsSuccessStatusCode,
+                $"Failed to get user token: {(int)response.StatusCode} {response.StatusCode}: {token}"
+            );
             Assert.NotNull(token);
             Assert.NotEmpty(token);
             return token;

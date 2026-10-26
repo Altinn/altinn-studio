@@ -270,23 +270,9 @@ public class IGiteaClientMock : IGiteaClient
         throw new NotImplementedException();
     }
 
-    public Task<ListviewServiceResource> MapServiceResourceToListViewResource(
-        string org,
-        string repo,
-        ServiceResource serviceResource,
-        CancellationToken cancellation
-    )
+    public Task<string> GetUserFullName(string username)
     {
-        return Task.FromResult(
-            new ListviewServiceResource
-            {
-                CreatedBy = "testUser",
-                Identifier = serviceResource.Identifier,
-                Title = new Dictionary<string, string> { { "test", "test" } },
-                LastChanged = DateTime.Now,
-                HasPolicy = true,
-            }
-        );
+        return Task.FromResult(username);
     }
 
     public Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(

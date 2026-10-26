@@ -263,7 +263,7 @@ internal sealed partial class EngineRepository
 
             await tx.CommitAsync(cancellationToken);
 
-            receiverPlan.Births.Record();
+            receiverPlan.EnqueueOutcomes.Record();
 
             foreach (var i in newRequestIndices)
             {
@@ -722,18 +722,27 @@ internal sealed partial class EngineRepository
     private sealed record MailboxReceiverRow(string Namespace, bool IsDisposed, long NextIdx, long NextSeq);
 
     /// <summary>Published after the commit.</summary>
-    private readonly record struct MailboxBirthCounts(long Delivered, long Closed, long Held)
+    private readonly record struct MailboxEnqueueOutcomeCounts(long Delivered, long Closed, long Held)
     {
         public void Record()
         {
             if (Delivered > 0)
-                Metrics.MailboxReceiversCreated.Add(Delivered, new KeyValuePair<string, object?>("birth", "delivered"));
+                Metrics.MailboxReceiversCreated.Add(
+                    Delivered,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverEnqueueOutcome, "delivered")
+                );
 
             if (Closed > 0)
-                Metrics.MailboxReceiversCreated.Add(Closed, new KeyValuePair<string, object?>("birth", "closed"));
+                Metrics.MailboxReceiversCreated.Add(
+                    Closed,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverEnqueueOutcome, "closed")
+                );
 
             if (Held > 0)
-                Metrics.MailboxReceiversCreated.Add(Held, new KeyValuePair<string, object?>("birth", "held"));
+                Metrics.MailboxReceiversCreated.Add(
+                    Held,
+                    new KeyValuePair<string, object?>(TelemetryAttributes.MailboxReceiverEnqueueOutcome, "held")
+                );
         }
     }
 
@@ -754,7 +763,7 @@ internal sealed partial class EngineRepository
         List<int> RejectedRequestIndices,
         List<MailboxReceiverRegistration> Registrations,
         Dictionary<Guid, long> SeqAdvances,
-        MailboxBirthCounts Births
+        MailboxEnqueueOutcomeCounts EnqueueOutcomes
     )
     {
         public static readonly MailboxReceiverPlan Empty = new([], [], [], default);
@@ -843,9 +852,9 @@ internal sealed partial class EngineRepository
         var rejected = new List<int>();
         var registrations = new List<MailboxReceiverRegistration>();
         var advances = new Dictionary<Guid, long>(mailboxes.Count);
-        long bornDelivered = 0;
-        long bornClosed = 0;
-        long bornHeld = 0;
+        long createdDelivered = 0;
+        long createdClosed = 0;
+        long createdHeld = 0;
         var pending = new List<(Guid MailboxId, long Seq, WorkflowEntity Entity)>();
         var reserved = new Dictionary<Guid, long>();
 
@@ -907,21 +916,21 @@ internal sealed partial class EngineRepository
 
                 if (hasDelivery || mailbox.IsDisposed)
                 {
-                    // Runnable at birth, but it still registers: the position is what the executor reads its delivery
-                    // by. Born released, so no release statement can match it.
+                    // Created runnable, but it still registers: the position is what the executor reads its delivery
+                    // by. Stamped released at creation, so no release statement can match it.
                     entity.Status = PersistentItemStatus.Enqueued;
                     registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, null, now));
 
                     if (hasDelivery)
-                        bornDelivered++;
+                        createdDelivered++;
                     else
-                        bornClosed++;
+                        createdClosed++;
                 }
                 else
                 {
                     entity.Status = PersistentItemStatus.Held;
                     registrations.Add(new MailboxReceiverRegistration(mailboxId, seq, entity.Id, now, null));
-                    bornHeld++;
+                    createdHeld++;
                 }
 
                 advances[mailboxId] = advances.GetValueOrDefault(mailboxId) + 1;
@@ -937,7 +946,7 @@ internal sealed partial class EngineRepository
             rejected,
             registrations,
             advances,
-            new MailboxBirthCounts(bornDelivered, bornClosed, bornHeld)
+            new MailboxEnqueueOutcomeCounts(createdDelivered, createdClosed, createdHeld)
         );
     }
 
@@ -1214,9 +1223,9 @@ internal sealed partial class EngineRepository
     /// <summary>
     /// Computes the new collection heads after processing a request. Merges previous heads with new leaves:
     /// <list type="bullet">
-    ///   <item>A previous head is "consumed" (removed) if a <em>visible</em> workflow depends on it — either via
+    ///   <item>A previous head is "consumed" (removed) if a primary workflow depends on it — either via
     ///         injected head dependency edges or via an explicit DependsOn by database ID.</item>
-    ///   <item>Workflows with <c>IsHead == false</c> are "invisible" — they are excluded from heads and their
+    ///   <item>Workflows with <c>IsHead == false</c> are auxiliary — they are excluded from heads and their
     ///         dependency edges do not consume existing heads.</item>
     ///   <item>Unconsumed previous heads are retained.</item>
     ///   <item>New leaf workflows (not depended-on by other batch workflows) and <c>IsHead == true</c> overrides
@@ -1252,7 +1261,7 @@ internal sealed partial class EngineRepository
             var req = workflowRequests[i];
             var wfId = workflows[i].DatabaseId;
 
-            // IsHead == false: force-exclude — invisible to collection head tracking
+            // IsHead == false: force-exclude — an auxiliary workflow never joins the heads
             if (req.IsHead == false)
                 continue;
 
@@ -1266,7 +1275,7 @@ internal sealed partial class EngineRepository
         if (currentHeads.Length == 0)
             return [.. newLeaves];
 
-        // 2. Build set of invisible workflow IDs (IsHead == false)
+        // 2. Build set of auxiliary workflow IDs (IsHead == false)
         var invisibleIds = new HashSet<Guid>();
         for (int i = 0; i < workflowRequests.Count; i++)
         {
@@ -1274,18 +1283,18 @@ internal sealed partial class EngineRepository
                 invisibleIds.Add(workflows[i].DatabaseId);
         }
 
-        // 3. Compute consumed heads - heads that any visible workflow depends on
+        // 3. Compute consumed heads - heads that any primary workflow depends on
         var currentHeadSet = new HashSet<Guid>(currentHeads);
         var consumedHeads = new HashSet<Guid>();
 
-        // From injected head dependency edges (skip invisible workflows)
+        // From injected head dependency edges (skip auxiliary workflows)
         foreach (var (workflowId, dependsOnId) in headDepEdges)
         {
             if (!invisibleIds.Contains(workflowId) && currentHeadSet.Contains(dependsOnId))
                 consumedHeads.Add(dependsOnId);
         }
 
-        // From explicit DependsOn by database ID (skip invisible workflows)
+        // From explicit DependsOn by database ID (skip auxiliary workflows)
         for (int i = 0; i < workflowRequests.Count; i++)
         {
             var req = workflowRequests[i];
@@ -1414,7 +1423,7 @@ internal sealed partial class EngineRepository
 
     /// <summary>
     /// Records wake-to-claim latency and stamps <c>claimed_at</c>. <c>claimed_at IS NULL</c> keeps it once per
-    /// release rather than per retry; <c>held_at IS NOT NULL</c> keeps it about the wake — a receiver born
+    /// release rather than per retry; <c>held_at IS NOT NULL</c> keeps it about the wake — a receiver created
     /// runnable never waited. Clamped at zero: the two ends come from two pods' clocks.
     /// </summary>
     private static async Task RecordWakeToClaimLatency(
@@ -1866,8 +1875,7 @@ internal sealed partial class EngineRepository
 
             if (rejected.Count > 0)
             {
-                activity?.SetTag("lease.lost", true);
-                activity?.SetTag("lease.lost.count", rejected.Count);
+                activity?.SetTag(TelemetryAttributes.WorkflowLeaseLostCount, rejected.Count);
                 logger.BatchUpdateLeaseLost(rejected.Count, updates.Count);
             }
 

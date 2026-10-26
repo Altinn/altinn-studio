@@ -1,6 +1,11 @@
 export type { PolicyAction } from 'app-shared/types/PolicyAction';
 export type { PolicySubject } from 'app-shared/types/PolicySubject';
-export type { Policy, PolicyRule, RequiredAuthLevel } from 'app-shared/types/Policy';
+export type {
+  Policy,
+  PolicyRule,
+  RemovedAuthLevel,
+  RequiredAuthLevel,
+} from 'app-shared/types/Policy';
 
 export type AppPolicyActionMap = {
   [key: string]: string;

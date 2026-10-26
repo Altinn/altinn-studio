@@ -4,10 +4,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 
 /// <summary>
-/// Parameters for build when queuing
-/// Used for calling release pipeline, deploy pipeline and gitops deployment pipeline
-/// After deploying and removing feature branch, this class should be split into multiple classes to be
-/// more explicit for each pipeline.
+/// Parameters for queuing release and GitOps deployment pipelines.
 /// </summary>
 public class QueueBuildParameters
 {

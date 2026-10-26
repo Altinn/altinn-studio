@@ -8,10 +8,13 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 ///
 /// Legacy semantics (app-lib-dotnet v8): a PDF was generated at the end of a task only for dataTypes
 /// that had <c>appLogic.classRef</c> set, <c>enablePdfCreation == true</c>, and were bound to that
-/// task via <c>taskId</c>. The flag defaults to true in v8, so a dataType without it counts as enabled.
-/// Exactly one PDF was produced per task-end regardless of how many datamodels qualified. The flag on
-/// attachment dataTypes (no classRef) or without a taskId (e.g. stateless) was a no-op. We therefore
-/// group qualifying datamodels by taskId; each distinct task gets one pdf task.
+/// task via <c>taskId</c>. Exactly one PDF was produced per task-end regardless of how many datamodels
+/// qualified. The flag on attachment dataTypes (no classRef) or without a taskId (e.g. stateless) was a
+/// no-op. We therefore group qualifying datamodels by taskId; each distinct task gets one pdf task.
+///
+/// v8 also counted a missing flag as true, but this migration deliberately does not: only an explicit
+/// <c>true</c> gets a pdf task. It removes <c>false</c> too, so on a re-run of the upgrade a missing flag
+/// may be one it removed. And next to no deployed app relied on the default (see #19667).
 /// </summary>
 internal sealed class ApplicationMetadataPdfRewriter
 {
@@ -60,9 +63,8 @@ internal sealed class ApplicationMetadataPdfRewriter
 
             // Case-insensitive: v8 deserializes applicationmetadata.json with Newtonsoft, which matches
             // property names case-insensitively, so a hand-edited e.g. "EnablePdfCreation" generated PDFs
-            // under v8 and must not be missed here. A missing flag is v8's default, true.
-            var hasFlag = TryGetPropertyIgnoreCase(dataType, PropertyName, out var flag);
-            if (hasFlag && flag.ValueKind != JsonValueKind.True)
+            // under v8 and must not be missed here. A missing flag counts as false (see the class summary).
+            if (!TryGetPropertyIgnoreCase(dataType, PropertyName, out var flag) || flag.ValueKind != JsonValueKind.True)
                 continue;
 
             var hasClassRef =
@@ -88,12 +90,10 @@ internal sealed class ApplicationMetadataPdfRewriter
             )
             {
                 // Legacy no-op: without a taskId (e.g. stateless data) there is no task-end to trigger on.
-                // Only an explicit flag is worth a warning; the implicit default is on every such dataType.
-                if (hasFlag)
-                    _warnings.Add(
-                        $"DataType '{dataTypeId ?? "<unknown>"}' has enablePdfCreation but no taskId; this was a no-op in "
-                            + "the legacy backend, so no PDF service task was added."
-                    );
+                _warnings.Add(
+                    $"DataType '{dataTypeId ?? "<unknown>"}' has enablePdfCreation but no taskId; this was a no-op in "
+                        + "the legacy backend, so no PDF service task was added."
+                );
                 continue;
             }
 

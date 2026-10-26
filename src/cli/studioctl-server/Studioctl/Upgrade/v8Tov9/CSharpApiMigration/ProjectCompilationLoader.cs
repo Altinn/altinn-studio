@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Altinn.Studio.StudioctlServer.Platform;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -72,46 +71,18 @@ internal static class ProjectCompilationLoader
         CancellationToken cancellationToken
     )
     {
-        var startInfo = ProcessUtil.CreateDotnetStartInfo("restore", projectFile);
-        if (configuration is not null)
-        {
-            startInfo.ArgumentList.Add($"-p:Configuration={configuration}");
-        }
-        startInfo.WorkingDirectory = projectFolder;
-        startInfo.RedirectStandardOutput = true;
-        startInfo.RedirectStandardError = true;
-
-        using var process =
-            Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start dotnet restore.");
-        var standardOutput = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var standardError = process.StandardError.ReadToEndAsync(cancellationToken);
-        try
-        {
-            await process.WaitForExitAsync(cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // WaitForExitAsync only stops waiting; terminate the restore too.
-            try
-            {
-                process.Kill(entireProcessTree: true);
-            }
-            catch (InvalidOperationException)
-            {
-                // The process exited between cancellation and the kill.
-            }
-            throw;
-        }
-
-        var error = (await standardError).Trim();
-        var output = (await standardOutput).Trim();
-        if (process.ExitCode == 0)
+        var (output, exitCode) = await DotnetRestore.RunAsync(
+            projectFolder,
+            projectFile,
+            configuration,
+            cancellationToken
+        );
+        if (exitCode == 0)
         {
             return null;
         }
 
-        var detail = error.Length > 0 ? error : output;
-        var lastLine = detail.Split('\n', StringSplitOptions.RemoveEmptyEntries).LastOrDefault()?.Trim();
-        return $"dotnet restore exited with {process.ExitCode}{(lastLine is null ? "" : $": {lastLine}")}";
+        var error = DotnetRestore.FindError(output);
+        return $"dotnet restore exited with {exitCode}{(error is null ? "" : $": {error}")}";
     }
 }

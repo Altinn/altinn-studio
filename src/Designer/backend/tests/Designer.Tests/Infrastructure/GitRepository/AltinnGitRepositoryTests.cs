@@ -125,6 +125,27 @@ public class AltinnGitRepositoryTests
         }
     }
 
+    [Fact]
+    public async Task RepositoryType_SettingsDontExistAndNameOnlyEndsWithDatamodels_ShouldUseApp()
+    {
+        var org = "ttd";
+        var sourceRepository = "hvem-er-hvem";
+        var developer = "testUser";
+        var targetRepository = TestDataHelper.GenerateTestRepoName("-datamodels");
+
+        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+
+        try
+        {
+            var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
+            Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
+        }
+    }
+
     private static AltinnGitRepository GetTestRepository(string org, string repository, string developer)
     {
         var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();

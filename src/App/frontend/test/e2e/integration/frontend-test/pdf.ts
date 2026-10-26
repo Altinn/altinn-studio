@@ -278,6 +278,10 @@ describe('PDF', () => {
   });
 
   it('should generate PDF for group step (using Summary2 automatic PDF by default)', { retries: 0 }, () => {
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_3.components = { excludeFromPdf: ['newValue', 'calculatedChange'] };
+    });
+
     cy.goto('group');
     cy.findByRole('checkbox', { name: /liten/i }).check();
     cy.findByRole('checkbox', { name: /middels/i }).check();
@@ -301,6 +305,10 @@ describe('PDF', () => {
       freeze: false,
       snapshotName: 'group-custom-summary2',
       callback: () => {
+        cy.get('[data-summary-target="currentValue-0"]').should('contain.text', 'NOK 1');
+        cy.get('[data-summary-target^="newValue-"]', { timeout: 0 }).should('not.exist');
+        cy.get('[data-summary-target^="calculatedChange-"]', { timeout: 0 }).should('not.exist');
+
         // Summary2 doesn't do page-breaks per row, only for the component itself
         cy.expectPageBreaks(1);
       },
@@ -369,6 +377,7 @@ describe('PDF', () => {
 
     interceptAltinnAppGlobalData((data) => {
       data.ui.folders.Task_5.pages.pdfLayoutName = pdfLayoutName;
+      data.ui.folders.Task_5.components = { excludeFromPdf: ['title'] };
     });
 
     cy.intercept('GET', '**/bootstrap-form/**', (req) => {
@@ -403,8 +412,8 @@ describe('PDF', () => {
 
     cy.testPdf({
       callback: () => {
-        cy.findByRole('heading', { name: /this is a custom pdf/i }).should('be.visible');
         cy.getSummary('Hvem gjelder saken?').should('contain.text', 'Caroline');
+        cy.findByRole('heading', { name: /this is a custom pdf/i, timeout: 0 }).should('not.exist');
       },
     });
   });

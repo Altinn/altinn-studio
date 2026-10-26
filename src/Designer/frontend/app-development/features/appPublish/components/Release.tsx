@@ -57,6 +57,11 @@ export function Release(props: IReleaseComponent) {
         <div>{t('app_release.release_version') + ' ' + release.tagName}</div>
         <time dateTime={release.created}>{DateUtils.formatDateTime(release.created)}</time>
       </div>
+      {release.branch && (
+        <div className={classes.releaseRow}>
+          {t('app_release.release_branch')} {release.branch}
+        </div>
+      )}
       <div className={classes.releaseRow}>
         <div>
           {renderStatusIcon(release.build)}

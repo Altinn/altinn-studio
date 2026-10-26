@@ -1,9 +1,11 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
@@ -18,6 +20,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.Process;
@@ -113,32 +116,85 @@ public class ProcessNavigatorTests
         nextElements.Should().BeNull();
     }
 
-    [Fact]
-    public async Task GetNextTask_returns_default_if_no_filtering_is_implemented_and_default_set()
+    // As in the Fiks Arkiv documentation: the default flow has no condition, and Flow4 is taken on "reject".
+    [Theory]
+    [InlineData(null, "EndEvent")]
+    [InlineData("confirm", "EndEvent")]
+    [InlineData("reject", "Task2")]
+    public async Task GetNextTask_takes_default_flow_only_when_no_other_condition_holds(
+        string? action,
+        string expectedNext
+    )
     {
-        using var fixture = SetupProcessNavigator("simple-gateway-default.bpmn", []);
+        using var fixture = SetupProcessNavigator("gateway-default-fallback.bpmn", [], expressions: true);
         var (_, processNavigator) = fixture;
-        var nextElements = await processNavigator.GetNextTask(await fixture.Accessor(new Instance()), "Task1", null);
-        nextElements
-            .Should()
-            .BeEquivalentTo(
-                new ProcessTask()
-                {
-                    Id = "Task2",
-                    Name = null!,
-                    ExtensionElements = new()
-                    {
-                        TaskExtension = new()
-                        {
-                            TaskType = "confirm",
-                            AltinnActions = new() { new("confirm"), new("reject") },
-                        },
-                    },
-                    Incoming = new List<string> { "Flow3" },
-                    Outgoing = new List<string> { "Flow5" },
-                }
-            );
+
+        var next = await processNavigator.GetNextTask(await fixture.Accessor(InstanceOn("Task1")), "Task1", action);
+
+        Assert.Equal(expectedNext, next?.Id);
     }
+
+    // Startup rejects a condition on the default; the navigator ignores one regardless.
+    [Theory]
+    [InlineData("confirm", "EndEvent")]
+    [InlineData("reject", "Task2")]
+    public async Task GetNextTask_never_evaluates_default_condition(string action, string expectedNext)
+    {
+        using var fixture = SetupProcessNavigator("gateway-default-invalid-condition.bpmn", [], expressions: true);
+        var (_, navigator) = fixture;
+        var next = await navigator.GetNextTask(await fixture.Accessor(InstanceOn("Task1")), "Task1", action);
+        Assert.Equal(expectedNext, next?.Id);
+    }
+
+    [Fact]
+    public async Task GetNextTask_throws_when_more_than_one_condition_holds()
+    {
+        using var fixture = SetupProcessNavigator("gateway-default-fallback.bpmn", [], expressions: true);
+        var (_, processNavigator) = fixture;
+        var dataAccessor = await fixture.Accessor(InstanceOn("Task1"));
+
+        var exception = await Assert.ThrowsAsync<ProcessException>(() =>
+            processNavigator.GetNextTask(dataAccessor, "Task1", "both")
+        );
+
+        Assert.Equal(
+            "Exclusive gateway Gateway1 has 2 valid outgoing flows (Flow4, Flow5). Expected 1",
+            exception.Message
+        );
+    }
+
+    [Theory]
+    [InlineData("NoSuchFlow")]
+    [InlineData("Flow3")]
+    public async Task GetNextTask_takes_default_flow_when_custom_filter_returns_none_or_selects_default(
+        string selectedFlow
+    )
+    {
+        using var fixture = SetupProcessNavigator(
+            "simple-gateway-default.bpmn",
+            [new DataValuesFilter("Gateway1", "choose")]
+        );
+        var (_, processNavigator) = fixture;
+        Instance i = new Instance()
+        {
+            Id = $"123/{Guid.NewGuid()}",
+            AppId = "org/app",
+            DataValues = new Dictionary<string, string>() { { "choose", selectedFlow } },
+        };
+
+        var next = await processNavigator.GetNextTask(await fixture.Accessor(i), "Task1", null);
+
+        Assert.Equal("Task2", next?.Id);
+    }
+
+    private static Instance InstanceOn(string taskId) =>
+        new()
+        {
+            Id = $"123/{Guid.NewGuid()}",
+            AppId = "org/app",
+            Process = new() { CurrentTask = new() { ElementId = taskId } },
+            Data = [],
+        };
 
     [Fact]
     public async Task GetNextTask_runs_custom_filter_and_returns_result()
@@ -191,9 +247,7 @@ public class ProcessNavigatorTests
         var result = await Assert.ThrowsAsync<ProcessException>(async () =>
             await processNavigator.GetNextTask(dataAccessor, "Task1", null)
         );
-        result
-            .Message.Should()
-            .Be("Multiple next elements found from Task1. Please supply action and filters or define a default flow.");
+        result.Message.Should().Be("Exclusive gateway Gateway1 has 2 valid outgoing flows (Flow3, Flow4). Expected 1");
     }
 
     [Fact]
@@ -261,7 +315,11 @@ public class ProcessNavigatorTests
         nextElements.Should().BeNull();
     }
 
-    private static Fixture SetupProcessNavigator(string bpmnfile, IEnumerable<IProcessExclusiveGateway> gatewayFilters)
+    private static Fixture SetupProcessNavigator(
+        string bpmnfile,
+        IEnumerable<IProcessExclusiveGateway> gatewayFilters,
+        bool expressions = false
+    )
     {
         var services = new ServiceCollection();
 
@@ -282,7 +340,17 @@ public class ProcessNavigatorTests
         services.AddSingleton(dataClient.Object);
         services.AddSingleton(mutationClient.Object);
         services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
-        services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
+        var appResources = new Mock<IAppResources>(MockBehavior.Strict);
+        if (expressions)
+        {
+            appResources
+                .Setup(r => r.GetUiConfiguration())
+                .Returns(new UiConfiguration { Folders = new(), Settings = null });
+            services.AddSingleton<IProcessExclusiveGateway, ExpressionsExclusiveGateway>();
+            services.AddSingleton<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
+            services.AddSingleton(Options.Create(new FrontEndSettings()));
+        }
+        services.AddSingleton(appResources.Object);
         services.AddSingleton(new Mock<ITranslationService>(MockBehavior.Strict).Object);
         services.AddSingleton<ModelSerializationService>();
         services.AddTransient<InstanceDataUnitOfWorkInitializer>();

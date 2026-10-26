@@ -19,7 +19,6 @@ var layoutSchema = await schemas.GetFileText(JsonSchemaPaths.Layout);
 var schemasByPath = await schemas.GetFiles("schemas/json");
 ```
 
-
 Fetch the self-contained content layer and copy the complete frontend distribution:
 
 ```csharp

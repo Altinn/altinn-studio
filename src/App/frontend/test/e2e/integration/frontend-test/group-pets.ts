@@ -182,6 +182,47 @@ describe('Group (Pets)', () => {
     cy.testWcag();
     cy.gotoNavPage('option-comp');
     cy.get('#header-collection1').should('be.visible');
+    cy.get('[data-summary-target="option-test3"]').within(() => {
+      cy.contains('span', 'Ofte sett i morsomme videoer på nettet').should('be.visible');
+      cy.findByRole('button', { name: /Katter er selvstendige/ }).click();
+      cy.get('[data-testid="helptext"]').should('be.visible').and('contain.text', 'Katter er selvstendige');
+      cy.findByRole('button', { name: /Katter er selvstendige/ }).click();
+    });
+    cy.get('[data-summary-target="option-test4"]')
+      .should('contain.text', 'Svømmedyr')
+      .and('not.contain.text', 'Dyr som svømmer');
+
+    for (const isCompact of [undefined, false, true]) {
+      if (isCompact !== undefined) {
+        cy.changeLayout((component) => {
+          if (component.id === 'option-summary' && component.type === 'Summary2') {
+            component.isCompact = isCompact;
+          }
+        });
+      }
+      for (const [id, direction, defaultSummaryDirection] of [
+        ['option-test1', 'row', 'column'],
+        ['option-test3', 'row', 'row'],
+        ['option-test4', 'column', 'column'],
+      ]) {
+        cy.get(`#form-content-${id}`).parent().should('have.css', 'flex-direction', direction);
+        cy.get(`[data-summary-target="${id}"]`).within(() => {
+          const compact = isCompact === undefined ? defaultSummaryDirection === 'row' : isCompact;
+          cy.get('[data-testid="summary-single-value-component"] label').then(($label) => {
+            cy.contains('span', id === 'option-test3' ? /^Katt$/ : /^Fisk$/).should(($value) => {
+              const labelRect = $label[0].getBoundingClientRect();
+              const valueRect = $value[0].getBoundingClientRect();
+              if (compact) {
+                expect(valueRect.left).to.be.greaterThan(labelRect.right);
+                expect(Math.abs(valueRect.top - labelRect.top)).to.be.lessThan(5);
+              } else {
+                expect(valueRect.top).to.be.at.least(labelRect.bottom);
+              }
+            });
+          });
+        });
+      }
+    }
     cy.testWcag();
   });
 

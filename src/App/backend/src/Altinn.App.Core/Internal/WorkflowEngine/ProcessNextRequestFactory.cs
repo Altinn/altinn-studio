@@ -65,29 +65,28 @@ internal sealed class ProcessNextRequestFactory
     ///
     /// Carried only by the pre-commit lifecycle steps, which is exactly the run the dashboard brackets
     /// under one element name. The transition-level steps around them (<c>AcquireProcessingStatus</c>,
-    /// <c>MutateProcessState</c>, <c>CommitProcessState</c>, <c>EnqueueSideEffectsWorkflow</c>) belong to
+    /// <c>MutateProcessState</c>, <c>CommitProcessState</c>, <c>EnqueueAuxiliaryWorkflows</c>) belong to
     /// the transition rather than to either element and stay unlabeled, and so do the post-commit and
-    /// side-effect steps: labeling those would draw the entering element's name a second time, after the
+    /// auxiliary steps: labeling those would draw the entering element's name a second time, after the
     /// commit, around work the first bracket already named.
     /// </summary>
     internal const string ProcessNextElementLabel = "processNextElement";
 
     /// <summary>
-    /// OperationId prefix for the Main process-next workflow (the visible collection head carrying
-    /// the pre-commit, commit, and post-commit steps).
+    /// OperationId prefix for the transition's primary process-next workflow (the one the process waits on,
+    /// carrying the pre-commit, commit, and post-commit steps).
     /// </summary>
-    internal const string MainOperationIdPrefix = "Process next:";
+    internal const string PrimaryOperationIdPrefix = "Process next:";
 
     /// <summary>
-    /// OperationId prefix for the fire-and-forget side-effects workflows (one single-step workflow
-    /// per side effect, enqueued as an atomic batch at the commit boundary by
-    /// <see cref="EnqueueSideEffectsWorkflow"/>; each OperationId carries the command key as a
-    /// suffix). A human-readable naming convention for ops queries and logs only - identification
-    /// (wait/settle scoping, failure classification) is by the engine-persisted
-    /// <c>IsHead == false</c> directive (see <see cref="WorkflowEngineService.IsSideEffectsWorkflow"/>),
-    /// not by this string.
+    /// OperationId prefix for the auxiliary workflows (one single-step workflow per auxiliary command,
+    /// enqueued as an atomic batch at the commit boundary by <see cref="EnqueueAuxiliaryWorkflows"/>; each
+    /// OperationId carries the command key as a suffix). A human-readable naming convention for ops queries
+    /// and logs only - identification (wait/settle scoping, failure classification) is by the
+    /// engine-persisted <c>IsHead == false</c> directive (see
+    /// <see cref="WorkflowEngineService.IsAuxiliaryWorkflow"/>), not by this string.
     /// </summary>
-    internal const string SideEffectsOperationIdPrefix = "Process next side-effects:";
+    internal const string AuxiliaryOperationIdPrefix = "Process next auxiliary:";
 
     /// <summary>
     /// OperationId prefix for a receive workflow — enqueued by <see cref="MailboxRelay"/>, never by this
@@ -175,7 +174,7 @@ internal sealed class ProcessNextRequestFactory
         [
             new WorkflowRequest
             {
-                OperationId = $"{MainOperationIdPrefix} Mark instance as processing",
+                OperationId = $"{PrimaryOperationIdPrefix} Mark instance as processing",
                 Steps =
                 [
                     CreateCommand(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
@@ -278,52 +277,52 @@ internal sealed class ProcessNextRequestFactory
             processStateChange.NewProcessState?.CurrentTask?.ElementId
         );
 
-        // One EnqueueSideEffectsWorkflow step after the CommitProcessState commit schedules the
-        // transition's side effects, so they exist if and only if the transition committed.
-        List<StepRequest> sideEffects = [];
-        if (commands.SideEffects.Count > 0)
+        // One EnqueueAuxiliaryWorkflows step after the CommitProcessState commit schedules the
+        // transition's auxiliary workflows, so they exist if and only if the transition committed.
+        List<StepRequest> auxiliary = [];
+        if (commands.Auxiliary.Count > 0)
         {
-            var sideEffectsEnqueueRequest = new WorkflowEnqueueRequest
+            var auxiliaryEnqueueRequest = new WorkflowEnqueueRequest
             {
                 Labels = labels,
                 // Runtime authentication is added by the enqueue command. Embedding a freshly minted
                 // callback token here would change the parent's hashed payload on every reconstruction.
-                // One single-step workflow per side effect: the effects are independent
+                // One single-step workflow per auxiliary command: the commands are independent
                 // outcomes, so each gets its own failure containment - a dead-lettered event
                 // registration must not starve the notification behind it - and its own retry
-                // pacing, alert row, and redrive. Should a side effect ever need ordering
+                // pacing, alert row, and redrive. Should an auxiliary command ever need ordering
                 // relative to another, express it explicitly via DependsOn rather than as an
                 // accident of step-list position.
                 Workflows = commands
-                    .SideEffects.Select(step => new WorkflowRequest
+                    .Auxiliary.Select(step => new WorkflowRequest
                     {
-                        OperationId = $"{SideEffectsOperationIdPrefix} {fromTaskId} -> {toTaskId} · {step.OperationId}",
+                        OperationId = $"{AuxiliaryOperationIdPrefix} {fromTaskId} -> {toTaskId} · {step.OperationId}",
                         Steps = [step],
                         // The command injects State (this step's commit-time state blob) and
-                        // Links (the Main workflow id) when it executes.
-                        // Invisible to the collection heads frontier and started immediately:
-                        // independent roots that neither consume nor become heads, so the
-                        // ProcessNext wait and the next transition never key off them.
+                        // Links (the primary workflow id) when it executes.
+                        // Auxiliary and started immediately: independent roots that neither consume
+                        // nor become collection heads, so the ProcessNext wait and the next
+                        // transition never key off them.
                         IsHead = false,
                         DependsOnHeads = false,
                     })
                     .ToList(),
             };
-            sideEffects.Add(CreateEnqueueSideEffectsWorkflowCommand(sideEffectsEnqueueRequest));
+            auxiliary.Add(CreateEnqueueAuxiliaryWorkflowsCommand(auxiliaryEnqueueRequest));
         }
 
-        // Side effects announce a transition once it is complete. A task transition is complete at
-        // the commit, so they go before slow post-commit work such as a service task. A process end
+        // Auxiliary workflows announce a transition once it is complete. A task transition is complete
+        // at the commit, so they go before slow post-commit work such as a service task. A process end
         // is complete only after its post-commit steps release the instance, so they wait for those.
         List<StepRequest> steps = commands.EndsProcess
-            ? [.. commands.ThroughCommit, .. commands.CriticalPostCommit, .. sideEffects]
-            : [.. commands.ThroughCommit, .. sideEffects, .. commands.CriticalPostCommit];
+            ? [.. commands.ThroughCommit, .. commands.PrimaryPostCommit, .. auxiliary]
+            : [.. commands.ThroughCommit, .. auxiliary, .. commands.PrimaryPostCommit];
 
         List<WorkflowRequest> workflows =
         [
             new WorkflowRequest
             {
-                OperationId = $"{MainOperationIdPrefix} {fromTaskId} -> {toTaskId}",
+                OperationId = $"{PrimaryOperationIdPrefix} {fromTaskId} -> {toTaskId}",
                 Steps = steps,
                 State = state,
                 DependsOn = dependsOn,
@@ -383,15 +382,15 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The assembled step lists for one transition: the Main workflow's sequence through the
-    /// CommitProcessState commit, the critical post-commit commands that follow it, and the
-    /// non-critical side-effect steps destined for the separate side-effects workflow (enqueued at
-    /// the commit boundary by <see cref="EnqueueSideEffectsWorkflow"/>).
+    /// The assembled step lists for one transition: the primary workflow's sequence through the
+    /// CommitProcessState commit, the primary post-commit commands that follow it, and the auxiliary
+    /// steps destined for the separate auxiliary workflows (enqueued at the commit boundary by
+    /// <see cref="EnqueueAuxiliaryWorkflows"/>).
     /// </summary>
     private readonly record struct AssembledCommands(
         List<StepRequest> ThroughCommit,
-        List<StepRequest> CriticalPostCommit,
-        List<StepRequest> SideEffects,
+        List<StepRequest> PrimaryPostCommit,
+        List<StepRequest> Auxiliary,
         bool EndsProcess
     );
 
@@ -405,8 +404,8 @@ internal sealed class ProcessNextRequestFactory
     {
         var taskEndSteps = new List<StepRequest>();
         var taskStartSteps = new List<StepRequest>();
-        var criticalPostCommitSteps = new List<StepRequest>();
-        var sideEffectSteps = new List<StepRequest>();
+        var primaryPostCommitSteps = new List<StepRequest>();
+        var auxiliarySteps = new List<StepRequest>();
         bool endsProcess = false;
         bool serviceTaskFollowsCommit = false;
 
@@ -472,15 +471,15 @@ internal sealed class ProcessNextRequestFactory
                     );
                 }
 
-                criticalPostCommitSteps.AddRange(
-                    workflowCommands.CriticalPostCommitCommands.ApplyStepOptions(
+                primaryPostCommitSteps.AddRange(
+                    workflowCommands.PrimaryPostCommitCommands.ApplyStepOptions(
                         _stepOptionsResolver,
                         eventTaskId,
                         serviceTaskType
                     )
                 );
-                sideEffectSteps.AddRange(
-                    workflowCommands.SideEffectCommands.ApplyStepOptions(
+                auxiliarySteps.AddRange(
+                    workflowCommands.AuxiliaryCommands.ApplyStepOptions(
                         _stepOptionsResolver,
                         eventTaskId,
                         serviceTaskType
@@ -506,10 +505,10 @@ internal sealed class ProcessNextRequestFactory
         // carries on the transition and releases when it finishes.
         if (!serviceTaskFollowsCommit)
         {
-            criticalPostCommitSteps.Add(CreateCommand(ReleaseProcessingStatus.Key));
+            primaryPostCommitSteps.Add(CreateCommand(ReleaseProcessingStatus.Key));
         }
 
-        return new AssembledCommands(commands, criticalPostCommitSteps, sideEffectSteps, endsProcess);
+        return new AssembledCommands(commands, primaryPostCommitSteps, auxiliarySteps, endsProcess);
     }
 
     private WorkflowCommandSet? GetWorkflowStepsForInstanceEvent(
@@ -655,16 +654,16 @@ internal sealed class ProcessNextRequestFactory
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
     }
 
-    private StepRequest CreateEnqueueSideEffectsWorkflowCommand(WorkflowEnqueueRequest sideEffectsEnqueueRequest)
+    private StepRequest CreateEnqueueAuxiliaryWorkflowsCommand(WorkflowEnqueueRequest auxiliaryEnqueueRequest)
     {
-        var payload = new EnqueueSideEffectsWorkflowPayload(sideEffectsEnqueueRequest);
+        var payload = new EnqueueAuxiliaryWorkflowsPayload(auxiliaryEnqueueRequest);
         string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
         var step = new StepRequest
         {
-            OperationId = EnqueueSideEffectsWorkflow.Key,
+            OperationId = EnqueueAuxiliaryWorkflows.Key,
             Command = CommandDefinition.Create(
                 "app",
-                new AppCommandData { CommandKey = EnqueueSideEffectsWorkflow.Key, Payload = serializedPayload }
+                new AppCommandData { CommandKey = EnqueueAuxiliaryWorkflows.Key, Payload = serializedPayload }
             ),
         };
         return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);

@@ -1,8 +1,18 @@
 # Victoria is the only destination. Without the Application Insights pipelines
 # there is nothing to route, so the routing connectors and their per-plane
 # pipelines go too, and metrics get a single pipeline of their own.
+# The Application Insights connection strings go, and the pod's UID from base
+# stays. The test operations fail the build if the overlay reorders the list.
+- op: test
+  path: /spec/env/1/name
+  value: CONTROL_PLANE_CONNECTION_STRING
+- op: test
+  path: /spec/env/2/name
+  value: DATA_PLANE_CONNECTION_STRING
 - op: remove
-  path: /spec/env
+  path: /spec/env/2
+- op: remove
+  path: /spec/env/1
 - op: remove
   path: /spec/config/connectors
 - op: remove

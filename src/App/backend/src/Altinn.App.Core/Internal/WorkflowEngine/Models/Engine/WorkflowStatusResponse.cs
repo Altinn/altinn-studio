@@ -115,9 +115,9 @@ internal sealed record WorkflowStatusResponse
     public string? InitialState { get; init; }
 
     /// <summary>
-    /// The head-visibility directive the workflow was enqueued with. <c>false</c> identifies
-    /// workflows deliberately invisible to collection head tracking (the fire-and-forget
-    /// side-effects chains); <c>null</c> means natural leaf detection applied at enqueue.
+    /// The <c>isHead</c> directive the workflow was enqueued with. <c>false</c> marks an auxiliary
+    /// workflow, which runs beside the process and never blocks or moves it; <c>true</c> or
+    /// <c>null</c> (natural leaf detection applied at enqueue) marks a primary workflow.
     /// </summary>
     [JsonPropertyName("isHead")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

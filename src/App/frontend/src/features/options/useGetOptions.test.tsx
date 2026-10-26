@@ -12,6 +12,7 @@ import type { AxiosResponse } from 'axios';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { StaticOptionSet } from 'src/features/formBootstrap/types';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
@@ -87,7 +88,11 @@ async function render(props: RenderProps) {
   ];
 
   return renderWithInstanceAndLayout({
-    renderer: <TestOptions baseComponentId='myComponent' />,
+    renderer: (
+      <ErrorBoundary>
+        <TestOptions baseComponentId='myComponent' />
+      </ErrorBoundary>
+    ),
     queries: {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
@@ -163,6 +168,28 @@ describe('useGetOptions', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it.each(['', 'foo'])('reports an options request failure with selection "%s"', async (selected) => {
+    const error = new Error('Options request failed');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    const logFetchError = vi.spyOn(window, 'logErrorOnce').mockImplementation(() => {});
+    try {
+      await render({
+        type: 'single',
+        via: 'api',
+        selected,
+        fetchOptions: vi.fn<typeof fetchOptions>().mockRejectedValue(error),
+      });
+
+      expect(await screen.findByText(error.message)).toBeInTheDocument();
+      expect(screen.queryByTestId('options')).not.toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+      logError.mockRestore();
+      logFetchError.mockRestore();
+    }
   });
 
   it.each(permutations)('options should be cast to strings for $type + $via', async (props) => {

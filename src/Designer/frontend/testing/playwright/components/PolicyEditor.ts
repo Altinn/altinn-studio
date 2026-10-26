@@ -3,7 +3,7 @@ import { BasePage } from '../helpers/BasePage';
 import type { Environment } from '../helpers/StudioEnvironment';
 import type { Locator, Page } from '@playwright/test';
 
-type SecurityLevel = 0 | 1 | 2 | 3 | 4;
+type SecurityLevel = 0 | 3 | 4;
 
 export class PolicyEditor extends BasePage {
   constructor(page: Page, environment?: Environment) {

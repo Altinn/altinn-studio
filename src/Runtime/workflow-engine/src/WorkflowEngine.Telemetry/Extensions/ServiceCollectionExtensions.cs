@@ -1,3 +1,8 @@
+using System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
@@ -12,30 +17,47 @@ namespace WorkflowEngine.Telemetry.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    private const string OtlpEndpointVariable = "OTEL_EXPORTER_OTLP_ENDPOINT";
+
     extension(IServiceCollection services)
     {
         /// <summary>
-        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs) and the OTLP exporter.
+        /// Registers the engine's OpenTelemetry pipeline (tracing, metrics, logs), and the OTLP exporter when the
+        /// deployment sets the OTLP endpoint.
         /// </summary>
+        /// <remarks>
+        /// Traces, metrics and logs are exported exactly when <c>OTEL_EXPORTER_OTLP_ENDPOINT</c> is set, so an engine
+        /// without a collector sends nothing and logs no export errors, rather than falling back to the SDK's
+        /// default endpoint. The per-signal endpoint variables do not turn exporting on. The exporter reads the
+        /// endpoint, the protocol and every other <c>OTEL_*</c> setting itself. The instrumentation, sources and
+        /// meters are registered either way.
+        /// </remarks>
+        /// <param name="configuration">The host's configuration, from which the OTLP endpoint variable is read.</param>
         /// <param name="emitQueryParameters">Include EF Core SQL parameter values on database spans. Disable in production to avoid PII leakage.</param>
         /// <param name="enableDatabaseInstrumentation">Enable EF Core and Npgsql tracing instrumentation. Implies <paramref name="enableDatabaseMetrics"/>.</param>
         /// <param name="enableDatabaseMetrics">Enable Npgsql connection pool and command metrics.</param>
         /// <param name="traceSamplingRate">Trace sampling rate between 0.0 (drop all) and 1.0 (keep all). Metrics and logs are always exported at full fidelity.</param>
         public IServiceCollection AddTelemetry(
+            IConfiguration configuration,
             bool emitQueryParameters = false,
             bool enableDatabaseInstrumentation = false,
             bool enableDatabaseMetrics = true,
             double traceSamplingRate = 1.0
         )
         {
+            bool export = !string.IsNullOrWhiteSpace(configuration[OtlpEndpointVariable]);
+
             services
                 .AddOpenTelemetry()
                 .ConfigureResource(r =>
                     r.AddService(
-                        serviceName: Metrics.ServiceName,
-                        serviceVersion: Metrics.ServiceVersion,
-                        serviceInstanceId: Environment.MachineName
-                    )
+                            serviceName: Metrics.ServiceName,
+                            serviceVersion: Metrics.ServiceVersion,
+                            serviceInstanceId: Metrics.ServiceInstanceId
+                        )
+                        // Detected again after AddService, which would otherwise override them: a deployment's
+                        // OTEL_SERVICE_NAME and OTEL_RESOURCE_ATTRIBUTES take precedence over these defaults.
+                        .AddEnvironmentVariableDetector()
                 )
                 .WithTracing(builder =>
                 {
@@ -50,13 +72,9 @@ public static class ServiceCollectionExtensions
 
                     builder
                         .AddSource(Metrics.ServiceName)
-                        .AddHttpClientInstrumentation(opts =>
-                        {
-                            opts.RecordException = true;
-                        })
+                        .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation(opts =>
                         {
-                            opts.RecordException = true;
                             opts.Filter = httpContext =>
                             {
                                 var path = httpContext.Request.Path.Value ?? "";
@@ -87,28 +105,24 @@ public static class ServiceCollectionExtensions
 
                                 activity.DisplayName = $"SQL EFCore: {commandType} @ {command.Connection?.Database}";
 
-                                if (emitQueryParameters && command.Parameters.Count > 0)
+                                if (emitQueryParameters)
                                 {
-                                    var paramDict = new Dictionary<string, object?>(command.Parameters.Count);
-                                    foreach (System.Data.IDbDataParameter param in command.Parameters)
-                                        paramDict[param.ParameterName] = param.Value is DBNull ? null : param.Value;
-
-                                    activity.SetTag(
-                                        "db.statement.parameters",
-                                        System.Text.Json.JsonSerializer.Serialize(paramDict)
-                                    );
+                                    SetQueryParameterTags(activity, command.Parameters);
                                 }
                             };
                         });
                     }
 
-                    builder.AddOtlpExporter(opts =>
+                    if (export)
                     {
-                        opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
-                        opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
-                        opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
-                        opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
-                    });
+                        builder.AddOtlpExporter(opts =>
+                        {
+                            opts.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                            opts.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                            opts.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 2000;
+                            opts.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 5000;
+                        });
+                    }
                 })
                 .WithMetrics(builder =>
                 {
@@ -208,27 +222,29 @@ public static class ServiceCollectionExtensions
                         builder.AddMeter("Npgsql");
                     }
 
+                    // Views match by instrument name, so they take it from the instrument: a stale name would
+                    // silently leave the instrument on the SDK's default buckets.
                     builder
-                        .AddView("engine.workflows.time.queue", durationView)
-                        .AddView("engine.workflows.time.service", durationView)
-                        .AddView("engine.workflows.time.total", durationView)
-                        .AddView("engine.steps.time.queue", durationView)
-                        .AddView("engine.steps.time.service", durationView)
-                        .AddView("engine.steps.time.total", durationView)
-                        .AddView("engine.mainloop.time.queue", durationView)
-                        .AddView("engine.mainloop.time.service", durationView)
-                        .AddView("engine.mainloop.time.total", durationView)
-                        .AddView("engine.mailboxes.receivers.wake_latency", wakeLatencyView)
-                        .AddView("engine.steps.wait.duration", waitBudgetView)
+                        .AddView(Metrics.WorkflowQueueTime.Name, durationView)
+                        .AddView(Metrics.WorkflowServiceTime.Name, durationView)
+                        .AddView(Metrics.WorkflowTotalTime.Name, durationView)
+                        .AddView(Metrics.StepQueueTime.Name, durationView)
+                        .AddView(Metrics.StepServiceTime.Name, durationView)
+                        .AddView(Metrics.StepTotalTime.Name, durationView)
+                        .AddView(Metrics.EngineMainLoopQueueTime.Name, durationView)
+                        .AddView(Metrics.EngineMainLoopServiceTime.Name, durationView)
+                        .AddView(Metrics.EngineMainLoopTotalTime.Name, durationView)
+                        .AddView(Metrics.MailboxReceiverWakeLatency.Name, wakeLatencyView)
+                        .AddView(Metrics.StepWaitDuration.Name, waitBudgetView)
                         .AddRuntimeInstrumentation()
                         .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation()
-                        .AddOtlpExporter(
-                            (_, reader) =>
-                            {
-                                reader.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 10_000;
-                            }
-                        );
+                        .AddAspNetCoreInstrumentation();
+
+                    if (export)
+                    {
+                        // The export interval is the deployment's to set, through OTEL_METRIC_EXPORT_INTERVAL.
+                        builder.AddOtlpExporter();
+                    }
                 });
 
             services.AddLogging(logging =>
@@ -236,11 +252,43 @@ public static class ServiceCollectionExtensions
                 logging.AddOpenTelemetry(options =>
                 {
                     options.IncludeFormattedMessage = true;
-                    options.AddOtlpExporter();
+                    if (export)
+                    {
+                        options.AddOtlpExporter();
+                    }
                 });
             });
 
             return services;
         }
     }
+
+    /// <summary>
+    /// Sets one <c>db.query.parameter.&lt;name&gt;</c> attribute per parameter, as the semantic conventions name
+    /// them: keyed by the parameter's name without its <c>@</c> placeholder prefix, or by its 0-based index when
+    /// it has none, with a string representation of the value. A null value sets nothing.
+    /// </summary>
+    private static void SetQueryParameterTags(Activity activity, IDataParameterCollection parameters)
+    {
+        int index = 0;
+        foreach (IDataParameter parameter in parameters)
+        {
+            var name = parameter.ParameterName.TrimStart('@');
+            var key =
+                TelemetryAttributes.DbQueryParameterPrefix
+                + (name.Length > 0 ? name : index.ToString(CultureInfo.InvariantCulture));
+
+            activity.SetTag(key, FormatQueryParameterValue(parameter.Value));
+            index++;
+        }
+    }
+
+    private static string? FormatQueryParameterValue(object? value) =>
+        value switch
+        {
+            null or DBNull => null,
+            string text => text,
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => JsonSerializer.Serialize(value),
+        };
 }

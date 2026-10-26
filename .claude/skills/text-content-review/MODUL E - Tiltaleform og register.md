@@ -1,6 +1,7 @@
 # Beskrivelse
 
 Gå gjennom tekstene nedenfor og identifiser alle steder der:
+
 1. Tiltaleformen varierer
    («du» / «De» / «man» / passiv som erstatning for tiltale)
 2. Registeret skifter uforklarlig (formelt ↔ uformelt)

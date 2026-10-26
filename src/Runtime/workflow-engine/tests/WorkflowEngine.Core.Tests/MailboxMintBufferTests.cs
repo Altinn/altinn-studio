@@ -313,12 +313,18 @@ public class MailboxMintBufferTests
 
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["mint"] = 2 },
-                meters.ByTag("engine.mailbox_buffer.flushed", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.flushed",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
 
             Assert.Equal(
                 new Dictionary<string, long>(StringComparer.Ordinal) { ["mint"] = 1 },
-                meters.ByTag("engine.mailbox_buffer.batches", "operation")
+                meters.ByTag(
+                    "altinn.workflow_engine.mailbox_buffer.batches",
+                    "altinn.workflow_engine.mailbox.operation"
+                )
             );
         }
         finally

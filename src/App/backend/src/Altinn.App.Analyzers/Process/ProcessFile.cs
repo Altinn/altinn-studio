@@ -1,5 +1,6 @@
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.App.Analyzers.Utils;
 
 namespace Altinn.App.Analyzers.Process;
 
@@ -23,30 +24,42 @@ internal static class ProcessFile
     /// <summary>The element of a service task.</summary>
     internal static readonly XName ServiceTask = Bpmn + "serviceTask";
 
-    /// <summary>
-    /// The app's process file. More than one means a project layout this analysis cannot reason about, so it
-    /// stays quiet rather than guessing.
-    /// </summary>
-    internal static AdditionalText? FindSingle(ImmutableArray<AdditionalText> additionalFiles)
-    {
-        AdditionalText? found = null;
-        foreach (var file in additionalFiles)
-        {
-            if (!NormalizedPath(file).EndsWith(RelativePath, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
+    /// <summary>The process the runtime binds: the single one directly under the definitions.</summary>
+    internal static readonly XName Process = Bpmn + "process";
 
-            if (found is not null)
-            {
-                return null;
-            }
+    /// <summary>The element where an instance enters the process.</summary>
+    internal static readonly XName StartEvent = Bpmn + "startEvent";
 
-            found = file;
-        }
+    /// <summary>The element where an instance leaves the process.</summary>
+    internal static readonly XName EndEvent = Bpmn + "endEvent";
 
-        return found;
-    }
+    /// <summary>The element that chooses one of the sequence flows it lists in <c>outgoing</c>.</summary>
+    internal static readonly XName ExclusiveGateway = Bpmn + "exclusiveGateway";
+
+    /// <summary>The element that connects the element its <c>sourceRef</c> names to the one its <c>targetRef</c> names.</summary>
+    internal static readonly XName SequenceFlow = Bpmn + "sequenceFlow";
+
+    /// <summary>A flow node's reference to a sequence flow that leaves it.</summary>
+    internal static readonly XName Outgoing = Bpmn + "outgoing";
+
+    /// <summary>A sequence flow's condition, which an exclusive gateway evaluates to choose the flow.</summary>
+    internal static readonly XName ConditionExpression = Bpmn + "conditionExpression";
+
+    /// <summary>The element of a flow node that holds its Altinn extension.</summary>
+    internal static readonly XName ExtensionElements = Bpmn + "extensionElements";
+
+    /// <summary>The Altinn extension of a task: its type and configuration.</summary>
+    internal static readonly XName TaskExtension = Altinn + "taskExtension";
+
+    /// <summary>The type of a task, which selects the implementation that runs it.</summary>
+    internal static readonly XName TaskType = Altinn + "taskType";
+
+    /// <summary>The app's process file; see <see cref="AdditionalFiles.Single"/>.</summary>
+    internal static AdditionalText? FindSingle(ImmutableArray<AdditionalText> additionalFiles) =>
+        AdditionalFiles.Single(
+            additionalFiles,
+            file => NormalizedPath(file).EndsWith(RelativePath, StringComparison.OrdinalIgnoreCase)
+        );
 
     /// <summary>
     /// The process file's text and its document with line info, or null when it cannot be read or is not valid
@@ -71,12 +84,43 @@ internal static class ProcessFile
     }
 
     /// <summary>
+    /// The process the runtime binds, or null when the definitions hold none or more than one. With more than one,
+    /// which the runtime reads is not worth guessing at.
+    /// </summary>
+    internal static XElement? SingleProcess(XDocument document)
+    {
+        var processes = document.Root?.Elements(Process).ToList();
+        return processes is { Count: 1 } ? processes[0] : null;
+    }
+
+    /// <summary>
     /// The task an <c>altinn:taskType</c> belongs to: the nearest enclosing <c>bpmn:task</c> or
     /// <c>bpmn:serviceTask</c>. Those are the only two elements that can carry a task extension (see
     /// <c>Process.cs</c> in Altinn.App.Core, which models the process's element set).
     /// </summary>
     internal static XElement? FindHostingTask(XElement taskType) =>
         taskType.Ancestors().FirstOrDefault(a => a.Name == Task || a.Name == ServiceTask);
+
+    /// <summary>
+    /// A task's actions as XmlSerializer reads them: the <c>altinn:action</c> items of every <c>altinn:actions</c>,
+    /// joined (AltinnTaskExtension).
+    /// </summary>
+    internal static IEnumerable<XElement> Actions(XElement taskExtension) =>
+        taskExtension.Elements(Altinn + "actions").Elements(Altinn + "action");
+
+    /// <summary>
+    /// Whether a task lists the sign action. The app frontend offers it only in a task that does
+    /// (ProcessStateEnricher passes the listed actions on as the task's user actions, and the signing component looks
+    /// 'sign' up exactly), so through the app, nobody signs in any other task.
+    /// </summary>
+    internal static bool ListsSignAction(XElement taskExtension) =>
+        Actions(taskExtension).Any(action => action.Value == "sign");
+
+    /// <summary>
+    /// How a message names an element in the Altinn namespace, and, joined, the path to one in a task's
+    /// configuration: <c>&lt;altinn:signatureConfig&gt;&lt;altinn:signatureDataType&gt;</c>.
+    /// </summary>
+    internal static string Tag(string name) => $"<altinn:{name}>";
 
     internal static string NormalizedPath(AdditionalText file) => file.Path.Replace('\\', '/');
 }
