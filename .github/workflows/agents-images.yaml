@@ -31,9 +31,11 @@ permissions:
   contents: read
   packages: write
 
+# A newer push to main must not cancel a run between its two publish jobs, which would leave the
+# images' latest tags on different commits.
 concurrency:
   group: agents-images-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Each architecture builds on a native runner, as digdir/digdir-agents builds the base: under QEMU,

@@ -16,7 +16,8 @@ Debugging and profiling: `dotnet-trace`, `dotnet-counters` and `dotnet-dump` alo
 `ilspycmd` to decompile .NET assemblies; `hyperfine` for benchmarks; `lsof`, `tcpdump`, `socat`, `nc` and `dig`.
 
 Podman, with the `docker` command and Docker Compose on `/run/docker.sock`, kind, kubectl, Helm and Flux.
-`agentctl` and `agentd` for nested Agents, which the `agentctl` skill describes.
+`agentctl` and `agentd` for nested Agents, where the Agent sandbox section says they can run; the `agentctl` skill
+describes them.
 
 Pull request evidence: `asciinema` and `agg` for terminal recordings; `playwright-cli` with Chromium (open it with
 `--browser chromium`), `ffmpeg`, and the `video-to-gif` and `media-preview` helpers for browser captures.

@@ -183,9 +183,6 @@ USER root
 # comes first in this stage, so that updating a tool below does not reinstall the browser.
 RUN agent-feature install desktop
 
-# Keep the Norwegian keyboard layout, so that people reaching the desktop type æøå and ÆØÅ.
-COPY common/agent-desktop.conf /etc/agent-desktop.conf.d/altinn.conf
-
 # What `agent-feature env desktop` prints; agent-image-check fails the image without it.
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 ENV DISPLAY=:1
@@ -338,7 +335,7 @@ RUN case "${TARGETARCH}" in \
     && yq --version | grep -qF "v${YQ_VERSION}"
 
 # agentctl and agentd run nested Agents: this image asks for nested Sandboxes and has the Podman the
-# nested-build variants build their images with. Renovate moves the digest.
+# nested-build variants build their images with. Renovate moves it to new agentctl releases.
 COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.13@sha256:5451dd5e912865d7ed4544f0bf2e6d0912cd274b878515224cd05896a286b28f \
     /agentctl /agentd /usr/local/bin/
 
@@ -348,6 +345,8 @@ COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.13@sha256:5451dd5e912865d7ed4
 ENV STUDIO_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 COPY common/dev-hosts-init.service /etc/systemd/system/agent-dev-hosts-init.service
+# Keep the Norwegian keyboard layout, so that people reaching the desktop type æøå and ÆØÅ.
+COPY common/agent-desktop.conf /etc/agent-desktop.conf.d/altinn.conf
 
 # Kind bind-mounts /lib/modules read-only into every node container. Podman fails the run when the
 # source path is missing where Docker would create it, and the Sandbox kernel is built without

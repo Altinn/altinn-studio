@@ -10,6 +10,10 @@
 set -euo pipefail
 
 variant="${1:?usage: smoke.sh <minimal|desktop>}"
+case "$variant" in
+    minimal | desktop) ;;
+    *) echo "usage: smoke.sh <minimal|desktop>" >&2; exit 2 ;;
+esac
 work="$(mktemp -d)"
 cd "$work"
 fail() { echo "smoke: $*" >&2; exit 1; }

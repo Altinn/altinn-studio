@@ -244,6 +244,14 @@
       "automerge": true
     },
     {
+      "description": "agentctl and agentd in the desktop Agent image follow agentctl's releases, which are semver previews such as v0.1.0-preview.13; Docker versioning would read the preview as a compatibility suffix and never update it",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["agents/Dockerfile"],
+      "matchPackageNames": ["ghcr.io/digdir/agentctl"],
+      "versioning": "semver",
+      "ignoreUnstable": false
+    },
+    {
       "matchFileNames": ["src/Runtime/localtest/**"],
       "additionalBranchPrefix": "localtest/",
       "commitMessageSuffix": " (localtest)"
