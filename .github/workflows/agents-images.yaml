@@ -38,7 +38,7 @@ concurrency:
 jobs:
   # Each architecture builds on a native runner, as digdir/digdir-agents builds the base: under QEMU,
   # the base's containers feature fails its own nft check, which opens a netlink socket QEMU cannot
-  # emulate. Each build pushes its image by digest, and the publish job joins them into the tags.
+  # emulate. The publish job joins the architectures' images into the tags.
   build:
     if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
     name: Build ${{ matrix.variant }} Agent (${{ matrix.arch }})
@@ -69,8 +69,8 @@ jobs:
           sparse-checkout: |
             agents
 
-      # The containerd image store lets the smoke test load the image the build step produced,
-      # without a second copy of it on the runner's disk.
+      # The containerd image store keeps the image the build step pushes, so the smoke test runs it
+      # without a second copy on the runner's disk.
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
         with:
@@ -85,7 +85,9 @@ jobs:
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Build and push image by digest
+      # The docker driver cannot push by digest, so each architecture's image is pushed under its own
+      # tag, and the publish job joins them by digest.
+      - name: Build and push image
         env:
           ARCH: ${{ matrix.arch }}
           CAN_PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
@@ -101,10 +103,19 @@ jobs:
           fi
 
           if [ "${CAN_PUSH}" = "true" ]; then
+            if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+              pr_number="$(jq -r '.number' "${GITHUB_EVENT_PATH}")"
+              source_sha="$(jq -r '.pull_request.head.sha' "${GITHUB_EVENT_PATH}")"
+              image="${IMAGE_REPOSITORY}:pr-${pr_number}-${source_sha::10}-${ARCH}"
+            else
+              image="${IMAGE_REPOSITORY}:sha-${GITHUB_SHA::10}-${ARCH}"
+            fi
             set -- "$@" \
-              --output "type=image,name=${IMAGE_REPOSITORY},push-by-digest=true,name-canonical=true,push=true" \
-              --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache-${ARCH},mode=max,image-manifest=true" \
-              --metadata-file "${RUNNER_TEMP}/metadata.json"
+              --output "type=image,name=${image},push=true" \
+              --cache-to "type=registry,ref=${IMAGE_REPOSITORY}:buildcache-${ARCH},mode=max,image-manifest=true"
+          else
+            image="agent-${TARGET}:smoke"
+            set -- "$@" --load --tag "${image}"
           fi
 
           docker buildx build \
@@ -116,45 +127,26 @@ jobs:
             --platform "linux/${ARCH}" \
             --target "${TARGET}" \
             agents
+          echo "SMOKE_IMAGE=${image}" >> "${GITHUB_ENV}"
 
           if [ "${CAN_PUSH}" = "true" ]; then
-            digest="$(jq -r '."containerimage.digest"' "${RUNNER_TEMP}/metadata.json")"
+            digest="$(docker buildx imagetools inspect "${image}" --format '{{.Manifest.Digest}}')"
             case "${digest}" in
               sha256:*) ;;
-              *) echo "::error::no image digest in the build metadata"; exit 1 ;;
+              *) echo "::error::no digest for ${image}: ${digest}"; exit 1 ;;
             esac
             mkdir -p "${RUNNER_TEMP}/digests"
             touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
           fi
 
-      # Load the image the step above built, fully cached, and smoke-test what the Altinn image adds
-      # to the base in it.
+      # Smoke-test what the Altinn image adds to the base, in the image the step above built.
       - name: Smoke test image
         env:
-          ARCH: ${{ matrix.arch }}
-          IMAGE_REPOSITORY: ${{ matrix.repository }}
-          EXTRA_CACHE: ${{ matrix.extra_cache }}
           TARGET: ${{ matrix.variant }}
         run: |
-          set -eu
-          set --
-          if [ -n "${EXTRA_CACHE}" ]; then
-            set -- --cache-from "type=registry,ref=${EXTRA_CACHE}:buildcache-${ARCH}"
-          fi
-          docker buildx build \
-            --provenance=false \
-            --sbom=false \
-            --cache-from "type=registry,ref=${IMAGE_REPOSITORY}:buildcache-${ARCH}" \
-            "$@" \
-            --file agents/Dockerfile \
-            --platform "linux/${ARCH}" \
-            --target "${TARGET}" \
-            --load \
-            --tag "agent-${TARGET}:smoke" \
-            agents
           docker run --rm --entrypoint bash \
             --volume "${PWD}/agents/smoke.sh:/smoke.sh:ro" \
-            "agent-${TARGET}:smoke" /smoke.sh "${TARGET}"
+            "${SMOKE_IMAGE}" /smoke.sh "${TARGET}"
 
       - name: Upload image digest
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
