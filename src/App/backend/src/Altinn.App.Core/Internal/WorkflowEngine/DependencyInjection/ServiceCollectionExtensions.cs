@@ -77,7 +77,6 @@ internal static class ServiceCollectionExtensions
 
         // Process engine callback handlers - State Management
         services.AddTransient<ProcessingStatusAcquirer>();
-        services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, ReleaseProcessingStatus>();
         services.AddTransient<IWorkflowEngineCommand, EnqueueAuxiliaryWorkflows>();

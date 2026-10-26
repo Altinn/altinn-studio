@@ -37,23 +37,46 @@ public sealed class DataTypeTaskBindingTests
             { ["Task_1", "Task_2"], "Task_2", false, true },
             { ["Task_1"], "Task_2", false, false },
             { ["Task_1"], null, false, false },
-            { ["Task_1"], "Task_2", true, true },
-            { ["Task_1"], null, true, true },
+            { ["Task_1"], "Task_2", true, false },
+            { ["Task_1"], null, true, false },
         };
 
     [Theory]
     [MemberData(nameof(WriteCases))]
-    public void GetTaskBindingConflict_AllowsWritesOnlyInTheBoundTasksOrInAProcessTransition(
+    public void GetTaskBindingConflict_AllowsWritesOnlyInTheBoundTasks(
         string[]? taskIds,
         string? currentTask,
-        bool isPartOfProcessTransition,
+        bool isDelete,
         bool writable
     )
     {
         var dataType = new DataType { Id = DataTypeId, TaskIds = taskIds?.ToList() };
         var instance = new Instance { Process = Process(currentTask) };
 
-        Assert.Equal(writable, dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition) is null);
+        Assert.Equal(writable, dataType.GetTaskBindingConflict(instance, isDelete) is null);
+    }
+
+    [Theory]
+    [InlineData(true, true, true, true)]
+    [InlineData(false, true, true, false)]
+    [InlineData(true, false, true, false)]
+    [InlineData(true, true, false, false)]
+    public void GetTaskBindingConflict_AllowsOnlyTheDeletionAutoDeleteOnProcessEndAsksForAfterTheProcessEnded(
+        bool isDelete,
+        bool autoDeleteOnProcessEnd,
+        bool ended,
+        bool writable
+    )
+    {
+        var dataType = new DataType
+        {
+            Id = DataTypeId,
+            TaskIds = ["Task_1"],
+            AppLogic = new ApplicationLogic { AutoDeleteOnProcessEnd = autoDeleteOnProcessEnd },
+        };
+        var instance = new Instance { Process = Process(currentTask: null, ended: ended) };
+
+        Assert.Equal(writable, dataType.GetTaskBindingConflict(instance, isDelete) is null);
     }
 
     [Theory]
@@ -66,12 +89,12 @@ public sealed class DataTypeTaskBindingTests
 
         Assert.Equal(
             $"Data element of type {DataTypeId} can only be modified in Task_1, Task_2 {ending}",
-            dataType.GetTaskBindingConflict(instance, isPartOfProcessTransition: false)
+            dataType.GetTaskBindingConflict(instance, isDelete: false)
         );
     }
 
     [Theory]
-    // These endpoints are never part of a process transition, whoever calls them and whatever the process status.
+    // Whoever calls them and whatever the process status.
     [InlineData(null, null)]
     [InlineData(AppOwner, null)]
     [InlineData(AppOwner, ProcessStatus.Processing)]
@@ -368,18 +391,55 @@ public sealed class DataTypeTaskBindingTests
     // At a task start or end, and at process end, where there is no current task.
     [InlineData(null)]
     [InlineData("Task_2")]
-    public async Task CommitMutation_AllowsAProcessTransitionToWriteOutsideTheBoundTasks(string? currentTask)
+    public async Task CommitMutation_RefusesAProcessTransitionWriteOutsideTheBoundTasks(string? currentTask)
     {
         await using var storage = new LocalStorageFixture();
-        Instance instance = await storage.CreateInstance();
-        DataElement updated = await AddDataElement(storage, instance);
-        DataElement deleted = await AddDataElement(storage, instance);
-        instance = await SetProcess(storage, instance, currentTask, ProcessStatus.Processing);
+        (Instance instance, DataElement dataElement) = await SeedInTask(storage, currentTask, ProcessStatus.Processing);
+
+        foreach (InstanceMutationRequest request in SingleWrites(Guid.Parse(dataElement.Id)))
+        {
+            request.ExpectedProcessStatus = ProcessStatus.Processing;
+            InstanceMutationsController controller = CreateMutationsController(storage, ["Task_1"], request, AppOwner);
+
+            ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
+                int.Parse(instance.InstanceOwner.PartyId),
+                InstanceGuid(instance),
+                CancellationToken.None
+            );
+
+            Assert.StartsWith(
+                $"Data element of type {DataTypeId} can only be modified in Task_1 (",
+                Assert.IsType<string>(Assert.IsType<ConflictObjectResult>(result.Result).Value)
+            );
+        }
+
+        Assert.False(Assert.Single(await storage.DataRepository.ReadAll(InstanceGuid(instance))).Locked);
+        Assert.False(HasBlobs(storage, instance));
+    }
+
+    [Fact]
+    public async Task CommitMutation_AllowsTheDeletionAutoDeleteOnProcessEndAsksForAfterTheProcessEnded()
+    {
+        await using var storage = new LocalStorageFixture();
+        (Instance instance, DataElement dataElement) = await SeedInTask(
+            storage,
+            currentTask: null,
+            ProcessStatus.Processing,
+            ended: true
+        );
         InstanceMutationsController controller = CreateMutationsController(
             storage,
             ["Task_1"],
-            WritesAssertingProcessing(Guid.Parse(updated.Id), Guid.Parse(deleted.Id)),
-            AppOwner
+            new InstanceMutationRequest
+            {
+                ExpectedProcessStatus = ProcessStatus.Processing,
+                DeleteDataElements =
+                [
+                    new InstanceMutationDeleteDataElement { DataElementId = Guid.Parse(dataElement.Id) },
+                ],
+            },
+            AppOwner,
+            autoDeleteOnProcessEnd: true
         );
 
         ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
@@ -389,37 +449,45 @@ public sealed class DataTypeTaskBindingTests
         );
 
         Assert.IsType<OkObjectResult>(result.Result);
-        List<DataElement> dataElements = await storage.DataRepository.ReadAll(InstanceGuid(instance));
-        Assert.Equal(2, dataElements.Count);
-        Assert.True(Assert.Single(dataElements, dataElement => dataElement.Id == updated.Id).Locked);
-        Assert.DoesNotContain(dataElements, dataElement => dataElement.Id == deleted.Id);
+        Assert.Empty(await storage.DataRepository.ReadAll(InstanceGuid(instance)));
     }
 
     [Fact]
-    public async Task CommitMutation_RefusesWritesAssertingProcessingOnAnIdleInstance()
+    public async Task Delete_AllowsTheDeletionAutoDeleteOnProcessEndAsksForAfterTheProcessEnded()
     {
         await using var storage = new LocalStorageFixture();
-        Instance instance = await storage.CreateInstance();
-        DataElement updated = await AddDataElement(storage, instance);
-        DataElement deleted = await AddDataElement(storage, instance);
-        instance = await SetProcess(storage, instance, "Task_2");
-        InstanceMutationsController controller = CreateMutationsController(
+        (Instance instance, DataElement dataElement) = await SeedInTask(storage, currentTask: null, ended: true);
+        var dataService = new DataService(
+            storage.DataRepository,
+            new BlobRepository(Options.Create(storage.Settings)),
+            Mock.Of<IInstanceEventService>(service =>
+                service.BuildInstanceEvent(
+                    It.IsAny<InstanceEventType>(),
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>()
+                ) == new InstanceEvent()
+            ),
+            storage.MutationRepository,
+            storage.InstanceRepository
+        );
+        DataController controller = CreateDataController(
             storage,
             ["Task_1"],
-            WritesAssertingProcessing(Guid.Parse(updated.Id), Guid.Parse(deleted.Id)),
-            AppOwner
+            AppOwner,
+            autoDeleteOnProcessEnd: true,
+            dataService: dataService
         );
 
-        ActionResult<InstanceMutationResponse> result = await controller.CommitMutation(
+        ActionResult<DataElement> result = await controller.Delete(
             int.Parse(instance.InstanceOwner.PartyId),
             InstanceGuid(instance),
+            Guid.Parse(dataElement.Id),
+            delay: false,
             CancellationToken.None
         );
 
-        JsonResult conflict = Assert.IsType<JsonResult>(result.Result);
-        Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
-        Assert.Equal("process_status_conflict", Assert.IsType<ProblemDetails>(conflict.Value).Type);
-        Assert.Equal(2, (await storage.DataRepository.ReadAll(InstanceGuid(instance))).Count);
+        Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Empty(await storage.DataRepository.ReadAll(InstanceGuid(instance)));
     }
 
     // One request per write; each asserts, by leaving ExpectedProcessStatus unset, that the instance is idle.
@@ -447,27 +515,11 @@ public sealed class DataTypeTaskBindingTests
             new() { DeleteDataElements = [new InstanceMutationDeleteDataElement { DataElementId = dataElementId }] },
         ];
 
-    private static InstanceMutationRequest WritesAssertingProcessing(Guid updatedId, Guid deletedId) =>
-        new()
-        {
-            ExpectedProcessStatus = ProcessStatus.Processing,
-            CreateDataElements =
-            [
-                new InstanceMutationCreateDataElement
-                {
-                    DataType = DataTypeId,
-                    ContentPartName = "created",
-                    ContentType = "text/plain",
-                },
-            ],
-            UpdateDataElements = [new InstanceMutationUpdateDataElement { DataElementId = updatedId, Locked = true }],
-            DeleteDataElements = [new InstanceMutationDeleteDataElement { DataElementId = deletedId }],
-        };
-
-    private static ProcessState Process(string? currentTask, ProcessStatus? status = null) =>
+    private static ProcessState Process(string? currentTask, ProcessStatus? status = null, bool ended = false) =>
         new()
         {
             Started = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            Ended = ended ? new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc) : null,
             Status = status,
             CurrentTask = currentTask is null
                 ? null
@@ -516,22 +568,24 @@ public sealed class DataTypeTaskBindingTests
     private static async Task<(Instance Instance, DataElement DataElement)> SeedInTask(
         LocalStorageFixture storage,
         string? currentTask,
-        ProcessStatus? status = null
+        ProcessStatus? status = null,
+        bool ended = false
     )
     {
         Instance instance = await storage.CreateInstance();
         DataElement dataElement = await AddDataElement(storage, instance);
-        return (await SetProcess(storage, instance, currentTask, status), dataElement);
+        return (await SetProcess(storage, instance, currentTask, status, ended), dataElement);
     }
 
     private static Task<Instance> SetProcess(
         LocalStorageFixture storage,
         Instance instance,
         string? currentTask,
-        ProcessStatus? status = null
+        ProcessStatus? status = null,
+        bool ended = false
     )
     {
-        instance.Process = Process(currentTask, status);
+        instance.Process = Process(currentTask, status, ended);
         return storage.InstanceRepository.Update(instance, [nameof(Instance.Process)], CancellationToken.None);
     }
 
@@ -560,7 +614,11 @@ public sealed class DataTypeTaskBindingTests
     }
 
     // deniedDataTypeId names a data type that requires an action the caller is denied, see Authorization.
-    private static IApplicationRepository ApplicationRepository(string[]? taskIds, string? deniedDataTypeId)
+    private static IApplicationRepository ApplicationRepository(
+        string[]? taskIds,
+        string? deniedDataTypeId,
+        bool autoDeleteOnProcessEnd
+    )
     {
         var applicationRepository = new Mock<IApplicationRepository>();
         applicationRepository
@@ -579,6 +637,9 @@ public sealed class DataTypeTaskBindingTests
                             Id = DataTypeId,
                             TaskIds = taskIds?.ToList(),
                             ActionRequiredToWrite = deniedDataTypeId == DataTypeId ? WriteAction : null,
+                            AppLogic = autoDeleteOnProcessEnd
+                                ? new ApplicationLogic { AutoDeleteOnProcessEnd = true }
+                                : null,
                         },
                         new DataType
                         {
@@ -612,14 +673,16 @@ public sealed class DataTypeTaskBindingTests
         LocalStorageFixture storage,
         string[]? taskIds,
         string? org,
-        string? deniedDataTypeId = null
+        string? deniedDataTypeId = null,
+        bool autoDeleteOnProcessEnd = false,
+        IDataService? dataService = null
     ) =>
         new(
             storage.DataRepository,
             Mock.Of<IBlobRepository>(),
             storage.InstanceRepository,
-            ApplicationRepository(taskIds, deniedDataTypeId),
-            Mock.Of<IDataService>(),
+            ApplicationRepository(taskIds, deniedDataTypeId, autoDeleteOnProcessEnd),
+            dataService ?? Mock.Of<IDataService>(),
             Mock.Of<IInstanceEventService>(),
             Options.Create(new GeneralSettings { Hostname = "localhost" }),
             Mock.Of<IOnDemandClient>(),
@@ -637,7 +700,8 @@ public sealed class DataTypeTaskBindingTests
         string[]? taskIds,
         InstanceMutationRequest request,
         string? org,
-        string? deniedDataTypeId = null
+        string? deniedDataTypeId = null,
+        bool autoDeleteOnProcessEnd = false
     )
     {
         IOptions<GeneralSettings> settings = Options.Create(new GeneralSettings { Hostname = "localhost" });
@@ -671,7 +735,7 @@ public sealed class DataTypeTaskBindingTests
             new BlobRepository(Options.Create(storage.Settings)),
             storage.InstanceRepository,
             storage.MutationRepository,
-            ApplicationRepository(taskIds, deniedDataTypeId),
+            ApplicationRepository(taskIds, deniedDataTypeId, autoDeleteOnProcessEnd),
             Mock.Of<IDataService>(),
             Mock.Of<IInstanceEventService>(service =>
                 service.BuildInstanceEvent(

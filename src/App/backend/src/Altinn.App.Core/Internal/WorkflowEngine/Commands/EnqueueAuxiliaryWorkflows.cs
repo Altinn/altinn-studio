@@ -18,11 +18,11 @@ internal sealed record EnqueueAuxiliaryWorkflowsPayload(WorkflowEnqueueRequest E
 /// <summary>
 /// Primary post-commit command that enqueues the transition's auxiliary workflows — one
 /// independent single-step workflow per auxiliary command, submitted as a single atomic batch. Runs
-/// immediately after <see cref="CommitProcessState"/>, so the auxiliary workflows exist if and
-/// only if the transition committed — and, as independent roots each carrying their own
-/// commit-time state, they survive whatever happens to the primary workflow afterwards and fail
-/// independently of each other. Idempotent per primary workflow: the derived idempotency key covers
-/// the whole batch, so step retries dedup.
+/// after <see cref="CommitProcessState"/> and the entered task's start, so the auxiliary workflows
+/// exist only once the transition has committed and the task has started — and, as independent roots
+/// each carrying their own commit-time state, they survive whatever happens to the primary workflow
+/// afterwards and fail independently of each other. Idempotent per primary workflow: the derived
+/// idempotency key covers the whole batch, so step retries dedup.
 /// </summary>
 internal sealed class EnqueueAuxiliaryWorkflows(
     IWorkflowEngineClient workflowEngineClient,

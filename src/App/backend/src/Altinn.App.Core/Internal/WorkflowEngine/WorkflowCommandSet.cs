@@ -36,7 +36,8 @@ internal sealed class WorkflowCommandSet
     private readonly List<PlannedStep> _auxiliaryCommands = [];
 
     /// <summary>
-    /// Gets the pre-commit commands for this event. CommitProcessState will be added after these.
+    /// Gets the lifecycle commands for this event. A task end's or abandon's run before CommitProcessState, a
+    /// task start's after it.
     /// </summary>
     public IReadOnlyList<PlannedStep> Commands => _commands;
 
@@ -147,7 +148,7 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds a command to the pre-commit sequence.
+    /// Adds a lifecycle command.
     /// </summary>
     private WorkflowCommandSet AddCommand(string commandKey, CommandRequestPayload? payload = null)
     {
@@ -178,8 +179,9 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds a command that executes after the ProcessNext has been committed to storage via
-    /// CommitProcessState, and that must complete before the transition settles.
+    /// Adds a command that executes after the transition has been committed to storage via
+    /// CommitProcessState and the entered task has started, and that must complete before the transition
+    /// settles.
     /// </summary>
     /// <param name="commandKey">The command's registered key.</param>
     /// <param name="payload">Optional command payload.</param>
