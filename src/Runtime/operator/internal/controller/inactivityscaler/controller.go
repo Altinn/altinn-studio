@@ -118,15 +118,19 @@ type InactivityScalerReconciler struct {
 	pollInterval time.Duration
 }
 
-// observedState is the cluster state the last sync applied, which StateMetric reports.
+// observedState is the cluster state the last successful sync applied, which StateMetric reports.
 type observedState struct {
 	state  clusterState
 	forced bool
 }
 
-// StateMetric is the gauge of the state the inactivity scaler last applied: 1, with the state and
-// whether an override forced it as attributes. It explains why apps in a cluster are scaled down.
-const StateMetric = "altinn.operator.inactivityscaler.state"
+// StateMetric is the gauge of the state the inactivity scaler last applied: 1, with the state
+// (stateAttribute) and whether an override forced it as attributes. It explains why apps in a
+// cluster are scaled down.
+const (
+	StateMetric    = "altinn.operator.inactivityscaler.applied_state"
+	stateAttribute = "altinn.operator.inactivityscaler.state"
+)
 
 func (r *InactivityScalerReconciler) registerStateMetric() error {
 	_, err := r.runtime.Meter().Int64ObservableGauge(
@@ -138,7 +142,7 @@ func (r *InactivityScalerReconciler) registerStateMetric() error {
 				return nil
 			}
 			observer.Observe(1, metric.WithAttributes(
-				attribute.String(StateMetric, string(observed.state)),
+				attribute.String(stateAttribute, string(observed.state)),
 				attribute.Bool("altinn.operator.inactivityscaler.state_forced", observed.forced),
 			))
 			return nil
@@ -249,9 +253,8 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		now,
 		len(appDeployments),
 	)
-	r.observed.Store(&observedState{state: state, forced: stateForced})
 	span.SetAttributes(
-		attribute.String(StateMetric, string(state)),
+		attribute.String(stateAttribute, string(state)),
 		attribute.Bool("altinn.operator.inactivityscaler.state_forced", stateForced),
 		attribute.Int("altinn.operator.inactivityscaler.app_deployments", len(appDeployments)),
 		attribute.Int("altinn.operator.inactivityscaler.app_hpas", len(appHpas)),
@@ -303,6 +306,9 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		return err
 	}
 
+	// Reported only once every workload is in the state, so a failed sync doesn't report a state
+	// that was never applied.
+	r.observed.Store(&observedState{state: state, forced: stateForced})
 	span.SetStatus(codes.Ok, "ok")
 	return nil
 }

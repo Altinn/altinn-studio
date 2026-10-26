@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -344,7 +343,7 @@ func (r *SecretSyncReconciler) SyncAll(ctx context.Context) error {
 	}
 
 	if lastErr != nil {
-		span.SetStatus(codes.Error, "one or more mappings failed")
+		commontelemetry.SetError(span, "sync_mappings", lastErr)
 	}
 	return lastErr
 }

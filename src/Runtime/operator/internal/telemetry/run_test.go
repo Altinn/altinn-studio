@@ -74,23 +74,60 @@ func TestStartRunNamesTheControllerAndLinksLogsToTheRun(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // StartRun records through the global meter provider, which this test sets.
+//nolint:paralleltest // StartRun records through the global providers, which this test replaces.
 func TestStartRunRecordsEachRunOnce(t *testing.T) {
-	previous := otel.GetTracerProvider()
-	otel.SetTracerProvider(sdktrace.NewTracerProvider())
-	t.Cleanup(func() { otel.SetTracerProvider(previous) })
+	samplers := map[string]sdktrace.Sampler{
+		"sampled":   sdktrace.AlwaysSample(),
+		"unsampled": sdktrace.NeverSample(),
+	}
+	for name, sampler := range samplers {
+		t.Run(name, func(t *testing.T) {
+			reader := useTestProviders(t, sampler)
+
+			ctx, run := StartRun(context.Background(), "secretsync", "secretsync.SyncAll")
+			_, step := StartRun(ctx, "secretsync", "secretsync.Reconcile")
+			step.End()
+			run.End()
+
+			ctx, failed := StartRun(context.Background(), "secretsync", "secretsync.SyncAll")
+			commontelemetry.SetError(trace.SpanFromContext(ctx), "get_source_secret", errTestRun)
+			failed.End()
+
+			counts := runCounts(t, reader)
+			want := map[string]uint64{"secretsync/": 1, "secretsync/get_source_secret": 1}
+			if len(counts) != len(want) || counts["secretsync/"] != 1 || counts["secretsync/get_source_secret"] != 1 {
+				t.Errorf("runs recorded = %v, want %v", counts, want)
+			}
+		})
+	}
+}
+
+// useTestProviders installs a tracer provider with sampler and a meter provider read by the
+// returned reader, and restores the previous ones when the test ends.
+func useTestProviders(t *testing.T, sampler sdktrace.Sampler) *sdkmetric.ManualReader {
+	t.Helper()
+	previousTracerProvider, previousMeterProvider := otel.GetTracerProvider(), otel.GetMeterProvider()
+	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithSampler(sampler))
 	reader := sdkmetric.NewManualReader()
-	otel.SetMeterProvider(sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader)))
+	meterProvider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	otel.SetTracerProvider(tracerProvider)
+	otel.SetMeterProvider(meterProvider)
+	t.Cleanup(func() {
+		otel.SetTracerProvider(previousTracerProvider)
+		otel.SetMeterProvider(previousMeterProvider)
+		if err := tracerProvider.Shutdown(context.Background()); err != nil {
+			t.Error(err)
+		}
+		if err := meterProvider.Shutdown(context.Background()); err != nil {
+			t.Error(err)
+		}
+	})
+	return reader
+}
 
-	ctx, run := StartRun(context.Background(), "secretsync", "secretsync.SyncAll")
-	_, step := StartRun(ctx, "secretsync", "secretsync.Reconcile")
-	step.End()
-	run.End()
-
-	ctx, failed := StartRun(context.Background(), "secretsync", "secretsync.SyncAll")
-	commontelemetry.SetError(trace.SpanFromContext(ctx), "get_source_secret", errTestRun)
-	failed.End()
-
+// runCounts returns the number of runs recorded in RunDuration by controller/error.type.
+func runCounts(t *testing.T, reader *sdkmetric.ManualReader) map[string]uint64 {
+	t.Helper()
 	var data metricdata.ResourceMetrics
 	if err := reader.Collect(context.Background(), &data); err != nil {
 		t.Fatal(err)
@@ -112,8 +149,5 @@ func TestStartRunRecordsEachRunOnce(t *testing.T) {
 			}
 		}
 	}
-	want := map[string]uint64{"secretsync/": 1, "secretsync/get_source_secret": 1}
-	if len(counts) != len(want) || counts["secretsync/"] != 1 || counts["secretsync/get_source_secret"] != 1 {
-		t.Errorf("runs recorded = %v, want %v", counts, want)
-	}
+	return counts
 }

@@ -19,12 +19,11 @@ import (
 	"altinn.studio/operator/internal/assert"
 )
 
-// The operator's own attributes, under altinn.operator
-// (https://github.com/Altinn/altinn-studio/issues/21073, direction item 14).
+// The operator's own attributes. Attributes that other services also report are in the shared attr
+// package.
 const (
-	// AttrController is the controller a run belongs to, from a fixed set: maskinporten,
-	// maskinporten_rotation_rollout, secretsync, appcodesync, grafanapolicysync,
-	// azurekeyvaultsync, cnpgsync and inactivityscaler.
+	// AttrController is the controller a run belongs to. Its values are the controllers' fixed
+	// names, so it can go on metrics.
 	AttrController = attribute.Key("altinn.operator.controller")
 	// AttrObjectKind, AttrObjectNamespace and AttrObjectName identify the Kubernetes object a
 	// run or step works on. They are not k8s.* keys: on the resource, k8s.namespace.name is the
@@ -46,7 +45,9 @@ const RunDuration = "altinn.operator.run.duration"
 // CNPG sync waiting on Flux).
 var runDurationBuckets = []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60}
 
-var runDuration = sync.OnceValue(func() metric.Float64Histogram {
+// runDuration looks the histogram up on each run rather than once, so that it is always the
+// current meter provider's. The SDK returns the same instrument each time.
+func runDuration() metric.Float64Histogram {
 	histogram, err := Meter().Float64Histogram(
 		RunDuration,
 		metric.WithUnit("s"),
@@ -55,7 +56,7 @@ var runDuration = sync.OnceValue(func() metric.Float64Histogram {
 	)
 	assert.That(err == nil, "create run duration histogram", "error", err)
 	return histogram
-})
+}
 
 type runKey struct{}
 

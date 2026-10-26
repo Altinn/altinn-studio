@@ -157,10 +157,10 @@ func otelhttpTransportForTest(base http.RoundTripper, provider trace.TracerProvi
 	return newKubernetesTransport(base, otelhttp.WithTracerProvider(provider))
 }
 
-// withParentSpan returns a context inside a span of provider, as in a reconcile. The span is
-// never ended, so it isn't among the recorder's ended spans.
+// withParentSpan returns a context inside a span of provider, as in a reconcile.
 func withParentSpan(provider trace.TracerProvider) context.Context {
-	ctx, _ := provider.Tracer("test").Start(context.Background(), "reconcile") //nolint:spancheck // See doc comment.
+	//nolint:spancheck // Left open, so that the recorder's ended spans are only the Kubernetes calls.
+	ctx, _ := provider.Tracer("test").Start(context.Background(), "reconcile")
 	return ctx
 }
 

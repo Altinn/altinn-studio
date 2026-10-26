@@ -17,7 +17,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -371,8 +370,9 @@ func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (s
 		respErr := &azcore.ResponseError{}
 		if errors.As(err, &respErr) {
 			if respErr.StatusCode == http.StatusNotFound {
-				span.SetStatus(codes.Error, "secret not found")
-				return "", fmt.Errorf("%w: %q", errKeyVaultSecretNotFound, name)
+				err = fmt.Errorf("%w: %q", errKeyVaultSecretNotFound, name)
+				commontelemetry.SetError(span, "key_vault_secret_not_found", err)
+				return "", err
 			}
 		}
 		commontelemetry.SetError(span, "get_key_vault_secret", err)

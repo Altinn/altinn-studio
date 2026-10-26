@@ -12,20 +12,26 @@ import (
 // the controllers, and 0 before. A cluster where no process reports 1 has no controllers running.
 const Leader = "altinn.operator.leader"
 
-var leading atomic.Bool
+var elected, stopped atomic.Bool
 
-// IsLeader reports whether this process has been elected leader. Gauges that describe the cluster
+// IsLeader reports whether this process is the elected leader. Gauges that describe the cluster
 // rather than the process report only from the leader, so a rollout's second process doesn't
 // count everything twice.
 func IsLeader() bool {
-	return leading.Load()
+	return elected.Load() && !stopped.Load()
+}
+
+// EndLeadership records that the manager has stopped, so the final export reports this process
+// as no longer leading, and its leader-only gauges stop, while the next leader takes over.
+func EndLeadership() {
+	stopped.Store(true)
 }
 
 // RegisterLeader reports Leader, which turns 1 when elected closes.
-func RegisterLeader(elected <-chan struct{}) error {
+func RegisterLeader(electedChannel <-chan struct{}) error {
 	go func() {
-		<-elected
-		leading.Store(true)
+		<-electedChannel
+		elected.Store(true)
 	}()
 	_, err := Meter().Int64ObservableGauge(
 		Leader,

@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
@@ -23,6 +24,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"go.opentelemetry.io/otel/trace"
 	uberzap "go.uber.org/zap"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -63,6 +65,29 @@ func init() {
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	utilruntime.Must(cnpgapi.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
+}
+
+// exitAfterStartupFailure ends the startup span and flushes telemetry, so the error just logged
+// is exported, before exiting. os.Exit skips deferred calls.
+func exitAfterStartupFailure(span trace.Span, shutdown func(context.Context) error) {
+	span.End()
+	shutdownTelemetry(shutdown)
+	os.Exit(1)
+}
+
+// newManager loads the Kubernetes configuration with ctrl.GetConfig rather than GetConfigOrDie,
+// which exits without flushing telemetry.
+func newManager(options ctrl.Options) (ctrl.Manager, error) {
+	restConfig, err := ctrl.GetConfig()
+	if err != nil {
+		return nil, fmt.Errorf("load the Kubernetes configuration: %w", err)
+	}
+	telemetry.WrapTransport(restConfig)
+	mgr, err := ctrl.NewManager(restConfig, options)
+	if err != nil {
+		return nil, fmt.Errorf("create the manager: %w", err)
+	}
+	return mgr, nil
 }
 
 func shutdownTelemetry(shutdown func(context.Context) error) {
@@ -112,8 +137,7 @@ func main() {
 	rt, err := internal.NewRuntime(ctx, internal.WithLogger(&setupLog))
 	if err != nil {
 		setupLog.Error(err, "unable to initialize runtime")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	// Handle shutdown properly so nothing leaks.
@@ -139,8 +163,6 @@ func main() {
 		TLSOpts: tlsOpts,
 	})
 
-	restConfig := ctrl.GetConfigOrDie()
-	telemetry.WrapTransport(restConfig)
 	syncPeriod := time.Hour * 5
 	const (
 		leaderElectionLeaseDuration = 30 * time.Second
@@ -148,7 +170,7 @@ func main() {
 		leaderElectionRetryPeriod   = 5 * time.Second
 	)
 	managerCtx := telemetry.WithoutSpan(ctx)
-	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
+	mgr, err := newManager(ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
 			BindAddress:   metricsAddr,
@@ -175,8 +197,7 @@ func main() {
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	if err = (maskinporten.NewReconciler(
@@ -186,28 +207,24 @@ func main() {
 		nil,
 	)).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "MaskinportenClient")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	if err = secretsync.NewReconciler(rt, mgr.GetClient()).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SecretSync")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	if err = appcodesync.NewReconciler(rt, mgr.GetClient()).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AppCodesSync")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 	// +kubebuilder:scaffold:builder
 
 	grafanaPolicySyncController := grafanapolicysync.NewReconciler(rt, mgr.GetClient())
 	if err = mgr.Add(grafanaPolicySyncController); err != nil {
 		setupLog.Error(err, "unable to add GrafanaPolicySync controller to manager")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	kvSyncController, err := azurekeyvaultsync.NewReconciler(
@@ -219,30 +236,26 @@ func main() {
 		kvSyncController = nil
 	} else if err != nil {
 		setupLog.Error(err, "unable to create KeyVaultSync controller")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 	if kvSyncController != nil {
 		if err = mgr.Add(kvSyncController); err != nil {
 			setupLog.Error(err, "unable to add KeyVaultSync controller to manager")
-			span.End()
-			os.Exit(1)
+			exitAfterStartupFailure(span, otelShutdown)
 		}
 	}
 
 	cnpgSyncController := cnpgsync.NewReconciler(rt, mgr.GetClient())
 	if err = mgr.Add(cnpgSyncController); err != nil {
 		setupLog.Error(err, "unable to add CnpgSync controller to manager")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	if rt.GetOperatorContext().Environment != operatorcontext.EnvironmentProd {
 		inactivityScalerController := inactivityscaler.NewReconciler(rt, mgr.GetClient(), mgr.GetAPIReader())
 		if err = mgr.Add(inactivityScalerController); err != nil {
 			setupLog.Error(err, "unable to add InactivityScaler controller to manager")
-			span.End()
-			os.Exit(1)
+			exitAfterStartupFailure(span, otelShutdown)
 		}
 	} else {
 		setupLog.Info("skipping InactivityScaler controller in prod")
@@ -250,25 +263,26 @@ func main() {
 
 	if err = telemetry.RegisterLeader(mgr.Elected()); err != nil {
 		setupLog.Error(err, "unable to report leader election")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	if err = mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 	if err = mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
-		span.End()
-		os.Exit(1)
+		exitAfterStartupFailure(span, otelShutdown)
 	}
 
 	setupLog.Info("starting manager")
 	span.End()
-	if err = mgr.Start(managerCtx); err != nil {
+	err = mgr.Start(managerCtx)
+	telemetry.EndLeadership()
+	if err != nil {
 		setupLog.Error(err, "problem running manager")
+		// os.Exit skips the deferred shutdown, which would leave this error unexported.
+		shutdownTelemetry(otelShutdown)
 		os.Exit(1)
 	}
 }

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel"
+
 	"go.opentelemetry.io/otel/metric"
 
 	commontelemetry "altinn.studio/common/telemetry"
@@ -170,7 +172,6 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 
 	if len(executedCommands) == 0 {
 		logger.Info("No actions taken")
-		span.SetStatus(codes.Ok, "reconciled successfully")
 		reason := "NoActionsNeeded"
 		message := "No actions needed"
 		if req.Kind == RequestDeleteKind {
@@ -182,6 +183,8 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 			logger.Error(err, "Failed to update MaskinportenClient status")
 			return ctrl.Result{}, err
 		}
+		// Only now: the SDK ignores an error status set after Ok.
+		span.SetStatus(codes.Ok, "reconciled successfully")
 		return ctrl.Result{}, nil
 	}
 
@@ -1016,7 +1019,10 @@ func (r *MaskinportenClientReconciler) registerClientsMetric() error {
 			}
 			list := &resourcesv1alpha1.MaskinportenClientList{}
 			if err := r.List(ctx, list); err != nil {
-				return fmt.Errorf("list MaskinportenClients: %w", err)
+				// Not returned: a callback's error makes the reader drop the whole collection,
+				// every other metric of the interval included.
+				otel.Handle(fmt.Errorf("observe %s: list MaskinportenClients: %w", ClientsMetric, err))
+				return nil
 			}
 			counts := map[string]int64{"ready": 0, "not_ready": 0, "unknown": 0}
 			for i := range list.Items {
