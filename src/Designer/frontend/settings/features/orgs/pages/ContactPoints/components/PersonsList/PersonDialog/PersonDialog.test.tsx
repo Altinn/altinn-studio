@@ -196,7 +196,7 @@ describe('PersonDialog', () => {
 
   it('accepts phone as valid contact method (no email needed)', async () => {
     const user = userEvent.setup();
-    renderPersonDialog({ initialValue: { ...defaultPerson, name: 'Test', phone: '+4712345678' } });
+    renderPersonDialog({ initialValue: { ...defaultPerson, name: 'Test', phone: '+4798765432' } });
     await user.click(getAddButton());
     expect(queriesMock.addContactPoint).toHaveBeenCalled();
   });
@@ -229,7 +229,7 @@ describe('PersonDialog', () => {
     expect(queriesMock.addContactPoint).not.toHaveBeenCalled();
   });
 
-  it.each(['12345678', '+47', '+0798765432'])(
+  it.each(['12345678', '+47', '+0798765432', '+4712345678', '+4722123456'])(
     'shows invalid phone error when phone is %s',
     async (phone) => {
       const user = userEvent.setup();
@@ -239,7 +239,7 @@ describe('PersonDialog', () => {
     },
   );
 
-  it.each(['+4712345678', '+47 987 65 432', '004798765432', '98765432'])(
+  it.each(['+4798765432', '+47 987 65 432', '004798765432', '98765432', '+46701234567'])(
     'does not show invalid phone error when phone is %s',
     async (phone) => {
       const user = userEvent.setup();
@@ -253,7 +253,7 @@ describe('PersonDialog', () => {
 
   it('does not show email format error when email field is empty', async () => {
     const user = userEvent.setup();
-    renderPersonDialog({ initialValue: { ...defaultPerson, name: 'Test', phone: '+4712345678' } });
+    renderPersonDialog({ initialValue: { ...defaultPerson, name: 'Test', phone: '+4798765432' } });
     await user.click(getAddButton());
     expect(screen.queryByText(textMock('validation_errors.invalid_email'))).not.toBeInTheDocument();
   });

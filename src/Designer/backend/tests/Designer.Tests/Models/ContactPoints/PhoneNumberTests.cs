@@ -26,6 +26,9 @@ public class PhoneNumberTests
     [InlineData("987654321")]
     [InlineData("++4798765432")]
     [InlineData("+0798765432")]
+    [InlineData("+4712345678")]
+    [InlineData("+4722123456")]
+    [InlineData("412٣٤٥٦٧")]
     [InlineData("+1234567890123456")]
     public void TryNormalize_WhenNumberLacksACountryCode_ReturnsFalse(string value)
     {

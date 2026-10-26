@@ -16,7 +16,6 @@ import { reportFrequencies } from 'app-shared/types/ContactPoint';
 import classes from './PersonDialog.module.css';
 import {
   emailRegex,
-  phoneRegex,
   emailPlaceholder,
   phonePlaceholder,
   nameMaxLength,
@@ -25,7 +24,7 @@ import {
 } from '../../../../../constants/contactPointConstants';
 import { useAddContactPointMutation } from '../../../../../hooks/useAddContactPointMutation';
 import { useUpdateContactPointMutation } from '../../../../../hooks/useUpdateContactPointMutation';
-import { personToPayload } from '../personUtils';
+import { isValidPhoneNumber, personToPayload } from '../personUtils';
 
 export type Person = {
   name: string;
@@ -71,7 +70,7 @@ export const PersonDialog = ({
       : undefined;
 
   const phoneError =
-    submitted && trimmedPhone && !phoneRegex.test(trimmedPhone)
+    submitted && trimmedPhone && !isValidPhoneNumber(trimmedPhone)
       ? t('validation_errors.invalid_phone')
       : undefined;
 
@@ -84,7 +83,7 @@ export const PersonDialog = ({
     !!trimmedName &&
     (!!trimmedEmail || !!trimmedPhone) &&
     (!trimmedEmail || emailRegex.test(trimmedEmail)) &&
-    (!trimmedPhone || phoneRegex.test(trimmedPhone));
+    (!trimmedPhone || isValidPhoneNumber(trimmedPhone));
 
   const handleClose = () => {
     if (!isSaving) onClose();

@@ -34,9 +34,10 @@ public static partial class PhoneNumber
     [GeneratedRegex(@"[\s-]")]
     private static partial Regex FormattingCharacters();
 
-    [GeneratedRegex(@"^[49]\d{7}$")]
+    [GeneratedRegex(@"^[49][0-9]{7}$")]
     private static partial Regex NorwegianMobileNumber();
 
-    [GeneratedRegex(@"^\+[1-9]\d{6,14}$")]
+    // A Norwegian number must be a mobile number to receive SMS
+    [GeneratedRegex(@"^\+(?:47[49][0-9]{7}|(?!47)[1-9][0-9]{6,14})$")]
     private static partial Regex InternationalNumber();
 }

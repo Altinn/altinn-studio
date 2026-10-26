@@ -15,14 +15,21 @@ namespace Altinn.Studio.Designer.Migrations
         {
             migrationBuilder.Sql(
                 """
-                UPDATE designer.contact_methods
-                SET value = regexp_replace(
-                    regexp_replace(regexp_replace(value, '[\s-]', '', 'g'), '^00', '+'),
-                    '^([49][0-9]{7})$',
-                    '+47\1'
+                WITH normalized AS (
+                    SELECT id, regexp_replace(
+                        regexp_replace(regexp_replace(value, '[\s-]', '', 'g'), '^00', '+'),
+                        '^([49][0-9]{7})$',
+                        '+47\1'
+                    ) AS value
+                    FROM designer.contact_methods
+                    -- ContactMethodType.Sms
+                    WHERE method_type = 1
                 )
-                -- ContactMethodType.Sms
-                WHERE method_type = 1;
+                UPDATE designer.contact_methods AS contact_method
+                SET value = normalized.value
+                FROM normalized
+                WHERE contact_method.id = normalized.id
+                    AND normalized.value ~ '^\+(47[49][0-9]{7}|(?!47)[1-9][0-9]{6,14})$';
                 """
             );
         }
