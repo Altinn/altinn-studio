@@ -29,6 +29,7 @@ using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Altinn.Studio.Designer.Services.Interfaces.Validation;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -122,6 +123,7 @@ public static class ServiceRegistration
         services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
         services.AddTransient<IAppResourcesService, AppResourcesService>();
         services.AddTransient<INotificationService, NotificationService>();
+        services.AddSingleton<NotificationMetrics>();
         services.AddTransient<IAlertsService, AlertsService>();
         services.AddTransient<IBranchService, BranchService>();
         services.AddTransient<IMetricsService, MetricsService>();

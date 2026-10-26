@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Text.Json;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 
@@ -60,10 +61,17 @@ internal static partial class ServiceTelemetry
         };
 
     /// <summary>
+    /// The value of an attribute that holds an enum member: its name in snake_case, the form the semantic
+    /// conventions use for enum values, so that spans and metrics carry the same value.
+    /// </summary>
+    public static string EnumValue<TEnum>(TEnum value)
+        where TEnum : struct, Enum => JsonNamingPolicy.SnakeCaseLower.ConvertName(value.ToString());
+
+    /// <summary>
     /// The runtime's name for an environment: Designer calls the production environment production, and the
     /// runtime calls it prod.
     /// </summary>
-    private static string RuntimeEnvironmentName(string environment) =>
+    public static string RuntimeEnvironmentName(string environment) =>
         environment.Equals(ProductionEnvironment, StringComparison.OrdinalIgnoreCase)
             ? RuntimeProductionEnvironment
             : environment.ToLowerInvariant();
