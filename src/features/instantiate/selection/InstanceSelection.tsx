@@ -12,6 +12,8 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
+import { useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import {
   ActiveInstancesProvider,
   useActiveInstances,
@@ -58,6 +60,7 @@ function InstanceSelection() {
   const mobileView = useIsMobileOrTablet();
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiation = useInstantiation();
+  const instantiationClosedReason = useInstantiationClosedReason();
   const selectedParty = useSelectedParty();
   const setNavigationEffect = useSetNavigationEffect();
   const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
@@ -251,34 +254,40 @@ function InstanceSelection() {
         {mobileView && renderMobileTable()}
         {!mobileView && renderTable()}
         <div className={classes.startNewButtonContainer}>
-          <ErrorReport
-            show={instantiation.error !== undefined}
-            errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
-          >
-            <Button
-              disabled={isAnyProcessing}
-              isLoading={isLoading}
-              size='md'
-              onClick={() =>
-                performProcess(async () => {
-                  if (selectedParty) {
-                    await instantiation.instantiate(selectedParty.partyId, {
-                      force: true,
-                      onSuccess: (data) =>
-                        setNavigationEffect({
-                          targetLocation: `/instance/${data.id}`,
-                          matchStart: true,
-                          callback: focusMainContent,
-                        }),
-                    });
-                  }
-                })
-              }
-              id='new-instance-button'
+          {instantiationClosedReason ? (
+            <Paragraph id='instantiation-closed-message'>
+              <InstantiationClosedText reason={instantiationClosedReason} />
+            </Paragraph>
+          ) : (
+            <ErrorReport
+              show={instantiation.error !== undefined}
+              errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
             >
-              <Lang id='instance_selection.new_instance' />
-            </Button>
-          </ErrorReport>
+              <Button
+                disabled={isAnyProcessing}
+                isLoading={isLoading}
+                size='md'
+                onClick={() =>
+                  performProcess(async () => {
+                    if (selectedParty) {
+                      await instantiation.instantiate(selectedParty.partyId, {
+                        force: true,
+                        onSuccess: (data) =>
+                          setNavigationEffect({
+                            targetLocation: `/instance/${data.id}`,
+                            matchStart: true,
+                            callback: focusMainContent,
+                          }),
+                      });
+                    }
+                  })
+                }
+                id='new-instance-button'
+              >
+                <Lang id='instance_selection.new_instance' />
+              </Button>
+            </ErrorReport>
+          )}
         </div>
       </div>
       <ReadyForPrint type='load' />

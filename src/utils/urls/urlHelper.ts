@@ -17,6 +17,11 @@ function isProductionEnvironment(altinnHost: string): boolean {
   return altinnHost === 'altinn.no';
 }
 
+export function isProductionHost(host: string): boolean {
+  const altinnHost = extractAltinnHost(host);
+  return altinnHost !== undefined && isProductionEnvironment(altinnHost);
+}
+
 function buildArbeidsflateUrl(altinnHost: string): string {
   if (isProductionEnvironment(altinnHost)) {
     return 'https://af.altinn.no/';

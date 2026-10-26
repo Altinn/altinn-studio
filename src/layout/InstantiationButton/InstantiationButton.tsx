@@ -1,15 +1,21 @@
 import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
-import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
+import {
+  ErrorListForClosedInstantiation,
+  ErrorListFromInstantiation,
+  ErrorReport,
+} from 'src/components/message/ErrorReport';
 import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
+import { isInstantiationClosedError, useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
+import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 
 type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedProps>, 'text'>;
@@ -21,11 +27,20 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
   const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useSelectedParty();
   const setNavigationEffect = useSetNavigationEffect();
+  const metadataClosedReason = useInstantiationClosedReason();
+  const closedReason: InstantiationClosedReason | undefined =
+    metadataClosedReason ?? (isInstantiationClosedError(instantiation.error) ? { reason: 'closed' } : undefined);
 
   return (
     <ErrorReport
-      show={instantiation.error !== undefined}
-      errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
+      show={closedReason !== undefined || instantiation.error !== undefined}
+      errors={
+        closedReason ? (
+          <ErrorListForClosedInstantiation reason={closedReason} />
+        ) : instantiation.error ? (
+          <ErrorListFromInstantiation error={instantiation.error} />
+        ) : undefined
+      }
     >
       <Button
         id={useIndexedId(props.baseComponentId)}
@@ -50,7 +65,7 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
             ),
           )
         }
-        disabled={isAnyProcessing}
+        disabled={isAnyProcessing || closedReason !== undefined}
         isLoading={isLoading}
         variant='secondary'
         color='first'

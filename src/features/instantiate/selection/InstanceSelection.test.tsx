@@ -1,11 +1,13 @@
 import React from 'react';
 
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
+import { fetchApplicationMetadata } from 'src/queries/queries';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ISimpleInstance } from 'src/types';
 
 const mockActiveInstances: ISimpleInstance[] = [
@@ -73,6 +75,45 @@ describe('InstanceSelection', () => {
     const { mutations } = await render();
     await userEvent.click(screen.getByText(/start på nytt/i));
     expect(mutations.doInstantiate.mock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should explain that new instances cannot be started when instantiation responds with 410', async () => {
+    jest.spyOn(window, 'logError').mockImplementation(() => {});
+    const { mutations } = await renderWithoutInstanceAndLayout({
+      renderer: () => <InstanceSelectionWrapper />,
+      queries: { fetchActiveInstances: () => Promise.resolve(mockActiveInstances) },
+    });
+    await userEvent.click(screen.getByText(/start på nytt/i));
+    mutations.doInstantiate.reject(Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }));
+
+    await waitFor(() =>
+      expect(screen.getByText(/det er ikke mulig å starte nye skjema i denne tjenesten/i)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/ikke har rettigheter til å starte denne tjenesten/i)).not.toBeInTheDocument();
+  });
+
+  it('should list active instances but not offer to start a new one when validTo has passed', async () => {
+    jest
+      .mocked(fetchApplicationMetadata)
+      .mockImplementationOnce(async () => getIncomingApplicationMetadataMock({ validTo: '2020-01-01T00:00:00Z' }));
+    const { mutations } = await render();
+
+    expect(await screen.findByText(mockActiveInstances[0].lastChangedBy)).toBeInTheDocument();
+    expect(screen.getByText(/det er ikke mulig å starte nye skjema i denne tjenesten/i)).toBeInTheDocument();
+    expect(screen.queryByText(/start på nytt/i)).not.toBeInTheDocument();
+    expect(mutations.doInstantiate.mock).not.toHaveBeenCalled();
+  });
+
+  it('should list active instances but not offer to start a new one before validFrom', async () => {
+    jest
+      .mocked(fetchApplicationMetadata)
+      .mockImplementationOnce(async () => getIncomingApplicationMetadataMock({ validFrom: '2099-01-01T10:00:00Z' }));
+    const { mutations } = await render();
+
+    expect(await screen.findByText(mockActiveInstances[0].lastChangedBy)).toBeInTheDocument();
+    expect(screen.getByText(/Tjenesten åpner 01\.01\.2099/)).toBeInTheDocument();
+    expect(screen.queryByText(/start på nytt/i)).not.toBeInTheDocument();
+    expect(mutations.doInstantiate.mock).not.toHaveBeenCalled();
   });
 
   it('should trigger openInstance on editButton click', async () => {

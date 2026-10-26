@@ -8,6 +8,8 @@ import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthW
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
+import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
+import { isInstantiationClosedError, useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import {
   InstantiationValidation,
   isInstantiationValidationResult,
@@ -22,6 +24,7 @@ import { HttpStatusCodes } from 'src/utils/network/networking';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { UploadedAttachment } from 'src/features/attachments';
+import type { InstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 export interface IErrorReportProps extends PropsWithChildren {
@@ -142,11 +145,24 @@ export function ErrorReportList({ formErrors, taskErrors }: ErrorReportListProps
   );
 }
 
+export function ErrorListForClosedInstantiation({ reason }: { reason: InstantiationClosedReason }) {
+  return (
+    <ErrorReportListItem>
+      <InstantiationClosedText reason={reason} />
+    </ErrorReportListItem>
+  );
+}
+
 /**
  * @see InstantiateContainer Contains somewhat similar logic, but for a full-screen error page.
  */
 export function ErrorListFromInstantiation({ error }: { error: unknown }) {
   const selectedParty = useSelectedParty();
+  const closedReason = useInstantiationClosedReason();
+
+  if (isInstantiationClosedError(error)) {
+    return <ErrorListForClosedInstantiation reason={closedReason ?? { reason: 'closed' }} />;
+  }
 
   if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
     if (isInstantiationValidationResult(error.response.data)) {

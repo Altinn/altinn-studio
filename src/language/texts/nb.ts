@@ -244,6 +244,11 @@ export function nb() {
     'instantiate.unknown_error_status': 'Ukjent feil',
     'instantiate.unknown_error_customer_support': 'Om problemet vedvarer, ta kontakt med oss på brukerservice {0}.',
     'instantiate.unknown_error_show_details': 'Vis detaljer om feilen',
+    'instantiate.not_yet_open_error_title': 'Denne tjenesten har ikke åpnet ennå',
+    'instantiate.not_yet_open_error_text': 'Tjenesten åpner {0}. Det er ikke mulig å starte nye skjema før det.',
+    'instantiate.closed_error_title': 'Du kan ikke starte denne tjenesten',
+    'instantiate.closed_error_text':
+      'Det er ikke mulig å starte nye skjema i denne tjenesten. Skjema du allerede har startet, kan du fortsatt fullføre fra innboksen.',
     'instantiate.forbidden_action_error_title': 'Du mangler rettigheter til å utføre denne handlingen',
     'instantiate.forbidden_action_error_text':
       'Det ser ut til at du mangler rettigheter til å utføre denne handlingen.',

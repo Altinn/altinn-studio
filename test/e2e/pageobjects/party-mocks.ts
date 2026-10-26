@@ -103,6 +103,9 @@ interface Mockable {
   partyTypesAllowed?: IncomingApplicationMetadata['partyTypesAllowed'];
   activeInstances?: false | ISimpleInstance[]; // Defaults to false
   onEntryShow?: ShowTypes;
+  validFrom?: IncomingApplicationMetadata['validFrom'];
+  validTo?: IncomingApplicationMetadata['validTo'];
+  disallowUserInstantiation?: IncomingApplicationMetadata['disallowUserInstantiation'];
 }
 
 export function cyMockResponses(whatToMock: Mockable) {
@@ -143,7 +146,10 @@ export function cyMockResponses(whatToMock: Mockable) {
   if (
     whatToMock.appPromptForPartyOverride !== undefined ||
     whatToMock.partyTypesAllowed !== undefined ||
-    whatToMock.onEntryShow !== undefined
+    whatToMock.onEntryShow !== undefined ||
+    whatToMock.validFrom !== undefined ||
+    whatToMock.validTo !== undefined ||
+    whatToMock.disallowUserInstantiation !== undefined
   ) {
     cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
       req.on('response', (res) => {
@@ -156,6 +162,15 @@ export function cyMockResponses(whatToMock: Mockable) {
         }
         if (whatToMock.onEntryShow !== undefined) {
           body.onEntry = { show: whatToMock.onEntryShow };
+        }
+        if (whatToMock.validFrom !== undefined) {
+          body.validFrom = whatToMock.validFrom;
+        }
+        if (whatToMock.validTo !== undefined) {
+          body.validTo = whatToMock.validTo;
+        }
+        if (whatToMock.disallowUserInstantiation !== undefined) {
+          body.disallowUserInstantiation = whatToMock.disallowUserInstantiation;
         }
       });
     });
