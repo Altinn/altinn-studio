@@ -1,7 +1,8 @@
 # GitHub Actions
 
 [Workflows](workflows) define the repository's checks, builds, releases, and deployments.
-Shared steps live in [composite actions](actions).
+Shared steps live in [composite actions](actions). Start a new workflow from an existing one for the same kind of
+task, and reuse its actions and templates.
 
 Use the component's Makefile targets or package scripts for builds and tests so developers can run the same
 checks locally. The [operator checks](workflows/runtime-operator-build.yml) show this approach.
@@ -25,3 +26,5 @@ reuse them. Entries saved under one pull request cannot serve other pull request
 - `release-<product>.yaml` publishes a release of a product.
 - `template-*.yaml` are reusable workflows that other workflows call.
 - Other workflows are named after the area and component they check, such as `runtime-pdf3-build.yml`.
+- New workflows use the `.yaml` extension. `studio-components-deploy.yaml`, `apps-storybook-deploy.yaml` and the
+  `.yml` files are older than these names.

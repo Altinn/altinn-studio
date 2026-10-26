@@ -1,25 +1,12 @@
-# Studio Syncroot
+# Studio syncroot
 
-Base configuration for all Studio Kubernetes resources. This is based on the syncroot pattern created by the Platform team.
+The syncroot of the Studio clusters, with an overlay for each of `dev`, `staging` and `prod`. It follows the Platform
+team's syncroot pattern, and [deploy-studio-syncroot.yaml](../../../.github/workflows/deploy-studio-syncroot.yaml)
+publishes it.
 
-## Structure
+Keep it slim. An entry points Flux at an OCI artifact that holds a component's resources, rather than holding the
+manifests itself. Flux substitutes `${ENVIRONMENT}` with the environment's name, so an entry can pick the artifact tag
+for its environment.
 
-The `base/` folder contains shared Kubernetes manifests, with environment-specific overlays in `dev/`, `staging/`, and `prod/`.
-
-## Guidelines
-
-**Keep syncroot slim.** It should only contain references to OCI images that hold the actual resources. Avoid adding resource manifests directly here.
-
-## Migration Note
-
-Some resources like `studio-runners` namespaces were created via Terraform. These have not been migrated yet to avoid breaking existing services, but will be moved here in the future.
-
-## PostBuild Substitutions
-
-The `ENVIRONMENT` variable is substituted at deploy time:
-
-| Cluster | ENVIRONMENT Value |
-| ------- | ----------------- |
-| dev     | dev               |
-| staging | staging           |
-| prod    | prod              |
+Terraform created some resources, such as the `studio-runners` namespaces. They stay there for now, since moving them
+could break the services that use them.
