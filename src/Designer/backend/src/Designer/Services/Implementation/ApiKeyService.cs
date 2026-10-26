@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.ApiKey;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -98,7 +99,12 @@ public class ApiKeyService(
             return null;
         }
 
-        if (model.Revoked || model.ExpiresAt <= timeProvider.GetUtcNow() || model.UserAccount.Deactivated)
+        if (
+            model.Revoked
+            || model.ExpiresAt <= timeProvider.GetUtcNow()
+            || model.UserAccount.Deactivated
+            || model.UserAccount.AuthenticationProvider == StudioAuthenticationProviders.Mockporten
+        )
         {
             return null;
         }
@@ -132,6 +138,11 @@ public class ApiKeyService(
         if (userAccount is null)
         {
             throw new InvalidOperationException($"User account not found for username '{username}'.");
+        }
+
+        if (userAccount.AuthenticationProvider == StudioAuthenticationProviders.Mockporten)
+        {
+            throw new UnauthorizedAccessException("API keys are unavailable for Mockporten accounts.");
         }
 
         return userAccount.Id;

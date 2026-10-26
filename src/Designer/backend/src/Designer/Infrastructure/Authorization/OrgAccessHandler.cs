@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -38,6 +39,11 @@ public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement
         OrgAccessRequirement requirement
     )
     {
+        if (StudioAuthenticationProviders.IsMockporten(context.User))
+        {
+            context.Fail();
+            return;
+        }
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext is null)
         {

@@ -17,6 +17,7 @@ using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authentication;
@@ -43,6 +44,10 @@ public static class StudioOidcAuthenticationExtensions
         IWebHostEnvironment env
     )
     {
+        var mockportenSettings = configuration.GetSection("Mockporten").Get<MockportenSettings>() ?? new();
+        mockportenSettings.Validate();
+        services.AddSingleton(mockportenSettings);
+        services.AddScoped<MockportenAccountService>();
         StudioOidcLoginSettings? oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
 
         if (oidcSettings == null)
@@ -93,7 +98,10 @@ public static class StudioOidcAuthenticationExtensions
                         return Task.CompletedTask;
                     };
 
-                    options.Events.OnValidatePrincipal = context => RefreshAccessTokenIfExpired(context, oidcSettings);
+                    options.Events.OnValidatePrincipal = context =>
+                        StudioAuthenticationProviders.IsMockporten(context.Principal!)
+                            ? MockportenAuthentication.ValidateSession(context, mockportenSettings)
+                            : RefreshAccessTokenIfExpired(context, oidcSettings);
                 }
             )
             .AddOpenIdConnect(
@@ -205,6 +213,16 @@ public static class StudioOidcAuthenticationExtensions
                 }
             );
 
+        if (mockportenSettings.Enabled)
+        {
+            services
+                .AddAuthentication()
+                .AddOpenIdConnect(
+                    StudioAuthenticationProviders.MockportenScheme,
+                    options => MockportenAuthentication.Configure(options, mockportenSettings)
+                );
+        }
+
         return services;
     }
 
@@ -238,7 +256,13 @@ public static class StudioOidcAuthenticationExtensions
             return;
         }
 
-        var claims = new List<Claim> { new(ClaimTypes.Name, username), new("pid", pid), new("sub", sub) };
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, username),
+            new("pid", pid),
+            new("sub", sub),
+            new(StudioAuthenticationProviders.ClaimType, StudioAuthenticationProviders.Ansattporten),
+        };
         if (givenName is not null)
         {
             claims.Add(new Claim("given_name", givenName));

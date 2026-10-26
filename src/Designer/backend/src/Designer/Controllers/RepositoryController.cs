@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Exceptions.CustomTemplate;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Hubs.Sync;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -98,6 +99,18 @@ public class RepositoryController : ControllerBase
         [FromQuery] bool excludeNonAppRepos = false
     )
     {
+        if (StudioAuthenticationProviders.IsMockporten(User))
+        {
+            var organizations = await _giteaClient.GetUserOrganizations();
+            var testOrganization = organizations.Find(org =>
+                org.Username == StudioAuthenticationProviders.TestOrganization
+            );
+            if (testOrganization?.Id is not > 0 or > int.MaxValue)
+            {
+                return Forbid();
+            }
+            uId = checked((int)testOrganization.Id.Value);
+        }
         if (excludeNonAppRepos && !string.IsNullOrEmpty(keyword))
         {
             return BadRequest("excludeNonAppRepos can't be combined with keyword.");

@@ -46,6 +46,13 @@ function handleRequest(r) {
     try {
       var body = JSON.parse(reply.responseText);
 
+      // Test identities must stay inside Designer's organisation-restricted API.
+      // Do not mint a Gitea browser session or allow token/SSH-key administration.
+      if (body.authenticationProvider === 'mockporten') {
+        r.return(403, 'Mockporten accounts can only access repositories through Studio');
+        return;
+      }
+
       if (body.authMethod === 'ApiKey' && !apiKeyAllowedPattern.test(r.uri)) {
         r.return(
           403,

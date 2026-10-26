@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -65,9 +67,9 @@ public class UserController : ControllerBase
     /// <returns>List of repos</returns>
     [HttpGet]
     [Route("repos")]
-    public Task<IList<RepositoryClient.Model.Repository>> UserRepos()
+    public async Task<IList<RepositoryClient.Model.Repository>> UserRepos()
     {
-        return _giteaClient.GetUserRepos();
+        return FilterTestRepositories(await _giteaClient.GetUserRepos());
     }
 
     /// <summary>
@@ -78,8 +80,15 @@ public class UserController : ControllerBase
     [Route("starred")]
     public async Task<IList<RepositoryClient.Model.Repository>> GetStarredRepos()
     {
-        return await _giteaClient.GetStarred();
+        return FilterTestRepositories(await _giteaClient.GetStarred());
     }
+
+    private IList<RepositoryClient.Model.Repository> FilterTestRepositories(
+        IList<RepositoryClient.Model.Repository> repositories
+    ) =>
+        StudioAuthenticationProviders.IsMockporten(User)
+            ? repositories.Where(repo => repo.Owner?.Login == StudioAuthenticationProviders.TestOrganization).ToList()
+            : repositories;
 
     /// <summary>
     /// Adds the repository to the users list of starred repositories.

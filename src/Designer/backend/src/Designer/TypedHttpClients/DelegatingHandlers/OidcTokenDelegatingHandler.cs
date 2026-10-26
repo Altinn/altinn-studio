@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +20,11 @@ public class OidcTokenDelegatingHandler(IHttpContextAccessor httpContextAccessor
         if (httpContext is null)
         {
             throw new HttpRequestException("No HttpContext available to retrieve access token from");
+        }
+
+        if (StudioAuthenticationProviders.IsMockporten(httpContext.User))
+        {
+            throw new HttpRequestException("This operation requires Ansattporten organization authorization.");
         }
 
         string? token = await httpContext.GetTokenAsync(

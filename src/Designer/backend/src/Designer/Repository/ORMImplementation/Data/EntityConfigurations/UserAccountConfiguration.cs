@@ -21,6 +21,10 @@ public class UserAccountConfiguration : IEntityTypeConfiguration<UserAccountDbMo
             .IsRequired();
 
         builder.Property(e => e.PidHash).HasColumnType("character varying").HasColumnName("pid_hash");
+        builder
+            .Property(e => e.AuthenticationProvider)
+            .HasColumnType("character varying")
+            .HasColumnName("authentication_provider");
 
         builder.Property(e => e.Username).HasColumnType("character varying").HasColumnName("username").IsRequired();
 

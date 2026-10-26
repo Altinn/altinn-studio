@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -34,7 +35,7 @@ public class GiteaDbStudioOidcUsernameProvider(
 
         if (mapping != null)
         {
-            if (mapping.Deactivated)
+            if (mapping.Deactivated || mapping.AuthenticationProvider == StudioAuthenticationProviders.Mockporten)
             {
                 throw new UnauthorizedAccessException($"User account '{mapping.Username}' has been deactivated.");
             }
@@ -46,6 +47,15 @@ public class GiteaDbStudioOidcUsernameProvider(
         string? giteaUsername = await LookupGiteaUsernameAsync(sub);
         if (giteaUsername != null)
         {
+            if (
+                await designerDb.UserAccounts.AnyAsync(user =>
+                    user.Username == giteaUsername
+                    && user.AuthenticationProvider == StudioAuthenticationProviders.Mockporten
+                )
+            )
+            {
+                throw new UnauthorizedAccessException("Test accounts cannot be linked through Ansattporten.");
+            }
             await StoreMapping(pidHash, giteaUsername);
             return giteaUsername;
         }
@@ -74,6 +84,7 @@ public class GiteaDbStudioOidcUsernameProvider(
             new UserAccountDbModel
             {
                 PidHash = pidHash.Value,
+                AuthenticationProvider = StudioAuthenticationProviders.Ansattporten,
                 Username = username,
                 Created = timeProvider.GetUtcNow(),
             }

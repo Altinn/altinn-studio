@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +37,10 @@ public class OrganizationController : ControllerBase
     public async Task<List<Organization>> Organizations()
     {
         List<Organization> orglist = await _giteaClient.GetUserOrganizations();
+        if (StudioAuthenticationProviders.IsMockporten(User))
+        {
+            return orglist?.Where(org => org.Username == StudioAuthenticationProviders.TestOrganization).ToList() ?? [];
+        }
         return orglist ?? new List<Organization>();
     }
 }

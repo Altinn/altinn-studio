@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Controllers;
@@ -76,8 +78,21 @@ public class HomeController : Controller
     /// Login
     /// </summary>
     /// <returns>The login page</returns>
-    public IActionResult Login([FromQuery(Name = "redirect_to")] string redirectTo = "/")
+    public IActionResult Login(
+        [FromQuery(Name = "redirect_to")] string redirectTo = "/",
+        [FromQuery] string? provider = null
+    )
     {
+        if (
+            provider is not null
+            && (
+                provider != StudioAuthenticationProviders.Mockporten
+                || !HttpContext.RequestServices.GetRequiredService<MockportenSettings>().Enabled
+            )
+        )
+        {
+            return NotFound();
+        }
         if (!Url.IsLocalUrl(redirectTo))
         {
             redirectTo = "/";
@@ -88,7 +103,12 @@ public class HomeController : Controller
             return LocalRedirect(redirectTo);
         }
 
-        return Challenge(new AuthenticationProperties { RedirectUri = redirectTo });
+        return provider == StudioAuthenticationProviders.Mockporten
+            ? Challenge(
+                new AuthenticationProperties { RedirectUri = redirectTo },
+                StudioAuthenticationProviders.MockportenScheme
+            )
+            : Challenge(new AuthenticationProperties { RedirectUri = redirectTo });
     }
 
     /// <summary>
@@ -106,6 +126,14 @@ public class HomeController : Controller
         if (User.Identity?.IsAuthenticated != true)
         {
             return LocalRedirect("/");
+        }
+
+        if (StudioAuthenticationProviders.IsMockporten(User))
+        {
+            return SignOut(
+                new AuthenticationProperties { RedirectUri = "/" },
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
         }
 
         return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme);

@@ -1,3 +1,4 @@
+@inject Altinn.Studio.Designer.Configuration.MockportenSettings Mockporten
 <!doctype html>
 <html lang="no">
     <head>
@@ -65,6 +66,14 @@
                     </div>
                     <div class="col-12 startHeroActions">
                         <input type="button" class="btn-lg" onclick="handleLogin()" value="Logg inn" />
+                        @if (Mockporten.Enabled)
+                        {
+                            <a href="/Login?provider=mockporten">Logg inn med Mockporten (testbruker)</a>
+                            @if (Context.Request.Query["loginError"] == "mockporten")
+                            {
+                                <p role="alert">Innlogging med Mockporten mislyktes. Kontroller at testbrukeren er godkjent for Studio.</p>
+                            }
+                        }
                     </div>
                 </div>
             </div>

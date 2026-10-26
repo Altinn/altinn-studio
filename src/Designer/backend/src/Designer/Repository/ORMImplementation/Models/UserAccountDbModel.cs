@@ -7,6 +7,7 @@ public class UserAccountDbModel
 {
     public Guid Id { get; set; }
     public string? PidHash { get; set; }
+    public string? AuthenticationProvider { get; set; }
     public string Username { get; set; } = string.Empty;
     public AccountType AccountType { get; set; }
     public string? OrganizationName { get; set; }

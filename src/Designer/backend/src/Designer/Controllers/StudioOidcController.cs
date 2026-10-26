@@ -1,4 +1,5 @@
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +34,8 @@ public class StudioOidcController : ControllerBase
                 User.Identity.Name,
                 User.FindFirst("given_name")?.Value,
                 User.FindFirst("family_name")?.Value,
-                User.Identity.AuthenticationType
+                User.Identity.AuthenticationType,
+                StudioAuthenticationProviders.IsMockporten(User) ? StudioAuthenticationProviders.Mockporten : null
             )
         );
     }

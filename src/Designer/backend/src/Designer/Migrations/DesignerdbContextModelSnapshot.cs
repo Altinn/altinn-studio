@@ -739,6 +739,10 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("account_type");
 
+                    b.Property<string>("AuthenticationProvider")
+                        .HasColumnType("character varying")
+                        .HasColumnName("authentication_provider");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamptz")
                         .HasColumnName("created");

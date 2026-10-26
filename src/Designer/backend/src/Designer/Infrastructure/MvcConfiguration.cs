@@ -7,6 +7,7 @@ using Altinn.Studio.Designer.Filters.Git;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Filters.Options;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,7 @@ public static class MvcConfiguration
                 options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
                 options.Filters.Add(typeof(ApiKeyExceptionFilterAttribute));
                 options.Filters.Add(typeof(ApiKeyScopeFilter));
+                options.Filters.Add(typeof(MockportenAccessFilter));
             })
             .AddNewtonsoftJson(options =>
                 options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())

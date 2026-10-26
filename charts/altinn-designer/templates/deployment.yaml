@@ -59,6 +59,11 @@ spec:
                   name: {{ $variable.valueFrom.secretKeyRef.name }}
                   key: {{ $variable.valueFrom.secretKeyRef.key }}
                 {{- end }}
+                {{- if $variable.valueFrom.configMapKeyRef }}
+                configMapKeyRef:
+                  name: {{ $variable.valueFrom.configMapKeyRef.name }}
+                  key: {{ $variable.valueFrom.configMapKeyRef.key }}
+                {{- end }}
               {{- end }}
             {{- end }}
           {{- if .Values.volumeMounts}}

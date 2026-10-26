@@ -1,3 +1,9 @@
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public record UserInfoResponse(string? Username, string? GivenName, string? FamilyName, string? AuthMethod);
+public record UserInfoResponse(
+    string? Username,
+    string? GivenName,
+    string? FamilyName,
+    string? AuthMethod,
+    string? AuthenticationProvider = null
+);
