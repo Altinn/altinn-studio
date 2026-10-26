@@ -95,93 +95,13 @@ stack (see `README.md`).
 
 ## Conventions across the repo
 
+- Follow [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Skills:** Skills are developed and maintained in [`agents/_skills/`](agents/_skills). If a skill
   is not installed in your harness, read `agents/_skills/<name>/SKILL.md` directly, or copy that
   directory into your harness's skill directory.
-- **Changelogs:** Changelog entries are release notes for product users. Write and edit them with
-  the `changelog` skill.
-- **Spelling and language:** Code is **US English** — identifiers, comments, doc comments, log and
-  exception messages, docs, and translation _keys_ (a key is a code contract). Text a user reads in
-  the product is **British English** for the English values (checked by `typos` and by a hunspell
-  en_GB dictionary pass, which catches misspellings `typos` has no entry for) and checked
-  **Norwegian** (bokmål and nynorsk, via hunspell + Norsk Ordbank) for the `nb`/`nn` values. Run `yarn spell:quick` for fast
-  feedback on everything your branch changed, `yarn spell:check` for everything, and `yarn spell:fix`
-  to apply unambiguous corrections — note that the fix mode also edits misspelled _identifiers_, which
-  is a semantic change, so always review the diff. It cannot tell prose from a wire literal (a route,
-  JSON key, enum value or migration constant), a CSS module class name used from TSX, or a Norwegian
-  word in a comment, and those are what a sweep has broken before. CI runs the same checks in
-  `.github/workflows/spellcheck.yaml`; the pre-commit hook runs `spell:quick` on staged files. The
-  check is deliberately **not** wired into `dotnet build`/`tsc` — a spelling finding should never
-  slow or break a compile, and CI is the gate.
-
-  The harness lives in `scripts/spellcheck/`. Its one hard rule: **no check may pass without
-  proving it ran** — every check counts its work, tool exit codes are inspected, a committed
-  self-test plants one of every defect class and asserts the production configuration catches
-  each one, and every check runs independently so a failure in one cannot hide another.
-
-  `typos.toml` is **engine configuration only** and holds no named exceptions, and its excludes
-  cannot rot: a glob that matches no tracked file fails the coverage check unless declared
-  precautionary (with a reason) in `registry.mjs`. Every accepted
-  spelling lives in `scripts/spellcheck/suppressions.txt`, scoped to the paths — and where
-  possible the exact identifiers — where it is load-bearing, with the reason in a comment. The same token outside
-  its scope is still reported, and an entry that matches nothing is reported as stale. For this
-  reason never run bare `typos` (it reports accepted contract spellings) and never run
-  `typos --write-changes` (it would "fix" them); `spell:quick`/`spell:check`/`spell:fix` apply the
-  registry. Test-only surface (test projects, colocated `*.test.*`/`*.spec.*` files, test data,
-  mocks, e2e suites, Storybook stories) is out of scope wholesale — never add a suppression for a
-  test file. Norwegian text inside a string literal in code is recognized and skipped by the
-  runner's classifier, as are tokens inside base64/JWT data runs and word tails after a bracket
-  expression (`*.[Pp]ublish.xml` in a `.gitignore`) — a Norwegian word in an identifier or in
-  markup text is still reported and must be fixed or suppressed.
-
-  Every file holding user-facing translation text is declared once, in
-  `scripts/spellcheck/registry.mjs`. Add new language files there; the coverage check fails when a
-  language-file-shaped path is neither registered nor explicitly out of scope, and when a
-  registered file is not excluded from the code pass in `typos.toml`. The coverage check finds
-  files by the naming patterns in `SCAN_PATTERNS` — a language file that starts a **new naming
-  convention** is invisible to it, so add the new pattern in the same change. Translation text
-  embedded inline in a code file cannot be found by any pattern and must be registered by hand.
-
-  When a check flags something, prefer fixing the spelling. If a Norwegian domain term is genuinely
-  correct, add it to `scripts/spellcheck/glossary.nb.txt` / `glossary.nn.txt` (the dictionary is
-  full-form, so inflections need their own lines); a correct English word the en_GB dictionary
-  lacks goes in `glossary.en.txt`; language-neutral tokens — names, quoted identifiers, formats —
-  go in `glossary.shared.txt`, which all three languages accept. A glossary
-  entry that no longer rescues any flagged word is reported as stale. If an English spelling
-  genuinely cannot change
-  (a wire contract, someone else's API), add a scoped entry to `suppressions.txt`. Deliberate
-  facts about a specific translation **entry** are declared per key in
-  `scripts/spellcheck/keys.txt`: `@empty` (the value is intentionally blank), `@key-contract`
-  (the key's spelling is a code contract — an ISO code, a name keyed by a wire value — while its
-  value stays checked), and `@language nb|nn` (the value is deliberately in the other Norwegian
-  language and is checked with **that** language's dictionary rather than skipped). Like
-  suppressions, every declaration is scoped to files and reported as stale once it stops doing
-  work. Each registry file's header documents its exact grammar; keep entries alphabetized
-  within their sections (Norwegian collation — æ, ø, å last — in the Norwegian glossaries), and
-  a failing run prints where each kind of exception belongs. Note that
-  `typos` does **not** look inside path-shaped string literals, so after renaming a directory you
-  must also `git grep` the old segment.
-
 - **Docs:** Follow the [documentation rules](docs/documentation.md), and run
   `yarn docs:validate` after changing documentation. CI runs it too.
 - **Languages/stacks vary by project:** .NET (C#), React/TypeScript, Go, and Python all appear here.
   Framework versions differ per project and are documented at the leaf, not here — check the project's
   own `AGENTS.md`, `global.json`, `go.mod`, or `pyproject.toml` before assuming a version.
-- **Formatting/linting is enforced at build time** in most projects (CSharpier for .NET, ESLint/Prettier
-  for TS, golangci-lint for Go). Follow the commands in the project's `AGENTS.md`/`Makefile`. Prettier
-  takes its indentation from `.editorconfig`, so check a file in place: a copy outside the tree is
-  formatted against different rules.
-- **.NET warnings are errors only in CI.** Most areas' `Directory.Build.props` set
-  `TreatWarningsAsErrors` only when `CI=true`, and an incremental build does not repeat the warnings of
-  a project it skips. Reproduce CI with `CI=true dotnet build <solution> --no-incremental`. A bare
-  `-warnaserror` is not the same: it also fails on the NuGet audit advisories (`NU1901`–`NU1904`) that
-  CI exempts.
-- **Stacked pull requests** use GitHub's native stacks through the `gh stack` extension
-  (`gh extension install github/gh-stack`; `gh stack --help`). `gh stack sync` fetches, rebases each
-  branch onto its updated parent and pushes the stack. If a squash-merged parent's commits still
-  replay into a child, `git rebase --onto origin/main <parent's last pre-merge commit>` (from
-  `gh pr view <parent> --json commits`) drops them. A stacked PR's
-  mergeability is computed against `main`, not its base branch, so a child can show conflicts that
-  only `git merge-tree --write-tree origin/main <head>` reproduces. A PR's base cannot be edited while
-  it is in a stack (`gh stack unstack` first).
 - **Prefer the guidance closest to the code.** More-specific `AGENTS.md` files override this one.
