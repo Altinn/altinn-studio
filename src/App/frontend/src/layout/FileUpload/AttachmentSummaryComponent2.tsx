@@ -2,12 +2,15 @@ import React from 'react';
 
 import { useIsMobileOrTablet } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
-import { Paragraph } from '@digdir/designsystemet-react';
+import { Paragraph, ValidationMessage } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
 import { Label } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
+import { validationsOfSeverity } from 'src/features/validation/utils';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.module.css';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
@@ -18,6 +21,7 @@ import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryCompone
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalOptionalTrb } from 'src/utils/layout/useEvalExpression';
+import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2Props) {
@@ -42,6 +46,8 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
   });
   const isEmpty = filteredAttachments.length === 0;
   const required = useComponentIsRequired(config);
+  const errors = validationsOfSeverity(useUnifiedValidationsForNode(targetBaseComponentId), 'error');
+  const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
 
   return (
     <SummaryFlex
@@ -76,7 +82,7 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
       </div>
       {filteredAttachments.length === 0 ? (
         <Paragraph asChild>
-          <span className={classes.emptyField}>
+          <span className={cn(classes.emptyField, { [classes.error]: errors.length > 0 })}>
             <Lang id='general.empty_summary' />
           </span>
         </Paragraph>
@@ -90,6 +96,17 @@ export function AttachmentSummaryComponent2({ targetBaseComponentId }: Summary2P
           isFetching={isFetching}
         />
       )}
+      {errors.map((validation) => (
+        <ValidationMessage
+          key={getUniqueKeyFromObject(validation)}
+          data-size='sm'
+        >
+          <Lang
+            id={validation.message.key}
+            params={validation.message.params}
+          />
+        </ValidationMessage>
+      ))}
     </SummaryFlex>
   );
 }

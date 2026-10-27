@@ -87,6 +87,7 @@ line-length = 120
 exclude = ["*.md"]
 
 [tool.ruff.lint]
+# Give a reason in a comment for every ignored rule, # noqa and # pyright: ignore.
 select = [
     "E",     # pycodestyle errors: whitespace, comparisons to None, bare except, ambiguous names
     "W",     # pycodestyle warnings: trailing whitespace and invalid escape sequences
