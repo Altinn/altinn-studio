@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Internal.App;
 /// <summary>
 /// Builds an <see cref="AppFiles"/> snapshot from the app folder, whose layout is fixed: the folder and file names
 /// below are the ones Studio creates. <see cref="Scan"/> only reads directory metadata, so that
-/// <see cref="AppFilesPoller"/> can cheaply tell whether a reload is needed; <see cref="Load(AppFilesScan)"/>
+/// <see cref="AppFilesHostedService"/> can cheaply tell whether a reload is needed; <see cref="Load(AppFilesScan)"/>
 /// reads and validates the contents.
 /// </summary>
 internal static class AppFilesLoader
@@ -178,15 +178,25 @@ internal static class AppFilesLoader
 
         if (errors.Count > 0)
         {
-            errors.Sort(StringComparer.Ordinal);
-            throw new ApplicationConfigException(
-                "The app files cannot be loaded. Fix the following and restart the app:"
-                    + Environment.NewLine
-                    + string.Join(Environment.NewLine, errors.Select(e => $" - {e}"))
-            );
+            throw CannotLoad(errors);
         }
 
         return Build(scan, contents);
+    }
+
+    /// <summary>
+    /// The exception for app files that cannot be loaded, listing every error sorted, one per line. Shared with
+    /// <see cref="ParsedAppFiles.Parse"/>, so a broken app reports problems in one format wherever they are found.
+    /// </summary>
+    /// <param name="errors">The errors, each formatted as <c>{path}: {message}</c>. Sorted in place.</param>
+    internal static ApplicationConfigException CannotLoad(List<string> errors)
+    {
+        errors.Sort(StringComparer.Ordinal);
+        return new ApplicationConfigException(
+            "The app files cannot be loaded. Fix the following and restart the app:"
+                + Environment.NewLine
+                + string.Join(Environment.NewLine, errors.Select(e => $" - {e}"))
+        );
     }
 
     private static AppFiles Build(AppFilesScan scan, ReadOnlyMemory<byte>[] contents)
