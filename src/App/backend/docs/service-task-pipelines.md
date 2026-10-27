@@ -64,7 +64,8 @@ types, and required service registrations.
 The work any task type does when a task starts, ends or is abandoned composes the same way, from the same
 stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder` and compose
 `Stage(work, options?)` calls, where `work` takes a `StageContext` and returns a `StageResult`, exactly as a service
-task stage does; the defaults run `Start`, `End` and `Abandon` as a single stage. Each stage runs as its own workflow
+task stage does. `Start`, `End` and `Abandon` are deprecated and removed before v9 ships; until then the defaults run
+them as a single stage. Each stage runs as its own workflow
 step that saves on its own, and a failed stage is retried without the ones before it. There is no conclusion: the
 stages run inside the transition, before it commits, and never advance the process, so the pipeline ends with
 `Build()`. A lifecycle stage that defers holds the transition: the instance stays `processing` until the stage

@@ -3727,11 +3727,14 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     public interface IProcessTask
     {
         string Type { get; }
+        [System.Obsolete("Removed before v9 ships. Compose the work as stages with DefineAbandon instead.")]
         System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         Altinn.App.Core.Features.Process.Pipeline DefineAbandon(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         Altinn.App.Core.Features.Process.Pipeline DefineEnd(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         Altinn.App.Core.Features.Process.Pipeline DefineStart(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
+        [System.Obsolete("Removed before v9 ships. Compose the work as stages with DefineEnd instead.")]
         System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        [System.Obsolete("Removed before v9 ships. Compose the work as stages with DefineStart instead.")]
         System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }

@@ -86,6 +86,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
 
+### Deprecated
+
+- `IProcessTask.Start`, `End` and `Abandon` are deprecated and removed before v9 ships. Compose the work as stages with `DefineStart`, `DefineEnd` and `DefineAbandon` instead. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+
 ## [9.0.0-preview.8] - 2026-10-14
 
 ### Changed

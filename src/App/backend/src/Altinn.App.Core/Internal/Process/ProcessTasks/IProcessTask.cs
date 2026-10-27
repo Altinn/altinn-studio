@@ -30,27 +30,33 @@ public interface IProcessTask
     IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => [];
 
     /// <summary>
-    /// Any logic to be executed when a task is started should be put in this method.
+    /// Deprecated, and removed before v9 ships: compose the work as stages with <see cref="DefineStart"/> instead.
+    /// Until then, the default <see cref="DefineStart"/> runs this as a single stage.
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
+    [Obsolete("Removed before v9 ships. Compose the work as stages with DefineStart instead.")]
     Task Start(ProcessTaskContext context)
     {
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Any logic to be executed when a task is ended should be put in this method.
+    /// Deprecated, and removed before v9 ships: compose the work as stages with <see cref="DefineEnd"/> instead.
+    /// Until then, the default <see cref="DefineEnd"/> runs this as a single stage.
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
+    [Obsolete("Removed before v9 ships. Compose the work as stages with DefineEnd instead.")]
     Task End(ProcessTaskContext context)
     {
         return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Any logic to be executed when a task is abandoned should be put in this method.
+    /// Deprecated, and removed before v9 ships: compose the work as stages with <see cref="DefineAbandon"/> instead.
+    /// Until then, the default <see cref="DefineAbandon"/> runs this as a single stage.
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
+    [Obsolete("Removed before v9 ships. Compose the work as stages with DefineAbandon instead.")]
     Task Abandon(ProcessTaskContext context)
     {
         return Task.CompletedTask;
@@ -59,14 +65,15 @@ public interface IProcessTask
     /// <summary>
     /// Composes the work to do when the task starts as stages, each saved and retried on its own, the way a service
     /// task composes its pipeline. The stages run inside the transition into the task, before it commits. The default
-    /// is one stage that calls <see cref="Start"/>; override this instead of <see cref="Start"/> when the work makes
-    /// several calls that should not all be repeated when one of them fails.
+    /// is one stage that calls the deprecated <see cref="Start"/>; override this instead of <see cref="Start"/>, and
+    /// split the work into stages when it makes several calls that should not all be repeated when one fails.
     /// </summary>
     /// <remarks>
     /// Added in v9. The pipeline is composed again for every step and must not depend on the instance or on
     /// configuration that can change while a transition is in flight, since a step is dispatched by the position of
     /// its stage.
     /// </remarks>
+#pragma warning disable CS0618 // The defaults run the deprecated members on purpose, until those are removed.
     Pipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(Start, context)).Build();
 
     /// <summary>
@@ -80,6 +87,8 @@ public interface IProcessTask
     /// one stage that calls <see cref="Abandon"/>.
     /// </summary>
     Pipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(Abandon, context)).Build();
+
+#pragma warning restore CS0618
 
     private static async Task<StageResult> RunAsStage(Func<ProcessTaskContext, Task> work, StageContext context)
     {

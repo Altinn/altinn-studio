@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -20,12 +21,16 @@ public sealed class ControlledProcessTaskEnd : IProcessTask
 
     public string Type => AltinnTaskTypes.Data;
 
-    public async Task End(ProcessTaskContext context)
-    {
-        Interlocked.Increment(ref _taskEndInvocations);
-        _entered.TrySetResult();
-        await _release.Task;
-    }
+    public Pipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline
+            .Stage(async _ =>
+            {
+                Interlocked.Increment(ref _taskEndInvocations);
+                _entered.TrySetResult();
+                await _release.Task;
+                return StageResult.Completed();
+            })
+            .Build();
 
     public static void Release()
     {

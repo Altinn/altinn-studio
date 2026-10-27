@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // The default pipeline runs the deprecated Start, End and Abandon until they are removed.
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
