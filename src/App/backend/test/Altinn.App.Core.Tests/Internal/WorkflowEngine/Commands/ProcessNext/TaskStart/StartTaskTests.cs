@@ -200,6 +200,26 @@ public class StartTaskTests
         public Pipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(_ => Task.FromResult(result)).Build();
     }
 
+    // A record's protected copy constructor lets an app derive its own result, which no mapper can act on.
+    private sealed record HomemadeResult : StageResult
+    {
+        public HomemadeResult()
+            : base(Completed()) { }
+    }
+
+    [Fact]
+    public async Task Execute_StageReturnsAResultOfItsOwn_FailsPermanentlyNamingTheType()
+    {
+        var command = CreateCommand(new FailingTask(new HomemadeResult()));
+
+        var result = await command.Execute(CreateContext(CreateInstance()));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal(StageExecution.UnknownResultReasonCode, failed.ExceptionType);
+        Assert.Contains(nameof(HomemadeResult), failed.ErrorMessage);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

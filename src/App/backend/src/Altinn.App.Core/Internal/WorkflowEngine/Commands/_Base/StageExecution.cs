@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -60,6 +59,20 @@ internal static class StageExecution
                 describeFailure(failed.ErrorMessage),
                 failureReasonCode
             ),
-            _ => throw new UnreachableException($"Unknown stage result type: {result.GetType().Name}"),
+            // An author's own result type is an error no retry fixes; a throw here would be caught by the command
+            // and retried until the budget runs out, repeating the stage's calls each time.
+            _ => FailedProcessEngineCommandResult.Permanent(
+                describeFailure(
+                    $"returned a result of type '{result.GetType().Name}', which this version of the app-lib "
+                        + $"cannot act on. Return one of the results {nameof(StageResult)}'s factory methods produce "
+                        + $"({nameof(StageResult.Completed)}, {nameof(StageResult.Defer)}, "
+                        + $"{nameof(StageResult.FailedRetryable)} or {nameof(StageResult.FailedPermanent)}), never a "
+                        + "type of your own."
+                ),
+                UnknownResultReasonCode
+            ),
         };
+
+    /// <summary>Reason code for a stage result the app-lib cannot act on. Operator-visible.</summary>
+    internal const string UnknownResultReasonCode = "ProcessTaskStageResultUnknown";
 }
