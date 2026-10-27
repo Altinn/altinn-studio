@@ -10,6 +10,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/osutil"
@@ -34,7 +35,8 @@ type ContainerSpec struct {
 // Options holds options for building the resource graph.
 type Options struct {
 	DevConfig         *DevImageConfig
-	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
+	CABundle          *stack.CABundle // the host's STUDIO_CA_BUNDLE, which pdf3 takes; nil for none
+	RuntimeUser       string          // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	RuntimeUsernsMode string
 	Images            config.ImagesConfig
 	Paths             Paths

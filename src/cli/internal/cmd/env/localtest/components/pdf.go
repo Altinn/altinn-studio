@@ -46,12 +46,14 @@ func pdfImage(ctx *Options) resource.ImageResource {
 }
 
 func pdfContainer(ctx *Options) *ContainerSpec {
+	env := pdfEnv(ctx.Topology)
 	spec := newContainerSpec(
 		ContainerPDF3,
 		// TODO: same as above, we only need host port mapping here because old
 		[]types.PortMapping{newPort("5300", "5031")},
-		pdfEnv(ctx.Topology),
-		nil,
+		env,
+		// pdf3's entrypoint imports the bundle into its Chromium's certificate store, which ignores the system's.
+		ctx.CABundle.Mount(env, nil),
 		nil,
 		[]string{ContainerLocaltest},
 		nil,
