@@ -1,6 +1,7 @@
 package cabundle
 
 import (
+	"bytes"
 	"encoding/pem"
 	"errors"
 	"go/parser"
@@ -84,16 +85,30 @@ func TestFromEnvValidFileReturnsAbsolutePath(t *testing.T) {
 	}
 }
 
-func TestFromEnvRejectsABundleWithoutCertificate(t *testing.T) {
-	for name, content := range map[string][]byte{
-		"empty":                   nil,
-		"not PEM":                 []byte("complete-test-ca-bundle\n"),
-		"a key, no certificate":   pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: []byte("key")}),
-		"a malformed certificate": pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("not DER")}),
+func TestFromEnvRejectsABundleWithoutUsableCertificate(t *testing.T) {
+	for name, tc := range map[string]struct {
+		want    string
+		content []byte
+	}{
+		"empty":                 {content: nil, want: "no PEM CERTIFICATE block"},
+		"not PEM":               {content: []byte("complete-test-ca-bundle\n"), want: "no PEM CERTIFICATE block"},
+		"a key, no certificate": {content: keyPEM(), want: "no PEM CERTIFICATE block"},
+		"a malformed certificate": {
+			content: pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("not DER")}),
+			want:    "1 certificate, none usable; line 1: x509: malformed certificate",
+		},
+		"a block that is not base64": {
+			content: []byte(malformedBlock),
+			want:    "1 certificate, none usable; line 1: malformed PEM block",
+		},
+		"a negative serial number": {
+			content: negativeSerialPEM(t),
+			want:    "1 certificate, none usable; line 1: x509: negative serial number",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "ca.pem")
-			if err := os.WriteFile(path, content, 0o600); err != nil {
+			if err := os.WriteFile(path, tc.content, 0o600); err != nil {
 				t.Fatalf("write bundle: %v", err)
 			}
 			t.Setenv(EnvStudioCABundle, path)
@@ -105,16 +120,17 @@ func TestFromEnvRejectsABundleWithoutCertificate(t *testing.T) {
 			if !configured || bundle != nil {
 				t.Fatalf("FromEnv() = %v, %v; want nil, configured", bundle, configured)
 			}
-			if !strings.Contains(err.Error(), path) {
-				t.Fatalf("FromEnv() error = %v, want it to name %s", err, path)
+			if !strings.Contains(err.Error(), path) || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("FromEnv() error = %v, want it to name %s and say %q", err, path, tc.want)
 			}
 		})
 	}
 }
 
-func TestFromEnvAcceptsASystemBundleWithComments(t *testing.T) {
-	content := "# A system bundle has comments between certificates.\n" + string(cabundletest.PEM(t)) +
-		"\n# Another\n" + string(cabundletest.PEM(t))
+func TestFromEnvKeepsTheUsableCertificatesOfASystemBundleWithComments(t *testing.T) {
+	first, second := cabundletest.PEM(t), cabundletest.PEM(t)
+	content := "# A system bundle has comments between certificates.\n" + string(first) +
+		"\n# Another\n" + string(second) + string(keyPEM())
 	path := filepath.Join(t.TempDir(), "ca-certificates.crt")
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatalf("write bundle: %v", err)
@@ -125,9 +141,68 @@ func TestFromEnvAcceptsASystemBundleWithComments(t *testing.T) {
 	if err != nil {
 		t.Fatalf("FromEnv() error = %v", err)
 	}
-	if string(bundle.Data) != content {
-		t.Fatal("FromEnv() changed the bundle's content")
+	if want := string(first) + string(second); string(bundle.Data) != want {
+		t.Fatalf("Data = %q, want the two certificates %q", bundle.Data, want)
 	}
+	if len(bundle.Skipped) != 0 {
+		t.Fatalf("Skipped = %v, want none", bundle.Skipped)
+	}
+	if bundle.HostPath != path {
+		t.Fatalf("HostPath = %q, want %q", bundle.HostPath, path)
+	}
+}
+
+func TestFromEnvSkipsMalformedAndRejectedCertificates(t *testing.T) {
+	good := cabundletest.PEM(t)
+	// Line 1 is a malformed block, followed by a negative serial number and a good certificate.
+	content := malformedBlock + string(negativeSerialPEM(t)) + string(good)
+	negativeLine := 1 + strings.Count(malformedBlock, "\n")
+	path := filepath.Join(t.TempDir(), "ca.pem")
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write bundle: %v", err)
+	}
+	t.Setenv(EnvStudioCABundle, path)
+
+	bundle, _, err := FromEnv()
+	if err != nil {
+		t.Fatalf("FromEnv() error = %v", err)
+	}
+	if string(bundle.Data) != string(good) {
+		t.Fatalf("Data = %q, want only the good certificate", bundle.Data)
+	}
+	want := []string{
+		"line 1: malformed PEM block",
+		"line " + strconv.Itoa(negativeLine) + ": x509: negative serial number",
+	}
+	if !slices.Equal(bundle.Skipped, want) {
+		t.Fatalf("Skipped = %q, want %q", bundle.Skipped, want)
+	}
+	if bundle.Digest == "" {
+		t.Fatal("Digest is empty")
+	}
+}
+
+// malformedBlock is a CERTIFICATE block whose body is not base64: trust stores and certutil fail on it.
+const malformedBlock = "-----BEGIN CERTIFICATE-----\nnot base64!\n-----END CERTIFICATE-----\n"
+
+func keyPEM() []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: []byte("key")})
+}
+
+// negativeSerialPEM returns a CA certificate whose serial number is -1. Go's X.509 parser rejects it since Go 1.23,
+// while NSS and the Linux trust stores accept it. Go cannot create one, so the serial of a valid certificate is
+// rewritten; the parser rejects it before it would check the signature.
+func negativeSerialPEM(t *testing.T) []byte {
+	t.Helper()
+	block, _ := pem.Decode(cabundletest.PEM(t))
+	// The version ([0] INTEGER 2) is followed by the serial number, INTEGER 1.
+	versionAndSerial := []byte{0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x01, 0x01}
+	at := bytes.Index(block.Bytes, versionAndSerial)
+	if at < 0 {
+		t.Fatal("serial number not found in the test certificate")
+	}
+	block.Bytes[at+len(versionAndSerial)-1] = 0xff
+	return pem.EncodeToMemory(block)
 }
 
 // TestUsesOnlyTheStandardLibrary keeps the package importable by studioctl without Kubernetes or other modules;
