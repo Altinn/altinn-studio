@@ -10,6 +10,7 @@ import { useProcessQuery, useProcessWorkflow } from 'src/features/instance/usePr
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPdf } from 'src/hooks/useIsPdf';
+import utilClasses from 'src/styles/utils.module.css';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IProcessWorkflowFailure } from 'src/types/shared';
 
@@ -58,24 +59,37 @@ export function WorkflowProcessing() {
 /**
  * A warning at the top of a service task's own page while the workflow is having trouble (see
  * useIsWorkflowHavingTrouble). It stays in view while the page scrolls, cannot be dismissed, and
- * clears itself once a step succeeds again. Never shown in PDF mode.
+ * clears itself once a step succeeds again. Never shown in PDF mode. Screen readers hear it through
+ * a visually hidden status region that exists before the trouble starts, since a live region
+ * inserted with its text already in it is not reliably announced; the visible warning is hidden
+ * from them so the text is announced once.
  */
 export function WorkflowTroubleBanner() {
   const havingTrouble = useIsWorkflowHavingTrouble();
   const isPdf = useIsPdf();
 
-  if (!havingTrouble || isPdf) {
+  if (isPdf) {
     return null;
   }
 
   return (
-    <Alert
-      role='status'
-      data-color='warning'
-      className={classes.troubleBanner}
-    >
-      <Lang id='process_workflow.having_trouble' />
-    </Alert>
+    <>
+      <div
+        role='status'
+        className={utilClasses.visuallyHidden}
+      >
+        {havingTrouble && <Lang id='process_workflow.having_trouble' />}
+      </div>
+      {havingTrouble && (
+        <Alert
+          aria-hidden='true'
+          data-color='warning'
+          className={classes.troubleBanner}
+        >
+          <Lang id='process_workflow.having_trouble' />
+        </Alert>
+      )}
+    </>
   );
 }
 

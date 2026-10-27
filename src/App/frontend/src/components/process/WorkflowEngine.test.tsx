@@ -314,19 +314,31 @@ describe('useIsWorkflowHavingTrouble', () => {
 describe('WorkflowTroubleBanner', () => {
   beforeEach(() => vi.mocked(useIsPdf).mockReturnValue(false));
 
-  it('shows the trouble warning as a polite status while the workflow is having trouble', () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 2));
-    render(<WorkflowTroubleBanner />);
-    const banner = screen.getByRole('status');
-    expect(banner).toHaveTextContent('process_workflow.having_trouble');
-    expect(banner).not.toHaveAttribute('aria-live');
+  it('puts the warning into a status region that exists before the trouble starts', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 1));
+    const { container, rerender } = render(<WorkflowTroubleBanner />);
+    // A live region inserted with its text already in it is not reliably announced.
+    const region = screen.getByRole('status');
+    expect(region).toBeEmptyDOMElement();
+
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(4_000, 2));
+    rerender(<WorkflowTroubleBanner />);
+    expect(screen.getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent('process_workflow.having_trouble');
+
+    // The visible warning sits beside the region and is hidden from screen readers, so the text is
+    // announced once. role='status' is already polite; aria-live would make VoiceOver announce twice.
+    const visible = container.querySelector('[aria-hidden="true"]');
+    expect(visible).toHaveTextContent('process_workflow.having_trouble');
+    expect(region).not.toContainElement(visible as HTMLElement);
+    expect(container.querySelector('[aria-live]')).toBeNull();
   });
 
   it('is never shown in PDF mode', () => {
     vi.mocked(useIsPdf).mockReturnValue(true);
     vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 2));
-    render(<WorkflowTroubleBanner />);
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    const { container } = render(<WorkflowTroubleBanner />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it.each([
@@ -336,7 +348,8 @@ describe('WorkflowTroubleBanner', () => {
     ['a single quick failure', processingFor(3_000, 1)],
   ])('is not shown when %s', (_, workflow) => {
     vi.mocked(useProcessWorkflow).mockReturnValue(workflow);
-    render(<WorkflowTroubleBanner />);
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    const { container } = render(<WorkflowTroubleBanner />);
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
   });
 });
