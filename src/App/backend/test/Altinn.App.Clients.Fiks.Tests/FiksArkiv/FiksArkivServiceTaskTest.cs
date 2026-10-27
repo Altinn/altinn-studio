@@ -291,7 +291,7 @@ public class FiksArkivServiceTaskTest
         );
 
         var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
-        var success = Assert.IsType<ServiceTaskSuccessResult>(concluded.Result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(concluded.Result);
         Assert.Equal("archive-failed", success.Action);
         sender.Verify();
     }
@@ -327,7 +327,7 @@ public class FiksArkivServiceTaskTest
         );
 
         var concluded = Assert.IsType<ConcludedServiceTaskOpeningStageResult>(result);
-        var success = Assert.IsType<ServiceTaskSuccessResult>(concluded.Result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(concluded.Result);
         Assert.Equal("reject", success.Action);
         sender.Verify();
     }
@@ -381,7 +381,7 @@ public class FiksArkivServiceTaskTest
 
         ServiceTaskResult result = await OnClosed(fixture)(CreateContext(dataMutator.Object), reason);
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("never confirmed the record", failed.ErrorMessage);
         Assert.Contains(expectedWording, failed.ErrorMessage);
@@ -471,7 +471,7 @@ public class FiksArkivServiceTaskTest
 
         ServiceTaskExchangeResult result = await OnMessage(fixture)(CreateContext(dataMutator.Object), reply);
 
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("fiks-arkiv-success", success.Action);
         dataMutator.Verify();
         instanceClient.Verify();
@@ -500,7 +500,7 @@ public class FiksArkivServiceTaskTest
             ReceiptReplyFactory(SuccessfulArchiveReceipt())
         );
 
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("confirm", success.Action);
         instanceClient.Verify();
     }
@@ -524,7 +524,7 @@ public class FiksArkivServiceTaskTest
             ReceiptReplyFactory(SuccessfulArchiveReceipt())
         );
 
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Null(success.Action);
         instanceClient.Verify();
     }
@@ -545,7 +545,7 @@ public class FiksArkivServiceTaskTest
             ReceiptReplyFactory(SuccessfulArchiveReceipt())
         );
 
-        Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.IsType<SuccessfulServiceTaskResult>(result);
         instanceClient.VerifyNoOtherCalls();
     }
 
@@ -568,7 +568,7 @@ public class FiksArkivServiceTaskTest
             ReplyFactory(FiksArkivMeldingtype.Ikkefunnet)
         );
 
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("reject", success.Action);
     }
 
@@ -590,7 +590,7 @@ public class FiksArkivServiceTaskTest
             ReplyFactory(messageType)
         );
 
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("archive-failed", success.Action);
     }
 
@@ -611,7 +611,7 @@ public class FiksArkivServiceTaskTest
             ReceiptReplyFactory(failedReceipt)
         );
 
-        var success = Assert.IsType<ServiceTaskSuccessResult>(result);
+        var success = Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal("reject", success.Action);
     }
 
@@ -629,7 +629,7 @@ public class FiksArkivServiceTaskTest
 
         ServiceTaskExchangeResult result = await OnMessage(fixture)(CreateContext(dataMutator.Object), reply);
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("could not be read as an archive receipt", failed.ErrorMessage);
         dataMutator.VerifyNoOtherCalls();
@@ -646,7 +646,7 @@ public class FiksArkivServiceTaskTest
             ReplyFactory(FiksArkivMeldingtype.ArkivmeldingOpprettKvittering)
         );
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
     }
 
@@ -665,7 +665,7 @@ public class FiksArkivServiceTaskTest
 
         ServiceTaskExchangeResult result = await OnMessage(fixture)(CreateContext(dataMutator.Object), reply);
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("could not be read", failed.ErrorMessage);
         Assert.Contains("fiks-io-message-id", failed.ErrorMessage);
@@ -735,7 +735,7 @@ public class FiksArkivServiceTaskTest
             ReceiptReplyFactory(SuccessfulArchiveReceipt())
         );
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Retryable, failed.Kind);
         Assert.Contains(nameof(IFiksArkivMessageHandler), failed.ErrorMessage);
         Assert.Contains("the app's notification service is down", failed.ErrorMessage);

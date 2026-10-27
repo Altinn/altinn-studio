@@ -172,7 +172,7 @@ internal sealed class MailboxRelay
     {
         switch (result)
         {
-            case ServiceTaskFailedResult { Kind: FailureKind.Permanent } failed:
+            case FailedServiceTaskResult { Kind: FailureKind.Permanent } failed:
                 // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
@@ -180,22 +180,22 @@ internal sealed class MailboxRelay
                     new MailboxContinuation.Conclude([.. carry.FindAllMailboxes().Select(m => m.Mailbox.Id)])
                 );
 
-            case ServiceTaskFailedResult failed:
+            case FailedServiceTaskResult failed:
                 // The saga has not started; the next attempt re-runs the stage.
                 return FailedProcessEngineCommandResult.Retryable(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
                     ExecuteServiceTask.FailedReasonCode
                 );
 
-            case ServiceTaskDeferredResult deferred:
+            case DeferredServiceTaskResult deferred:
                 return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
 
-            case ServiceTaskSuccessResult
+            case SuccessfulServiceTaskResult
                 when StepIdMissing(stepId, serviceTaskType, "start the workflow that follows the conclusion")
                     is { } noAfterKey:
                 return noAfterKey;
 
-            case ServiceTaskSuccessResult success:
+            case SuccessfulServiceTaskResult success:
                 IReadOnlyList<(int StageIndex, CarriedMailbox Mailbox)> carried = carry.FindAllMailboxes();
                 // Dropped from the carry here, before the state is captured, so the blob this callback
                 // publishes carries no exchange the conclusion just closed.
@@ -262,7 +262,7 @@ internal sealed class MailboxRelay
                     ),
                 };
 
-            case ServiceTaskFailedResult { Kind: FailureKind.Permanent } failed:
+            case FailedServiceTaskResult { Kind: FailureKind.Permanent } failed:
                 // A failing callback publishes no blob, so there is nothing for the carry to un-say.
                 return FailedProcessEngineCommandResult.Permanent(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
@@ -270,22 +270,22 @@ internal sealed class MailboxRelay
                     new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
-            case ServiceTaskFailedResult failed:
+            case FailedServiceTaskResult failed:
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
                     ExecuteServiceTask.FailedReasonCode
                 );
 
-            case ServiceTaskDeferredResult deferred:
+            case DeferredServiceTaskResult deferred:
                 return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
 
-            case ServiceTaskSuccessResult
+            case SuccessfulServiceTaskResult
                 when StepIdMissing(stepId, serviceTaskType, "start the workflow that follows the exchange")
                     is { } noAfterKey:
                 return noAfterKey;
 
-            case ServiceTaskSuccessResult success:
+            case SuccessfulServiceTaskResult success:
                 carry.RecordMailboxConcluded(openingStageIndex);
                 return new SuccessfulProcessEngineCommandResult
                 {

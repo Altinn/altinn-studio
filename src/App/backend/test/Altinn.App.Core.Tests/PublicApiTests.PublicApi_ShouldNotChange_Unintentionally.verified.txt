@@ -2133,7 +2133,17 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets
 }
 namespace Altinn.App.Core.Features.Process
 {
+    public sealed class DeferredServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.DeferredServiceTaskResult>
+    {
+        public DeferredServiceTaskResult() { }
+        public required System.TimeSpan Delay { get; init; }
+        public string? Reason { get; init; }
+    }
     public sealed class FailedHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHookResult>
+    {
+        public required string ErrorMessage { get; init; }
+    }
+    public sealed class FailedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedServiceTaskResult>
     {
         public required string ErrorMessage { get; init; }
     }
@@ -2257,19 +2267,9 @@ namespace Altinn.App.Core.Features.Process
         public required string TaskId { get; init; }
     }
     public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
-    public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
-    {
-        public ServiceTaskDeferredResult() { }
-        public required System.TimeSpan Delay { get; init; }
-        public string? Reason { get; init; }
-    }
     public abstract class ServiceTaskExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>
     {
         public static Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult AwaitNextReply() { }
-    }
-    public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
-    {
-        public required string ErrorMessage { get; init; }
     }
     public sealed class ServiceTaskMailbox : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskMailbox>
     {
@@ -2322,15 +2322,10 @@ namespace Altinn.App.Core.Features.Process
     }
     public abstract class ServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {
-        public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
-    }
-    public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskSuccessResult>
-    {
-        public ServiceTaskSuccessResult() { }
-        public string? Action { get; init; }
+        public static Altinn.App.Core.Features.Process.DeferredServiceTaskResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult Success(string? action = null) { }
     }
     public sealed class StageAttempt : System.IEquatable<Altinn.App.Core.Features.Process.StageAttempt>
     {
@@ -2373,6 +2368,11 @@ namespace Altinn.App.Core.Features.Process
     public sealed class SuccessfulHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHookResult>
     {
         public SuccessfulHookResult() { }
+    }
+    public sealed class SuccessfulServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult>
+    {
+        public SuccessfulServiceTaskResult() { }
+        public string? Action { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Redirect

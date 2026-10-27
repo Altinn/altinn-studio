@@ -159,7 +159,9 @@ public class ExecuteServiceTaskTests
         // Arrange
         var serviceTask = new FakeServiceTask(_ =>
             Task.FromResult<ServiceTaskResult>(
-                constructDirectly ? new ServiceTaskSuccessResult { Action = action } : ServiceTaskResult.Success(action)
+                constructDirectly
+                    ? new SuccessfulServiceTaskResult { Action = action }
+                    : ServiceTaskResult.Success(action)
             )
         );
         var command = CreateCommand(serviceTask);

@@ -505,17 +505,17 @@ internal sealed class ExecuteServiceTask(
     ) =>
         result switch
         {
-            ServiceTaskFailedResult failed => MapFailure(
+            FailedServiceTaskResult failed => MapFailure(
                 task,
                 failed.ErrorMessage,
                 failed.Kind == FailureKind.Permanent
             ),
-            ServiceTaskDeferredResult deferred => new DeferredProcessEngineCommandResult
+            DeferredServiceTaskResult deferred => new DeferredProcessEngineCommandResult
             {
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            ServiceTaskSuccessResult success => new SuccessfulProcessEngineCommandResult
+            SuccessfulServiceTaskResult success => new SuccessfulProcessEngineCommandResult
             {
                 ProcessNextContinuation = new(success.Action),
             },
