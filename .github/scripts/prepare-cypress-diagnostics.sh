@@ -6,8 +6,14 @@ mkdir -p "${diagnostics_dir}"
 
 # Install the temporary debugger in this job when it is unavailable.
 if ! command -v gdb >/dev/null; then
-  sudo -n apt-get update -qq
-  sudo -n apt-get install -y --no-install-recommends gdb
+  # A stalled package mirror must leave output and finish before the step timeout.
+  apt_options=(-o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=2)
+  {
+    echo 'Cypress diagnostics: refreshing package indexes.'
+    sudo -n timeout --kill-after=5s 90s apt-get "${apt_options[@]}" update
+    echo 'Cypress diagnostics: installing gdb.'
+    sudo -n timeout --kill-after=5s 150s apt-get "${apt_options[@]}" install -y --no-install-recommends gdb
+  } 2>&1 | tee "${diagnostics_dir}/gdb-install.log"
 fi
 
 # Check privileged ptrace before spending CI time on tests. Chrome sandbox
