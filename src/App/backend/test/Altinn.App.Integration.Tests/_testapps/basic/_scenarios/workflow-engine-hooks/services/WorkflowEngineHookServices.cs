@@ -59,11 +59,11 @@ public sealed class ServiceTaskEndingHook : IOnTaskEndingHandler
     }
 }
 
-public sealed class Task1AbandonHook : IOnTaskAbandonHandler
+public sealed class Task1AbandonHook : IOnTaskAbandoningHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<HandlerResult> Execute(OnTaskAbandonContext context)
+    public Task<HandlerResult> Execute(OnTaskAbandoningContext context)
     {
         SnapshotLogger.LogInfo("WorkflowEngineHooks.OnTaskAbandon.Task_1");
         return Task.FromResult<HandlerResult>(HandlerResult.Success());
@@ -158,7 +158,7 @@ public static class ServiceRegistration
         services.AddTransient<IOnTaskStartingHandler, ServiceTaskStartingHook>();
         services.AddTransient<IOnTaskEndingHandler, Task1EndingHook>();
         services.AddTransient<IOnTaskEndingHandler, ServiceTaskEndingHook>();
-        services.AddTransient<IOnTaskAbandonHandler, Task1AbandonHook>();
+        services.AddTransient<IOnTaskAbandoningHandler, Task1AbandonHook>();
         services.AddTransient<IOnProcessEndedHandler, ProcessEndedHook>();
         services.AddTransient<IServiceTask, WorkflowHookServiceTask>();
         services.AddSingleton<IEndpointConfigurator, WorkflowEngineHookEndpoints>();

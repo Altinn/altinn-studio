@@ -23,7 +23,7 @@ internal sealed class RemovedTaskEventInterfaceDetector
     private const string Summary =
         "Removed process task event interfaces (IProcessTaskStart/IProcessTaskEnd/IProcessTaskAbandon/ITaskEvents) "
         + "are used by this app and must be ported by hand. Replace them with the task lifecycle handlers in "
-        + "Altinn.App.Core.Features.Process (IOnTaskStartingHandler/IOnTaskEndingHandler/IOnTaskAbandonHandler): "
+        + "Altinn.App.Core.Features.Process (IOnTaskStartingHandler/IOnTaskEndingHandler/IOnTaskAbandoningHandler): "
         + "split the logic into ShouldRunForTask(taskId) and Execute(context); read and write instance data via "
         + "context.InstanceDataMutator (the Instance object and prefill dictionary are no longer passed in); return "
         + "a HandlerResult (Success/FailedRetryable/FailedPermanent); and make handlers idempotent, as the workflow "

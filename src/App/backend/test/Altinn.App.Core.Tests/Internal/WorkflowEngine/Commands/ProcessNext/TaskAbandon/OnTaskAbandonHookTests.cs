@@ -48,7 +48,7 @@ public class OnTaskAbandonHookTests
         };
     }
 
-    private static OnTaskAbandonHook CreateCommand(params IOnTaskAbandonHandler[] handlers)
+    private static OnTaskAbandonHook CreateCommand(params IOnTaskAbandoningHandler[] handlers)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -78,9 +78,9 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WithMatchingHandler_ReturnsSuccess()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        handler.Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>())).ReturnsAsync(HandlerResult.Success());
+        handler.Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>())).ReturnsAsync(HandlerResult.Success());
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
 
@@ -92,7 +92,7 @@ public class OnTaskAbandonHookTests
         handler.Verify(
             x =>
                 x.Execute(
-                    It.Is<OnTaskAbandonContext>(c =>
+                    It.Is<OnTaskAbandoningContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
                     )
@@ -105,9 +105,9 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WithMultipleMatchingHandlers_ReturnsNonRetryableFailedResult()
     {
         // Arrange
-        var handler1 = new Mock<IOnTaskAbandonHandler>();
+        var handler1 = new Mock<IOnTaskAbandoningHandler>();
         handler1.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        var handler2 = new Mock<IOnTaskAbandonHandler>();
+        var handler2 = new Mock<IOnTaskAbandoningHandler>();
         handler2.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         var command = CreateCommand(handler1.Object, handler2.Object);
         var context = CreateContext(CreateInstance());
@@ -120,7 +120,7 @@ public class OnTaskAbandonHookTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
         Assert.Contains("Multiple", failed.ErrorMessage);
-        Assert.Contains("IOnTaskAbandonHandler", failed.ErrorMessage);
+        Assert.Contains("IOnTaskAbandoningHandler", failed.ErrorMessage);
         Assert.Contains("Task_1", failed.ErrorMessage);
     }
 
@@ -128,10 +128,10 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WhenHandlerReturnsPermanentFailure_ReturnsNonRetryableFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>()))
             .ReturnsAsync(HandlerResult.FailedPermanent("Hook failed"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
@@ -149,10 +149,10 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WhenHandlerReturnsRetryableFailure_ReturnsRetryableFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>()))
             .ReturnsAsync(HandlerResult.FailedRetryable("Transient error"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
@@ -170,10 +170,10 @@ public class OnTaskAbandonHookTests
     public async Task Execute_WhenHandlerThrows_ReturnsFailedResult()
     {
         // Arrange
-        var handler = new Mock<IOnTaskAbandonHandler>();
+        var handler = new Mock<IOnTaskAbandoningHandler>();
         handler.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
         handler
-            .Setup(x => x.Execute(It.IsAny<OnTaskAbandonContext>()))
+            .Setup(x => x.Execute(It.IsAny<OnTaskAbandoningContext>()))
             .ThrowsAsync(new InvalidOperationException("Handler exploded"));
         var command = CreateCommand(handler.Object);
         var context = CreateContext(CreateInstance());
