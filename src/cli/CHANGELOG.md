@@ -11,13 +11,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- `studioctl env up -r localtest-v2` runs the platform's own services, such as Storage, Register and Authentication, instead of localtest's emulation, and your apps run against them unchanged. `--with` adds optional ones: `dialogporten`, `receipt`, `correspondence`, `arbeidsflate`, `monitoring` or `everything`. One that is off answers with the command that starts it. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
-- Against `env up -r localtest-v2`, `studioctl run` waits until the app is deployed to the platform, and `--dev-frontend` serves the app with your frontend dev server. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
-- `studioctl env up -r localtest-v2 --latest` runs the newest images instead of the pinned ones, and `--dev-<container>[=<path>]` builds one container from a Dockerfile. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
-- `studioctl run --mode container` works against `env up -r localtest-v2` at the default address, with the same settings as an app run as a process. `env down` removes an app container that is still running. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
-- `studioctl env up -r localtest-v2 --minimal` starts a small stack where the localtest container stands in for most platform services. Its traces, logs and metrics are written to JSON Lines files you can search with `jq`; `env down` deletes them. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
-- `studioctl env up -r localtest-v2 --host <name> --port <n>` serves the platform on another address than `http://local.altinn.cloud:8000`; `--port 0` picks a free port. Add the new names to your hosts file: `env up` prints the line to add. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
-- `studioctl env down`, `env status`, `env logs` and `env reset` act on the runtime that is running, so `-r` is only needed to pick another one. `env up` refuses to start one runtime while the other runs. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
+- `studioctl env up -r localtest-v2` runs the platform's own services, such as Storage and Register, instead of localtest's emulation. Apps run against it unchanged. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
+    - `--with` adds optional services, such as `arbeidsflate`
+    - `--minimal` starts a small stack with its telemetry in JSON Lines files
+    - `--host` and `--port` serve it on another address
+    - `--dev-<container>` builds a container from a Dockerfile
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 - Localtest has a _Messages_ page that shows the messages apps have sent, with their attachments, and the emails and SMS messages that would have gone out. A button clears them without resetting the rest of your data. ([#21224](https://github.com/Altinn/altinn-studio/pull/21224))
@@ -41,7 +39,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Fixed
 
 - Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21483](https://github.com/Altinn/altinn-studio/pull/21483))
-- `studioctl env up -r localtest-v2` no longer leaves the environment half up when the start fails, for example on a port in use. When a container does not become healthy, the containers keep running so you can read `env logs`. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
 - `studioctl env down`, `env reset` and `studioctl run --mode container` no longer leave an unnamed volume behind for each container they remove. Your named volumes are kept. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
 - `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))

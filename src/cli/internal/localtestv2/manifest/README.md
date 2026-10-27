@@ -139,8 +139,8 @@ collector image, with different configs and defaults, so they have different nam
   there, the one host folder in minimal mode, which otherwise keeps nothing on the host. `env up` in minimal mode
   empties it (unless `otel-files` runs already), and `env down` of a minimal-mode stack deletes it; the default stack
   never touches it. studioctl runs the container as the developer (their uid:gid, and `keep-id` under Podman), so the
-  files are theirs to read and delete. How to read them: "Telemetry files in minimal mode" in the bundled app-development
-  skill (`resources/agent/skills/app-development/SKILL.md` under `src/cli`).
+  files are theirs to read and delete. How to read them: "Telemetry files in minimal mode" in the bundled
+  [app-development skill](../../../../../agents/_skills/app-development/SKILL.md#telemetry-files-in-minimal-mode).
 
 Both read the same processors (`monitoring/otel-processors.yaml`, through the collector's `${file:…}` provider; the
 provider expands the file's text, comments included), so the attributes are the same in both modes. At most one
