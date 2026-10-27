@@ -15,7 +15,7 @@ var ErrOtherRuntimeActive = errors.New("another environment runtime is running")
 var ErrRuntimesActive = errors.New("more than one environment runtime is running")
 
 // ActiveRuntimes returns the runtimes of envs that have a running container. It is the one answer to which runtime is
-// up; callers do not keep their own record of it.
+// up. Callers do not keep their own record of it.
 func ActiveRuntimes(ctx context.Context, envs []Env) ([]Env, error) {
 	var active []Env
 	for _, env := range envs {

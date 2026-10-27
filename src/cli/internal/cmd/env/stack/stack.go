@@ -1,5 +1,5 @@
 // Package stack applies, destroys and observes an environment runtime's devenv resource graph. Every env runtime
-// describes its environment as resources under its own graph ID; this package owns what they do with them alike:
+// describes its environment as resources under its own graph ID. This package owns what they do with them alike:
 // the executor, the progress rendering, the status snapshot and the log streaming.
 package stack
 
@@ -109,7 +109,7 @@ func (s *Stack) Apply(ctx context.Context, resources []resource.Resource, spinne
 	return nil
 }
 
-// Destroy removes resources, rendering progress; logStartMessage heads the plain log output.
+// Destroy removes resources, rendering progress. logStartMessage heads the plain log output.
 func (s *Stack) Destroy(ctx context.Context, resources []resource.Resource, logStartMessage string) error {
 	graph, err := s.Graph(resources)
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *Stack) Destroy(ctx context.Context, resources []resource.Resource, logS
 	return nil
 }
 
-// Observe reads the state of resources' containers and networks; images are not inspected.
+// Observe reads the state of resources' containers and networks, not their images.
 func (s *Stack) Observe(
 	ctx context.Context,
 	resources []resource.Resource,
@@ -203,8 +203,8 @@ func (s *Stack) ContainerImages(
 }
 
 // resolveContainerImage pairs an image with the reference it came from, and keeps the reference only when it still
-// resolves to that image. A reference a command builds can name something the environment never ran - a tag that has
-// moved since, or a component the environment was started with differently - and reporting it would then misdescribe
+// resolves to that image. A reference a command builds can name something the environment never ran, such as a tag that
+// has moved since, or a component the environment was started with differently. Reporting it would then misdescribe
 // the container.
 func (s *Stack) resolveContainerImage(ctx context.Context, imageID, ref string) envtypes.ContainerImage {
 	if ref == "" {
@@ -297,7 +297,7 @@ func isImageResource(res resource.Resource) bool {
 	return ok
 }
 
-// ManagedStatus is a resource's status in snapshot; a resource this runtime does not own counts as destroyed.
+// ManagedStatus is a resource's status in snapshot. A resource this runtime does not own counts as destroyed.
 func ManagedStatus(snapshot executor.Snapshot, id resource.ResourceID) executor.Status {
 	observed, ok := snapshot.Resources[id]
 	if !ok || !observed.Managed {

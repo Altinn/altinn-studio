@@ -23,7 +23,7 @@ install_ca_bundle() {
   imported=0
   skipped=0
   for cert in "$certs"/*.pem; do
-    # A bundle without a certificate leaves the pattern unexpanded; start without one rather than fail.
+    # A bundle without a certificate leaves the pattern unexpanded. Start without one rather than fail.
     [ -e "$cert" ] || continue
     # A certificate certutil cannot import is skipped, so one bad block does not keep the worker from starting.
     if certutil -d "sql:$nss_db" -A -t "C,," -n "studio-ca-bundle-${cert##*/}" -i "$cert"; then

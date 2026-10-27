@@ -191,7 +191,7 @@ func keyPEM() []byte {
 
 // negativeSerialPEM returns a CA certificate whose serial number is -1. Go's X.509 parser rejects it since Go 1.23,
 // while NSS and the Linux trust stores accept it. Go cannot create one, so the serial of a valid certificate is
-// rewritten; the parser rejects it before it would check the signature.
+// rewritten. The parser rejects it before it would check the signature.
 func negativeSerialPEM(t *testing.T) []byte {
 	t.Helper()
 	block, _ := pem.Decode(cabundletest.PEM(t))
@@ -205,8 +205,8 @@ func negativeSerialPEM(t *testing.T) []byte {
 	return pem.EncodeToMemory(block)
 }
 
-// TestUsesOnlyTheStandardLibrary keeps the package importable by studioctl without Kubernetes or other modules;
-// what needs them lives in kubeartifact.
+// TestUsesOnlyTheStandardLibrary keeps the package importable by studioctl without Kubernetes or other modules.
+// What needs them lives in kubeartifact.
 func TestUsesOnlyTheStandardLibrary(t *testing.T) {
 	files, err := filepath.Glob("*.go")
 	if err != nil {

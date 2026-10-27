@@ -45,7 +45,7 @@ func TestLoadCABundleCopiesTheBundleReadableByEveryone(t *testing.T) {
 	}
 }
 
-// The copy is named by the digest of what it holds, so a changed bundle is a new mount; the old copy goes.
+// The copy is named by the digest of what it holds, so a changed bundle is a new mount. The old copy goes.
 func TestLoadCABundleNamesTheCopyByItsDigestAndRemovesOldCopies(t *testing.T) {
 	dir := t.TempDir()
 	stale := filepath.Join(dir, caBundlePrefix+"0123456789abcdef"+caBundleSuffix)
@@ -120,7 +120,7 @@ func TestLoadCABundleUnsetIsNothing(t *testing.T) {
 }
 
 // Every unusable bundle is one warning naming the variable, and no bundle. A set variable naming a missing file
-// counts: before cabundle.FromEnv it was taken as unset.
+// counts, rather than being taken as unset.
 func TestLoadCABundleWarnsOnceAboutAnUnusableBundle(t *testing.T) {
 	empty := filepath.Join(t.TempDir(), "empty.pem")
 	notPEM := filepath.Join(t.TempDir(), "corporate.pem")

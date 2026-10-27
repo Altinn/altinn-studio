@@ -71,7 +71,7 @@ type Bundle struct {
 
 // FromEnv returns the configured complete CA bundle and whether STUDIO_CA_BUNDLE is set. A set variable that names no
 // readable regular file is an error, and so is a file without a usable certificate (ErrNoCertificate). A certificate
-// is usable when Go's X.509 parser accepts it; the others are left out of Data and listed in Skipped.
+// is usable when Go's X.509 parser accepts it. The others are left out of Data and listed in Skipped.
 func FromEnv() (*Bundle, bool, error) {
 	hostPath := os.Getenv(EnvStudioCABundle)
 	if hostPath == "" {

@@ -68,7 +68,7 @@ func (o *Output) ForJSON() *Output {
 	return &Output{out: io.Discard, err: o.err, warnings: &[]string{}, verbose: o.verbose, mu: sync.Mutex{}}
 }
 
-// Warnings returns the warnings printed through an Output from ForJSON, in order; nil for other Outputs.
+// Warnings returns the warnings printed through an Output from ForJSON, in order, and nil for other Outputs.
 func (o *Output) Warnings() []string {
 	o.mu.Lock()
 	defer o.mu.Unlock()

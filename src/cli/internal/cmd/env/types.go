@@ -52,7 +52,7 @@ type Resetter interface {
 	Reset(ctx context.Context) error
 }
 
-// UpOptions are the `env up` options every runtime takes; a runtime's own options are its bound flags.
+// UpOptions are the `env up` options every runtime takes. A runtime's own options are its bound flags.
 type UpOptions struct {
 	Detach      bool
 	OpenBrowser bool
