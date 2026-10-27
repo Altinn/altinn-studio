@@ -9,7 +9,6 @@ import 'test/e2e/support/navigation';
 import 'test/e2e/support/formFiller';
 import '@percy/cypress';
 import 'test/e2e/support/snapshot';
-import 'test/e2e/support/stall-diagnostics';
 
 import failOnConsoleError from 'cypress-fail-on-console-error';
 import installLogsCollector from 'cypress-terminal-report/src/installLogsCollector';
