@@ -54,8 +54,8 @@ function AutoGeneratePdfFromLayout() {
     throw new Error(
       `Unexpected search param ${SearchParams.PdfForTask} provided. This mode does not support passing ` +
         `${SearchParams.PdfForTask} as a search param, but will auto-generate a PDF from the ` +
-        `current layout-set instead. To use the multi-task mode, you cannot have a layout-set ` +
-        `set up for the current task.`,
+        `current UI folder instead. Only a PDF service task without a pdfLayoutName renders the tasks ` +
+        `passed as ${SearchParams.PdfForTask}.`,
     );
   }
 
