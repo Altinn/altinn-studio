@@ -79,7 +79,7 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
     Expressions.Group.textResourceBindings.title,
   );
 
-  const title = summaryTitle || resolvedTitle;
+  const title = summaryTitle ?? resolvedTitle;
   const headingLevel = config.headingLevel ?? getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;
   const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
@@ -93,16 +93,18 @@ export const GroupSummary = ({ targetBaseComponentId, hierarchyLevel = 0 }: Grou
         className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
         data-testid={dataTestId}
       >
-        {title && (
+        {(title || labelProps.description || labelProps.help) && (
           <LabelContent
             {...labelProps}
             label={
-              <Heading
-                data-size={config.headingLevel ? headingSizes[config.headingLevel] : isNestedGroup ? 'xs' : 'sm'}
-                level={headingLevel}
-              >
-                <Lang id={title} />
-              </Heading>
+              title ? (
+                <Heading
+                  data-size={config.headingLevel ? headingSizes[config.headingLevel] : isNestedGroup ? 'xs' : 'sm'}
+                  level={headingLevel}
+                >
+                  <Lang id={title} />
+                </Heading>
+              ) : undefined
             }
           />
         )}
