@@ -112,12 +112,14 @@ export default defineConfig({
             },
           };
 
-          return configureCypressShard(configured, {
-            specRoot: path.resolve(import.meta.dirname, 'test/e2e/integration'),
-            timingsFile: path.resolve(import.meta.dirname, 'test/e2e/cypress-timings.json'),
-            total: process.env.E2E_SHARD_TOTAL,
-            number: process.env.E2E_SHARD_NUMBER,
-          });
+          return diagnostics.remaining(
+            configureCypressShard(configured, {
+              specRoot: path.resolve(import.meta.dirname, 'test/e2e/integration'),
+              timingsFile: path.resolve(import.meta.dirname, 'test/e2e/cypress-timings.json'),
+              total: process.env.E2E_SHARD_TOTAL,
+              number: process.env.E2E_SHARD_NUMBER,
+            }),
+          );
         });
       }
 

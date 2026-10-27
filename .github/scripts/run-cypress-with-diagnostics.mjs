@@ -1,7 +1,9 @@
-// Own the watchdog outside Cypress. A blocked renderer cannot prevent capture
-// or cleanup. Percy stays outside this wrapper.
+// Own the watchdog outside Cypress. A blocked renderer cannot prevent capture,
+// cleanup, or the single recovery attempt. Percy stays outside this wrapper.
 import { execFile, spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { promisify } from 'node:util';
@@ -33,7 +35,37 @@ const summary = {
   startedAt: Date.now(),
   attempts: [],
   completed: {},
+  testFailures: [],
+  recovered: false,
 };
+// after:spec cannot report failures from a spec whose later test hangs. Retain
+// final test failures independently, so replaying that spec cannot erase them.
+const endpoint = `/${randomUUID()}`;
+const server = createServer(async (request, response) => {
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Private-Network', 'true');
+  if (request.url !== endpoint || request.method !== 'POST') return response.writeHead(404).end();
+  try {
+    let body = '';
+    for await (const chunk of request) {
+      body += chunk;
+      if (body.length > 16384) return response.writeHead(413).end();
+    }
+    const failure = JSON.parse(body);
+    if (typeof failure.spec !== 'string' || typeof failure.title !== 'string')
+      return response.writeHead(400).end();
+    summary.testFailures.push(failure);
+    save();
+    response.writeHead(204).end();
+  } catch {
+    response.writeHead(400).end();
+  }
+});
+server.requestTimeout = 3000;
+await new Promise((resolve, reject) => {
+  server.once('error', reject);
+  server.listen(0, '127.0.0.1', resolve);
+});
 let interrupted;
 process.on('SIGTERM', () => {
   interrupted = 'SIGTERM';
@@ -116,19 +148,33 @@ async function capture(child, browser, attemptDirectory, attempt) {
   }
 }
 
-async function runAttempt(number) {
+async function runAttempt(number, remaining) {
   const attemptDirectory = path.join(directory, `attempt-${number}`);
   // Refuse stale attempts instead of reading results left by a previous run.
   mkdirSync(attemptDirectory);
   const attempt = { number, startedAt: Date.now(), probes: [] };
   summary.attempts.push(attempt);
   save();
-  const child = spawn(command, args, {
+  const attemptArgs = [...args];
+  // Cloud groups have immutable spec lists. Recovery uses a separate group in
+  // the same build, rather than presenting a smaller list as the original group.
+  if (number > 1) {
+    const group = attemptArgs.indexOf('--group');
+    if (group !== -1) attemptArgs[group + 1] += '-recovery';
+  }
+  let remainingFile;
+  if (remaining) {
+    remainingFile = path.join(attemptDirectory, 'remaining.json');
+    writeFileSync(remainingFile, JSON.stringify(remaining));
+  }
+  const child = spawn(command, attemptArgs, {
     detached: true,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
       CYPRESS_DIAGNOSTICS_DIR: attemptDirectory,
+      CYPRESS_DIAGNOSTICS_REMAINING: remainingFile || '',
+      CYPRESS_DIAGNOSTICS_URL: `http://127.0.0.1:${server.address().port}${endpoint}`,
     },
   });
   let finished = false;
@@ -258,9 +304,20 @@ async function runAttempt(number) {
 }
 
 const first = await runAttempt(1);
-const failures = Object.values(summary.completed).some(
-  (result) => result.failures > 0 || result.error,
-);
+let last = first;
+if (first.stalled && !interrupted && Date.now() + 60_000 < deadline && summary.specs?.length) {
+  const remaining = summary.specs.filter((spec) => !Object.hasOwn(summary.completed, spec));
+  if (remaining.length) {
+    console.error(
+      `Cypress diagnostics: restarting once, with ${remaining.length} unfinished specs.`,
+    );
+    last = await runAttempt(2, remaining);
+    summary.recovered = last.exitCode === 0;
+  }
+}
+const failures =
+  summary.testFailures.length > 0 ||
+  Object.values(summary.completed).some((result) => result.failures > 0 || result.error);
 summary.missingSpecs = (summary.specs || []).filter(
   (spec) => !Object.hasOwn(summary.completed, spec),
 );
@@ -268,7 +325,7 @@ summary.exitCode = interrupted
   ? 130
   : failures || !summary.specs?.length || summary.missingSpecs.length
     ? 1
-    : first.exitCode;
+    : last.exitCode;
 summary.finishedAt = Date.now();
 save();
 if (process.env.GITHUB_OUTPUT)
@@ -277,7 +334,10 @@ if (process.env.GITHUB_STEP_SUMMARY && summary.attempts.some((attempt) => attemp
   appendFileSync(
     process.env.GITHUB_STEP_SUMMARY,
     `\nCypress shard ${process.env.E2E_SHARD_NUMBER || ''}: ${first.stopReason}. ` +
-      `Diagnostics saved before the test processes stopped.\n`,
+      `${summary.attempts.length === 2 ? `One recovery attempted; ${summary.recovered ? 'remaining specs passed' : 'recovery failed'}.` : 'No recovery attempted.'} ` +
+      `Earlier failures remain failures. Diagnostics are retained even if recovery passes.\n`,
   );
 }
 process.exitCode = summary.exitCode;
+server.closeAllConnections();
+server.close();

@@ -1,5 +1,6 @@
-// Keep diagnostic progress reporting outside the browser event loop.
-import { renameSync, writeFileSync } from 'node:fs';
+// Temporary CI diagnostics. Spec tracking stays in Node. A separate failure-only
+// browser report preserves failures within a spec interrupted by a later hang.
+import { readFileSync, renameSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 export function cypressDiagnostics(on) {
@@ -37,6 +38,23 @@ export function cypressDiagnostics(on) {
         };
       }
       save({ currentSpec: null });
+    },
+    remaining(config) {
+      if (directory) {
+        config.expose = { ...config.expose, CYPRESS_DIAGNOSTICS_URL: process.env.CYPRESS_DIAGNOSTICS_URL };
+      }
+      const remainingFile = process.env.CYPRESS_DIAGNOSTICS_REMAINING;
+      if (directory && remainingFile) {
+        const remaining = JSON.parse(readFileSync(remainingFile, 'utf8'));
+        // The wrapper supplies absolute paths from this shard's before:run event.
+        // Do not recompute sharding from the smaller recovery list.
+        if (!remaining.length || remaining.some((spec) => !config.specPattern.includes(spec))) {
+          throw new Error('Recovery specs do not match the original shard assignment.');
+        }
+        config.specPattern = remaining;
+        config.trashAssetsBeforeRuns = false;
+      }
+      return config;
     },
   };
 }
