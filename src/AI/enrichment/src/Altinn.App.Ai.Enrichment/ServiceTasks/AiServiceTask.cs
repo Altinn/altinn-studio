@@ -83,6 +83,7 @@ public sealed class AiServiceTask(
                 RetryStrategy = step.MaxRetries == 0
                     ? ProcessStepRetryStrategy.None()
                     : ProcessStepRetryStrategy.Constant(step.RetryInterval, step.MaxRetries),
+                WaitBudget = step.WaitBudget,
             };
         }
     }
@@ -93,6 +94,29 @@ public sealed class AiServiceTask(
         var mutator = context.InstanceDataMutator;
         var taskId = mutator.Instance.Process?.CurrentTask?.ElementId
             ?? throw new InvalidOperationException("Instance has no current process task.");
+
+#if NET10_0_OR_GREATER
+        // Hand the submitter's request back before doing the work. The engine parks the
+        // transition, app-lib releases process/next to the browser, and the run happens on
+        // the next callback — so the waiting page arrives in seconds instead of after the
+        // app has waited out its polling timeout on a run that was never going to finish
+        // in time. Nothing else changes: same agent, same budget, one extra round trip.
+        //
+        // This must stay ahead of everything below. A deferring attempt is stateless — the
+        // engine saves nothing and rejects data changes — and starting the trace here would
+        // leave an empty Langfuse run next to every real one.
+        var step = options.Value.Step;
+        if (step.YieldBeforeRun && context.Wait.DeferCount == 0)
+        {
+            logger.LogInformation(
+                "ai task {TaskId}: parking for {YieldDelay} before the agent run so the "
+                    + "submission is not held open",
+                taskId,
+                step.YieldDelay);
+
+            return ServiceTaskResult.Defer(step.YieldDelay, "ai_enrichment.waiting");
+        }
+#endif
 
         var ambient = System.Diagnostics.Activity.Current;
         using var run = trace.StartRun($"ai-enrichment:{taskId}", ambient);

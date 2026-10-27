@@ -55,6 +55,51 @@ public sealed class AiEnrichmentStepOptions
 
     /// <summary>Delay between retry attempts (constant backoff).</summary>
     public TimeSpan RetryInterval { get; set; } = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// Whether the step yields once before running the agent: the first attempt
+    /// defers immediately, and the run happens on the engine's next callback.
+    ///
+    /// This is what the person who pressed submit experiences. Without it the
+    /// browser's process/next call stays open for the whole run — the app waits
+    /// out its polling timeout and only then shows the "this is taking a while"
+    /// page, so a run of minutes means a minute and a half of frozen form. A
+    /// yielded step parks the transition, which app-lib releases to the caller
+    /// after a short grace, so the waiting page arrives in seconds. The run
+    /// itself is unaffected: same work, same budget, just no longer inside
+    /// anyone's HTTP request.
+    ///
+    /// Costs one extra engine round trip. Turn it off for an agent fast enough
+    /// to finish inside the request, where a waiting page would only flicker.
+    /// </summary>
+    public bool YieldBeforeRun { get; set; } = true;
+
+    /// <summary>
+    /// How long the yield parks the transition before the agent run starts.
+    ///
+    /// This is a window, not a delay to minimize. app-lib only releases the
+    /// caller if one of its polls lands while the transition is parked, and
+    /// those polls slow to one every two seconds once a transition is a few
+    /// seconds old. A yield shorter than that interval falls between two polls:
+    /// the step is running again before anyone looks, the release never fires,
+    /// and the caller waits out the full run exactly as it did before. Measured
+    /// at 1 second it did precisely that.
+    ///
+    /// So keep it comfortably wider than two seconds. It costs the run the same
+    /// delay once, which is nothing against a run of minutes, and it buys the
+    /// submitter their page.
+    /// </summary>
+    public TimeSpan YieldDelay { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// How long the yield above may take before the engine gives up on it. Only
+    /// the yield is waiting — the agent run that follows is bounded by
+    /// <see cref="MaxExecutionTime"/> — so this needs to cover a callback
+    /// round trip, not a run. Generous by default because the cost of being
+    /// wrong is a failed submission, while an over-long budget costs nothing
+    /// that <see cref="MaxExecutionTime"/> does not already bound.
+    /// </summary>
+    public TimeSpan WaitBudget { get; set; } = TimeSpan.FromHours(1);
 }
 
 /// <summary>Overrides for a single ai task.</summary>
