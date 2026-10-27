@@ -446,6 +446,49 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     [Fact]
+    public async Task RunProcessNext_ReturnInstance_DescribesTheReloadedProcess()
+    {
+        // process/next returns once the chain parks, so the chain can finish before the instance is reloaded.
+        // The response must then describe the reloaded process, not the state the transition committed.
+        var committed = (await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid)).Process;
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(p => p.Next(It.IsAny<ProcessNextRequest>(), It.IsAny<CancellationToken>()))
+            .Returns(async () =>
+            {
+                string path = TestData.GetInstancePath(Org, App, InstanceOwnerPartyId, _instanceGuid);
+                JsonNode root =
+                    JsonNode.Parse(await File.ReadAllTextAsync(path)) ?? throw new InvalidOperationException();
+                JsonObject process = root["process"] as JsonObject ?? throw new InvalidOperationException();
+                process["currentTask"] = null;
+                process["endEvent"] = "EndEvent_1";
+                process["ended"] = DateTime.UtcNow;
+                await File.WriteAllTextAsync(path, root.ToJsonString());
+                return new ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new ProcessStateChange { NewProcessState = committed },
+                };
+            });
+        OverrideServicesForThisTest = services => services.AddSingleton(processEngine.Object);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using var response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next?returnInstance=true",
+            null
+        );
+
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        using JsonDocument body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        JsonElement process = body.RootElement.GetProperty("process");
+        Assert.Equal("EndEvent_1", process.GetProperty("endEvent").GetString());
+        Assert.True(
+            !process.TryGetProperty("currentTask", out JsonElement currentTask)
+                || currentTask.ValueKind == JsonValueKind.Null
+        );
+    }
+
+    [Fact]
     public async Task RunProcessNext_FailingValidator_ReturnsValidationErrors()
     {
         var dataValidator = new Mock<IFormDataValidator>(MockBehavior.Strict);

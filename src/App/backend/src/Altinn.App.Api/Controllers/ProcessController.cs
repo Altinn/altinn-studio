@@ -201,9 +201,10 @@ public class ProcessController : ControllerBase
                     instanceOwnerPartyId,
                     cancellationToken: cancellationToken
                 );
+                // The workflow can move on before the reload, so describe the reloaded process.
                 var processStateTask = _processStateEnricher.Enrich(
                     instance,
-                    result.ProcessStateChange.NewProcessState,
+                    instance.Process,
                     User,
                     cancellationToken: cancellationToken
                 );
