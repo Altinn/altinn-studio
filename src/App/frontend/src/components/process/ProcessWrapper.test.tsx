@@ -856,7 +856,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
 
     // The next task is committed but the workflow has not settled: the page still stays, with no
-    // still-working message and no stale-task error.
+    // still-working message.
     phase = 'nextCommitted';
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
@@ -865,7 +865,6 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
     expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/denne delen av skjemaet er ikke tilgjengelig/i)).not.toBeInTheDocument();
 
     await act(async () => {
       resolveProcessNext({
@@ -991,13 +990,15 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
 
-    // The process moves on while the URL is still on the page: the page stays until the next task.
+    // The process moves on while the URL is still on the page. With no call pending, the URL's task
+    // differing from the process's is what would show the stale-task error, but the page stays.
     phase = 'nextCommitted';
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
     });
     expect(routerRef.current!.state.location.pathname).toMatch(/\/Task_Service\/page1$/);
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByText(/denne delen av skjemaet er ikke tilgjengelig/i)).not.toBeInTheDocument();
 
     phase = 'nextSettled';
     await act(async () => {
