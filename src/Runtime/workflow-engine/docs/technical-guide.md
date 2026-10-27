@@ -1,118 +1,35 @@
-# Workflow Engine — Technical Guide
+# Workflow engine technical guide
 
-This document is aimed at internal developers who need to understand, integrate with, or extend the Workflow Engine.
-
-## Table of Contents
-
-- [Workflow Engine — Technical Guide](#workflow-engine--technical-guide)
-    - [Table of Contents](#table-of-contents)
-    - [Overview](#overview)
-    - [Architecture](#architecture)
-    - [Project Structure](#project-structure)
-    - [Hosting Model](#hosting-model)
-    - [Workflow Lifecycle](#workflow-lifecycle)
-    - [Command System](#command-system)
-    - [Retry \& Error Handling](#retry--error-handling)
-    - [Deferral (Durable Yield)](#deferral-durable-yield)
-    - [Concurrency Model](#concurrency-model)
-    - [Heartbeat \& Stale Recovery](#heartbeat--stale-recovery)
-    - [Cancellation](#cancellation)
-    - [Resume](#resume)
-    - [Abandon](#abandon)
-    - [Nudge](#nudge)
-    - [Fail](#fail)
-    - [Failure-Storm Throttling](#failure-storm-throttling)
-    - [Mailboxes](#mailboxes)
-    - [Dependency Graphs](#dependency-graphs)
-    - [Primary and auxiliary workflows](#primary-and-auxiliary-workflows)
-    - [Telemetry \& Observability](#telemetry--observability)
-    - [Dashboard](#dashboard)
-    - [API Reference](#api-reference)
-    - [Health Checks](#health-checks)
-    - [Configuration](#configuration)
-    - [Testing](#testing)
-    - [Creating a New Host](#creating-a-new-host)
-    - [The App Layer: `WorkflowEngine.App`](#the-app-layer-workflowengineapp)
-
----
+How the workflow engine behaves and why, for developers who integrate with it or change it. The settings, models and
+metrics are defined in the code, and this guide links to them rather than repeating them.
 
 ## Overview
 
-The Workflow Engine is an asynchronous workflow orchestration service. It accepts workflow requests, queues them in PostgreSQL, and executes each step sequentially with at-least-once delivery, automatic retries, idempotency, and distributed tracing. Failed workflows are always left in an explicit error state — never silently lost.
+The engine queues workflows in PostgreSQL and runs each workflow's steps in order. Delivery is at least once. A step
+that fails is retried, and a workflow that cannot finish is left in an explicit error state, never lost.
 
-Built on .NET 10, PostgreSQL, and OpenTelemetry.
+- **The database is the only queue.** The processor claims work with `FOR UPDATE SKIP LOCKED`, so several engine
+  instances can run against one database without processing a workflow twice.
+- **Commands are pluggable.** The engine knows nothing about what a step does. A host registers commands, and the
+  engine looks them up by type string.
 
-## Architecture
+### Hosting model
 
-The engine is a **reusable class library**, not a standalone application. Hosts compose it via extension methods and add their own domain-specific commands.
-
-```
-┌──────────────────────────────────────────────────┐
-│                Host Application                  │
-│            (e.g. WorkflowEngine.App)             │
-│                                                  │
-│  Program.cs:                                     │
-│    builder.AddWorkflowEngine(connectionString)   │
-│    builder.Services.AddCommand<AppCommand>()     │
-│    app.UseWorkflowEngine()                       │
-└──────────────────────┬───────────────────────────┘
-                       │ references
-┌──────────────────────▼───────────────────────────┐
-│              WorkflowEngine.Core                 │
-│                                                  │
-│  ┌────────────┐  ┌──────────┐  ┌──────────────┐  │
-│  │ Processor  │  │ Executor │  │  Endpoints   │  │
-│  │ (bg loop)  │──│          │  │  (API/Dash)  │  │
-│  └─────┬──────┘  └────┬─────┘  └──────────────┘  │
-│        │              │                          │
-│  ┌─────▼──────┐  ┌────▼─────┐  ┌──────────────┐  │
-│  │   Data     │  │ Commands │  │  Telemetry   │  │
-│  │ (Postgres) │  │ Registry │  │ (OTel/OTLP)  │  │
-│  └────────────┘  └──────────┘  └──────────────┘  │
-│                                                  │
-│  ┌────────────┐  ┌──────────┐                    │
-│  │ Resilience │  │  Models  │                    │
-│  │ (Limiter)  │  │          │                    │
-│  └────────────┘  └──────────┘                    │
-└──────────────────────────────────────────────────┘
-```
-
-- **Database is the single source of truth** — no in-memory queue. The processor fetches work from PostgreSQL using `FOR UPDATE SKIP LOCKED`.
-- **Horizontal scaling** — multiple engine instances can run against the same database. Row-level locking prevents double-processing.
-- **Pluggable commands** — the engine knows nothing about what it's executing. Commands are registered via DI and looked up by type string.
-
-## Project Structure
-
-| Project                     | Purpose                                                                               |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| `WorkflowEngine.Core`       | Processing loop, HTTP endpoints, executor, host composition extensions                |
-| `WorkflowEngine.Commands`   | Built-in commands (WebhookCommand). Host-specific commands live in their own projects |
-| `WorkflowEngine.Models`     | Domain models, wire contract, `RetryStrategy`. No project or package references       |
-| `WorkflowEngine.Data`       | EF Core persistence, `IEngineRepository`, PostgreSQL implementation                   |
-| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP/Worker semaphore pools), retry delay calculation       |
-| `WorkflowEngine.Telemetry`  | `Metrics` (instruments, activity source) and `TelemetryAttributes` (attribute keys)   |
-| `WorkflowEngine.TestKit`    | Reusable integration test infrastructure: fixtures, API client, test helpers          |
-
-## Hosting Model
-
-Two extension methods compose the engine into a host:
+The engine is a class library. A host composes it into a web application and adds its own commands:
 
 ```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-builder.AddWorkflowEngine(connectionString);        // registers all core services
-builder.Services.AddCommand<MyCustomCommand>();     // host-specific commands
-
+builder.AddWorkflowEngine(connectionString);    // core services, health checks, OpenTelemetry, OpenAPI
+builder.Services.AddCommand<MyCommand>();       // the host's commands
 var app = builder.Build();
-await app.UseWorkflowEngine();                      // middleware, endpoints, migrations
-await app.RunAsync();
+await app.UseWorkflowEngine();                  // middleware, endpoints, migrations
 ```
 
-`AddWorkflowEngine()` registers core services, health checks, OpenTelemetry, OpenAPI, HttpClientFactory, and the built-in WebhookCommand.
+A new host references `WorkflowEngine.Core`, implements its commands on `Command<TData>` or
+`Command<TData, TContext>`, and composes them as above. Its tests derive a fixture from `EngineAppFixture<TProgram>`
+in `WorkflowEngine.TestKit`, which starts PostgreSQL and WireMock with Testcontainers. [Tests](test.md) describes the
+conventions. [The app layer](#the-app-layer-workflowengineapp) is the host for Altinn apps.
 
-`UseWorkflowEngine()` configures the middleware pipeline, maps API and dashboard endpoints, and applies EF Core migrations.
-
-## Workflow Lifecycle
+## Workflow lifecycle
 
 ```
                     ┌──────────┐
@@ -131,593 +48,342 @@ await app.RunAsync();
         └─────────┘   └───────┘   └──────────┘
 ```
 
-Additional states:
+The other states:
 
-- **DependencyFailed** — a dependency workflow failed
-- **Requeued** — a retryable error occurred; the workflow returns to the queue with a backoff delay
-- **Abandoned** — an unsuccessful terminal workflow whose failure a caller explicitly wrote off. See [Abandon](#abandon).
+- **Requeued**: a step hit a retryable error, and the workflow waits out a backoff before the next attempt.
+- **Waiting**: a step [deferred](#deferral-durable-yield), and the workflow waits for its next check.
+- **Held**: a mailbox [receive workflow](#held-and-what-releases-it) waits for its message.
+- **DependencyFailed**: a workflow it depends on failed.
+- **Abandoned**: a caller [wrote off](#abandon) its failure.
 
-Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be **resumed** back to Enqueued via the resume API. See [Resume](#resume).
+Failed, Canceled, DependencyFailed and Abandoned are terminal, and a caller can [resume](#resume) any of them.
 
-### Processing Loop
+The `WorkflowProcessor` claims as many workflows as it has free worker slots and hands each to `WorkflowHandler`,
+which runs the steps in order through `WorkflowExecutor`. A crashed worker's workflows are
+[reclaimed](#heartbeat--stale-recovery).
 
-The `WorkflowProcessor` (`BackgroundService`) runs continuously:
+## Command system
 
-1. Check available worker slots
-2. `FetchAndLockWorkflows()` — atomic PostgreSQL query using `FOR UPDATE SKIP LOCKED`
-3. For each workflow, spawn a fire-and-forget task through `WorkflowHandler`
-4. `WorkflowHandler` iterates steps in order, calling `WorkflowExecutor.Execute()` for each
-5. On completion/failure, update status and release the worker slot
+A command defines what a step does. It validates its data and context at enqueue, so the engine refuses an invalid
+request before it stores anything. A command returns one of four results:
 
-Stale workflows (crashed workers) are automatically reclaimed — see [Heartbeat & Stale Recovery](#heartbeat--stale-recovery).
+| Result           | The engine                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| `Success`        | Moves to the next step                                                                   |
+| `RetryableError` | Requeues the workflow with backoff, under the step's `RetryStrategy`                     |
+| `CriticalError`  | Fails the step and the workflow without a retry                                          |
+| `Defer`          | Parks the step in `Waiting` until a later check. See [Deferral](#deferral-durable-yield) |
 
-## Command System
+A result carries the step's output state. The engine stores it as the step's `StateOut`, and the next step receives
+it as its `StateIn`. A command that knows which domain object a step works on names it for the traces through
+`GetTelemetryAttributes`, as [domain attributes on spans](#domain-attributes-on-spans) describes.
 
-Commands define what happens when a step is executed.
+The built-in `WebhookCommand` makes a GET or POST request. It treats 2xx as success, 408, 429 and 5xx as retryable,
+and any other 4xx as critical.
 
-### ICommand Interface
+## Retry & error handling
 
-```csharp
-public interface ICommand
-{
-    string CommandType { get; }           // e.g. "webhook", "app"
-    Type? CommandDataType { get; }        // typed payload schema
-    Type? WorkflowContextType { get; }    // typed workflow context
+Each step has a `RetryStrategy`: exponential, linear or constant backoff from a base interval, an optional cap on
+each delay and on the number of retries, and an optional `MaxDuration` deadline. A step without one gets the
+engine's `DefaultStepRetryStrategy`.
 
-    CommandValidationResult Validate(object? data, object? context);
-    Task<ExecutionResult> Execute(CommandExecutionContext context, CancellationToken ct);
+A collection head reports `failedAttempts`: how many consecutive attempts of its current step have failed and been
+scheduled for retry. It holds steady while a retry runs, so a consumer can tell a failing head from a slow one without
+reading each workflow.
 
-    // Optional: what the step works on, as span attributes. None by default.
-    IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(object? data, object? context) => [];
-}
-```
+When a step exhausts its retries, the engine records the error in the step's `ErrorHistory`, marks the step and the
+workflow `Failed`, and marks the workflows that depend on it `DependencyFailed`.
 
-Base classes `Command<TData, TContext>` and `Command<TData>` provide typed overrides. A command that
-knows what domain object a step works on names it for the traces through `GetTelemetryAttributes` — see
-[Domain attributes on spans](#domain-attributes-on-spans).
+## Deferral (durable yield)
 
-### Built-in: WebhookCommand
-
-Executes HTTP requests (GET or POST). Response classification:
-
-| Response      | Classification | Action             |
-| ------------- | -------------- | ------------------ |
-| 2xx           | Success        | Next step          |
-| 408, 429, 5xx | Retryable      | Retry with backoff |
-| Other 4xx     | Critical       | Fail immediately   |
-
-### Registration
-
-```csharp
-builder.Services.AddCommand<WebhookCommand>();   // done by Core automatically
-builder.Services.AddCommand<AppCommand>();       // host adds its own
-```
-
-The `CommandRegistry` maps type strings to `ICommand` singletons. Commands validate their data at **enqueue time** — invalid requests are rejected before anything is persisted.
-
-### ExecutionResult
-
-| Result                                    | Meaning                      |
-| ----------------------------------------- | ---------------------------- |
-| `ExecutionResult.Success(state)`          | Step completed               |
-| `ExecutionResult.RetryableError(message)` | Transient failure — retry    |
-| `ExecutionResult.CriticalError(message)`  | Permanent failure — no retry |
-
-### State Passing
-
-A command returns its output state on the result (`ExecutionResult.Success(state)` or
-`ExecutionResult.Defer(delay, reason, state)`). The engine stores it as the step's `StateOut`, and each
-step's `StateOut` becomes the next step's `StateIn`:
-
-```
-Step 1 (validate) → StateOut: {"validated": true}
-Step 2 (sign)     → StateIn:  {"validated": true}  →  StateOut: {"signed": true}
-Step 3 (confirm)  → StateIn:  {"signed": true}
-```
-
-## Retry & Error Handling
-
-### RetryStrategy
-
-Per-step, configurable:
-
-| Field          | Purpose                                      |
-| -------------- | -------------------------------------------- |
-| `BackoffType`  | `Exponential`, `Linear`, or `Constant`       |
-| `BaseInterval` | Initial delay                                |
-| `MaxRetries`   | Max retry count (optional)                   |
-| `MaxDelay`     | Cap on individual delay (optional)           |
-| `MaxDuration`  | Total deadline from first attempt (optional) |
-
-**Default**: Exponential, 1s base, 5m max delay, 24h deadline.
-
-### Backoff Calculation
-
-| Type        | Formula                  | Example (1s base)                      |
-| ----------- | ------------------------ | -------------------------------------- |
-| Constant    | `base`                   | 1s, 1s, 1s...                          |
-| Linear      | `base × iteration`       | 1s, 2s, 3s...                          |
-| Exponential | `base × 2^(iteration-1)` | 1s, 2s, 4s, 8s... (capped at MaxDelay) |
-
-A collection head reports `failedAttempts`: how many consecutive attempts of its current step have
-failed and been scheduled for retry. It holds steady while a retry attempt runs, so a consumer can
-tell a failing head from a slow one without a per-workflow lookup.
-
-### Failure Outcomes
-
-When a workflow fails:
-
-1. Step marked `Failed` with error details recorded in `ErrorHistory`
-2. Workflow marked `Failed`
-3. Dependent workflows marked `DependencyFailed`
-4. All visible via API, dashboard, and telemetry
-
-## Deferral (Durable Yield)
-
-Some work is "start now, confirm eventually": an eFormidling shipment, a payment capture, a signing
-order. The outcome arrives on someone else's schedule, and the only honest thing a step can say is
-_"I ran fine; the answer isn't ready yet."_ That is a **deferral** — not a failure, and not a retry.
+Some work starts now and is confirmed later: an eFormidling shipment, a payment capture, a signing order. The step can
+only say "I ran fine, and the answer is not ready yet". That is a **deferral**, neither a failure nor a retry.
 
 ```csharp
 return ExecutionResult.Defer(TimeSpan.FromMinutes(5), "delivery not confirmed yet");
 ```
 
-The engine parks the step in `Waiting` and schedules its next execution through the workflow's
-`backoff_until` — the same durable timer `StartAt` rides on. A parked workflow holds **no lease, no
-worker slot and no HTTP slot**; it is simply a row the fetch gate will not claim until its timer
-elapses. `Waiting` is non-terminal and counts as _active_: consumers must never read a parked
-workflow as settled.
+The engine parks the step in `Waiting` and schedules the next check through the workflow's `backoff_until`, the same
+durable timer that `StartAt` uses. A parked workflow holds no lease, worker slot or HTTP slot. `Waiting` is
+non-terminal and counts as active, so a consumer must never read a parked workflow as settled.
 
-The reason string is persisted as the step's `lastDeferReason` (overwritten on every deferral,
-cleared on resume) and surfaced wherever the wait is visible: the step on workflow status reads,
-and `waitingReason` on a `Waiting` collection head — populated only while the head is parked, so a
-consumer never sees a stale reason. Phrase it for a reader: it is the one place a waiting step gets
-to say, in its own words, what it is waiting for.
+The engine stores the reason as the step's `lastDeferReason` and shows it on status reads, and as `waitingReason` on a
+collection head only while the head is parked, so it is never stale. Write it for a person: it is where a waiting step
+says what it is waiting for.
 
-Deferrals are kept rigorously separate from errors:
+The engine keeps deferrals apart from errors:
 
-|                | Retryable error                                  | Deferral                                         |
-| -------------- | ------------------------------------------------ | ------------------------------------------------ |
-| Status         | `Requeued`                                       | `Waiting`                                        |
-| `ErrorHistory` | Appends an entry                                 | Records nothing                                  |
-| `RequeueCount` | Incremented                                      | **Reset to 0**                                   |
-| Metric         | `altinn.workflow_engine.step.execution.requeued` | `altinn.workflow_engine.step.execution.deferred` |
-| Bounded by     | `RetryStrategy`                                  | The step's wait budget                           |
+|                | Retryable error | Deferral               |
+| -------------- | --------------- | ---------------------- |
+| Status         | `Requeued`      | `Waiting`              |
+| `ErrorHistory` | Appends         | Records nothing        |
+| `RequeueCount` | Incremented     | **Reset to 0**         |
+| Bounded by     | `RetryStrategy` | The step's wait budget |
 
-Resetting `RequeueCount` is deliberate: retries bound _consecutive errors between_ deferrals, not
-errors across the step's whole lifetime. A poll that fails transiently, recovers, and then polls for
-another six hours should not arrive at hour six with its retry budget already spent.
+The reset is deliberate. Retries bound consecutive errors between deferrals, so a poll that fails once, recovers and
+polls for six more hours does not reach hour six with its retry budget spent.
 
-### Two vocabularies, on purpose
-
-`Defer`/`Deferred` is what a **command returns**; `Waiting` is the **state the engine puts the step
-in**. The same split already exists for failures — a command returns `RetryableError`, the engine
-records `Requeued` — and it is worth keeping: the command describes its own outcome, the engine
-describes what it did about it. So counters count the event (`altinn.workflow_engine.step.execution.deferred`) while
-the gauge measures the state (`altinn.workflow_engine.workflow.waiting`).
+`Defer` is what a **command returns**, and `Waiting` is the **state the engine puts the step in**. Failures have the
+same split: a command returns `RetryableError`, and the engine records `Requeued`. So a counter counts the event
+(`step.execution.deferred`) and a gauge measures the state (`workflow.waiting`).
 
 ### Three separate clocks
 
-Each bounds a different thing, and none of them substitutes for another:
+| Clock                      | Bounds                        | Anchored at                                   | A command reads                                       |
+| -------------------------- | ----------------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| `command.maxExecutionTime` | One execution attempt         | The attempt's start                           | `ExecutionDeadline`                                   |
+| `RetryStrategy`            | A run of consecutive _errors_ | `Step.LastDeferredAt`, else the previous step | `Step.RequeueCount`                                   |
+| `command.waitBudget`       | Total time spent _waiting_    | `Step.FirstDeferredAt`                        | `Step.DeferCount`, `WaitDeadline`, `IsFinalWaitCheck` |
 
-| Clock                      | Bounds                          | Anchored at                                   | Default                 | A command reads                                         |
-| -------------------------- | ------------------------------- | --------------------------------------------- | ----------------------- | ------------------------------------------------------- |
-| `command.maxExecutionTime` | One execution attempt           | Attempt start                                 | 100s                    | `ExecutionDeadline`                                     |
-| `RetryStrategy`            | A run of consecutive _errors_   | `Step.LastDeferredAt`, else the previous step | 24h / unlimited retries | `Step.RequeueCount`                                     |
-| `command.waitBudget`       | Cumulative time spent _waiting_ | `Step.FirstDeferredAt`                        | 24h                     | `Step.DeferCount` + `WaitDeadline` + `IsFinalWaitCheck` |
+`CommandExecutionContext` exposes each clock, so a command can pace itself against the limits the engine enforces.
+Both deadlines are absolute instants. A remaining duration starts aging once it is computed, and a command that
+receives one across a network, as the Altinn app callback does, cannot tell how much has passed.
 
-Each clock is observable from `CommandExecutionContext`, one field per clock, so a command can pace
-itself against the same limits the engine will enforce instead of guessing at them. Both deadlines are
-absolute instants rather than remaining durations: a duration starts aging the moment it is computed,
-and a command that receives one across a network boundary (as the Altinn app callback does) cannot tell
-how much has already been spent.
+The two anchors measure different spans. `FirstDeferredAt` never moves, so the budget measures the whole wait.
+`LastDeferredAt` moves with each deferral, so an error run after a long wait gets its full retry allowance. Anchoring
+retries on `UpdatedAt` looks equivalent and is not: every failed attempt advances it, so the retry deadline would
+slide forward and `MaxDuration` would never bind. A deferred step whose command started failing would retry forever
+and never raise a failure metric.
 
-Two persisted anchors, because they measure different spans and collapsing them breaks one of the two.
-`FirstDeferredAt` never moves once set, so the budget measures the whole wait. `LastDeferredAt` moves
-with each deferral, so an error run that begins after a long wait still gets its full retry allowance.
-Anchoring retries on `UpdatedAt` instead looks equivalent and is not: `UpdatedAt` advances on _every_
-write-back, including each failed attempt, which slides the retry deadline forward one backoff at a
-time and stops `MaxDuration` binding at all — a deferred step whose command starts failing would then
-retry forever, never reaching a terminal status and never raising a failure metric.
-
-**Total allowed duration.** There is no workflow-level lifetime cap; the clocks above are all
-per-step. A step's worst case after a deferral is `waitBudget + RetryStrategy.MaxDuration` (48h on
-defaults), and a workflow's is that summed over its steps — up to `MaxStepsPerWorkflow` of them.
-A parked workflow also blocks its dependents and holds its collection head for the whole time, is
-never purged by retention (it is `Incomplete`), protects its already-finished dependencies from being
-purged, and counts toward `BackpressureThreshold`. Size budgets accordingly, and note that `resume`
-clears both anchors — a resumed step starts its budget over. Its `StateOut` is deliberately kept:
-only a deferring step can produce state and later fail (a completed step never re-executes), and a
-resumed poller should replay from what it last recorded rather than from the previous step's output.
+**No clock bounds a whole workflow.** A step's worst case after a deferral is its wait budget plus its retry
+`MaxDuration`, summed over a workflow's steps. All that time the workflow blocks its dependents, holds its collection
+head, counts toward `BackpressureThreshold`, and keeps retention from purging it and its finished dependencies. A
+resume clears both anchors, so the budget starts over. The step keeps its `StateOut`, so a resumed poller continues
+from what it last recorded.
 
 ### The wait budget
 
-`command.waitBudget` (default `EngineSettings.DefaultStepWaitBudget` = 24h, rejected at enqueue above
-`MaxStepWaitBudget` = 14d) caps total waiting, measured from the step's **first** deferral
-(`Step.FirstDeferredAt`, persisted), so it survives restarts and re-fetches. The cap is deliberately
-small: real polls resolve in minutes to hours, an instance pinned for two weeks should fail loudly
-rather than wait on — and the cap is one side of the callback-token lifetime invariant documented on
-`EngineSettings.MaxStepWaitBudget` (tokens minted at enqueue never refresh, so worst-case workflow
-lifetime must stay below the signing code's remaining validity).
+`command.waitBudget` caps a step's total waiting, from its persisted first deferral. A step without one gets
+`DefaultStepWaitBudget`, and enqueue rejects one above `MaxStepWaitBudget`. The cap is small on purpose. Real polls
+resolve in minutes or hours, an instance pinned for weeks should fail loudly, and the cap is one side of the
+callback-token lifetime invariant that `MaxStepWaitBudget` documents.
 
-It is a **cumulative allowance, not a poll interval.** The command chooses the delay before each
-re-check; the budget caps the sum of those delays. A step deferring 5 minutes at a time under the 24h
-default therefore polls ~288 times — it does not sit idle for a day between checks.
+The budget is a **total allowance, not a poll interval**. The command chooses each delay, and the budget caps their
+sum: a step that defers 5 minutes at a time under a 24-hour budget polls about 288 times.
 
-The budget bounds waiting; it does not shorten the last poll. A deferral asking for longer than the
-budget has left is **clamped to land exactly on the deadline**, so the step always spends its whole
-budget and always gets one final execution before expiring. (Rejecting the overshooting deferral
-instead would forfeit the remainder of the budget, and would make `Defer(24h)` under a 24h budget fail
-without ever having waited.)
+The engine clamps a deferral that asks for more than the budget has left so that it lands on the deadline. The step
+always spends its whole budget and gets one final execution. Rejecting the deferral would forfeit the rest of the
+budget, and `Defer(24h)` under a 24-hour budget would fail without waiting.
 
-Expiry is judged by when an attempt **started**, not by when its deferral returns, so the command and
-the engine always agree on which run is the last. An attempt that started before the deadline but
-returns after it is re-run at once, and that run is the final check. Commands read this as
-`IsFinalWaitCheck` (`isFinalWaitCheck` on the app callback) and give up on it, not by comparing
-`WaitDeadline` with their own clock. The cost is at most one attempt beyond the budget.
+The engine judges expiry by when an attempt **started**, so it and the command agree on which run is the last. An
+attempt that started before the deadline and returns after it runs once more at once, as the final check. A command
+reads `IsFinalWaitCheck` (`isFinalWaitCheck` on the app callback) and gives up on it, rather than comparing
+`WaitDeadline` with its own clock. The cost is at most one attempt past the budget.
 
-A deferral from an attempt that started _at or past_ the deadline is what fails the step — with a
-distinct classification:
-
-```promql
-{"altinn.workflow_engine.workflow.execution.failed", "altinn.workflow_engine.reason"="wait_expired"}
-```
-
-Keep `wait_expired` out of the default ops alert: it means the awaited external outcome never arrived,
-not that the engine or the command broke. Route it to the team that owns the integration. The same goes
-for `manual`, which a caller produces on purpose by [failing a parked workflow](#fail). A
-non-positive delay, by contrast, is a command bug and fails the step under the ordinary `execution`
-reason. A _positive but negligible_ delay is the same class of mistake handled gently: it is clamped
-up to `MinStepDeferDelay` (1s), because there is no honest threshold below which "wait a moment" means
-"wait no time at all", and a spinning park would hammer the callback target for the whole budget.
+A deferral from an attempt that started at or past the deadline fails the step with the reason `wait_expired`. That
+means the external outcome never arrived, not that anything broke, so it belongs to the team that owns the integration
+and stays out of the default ops alert. A non-positive delay is a command bug and fails the step as `execution`. The
+engine clamps a tiny positive delay up to `MinStepDeferDelay`, since a spinning park would hammer the callback target
+for the whole budget.
 
 ### Deferral is stateful across attempts
 
-A deferring step is handed **its own** `StateOut` back as the next attempt's `StateIn` — see
-`ResolveStateIn`. Without that, a command that yields state would have it persisted and then silently
-discarded on every re-execution, so each poll would restart from whatever the _previous step_ left
-behind. A polling command therefore resumes from what it last recorded, and the state channel needs no
-special-casing for waiting.
+`ResolveStateIn` hands a deferring step **its own** `StateOut` as the next attempt's `StateIn`, so a poller continues
+from what it last recorded instead of from what the previous step left. A command can read `DeferCount` and
+`WaitDeadline` to adapt its cadence, and give up deliberately when `IsFinalWaitCheck` is set. `step.wait.duration`
+records the budget a step used once it resolves. It is the only signal that shows budgets being approached rather
+than exceeded, so compare its upper percentiles with the budget when you size one.
 
-`DeferCount` and `FirstDeferredAt` are exposed on `StepStatusResponse`. A command reads `DeferCount`
-from `CommandExecutionContext.Step` and `WaitDeadline` from the context itself, so it can back off its
-own cadence adaptively — or, when `IsFinalWaitCheck` says this attempt is the last, give up
-deliberately instead of being failed anonymously when the budget expires. `WaitDeadline` is an absolute instant rather than a remaining duration: a duration
-starts aging the moment it is computed, and a command that receives it across a network boundary (as
-the Altinn app callback does) cannot tell how much has already been spent.
-`altinn.workflow_engine.step.wait.duration` records the budget a step actually consumed, once per deferring step at
-the moment it resolves — the only signal that shows budgets being _approached_ rather than blown, so
-compare its upper percentiles against the configured budget when sizing one.
+The step's own cadence is the source of truth. When an external signal arrives early, [nudge](#nudge) the workflow to
+cut the wait short. The step runs again and decides for itself, so a lost signal costs latency, never correctness.
 
-### Push as an optimization of pull
+## Concurrency model
 
-The step's own cadence is always the source of truth. When an external signal _does_ arrive early, use
-[Nudge](#nudge) to collapse the remaining wait — the step then re-executes and decides for itself
-whether the outcome is ready. A lost signal therefore costs latency, never correctness.
+`IConcurrencyLimiter` keeps three independent pools of slots: workers, database operations and outbound HTTP calls.
+When the active workflow count reaches `BackpressureThreshold`, enqueue answers `429`.
 
-## Concurrency Model
+Five buffered write paths take no database slot: the workflow enqueue buffer, the status write-back buffer, and the
+three [mailbox write buffers](#the-three-write-paths-are-batched). Each holds one connection per flush in flight, so
+their flush concurrencies bound them instead of `MaxDbOperations`, and the `slot.db.*` gauges do not count them. The
+write-back buffer flushes one batch at a time. The Npgsql pool is sized to `MaxDbOperations`, so the flushes draw from
+the same pool as the slot holders. Everything else takes a slot, mailbox work included: the deadline sweep's scan and
+closes, and every mailbox read.
 
-Three independent semaphore pools via `IConcurrencyLimiter`:
+## Heartbeat & stale recovery
 
-| Pool          | Default | Purpose                              |
-| ------------- | ------- | ------------------------------------ |
-| Workers       | 400     | Concurrent workflow processing tasks |
-| DB Operations | 90      | PostgreSQL connection slots          |
-| HTTP Calls    | 400     | Outbound HTTP requests               |
+A worker updates `HeartbeatAt` on its in-flight workflows at every `HeartbeatInterval`. When a heartbeat is older than
+`StaleWorkflowThreshold`, the processor reclaims the workflow: it resets it to `Enqueued` and runs it again. After
+`MaxReclaimCount` reclaims the workflow fails. If one engine instance crashes, another reclaims its work.
 
-When `ActiveWorkflowCount` ≥ `BackpressureThreshold` (default: 500,000), the engine returns HTTP 429 on enqueue requests.
-
-Five buffered write paths are outside the DB pool: the workflow enqueue buffer, the workflow status write-back buffer, and the three [mailbox](#the-three-write-paths-are-batched) endpoint writes. Each holds one connection per in-flight flush and takes no DB slot, so what bounds them is their own flush concurrency rather than `MaxDbOperations` — 10 enqueue + 1 write-back (its drain awaits each flush, so one at a time) + 2 mint + 1 close + 2 delivery = 16 connections, none of which the `altinn.workflow_engine.slot.db.*` gauges account for. Size the Postgres pool for `MaxDbOperations` + 16. Everything else takes a slot each, mailbox work included: the deadline sweep's scan and its closes, and every mailbox read.
-
-## Heartbeat & Stale Recovery
-
-If a worker crashes mid-processing, the `HeartbeatService` enables recovery:
-
-1. Workers update `HeartbeatAt` for all in-flight workflows on a regular interval (default: 10s)
-2. The processor detects stale workflows where the heartbeat has expired (default threshold: 30s)
-3. Stale workflows are reclaimed — reset to `Enqueued` and retried
-4. After `MaxReclaimCount` (default: 5) reclaim attempts, the workflow is marked `Failed`
-
-This enables safe horizontal scaling: if Instance A crashes, Instance B reclaims its work.
-
-A workflow whose write-back the database refused is recovered the same way: its worker lets go of it without changing its status, so the row stays `Processing` until the reclaim takes it.
+The engine recovers a workflow whose write-back the database refused in the same way. Its worker lets go of it
+without changing its status, so the row stays `Processing` until the reclaim takes it.
 
 ## Cancellation
 
-```http
-POST /api/v1/{namespace}/workflows/{workflowId}/cancel
-```
-
-1. Sets `CancellationRequestedAt` in the database (durable, atomic — this is the source of truth)
-2. `CancellationWatcherService` polls for pending cancellations
-3. In-flight workflows receive a cancellation token signal
-4. `WorkflowHandler` catches the cancellation and marks the workflow `Canceled`
-
-Cancellation is **idempotent** — multiple calls return the original timestamp.
+A cancel request sets `CancellationRequestedAt` in the database. That durable, atomic flag is the source of truth.
+`CancellationWatcherService` polls for pending cancellations, signals the cancellation token of in-flight workflows,
+and `WorkflowHandler` marks them `Canceled`. Cancellation is idempotent: a repeat returns the original timestamp.
 
 ### Immediate vs. distributed cancellation
 
-Setting the database flag always succeeds atomically, but _when_ the workflow actually stops depends on where it is running. The `canceledImmediately` field in the response distinguishes the two paths:
+The flag guarantees that the workflow will be canceled. When it stops depends on where it runs, and
+`canceledImmediately` in the response says which path the call took:
 
-- **Immediate (`canceledImmediately: true`)** — the pod that received the cancel request is the same pod currently executing the workflow. Its `CancellationTokenSource` is triggered synchronously before the response returns, aborting the running step's in-flight work (e.g. the outbound HTTP call) right away. Sub-second, bounded only by how promptly the command honors its token.
-- **Distributed (`canceledImmediately: false`)** — the flag is set, but the workflow isn't in the receiving pod's in-flight set. It is either:
-    - **running on another pod** — picked up by that pod's `CancellationWatcherService` on its next tick (`CancellationWatcherInterval`, default 2s), or
-    - **not yet started or parked** (Enqueued/Requeued/Waiting) — finalized as `Canceled` the next time the processor fetches it, without executing any step. A pending cancellation bypasses the fetch gate's backoff check, so a workflow parked behind a retry backoff or a deferred step's wait timer is claimed on the next fetch cycle rather than when its timer elapses. (Unsettled dependencies still gate the fetch: a cancelled dependent is finalized once its dependency settles.)
+- **`true`**: the pod that received the request runs the workflow. It cancels the token before it answers, which
+  aborts the running step's in-flight work, such as its HTTP call, as fast as the command honors the token.
+- **`false`**: the pod does not run the workflow. If another pod runs it, that pod's `CancellationWatcherService`
+  picks it up on its next tick. If the workflow is not running yet or is parked (`Enqueued`, `Requeued` or
+  `Waiting`), the processor marks it `Canceled` the next time it fetches it, without running a step. A pending
+  cancellation bypasses the fetch's backoff check, so a workflow behind a retry backoff or a wait timer is claimed on
+  the next fetch cycle. Unsettled dependencies still gate the fetch, so a canceled dependent is finalized once its
+  dependency settles.
 
-In all cases the database flag guarantees the workflow _will_ be canceled; `canceledImmediately` only reports whether the interrupt was delivered in-process during the call. A `202` response means this call requested the cancellation; a `200` means cancellation was already pending (idempotent re-request).
+`200 OK` means a cancellation was already pending, and `409 Conflict` that the workflow is already terminal.
 
 ## Resume
 
-Terminal workflows (Failed, Canceled, DependencyFailed, Abandoned) can be resumed for re-processing:
+A caller resumes a terminal workflow (Failed, Canceled, DependencyFailed or Abandoned) to process it again. The engine
+resets the workflow and its unfinished steps to `Enqueued`, and clears the cancellation flag, the backoff, the
+heartbeat, the reclaim count and `throttled_until`. An explicit resume wins over the
+[namespace circuit breaker](#failure-storm-throttling). The processor picks the workflow up on its next cycle.
 
-```http
-POST /api/v1/{namespace}/workflows/{workflowId}/resume?cascade=false
-```
+With `cascade=true`, the engine also resumes every workflow that transitively depends on it and is in
+`DependencyFailed`, so resuming the failed parent fixes the whole chain.
 
-1. Resets the workflow to `Enqueued`, clearing `CancellationRequestedAt`, `BackoffUntil`, `ThrottledUntil` (an explicit resume wins over the [namespace circuit breaker](#failure-storm-throttling)), `HeartbeatAt`, and `ReclaimCount`
-2. Resets all non-completed steps to `Enqueued`
-3. The processor picks up the workflow on its next cycle
-
-When `cascade=true`, all transitively dependent workflows in `DependencyFailed` state are also resumed. This is useful when a parent workflow's failure cascaded to its children — resuming the parent with cascade fixes the entire chain.
-
-**Response (202 Accepted):** the workflow is back in `Enqueued`; the processor picks it up on its next cycle.
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "resumedAt": "2026-03-19T10:02:00+00:00",
-    "cascadeResumed": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890"]
-}
-```
-
-Returns 404 if the workflow does not exist, or 409 if it is not in a resumable state (e.g. `Completed` or `Processing`).
+`409 Conflict` means the workflow is not in a resumable state, such as `Completed` or `Processing`.
 
 ## Abandon
 
-An unsuccessful terminal workflow (`Failed`, `Canceled`, `DependencyFailed`) can be **abandoned** — its failure is explicitly written off by a caller:
+A caller abandons an unsuccessful terminal workflow (Failed, Canceled or DependencyFailed) to write off its failure.
 
-```http
-POST /api/v1/{namespace}/workflows/{workflowId}/abandon
-```
+A dependency edge carries two things: sequencing (a dependent waits until its dependencies are terminal) and outcome
+gating (a failed dependency condemns its dependents to `DependencyFailed`). Abandoning removes only the gating, and
+only from now on:
 
-Dependency edges carry two things: sequencing (a dependent waits until its dependencies are terminal) and outcome gating (a failed dependency condemns dependents to `DependencyFailed`). Abandoning removes only the gating, prospectively:
+- **New work can build past it.** A workflow enqueued later with a dependency on the abandoned one runs normally.
+  `Abandoned` is terminal, but not a failure for dependency evaluation.
+- **Existing consequences stand.** Dependents already in `DependencyFailed` stay as a record. They required success,
+  and the dependency-recovery sweep releases them only when every dependency is `Completed`. To build past one of
+  them as well, abandon it too.
+- **It is not a tombstone.** A caller can still resume an abandoned workflow. If it then completes, the sweep
+  recovers its `DependencyFailed` dependents as usual.
+- **It releases the enqueue fingerprint.** Abandoning means the action may be retried, so the engine deletes the
+  idempotency key of the request that created the workflow in the same transaction. Replaying that request, even with
+  an identical body, creates and runs a fresh workflow (`201 Created`). A batch enqueue has one key for the whole
+  batch, so abandoning any member releases it for all of them. The other members are untouched.
 
-- **New work can build past it.** A workflow enqueued afterwards with a dependency on the abandoned workflow runs normally — `Abandoned` is terminal but not a failure for dependency evaluation.
-- **Existing consequences stand.** Dependents already in `DependencyFailed` stay put as historical record; they expressed a success-required dependency that was never satisfied, and the dependency-recovery sweep only releases them when every dependency is `Completed`. If a written-off casualty should also be built past, abandon it too.
-- **It is not a tombstone.** An abandoned workflow can still be resumed; if it then completes, parked `DependencyFailed` dependents recover via the sweep as usual.
-- **The enqueue fingerprint is released.** Abandoned means the action may be retried: atomically with the transition, the idempotency key of the request that created the workflow is deleted, so replaying the same fingerprint — even with an identical body — creates and runs a fresh workflow (`201 Created`) instead of deduplicating onto the write-off or conflicting. For batch enqueues the key covers the whole batch, so abandoning any member releases the fingerprint for all of them (the surviving members themselves are untouched).
+The canonical use is to supersede a failed predecessor: abandon it, then enqueue its replacement with an ordinary
+dependency on it. The graph stays connected, and the write-off lives in the node's state, not in the edges.
 
-The canonical use is superseding a failed predecessor: mark the failed workflow `Abandoned`, then enqueue its replacement with an ordinary dependency on it (consuming the collection head as usual). The graph stays fully connected — the write-off lives in the node's state, not in special edge semantics.
-
-**Response (202 Accepted):**
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "abandonedAt": "2026-03-19T10:02:00+00:00"
-}
-```
-
-The transition is a compare-and-set from the three source states: 202 Accepted when this call wrote off the workflow, 404 if the workflow does not exist, 409 if it is in any other non-`Abandoned` state — including when a concurrent resume revived it first, which is exactly the race the CAS exists to catch. Abandoning an already-abandoned workflow is an idempotent 200 that reports the original `abandonedAt`.
+The transition is a compare-and-set from the three source states, so `409 Conflict` also catches a concurrent resume
+that revived the workflow first. Abandoning an abandoned workflow answers `200 OK` with the original `abandonedAt`.
 
 ## Nudge
 
-A parked workflow — `Requeued` between retry attempts, or `Waiting` on a [deferral](#deferral-durable-yield) —
-can be told to stop waiting:
+A caller nudges a parked workflow, `Requeued` between retries or `Waiting` on a [deferral](#deferral-durable-yield),
+to stop it waiting. The engine clears `backoff_until` and `throttled_until` and signals the processor, which claims
+the workflow on its next fetch cycle. An explicit nudge wins over the
+[namespace circuit breaker](#failure-storm-throttling). The step **runs again rather than being skipped**, and decides
+for itself. A poller with nothing to report defers again.
 
-```http
-POST /api/v1/{namespace}/workflows/{workflowId}/nudge
-```
+Nudge is the engine's push channel. It lets an external signal, such as a webhook or an event, speed up a poll, never
+carry it. The step's own cadence stays the source of truth, so a lost nudge costs one poll interval and nothing else.
+Never build a flow whose correctness depends on a nudge arriving.
 
-This clears `backoff_until` — and `throttled_until`, so an explicit nudge always wins over the
-[namespace circuit breaker](#failure-storm-throttling) — and signals the processor, so the workflow
-is claimed on the next fetch cycle instead of when its timer would have elapsed. The workflow is
-**re-executed, not skipped**: the
-step runs again and reaches its own conclusion. Nudging a poller that still has nothing to report
-simply produces another deferral.
-
-This is the engine's push channel. It exists so an external signal (a webhook, an event) can
-_accelerate_ a poll, never to carry it: the step's own cadence remains the source of truth, so a lost
-nudge costs one poll interval of latency and nothing else. Never build a flow whose correctness
-depends on the nudge arriving.
-
-## Failure-Storm Throttling
-
-Operations guide for the per-namespace failure-storm circuit breaker (design and rationale in the
-[failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md);
-configuration and state-machine behavior under
-[Throttling (namespace circuit breaker)](#throttling-namespace-circuit-breaker)).
-
-**Observability.**
-
-- `GET /api/v1/throttles` lists every namespace breaker (tripped, recovering, or lingering cleared);
-  `GET /api/v1/{namespace}/throttle` fetches one. Both work whether or not throttling is enabled.
-- The dashboard shows a **Throttled Namespaces** panel (Live tab, above Scheduled) whenever any
-  breaker state exists, with force-trip/force-clear actions behind a two-click confirm.
-- Metrics (all tagged with `altinn.workflow_engine.namespace`): `altinn.workflow_engine.throttle.tripped` (trips and
-  re-trips, including force-trips), `altinn.workflow_engine.throttle.extended` (window extensions after unanimous
-  canary failure), `altinn.workflow_engine.throttle.released` (workflows released in recovery cohorts),
-  `altinn.workflow_engine.throttle.cleared` (clears, including force-clears),
-  `altinn.workflow_engine.throttle.handler_parked` (workflows parked cooperatively by the handler), and the gauge
-  `altinn.workflow_engine.throttle.breaker.tripped` (breakers currently tripped, untagged).
-- Trip/extend/release/clear events are logged at Warning/Information by `NamespaceThrottleService`.
-
-**Manual overrides — one-shot interventions, not standing policy.**
-
-- `POST /api/v1/{namespace}/throttle/trip` force-trips the breaker: an immediate trip regardless of
-  the detection thresholds — state `Tripped` with the initial window, fresh canaries, the rest of the
-  `Requeued` population parked. It does **not** prevent canary-driven recovery.
-- `POST /api/v1/{namespace}/throttle/clear` force-clears it: state `Clear` and every
-  `throttled_until` stamp in the namespace cleared immediately, releasing the parked population to
-  the normal retry schedule. It means "release now", not "never throttle": the next sweep re-trips
-  if the trip condition still holds. The state row lingers through the normal cleared grace period.
-- Both overrides run through the sweep's advisory lock (blocking), so they never interleave with a
-  running sweep cycle. Both return `409 Conflict` when `Throttling.Enabled` is `false`: with the
-  feature disabled the workflow fetch ignores `throttled_until` entirely, so an override would be
-  inert.
-
-**Per-workflow overrides.** The existing [nudge](#nudge) and [resume](#resume) operations clear
-`throttled_until` along with `backoff_until`: an operator's explicit poke at a single workflow
-always wins over the breaker, without touching the namespace's breaker state.
-
-**Response (202 Accepted):**
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "nudgedAt": "2026-03-19T10:03:00+00:00"
-}
-```
-
-Returns `200 OK` with a null `nudgedAt` when the workflow was parked but already due (idempotent —
-the goal state already held), `409 Conflict` when it is not parked at all, and `404 Not Found` when it
-does not exist. The dashboard's _Retry now_ / _Check now_ buttons call this endpoint directly.
+`200 OK` with a null `nudgedAt` means the workflow was parked but already due, so the goal state already held.
+`409 Conflict` means it is not parked.
 
 ## Fail
 
-A parked workflow — `Requeued` between retry attempts, or `Waiting` on a [deferral](#deferral-durable-yield) —
-can be **failed** by a caller who has decided not to wait for its retries or wait budget to run out:
+A caller fails a parked workflow, `Requeued` or `Waiting`, when it has decided not to wait for the retries or the wait
+budget to run out. The transition is a compare-and-set to `Failed`. The engine clears the backoff and marks the parked
+step `Failed`, with the request's `reason` as a non-retryable entry in its error history, or a default text without
+one. Consumers see what an exhausted retry would have produced: the app surfaces it through its normal failure path,
+dependents settle as `DependencyFailed`, and [resume](#resume) brings it back. The engine never fails a step out from
+under its worker. A workflow the processor claimed first is left alone, and the caller [cancels](#cancellation) it
+instead.
 
-```http
-POST /api/v1/{namespace}/workflows/{workflowId}/fail
-```
+Fail is not cancel. Canceling a parked workflow withdraws the work and leaves the step parked under a `Canceled`
+workflow. Failing it rules on the step's outcome, and the step reads as failed everywhere. Fail when the outcome is
+known to be bad and people should see a failure. Cancel when the work is no longer wanted.
 
-**Request (optional body):**
+`409 Conflict` means the workflow is not parked, including when it is already `Failed`. A manual failure looks the
+same as one the engine produced, so unlike [abandon](#abandon) there is no idempotent replay, and a client that must
+retry the call reads the workflow's status first. `400 Bad Request` means the reason is blank or too long. The engine
+counts the failure with the reason `manual`, which stays out of the default ops alert.
 
-```json
-{
-    "reason": "Upstream registry confirmed the shipment was never created"
-}
-```
+## Failure-storm throttling
 
-The transition is a compare-and-set from `Requeued` or `Waiting` to `Failed`: the backoff is cleared and the
-parked step is marked `Failed` with `reason` appended to its error history as a non-retryable entry (a default
-text is recorded when the body is omitted; at most 500 characters), so consumers see exactly what an exhausted
-retry would have produced — the app side surfaces it through its normal failure path, dependents settle as
-`DependencyFailed`, and [resume](#resume) brings it back. A workflow the processor claimed first is left alone:
-an in-flight step is never failed out from under its worker — [cancel](#cancellation) it instead.
+The per-namespace circuit breaker keeps one failing app from flooding the engine with retries. The
+[failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md) records the design and
+why. It ships off: with `Throttling.Enabled` false the sweep does not run and the fetch ignores `throttled_until`.
 
-Fail is not cancel. Cancelling a parked workflow withdraws the work and leaves the step in its parked state under
-a `Canceled` workflow; failing it rules on the step's outcome, and the step reads as failed everywhere. Use fail
-when the outcome is known to be bad and people should see it as a failure, cancel when the work is simply no
-longer wanted.
+`NamespaceThrottleService` runs the state machine every `Throttling.SweepInterval` under a PostgreSQL advisory lock,
+so one replica writes at a time.
 
-**Response (202 Accepted):**
+- **Trip.** When a namespace's `Requeued` population passes both thresholds, the sweep parks it behind
+  `throttled_until`, jittered and clamped to each workflow's retry deadline, so throttling never costs a final attempt.
+- **Probe.** A few canaries stay on the normal retry schedule. When all of them fail, the window doubles up to
+  `MaxWindow`. The sweep judges a canary by its requeue count, never by timing, and a canary caught mid-attempt keeps
+  the breaker waiting.
+- **Recover.** Once a canary progresses, the sweep releases the parked workflows oldest first, in doubling cohorts, and
+  clears the breaker only when a cohort comes back empty. A short cohort proves nothing, since the release skips rows
+  that a concurrent cancellation or fetch has locked. A failed recovery trips again with the grown window.
+- **Linger.** A cleared breaker's row stays for a grace period, while the sweep clears stragglers.
 
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "failedAt": "2026-03-19T10:04:00+00:00"
-}
-```
+Each replica refreshes a snapshot of the tripped breakers (`IThrottleStateView`) every cycle, and `WorkflowHandler`
+uses it to park a newly failing workflow at once, without waiting for the sweep. The snapshot fails open: once it is a
+few sweep intervals old it reads as empty, so a replica whose sweep loop has died stops parking.
 
-Returns `409 Conflict` when the workflow is not parked — including when it is already `Failed`: a manual failure
-is indistinguishable from one the engine produced, so unlike [abandon](#abandon) there is no idempotent replay,
-and a client that must retry the call reads the workflow's status first. `404 Not Found` when it does not exist,
-`400 Bad Request` when `reason` is blank or over-long. The failure is counted on
-`altinn.workflow_engine.workflow.execution.failed` (and `altinn.workflow_engine.step.execution.failed` for the step) with
-`altinn.workflow_engine.reason="manual"` — keep that reason out of the default ops alert alongside `wait_expired`. The dashboard's _Fail_ button calls this endpoint with a fixed reason naming the dashboard.
+The manual overrides are one-shot interventions, not standing policy. [Force-trip](#force-trip-throttle) does not
+prevent recovery through the canaries, and [force-clear](#force-clear-throttle) means "release now", not "never
+throttle". Both take the sweep's advisory lock, and both answer `409 Conflict` while throttling is disabled, since the
+fetch would ignore what they wrote. For one workflow, [nudge](#nudge) and [resume](#resume) clear `throttled_until`
+without touching the breaker. The dashboard's _Throttled Namespaces_ panel shows the breakers and offers the
+overrides.
 
 ## Mailboxes
 
-A **mailbox** is a durable inbox for external messages: an address of its own, minted on demand, that
-an app hands to a counterparty as the place to reply to. It is not a workflow — it holds no steps,
-runs nothing, and consumes no worker — and it lives in its own tables rather than as columns on
-`engine.workflows`.
+A **mailbox** is a durable inbox for external messages. An app mints one on demand and hands its address to a
+counterparty as the place to reply. A mailbox is not a workflow: it holds no steps, runs nothing and takes no worker,
+and it lives in tables of its own. The app side of an exchange is in
+[workflow engine integration](../../../App/backend/docs/workflow-engine-integration.md#mailboxes).
 
-```http
-POST /api/v1/{namespace}/mailboxes
-```
+The engine owns the id. A caller identifies its mint with an `idempotencyKey`, unique per namespace, and a replay
+returns the mailbox already minted, so a retried step lands on the mailbox whose id has already gone out as a reply
+address. The id is unguessable but **not a secret**. The sender's envelope protects a message's integrity, not the id.
 
-The engine owns the id. A caller identifies its mint by an `idempotencyKey` (unique per namespace),
-and replaying the key returns the mailbox already minted — so a retried step lands back on the same
-mailbox even though its id was already published as a reply address. The id is unguessable but **not
-a secret**: integrity of anything delivered is the sender's envelope's job, not the id's.
-
-### The deadline is stamped once, at mint
-
-The required `timeout` is not a per-operation budget. It is converted once into the mailbox's single
-absolute `deadline` (`createdAt + timeout`); it never moves, and no later operation re-arms it.
-`EngineSettings.MaxMailboxTimeout` caps it — the derivation is written on the setting itself and
-pinned by `CallbackTokenLifetimeInvariantTests`.
+The required `timeout` becomes the mailbox's one absolute `deadline` (`createdAt + timeout`) at mint. The deadline
+never moves, and no later operation re-arms it. `MaxMailboxTimeout` caps it, for the reason its doc comment derives.
 
 ### Two counters, and what they mean
 
-Every mailbox carries two gapless positions:
-
-| Counter   | Meaning                                          |
-| --------- | ------------------------------------------------ |
-| `nextIdx` | the next position the deliveries log will assign |
-| `nextSeq` | the next position the receivers log will assign  |
-
-Together they yield `unpairedDeliveries` — how many messages arrived at positions no receiver was
-ever enqueued for. It is derived from the counters rather than counted from rows, which is exact
+A mailbox has two gapless logs, deliveries and receivers, with the counters `nextIdx` and `nextSeq`. Together they
+give `unpairedDeliveries`: messages at positions no receiver was ever enqueued for. The counters give it exactly,
 because both logs are gapless and neither is pruned piecemeal.
 
-Pairing is about the two logs, **not about processing**: a receiver that fails — or is condemned by a
-dependency — still pairs its position, so its message is not in this number even though no handler ever
-read it. The receiver's terminal state is the record for that position, and a resume re-derives the
-rendezvous and reads the message still sitting there.
+Pairing is about the two logs, **not about processing**. A receiver that fails, or that a dependency condemns, still
+pairs its position. Its terminal state records that position, and a resume reads the message still standing there.
 
 ### Deliveries: a gapless log
 
-```http
-POST /api/v1/{namespace}/mailboxes/{mailboxId}/deliveries
-```
+The engine appends each message at the next position, under the mailbox's row lock, which keeps the log gapless.
+`(mailboxId, idx)` is the primary key and the delivery's whole identity: the receiver at that position reads it with
+one key lookup. The engine stores the payload verbatim and never parses it.
 
-Each message becomes a **delivery** at the next position of the log, assigned under the mailbox's row
-lock — which is what makes the log gapless. `(mailboxId, idx)` is the primary key, and the position
-is the delivery's whole identity: the receiver enqueued at the matching position reads it by exactly
-that pair — one key lookup, no join, no search. The payload is stored verbatim and never parsed; any
-structure, envelope, or signature inside it belongs to the sender and the receiver.
-
-**Acceptance is not consumption.** A message with no receiver yet simply sits at its position, so an
-early delivery is first-class and `409` unambiguously means _too late_.
-
-| Outcome                                 | Response                                       |
-| --------------------------------------- | ---------------------------------------------- |
-| Appended at a new position              | `202 Accepted` with the assigned `idx`         |
-| `idempotencyKey` already delivered      | `200 OK` — the original `idx` and `acceptedAt` |
-| No such mailbox in this namespace       | `404 Not Found`                                |
-| Mailbox closed (by request or deadline) | `409 Conflict` — too late, dead-letterable     |
-| Payload over `MaxMailboxPayloadSize`    | `413 Content Too Large`                        |
-| Log at `MaxMailboxLogLength`            | `429 Too Many Requests`                        |
+**Acceptance is not consumption.** A message with no receiver yet waits at its position, so an early delivery is
+normal, and `409` always means _too late_.
 
 #### Accepted versus kept
 
-The idempotency lookup runs **before** the refusals, and the order is load-bearing: what the engine
-kept, it keeps answering for. An accepted message replays `200` even after the mailbox has closed or
-its log has filled — a `409` would have the forwarder dead-letter a message that is sitting at its
-position waiting to be read. A refusal, conversely, is repeated identically and **stores nothing at
-all** — not even the key, so the same key may be offered again the moment the reason for the refusal
-is gone.
+The idempotency lookup runs **before** the refusals, because what the engine kept, it keeps answering for. An accepted
+message replays `200` even after the mailbox has closed or its log has filled. A `409` would make the forwarder
+dead-letter a message that is waiting to be read. A refusal **stores nothing**, not even the key, so the caller can
+offer the same key again once the reason is gone.
 
 ### Receive workflows
 
-A workflow declares at enqueue that it consumes one message from a mailbox:
-
-```json
-{
-    "operationId": "Task_1 [archive reply 2]",
-    "mailbox": { "id": "018f4e…" },
-    "steps": [{ "command": { "type": "app-command", "data": {} } }]
-}
-```
-
-The block names a mailbox and nothing else. The **position** is the engine's to assign, under the
-mailbox's row lock in arrival order, keeping the receivers log gapless — a caller choosing its own
-position could take one twice or skip one, and the pairing of the two logs is the whole rendezvous.
-
-Three constraints hold: the delivery lands in the **first** step only (later steps are ordinary); a
-workflow carries at most one mailbox block (the shape of the field, not a checked rule); and a
-receiver may not also carry `startAt` — a waiting receiver is created `Held`, which has no schedule.
-There is no per-receiver timeout; the mailbox's deadline bounds the whole exchange.
+A workflow declares at enqueue, with a `mailbox` block, that its **first** step consumes one message from a mailbox.
+The block names only the mailbox. The engine assigns the position, so the receivers log stays gapless: a caller that
+chose its own could take a position twice or skip one, and the pairing of the two logs is the whole rendezvous. A
+receiver cannot carry `startAt`, because a waiting receiver is `Held`, which has no schedule. It has no timeout of its
+own either. The mailbox's deadline bounds the exchange.
 
 #### Three enqueue outcomes, decided under the mailbox's row lock
 
-Inside the enqueue flush, the engine locks the mailbox row — for the requests that are actually new,
-see [serialization point](#the-mailbox-row-is-its-own-serialization-point) — assigns
-`seq = nextSeq++`, and decides the status the workflow is created in:
+The enqueue flush locks the mailbox row for the requests that are new (see
+[the serialization point](#the-mailbox-row-is-its-own-serialization-point)), assigns `seq = nextSeq++`, and decides the
+status:
 
 | At the assigned position                        | Created                                       |
 | ----------------------------------------------- | --------------------------------------------- |
@@ -725,416 +391,219 @@ see [serialization point](#the-mailbox-row-is-its-own-serialization-point) — a
 | No delivery, and the mailbox is closed          | `Enqueued`, runnable, with the closing signal |
 | Neither                                         | `Held`, and its registration marked held      |
 
-The first row beats the second, which looks wrong and is not: **an accepted delivery outranks
-closure.** A receiver enqueued against a closed mailbox still gets the message at its position, so a
-saga replaying after the deadline drains the backlog it was promised instead of dropping it — and a
-close racing an in-flight relay is self-resolving, with no "mailbox was closed" error branch anywhere
-in the app's saga.
+The first row beats the second, which looks wrong and is not: **an accepted delivery outranks closure.** A saga that
+replays after the deadline drains the backlog it was promised, and a close that races a relay in flight resolves
+itself, with no "mailbox was closed" branch in the app.
 
-Two refusals remain, decided under the same lock and leaving nothing behind — the request's
-idempotency key included:
-
-| Outcome                                | Response                |
-| -------------------------------------- | ----------------------- |
-| No such mailbox in this namespace      | `400 Bad Request`       |
-| Receivers log at `MaxMailboxLogLength` | `429 Too Many Requests` |
-
-_Accepted versus kept_ applies here too: a replayed enqueue key is answered with the receiver it
-already created, even once the log it filled is full.
+The flush refuses an unknown mailbox with `400` and a full receivers log with `429`, and stores nothing for either,
+not even the idempotency key. A replayed key still gets the receiver it already created, even once the log is full.
 
 #### `Held`, and what releases it
 
-`Held` means parked from creation: durable and visible, and never started. It is **absent from
-the fetch gate's status list** — no worker claims it, and it holds no lease, no heartbeat, no
-backoff, and no timer of its own, because the release is transactional with its cause and the
-mailbox's deadline bounds the wait. It is non-terminal and counts as active, so the dependency gate
-holds dependents back unchanged and retention never purges a waiting receiver — at the stated cost
-that a held receiver consumes admission budget for as long as its mailbox stays open.
+`Held` means parked from creation: durable, visible and never started. The fetch never claims it, so it holds no
+lease, heartbeat, backoff or timer. Its release commits with its cause, and the mailbox's deadline bounds the wait. It
+is non-terminal and counts as active, so dependents wait and retention keeps it. The cost is admission budget for as
+long as the mailbox stays open.
 
-The position lives in `engine.mailbox_receivers`, keyed `(mailbox_id, seq)` for the release's read
-and `UNIQUE (workflow_id)` for the executor's. The workflow row itself gains one nullable column,
-`mailbox_id` — the executor's discriminator and the marker ops reads a held row by.
+`engine.mailbox_receivers` holds the position, keyed `(mailbox_id, seq)` for the release and `UNIQUE (workflow_id)`
+for the executor. The workflow row's nullable `mailbox_id` marks a receiver.
 
-**Every receiver registers, whatever status it was created in.** The registry is positional, not a
-queue of waiters: the position is the address the executor reads the delivery by, so a receiver
-created runnable but left unregistered would be handed the closing signal while its message sits at
-that very position — the one thing [the frozen-meaning
-rule](#the-receivers-meaning-is-frozen-before-it-can-run) forbids outright. `held_at` is the row's
-one structural distinction: stamped means the receiver parked (the unreleased subset is exactly the
-set the releases walk); null means created runnable, with `released_at` carrying the creation time
-so no release can ever match it.
-
-Metric: `altinn.workflow_engine.mailbox.receiver.created`, tagged `altinn.workflow_engine.mailbox.receiver.enqueue_outcome`
-(`delivered`/`closed`/`held`) — the one number that separates "the relay is running" from "the relay is parked".
+**Every receiver registers, whatever status it was created in.** The position is the address the executor reads the
+delivery by, so an unregistered runnable receiver would get the closing signal while its message stands at its
+position, which [the frozen-meaning rule](#the-receivers-meaning-is-frozen-before-it-can-run) forbids. `held_at` set
+means the receiver parked, and the unreleased rows are exactly the ones the releases walk. `held_at` null means it was
+created runnable, and `released_at` holds the creation time so that no release matches it.
 
 ### The rendezvous: exactly two things release a parked receiver
 
-Each release is written in the same transaction as its cause:
+- **The wake**: a delivery lands at the receiver's position, in the transaction that writes the delivery.
+- **The closure release**: the mailbox closes, by request or at its deadline, in the transaction that writes the
+  close.
 
-- **the wake** — a delivery lands at the receiver's position, inside the transaction that wrote the
-  delivery;
-- **the closure release** — the mailbox closes, by request or at its deadline, inside the transaction
-  that wrote the close.
+Both move the receiver from `Held` to `Enqueued` with a null backoff, so it sorts to the front of the fetch, and stamp
+`released_at`. The wake names one position, and the closure release takes every parked receiver. Two guards, skip rows
+already stamped and require the workflow to still be `Held`, make it safe to run them over a registry that holds every
+receiver.
 
-Both run the same statement: `Held` → `Enqueued` with a null backoff (so the receiver sorts to the
-front of the fetch order), plus a `released_at` stamp on the registry row. The wake names one
-position; the closure release names none and takes every parked receiver the mailbox has. Two
-independent guards — skip rows already stamped, require the workflow to still be `Held` — are what
-make a registry holding every receiver safe to run these over: a receiver created runnable fails
-both.
+**The wake sharing the delivery's transaction is the design's load-bearing property.** A held receiver has no timer,
+so "message stored, wake lost" would park it until the deadline with its answer one row away. Sharing the transaction
+makes that state impossible. The tests check it by transaction id (`xmin`), because a test that only watches the two
+rows stays green when someone splits the transaction.
 
-**The wake being transactional with the delivery insert is the design's load-bearing property.** A
-held receiver has no timer, so "message durable, wake lost" would park it until the deadline with its
-answer sitting one row away; sharing the transaction makes that a state the database cannot hold. It
-is verified by transaction id (`xmin`) rather than by observation — a test that merely watches the
-two rows stays green when the transaction is split, which is exactly the regression worth catching.
-
-Both releases take workflow rows while already holding the mailbox row: the compound order
-**mailbox row → workflow row**, the feature's only compound acquisition.
-
-One `NOTIFY status_changed` is issued inside the releasing transaction — PostgreSQL queues it to
-commit and drops it on rollback — so it fires exactly when the release is durable. **It remains
-acceleration and never correctness**: a release that commits unannounced is claimed on the next fetch
-cycle.
-
-Metrics: `altinn.workflow_engine.mailbox.receiver.released`, tagged `altinn.workflow_engine.mailbox.receiver.release_cause`
-(`delivered`/`closed`) — against the receivers created `held`, the relay's balance sheet — and
-`altinn.workflow_engine.mailbox.receiver.wake.duration`, seconds from release to first claim. Recorded once per release (the fetch stamps `claimed_at` under
-`claimed_at IS NULL`), so a failing receiver reports its wake once, not its retry ladder; a receiver
-created runnable records no sample (`held_at IS NULL` — there was no wake to time), keeping ordinary
-fetch-cycle latency out of a histogram built for a sub-second gap.
+Both releases lock workflow rows while they hold the mailbox row. **Mailbox row, then workflow row** is the feature's
+only compound lock order. The releasing transaction issues one `NOTIFY status_changed`, which PostgreSQL sends only on
+commit. **It only speeds things up**: a release that commits without it is claimed on the next fetch cycle.
 
 ### The receiver's meaning is frozen before it can run
 
-The message is read at execution, not at enqueue — it may not exist yet when the receiver is created.
-That late binding would ordinarily mean a step whose _input_ differs between attempts: one that saw
-nothing, followed by one that sees a message. The rendezvous removes the hazard structurally rather
-than by recording a verdict. A receiver becomes runnable in exactly three ways, and each settles the
-question first:
+The executor reads the message when the step runs, since it may not exist at enqueue. That would normally make a step
+whose input differs between attempts. The rendezvous rules that out by construction. A receiver becomes runnable in
+exactly three ways, and each settles the question first:
 
-1. **created with its message** — the enqueue flush found one at its position, mailbox open or
-   closed;
-2. **released by the wake** — inside the transaction that wrote the delivery, so the message exists;
-3. **released by closure** — and a closed mailbox refuses every further delivery, so no message can
-   ever arrive at that position.
+1. **Created with its message**: the enqueue flush found one at its position, open mailbox or closed.
+2. **Released by the wake**: in the transaction that wrote the delivery, so the message exists.
+3. **Released by closure**: a closed mailbox refuses every delivery, so no message can ever arrive.
 
-So from the instant a receiver is fetchable, **whether a message stands at its position can never
-change again**, and the executor simply looks:
+So once a receiver can be fetched, **whether a message stands at its position never changes again**. The executor
+reads the position, the delivery and the closure reason in one statement, in one snapshot. It **writes nothing and
+locks nothing**. A recorded verdict would be a second source of truth that could disagree with the log, and a lock
+would only stall a running receiver behind a change that cannot alter its answer. Every attempt, retry and resume
+derives the same answer from the same rows. The single snapshot matters: under `READ COMMITTED`, a split read that
+wrongly saw "no delivery" could see a close commit one statement later and pass a bug off as an ordinary closing
+signal.
 
-```text
-engine.mailbox_receivers  WHERE workflow_id = …    → the position, seq
-engine.mailbox_deliveries WHERE (mailbox_id, seq)  → present → attach it
-                                                     absent  → the closing signal + disposedReason
-```
+**A callback without a delivery therefore means one thing: the mailbox is closed and no message will ever reach this
+step.** Its `disposedReason`, `deadline` or `request`, only changes the wording. Either way the handler concludes.
 
-One statement: a unique-index probe for the position, two primary-key probes for the delivery and the
-closure reason. **Nothing is written and nothing is locked.** There is no resolution column and no
-compare-and-set — a recorded verdict would be a second source of truth able to disagree with the log —
-so every attempt, retry and resume re-derives the same answer from the same rows. The read is
-deliberately outside the lock discipline: no state is left for a lock to protect, and taking one
-would stall a running receiver behind a delivery or a close that cannot change its answer.
-
-The three rows are read in a single snapshot, and that is what makes the error states below
-trustworthy: under `READ COMMITTED`, a split read that saw "no delivery" — a genuine bug — could see
-a close commit one statement later and report a perfectly ordinary closing signal, laundering the
-violation through traffic that happens all the time. (`held_at` is not consulted: it records how the
-receiver was created, not whether a message exists.)
-
-**A callback with no delivery therefore means exactly one thing: the mailbox is closed and no message
-will ever reach this step.** It carries `disposedReason` — `deadline` or `request` — explicitly,
-purely for wording ("the archive never confirmed before the deadline" reads differently from "the
-exchange was closed"); both demand the same response: conclude.
-
-Two states would break that reading. Neither is reachable through the rendezvous, so the engine fails
-the step critically rather than reporting "no message" — which would tell a handler to conclude an
-exchange on the strength of a bug:
+The rendezvous cannot reach two states, so the engine fails the step as critical when it finds one, rather than
+telling a handler to conclude because of a bug. Each also counts on `mailbox.rendezvous.violations`.
 
 | What the read finds                    | Meaning                                                 |
 | -------------------------------------- | ------------------------------------------------------- |
 | No registration for the workflow       | The mailbox and its whole log were purged underneath it |
 | No message, and the mailbox still open | The receiver is running before its truth was frozen     |
 
-Critical rather than retryable is a real choice for the second row, because a retry would often clear
-it: the handler was never called, and once the sweep closes the mailbox the next attempt reads a
-legitimate closing signal. That is the argument against it — an invariant violation that heals itself
-is never investigated, and the healing would put the retry ladder in the load-bearing path of a
-rendezvous built so a parked receiver needs no timer at all. The step lands `Failed` and visible; the
-operator's tool is the ordinary resume, which re-derives the answer from the same rows.
+A retry would often clear the second, since the next attempt after the sweep closes the mailbox reads a legitimate
+closing signal. That is why it is critical: a violation that heals itself is never investigated, and the retry ladder
+would become load-bearing in a rendezvous built so that a parked receiver needs no timer. The operator resumes the
+failed step, which derives the answer again from the same rows.
 
 #### What the app is handed
 
-The `app` command projects the receipt onto its callback as one block, present only on a receive
-workflow's first step:
-
-```json
-{
-    "mailbox": {
-        "id": "018f4e…",
-        "seq": 1,
-        "delivery": {
-            "idempotencyKey": "source-message-42",
-            "payload": "…",
-            "acceptedAt": "2026-08-19T10:11:12Z"
-        },
-        "disposedReason": null
-    }
-}
-```
-
-`delivery` and `disposedReason` are exclusive — exactly one is present, so a handler branches once.
-`idempotencyKey` is the forwarding source's own message id, stable across every attempt of the step,
-so a handler may deduplicate its own side effects on it.
+The `app` command adds a `mailbox` block to the first step's callback, with the position and either the `delivery` or
+the `disposedReason`, never both, so a handler branches once. The delivery's `idempotencyKey` is the forwarding
+source's message id, the same on every attempt, so a handler can deduplicate its own side effects on it.
 
 ### Closing is terminal, idempotent, and says why
 
-```http
-DELETE /api/v1/{namespace}/mailboxes/{mailboxId}
-```
+A close means **the mailbox is closed for deliveries**, and nothing reopens it. It records `disposedReason`, `request`
+for a caller and `deadline` for the engine, rather than leaving intent to be inferred from timestamps.
 
-Closing means exactly one thing — **the mailbox is closed for deliveries** — and nothing reopens it.
-The close records `disposedReason` explicitly (`request` for a caller, `deadline` for the engine)
-rather than leaving intent to be inferred from timestamps; the two read very differently in a
-conclusion written for a human.
+Closing also releases **every** parked receiver at once, without a delivery, so the exchange concludes through the
+app's own conclusion path rather than a status the engine writes. They all go together because the mailbox accepts no
+further deliveries, so all their answers froze at the same moment. A repeat close has nothing to release, and a
+receiver enqueued later against a closed mailbox is created runnable.
 
-The effecting close answers `202 Accepted`; a repeat — or a close that lost the race to the mailbox's
-own deadline — answers `200 OK` with the **original** `disposedAt` and `disposedReason`. That is the
-engine-wide convention: `202` means _this call_ effected the state change, `200` means it had already
-happened.
-
-Closing is also a release: under the same row lock, **every** parked receiver goes `Held` →
-`Enqueued` on the no-delivery path, so the exchange concludes through the app's own conclusion path
-rather than an engine-written status. Every one of them at once — the mailbox accepts no further
-deliveries, so all their truths froze at the same instant. A repeat close releases nothing and cannot
-need to: the first close released everything parked, and receivers enqueued later against a closed
-mailbox are created runnable.
-
-The response reports `unpairedDeliveries` — accepted positions no receiver was ever enqueued for,
-messages that arrived while the app was concluding or past the relay's last hop. The rows stay
-readable until retention, so an operator can see what turned up too late.
+The close reports `unpairedDeliveries`: messages that came while the app was concluding, or after the relay's last
+hop. They stay readable until retention.
 
 ### The deadline is enforced by one sweep, running the same routine
 
-A parked receiver has no timer of its own, so the deadline is the only thing standing between it and
-waiting forever. `MailboxDeadlineService` turns that column into a promise: a periodic sweep claims
-open mailboxes past their `deadline` and runs **exactly the routine `DELETE` runs**, with
-`disposedReason = deadline`. One routine, not two kept in step — a `DELETE` racing the sweep is a
-first-writer-wins no-op, never two half-closures.
+A parked receiver has no timer, so the deadline is all that keeps it from waiting forever. `MailboxDeadlineService`
+claims open mailboxes past their `deadline` and runs **exactly the routine a close request runs**, with
+`disposedReason = deadline`. A close request that races the sweep is then a no-op for whichever writes second, never
+two half-closures.
 
-It runs on `EngineSettings.MailboxSweepInterval` (5 min), deliberately coarser than the maintenance
-cadence — a deadline is a day-scale promise, and an idle tick costs one indexed scan
-(`ix_mailboxes_deadline_open`). **The interval is a term in the callback-token lifetime bound**
-derived on `MaxMailboxTimeout`: a receiver parks until the mailbox actually closes — its deadline
-plus at most one cadence — so raising the interval raises the worst case, and
-`CallbackTokenLifetimeInvariantTests` fails loudly rather than letting a receiver park past its
-token's validity.
+**`MailboxSweepInterval` is a term in the callback-token lifetime bound** derived on `MaxMailboxTimeout`. A receiver
+parks until its deadline plus at most one interval, so raising the interval raises the worst case, and
+`CallbackTokenLifetimeInvariantTests` fails rather than letting a receiver park past its token's validity.
 
-- **The claim is the lock.** Each mailbox is claimed `FOR UPDATE SKIP LOCKED` — at once the row lock
-  the closure routine requires, and the reason a mailbox somebody else holds is left for the next
-  tick instead of queued behind.
-- **One transaction per mailbox.** A close that throws is contained: that mailbox stays open and
-  claimable next pass, the rest of the batch closes now. Without the isolation it would be a
-  permanent wedge, not a delay — candidates are ordered by deadline, so the same mailbox would lead
-  every batch.
-- **A tick drains; `SweepBatchSize` bounds the statement, not the tick.** Passes repeat until nothing
-  is left, so "at most one cadence" holds during exactly the mass timeout that most needs it — one
-  batch per tick would make the real gap `ceil(overdue / SweepBatchSize)` cadences. A pass that
-  closes nothing ends the tick, so a batch full of failing mailboxes waits for the next cadence
-  rather than spinning inside this one.
-- **There is no second half.** Nothing is enqueued: the workflow that concludes the exchange already
-  exists and carries the app's own steps, so closing _releases_ it.
+- **The claim is the lock.** `FOR UPDATE SKIP LOCKED` takes the row lock the close needs, and leaves a mailbox someone
+  else holds for the next tick.
+- **One transaction per mailbox.** A close that throws leaves only that mailbox open. Otherwise one failure would wedge
+  the sweep, since it orders candidates by deadline and that mailbox would lead every batch.
+- **A tick drains.** Passes repeat until nothing is overdue, so "at most one interval" holds during a mass timeout. A
+  pass that closes nothing ends the tick, so failing mailboxes wait for the next tick instead of spinning.
+- **Nothing is enqueued.** The workflow that concludes the exchange already exists, and closing releases it.
 
-The sweep counts what it finds: `altinn.workflow_engine.mailbox.closed` tagged `altinn.workflow_engine.reason="deadline"`,
-`altinn.workflow_engine.mailbox.receiver.released`, and `altinn.workflow_engine.mailbox.delivery.unpaired` — the last is
-the sweep's alone, since a `DELETE` reports the same number to a caller who can act on it.
-
-**No leak backstop exists, and none is needed.** Every mailbox closes by its deadline, so an open
-mailbox materially older than its deadline plus a cadence is an invariant violation worth an alert —
-the `altinn.workflow_engine.mailbox.open.overdue` gauge under [Mailbox metrics](#mailbox-metrics) — not a
-garbage-collection policy.
+**There is no leak backstop, and none is needed.** An open mailbox well past its deadline is an invariant violation
+that `mailbox.open.overdue` alerts on, not a matter for garbage collection.
 
 ### Retention
 
-A **closed** mailbox past the retention cutoff is purged with its deliveries and receiver
-registrations, in the existing maintenance sweep. Closure, not age, is the condition: an open mailbox
-is an exchange in progress whatever its timestamps say, and if it is overdue the closure sweep is
-what owes it an answer.
-
-The children go first, and the schema enforces it: both child tables reference `engine.mailboxes`
-with `ON DELETE RESTRICT` — the only non-cascade foreign keys in the schema — so a purge written in
-the wrong order raises SQLSTATE `23001` instead of quietly taking rows with it.
-
-Receive workflows purge independently, under the workflow sweep. A purged receiver leaves behind a
-registry row whose `workflow_id` points at nothing — which is why that column deliberately carries no
-foreign key. The row is a record of a rendezvous that already happened, and it goes when its mailbox
-does.
+The maintenance sweep purges a **closed** mailbox past the retention cutoff, with its deliveries and registrations. An
+open mailbox is an exchange in progress whatever its age, and the deadline sweep owes it an answer. Both child tables
+reference `engine.mailboxes` with `ON DELETE RESTRICT`, the schema's only non-cascading foreign keys, so a purge in the
+wrong order fails instead of taking rows with it. The workflow sweep purges receive workflows on its own schedule, so
+a registry row's `workflow_id` can point at nothing, which is why it has no foreign key.
 
 ### The three write paths are batched
 
-Minting, closing and delivering each go through a channel buffer of their own. A request is handed to
-the buffer, a background loop drains what has queued into a batch of at most `MaxBatchSize` (100),
-and one flush answers the whole batch over a single connection: close and delivery each in one
-transaction, the mint in one or two statements that share neither a transaction nor a lock. A
-delivery batch is bounded by the payload it carries as well as by its size, so a run of large
-messages splits across flushes instead of building one enormous command.
+Minting, closing and delivering each go through a buffer. A background loop drains the queue into a batch, and one
+flush answers the batch over one connection. A delivery batch is bounded by payload size as well as count.
 
-Verdicts stay per request. Every status in the tables above and in the
-[API reference](#api-reference) is still decided for one request, which gets the answer it would have
-received alone. What batching adds is folding: two requests naming the same mint key, the same
-mailbox to close, or the same message key on the same mailbox in the same namespace are decided once,
-and the second is answered exactly as it would have been had it lost the race to the first. The
-delivery's fold takes the namespace in, not just the mailbox and the key — two requests naming one
-mailbox under different namespaces are not each other's repeat, since at most one of them names the
-namespace the row carries and the other is a `404`.
+Each request gets the verdict it would have got alone. Two requests in one batch that name the same mint key, the same
+mailbox to close, or the same message key on the same mailbox and namespace are decided once, and the second gets the
+answer it would have got had it lost the race.
 
-Two properties of a per-request write do not survive batching:
+**The engine does not retry a mailbox flush.** A failed flush answers **every** request in it with `500`, and the
+caller retries with the same idempotency key, which reads back either what the failed attempt committed or a fresh
+verdict. The status write-back flush does retry, because a lost write-back costs a lease expiry and a re-run workflow,
+while a lost mailbox flush costs only a replay. A retry here would also hold one of the few flush permits for the
+whole command timeout. A flush takes no database slot (see [concurrency model](#concurrency-model)).
 
-- **A mailbox flush is not retried inside the engine.** A per-request write was wrapped in the
-  database retry strategy; these flushes are not. A flush that fails answers **every** request in it
-  `500`, and convergence is the caller's own retry under the same idempotency key — which is what the
-  key is for: the replay reads back either the row the failed attempt committed or a fresh verdict.
-  The workflow update buffer's flush _does_ retry, so the discriminator is not who is waiting but what
-  the fallback costs: a dropped write-back is recovered only by the 30 s lease expiry and a re-executed
-  workflow, where a dropped mailbox flush is recovered by a replay — and a retry here would hold one of
-  the few flush permits for the whole 30 s command budget with every queued request behind it.
-- **A flush holds no DB slot.** These three endpoint write paths no longer pass through
-  `MaxDbOperations` — the deadline sweep and the mailbox reads still do — and the flush concurrencies
-  bound them instead (see [Concurrency Model](#concurrency-model)).
-
-Cancelling a call abandons the wait, not the work. A caller who gives up before its batch reaches the
-database is dropped from that batch and writes nothing; one who gives up after the flush has started
-is answered canceled while the write commits anyway. A caller has always had that ambiguity at
-`COMMIT` — a client timeout has never meant "not written" — but the window is wider now, and
-replaying the idempotency key is how a caller finds out which side of it the request fell on.
+Canceling a call abandons the wait, not the work. A caller who gives up before its batch reaches the database writes
+nothing, and one who gives up later gets a cancellation while the write commits. Replaying the idempotency key tells
+the caller which happened.
 
 #### The saving arrives with the batches
 
-A delivery flush that accepts anything issues the same five statements in its transaction whatever its
-size — lock, idempotency lookup, counter bump, insert, receiver release, plus a `NOTIFY` when it woke
-anyone — so a message costs those five divided by the batch it landed in. (A flush that accepts
-nothing issues fewer: all duplicates is the lock and the lookup, all `404`s the lock alone.) The
-bespoke single-message path this replaced issued four, bumping the counter and inserting the row in
-one statement where the flush splits them. Below a mean batch of about 1.25 the batched path therefore issues **more** statements per
-delivery than that one did — one more at a batch of exactly 1 — and only above it does it issue fewer.
-That much is arithmetic on the statement counts, so it holds on any machine. Which side of it a
-running engine is on is readable without database access, from
-`altinn.workflow_engine.mailbox_buffer.flushed ÷ altinn.workflow_engine.mailbox_buffer.batches` (see
-[Mailbox metrics](#mailbox-metrics)).
+A delivery flush that accepts anything issues five statements whatever its size: lock, idempotency lookup, counter
+bump, insert and receiver release, plus a `NOTIFY` when it woke a receiver. A single-message write needs four, since
+it can bump the counter and insert in one statement. So below a mean batch of about 1.25 batching issues **more**
+statements per delivery, one more at a batch of 1, and only above it fewer. That follows from the statement counts on
+any machine.
 
-The batch itself is the arrival rate times the flush latency, which makes the regime a property of the
-load rather than of the build or its settings. Measured on one development machine, where two delivery
-flush workers served on the order of 2 000 deliveries/s: at 25 deliveries/s nothing ever queued (mean
-1.00 accepted message per accepting flush), while at 3 000 deliveries/s the mean was 3.86, at 1.3
-statements per stored message against the replaced path's 4.0 and 2 delivery-path connections held
-against 65. Where the crossover rate falls is machine-specific; that there is one is not. The
-connection ceiling is the exception — `FlushConcurrency` bounds it at every rate (see
-[Concurrency Model](#concurrency-model)) — and load only decides whether enough requests were
-concurrent for that bound to save anything. The figures are the delivery path's; mint and close batch
-on the same argument but were not measured.
+The batch size is the arrival rate times the flush latency, so the load, not the build, decides which side an engine
+is on. `mailbox_buffer.flushed ÷ mailbox_buffer.batches` shows it (see [mailbox metrics](#mailbox-metrics)).
 
 ### The mailbox row is its own serialization point
 
-Every operation that changes mailbox state takes the mailbox row's lock **before reading anything it
-decides on**, as the transaction's first act. That is why concurrent closes collapse onto a single
-disposal, and it is the discipline every future mailbox operation inherits. The one compound lock
-order is **mailbox row → workflow row**; nothing takes them in reverse, so the ordering is acyclic by
-inspection.
-
-The close and delivery flushes hold that discipline over plural rows: their first act locks **every
-distinct mailbox the batch names**, in one `SELECT … FOR UPDATE` over the batch's `(id, namespace)`
-pairs with `ORDER BY m.id`. That clause is what makes concurrent flushes deadlock-free — PostgreSQL
-sorts before it locks, so every flush takes contested rows in one agreed order — and it is the same
-total order the enqueue flush's own lock takes. The pairs are handed to the statement in id order
-too, but that is presentation only: .NET's `Guid` comparison is not PostgreSQL's `uuid` ordering, so
-sorting them in C# would prove nothing. The deadline sweep is not batched and stays one transaction
-per mailbox, as [the sweep](#the-deadline-is-enforced-by-one-sweep-running-the-same-routine) spells
-out.
+Every operation that changes a mailbox takes the mailbox row's lock **before it reads anything it decides on**, as its
+transaction's first act. That is why concurrent closes collapse into one, and every new mailbox operation must keep to
+it. The close and delivery flushes lock every mailbox in the batch in one `SELECT … FOR UPDATE ORDER BY m.id`.
+PostgreSQL sorts before it locks, so concurrent flushes take contested rows in one order and cannot deadlock. The
+enqueue flush uses the same order. Sorting the ids in C# would prove nothing, since .NET orders `Guid` differently from
+PostgreSQL's `uuid`.
 
 Two deliberate exceptions:
 
-- **The enqueue flush locks late.** It is a batch of unrelated callers, and it locks only for the
-  requests that can actually consume a position — unknowable until the idempotency insert has told a
-  first arrival from a replay, whose answer comes from `engine.idempotency_keys` alone. Locking
-  earlier would stall every ordinary workflow batched alongside behind a delivery or a close, for a
-  request that changes no mailbox state. What matters is preserved exactly: nothing that decides a
-  receiver's enqueue outcome is read before the lock.
-- **The mint takes no row lock at all**, and cannot — the row is what it creates. The unique index on
-  `(namespace, idempotencyKey)` serializes it instead: concurrent mints of one key contend there,
-  exactly one inserts, and the losers are handed the winner's mailbox.
+- **The enqueue flush locks late.** It locks only for requests that take a position, which it knows only once the
+  idempotency insert has told a first arrival from a replay. Locking earlier would stall every ordinary workflow in
+  the batch behind a delivery or a close. It still reads nothing that decides a receiver's outcome before the lock.
+- **The mint takes no row lock**, since it creates the row. The unique index on `(namespace, idempotencyKey)`
+  serializes concurrent mints of one key, and the losers get the winner's mailbox.
 
 ### Limits
 
-`MaxOpenMailboxesPerCollection` bounds how many mailboxes one workflow collection may hold open; a
-mint past it is refused `429 Too Many Requests` rather than silently closing something, because the
-engine cannot know which open exchange the app considers finished. A mailbox minted without a
-`collectionKey` is not counted. The cap is a **best-effort resource guard, not an exact bound**: it
-is evaluated against the mint statement's snapshot, so concurrent mints can each see room and
-overshoot slightly — at most one per in-flight mint, never runaway. Making it exact would serialize
-every mint behind a lock, which costs more than a resource guard is worth; do not assert on it as an
-invariant.
+`MaxOpenMailboxesPerCollection` limits a collection's open mailboxes. The engine refuses a mint past it with `429`
+rather than closing something, since it cannot know which exchange the app considers finished. The cap is a
+**best-effort guard, not an exact bound**: concurrent mints each check their own snapshot and can overshoot by one
+each. Making it exact would serialize every mint, so do not assert on it as an invariant.
 
-`MaxMailboxLogLength` bounds how many positions a mailbox's logs may hold (`429`). It is the only
-bound on what one mailbox can cost, because deliveries deliberately skip the admission gate an
-ordinary enqueue must pass — a delivery refused for backpressure is a message the external system has
-already sent and may never send again. `MaxMailboxPayloadSize` bounds one payload, measured on its
-UTF-8 bytes (`413`, refused rather than truncated).
+`MaxMailboxLogLength` (`429`) is the only limit on what one mailbox can cost, because deliveries skip the admission
+check an ordinary enqueue passes. A delivery refused for backpressure is a message the sender may never send again.
+`MaxMailboxPayloadSize` (`413`) refuses a large payload rather than truncating it. The engine validates the keys
+before the database, where an over-long key would fail like a transient error and be retried until the timeout.
 
-Both keys are `varchar(200)`, non-empty, validated before the mint reaches the database — an
-over-long value would otherwise come back as a transient-looking database error and be retried to the
-command timeout instead of being answered.
+The delivery queue **waits rather than refuses** when full, so `MaxMailboxLogLength` stays the only capacity refusal on
+the delivery path, and queue depth is a latency signal.
 
-The delivery buffer's queue is bounded as well, and it **waits rather than refuses**: a caller
-arriving at a full queue is delayed until a flush makes room, never turned away. Batching therefore
-leaves the no-admission-gate rule above intact: `MaxMailboxLogLength` stays the only capacity refusal
-on the delivery path, and queue depth (`altinn.workflow_engine.mailbox_buffer.depth`) is a latency signal rather than
-a loss one — a coarsely sampled one, so read it as [the metrics section](#mailbox-metrics) says.
+## Dependency graphs
 
-## Dependency Graphs
+Within one enqueue request, workflows name each other with `ref` and depend on each other with `dependsOn`, in any
+acyclic graph. The engine refuses a request with a cycle, a duplicate `ref` or a `ref` that names nothing, and stores
+the whole request atomically. A
+`dependsOn` entry can also name an earlier workflow by its database id. When a workflow fails, the engine marks its
+dependents `DependencyFailed`.
 
-### Within a Single Request (DAG)
-
-Use `ref` + `dependsOn` for arbitrary dependency graphs:
-
-```json
-{
-  "workflows": [
-    { "ref": "A", "operationId": "op-a", "steps": [...] },
-    { "ref": "B", "operationId": "op-b", "dependsOn": ["A"], "steps": [...] },
-    { "ref": "C", "operationId": "op-c", "dependsOn": ["A"], "steps": [...] },
-    { "ref": "D", "operationId": "op-d", "dependsOn": ["B", "C"], "steps": [...] }
-  ]
-}
-```
-
-The engine resolves refs via topological sort (Kahn's algorithm), detects cycles, and inserts atomically. When a workflow fails, dependents are marked `DependencyFailed`.
-
-### Across Requests
-
-Reference previously-enqueued workflows by database ID:
-
-```json
-{ "ref": "new-workflow", "dependsOn": ["local-ref", "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] }
-```
+The dependency graph read returns every workflow connected to the requested one through dependency or link relations,
+in either direction. The dashboard's chain views draw from the same graph.
 
 ## Primary and auxiliary workflows
 
-A primary workflow is one the process waits on. An auxiliary workflow runs beside the process: it
-never blocks or moves it, and its failure means work was lost and must be redriven, not that the
-instance is stuck.
+A primary workflow is one the process waits on. An auxiliary workflow runs beside the process. It never blocks or
+moves it, and its failure means that work was lost and must be run again, not that the instance is stuck.
 
-The category is encoded by the per-workflow `isHead` directive on enqueue:
+The per-workflow `isHead` directive on enqueue encodes the category: `true` or unset is primary, and `false` is
+auxiliary. The engine stores it as given and returns it on status reads. An auxiliary workflow never joins the
+collection's heads, and its dependency edges never consume them, so no later enqueue waits on it. With
+`dependsOnHeads`, the default, it still waits for the current heads before it runs. Nothing waits on an auxiliary
+workflow, so its failure shows only on `workflow.execution.failed`, through the `is_head` attribute (see
+[alerting](#alerting-on-terminal-failures)).
 
-- `isHead` `true` or unset is a primary workflow; `false` is an auxiliary workflow. The directive is
-  persisted verbatim in the `is_head` column and returned as `isHead` on workflow status reads.
-- An auxiliary workflow never joins the collection's heads and its dependency edges never consume
-  them, so no later enqueue waits on it through the heads. With `dependsOnHeads` (the default) it still waits
-  for the current heads before it runs.
-- `altinn.workflow_engine.workflow.execution.failed` carries `altinn.workflow_engine.workflow.is_head`
-  (`true`, `false` or `unset`) on every `altinn.workflow_engine.reason`. `false` is an auxiliary
-  workflow's failure: nothing waits on it, so this metric is where it surfaces.
-
-The collection's head frontier (`heads` on collection responses) is a different thing: the workflows
-the next enqueue will depend on right now. A primary workflow leaves the frontier once a later
-workflow depends on it; it stays primary.
+The collection's head frontier (`heads` on collection responses) is a different thing: the workflows the next enqueue
+will depend on now. A primary workflow leaves the frontier once a later workflow depends on it, and stays primary.
 
 | Layer                      | Primary workflow    | Auxiliary workflow |
 | -------------------------- | ------------------- | ------------------ |
@@ -1145,166 +614,82 @@ workflow depends on it; it stays primary.
 | JSON property keys         | `primary`           | `auxiliary`        |
 | Encoding                   | `isHead` true/unset | `isHead` false     |
 
-Words such as visible/invisible, side effect, side chain, non-critical and fire-and-forget are not
-used for this concept, and "head" is kept for the frontier and the `isHead` directive.
+Do not call the concept visible or invisible, side effect, side chain, non-critical or fire-and-forget. Keep "head"
+for the frontier and the `isHead` directive.
 
-## Telemetry & Observability
+## Telemetry & observability
 
-The engine reports through OpenTelemetry: traces, metrics and logs, all exported over OTLP exactly when
-the deployment sets `OTEL_EXPORTER_OTLP_ENDPOINT`. The per-signal endpoint variables do not turn
-exporting on. The protocol is `OTEL_EXPORTER_OTLP_PROTOCOL` (`grpc` when unset). Without the endpoint
-the engine sends nothing and logs no export errors: it never falls back to the SDK's default endpoint,
-and there is no setting that turns telemetry on or off. Every deployment sets the variable, and so does the compose stack; the hosts'
-launch profiles leave it to the shell. The activity source and the meter are both named
-`WorkflowEngine`, and are registered whether or not anything is exported.
+The engine reports traces, metrics and logs through OpenTelemetry over OTLP, and exports them only when the deployment
+sets `OTEL_EXPORTER_OTLP_ENDPOINT`. The per-signal endpoint variables do not turn exporting on. Without the endpoint
+the engine sends nothing and logs no export errors: it never falls back to the SDK's default endpoint, and no setting
+turns telemetry on or off. Every deployment and the compose stack set the variable, and the hosts' launch profiles
+leave it to the shell. The activity source and the meter are both named `WorkflowEngine`, and are registered whether
+or not anything is exported. [`Metrics.cs`](../src/WorkflowEngine.Telemetry/Metrics.cs) defines every instrument, and
+[`TelemetryAttributes.cs`](../src/WorkflowEngine.Telemetry/TelemetryAttributes.cs) the attribute keys and values.
 
-The deployment owns two settings the code would otherwise default. The resource's `service.name` comes
-from `OTEL_SERVICE_NAME` or `OTEL_RESOURCE_ATTRIBUTES`, which take precedence over the code's
-`WorkflowEngine`: the App host runs as `workflow-engine-app` and the TestApp as `workflow-engine-testapp`.
-`service.version` (the build's informational version) and `service.instance.id` come from the code. The
-metric export interval is `OTEL_METRIC_EXPORT_INTERVAL`, which every deployment sets to `15000`; left
-unset, the SDK exports every 60 s.
+The deployment owns two settings. `OTEL_SERVICE_NAME` or `OTEL_RESOURCE_ATTRIBUTES` sets `service.name`: the App host
+runs as `workflow-engine-app` and the TestApp as `workflow-engine-testapp`. Every deployment sets
+`OTEL_METRIC_EXPORT_INTERVAL` to `15000`, where the SDK's default is 60 seconds.
 
-`service.instance.id` identifies the process: a UUID generated when it starts (`Metrics.ServiceInstanceId`),
-so a restart gets a new one even inside the same pod, and the same on its traces, metrics and logs. A value
-in `OTEL_RESOURCE_ATTRIBUTES` takes precedence, and must still be unique per process. As a resource
-attribute it is on every metric series, the one ID allowed there: it changes only when a process starts,
-so it adds series per restart, not per request. With the gauge `altinn.workload.start_time`, the process
-start time, it gives a dashboard the processes reporting, a mark for each restart or scale-up, and, as the
-earliest start per `service.version`, a mark for each deploy.
+`service.instance.id` is a UUID the engine generates when the process starts, so a restart gets a new one even in the
+same pod. It is the one id allowed on every metric series, since it changes only when a process starts. With the
+`altinn.workload.start_time` gauge, it gives a dashboard the processes reporting, each restart and, as the earliest
+start per `service.version`, each deploy. A value set in `OTEL_RESOURCE_ATTRIBUTES` must still be unique per process.
 
-Health probes are not traffic. The health endpoints are left out of the ASP.NET Core HTTP request
-metrics and out of the traces, and the dashboard's `/dashboard/*` requests are left out of the traces.
+Health probes are not traffic: the engine leaves them out of the HTTP request metrics and the traces, and leaves the
+dashboard's requests out of the traces.
 
 ### Naming
 
 The names follow the observability standard the team has proposed
-([#21073](https://github.com/Altinn/altinn-studio/issues/21073)) and the naming rules of the
-OpenTelemetry semantic conventions.
+([#21073](https://github.com/Altinn/altinn-studio/issues/21073)) and the OpenTelemetry semantic conventions' naming
+rules.
 
-- **A metric** is `altinn.workflow_engine.<object>.<name>`. The object is singular (`workflow`,
-  `step`, `mailbox`, `slot`, `throttle`), and a segment of two words is snake_case (`main_loop`,
-  `update_buffer`). A count carries an annotation unit such as `{workflow}` and never ends in `_total`.
-  One metric is outside the prefix on purpose: `altinn.workload.start_time`, which every Studio service
-  reports under the same name.
-- **A timing histogram** ends in `.duration` and records seconds. `<object>.duration` is the whole,
-  split into `<object>.queue.duration`, the time before the work began, and
-  `<object>.processing.duration`, the work itself. The main loop idles rather than queues, so its first
-  part is `main_loop.wait.duration`.
-- **An attribute key** the engine sets is a constant in `TelemetryAttributes` (`WorkflowEngine.Telemetry`),
-  and one of two kinds. The engine's own concepts are `altinn.workflow_engine.<object>.<property>`, such as
-  `altinn.workflow_engine.workflow.is_head`. The few semantic-convention keys the engine sets itself, such
-  as `error.type`, are spelled as the conventions spell them and never carry another meaning. A key a host
-  sets — on the domain object a step works on, or on its own command's span — is the host's own, defined
-  in the host ([Domain attributes on spans](#domain-attributes-on-spans)).
-- **One key per concept.** The namespace is `altinn.workflow_engine.namespace` on a throttle counter
-  and on a span alike. A value the engine chooses is lowercase snake_case, and a count on a span ends in
-  `_count`.
-- **Names and keys are a contract** with the _Workflow Engine_ dashboard
-  ([`workflow-engine.json`](../../localtest/infra/grafana-dashboards/workflow-engine.json)) and with
-  alerts. Use the constants instead of spelling a key again, and
-  treat a rename as a breaking change that updates the dashboard with it.
-
-Log records are not part of the scheme yet: their attributes keep the log messages' own placeholder
-names. A log is found from a span by its trace ID.
+- **A metric** is `altinn.workflow_engine.<object>.<name>`, with a singular object (`workflow`, `step`, `mailbox`) and
+  snake_case for a two-word segment. A count has an annotation unit such as `{workflow}` and never ends in `_total`.
+  `altinn.workload.start_time` is outside the prefix because every Studio service reports it under that name.
+- **A timing histogram** ends in `.duration` and records seconds. `<object>.duration` is the whole, split into
+  `<object>.queue.duration` and `<object>.processing.duration`.
+- **An attribute key** the engine sets is a constant in `TelemetryAttributes`, named
+  `altinn.workflow_engine.<object>.<property>`, or a semantic-convention key such as `error.type` with exactly its
+  conventional meaning. A key a host sets is the host's own. Each concept has one key everywhere, and a value the
+  engine chooses is lowercase snake_case.
+- **Names and keys are a contract** with the _Workflow Engine_ Grafana dashboard
+  ([`workflow-engine.json`](../../localtest/infra/grafana-dashboards/workflow-engine.json)) and with alerts. Use the
+  constants, and treat a rename as a breaking change that updates the dashboard with it.
 
 ### Metrics carry bounded attributes, spans carry identities
 
-A metric takes only attributes whose values are bounded across every app the engine serves: a reason, an
-outcome, an endpoint, a command type. Never an ID, and never a value an app builds. An operation ID such
-as `Process next … Task_1 -> Task_2` is bounded within one app but not across the fleet, and every value
-would be a time series of its own. IDs and operation IDs go on spans instead, where an attribute costs one
-span rather than one series. A metric tells you that something is wrong and of what class; the spans and
-logs tell you which workflow.
+A metric takes only attributes whose values are bounded across every app the engine serves, such as a reason, an
+outcome or a command type. Never an id, and never a value an app builds. An operation id is bounded within one app but
+not across the fleet, and each value would be a time series of its own. Ids go on spans, where an attribute costs one
+span rather than one series. A metric says that something is wrong and of what class, and the spans and logs say
+which workflow.
 
-The one exception is `altinn.workflow_engine.namespace` — `{org}/{app}` for the Altinn apps, and
-unbounded across the fleet. It is on the throttle counters, whose cardinality is bounded by incident
-count (a decision recorded in the
-[failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)), and on
-the errors counter's `workflow_handling` errors. Both count rare events.
-
-### Metrics
-
-[`Metrics.cs`](../src/WorkflowEngine.Telemetry/Metrics.cs) is the source of truth; the tables below are
-the map. Each lists names under the prefix in its heading, and an attribute key is always written in
-full. Beside its own instruments, the engine exports the .NET runtime, ASP.NET Core and HttpClient
-metrics, Npgsql's connection and command metrics, and, with database instrumentation enabled, EF Core's.
-
-#### Workflows — `altinn.workflow_engine.workflow.`
-
-| Name                                                                                                  | Type      | Attributes                                                                                                                                                               |
-| ----------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request.received`                                                                                    | Counter   | `altinn.workflow_engine.endpoint` (`enqueue`)                                                                                                                            |
-| `request.accepted`                                                                                    | Counter   | —                                                                                                                                                                        |
-| `query.received`                                                                                      | Counter   | `altinn.workflow_engine.endpoint` (`list`, `get`, `cancel`, `resume`, `nudge`, `fail`, `mint_mailbox`, `deliver_to_mailbox`, …)                                          |
-| `execution.success`                                                                                   | Counter   | —                                                                                                                                                                        |
-| `execution.failed`                                                                                    | Counter   | `altinn.workflow_engine.reason` (`execution`/`poisoned`/`dependency_failed`/`wait_expired`/`manual`), `altinn.workflow_engine.workflow.is_head` (`true`/`false`/`unset`) |
-| `execution.requeued`                                                                                  | Counter   | `altinn.workflow_engine.reason` (`step_retry`/`shutdown`)                                                                                                                |
-| `execution.canceled`                                                                                  | Counter   | `altinn.workflow_engine.reason` (`before_processing`/`during_processing`)                                                                                                |
-| `execution.deferred`, `execution.resumed`, `execution.abandoned`, `execution.nudged`                  | Counter   | —                                                                                                                                                                        |
-| `execution.reclaimed`, `execution.dependency_recovered`, `execution.lease_lost`, `fetch.race_dropped` | Counter   | —                                                                                                                                                                        |
-| `duration`, `queue.duration`, `processing.duration`                                                   | Histogram | — (once per attempt)                                                                                                                                                     |
-| `active`, `scheduled`, `waiting`, `failed`, `successful`, `finished`                                  | Gauge     | —                                                                                                                                                                        |
-
-#### Steps — `altinn.workflow_engine.step.`
-
-| Name                                                                                | Type      | Attributes                                                                   |
-| ----------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------- |
-| `request.accepted`, `execution.success`, `execution.requeued`, `execution.deferred` | Counter   | —                                                                            |
-| `execution.failed`                                                                  | Counter   | `altinn.workflow_engine.reason` on `wait_expired` and `manual` failures only |
-| `duration`, `queue.duration`, `processing.duration`                                 | Histogram | `altinn.workflow_engine.step.command.type` (once per step per attempt)       |
-| `wait.duration`                                                                     | Histogram | `altinn.workflow_engine.step.command.type` (once per deferring step)         |
-
-#### Engine internals — `altinn.workflow_engine.`
-
-| Name                                                                                                        | Type      | Attributes                                                                                                                                                                                                                                       |
-| ----------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `errors`                                                                                                    | Counter   | `altinn.workflow_engine.operation` (`fetch_and_lock`/`db_maintenance`/`mailbox_deadline_close`/`mailbox_deadline_sweep`/`metrics_collector`/`throttle_sweep`/`workflow_handling`), and `altinn.workflow_engine.namespace` on `workflow_handling` |
-| `main_loop.iterations`                                                                                      | Counter   | —                                                                                                                                                                                                                                                |
-| `main_loop.duration`, `main_loop.wait.duration`, `main_loop.processing.duration`                            | Histogram | —                                                                                                                                                                                                                                                |
-| `update_buffer.flushed`, `update_buffer.deduplicated`, `update_buffer.dropped`                              | Counter   | —                                                                                                                                                                                                                                                |
-| `db.operation.success`, `db.operation.requeued`, `db.operation.failed`                                      | Counter   | —                                                                                                                                                                                                                                                |
-| `throttle.tripped`, `throttle.extended`, `throttle.released`, `throttle.cleared`, `throttle.handler_parked` | Counter   | `altinn.workflow_engine.namespace`                                                                                                                                                                                                               |
-| `throttle.breaker.tripped`, `maintenance.consecutive_failures`                                              | Gauge     | —                                                                                                                                                                                                                                                |
-| `health.status`                                                                                             | Gauge     | — (0 healthy, 1 degraded, 2 unhealthy)                                                                                                                                                                                                           |
-| `slot.worker.available`, `slot.worker.used`, and the same for `slot.db`, `slot.http` and `slot.inbox`       | Gauge     | —                                                                                                                                                                                                                                                |
-
-`MetricsCollector` samples most gauges once per `MetricsCollectionInterval` (5 s);
-`maintenance.consecutive_failures` and `throttle.breaker.tripped` are set by the services they describe.
-The mailbox metrics are in [their own table](#mailbox-metrics).
-
-#### Process — `altinn.workload.`
-
-| Name         | Type  | Attributes                                          |
-| ------------ | ----- | --------------------------------------------------- |
-| `start_time` | Gauge | — (seconds since the Unix epoch, with the fraction) |
-
-The start time is read once and reported at every collection, whether or not the engine is doing
-anything. It is outside `altinn.workflow_engine.` on purpose: every Studio service reports it under the
-same name.
+The one exception is `altinn.workflow_engine.namespace`, which is unbounded across the fleet. It is on the throttle
+counters, as the [failure-throttling ADR](../../../../docs/adr/2026-08-13-workflow-engine-failure-throttling.md)
+records, and on the errors counter's `workflow_handling` errors. Both count rare events.
 
 ### Alerting on terminal failures
 
 The default ops alert is a terminal failure that the engine or the command caused:
-`altinn.workflow_engine.workflow.execution.failed` with `altinn.workflow_engine.reason` in
-(`execution`, `poisoned`), across **every** `altinn.workflow_engine.workflow.is_head` value. Route and
-prioritize on `is_head`, never filter on it: `false` marks an
-[auxiliary workflow](#primary-and-auxiliary-workflows), whose terminal failure gates nothing and surfaces
-nowhere else. Leave three reasons out:
+`altinn.workflow_engine.workflow.execution.failed` with `altinn.workflow_engine.reason` in (`execution`, `poisoned`),
+across **every** `altinn.workflow_engine.workflow.is_head` value. Route and prioritize on `is_head`, never filter on
+it. `false` marks an [auxiliary workflow](#primary-and-auxiliary-workflows), whose terminal failure blocks nothing and
+shows nowhere else. Leave three reasons out:
 
-- `dependency_failed` mirrors an upstream failure that fired the alert in its own right, and a cascade
-  resume of that failure revives the dependent;
-- `wait_expired` means the awaited external outcome never arrived, which is for the team that owns the
-  integration (see [the wait budget](#the-wait-budget));
+- `dependency_failed` mirrors an upstream failure that fired the alert itself, and a cascade resume of that failure
+  revives the dependent.
+- `wait_expired` means the external outcome never arrived, which is for the team that owns the integration (see
+  [the wait budget](#the-wait-budget)).
 - `manual` is a caller [failing a parked workflow](#fail) on purpose.
 
-Two mailbox signals alert on any value above zero: `altinn.workflow_engine.mailbox.rendezvous.violations`
-and a sustained `altinn.workflow_engine.mailbox.open.overdue` (see [Mailbox metrics](#mailbox-metrics)).
+Two mailbox signals alert on any value above zero: `mailbox.rendezvous.violations` and a sustained
+`mailbox.open.overdue` (see [mailbox metrics](#mailbox-metrics)).
 
-VictoriaMetrics stores the metrics under their OpenTelemetry names, so a query quotes the dotted names
-and adds no `_total`; a histogram's series take the `_bucket`, `_count` and `_sum` suffixes. Count with
-`increase_pure`, not `increase` or `rate`: a reason's first failure starts a new series, and only
-`increase_pure` counts a new series' first value, so a one-off failure still fires the alert:
+VictoriaMetrics stores the metrics under their OpenTelemetry names, so a query quotes the dotted names and adds no
+`_total`. Count with `increase_pure`, not `increase` or `rate`. A reason's first failure starts a new series, and only
+`increase_pure` counts a new series' first value, so a single failure still fires the alert:
 
 ```promql
 sum by ("altinn.workflow_engine.workflow.is_head") (
@@ -1314,1018 +699,268 @@ sum by ("altinn.workflow_engine.workflow.is_head") (
 
 ### Mailbox metrics
 
-Names under `altinn.workflow_engine.`:
-
-| Name                             | Type      | Attributes                                                                                                                       |
-| -------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `mailbox.created`                | Counter   | —                                                                                                                                |
-| `mailbox.closed`                 | Counter   | `altinn.workflow_engine.reason` (`request`/`deadline`)                                                                           |
-| `mailbox.delivery.received`      | Counter   | `altinn.workflow_engine.mailbox.delivery.outcome` (`accepted`/`duplicate`/`not_found`/`closed`/`log_full`/`too_large`/`invalid`) |
-| `mailbox.delivery.unpaired`      | Counter   | — (recorded by the deadline sweep alone)                                                                                         |
-| `mailbox.receiver.created`       | Counter   | `altinn.workflow_engine.mailbox.receiver.enqueue_outcome` (`delivered`/`closed`/`held`)                                          |
-| `mailbox.receiver.released`      | Counter   | `altinn.workflow_engine.mailbox.receiver.release_cause` (`delivered`/`closed`)                                                   |
-| `mailbox.receiver.wake.duration` | Histogram | — (seconds from release to first claim, recorded once per release)                                                               |
-| `mailbox.rendezvous.violations`  | Counter   | `altinn.workflow_engine.mailbox.rendezvous.state` (`unregistered`/`undecided`)                                                   |
-| `mailbox.open.overdue`           | Gauge     | —                                                                                                                                |
-| `mailbox_buffer.flushed`         | Counter   | `altinn.workflow_engine.mailbox.operation` (`mint`/`close`/`delivery`) — **one per request**                                     |
-| `mailbox_buffer.batches`         | Counter   | `altinn.workflow_engine.mailbox.operation` (`mint`/`close`/`delivery`) — **one per flush**, whatever its size                    |
-| `mailbox_buffer.depth`           | Gauge     | `altinn.workflow_engine.mailbox.operation` (`mint`/`close`/`delivery`)                                                           |
-
-Reading them:
-
-- `created` and `closed` count **state changes rather than requests**, so idempotent replays do not
-  inflate them.
-- `delivery.received` counts **every verdict, refusals included** — even the ones refused before the
-  row lock — so a storm of oversized or misaddressed forwards is visible here and not only in HTTP
-  metrics. A call that throws instead of reaching a verdict is not an outcome and increments nothing;
-  that case shows up in the database and HTTP error metrics.
-- `rendezvous.violations`: **alert on any value above zero.** Both states are the engine violating an
-  invariant of its own rendezvous (see
-  [the frozen-meaning rule](#the-receivers-meaning-is-frozen-before-it-can-run)) — a different pager
-  than a step failing because the app returned an error.
-- `open.overdue` is the gauge the no-leak-backstop alert hangs on: mailboxes still open past their
-  `deadline` plus one `MailboxSweepInterval` of grace. A healthy engine reads **exactly zero**;
-  anything else means the sweep is not running or not draining. A mass timeout can make it briefly
-  non-zero while one tick drains, so alert on persistence, not a single sample. The count saturates
-  rather than being exact — an unbounded `count(*)` would peak during exactly the mass timeout it
-  exists to report, and the alert reads "greater than zero", so stopping early costs nothing.
-- `mailbox_buffer.flushed` counts **requests, not flushes** — the requests a batch answered, counted
-  once its database work has returned without faulting, so a batch a fault answered with exceptions
-  counts nothing. `mailbox_buffer.batches` counts the flushes themselves, **one per flush whatever its
-  size**, recorded at the same point and under the same attribute, so a faulted flush counts in neither
-  and the two are always consistent. **`flushed ÷ batches`, per `altinn.workflow_engine.mailbox.operation`
-  and over one window, is the mean batch size.** What is not the denominator is
-  `altinn.workflow_engine.db.operation.success`: it counts every engine database operation rather than
-  only these flushes, and dividing by it reads far below the truth — 0.12 against a true 1.00, in one
-  measured run.
-- `mailbox_buffer.batches` exists to answer **"is batching actually happening?"**, which matters
-  because a delivery only gets cheaper above a mean batch of about 1.25 (see
-  [The saving arrives with the batches](#the-saving-arrives-with-the-batches)). A ratio at 1.0 means
-  every request flushed alone, so the change is costing a statement per delivery instead of saving one;
-  a ratio near `maxBatchSize` means the buffer is saturated and that setting is the next thing to tune.
-  Read it per operation — mint, close and delivery queue independently. The workflow write and update
-  buffers have **no** equivalent counter, which is deliberate rather than an oversight: the mailbox
-  delivery path is the one with a measured statement-count crossover, so it is the one where batch fill
-  has to be watched rather than assumed.
-- `mailbox_buffer.depth` is latency, not capacity: the queues wait rather than refuse when full, so a
-  depth that stays high means callers waiting longer for a verdict, never requests turned away. It is
-  **a coarse sample of a fast queue**, and only a sustained reading means anything. `MetricsCollector`
-  reads the queues once per `MetricsCollectionInterval` (5 s) and the exporter ships whatever it last
-  wrote once per export interval (15 s), while a queue fills and drains between flushes. A storm at
-  3 000 deliveries/s that was plainly queuing — a mean of 3.86 messages accepted per flush can only come
-  from requests that waited — held the gauge at **0** throughout. So a zero is not evidence that the
-  queue never filled, and the gauge cannot tell you whether batching is happening — `flushed ÷ batches`
-  is what does.
-- **`pg_stat_statements` answers a finer question, and is worth keeping as the cross-check.** On the
-  `engine.mailbox_deliveries` insert, `rows ÷ calls` gives _accepted rows per accepting flush_ — not
-  the same quantity as `flushed ÷ batches`, which is _requests per flush_. The two diverge by exactly
-  the refusals a flush answered: in the measured storm by under 0.5 %, since `log_full` was 0.8 % of
-  requests, but a workload that refuses heavily would separate them. A third route, `flushed` over the
-  existing-deliveries lookup's `calls`, is requests per flush again and should agree with
-  `flushed ÷ batches` except for flushes of nothing but `404`s, which count in that numerator and not
-  in that denominator. Take all of them as deltas over one window; `pg_stat_statements` counts from its
-  last reset.
-- **The slot gauges do not see the buffered mailbox writes.** A
-  [flush](#the-three-write-paths-are-batched) holds a connection without taking a slot from the
-  `MaxDbOperations` pool, so `altinn.workflow_engine.slot.db.used` under-reports by up to the five
-  flushes the three buffers may have in flight between them — on top of the eleven the enqueue and
-  write-back buffers may hold (see [Concurrency Model](#concurrency-model)). The deadline sweep and the
-  mailbox reads — including the receipt read every receive workflow makes — still take slots, so mailbox
-  activity has not left the gauges entirely; only the three endpoint write paths have.
-  `altinn.workflow_engine.db.operation.success` counts **once per flush** on those three paths rather
-  than once per request, so their traffic moves it far less than it used to.
+- `mailbox.created` and `mailbox.closed` count **state changes, not requests**, so replays do not inflate them.
+  `mailbox.delivery.received` counts **every verdict, refusals included**, so a storm of bad forwards shows here and
+  not only in the HTTP metrics.
+- `mailbox.rendezvous.violations` means the engine broke an invariant of its own rendezvous (see
+  [the frozen-meaning rule](#the-receivers-meaning-is-frozen-before-it-can-run)). Page on it differently from a step
+  that fails because the app returned an error.
+- `mailbox.open.overdue` reads **exactly zero** on a healthy engine. Anything else means the deadline sweep is not
+  running or not draining. A mass timeout can raise it while one tick drains, so alert on persistence.
+- **`mailbox_buffer.flushed ÷ mailbox_buffer.batches`, per operation over one window, is the mean batch size.** At 1.0
+  every request flushed alone, and batching costs a statement per delivery (see
+  [the saving arrives with the batches](#the-saving-arrives-with-the-batches)). Near `MaxBatchSize`, the buffer is
+  saturated and that setting is the next to tune. `db.operation.success` is not a denominator for it, since it counts
+  every database operation. On the `engine.mailbox_deliveries` insert, `pg_stat_statements`' `rows ÷ calls` is a
+  cross-check that differs by the refusals.
+- `mailbox_buffer.depth` measures latency, not capacity, since the queues wait rather than refuse. It is a coarse
+  sample of a fast queue, and a queue that is plainly batching can read zero throughout. Only a sustained reading
+  means anything.
+- **The slot gauges do not see the buffered writes.** A [flush](#the-three-write-paths-are-batched) holds a connection
+  without a slot, so `slot.db.used` under-reports by the flushes in flight, and `db.operation.success` counts once per
+  flush on those paths.
 
 ### Traces
 
-Spans come from the `WorkflowEngine` activity source and from the ASP.NET Core and HttpClient
-instrumentation — plus EF Core's and Npgsql's when database instrumentation is enabled.
+The engine processes a workflow in a trace of its own, not under the request that enqueued it. The entry span,
+`WorkflowHandler.Handle`, links to that request's trace and to each dependency's. The request's server span carries
+`altinn.workflow_engine.workflow.ids`, so the correlation runs both ways. A span name never carries a value from a
+request, so find a step by `altinn.workflow_engine.step.operation_id`.
 
-A workflow is processed in a trace of its own rather than under the request that enqueued it. The entry
-span links back to that request's trace and to each dependency's, and the request's server span carries
-`altinn.workflow_engine.workflow.ids`, a string array of the workflows it created or matched, so the
-correlation runs both ways.
-
-| Span                                                                  | Kind     | What it carries                                                                                                                                                                                                                                                                                                     |
-| --------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Engine.EnqueueWorkflow`                                              | Internal | Validation and admission of one enqueue request: `altinn.workflow_engine.namespace`, `altinn.workflow_engine.request.workflow_count`                                                                                                                                                                                |
-| `WorkflowHandler.Handle`                                              | Consumer | The workflow's entry span: `altinn.workflow_engine.workflow.id`, `altinn.workflow_engine.collection.key`, `altinn.workflow_engine.workflow.idempotency_key`, `altinn.workflow_engine.workflow.operation_id`, `altinn.workflow_engine.namespace`, and the command's [domain attributes](#domain-attributes-on-spans) |
-| `WorkflowHandler.ProcessStep`                                         | Consumer | One step attempt, under the entry span: `altinn.workflow_engine.step.id`, `altinn.workflow_engine.step.operation_id`, `altinn.workflow_engine.step.command.type`, and the domain attributes                                                                                                                         |
-| `WorkflowExecutor.Execute`                                            | Internal | The executor's run of the step                                                                                                                                                                                                                                                                                      |
-| `AppCommand.Execute`, `WebhookCommand.Execute`                        | Client   | The callback; the `workflow-engine-app` host's app command adds its own command key. The HttpClient span beneath carries `url.full`, with query values redacted by the instrumentation                                                                                                                              |
-| `ConcurrencyLimiter.AcquireDbSlot`, `.AcquireHttpSlot`, …             | Internal | The wait for a slot                                                                                                                                                                                                                                                                                                 |
-| `WorkflowUpdateBuffer.Submit`, `WorkflowUpdateBuffer.SubmitAndForget` | Internal | One write-back submission: `altinn.workflow_engine.update.reason` (`step_started`, `step_completed`, or `workflow_` and the status, such as `workflow_completed`), `altinn.workflow_engine.workflow.status`, `altinn.workflow_engine.update.dirty_step_count`                                                       |
-| `…Buffer.FlushBatch`                                                  | Internal | One flush of a write buffer, in a trace of its own (see below): `altinn.workflow_engine.batch.size` and the `altinn.workflow_engine.batch.…_count` attributes                                                                                                                                                       |
-| `EngineRepository.…`, `DbMaintenanceService.…`, …                     | Internal | Database work and the background services                                                                                                                                                                                                                                                                           |
-
-A step span's name never carries the step's operation ID — a span name holds no value from a request —
-so the step is found by `altinn.workflow_engine.step.operation_id` instead.
-
-Every buffered write is two traces rather than one. The request's span covers the wait for a verdict —
-`WorkflowWriteBuffer.Enqueue`, `MailboxMintBuffer.Enqueue`, `MailboxCloseBuffer.Enqueue`,
-`MailboxDeliveryBuffer.Enqueue` — while the database work runs in a separate trace named for the same
-buffer — `MailboxDeliveryBuffer.FlushBatch` and so on — tagged `altinn.workflow_engine.batch.size` and
-carrying an `ActivityLink` back to every request it answered. `WorkflowUpdateBuffer.FlushBatch` links the
-same way to the workflows whose write-backs it wrote. Follow the links rather than the parent: a flush
-belongs to no single request, which is also why the rows it writes share one transaction, and so one
-`xmin`, with every other request in its batch.
+Every buffered write is two traces. The request's span covers the wait for a verdict, and the database work runs in a
+separate `…Buffer.FlushBatch` trace, linked to every request or workflow it served. Follow the links, not the parent: a
+flush belongs to no single request, which is also why its rows share one transaction, and one `xmin`, with the rest of
+its batch.
 
 #### Domain attributes on spans
 
-The engine core treats a workflow's namespace and context as opaque: it never parses `{org}/{app}`, and
-cannot say which app instance a step works on. The host's command can, so the command names it, through
-`ICommand.GetTelemetryAttributes(commandData, workflowContext)` — on `Command<TData, TContext>` and
-`Command<TData>` a typed `protected virtual`, bridged the way `Validate` is, returning nothing by default.
+The engine core treats a workflow's namespace and context as opaque, so it cannot say which domain object a step works
+on. The host's command can, through `ICommand.GetTelemetryAttributes`, which returns nothing by default.
+`WorkflowExecutor` calls it on every attempt before the command runs, and sets what it returns on the step's span
+**and** the workflow's entry span, so a search finds the whole unit of work. It skips the call while neither span is
+recorded, and logs and ignores a command that throws: telemetry never decides how a step runs.
 
-`WorkflowExecutor` calls it on every attempt, with the values `Execute` receives, before the command
-runs, and sets what it returns on the step's `WorkflowHandler.ProcessStep` span **and** on the workflow's
-`WorkflowHandler.Handle` entry span, so a search for the object finds the whole unit of work and not just
-one step. It is skipped while neither span is recorded, so an unsampled step costs the command nothing,
-and a command that throws is logged and otherwise ignored: what telemetry says about a step never
-decides how the step runs.
-
-A command returns identifiers, never personal data or secrets, and keeps the call cheap and free of I/O.
-The keys are the host's: `TelemetryAttributes` holds only the engine's own, so a host defines the keys of
-its domain itself and returns them here. `workflow-engine-app` does that for the Altinn app instance, with
-the `AppTelemetryAttributes` its `AppCommand` returns (listed in
-[its `AGENTS.md`](../../workflow-engine-app/AGENTS.md#appcommand)). `WebhookCommand` returns nothing. So
-every engine span for one domain object is one search away on the traces datasource, by a key and value
-its command returns: `{span.<key>="<value>"}` in TraceQL.
+A command returns identifiers, never personal data or secrets, and keeps the call cheap and free of I/O. The keys are
+the host's own, such as the [App host](#appcommand)'s `AppTelemetryAttributes`. In TraceQL, `{span.<key>="<value>"}`
+finds every engine span for one domain object.
 
 #### Errors and exceptions
 
-A failed span gets status Error, with the failure's message as its description, and `error.type`: the
-exception's full type name when an exception caused the failure, otherwise a low-cardinality reason the
-engine already names at the call site — `lease_lost`, `canceled`, `shutdown`, `invalid`, `at_capacity`,
-`idempotency_conflict`, or on the workflow and step spans the workflow's failure reason (`execution`,
-`wait_expired`, …) — and the semantic conventions' `_OTHER` where there is none. Never a value from a
-request. A span that later turns out to have succeeded drops its `error.type` with the Error status.
+A failed span gets status Error, the failure's message, and `error.type`: the exception's full type name, or a
+low-cardinality reason the engine names at the call site, or `_OTHER`. Never a value from a request. A span that later
+succeeds drops both.
 
-No exception event is recorded on a span: the engine adds none, and the HttpClient and ASP.NET Core
-instrumentation are left at their default, which adds none either. An exception's details, stack trace
-included, go to an ERROR log written in the same trace instead — every place that catches an exception
-without rethrowing it logs it — and a log record carries the trace and span IDs of the activity it was
-written under. From a failed span, the traces datasource's link to the logs (by trace ID) shows them.
+No span records an exception event. Every place that catches an exception without rethrowing it writes an ERROR log
+in the same trace, with the stack trace, so the traces datasource's link to the logs shows it from the failed span.
 
 ### Where to look locally
 
-The engine exports over OTLP to whatever collector listens on the host, so any collector works. studioctl
-is one example: `studioctl env up --monitoring` runs an OpenTelemetry collector on the host's ports
-4317 and 4318, VictoriaMetrics, VictoriaTraces and VictoriaLogs behind it, and Grafana at
-<http://local.altinn.cloud:8000/grafana>. Its _Workflow Engine_ dashboard is in the _Altinn Studio_
-folder; pick the service on it — `workflow-engine-testapp` for the TestApp, `workflow-engine-app` for the
-App host. In Explore, its datasources are _Metrics_ (uid `altinn-studio-metrics`), _Traces_
-(`altinn-studio-traces`, Grafana's Tempo datasource over VictoriaTraces, so it takes TraceQL) and _Logs_
-(`altinn-studio-logs`).
-
-The engine dashboard's trace links — the trace icon on a workflow card, _Open trace_ in the step
-modal — open the workflow's trace in the viewer the host names in its
-[dashboard settings](#dashboard-trace-links), a Grafana or any viewer with a page per trace, and are not
-drawn while it names none. studioctl names its own Grafana for the engine it runs. How an engine on the host or in the compose stack reaches a collector, how
-to give the TestApp trace links, and the one studioctl flag that clashes with the compose stack, are in
-[Monitoring](docker.md#monitoring).
+`studioctl env up --monitoring` runs a collector on the host's OTLP ports, with Grafana at
+<http://local.altinn.cloud:8000/grafana>. Its _Workflow Engine_ dashboard is in the _Altinn Studio_ folder, and its
+_Traces_ datasource takes TraceQL. [Monitoring](docker.md#monitoring) covers how an engine on the host or in the
+compose stack reaches a collector, and the [dashboard settings](#dashboard-trace-links) give the engine dashboard its
+trace links.
 
 ## Dashboard
 
-Real-time monitoring UI (vanilla JS, no build step), embedded in `WorkflowEngine.Core`.
-
-- SSE streams for engine health and active workflows
-- Visual step pipeline with status colors
-- Step detail modal (command, retry strategy, trace ID, errors)
-- Operator actions on a step: _Retry_ a failed one, _Retry now_ / _Check now_ a parked one ([nudge](#nudge)),
-  or _Fail_ a parked one by hand ([fail](#fail)) — all through the public `/api/v1` endpoints, so the UI
-  exercises the same contract external callers use
-- State evolution viewer
-- A link from each workflow to its trace, in Grafana or another trace viewer the host configures (see [Dashboard trace links](#dashboard-trace-links))
-- Paginated query interface with namespace/status/label filters
-- Mailboxes rendered under their collections, log laid out position by position
-  (`GET /dashboard/mailboxes` — payload and bounds in `src/WorkflowEngine.Core/wwwroot/DASHBOARD_SPEC.md`)
-
-## API Reference
-
-The workflow, collection, mailbox and per-namespace throttle routes are scoped by `{namespace}`, a string the caller
-chooses and the engine treats as opaque. The Altinn apps use `{org}/{app}`, and so do the examples below. The namespace is one path
-segment, so its slash is percent-encoded in a URL: `ttd/my-app` is `ttd%2Fmy-app`.
-
-### Enqueue Workflows
-
-```http
-POST /api/v1/{namespace}/workflows?idempotencyKey=process-next-abc123&collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
-```
-
-**Request:**
-
-```json
-{
-    "labels": {
-        "org": "ttd",
-        "app": "my-app",
-        "instanceOwnerPartyId": "50001234",
-        "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-    },
-    "context": {
-        "actor": { "orgId": "12345678901" },
-        "callbackToken": "opaque-callback-token",
-        "org": "ttd",
-        "app": "my-app",
-        "instanceOwnerPartyId": 50001234,
-        "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-    },
-    "workflows": [
-        {
-            "ref": "validate-and-sign",
-            "operationId": "process-task-2",
-            "steps": [
-                {
-                    "operationId": "validate-form",
-                    "command": {
-                        "type": "app",
-                        "data": { "commandKey": "ValidateFormData" }
-                    }
-                },
-                {
-                    "operationId": "generate-pdf",
-                    "command": {
-                        "type": "app",
-                        "data": { "commandKey": "GeneratePdf" }
-                    },
-                    "retryStrategy": {
-                        "backoffType": "Exponential",
-                        "baseInterval": "00:00:02",
-                        "maxDelay": "00:05:00",
-                        "maxDuration": "01:00:00"
-                    }
-                },
-                {
-                    "operationId": "notify-complete",
-                    "command": {
-                        "type": "webhook",
-                        "data": {
-                            "uri": "https://hooks.example.com/workflow-done",
-                            "method": "POST"
-                        }
-                    }
-                }
-            ]
-        }
-    ]
-}
-```
-
-**Response (201 Created):**
-
-```json
-{
-    "workflows": [
-        {
-            "ref": "validate-and-sign",
-            "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-            "namespace": "ttd/my-app"
-        }
-    ]
-}
-```
-
-**Response (200 OK — duplicate idempotency key):**
-
-Same shape. The original workflow is returned, no new workflow is created. This dedup guarantee lasts for the key row's lifetime: it ends when retention purges the key, or immediately when a workflow it created is [abandoned](#abandon) — the abandon releases the fingerprint so the request can be retried as new work.
-
-**Response (400 Bad Request — validation failure):**
-
-```json
-{
-    "message": "Command validation failed for step 'validate-form': commandKey is required"
-}
-```
-
-### Get Single Workflow
-
-```http
-GET /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479
-```
-
-**Response (200 OK):**
-
-```json
-{
-    "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "operationId": "process-task-2",
-    "idempotencyKey": "process-next-abc123",
-    "namespace": "ttd/my-app",
-    "createdAt": "2026-03-19T10:00:00+00:00",
-    "updatedAt": "2026-03-19T10:00:05+00:00",
-    "executionStartedAt": "2026-03-19T10:00:01+00:00",
-    "overallStatus": "Completed",
-    "labels": {
-        "org": "ttd",
-        "app": "my-app",
-        "instanceOwnerPartyId": "50001234",
-        "instanceGuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-    },
-    "steps": [
-        {
-            "databaseId": "c1d2e3f4-a5b6-7890-cdef-123456789abc",
-            "operationId": "validate-form",
-            "processingOrder": 0,
-            "updatedAt": "2026-03-19T10:00:02+00:00",
-            "executionStartedAt": "2026-03-19T10:00:01+00:00",
-            "command": { "type": "app" },
-            "status": "Completed",
-            "retryCount": 0
-        },
-        {
-            "databaseId": "d2e3f4a5-b6c7-8901-defg-23456789abcd",
-            "operationId": "generate-pdf",
-            "processingOrder": 1,
-            "updatedAt": "2026-03-19T10:00:04+00:00",
-            "executionStartedAt": "2026-03-19T10:00:03+00:00",
-            "command": { "type": "app" },
-            "status": "Completed",
-            "retryCount": 1,
-            "retryStrategy": {
-                "backoffType": "Exponential",
-                "baseInterval": "00:00:02",
-                "maxDelay": "00:05:00",
-                "maxDuration": "01:00:00"
-            }
-        },
-        {
-            "databaseId": "e3f4a5b6-c7d8-9012-efgh-3456789abcde",
-            "operationId": "notify-complete",
-            "processingOrder": 2,
-            "updatedAt": "2026-03-19T10:00:05+00:00",
-            "executionStartedAt": "2026-03-19T10:00:04+00:00",
-            "command": { "type": "webhook" },
-            "status": "Completed",
-            "retryCount": 0
-        }
-    ]
-}
-```
-
-`executionStartedAt` — on the workflow and on each step — is the start of the **most recent attempt**,
-stamped by the worker as the attempt begins and persisted by that attempt's write-backs. It is absent
-while the workflow is `Enqueued` — before the first attempt, and again after `resume`, a stale reclaim or
-dependency recovery return it there — and every new attempt overwrites it (retries and deferral
-re-executions included). `executionStartedAt − createdAt` is queue wait; on a settled step,
-`updatedAt − executionStartedAt` is the last attempt's duration. Do not substitute `createdAt` when
-deriving a duration: that counts queue wait as processing time.
-
-The persisted value trails the in-memory one by at most one write-back. A step's first write-back of an
-attempt (`step_started`) is fire-and-forget and is dropped when the update buffer is saturated, so under
-pressure a `Processing` step can read with the previous attempt's stamp — or none — until the attempt
-settles. A duration derived from a settled step is exact; one derived from a `Processing` step is
-indicative.
-
-### List Workflows
-
-```http
-GET /api/v1/{namespace}/workflows
-```
-
-Supports the following optional query parameters (all repeatable params can be supplied multiple times):
-
-| Parameter       | Repeatable | Description                                                                                                                                                                                                                                 |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `status`        | Yes        | Filter by workflow status. Case-insensitive. One of `Enqueued`, `Processing`, `Requeued`, `Completed`, `Failed`, `Canceled`, `DependencyFailed`, `Abandoned`. Omit to return all statuses; an unrecognized value returns `400 Bad Request`. |
-| `label`         | Yes        | Filter by label, formatted as `key:value`. Entries without a `:` are ignored.                                                                                                                                                               |
-| `collectionKey` | No         | Filter to a single collection.                                                                                                                                                                                                              |
-| `cursor`        | No         | Pagination cursor — pass the `nextCursor` from the previous response to fetch the next page.                                                                                                                                                |
-| `pageSize`      | No         | Items per page. Defaults to 25, clamped to the range 1–100.                                                                                                                                                                                 |
-
-Filter by status — e.g. all failed workflows (combine values to widen the set):
-
-```http
-GET /api/v1/ttd%2Fmy-app/workflows?status=Failed&status=DependencyFailed
-```
-
-Filter by labels (repeated `label` param, `key:value` format):
-
-```http
-GET /api/v1/ttd%2Fmy-app/workflows?label=org:ttd&label=app:my-app
-```
-
-Find all workflows for a specific collection via collectionKey:
-
-```http
-GET /api/v1/ttd%2Fmy-app/workflows?collectionKey=a1b2c3d4-e5f6-7890-abcd-ef1234567890
-```
-
-Or combine filters — e.g. all failed workflows for a specific instance owner:
-
-```http
-GET /api/v1/ttd%2Fmy-app/workflows?status=Failed&label=instanceOwnerPartyId:50001234
-```
-
-**Response (200 OK):** a cursor-paginated `PaginatedResponse` wrapping `WorkflowStatusResponse` items (each the same shape as the single workflow GET above). Returns `204 No Content` when no workflows match.
-
-```json
-{
-    "data": [/* WorkflowStatusResponse items */],
-    "pageSize": 25,
-    "totalCount": 142,
-    "nextCursor": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-}
-```
-
-Paginate by passing `nextCursor` back as `?cursor=`. A `null` `nextCursor` indicates the last page.
-
-### Cancel Workflow
-
-```http
-POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/cancel
-```
-
-**Response (202 Accepted):**
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "cancellationRequestedAt": "2026-03-19T10:01:00+00:00",
-    "canceledImmediately": true
-}
-```
-
-`canceledImmediately` reports whether the interrupt was delivered synchronously (the receiving pod was running the workflow) or whether it will be applied via the distributed path — see [Immediate vs. distributed cancellation](#immediate-vs-distributed-cancellation). Returns `200 OK` instead when cancellation was already pending (idempotent replay), `409 Conflict` when the workflow is already terminal, and `404 Not Found` when it doesn't exist.
-
-### Resume Workflow
-
-```http
-POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/resume?cascade=true
-```
-
-**Response (202 Accepted):**
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "resumedAt": "2026-03-19T10:02:00+00:00",
-    "cascadeResumed": []
-}
-```
-
-### Nudge Workflow
-
-```http
-POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/nudge
-```
-
-**Response (202 Accepted):**
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "nudgedAt": "2026-03-19T10:03:00+00:00"
-}
-```
-
-Clears the pending backoff of a parked (`Requeued` or `Waiting`) workflow so it runs on the next fetch
-cycle — see [Nudge](#nudge). Returns `200 OK` with a null `nudgedAt` when it was already due,
-`409 Conflict` when the workflow is not parked, and `404 Not Found` when it doesn't exist.
-
-### Fail Workflow
-
-```http
-POST /api/v1/{namespace}/workflows/f47ac10b-58cc-4372-a567-0e02b2c3d479/fail
-Content-Type: application/json
-
-{ "reason": "Upstream registry confirmed the shipment was never created" }
-```
-
-**Response (202 Accepted):**
-
-```json
-{
-    "workflowId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "failedAt": "2026-03-19T10:04:00+00:00"
-}
-```
-
-Fails a parked (`Requeued` or `Waiting`) workflow by caller decision, recording the optional `reason` as the
-parked step's final error entry — see [Fail](#fail). Returns `409 Conflict` when the workflow is not parked
-(including when it is already `Failed`), `404 Not Found` when it doesn't exist, and `400 Bad Request` for a
-blank or over-long reason.
-
-### List Namespace Throttles
-
-Lists the [failure-storm circuit breaker](#failure-storm-throttling) state of every namespace that currently has one. Purely observational — works whether or not throttling is enabled. Returns `204 No Content` when no breaker state exists.
-
-```http
-GET /api/v1/throttles
-```
-
-**Response (200 OK):**
-
-```json
-[
-    {
-        "namespace": "ttd/broken-app",
-        "state": "Tripped",
-        "trippedAt": "2026-03-19T10:00:00+00:00",
-        "currentWindow": "00:10:00",
-        "canaryCount": 3,
-        "lastEvaluatedAt": "2026-03-19T10:05:00+00:00",
-        "lastRequeuedCount": 120,
-        "lastActiveCount": 150,
-        "updatedAt": "2026-03-19T10:05:00+00:00"
-    }
-]
-```
-
-### Get Namespace Throttle
-
-The same breaker state for a single namespace. `404 Not Found` when the namespace has no breaker state row.
-
-```http
-GET /api/v1/{namespace}/throttle
-```
-
-### Force-Trip Throttle
-
-Trips the namespace's breaker immediately, regardless of the detection thresholds — a one-shot intervention that does not prevent canary-driven recovery (see [Failure-Storm Throttling](#failure-storm-throttling)). Force-tripping an already-tripped breaker re-trips it with the initial window and fresh canaries.
-
-```http
-POST /api/v1/{namespace}/throttle/trip
-```
-
-**Response (202 Accepted):** the resulting breaker state (same shape as **Get Namespace Throttle**). `409 Conflict` when throttling is disabled — with `Throttling.Enabled = false` the workflow fetch ignores `throttled_until` entirely, so the override would be inert.
-
-### Force-Clear Throttle
-
-Clears the namespace's breaker immediately and clears every `throttled_until` stamp in the namespace — "release now", not "never throttle": the next sweep re-trips if the trip condition still holds. The state row lingers through the normal cleared grace period.
-
-```http
-POST /api/v1/{namespace}/throttle/clear
-```
-
-**Response (202 Accepted):** the resulting breaker state. `200 OK` when the breaker was already clear (idempotent replay, stragglers still cleared), `404 Not Found` when the namespace has no breaker state, `409 Conflict` when throttling is disabled.
-
-### List Collections
-
-Lists all collections in the namespace, ordered by most recently updated. Each entry carries its head workflow IDs as bare GUIDs (not status-enriched — use **Get Collection** below for head statuses).
-
-```http
-GET /api/v1/{namespace}/collections
-```
-
-**Response (200 OK):** an array of collection summaries. Returns `204 No Content` when the namespace has no collections.
-
-```json
-[
-    {
-        "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-        "namespace": "ttd/my-app",
-        "heads": ["f47ac10b-58cc-4372-a567-0e02b2c3d479"],
-        "createdAt": "2026-03-19T10:00:00+00:00",
-        "updatedAt": "2026-03-19T10:00:05+00:00"
-    }
-]
-```
-
-### Get Collection
-
-```http
-GET /api/v1/{namespace}/collections/{key}
-```
-
-**Response (200 OK):** a single collection with its head workflow statuses, or `404 Not Found` when the key is unknown in the namespace.
-
-```json
-{
-    "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "namespace": "ttd/my-app",
-    "heads": [{ "databaseId": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "status": "Completed" }],
-    "createdAt": "2026-03-19T10:00:00+00:00",
-    "updatedAt": "2026-03-19T10:00:05+00:00"
-}
-```
-
-### Mint Mailbox
-
-Mints a [mailbox](#mailboxes). Idempotent on `(namespace, idempotencyKey)`.
-
-```http
-POST /api/v1/{namespace}/mailboxes
-```
-
-```json
-{
-    "idempotencyKey": "Task_1:SendToArchive",
-    "timeout": "2.00:00:00",
-    "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-}
-```
-
-**Response (201 Created):**
-
-```json
-{
-    "id": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
-    "namespace": "ttd/my-app",
-    "idempotencyKey": "Task_1:SendToArchive",
-    "collectionKey": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "timeout": "2.00:00:00",
-    "deadline": "2026-03-21T10:00:00+00:00",
-    "status": "Open",
-    "nextIdx": 0,
-    "nextSeq": 0,
-    "unpairedDeliveries": 0,
-    "createdAt": "2026-03-19T10:00:00+00:00"
-}
-```
-
-Returns `200 OK` with the existing mailbox when the idempotency key already minted one — answered
-even when the collection is at its cap, since a replay creates nothing. `400 Bad Request` for a key
-that is empty, whitespace, or over 200 characters, or a `timeout` that is not positive or exceeds
-`MaxMailboxTimeout`. `429 Too Many Requests` when the collection already holds
-`MaxOpenMailboxesPerCollection` open mailboxes — a best-effort guard, so treat it as a signal to back
-off rather than as proof of an exact count.
-
-### Get Mailbox
-
-```http
-GET /api/v1/{namespace}/mailboxes/{mailboxId}
-```
-
-**Response (200 OK):** the same shape as the mint returns — status, deadline, both counters, and the
-unpaired-delivery count. `404 Not Found` when no mailbox with that id exists in the namespace.
-
-### Close Mailbox
-
-```http
-DELETE /api/v1/{namespace}/mailboxes/{mailboxId}
-```
-
-**Response (202 Accepted):**
-
-```json
-{
-    "id": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
-    "namespace": "ttd/my-app",
-    "idempotencyKey": "Task_1:SendToArchive",
-    "timeout": "2.00:00:00",
-    "deadline": "2026-03-21T10:00:00+00:00",
-    "status": "Disposed",
-    "disposedReason": "Request",
-    "nextIdx": 0,
-    "nextSeq": 0,
-    "unpairedDeliveries": 0,
-    "createdAt": "2026-03-19T10:00:00+00:00",
-    "disposedAt": "2026-03-19T10:04:00+00:00"
-}
-```
-
-Terminal and idempotent: `202 Accepted` when this call closed the mailbox, `200 OK` when it was
-already closed — reporting the **original** `disposedAt` and `disposedReason` rather than this call's.
-`404 Not Found` when no mailbox with that id exists in the namespace.
-
-### Deliver to Mailbox
-
-Delivers one message into a [mailbox](#deliveries-a-gapless-log). Idempotent on
-`(mailboxId, idempotencyKey)` — pass the source's own message id.
-
-```http
-POST /api/v1/{namespace}/mailboxes/{mailboxId}/deliveries
-```
-
-```json
-{
-    "idempotencyKey": "urn:altinn:message:9f2c…",
-    "payload": "{\"status\":\"received\"}"
-}
-```
-
-**Response (202 Accepted):**
-
-```json
-{
-    "mailboxId": "0195f4e2-1a3b-7c00-9d21-3f5a6b7c8d9e",
-    "idx": 0,
-    "idempotencyKey": "urn:altinn:message:9f2c…",
-    "acceptedAt": "2026-03-19T10:02:00+00:00"
-}
-```
-
-Returns `200 OK` with the delivery the key already made, at the position it has held since — even
-after the mailbox has closed, since the engine kept it. `404 Not Found` when no mailbox with that id
-exists in the namespace. `409 Conflict` when the mailbox is closed, which always means _too late_ and
-never _too early_; the detail says whether it closed by request or at its deadline. `413` when the
-payload exceeds `MaxMailboxPayloadSize`, and `429` when the log has reached `MaxMailboxLogLength`.
-The payload is not echoed back — the caller just sent it, and the only thing it could not have known
-is the position.
-
-## Health Checks
-
-```
-GET /api/v1/health        — all checks
-GET /api/v1/health/ready  — readiness: the checks tagged `ready` (the engine's status)
-GET /api/v1/health/live   — liveness: 200 while the process runs
-```
-
-The versionless `/health`, `/health/ready` and `/health/live` are `301` redirects to `/api/v1/health`.
-Never point a probe at them: a `3xx` counts as a pass, and the redirect never evaluates the readiness
-check. Probes are left out of the HTTP request metrics and the traces.
-
-| Flag                      | Health Result |
-| ------------------------- | ------------- |
-| `Running + Healthy`       | Healthy       |
-| `QueueFull` or `Disabled` | Degraded      |
-| `Unhealthy` or `Stopped`  | Unhealthy     |
-
-Response includes worker counts, connection pool utilization, and queue depths.
+The engine serves a dashboard at its root. It reads its own read-only endpoints under `/dashboard/`, and its operator
+actions call the public `/api/v1` endpoints, so the UI exercises the contract external callers use.
+[Dashboard](dashboard.md) specifies it.
+
+## API reference
+
+The OpenAPI document at `/swagger` describes each operation, its parameters and its models, and links each operation
+to its section here. This section adds the behavior a caller needs that the schema cannot show.
+
+The workflow, collection, mailbox and namespace throttle routes start with `/api/v1/{namespace}`. The namespace is a
+string the caller chooses and the engine treats as opaque. The Altinn apps use `{org}/{app}`. It is one path segment,
+so its slash is percent-encoded: `ttd/my-app` is `ttd%2Fmy-app`.
+
+Across the API, `202 Accepted` means this call made the state change, and `200 OK` means the change had already
+happened. `404 Not Found` means the namespace has no such resource. Refusals carry problem details.
+
+### Enqueue workflows
+
+`POST /api/v1/{namespace}/workflows` stores one or more workflows and their [dependency graph](#dependency-graphs)
+atomically. The `idempotencyKey` query parameter identifies the request, and the optional `collectionKey` chains it
+onto a [collection](workflow-collections.md). `201 Created` means the engine stored them. `200 OK` means the key has
+already enqueued this request, and returns the original workflows. That guarantee lasts until retention purges the
+key, or until a workflow it created is [abandoned](#abandon). `409 Conflict` means the key was used with a different
+body, `400 Bad Request` that validation failed, and `429 Too Many Requests` that the engine is at
+`BackpressureThreshold`.
+
+### List workflows
+
+`GET /api/v1/{namespace}/workflows` lists workflows newest first, with the same items as the single read. The status,
+label and collection filters combine. Pagination is by cursor: pass `nextCursor` back as `cursor`, and a null
+`nextCursor` marks the last page. `204 No Content` means nothing matched, and `400 Bad Request` that a status value is
+unknown.
+
+### Get single workflow
+
+`GET /api/v1/{namespace}/workflows/{workflowId}` returns a workflow and its steps. `executionStartedAt` is the start of
+the most recent attempt, as the models' doc comments describe. Derive a duration from it, never from `createdAt`,
+which counts queue wait as processing time. The stored value trails the worker by up to one write-back: an attempt's
+`step_started` write-back is fire-and-forget, and the update buffer drops it under pressure. A duration from a settled
+step is exact, and one from a `Processing` step is indicative.
+
+### List collections
+
+`GET /api/v1/{namespace}/collections` lists the namespace's collections, most recently updated first. Each carries its
+head workflow ids without their statuses, and [get collection](#get-collection) adds those. `204 No Content` means the
+namespace has none.
+
+### Get collection
+
+`GET /api/v1/{namespace}/collections/{key}` returns one collection with the status of each head, and each head's
+`failedAttempts` and `waitingReason` as [retry](#retry--error-handling) and [deferral](#deferral-durable-yield)
+describe. `404 Not Found` means the namespace has no collection with that key.
+
+### List namespace throttles
+
+`GET /api/v1/throttles` lists the [circuit breaker](#failure-storm-throttling) state of every namespace that has one:
+tripped, recovering, or cleared and still lingering. It works whether or not throttling is enabled. `204 No Content`
+means no breaker state exists.
+
+### Get namespace throttle
+
+`GET /api/v1/{namespace}/throttle` returns one namespace's breaker state. `404 Not Found` means the namespace has none.
+
+### Force-trip throttle
+
+`POST /api/v1/{namespace}/throttle/trip` trips the breaker now, whatever the thresholds say, with the initial window
+and fresh canaries, also when it is already tripped. Recovery through the canaries proceeds as usual. `202 Accepted` returns the resulting state, and
+`409 Conflict` means throttling is disabled.
+
+### Force-clear throttle
+
+`POST /api/v1/{namespace}/throttle/clear` clears the breaker and every `throttled_until` stamp in the namespace. The
+next sweep trips again if the condition still holds. The state row lingers through the grace period, so the sweep
+still clears stragglers that a replica's stale snapshot parked. `202 Accepted` returns the resulting state, and
+`200 OK` means the breaker was already clear. `404 Not Found` means the namespace has no breaker state, and `409 Conflict` that throttling is
+disabled.
+
+### Mint mailbox
+
+`POST /api/v1/{namespace}/mailboxes` mints a [mailbox](#mailboxes), idempotent on `(namespace, idempotencyKey)`.
+`201 Created` means this call minted it, and `200 OK` returns the one the key already minted, even when the collection
+is at its cap, since a replay creates nothing. `400 Bad Request` means a key is empty or longer than 200 characters,
+or the `timeout` is not positive or exceeds `MaxMailboxTimeout`. `429 Too Many Requests` means the collection holds
+its maximum of open mailboxes. The cap is [best-effort](#limits), so treat it as a signal to back off, not as an exact
+count.
+
+### Get mailbox
+
+`GET /api/v1/{namespace}/mailboxes/{mailboxId}` returns the mailbox: its status, its deadline, both
+[counters](#two-counters-and-what-they-mean) and the unpaired deliveries. `404 Not Found` means the namespace has no
+mailbox with that id.
+
+### Close mailbox
+
+`DELETE /api/v1/{namespace}/mailboxes/{mailboxId}` [closes](#closing-is-terminal-idempotent-and-says-why) the mailbox.
+`202 Accepted` means this call closed it. `200 OK` means it was already closed, by a caller or by its deadline, and
+reports the **original** `disposedAt` and `disposedReason`. `404 Not Found` means the namespace has no mailbox with
+that id.
+
+### Deliver to mailbox
+
+`POST /api/v1/{namespace}/mailboxes/{mailboxId}/deliveries` appends one message to the mailbox's
+[log](#deliveries-a-gapless-log), idempotent on `(mailboxId, idempotencyKey)`. Pass the source's own message id as the
+key. `202 Accepted` returns the position, `idx`, and not the payload, since the position is all the caller did not
+know. `200 OK` returns the delivery the key already made, at its position, even after the mailbox has closed.
+`409 Conflict` means the mailbox is closed, which always means _too late_, and the detail says whether a caller or the
+deadline closed it. `404 Not Found` means no such mailbox in the namespace, `413 Content Too Large` that the payload
+exceeds `MaxMailboxPayloadSize`, and `429 Too Many Requests` that the log has reached `MaxMailboxLogLength`.
+
+## Health checks
+
+`/api/v1/health` runs every check. `/api/v1/health/ready` runs the checks tagged `ready`, which report the engine's
+status, and `/api/v1/health/live` answers `200` while the process runs. The versionless `/health`, `/health/ready` and
+`/health/live` redirect to them with `301`. Never point a probe at those: a probe counts a `3xx` as a pass, and the
+redirect never runs the readiness check.
+
+The engine is degraded while it is disabled, its queue is full or the database is unavailable, and unhealthy when it
+is stopped or reports itself unhealthy (`Engine.HealthLevel`). The response includes worker, connection and queue counts. Probes are left out of
+the HTTP request metrics and the traces.
 
 ## Configuration
 
-All via `EngineSettings` (bound from `appsettings.json`):
+`EngineSettings` holds the settings, bound from the `EngineSettings` configuration section, and
+[`Defaults.cs`](../src/WorkflowEngine.Core/Constants/Defaults.cs) holds their defaults. Their doc comments say what
+each one does. The engine reads them once at startup, with `IOptions<T>` rather than `IOptionsMonitor<T>`, since the
+settings worth tuning, such as the slot, pool and buffer sizes, cannot change while the process runs. Tune a
+deployment with environment variables in its overlay, such as `EngineSettings__Concurrency__MaxWorkers`, and restart
+it.
 
-### Processing
+Some settings constrain each other:
 
-| Setting                     | Default                  | Description                            |
-| --------------------------- | ------------------------ | -------------------------------------- |
-| `MaxWorkflowsPerRequest`    | —                        | Max workflows in a single enqueue call |
-| `MaxStepsPerWorkflow`       | —                        | Max steps per workflow                 |
-| `MaxLabels`                 | —                        | Max label key-value pairs              |
-| `DefaultStepCommandTimeout` | 100s                     | Per-step execution timeout             |
-| `DefaultStepRetryStrategy`  | Exponential(1s, 5m, 24h) | Default retry strategy                 |
-
-### Heartbeat & Recovery
-
-| Setting                       | Default | Description                                |
-| ----------------------------- | ------- | ------------------------------------------ |
-| `HeartbeatInterval`           | 10s     | Worker liveness proof interval             |
-| `StaleWorkflowThreshold`      | 30s     | Time before a workflow is considered stale |
-| `MaxReclaimCount`             | 5       | Reclaim attempts before marking as failed  |
-| `CancellationWatcherInterval` | 2s      | Cross-pod cancellation poll interval       |
-
-### Concurrency
-
-| Setting                             | Default | Description                                                                                                         |
-| ----------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
-| `Concurrency.MaxWorkers`            | 400     | Concurrent workflow processing tasks                                                                                |
-| `Concurrency.MaxDbOperations`       | 90      | DB connection pool limit — the five buffer flush paths are outside it (see [Concurrency Model](#concurrency-model)) |
-| `Concurrency.MaxHttpCalls`          | 400     | Outbound HTTP request limit                                                                                         |
-| `Concurrency.BackpressureThreshold` | 500,000 | Active workflow count before 429                                                                                    |
-
-### Write Buffer
-
-| Setting                        | Default | Description                                                               |
-| ------------------------------ | ------- | ------------------------------------------------------------------------- |
-| `WriteBuffer.MaxBatchSize`     | 100     | Workflows per batch insert                                                |
-| `WriteBuffer.MaxQueueSize`     | 10,000  | Channel buffer size                                                       |
-| `WriteBuffer.FlushConcurrency` | 10      | Concurrent batch flushers, one connection each, outside `MaxDbOperations` |
-
-### Mailbox Buffers
-
-| Setting                                    | Default | Description                                                                              |
-| ------------------------------------------ | ------- | ---------------------------------------------------------------------------------------- |
-| `MailboxBuffers.Mint.MaxBatchSize`         | 100     | Mints per batch flush                                                                    |
-| `MailboxBuffers.Mint.MaxQueueSize`         | 5,000   | Mints that may wait for a flush                                                          |
-| `MailboxBuffers.Mint.FlushConcurrency`     | 2       | Concurrent mint flushes, one connection each, outside `MaxDbOperations`                  |
-| `MailboxBuffers.Close.MaxBatchSize`        | 100     | Closes per batch flush                                                                   |
-| `MailboxBuffers.Close.MaxQueueSize`        | 5,000   | Closes that may wait for a flush                                                         |
-| `MailboxBuffers.Close.FlushConcurrency`    | 1       | Serial — a close takes mailbox row and receiver workflow row locks                       |
-| `MailboxBuffers.Delivery.MaxBatchSize`     | 100     | Deliveries per batch flush                                                               |
-| `MailboxBuffers.Delivery.MaxQueueSize`     | 10,000  | Deliveries that may wait for a flush; waits rather than refusing (see [Limits](#limits)) |
-| `MailboxBuffers.Delivery.FlushConcurrency` | 2       | Low deliberately — a storm aimed at one mailbox convoys on that mailbox's row lock       |
-
-### Mailboxes
-
-| Setting                         | Default | Description                                                                                        |
-| ------------------------------- | ------- | -------------------------------------------------------------------------------------------------- |
-| `MaxMailboxTimeout`             | 21d     | Cap on a mailbox's `timeout` at mint; the derivation is written on the setting itself              |
-| `MaxOpenMailboxesPerCollection` | 100     | Best-effort cap on open mailboxes per collection (`429` at mint; see [Limits](#limits))            |
-| `MaxMailboxPayloadSize`         | 256 KiB | Per-delivery payload cap, measured on UTF-8 bytes (`413`)                                          |
-| `MaxMailboxLogLength`           | 100     | Positions per mailbox log, deliveries and receivers alike (`429`)                                  |
-| `MailboxSweepInterval`          | 5m      | Closure sweep cadence — a term in the callback-token lifetime bound derived on `MaxMailboxTimeout` |
-
-### Throttling (namespace circuit breaker)
-
-Per-namespace failure-storm throttling (see the failure-throttling ADR). Ships dark: with
-`Enabled: false` (the default) the sweep does not run and the fetch query's throttle gate is
-switched off by a parameter, so `throttled_until` has no bearing on which workflows are fetched
-and the schema is fully inert.
-
-The sweep (`NamespaceThrottleService`) runs the whole state machine every `SweepInterval` under a
-Postgres advisory lock (single writer across replicas; a replica that finds the lock held skips
-its cycle): trip when a namespace's `Requeued` population exceeds both thresholds, park that
-population behind `throttled_until` (jittered ±20% per row and clamped per stamp to each
-workflow's retry deadline, so throttling never costs a final attempt), keep a small rotating
-canary set on the normal retry schedule, extend the window ×2 on unanimous canary failure, and —
-once any canary progresses (judged by requeue-count comparison, never timing; a canary observed
-mid-attempt is indeterminate and keeps the breaker waiting) — release the parked horde
-oldest-first in doubling cohorts with a jittered smear, clearing only once a cohort comes back
-empty — a short cohort proves nothing, because rows are claimed `FOR UPDATE SKIP LOCKED` and one
-held by a concurrent cancellation or fetch is skipped while still parked. A failed recovery
-re-trips keeping the grown window; a cleared breaker lingers for a grace period (5 sweep intervals) during which
-stragglers are cleared. Each cycle every replica refreshes an in-memory snapshot of the tripped
-breakers (`IThrottleStateView`), which expires fail-open — it reads as empty once older than 3
-sweep intervals, so a replica whose sweep loop has died loses its power to park; on top of that
-snapshot the workflow handler cooperates by parking newly failing workflows in an open namespace
-immediately, without waiting for the next sweep. Operational tooling — the observability and
-force-trip/force-clear endpoints, the dashboard panel, and the nudge/resume interplay — is
-described under [Failure-Storm Throttling](#failure-storm-throttling).
-
-| Setting                           | Default | Description                                                  |
-| --------------------------------- | ------- | ------------------------------------------------------------ |
-| `Throttling.Enabled`              | false   | Master switch for the namespace circuit breaker              |
-| `Throttling.MinRequeuedWorkflows` | 50      | Absolute floor of `Requeued` workflows before tripping       |
-| `Throttling.MinRequeuedRatio`     | 0.5     | Fraction of active workflows that must be `Requeued`         |
-| `Throttling.SweepInterval`        | 30s     | Throttle sweep cadence (detect → throttle → probe → release) |
-| `Throttling.CanaryCount`          | 3       | Canary workflows kept on the normal retry schedule           |
-| `Throttling.InitialWindow`        | 10m     | Throttle window at first trip                                |
-| `Throttling.MaxWindow`            | 1h      | Cap on the exponentially growing window                      |
-
-Window growth (×2), release cohort growth (×2), and jitter (±20%) are named constants on
-`ThrottlingSettings`, deliberately not configuration.
+- **The callback-token lifetime.** The app mints a workflow's callback token at enqueue, and it never refreshes. So
+  `MaxStepWaitBudget`, `MaxMailboxTimeout` and `MailboxSweepInterval`, with retention and the retry ladder, must keep
+  a workflow's worst-case lifetime inside the token's validity. `MaxMailboxTimeout` documents the derivation, and
+  `CallbackTokenLifetimeInvariantTests` fails when a change breaks it.
+- **Database connections.** `Concurrency.MaxDbOperations` sets both the slot pool and the Npgsql pool size. The
+  buffered write paths hold connections from that pool without a slot, up to their flush concurrencies (see
+  [concurrency model](#concurrency-model)).
+- **Mailbox flush concurrency.** The close buffer flushes one batch at a time, because a close locks mailbox rows and
+  their receivers' workflow rows. The delivery buffer's concurrency is low on purpose, since a storm aimed at one
+  mailbox queues on that mailbox's row lock anyway.
+- **Throttling** ships off. The App host turns it on (see
+  [its README](../../workflow-engine-app/README.md#namespace-circuit-breaker)).
 
 ### Dashboard trace links
 
-The dashboard links each workflow to its trace once the host names its trace viewer, in one of two ways:
+The dashboard links each workflow to its trace once the host names a trace viewer, in one of two ways:
 
-- **`Dashboard.TraceUrlTemplate`**: the URL of one trace's page, with `{traceId}` where the trace ID goes,
-  for any viewer that has such a page. For the .NET Aspire dashboard that is
-  `http://localhost:18888/traces/detail/{traceId}` (its trace page is `/traces/detail/{traceId}`; use the
-  address and port the browser reaches it at).
-- **The Grafana pair**, `Dashboard.GrafanaUrl` and `Dashboard.GrafanaTracesDatasourceUid`: the link opens the
-  trace in Grafana Explore, querying the trace ID in TraceQL on that Tempo datasource.
+- `Dashboard.TraceUrlTemplate`: the URL of one trace's page, with `{traceId}` where the trace ID goes. For the .NET
+  Aspire dashboard that is `http://localhost:18888/traces/detail/{traceId}`.
+- The Grafana pair, `Dashboard.GrafanaUrl` and `Dashboard.GrafanaTracesDatasourceUid`. The link opens the trace in
+  Grafana Explore on that Tempo datasource.
 
-The template wins when both are set. With neither, or only half the Grafana pair, the dashboard draws no
-trace links. All three are unset by default. An empty or whitespace value counts as unset, so a compose
-file can pass an unset variable through. The engine refuses to start when the template is set but is not
-an absolute `http` or `https` URL containing `{traceId}`, spelled exactly so.
+The template wins when both are set. With neither, or only half the Grafana pair, the dashboard draws no trace links.
+An empty or whitespace value counts as unset, so a compose file can pass an unset variable through. The engine refuses
+to start when the template is not an absolute `http` or `https` URL containing `{traceId}`. The server resolves the
+settings into one template, which the dashboard reads once from `GET /dashboard/config`. A host sets them like any
+other setting, such as `EngineSettings__Dashboard__TraceUrlTemplate`. studioctl sets the Grafana pair on the engine it
+runs with `--monitoring`.
 
-| Setting                                | Default | Description                                                                         |
-| -------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
-| `Dashboard.TraceUrlTemplate`           | unset   | Absolute http(s) URL of one trace's page, with `{traceId}` where the trace ID goes  |
-| `Dashboard.GrafanaUrl`                 | unset   | Grafana's base URL as the browser reaches it, such as `https://grafana.example.com` |
-| `Dashboard.GrafanaTracesDatasourceUid` | unset   | UID of the Tempo datasource holding the engine's traces; the link queries TraceQL   |
+## The app layer: `WorkflowEngine.App`
 
-The server resolves the settings into one template, which `GET /dashboard/config` returns as
-`traceUrlTemplate`: the configured template, or a Grafana Explore URL with `{traceId}` in its query. The
-dashboard reads it once, when it loads, and builds every trace link by putting the URL-encoded trace ID in
-place of `{traceId}`. A host sets them like any other setting, for example
-`EngineSettings__Dashboard__TraceUrlTemplate` in its environment. studioctl, for one, sets the Grafana pair on
-the engine it runs with `--monitoring`, naming its own Grafana.
-
-## Testing
-
-### TestKit
-
-`WorkflowEngine.TestKit` provides reusable infrastructure:
-
-- **`EngineAppFixture<TProgram>`** — shared fixture with PostgreSQL (Testcontainers), WireMock, and `WebApplicationFactory`
-- **`EngineApiClient`** — typed HTTP client with `WaitForWorkflowStatusAsync`, `PollUntilAsync`
-- **`TestHelpers`** — builders for workflows, steps, and enqueue requests
-- **`TelemetryCollector`** — in-process OpenTelemetry collector for assertions
-
-### Running Tests
-
-```sh
-dotnet test
-```
-
-No Docker Compose needed — Testcontainers manages all container lifecycle.
-
-### Example
-
-```csharp
-[Collection("AppTests")]
-public class MyTests(AppTestFixture fixture)
-{
-    [Fact]
-    public async Task Workflow_completes_successfully()
-    {
-        var request = fixture.Helpers.CreateEnqueueRequest(/* ... */);
-        var response = await fixture.Client.EnqueueWorkflow(request, TestContext.Current.CancellationToken);
-
-        var completed = await fixture.Client.WaitForWorkflowStatusAsync(
-            response.WorkflowId,
-            WorkflowStatus.Completed,
-            TestContext.Current.CancellationToken
-        );
-
-        Assert.Equal(WorkflowStatus.Completed, completed.Status);
-    }
-}
-```
-
-## Creating a New Host
-
-### 1. Create the Project
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <ItemGroup>
-    <ProjectReference Include="path/to/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
-  </ItemGroup>
-</Project>
-```
-
-### 2. Define Your Command
-
-```csharp
-public sealed class MyCommand : Command<MyCommandData>
-{
-    public override string CommandType => "my-command";
-
-    public override CommandValidationResult Validate(MyCommandData? data)
-    {
-        if (string.IsNullOrWhiteSpace(data?.Target))
-            return CommandValidationResult.Invalid("target is required");
-        return CommandValidationResult.Valid();
-    }
-
-    public override async Task<ExecutionResult> Execute(
-        CommandExecutionContext context, CancellationToken ct)
-    {
-        var response = await httpClient.PostAsync(data.Target, content, ct);
-
-        return response.IsSuccessStatusCode
-            ? ExecutionResult.Success()
-            : ExecutionResult.RetryableError($"HTTP {response.StatusCode}");
-    }
-}
-```
-
-### 3. Compose in Program.cs
-
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("WorkflowEngine")
-    ?? throw new EngineConfigurationException("Missing connection string");
-
-builder.AddWorkflowEngine(connectionString);
-builder.Services.AddCommand<MyCommand>();
-
-var app = builder.Build();
-await app.UseWorkflowEngine();
-await app.RunAsync();
-```
-
-### 4. Write Tests
-
-```csharp
-public class MyTestFixture : EngineAppFixture<Program>
-{
-    protected override void ConfigureBuilder(IWebHostBuilder builder)
-    {
-        // Add test-specific configuration
-    }
-}
-```
-
----
-
-## The App Layer: `WorkflowEngine.App`
-
-The `workflow-engine-app` project is the Altinn-specific host. It adds `AppCommand` — an HTTP callback command targeting Altinn apps.
+[`workflow-engine-app`](../../workflow-engine-app/README.md) is the host for Altinn apps. It adds `AppCommand`, which
+runs a step by calling back to the app.
 
 ### AppCommand
 
-- **Type string**: `"app"`
-- **Data**: `AppCommandData` — `{ commandKey, payload? }`
-- **Context**: `AppWorkflowContext` — `{ actor, callbackToken, org, app, instanceOwnerPartyId, instanceGuid }`
-- **Execution**: HTTP POST to a templated URL expanded from the workflow context
-- **Telemetry**: names the app instance on the step's span and the workflow's entry span through
-  [`GetTelemetryAttributes`](#domain-attributes-on-spans), never the instance owner's party ID or the
-  actor, and its `AppCommand.Execute` client span carries the command key. All of these keys are this
-  host's own, in `AppTelemetryAttributes` (listed in
-  [its `AGENTS.md`](../../workflow-engine-app/AGENTS.md#appcommand))
+- **Type string**: `app`. The data is `AppCommandData`, and the context `AppWorkflowContext`.
+- **Execution**: an HTTP POST to `AppCommandSettings.CommandEndpoint`, a URL template whose placeholders the command
+  fills from the workflow context. The callback carries `executionReferenceTime`: the workflow's `startAt`, or else the
+  step's creation time.
+- **Classification**: 2xx is success, 408, 418, 429 and 5xx are retryable, and any other 4xx is critical.
+- **State**: the command reads `state` from the response body and returns it as the step's output. The next step's
+  callback receives it as `state`.
+- **Validation**: the engine validates every context field at enqueue, so an invalid request never enters the queue.
+- **Mailbox**: on a receive workflow's first step, the callback carries the block that
+  [what the app is handed](#what-the-app-is-handed) describes. It is `null` on every other callback.
+- **Telemetry**: the command names the app instance on the step's span and the workflow's entry span through
+  [`GetTelemetryAttributes`](#domain-attributes-on-spans), so `{span.altinn.instance.guid="<guid>"}` in TraceQL finds
+  the engine's work on an instance. Its `AppCommand.Execute` client span carries the command key. These keys are the
+  host's own, in `AppTelemetryAttributes`. The
+  [App host's README](../../workflow-engine-app/README.md#telemetry) says why the instance owner's party id and the
+  actor stay off telemetry.
 
-### Error Classification
+### Callback authentication
 
-| HTTP Response | Classification      |
-| ------------- | ------------------- |
-| 2xx           | Success             |
-| 408, 418, 429 | Retryable           |
-| 5xx           | Retryable           |
-| Other 4xx     | Critical — no retry |
+The **app** mints the JWT that secures its callbacks, and the **engine** relays it. The engine issues no credentials of
+its own.
 
-### State Passing
+1. **At enqueue**, the app mints a short-lived JWT signed with a `WorkflowEngineCallback` app code. Its `jti` claim is
+   the instance guid, and the signing code's expiry bounds its lifetime.
+2. The token travels through the engine opaquely in `AppWorkflowContext.CallbackToken`. The engine stores it and
+   sends it as `Authorization: Bearer` on **every callback**.
+3. **On each callback**, the app validates the token's signature and lifetime against its `WorkflowEngineCallback`
+   codes, and checks that `jti` matches the `instanceGuid` in the route, so a token acts only on its own instance.
 
-AppCommand reads `{ "state": "..." }` from the response body and returns it on the `ExecutionResult`. The next step receives it as `state` in its callback payload.
+The callback token shares the `Authorization` header with the platform's JwtCookie authentication, so a selector
+policy scheme sends only callback requests to the `WorkflowEngineCallback` scheme and everything else to the default.
 
-### Configuration
-
-```json
-{
-    "AppCommandSettings": {
-        "ApiKey": "your-api-key",
-        "CommandEndpoint": "http://host/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks"
-    }
-}
-```
-
-Placeholders are expanded from `AppWorkflowContext` at execution time.
-
-### Callback Authentication
-
-Callbacks into an Altinn app are secured with a JWT that the **app** mints and the **engine** relays — the engine never issues credentials of its own:
-
-1. **At enqueue time**, the app mints a short-lived JWT signed with a `WorkflowEngineCallback` app-code. The `jti` claim is set to the instance guid, and the token's lifetime is bound to the signing code's expiry.
-2. The token rides through the engine opaquely in `AppWorkflowContext.CallbackToken`. The engine stores it and **replays it on every callback** in the `Authorization: Bearer` header.
-3. **On each callback**, the app validates the token's signature and lifetime against its `WorkflowEngineCallback` codes, and checks that `jti` matches the `instanceGuid` in the route — so a token can only act on its own instance.
-
-Because the callback bearer token shares the `Authorization` header with platform (JwtCookie) auth, a selector-policy scheme routes only callback requests to the `WorkflowEngineCallback` scheme and everything else to the default scheme, avoiding collisions.
-
-Data writes performed during callbacks run as `StorageAuthenticationMethod.ServiceOwner()`. This is why an app's `policy.xml` must grant ServiceOwner write rights on all tasks.
+Data writes during a callback run as `StorageAuthenticationMethod.ServiceOwner()`. That is why an app's `policy.xml`
+must grant the service owner write rights on all tasks.

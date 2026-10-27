@@ -1,42 +1,32 @@
-## Health utility
+# Health
 
-Run health checks and commands across Kubernetes clusters from `src/tools/health`.
-Requires the Go release named in `go.mod`, `kubectl`, and `az` logged into an account with cluster access.
-Run `az graph query -h` once to install the Resource Graph extension if prompted.
+Health runs checks and commands across many Kubernetes clusters at once, such as all runtime clusters in tt02 and
+production. It finds the clusters through Azure Resource Graph, keeps a kubeconfig context for each, and calls
+`kubectl`, `helm` and `flux` against them.
 
-### Usage
+It needs Go, `kubectl`, and `az` logged in to an account with access to the clusters. Run `az graph query -h` once to
+install the Resource Graph extension if `az` asks for it.
 
-```sh
-go run cmd/main.go init tt02
-go run cmd/main.go status -s ttd tt02,prod ks runtime-pdf3/pdf3-app
-go run cmd/main.go status at22,tt02 httproute pdf/pdf3
-go run cmd/main.go exec tt02 kubectl get pods -n default
-```
+## Usage
 
-Use comma-separated environments and `-s OWNER` to select clusters. Run
-`go run cmd/main.go help` for all commands, or `make build` to build.
-`exec` shows stdout and stderr in one row per cluster, with line breaks and tabs escaped;
-select specific fields for compact output.
+Run `go run cmd/main.go help` from `src/tools/health` for the commands and examples, and `<command> -h` for a
+command's flags. Start with `init <environments>` to fetch credentials for the clusters.
 
-### Initialize and refresh contexts
+- `exec` asks before it runs a command on the clusters, and `--dry-run` only shows what it would run. It prints each
+  cluster's output in one row, with line breaks and tabs escaped, so select specific fields for compact output.
+- For an HTTPRoute, `status` shows each backend's weight. Git sets the weights, such as for
+  [pdf3's route](../../Runtime/pdf3/README.md#dis-core).
 
-`init` fetches missing credentials and reports contexts absent from Azure discovery.
+## Refresh and prune contexts
 
-- `--update`: also refresh existing credentials and connection details.
-- `--prune`: offer to remove contexts absent from discovery.
-- `--dry-run`: preview without changing files.
-- `--exclude-service-owner a,b`: exclude owners from fetching and pruning.
-- `--kubeconfig PATH`: use another file instead of `$HOME/.kube/config`; its parent must exist.
-
-For `tt02`, scope discovery to the active account: dev for `ttd`, prod for other owners.
-The examples below use the `aze` account wrapper:
+For tt02, scope discovery to the account that is logged in: the dev account for `ttd`, and the prod account for other
+owners. With the `aze` account wrapper:
 
 ```sh
 aze dev -- go run cmd/main.go init --prune -s ttd tt02
 aze prod -- go run cmd/main.go init --prune --exclude-service-owner ttd tt02
-aze prod -- go run cmd/main.go init --update -s nsm tt02
 ```
 
-Missing account access can look like deleted clusters: review removals before confirming.
-Pruning requires `y` or `yes`, saves a `<kubeconfig>.backup-*`, removes only unreferenced
-associated cluster/user entries, and clears `current-context` if removed.
+Clusters that your account cannot see look the same as deleted clusters, so review the removals before you confirm
+`--prune`. It saves a `<kubeconfig>.backup-*` first, and removes only cluster and user entries that no other context
+uses.

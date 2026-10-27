@@ -3,7 +3,11 @@
 /** @param {string} s */
 export const cssId = (s) => s.replace(/[^a-zA-Z0-9-_]/g, '_');
 
-/** @param {string} s */
+/**
+ * Escape for element content only: quotes stay intact. Use `escAttr()` in an attribute and
+ * `escJsArg()` in an inline handler's argument.
+ * @param {string} s
+ */
 export const esc = (s) => {
     if (!s) return '';
     const d = document.createElement('div');
