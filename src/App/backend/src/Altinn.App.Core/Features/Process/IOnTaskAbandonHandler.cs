@@ -22,10 +22,10 @@ public interface IOnTaskAbandonHandler : IProcessStepConfigurable
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>
-    /// A result indicating success or failure. Construct via <see cref="HookResult.Success"/>,
-    /// <see cref="HookResult.FailedRetryable"/>, or <see cref="HookResult.FailedPermanent"/>.
+    /// A result indicating success or failure. Construct via <see cref="HandlerResult.Success"/>,
+    /// <see cref="HandlerResult.FailedRetryable"/>, or <see cref="HandlerResult.FailedPermanent"/>.
     /// </returns>
-    public Task<HookResult> Execute(OnTaskAbandonContext context);
+    public Task<HandlerResult> Execute(OnTaskAbandonContext context);
 }
 
 /// <summary>

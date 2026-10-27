@@ -11,10 +11,10 @@ public sealed class Task1StartingHook : IOnTaskStartingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<HookResult> Execute(OnTaskStartingContext context)
+    public Task<HandlerResult> Execute(OnTaskStartingContext context)
     {
         SnapshotLogger.LogInfo("WorkflowEngineHooks.OnTaskStarting.Task_1");
-        return Task.FromResult<HookResult>(HookResult.Success());
+        return Task.FromResult<HandlerResult>(HandlerResult.Success());
     }
 }
 
@@ -22,10 +22,10 @@ public sealed class ServiceTaskStartingHook : IOnTaskStartingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_Service";
 
-    public Task<HookResult> Execute(OnTaskStartingContext context)
+    public Task<HandlerResult> Execute(OnTaskStartingContext context)
     {
         SnapshotLogger.LogInfo("WorkflowEngineHooks.OnTaskStarting.Task_Service");
-        return Task.FromResult<HookResult>(HookResult.Success());
+        return Task.FromResult<HandlerResult>(HandlerResult.Success());
     }
 }
 
@@ -33,16 +33,18 @@ public sealed class Task1EndingHook : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<HookResult> Execute(OnTaskEndingContext context)
+    public Task<HandlerResult> Execute(OnTaskEndingContext context)
     {
         if (WorkflowEngineHooksState.FailTask1Ending)
         {
             SnapshotLogger.LogInfo("WorkflowEngineHooks.OnTaskEnding.Task_1.Failed");
-            return Task.FromResult<HookResult>(HookResult.FailedPermanent("Scenario task ending failed permanently."));
+            return Task.FromResult<HandlerResult>(
+                HandlerResult.FailedPermanent("Scenario task ending failed permanently.")
+            );
         }
 
         SnapshotLogger.LogInfo("WorkflowEngineHooks.OnTaskEnding.Task_1.Success");
-        return Task.FromResult<HookResult>(HookResult.Success());
+        return Task.FromResult<HandlerResult>(HandlerResult.Success());
     }
 }
 
@@ -50,10 +52,10 @@ public sealed class ServiceTaskEndingHook : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_Service";
 
-    public Task<HookResult> Execute(OnTaskEndingContext context)
+    public Task<HandlerResult> Execute(OnTaskEndingContext context)
     {
         SnapshotLogger.LogInfo("WorkflowEngineHooks.OnTaskEnding.Task_Service");
-        return Task.FromResult<HookResult>(HookResult.Success());
+        return Task.FromResult<HandlerResult>(HandlerResult.Success());
     }
 }
 
@@ -61,19 +63,19 @@ public sealed class Task1AbandonHook : IOnTaskAbandonHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public Task<HookResult> Execute(OnTaskAbandonContext context)
+    public Task<HandlerResult> Execute(OnTaskAbandonContext context)
     {
         SnapshotLogger.LogInfo("WorkflowEngineHooks.OnTaskAbandon.Task_1");
-        return Task.FromResult<HookResult>(HookResult.Success());
+        return Task.FromResult<HandlerResult>(HandlerResult.Success());
     }
 }
 
 public sealed class ProcessEndedHook : IOnProcessEndedHandler
 {
-    public Task<HookResult> Execute(OnProcessEndedContext context)
+    public Task<HandlerResult> Execute(OnProcessEndedContext context)
     {
         SnapshotLogger.LogInfo("WorkflowEngineHooks.OnProcessEnded");
-        return Task.FromResult<HookResult>(HookResult.Success());
+        return Task.FromResult<HandlerResult>(HandlerResult.Success());
     }
 }
 
