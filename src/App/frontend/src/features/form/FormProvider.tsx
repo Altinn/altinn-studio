@@ -55,6 +55,7 @@ import { createValidationSlice, ValidationEffects } from 'src/features/validatio
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useIsPdf } from 'src/hooks/useIsPdf';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { createLayoutDiagnosticsSlice } from 'src/utils/layout/LayoutDiagnostics';
 import { LayoutPropertiesValidation } from 'src/utils/layout/validation/LayoutPropertiesValidation';
@@ -207,6 +208,10 @@ function useIsPdfOfOtherTask(): boolean {
  * A pending process/next only counts once the process has moved past the task on screen, as between two chained
  * workflows: before that, the form is still being validated and saved for the request. A failed workflow is not
  * transitioning: the instance is not locked then, and the retry page replaces the task's pages.
+ *
+ * A service task's own page is always transitioning, also while its workflow is idle, such as between two chained
+ * workflows or while the task waits for an outcome. The task owns the instance until the process moves on, and if it
+ * fails for good, the retry page replaces its page.
  */
 function useIsInstanceTransitioning(): boolean {
   const isPdf = useIsPdf();
@@ -218,9 +223,17 @@ function useIsInstanceTransitioning(): boolean {
     return false;
   }
 
+  const isServiceTaskPage =
+    taskId !== undefined &&
+    [...(process?.processTasks ?? []), process?.currentTask].some(
+      (task) => task?.elementId === taskId && task.elementType === ELEMENT_TYPE.SERVICE_TASK,
+    );
   const processHasMovedOn = process !== undefined && process.currentTask?.elementId !== taskId;
   return (
-    process?.workflow?.status === 'processing' || isProcessResumePending || (isProcessNextPending && processHasMovedOn)
+    isServiceTaskPage ||
+    process?.workflow?.status === 'processing' ||
+    isProcessResumePending ||
+    (isProcessNextPending && processHasMovedOn)
   );
 }
 

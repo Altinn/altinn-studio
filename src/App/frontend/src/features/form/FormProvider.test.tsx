@@ -21,6 +21,7 @@ import {
   renderGenericComponentTest,
   renderWithoutInstanceAndLayout,
 } from 'src/test/renderWithProviders';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcess } from 'src/types/shared';
 
@@ -164,6 +165,11 @@ describe('FormProvider while the instance is transitioning', () => {
     );
   }
 
+  function makeTask1AServiceTask() {
+    process.currentTask!.elementType = ELEMENT_TYPE.SERVICE_TASK;
+    process.processTasks = [{ altinnTaskType: 'data', elementId: 'Task_1', elementType: ELEMENT_TYPE.SERVICE_TASK }];
+  }
+
   async function renderInput(query?: string) {
     return await renderGenericComponentTest({
       type: 'Input',
@@ -210,7 +216,22 @@ describe('FormProvider while the instance is transitioning', () => {
     expect(screen.getByRole('textbox')).toHaveValue('typed');
   });
 
-  it('leaves PDF mode unaffected', async () => {
+  it("renders a service task's page read-only and rejects writes, also while its workflow is idle", async () => {
+    const user = userEvent.setup();
+    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    makeTask1AServiceTask();
+    process.workflow = { status: 'idle' };
+    await renderInput();
+
+    expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
+    await user.click(screen.getByRole('button', { name: 'write-probe' }));
+    expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
+    expect(screen.getByRole('textbox')).toHaveValue('');
+    logError.mockRestore();
+  });
+
+  it('leaves PDF mode unaffected, also for a running service task', async () => {
+    makeTask1AServiceTask();
     process.workflow = { status: 'processing' };
     await renderInput('pdf=1');
 
