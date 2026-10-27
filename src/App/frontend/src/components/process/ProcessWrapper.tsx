@@ -202,7 +202,9 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // Follow feedback here as well, so observing a new task cannot unmount the component owning navigation.
   useFollowProcess(!isPdfMode && (isParkedOnServiceTask || taskType === ProcessTaskType.Feedback));
 
-  if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
+  // Mounting mid-mutation waits for the response, except on a service task with a page: the URL
+  // moves there while the call is pending, and no form on it is part of the call.
+  if (isRunningProcessNext === null || (isRunningProcessNext && !showServiceTaskPage) || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
   }
 

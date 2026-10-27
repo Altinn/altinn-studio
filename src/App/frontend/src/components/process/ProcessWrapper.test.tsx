@@ -10,6 +10,7 @@ import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { doProcessNext } from 'src/queries/queries';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
@@ -848,6 +849,57 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       await vi.advanceTimersByTimeAsync(0);
     });
     expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
+  });
+
+  it('shows the page when moving to the service task remounts ProcessWrapper mid-transition', async () => {
+    // In the app, the URL moving to the service task mounts a new ProcessWrapper while process/next
+    // is still pending. That mount must show the page, not wait for the response on the loader.
+    setServiceTaskPages(['page1']);
+    let requestStarted = false;
+    vi.mocked(doProcessNext).mockImplementationOnce(() => {
+      requestStarted = true;
+      return new Promise(() => {});
+    });
+
+    function RemountPerTask() {
+      const taskId = useNavigationParam('taskId');
+      return (
+        <ProcessWrapper key={taskId}>
+          <div data-testid='task-content'>
+            <SubmitProbe />
+          </div>
+        </ProcessWrapper>
+      );
+    }
+
+    const routerRef: RouterRef = { current: undefined };
+    await renderWithDefaultProviders({
+      renderer: () => (
+        <InstanceProvider>
+          <RemountPerTask />
+        </InstanceProvider>
+      ),
+      router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () =>
+            requestStarted
+              ? getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' })
+              : getInstanceOnTask('Task_1', { status: 'idle' }),
+        },
+      },
+    });
+
+    expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
+    act(() => screen.getByRole('button', { name: 'submit-probe' }).click());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
 
   it('follows a feedback task when the process moves on', async () => {
