@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Chip, Fieldset } from '@digdir/designsystemet-react';
 
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
-import { getUiConfig } from 'src/features/form/ui';
+import { useSubformUiFolders } from 'src/core/queries/pdfPreview';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { isStudioPreview } from 'src/utils/isDev';
@@ -27,11 +28,11 @@ function PDFGeneratorPreviewWithTarget() {
     (task) => task.elementId === target.taskId && task.altinnTaskType === 'subformPdf',
   );
   // A subform PDF service task renders the entries of the subform UI folder it names, which the frontend is not told.
-  // Offer the entries of every UI folder that belongs to no task; the preview rejects an entry of another subform.
-  const taskIds = new Set(processTasks.map((task) => task.elementId));
-  const subformFolders = Object.entries(getUiConfig().folders).flatMap(([folder, settings]) => {
-    const subforms = dataElements.filter((element) => element.dataType === settings.defaultDataType);
-    return !taskIds.has(folder) && subforms.length > 0 ? [{ folder, subforms }] : [];
+  // Offer the entries of every subform UI folder; the preview rejects an entry of another subform.
+  const subformFolders = useSubformUiFolders(isSubformPdf)?.flatMap((folder) => {
+    const dataType = getUiFolderSettings(folder)?.defaultDataType;
+    const subforms = dataElements.filter((element) => dataType !== undefined && element.dataType === dataType);
+    return subforms.length > 0 ? [{ folder, subforms }] : [];
   });
 
   return (
@@ -60,14 +61,14 @@ function PDFGeneratorPreviewWithTarget() {
           ))}
         </Fieldset>
       )}
-      {isSubformPdf && subformFolders.length === 0 && (
+      {isSubformPdf && subformFolders?.length === 0 && (
         <Fieldset data-size='sm'>
           <Fieldset.Legend>Underskjema</Fieldset.Legend>
           <span>Ingen underskjema å forhåndsvise</span>
         </Fieldset>
       )}
       {isSubformPdf &&
-        subformFolders.map(({ folder, subforms }) => (
+        subformFolders?.map(({ folder, subforms }) => (
           <Fieldset
             key={folder}
             data-size='sm'
