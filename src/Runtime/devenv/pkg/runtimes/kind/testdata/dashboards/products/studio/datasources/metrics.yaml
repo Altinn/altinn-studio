@@ -19,6 +19,12 @@ spec:
       httpHeaderName1: Authorization
     secureJsonData:
       httpHeaderValue1: "${authorization}"
+  valuesFrom:
+    - targetPath: secureJsonData.httpHeaderValue1
+      valueFrom:
+        secretKeyRef:
+          name: altinn-studio-metrics-auth
+          key: authorization
 ---
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret

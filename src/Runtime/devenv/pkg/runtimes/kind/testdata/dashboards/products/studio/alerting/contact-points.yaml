@@ -1,0 +1,17 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaContactPoint
+metadata:
+  name: studio-slack-critical
+  namespace: grafana
+spec:
+  name: Studio Slack Critical
+  receivers:
+    - type: slack
+      settings:
+        title: '{{ .Status }}'
+      valuesFrom:
+        - targetPath: url
+          valueFrom:
+            secretKeyRef:
+              name: grafana-slack-webhooks
+              key: studio-critical

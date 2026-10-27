@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -28,6 +29,7 @@ func main() {
 		cacheDir   string
 		verbose    bool
 		monitoring bool
+		profile    string
 	)
 
 	flag.StringVar(&action, "action", "", "Action to perform: run, stop (required)")
@@ -39,6 +41,9 @@ func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Enable verbose output")
 	flag.BoolVar(&verbose, "v", false, "Enable verbose output (shorthand)")
 	flag.BoolVar(&monitoring, "monitoring", false, "Include the platform observability stack (run only)")
+	flag.StringVar(&profile, "monitoring-profile", "",
+		"Observability stack profile: light (default) or full, with agents, both storage copies, "+
+			"self-monitoring and Studio's alert rules; full implies --monitoring (run only)")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n\n", os.Args[0])
@@ -48,18 +53,19 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  %s --action run --variant standard\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  %s -a run -t minimal\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  %s -a run -t minimal --monitoring\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s -a run -t standard --monitoring-profile full\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "  %s -a stop -t standard\n", os.Args[0])
 	}
 
 	flag.Parse()
 
-	if err := run(action, variant, cacheDir, verbose, monitoring); err != nil {
+	if err := run(action, variant, cacheDir, verbose, monitoring, profile); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(action, variant, cacheDir string, verbose, monitoring bool) (runErr error) {
+func run(action, variant, cacheDir string, verbose, monitoring bool, profile string) (runErr error) {
 	// Validate action
 	action = strings.ToLower(strings.TrimSpace(action))
 	if action == "" {
@@ -90,9 +96,17 @@ func run(action, variant, cacheDir string, verbose, monitoring bool) (runErr err
 		writeStdoutln("")
 	}
 
+	options, err := runtimeOptions(monitoring, profile)
+	if err != nil {
+		return err
+	}
+	// The registry containers bind-mount files from the cache, which Podman resolves against
+	// its own working directory unless the path is absolute.
+	if cacheDir, err = filepath.Abs(cacheDir); err != nil {
+		return fmt.Errorf("resolve cache directory: %w", err)
+	}
+
 	// Create the container runtime
-	options := kind.DefaultOptions()
-	options.IncludeMonitoring = monitoring
 	runtime, err := kind.New(runtimeVariant, cacheDir, options)
 	if err != nil {
 		return fmt.Errorf("failed to create container runtime: %w", err)
@@ -116,6 +130,19 @@ func run(action, variant, cacheDir string, verbose, monitoring bool) (runErr err
 	}
 
 	return nil
+}
+
+// runtimeOptions are the runtime's options for the monitoring flags: --monitoring-profile full
+// implies --monitoring.
+func runtimeOptions(monitoring bool, profile string) (kind.KindContainerRuntimeOptions, error) {
+	monitoringProfile, err := kind.ParseMonitoringProfile(strings.ToLower(strings.TrimSpace(profile)))
+	if err != nil {
+		return kind.KindContainerRuntimeOptions{}, fmt.Errorf("--monitoring-profile: %w", err)
+	}
+	options := kind.DefaultOptions()
+	options.IncludeMonitoring = monitoring || monitoringProfile == kind.MonitoringProfileFull
+	options.MonitoringProfile = monitoringProfile
+	return options, nil
 }
 
 func applyRuntimeGraph(runtime *kind.KindContainerRuntime) error {

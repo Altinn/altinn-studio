@@ -1,12 +1,62 @@
 package kind
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"time"
 
 	"altinn.studio/devenv/pkg/resource"
 )
+
+// MonitoringProfile selects how much of the observability stack the fixture deploys.
+type MonitoringProfile string
+
+const (
+	// MonitoringProfileLight is the default: one storage instance per signal, written to by
+	// the observability-proxy directly, with no agents and no self-monitoring.
+	MonitoringProfileLight MonitoringProfile = "light"
+	// MonitoringProfileFull is production's backend: the agents, both storage copies and the
+	// vmagent-self scraper, with Studio's alert rules loaded into the local Grafana.
+	MonitoringProfileFull MonitoringProfile = "full"
+)
+
+var (
+	errUnknownMonitoringProfile = errors.New("unknown monitoring profile")
+	errFullMonitoringVariant    = errors.New(
+		"the full monitoring profile needs the standard variant's three zoned workers",
+	)
+)
+
+// ParseMonitoringProfile parses a profile name; an empty name is the default, light.
+func ParseMonitoringProfile(name string) (MonitoringProfile, error) {
+	switch MonitoringProfile(name) {
+	case "", MonitoringProfileLight:
+		return MonitoringProfileLight, nil
+	case MonitoringProfileFull:
+		return MonitoringProfileFull, nil
+	default:
+		return "", fmt.Errorf("%w %q: must be %q or %q",
+			errUnknownMonitoringProfile, name, MonitoringProfileLight, MonitoringProfileFull)
+	}
+}
+
+func validateMonitoringOptions(variant KindContainerRuntimeVariant, options KindContainerRuntimeOptions) error {
+	profile, err := ParseMonitoringProfile(string(options.MonitoringProfile))
+	if err != nil {
+		return err
+	}
+	if options.IncludeMonitoring && profile == MonitoringProfileFull &&
+		variant != KindContainerRuntimeVariantStandard {
+		return errFullMonitoringVariant
+	}
+	return nil
+}
+
+// isFull reports whether the profile is the full one; the zero value is light.
+func (p MonitoringProfile) isFull() bool {
+	return p == MonitoringProfileFull
+}
 
 const (
 	monitoringOperatorsName = "monitoring-operators"
@@ -29,6 +79,7 @@ type monitoringInputs struct {
 	victoriaOperator      *resource.OCIArtifact
 	observability         *resource.OCIArtifact
 	observabilityLocalDir string
+	profile               MonitoringProfile
 }
 
 // addMonitoringResources adds the platform observability stack from infra/observability:
@@ -38,11 +89,13 @@ type monitoringInputs struct {
 func addMonitoringResources(
 	graph *resource.Graph,
 	root string,
+	profile MonitoringProfile,
 	cluster resource.ResourceRef,
 	registry resource.ResourceRef,
 	baseInfra *resource.KubernetesObjectSet,
 ) error {
 	inputs := newMonitoringInputs(root, registry)
+	inputs.profile = profile
 	operators := monitoringOperatorsObjectSet(inputs, cluster, baseInfra)
 	stack := monitoringStackObjectSet(inputs, cluster, operators)
 
@@ -138,7 +191,28 @@ func monitoringStackObjectSet(
 	cluster resource.ResourceRef,
 	operators *resource.KubernetesObjectSet,
 ) *resource.KubernetesObjectSet {
-	readiness := make([]resource.KubernetesReadinessCheck, 0, 9)
+	syncroot := "syncroot"
+	if inputs.profile.isFull() {
+		syncroot = "syncroot-full"
+	}
+	return &resource.KubernetesObjectSet{
+		Name:    monitoringStackName,
+		Cluster: cluster,
+		Path:    filepath.Join(inputs.observabilityLocalDir, syncroot),
+		DependsOn: []resource.ResourceRef{
+			resource.Ref(operators),
+			resource.Ref(inputs.observability),
+			resource.Ref(inputs.proxyPublished),
+		},
+		Readiness: monitoringStackReadiness(inputs.profile),
+	}
+}
+
+// monitoringStackReadiness waits for the Flux Kustomizations and then for every workload the
+// profile runs: the storage instances, the proxy and the collectors, and in the full profile
+// also the second storage copies, the agents' StatefulSets and vmagent-self.
+func monitoringStackReadiness(profile MonitoringProfile) []resource.KubernetesReadinessCheck {
+	readiness := make([]resource.KubernetesReadinessCheck, 0, 16)
 	for _, kustomization := range []struct{ namespace, name string }{
 		{"default", "observability-victoria"},
 		{"default", "observability"},
@@ -151,14 +225,25 @@ func monitoringStackObjectSet(
 			monitoringStackTimeout,
 		))
 	}
-	for _, deployment := range []struct{ namespace, name string }{
+	deployments := []struct{ namespace, name string }{
 		{"observability", "vmsingle-metrics-a"},
 		{"observability", "vtsingle-traces-a"},
 		{"observability", "vlsingle-logs-a"},
 		{"observability", "observability-proxy"},
 		{"runtime-obs", "otel-router-collector"},
 		{"runtime-obs", "otel-gateway-collector"},
-	} {
+	}
+	var statefulSets []string
+	if profile.isFull() {
+		deployments = append(deployments,
+			struct{ namespace, name string }{"observability", "vmsingle-metrics-b"},
+			struct{ namespace, name string }{"observability", "vtsingle-traces-b"},
+			struct{ namespace, name string }{"observability", "vlsingle-logs-b"},
+			struct{ namespace, name string }{"observability", "vmagent-self"},
+		)
+		statefulSets = []string{"vmagent-metrics", "vlagent-logs", "vtagent-traces"}
+	}
+	for _, deployment := range deployments {
 		readiness = append(readiness, monitoringReadiness(
 			resource.KubernetesReadinessDeploymentAvailable,
 			deployment.namespace,
@@ -166,17 +251,15 @@ func monitoringStackObjectSet(
 			monitoringStackTimeout,
 		))
 	}
-	return &resource.KubernetesObjectSet{
-		Name:    monitoringStackName,
-		Cluster: cluster,
-		Path:    filepath.Join(inputs.observabilityLocalDir, "syncroot"),
-		DependsOn: []resource.ResourceRef{
-			resource.Ref(operators),
-			resource.Ref(inputs.observability),
-			resource.Ref(inputs.proxyPublished),
-		},
-		Readiness: readiness,
+	for _, name := range statefulSets {
+		readiness = append(readiness, monitoringReadiness(
+			resource.KubernetesReadinessStatefulSetReady,
+			"observability",
+			name,
+			monitoringStackTimeout,
+		))
 	}
+	return readiness
 }
 
 func monitoringArtifact(repository, path string, registry resource.ResourceRef) *resource.OCIArtifact {

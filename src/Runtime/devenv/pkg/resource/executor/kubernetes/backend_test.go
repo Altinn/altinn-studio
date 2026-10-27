@@ -59,6 +59,31 @@ func TestApplyKubernetesObjectSetAppliesManifestAndReadiness(t *testing.T) {
 	}
 }
 
+func TestApplyKubernetesObjectSetWaitsForStatefulSets(t *testing.T) {
+	t.Parallel()
+
+	manifestPath := t.TempDir() + "/manifest.yaml"
+	writeNamespaceManifest(t, manifestPath)
+	kube := &fakeKube{}
+	backend := newTestBackend(kube, &fakeFlux{})
+	cluster := &resource.KindCluster{Name: "cluster"}
+	objects := &resource.KubernetesObjectSet{
+		Name:    "app",
+		Cluster: resource.Ref(cluster),
+		Path:    manifestPath,
+		Readiness: []resource.KubernetesReadinessCheck{
+			{Kind: resource.KubernetesReadinessStatefulSetReady, Namespace: "apps", Name: "agent"},
+		},
+	}
+
+	if _, err := backend.Apply(t.Context(), executor.BackendContext{GraphID: "test"}, objects); err != nil {
+		t.Fatalf("Apply() error = %v", err)
+	}
+	if got := strings.Join(kube.rollouts, ","); got != "statefulset:apps/agent" {
+		t.Fatalf("rollouts = %q", got)
+	}
+}
+
 func TestApplyKubernetesObjectSetPassesContextToApplyAndReadiness(t *testing.T) {
 	t.Parallel()
 
@@ -269,6 +294,17 @@ func (f *fakeKube) RolloutStatus(
 ) error {
 	f.rolloutContextMatched = ctx.Value(testContextKey{}) == testContextValue
 	f.rollouts = append(f.rollouts, namespace+"/"+deployment)
+	return nil
+}
+
+func (f *fakeKube) StatefulSetRolloutStatus(
+	ctx context.Context,
+	statefulSet,
+	namespace string,
+	_ time.Duration,
+) error {
+	f.rolloutContextMatched = ctx.Value(testContextKey{}) == testContextValue
+	f.rollouts = append(f.rollouts, "statefulset:"+namespace+"/"+statefulSet)
 	return nil
 }
 

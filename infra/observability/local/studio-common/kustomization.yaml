@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+# What both monitoring profiles change in the Studio overlay on the devenv kind
+# fixture (src/Runtime/devenv, run with monitoring): the kind cluster plays both a
+# runtime cluster and Studio prod, so the runtime collectors (../runtime) send to this
+# proxy, and Studio's own collectors, which have nothing to collect there, are left out.
+# The proxy runs the image devenv builds, and admits the runtime gateway and Grafana from
+# their namespaces. ../studio and ../studio-full add what differs between the profiles.
+resources:
+  - auth-tokens.yaml
+
+patches:
+  - patch: '{"$patch": "delete", "apiVersion": "opentelemetry.io/v1beta1", "kind": "OpenTelemetryCollector", "metadata": {"name": "otel-router"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "opentelemetry.io/v1beta1", "kind": "OpenTelemetryCollector", "metadata": {"name": "otel-gateway"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "otel-router"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "Service", "metadata": {"name": "otel-gateway-collector-headless"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "otel-router-ingress"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "networking.k8s.io/v1", "kind": "NetworkPolicy", "metadata": {"name": "otel-gateway-ingress"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "v1", "kind": "ServiceAccount", "metadata": {"name": "otel-collector"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "rbac.authorization.k8s.io/v1", "kind": "ClusterRole", "metadata": {"name": "studio-otel-collector"}}'
+  - patch: '{"$patch": "delete", "apiVersion": "rbac.authorization.k8s.io/v1", "kind": "ClusterRoleBinding", "metadata": {"name": "studio-otel-collector"}}'
+  - path: proxy.yaml
