@@ -97,7 +97,7 @@ describe('ResourceDashBoardPage', () => {
     expect(screen.getByLabelText(textMock('resourceadm.dashboard_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
-        name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
+        name: textMock('dashboard.resource_table_num_resources', { num: mockResourceList.length }),
         level: 2,
       }),
     ).not.toBeInTheDocument();
@@ -119,7 +119,7 @@ describe('ResourceDashBoardPage', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
-        name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
+        name: textMock('dashboard.resource_table_num_resources', { num: mockResourceList.length }),
         level: 2,
       }),
     ).toBeInTheDocument();
@@ -371,11 +371,11 @@ describe('ResourceDashBoardPage', () => {
 });
 
 const getShowInactiveSwitch = (): HTMLElement =>
-  screen.getByRole('switch', { name: textMock('resourceadm.dashboard_show_inactive_resources') });
+  screen.getByRole('switch', { name: textMock('dashboard.resource_table_show_inactive') });
 
 const getNumResourcesHeading = (num: number): HTMLElement =>
   screen.getByRole('heading', {
-    name: textMock('resourceadm.dashboard_num_resources', { num }),
+    name: textMock('dashboard.resource_table_num_resources', { num }),
     level: 2,
   });
 
