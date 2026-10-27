@@ -1,3 +1,5 @@
+import { useArgs } from 'storybook/preview-api';
+import { fn } from 'storybook/test';
 import type { PropCategories } from '@app/form-component/layout-components/common/storybook';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -39,6 +41,27 @@ export const ADDRESS_PROP_CATEGORIES = {
   componentValidation: 'runtime',
 } satisfies PropCategories<AddressLayoutProps>;
 
+/**
+ * The first digit of a Norwegian zip code roughly identifies its region, so one city per leading
+ * digit gives a believable post place for any zip code without bundling the postal code registry.
+ */
+const POST_PLACE_BY_REGION = [
+  'OSLO',
+  'FREDRIKSTAD',
+  'HAMAR',
+  'DRAMMEN',
+  'STAVANGER',
+  'BERGEN',
+  'ÅLESUND',
+  'TRONDHEIM',
+  'BODØ',
+  'TROMSØ',
+];
+
+function mockPostPlaceLookup(zipCode: string): string {
+  return /^\d{4}$/.test(zipCode) ? POST_PLACE_BY_REGION[Number(zipCode[0])] : '';
+}
+
 const meta = {
   title: 'LayoutComponents/Address',
   component: AddressLayout,
@@ -46,6 +69,10 @@ const meta = {
   excludeStories: ['ADDRESS_PROP_CATEGORIES'],
   parameters: {
     layout: 'padded',
+    docs: {
+      subtitle:
+        'I denne forhåndsvisningen fylles poststed ut etter første siffer i postnummeret, for eksempel gir 0xxx OSLO og 5xxx BERGEN. I appen slås poststedet opp i postnummerregisteret.',
+    },
   },
   args: {
     id: 'address-preview',
@@ -53,6 +80,24 @@ const meta = {
     address: 'Karl Johans gate 22',
     zipCode: '0026',
     postPlace: 'OSLO',
+    onChange: fn(),
+    onBlur: fn(),
+  },
+  render: function Render(args) {
+    const [, updateArgs] = useArgs();
+    return (
+      <AddressLayout
+        {...args}
+        onChange={(field, value) => {
+          args.onChange?.(field, value);
+          updateArgs(
+            field === 'zipCode'
+              ? { zipCode: value, postPlace: mockPostPlaceLookup(value) }
+              : { [field]: value },
+          );
+        }}
+      />
+    );
   },
 } satisfies Meta<typeof AddressLayout>;
 
