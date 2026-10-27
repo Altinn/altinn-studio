@@ -22,8 +22,10 @@ interface Props {
 export function OpenByDefaultProvider({ baseComponentId, children }: PropsWithChildren<Props>) {
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const editAddButton = useEvalExpression(config.edit?.addButton, Expressions.RepeatingGroup.edit.addButton);
+  const transitioning = FormStore.useIsTransitioning();
 
-  const openByDefault = config.edit ? config.edit.openByDefault : undefined;
+  // While the instance is transitioning, rows are neither added nor opened for editing, by default or by the user
+  const openByDefault = config.edit && !transitioning ? config.edit.openByDefault : undefined;
   const isFirstRender = useRef(true);
   const addRow = RepGroupContext.useAddRow();
   const openForEditing = RepGroupContext.useOpenForEditing();

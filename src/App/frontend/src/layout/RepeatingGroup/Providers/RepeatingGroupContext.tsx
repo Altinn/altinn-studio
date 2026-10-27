@@ -565,6 +565,7 @@ export const RepGroupContext = {
     const removeFromList = FormStore.data.useRemoveFromListCallback();
     const setRowValidationMask = FormStore.validation.useSetRowValidationMask();
     const onBeforeRowDeletion = useAttachmentDeletionInRepGroups(baseComponentId);
+    const transitioning = FormStore.useIsTransitioning();
     const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
     const getFreshRows = FormStore.data.useGetFreshRows();
     const isHidden = useEvalExpressionCallback(config.hiddenRow, Expressions.RepeatingGroup.hiddenRow);
@@ -578,7 +579,8 @@ export const RepGroupContext = {
         (candidate) => candidate.uuid === row.uuid && candidate.index === row.index,
       );
       const location = getRepeatingRowReference(groupBinding, row.index);
-      if (!target || isHidden(location) || !canDelete(location)) {
+      // The form store would reject removing the row, but only after its attachments were deleted from the instance
+      if (transitioning || !target || isHidden(location) || !canDelete(location)) {
         return false;
       }
 

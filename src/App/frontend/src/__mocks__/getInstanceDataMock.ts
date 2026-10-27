@@ -77,6 +77,8 @@ export function getInstanceDataMock(
   return out;
 }
 
-export function getInstanceWithProcessMock(): IInstance & { process: IProcess } {
-  return { ...getInstanceDataMock(), process: getProcessDataMock() };
+export function getInstanceWithProcessMock(
+  mutateProcess?: (process: IProcess) => void,
+): IInstance & { process: IProcess } {
+  return { ...getInstanceDataMock(), process: getProcessDataMock(mutateProcess) };
 }

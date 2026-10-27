@@ -7,7 +7,7 @@ import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultMockDataElementId, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
@@ -42,9 +42,10 @@ interface IRender {
   container?: Partial<CompRepeatingGroupExternal>;
   numRows?: number;
   validationIssues?: BackendValidationIssue[];
+  transitioning?: boolean;
 }
 
-async function render({ container, numRows = 3, validationIssues = [] }: IRender = {}) {
+async function render({ container, numRows = 3, validationIssues = [], transitioning = false }: IRender = {}) {
   const mockComponents: ILayout = [
     {
       id: 'field1',
@@ -138,7 +139,12 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
           obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
         }),
     },
+    apis: transitioning ? { instanceApi: { getInstance: getTransitioningInstance } } : undefined,
   });
+}
+
+async function getTransitioningInstance() {
+  return getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' }));
 }
 
 const { setScreenWidth } = mockMediaQuery(992);
@@ -483,6 +489,27 @@ describe('RepeatingGroupContainer', () => {
     expect(screen.queryByText('New save text')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /^Rediger value2$/i }));
     expect(screen.getByText('New save text')).toBeInTheDocument();
+  });
+
+  it('disables adding, editing and deleting rows while the instance is transitioning', async () => {
+    await render({ numRows: 2, transitioning: true });
+
+    expect(screen.getByRole('button', { name: /Legg til ny/i })).toBeDisabled();
+    const rowButtons = [
+      ...screen.getAllByRole('button', { name: /Rediger/i }),
+      ...screen.getAllByRole('button', { name: /Slett/i }),
+    ];
+    expect(rowButtons).toHaveLength(4);
+    rowButtons.forEach((button) => expect(button).toBeDisabled());
+  });
+
+  it('disables deleting rows shown in full while the instance is transitioning', async () => {
+    await render({ container: { edit: { mode: 'showAll' } }, numRows: 2, transitioning: true });
+
+    const deleteButtons = screen.getAllByTestId('delete-button');
+    expect(deleteButtons).toHaveLength(2);
+    deleteButtons.forEach((button) => expect(button).toBeDisabled());
+    expect(screen.getAllByRole('textbox', { name: 'Title1' })[0]).toHaveAttribute('readonly');
   });
 
   describe('help text', () => {
