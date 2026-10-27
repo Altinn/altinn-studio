@@ -124,6 +124,8 @@ async function terminate(child, completion) {
   signal('SIGKILL');
   // Do not wait indefinitely for inherited pipes from a detached descendant.
   await Promise.race([completion, delay(3000)]);
+  child.stdout.destroy();
+  child.stderr.destroy();
 }
 
 async function capture(child, browser, attemptDirectory, attempt) {
