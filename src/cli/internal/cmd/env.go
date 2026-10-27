@@ -247,7 +247,7 @@ func (c *EnvCommand) hostsRuntimeUsage() string {
 func (c *EnvCommand) runtimeUpUsage() string {
 	var lines []string
 	for _, runtime := range c.runtimes() {
-		lines = append(lines, "", fmt.Sprintf("Options for 'env up -r %s':", runtime.Name()))
+		lines = append(lines, "", fmt.Sprintf("Options for the %s runtime:", runtime.Name()))
 		lines = append(lines, runtime.UpUsage()...)
 	}
 	return strings.Join(lines, osutil.LineBreak)
@@ -458,6 +458,10 @@ func (c *EnvCommand) parseUpFlags(
 	f.runtime.BindUpFlags(fs)
 	if err := fs.Parse(args); err != nil {
 		return f, c.upFlagError(f.runtime, err)
+	}
+	// The flag package stops at the first argument that is not a flag, where runtimeArg reads on.
+	if fs.NArg() > 0 {
+		return f, fmt.Errorf("%w: env up takes no arguments, got %q", ErrInvalidFlagValue, fs.Arg(0))
 	}
 	// runtimeArg reads -r without the flag package; refuse a reading the parse does not share.
 	if f.runtimeFlag != requested {
@@ -696,6 +700,16 @@ func (c *EnvCommand) runReset(ctx context.Context, args []string) error {
 	}
 	if flags.jsonOutput && !flags.yes {
 		return fmt.Errorf("%w: --json requires --yes", ErrInvalidFlagValue)
+	}
+	// A named runtime without reset is refused before connecting; an omitted one is known once the containers are.
+	if flags.runtime != "" {
+		env, envErr := c.env(flags.runtime, nil, silentOutput())
+		if envErr != nil {
+			return envErr
+		}
+		if _, ok := env.(envtypes.Resetter); !ok {
+			return fmt.Errorf("%w: %s", errResetUnsupported, flags.runtime)
+		}
 	}
 
 	target, err := c.target(ctx, flags.runtime, commandOutput(c.out, flags.jsonOutput))

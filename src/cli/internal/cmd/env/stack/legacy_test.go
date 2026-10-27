@@ -61,6 +61,20 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 			wantLegacy: true,
 		},
 		{
+			// Every studioctl runtime's graph ID starts with "studioctl-".
+			name: "container of another studioctl runtime",
+			setup: func(c *mock.Client) {
+				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
+					return types.ContainerInfo{
+						State:  types.ContainerState{Running: true},
+						Labels: map[string]string{containerbackend.GraphIDLabel: "studioctl-localtest-v2"},
+					}, nil
+				}
+			},
+			wantErr:    false,
+			wantLegacy: false,
+		},
+		{
 			name: "containers exist with wrong label value",
 			setup: func(c *mock.Client) {
 				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
