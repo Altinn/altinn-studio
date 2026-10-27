@@ -88,7 +88,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
 - Breaking: `Altinn.App.Api.Models.AppProcessState` is removed. Use `Altinn.App.Core.Internal.Process.Elements.AppProcessState`, which the process endpoints return. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
-- Breaking: `PUT .../process/completeProcess` is removed. Call `PUT .../process/next` for each user task instead, with the action the task needs, such as `sign` on a signing task or `confirm` on a confirmation task. ([#21562](https://github.com/Altinn/altinn-studio/pull/21562))
+- Breaking: `PUT .../process/completeProcess` is removed. Call `PUT .../process/next` instead, for example to end a feedback task once your system has processed the submission. ([#21562](https://github.com/Altinn/altinn-studio/pull/21562))
 
 ## [9.0.0-preview.8] - 2026-10-14
 
