@@ -98,8 +98,8 @@ public class PdfController : ControllerBase
             ? await _authenticationContext.Current.GetLanguage()
             : language;
 
-        // An instance at a PDF service task previews that task the way the service task renders it
-        if (taskId is null && IsPdfServiceTask(_processReader.GetFlowElement(currentTaskId)))
+        // An instance at a PDF or subform PDF service task previews that task the way the service task renders it
+        if (taskId is null && IsPdfOrSubformPdfServiceTask(_processReader.GetFlowElement(currentTaskId)))
         {
             taskId = currentTaskId;
         }
@@ -180,6 +180,6 @@ public class PdfController : ControllerBase
         return File(subformPreview, "application/pdf");
     }
 
-    private static bool IsPdfServiceTask(ProcessElement? element) =>
-        element is ProcessTask { ExtensionElements.TaskExtension.TaskType: "pdf" };
+    private static bool IsPdfOrSubformPdfServiceTask(ProcessElement? element) =>
+        element is ProcessTask { ExtensionElements.TaskExtension.TaskType: "pdf" or "subformPdf" };
 }

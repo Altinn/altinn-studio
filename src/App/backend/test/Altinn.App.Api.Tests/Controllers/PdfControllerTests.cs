@@ -361,6 +361,39 @@ public class PdfControllerTests
     }
 
     [Theory]
+    [InlineData(null)]
+    [InlineData(SubformDataElementId)]
+    public async Task Preview_Of_An_Instance_At_A_Subform_Pdf_Service_Task_Previews_That_Task(string? dataElementId)
+    {
+        // The task renders one entry at a time, so a preview without an entry says so rather than timing out
+        SetupSubformPdfTask();
+        _taskId = "Task_SubformPdf";
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: null,
+            dataElementId: dataElementId is null ? null : new Guid(dataElementId)
+        );
+
+        if (dataElementId is null)
+        {
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which.Value.Should()
+                .Be("dataElementId must be the id of a data element of type subform-model");
+            requestBody.Should().BeNull();
+            return;
+        }
+
+        result.Should().BeOfType<FileContentResult>();
+        RenderedUrl(requestBody)
+            .Should()
+            .EndWith(
+                $"/Task_SubformPdf?pdf=1&lang=nb&subformUiFolder=Subform&subformDataElementId={SubformDataElementId}"
+            );
+    }
+
+    [Theory]
     [InlineData("en", "lang=en")]
     [InlineData(null, "lang=nn")]
     [InlineData("", "lang=nn")]
