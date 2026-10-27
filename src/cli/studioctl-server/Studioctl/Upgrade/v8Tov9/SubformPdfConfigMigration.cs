@@ -72,13 +72,17 @@ internal static class SubformPdfConfigMigration
         },
     ];
 
-    /// <summary>A task to rewrite, with the subform's UI folder its component copy names.</summary>
+    /// <summary>
+    /// A task to rewrite, with the subform's UI folder its component copy names, and the data type to give that
+    /// folder when its settings have none.
+    /// </summary>
     private sealed record Plan(
         string TaskId,
         XElement ComponentIdElement,
         XElement? DataTypeIdElement,
         string UiFolder,
-        string TaskFolder
+        string TaskFolder,
+        string? DataTypeToAdd
     );
 
     /// <summary>
@@ -170,7 +174,7 @@ internal static class SubformPdfConfigMigration
 
         foreach (var plan in applied)
         {
-            var added = await CompleteSubformSettings(Path.Combine(uiPath, plan.UiFolder, "Settings.json"));
+            var added = await CompleteSubformSettings(uiPath, plan, messages);
             messages.Warn(
                 $"Subform PDF task '{plan.TaskId}' now names the subform's UI folder '{plan.UiFolder}' in "
                     + $"{UiFolderName}, instead of the Subform component '{plan.ComponentIdElement.Value.Trim()}' in "
@@ -291,19 +295,29 @@ internal static class SubformPdfConfigMigration
         }
 
         var dataTypeId = dataTypeIds.Count == 1 ? dataTypeIds[0].Value.Trim() : null;
-        var defaultDataType = DefaultDataType(Path.Combine(uiPath, uiFolder, "Settings.json"));
-        if (defaultDataType is null || (dataTypeId is not null && defaultDataType != dataTypeId))
-        {
-            messages.Todo(
-                $"Subform PDF task '{taskId}' had {DataTypeIdName} '{dataTypeId}', but ui/{uiFolder}/Settings.json has "
-                    + (defaultDataType is null ? "no defaultDataType" : $"defaultDataType '{defaultDataType}'")
-                    + ". In v9 the task creates a PDF for each data element of the folder's defaultDataType, so set it "
-                    + "to the subform's data type."
-            );
-        }
+        var settings = ReadSettings(Path.Combine(uiPath, uiFolder, "Settings.json"));
+        var defaultDataType = StringValue(settings?["defaultDataType"]);
+        // Settings without a defaultDataType get the task's, as the subform's data type.
+        var dataTypeToAdd =
+            settings is not null && !settings.ContainsKey("defaultDataType") && !string.IsNullOrEmpty(dataTypeId)
+                ? dataTypeId
+                : null;
+        if (
+            dataTypeToAdd is null
+            && (defaultDataType is null || (dataTypeId is not null && defaultDataType != dataTypeId))
+        )
+            messages.Todo(DataTypeTodo(taskId, dataTypeId, uiFolder, defaultDataType));
 
-        return new Plan(taskId, componentIds[0], dataTypeIds.FirstOrDefault(), uiFolder, taskFolder);
+        return new Plan(taskId, componentIds[0], dataTypeIds.FirstOrDefault(), uiFolder, taskFolder, dataTypeToAdd);
     }
+
+    private static string DataTypeTodo(string taskId, string? dataTypeId, string uiFolder, string? defaultDataType) =>
+        $"Subform PDF task '{taskId}' had "
+        + (string.IsNullOrEmpty(dataTypeId) ? $"no {DataTypeIdName}, and" : $"{DataTypeIdName} '{dataTypeId}', but")
+        + $" ui/{uiFolder}/Settings.json has "
+        + (defaultDataType is null ? "no defaultDataType" : $"defaultDataType '{defaultDataType}'")
+        + ". In v9 the task creates a PDF for each data element of the folder's defaultDataType, so set it to the "
+        + "subform's data type.";
 
     /// <summary>
     /// Replaces the <c>subformComponentId</c> line with a <c>subformUiFolder</c> line and removes the
@@ -433,11 +447,17 @@ internal static class SubformPdfConfigMigration
 
     /// <summary>
     /// Adds <c>"type": "subform"</c>, which Altinn Studio finds subform folders by, to the subform folder's
-    /// settings when they have no type. Keeps the file's comments, byte order mark, line endings and final line
-    /// ending. Returns what it added; settings that are missing or cannot be read are left alone.
+    /// settings when they have no type, and the plan's data type as <c>defaultDataType</c> when they have none.
+    /// Keeps the file's comments, byte order mark, line endings and final line ending. Returns what it added;
+    /// settings that are missing or cannot be read are left alone.
     /// </summary>
-    private static async Task<List<string>> CompleteSubformSettings(string settingsFile)
+    private static async Task<List<string>> CompleteSubformSettings(
+        string uiPath,
+        Plan plan,
+        List<UpgradeMessage> messages
+    )
     {
+        var settingsFile = Path.Combine(uiPath, plan.UiFolder, "Settings.json");
         if (!File.Exists(settingsFile))
             return [];
 
@@ -461,6 +481,20 @@ internal static class SubformPdfConfigMigration
         {
             settings["type"] = "subform";
             added.Add("\"type\": \"subform\"");
+        }
+
+        if (plan.DataTypeToAdd is { } dataType)
+        {
+            // Another task naming the same folder may have added its own data type first.
+            if (!settings.ContainsKey("defaultDataType"))
+            {
+                settings["defaultDataType"] = dataType;
+                added.Add($"\"defaultDataType\": \"{dataType}\"");
+            }
+            else if (StringValue(settings["defaultDataType"]) is var existing && existing != dataType)
+            {
+                messages.Todo(DataTypeTodo(plan.TaskId, dataType, plan.UiFolder, existing));
+            }
         }
 
         if (added.Count == 0)
@@ -516,14 +550,15 @@ internal static class SubformPdfConfigMigration
         }
     }
 
-    private static string? DefaultDataType(string settingsFile)
+    /// <summary>A folder's settings, or null when they are missing or cannot be read.</summary>
+    private static JsonObject? ReadSettings(string settingsFile)
     {
         if (!File.Exists(settingsFile))
             return null;
         try
         {
             var (text, _) = Utf8TextFile.Decode(File.ReadAllBytes(settingsFile));
-            return StringValue(JsonNode.Parse(text, documentOptions: _layoutOptions)?["defaultDataType"]);
+            return JsonNode.Parse(text, documentOptions: _layoutOptions) as JsonObject;
         }
         catch (Exception ex) when (ex is JsonException or DecoderFallbackException or InvalidOperationException)
         {

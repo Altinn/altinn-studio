@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 
@@ -250,6 +251,75 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
 
         Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
         Assert.Contains("defaultDataType 'OtherModel'", Assert.Single(result.Todos), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GivesASubformFolderWithoutADataTypeTheTasksDataType()
+    {
+        _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
+        _app.Write("ui/SubformFolder/Settings.json", """{ "type": "subform", "pages": { "order": ["Page"] } }""");
+        WriteTaskFolder("SubformPdf", GeneratedCopy);
+
+        var result = await Migrate();
+
+        Assert.False(result.RequiresManualFollowUp);
+        Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
+        Assert.Equal(
+            "SubformModel",
+            JsonNode.Parse(_app.Read("ui/SubformFolder/Settings.json"))?["defaultDataType"]?.GetValue<string>()
+        );
+        Assert.Contains(
+            result.Warnings,
+            w =>
+                w.Contains(
+                    "\"defaultDataType\": \"SubformModel\" to ui/SubformFolder/Settings.json",
+                    StringComparison.Ordinal
+                )
+        );
+    }
+
+    [Fact]
+    public async Task ReportsASubformFolderWithoutADataTypeWhenTheTaskHasNone()
+    {
+        _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform")));
+        var settings = """{ "type": "subform", "pages": { "order": ["Page"] } }""";
+        _app.Write("ui/SubformFolder/Settings.json", settings);
+        WriteTaskFolder("SubformPdf", GeneratedCopy);
+
+        var result = await Migrate();
+
+        Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
+        Assert.Equal(settings, _app.Read("ui/SubformFolder/Settings.json"));
+        Assert.Contains(
+            "had no subformDataTypeId, and ui/SubformFolder/Settings.json has no defaultDataType",
+            Assert.Single(result.Todos),
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task ReportsTwoTasksThatGiveOneSubformFolderDifferentDataTypes()
+    {
+        _app.Write(
+            ProcessPath,
+            Process(
+                SubformPdfTask("SubformPdf_A", "Subform", "ModelA"),
+                SubformPdfTask("SubformPdf_B", "Subform", "ModelB")
+            )
+        );
+        _app.Write("ui/SubformFolder/Settings.json", """{ "type": "subform", "pages": { "order": ["Page"] } }""");
+        WriteTaskFolder("SubformPdf_A", GeneratedCopy);
+        WriteTaskFolder("SubformPdf_B", GeneratedCopy);
+
+        var result = await Migrate();
+
+        Assert.Equal(
+            "ModelA",
+            JsonNode.Parse(_app.Read("ui/SubformFolder/Settings.json"))?["defaultDataType"]?.GetValue<string>()
+        );
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("'SubformPdf_B' had subformDataTypeId 'ModelB'", todo, StringComparison.Ordinal);
+        Assert.Contains("defaultDataType 'ModelA'", todo, StringComparison.Ordinal);
     }
 
     [Fact]
