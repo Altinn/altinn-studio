@@ -31,7 +31,7 @@ internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayloa
 /// Selects the one stage of a process task's lifecycle pipeline a <c>StartTask</c>, <c>EndTask</c> or
 /// <c>AbandonTask</c> step runs. Absent when the step runs the whole pipeline.
 /// </summary>
-internal sealed record ProcessTaskStagePayload(int StageIndex) : CommandRequestPayload;
+internal sealed record ProcessTaskStagePayload(int? StageIndex) : CommandRequestPayload;
 
 /// <summary>
 /// Process/next's prepared transition; instantiation carries no payload.

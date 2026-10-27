@@ -6,13 +6,12 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAband
 /// <summary>
 /// Runs one stage of the current task type's abandon pipeline (<see cref="IProcessTask.DefineAbandon"/>). Each stage
 /// is a step of its own that carries the stage's index, so a retry starts at the stage that failed. The pipeline
-/// is composed again when the step runs and the stage is picked by position, as for service task items.
+/// is composed again when the step runs and the stage is picked by position, as for service task items. A step
+/// enqueued before the task composed stages carries no index and runs every stage, as that version did.
 /// </summary>
 internal sealed class AbandonTask : WorkflowEngineCommandBase<ProcessTaskStagePayload>
 {
     public static string Key => "AbandonTask";
-
-    internal const string FailedReasonCode = "ProcessTaskStageFailedException";
 
     private readonly ProcessTaskResolver _processTaskResolver;
 
@@ -22,6 +21,9 @@ internal sealed class AbandonTask : WorkflowEngineCommandBase<ProcessTaskStagePa
     }
 
     public override string GetKey() => Key;
+
+    protected override ProcessTaskStagePayload? ResolvePayload(ProcessEngineCommandContext context) =>
+        StageExecution.ResolvePayload(context);
 
     public override async Task<ProcessEngineCommandResult> Execute(
         ProcessEngineCommandContext context,
@@ -33,24 +35,8 @@ internal sealed class AbandonTask : WorkflowEngineCommandBase<ProcessTaskStagePa
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            IReadOnlyList<PipelineStage.Plain> stages = processTask.DefineAbandon(new PipelineBuilder()).Stages;
-            if (stages.ElementAtOrDefault(payload.StageIndex) is not { } stage)
-            {
-                return FailedProcessEngineCommandResult.Permanent(
-                    $"Task type '{altinnTaskType}' composes no abandon stage at index {payload.StageIndex}. A "
-                        + "pipeline's indexes are positions in its composition: if stages were inserted, reordered "
-                        + "or removed since this workflow was enqueued, every index behind the change has moved. "
-                        + "Resume the workflow on the code that enqueued it, or abandon it deliberately.",
-                    "ProcessTaskStageNotFound"
-                );
-            }
-
-            StageResult result = await stage.Work(StageExecution.CreateContext(context));
-            return StageExecution.MapResult(
-                result,
-                message => $"Task type '{altinnTaskType}' abandon stage {payload.StageIndex} failed: {message}",
-                FailedReasonCode
-            );
+            Pipeline pipeline = processTask.DefineAbandon(new PipelineBuilder());
+            return await StageExecution.Run(pipeline, payload, context, "abandon", altinnTaskType);
         }
         catch (Exception ex)
         {

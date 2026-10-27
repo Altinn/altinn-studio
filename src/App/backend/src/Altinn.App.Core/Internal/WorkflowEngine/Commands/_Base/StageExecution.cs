@@ -8,6 +8,71 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 /// </summary>
 internal static class StageExecution
 {
+    /// <summary>Reason code for a failure a lifecycle stage reported. Operator-visible.</summary>
+    internal const string FailedReasonCode = "ProcessTaskStageFailedException";
+
+    /// <summary>
+    /// The step's stage payload. A step enqueued by a version from before lifecycle stages carries none: that
+    /// version ran the whole lifecycle as one step, so the step is run that way here, as a payload with no stage
+    /// index. A payload of another type is invalid, as for any command.
+    /// </summary>
+    public static ProcessTaskStagePayload? ResolvePayload(ProcessEngineCommandContext context) =>
+        context.Payload.Payload is null
+            ? new ProcessTaskStagePayload(StageIndex: null)
+            : CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.Payload.Payload)
+                as ProcessTaskStagePayload;
+
+    /// <summary>
+    /// Runs the stage the step names, or every stage in order when the step names none (see
+    /// <see cref="ResolvePayload"/>), and reports the outcome as the step's. A stage index the pipeline no longer
+    /// has fails permanently: the pipeline was reshaped while this workflow was in flight, and running whatever
+    /// stage now sits at that position could do the wrong work. The step's messages name the lifecycle
+    /// <paramref name="phase"/> (<c>start</c>, <c>end</c> or <c>abandon</c>) and the task type.
+    /// </summary>
+    public static async Task<ProcessEngineCommandResult> Run(
+        Pipeline pipeline,
+        ProcessTaskStagePayload payload,
+        ProcessEngineCommandContext context,
+        string phase,
+        string? altinnTaskType
+    )
+    {
+        IReadOnlyList<PipelineStage.Plain> stages = pipeline.Stages;
+        StageContext stageContext = CreateContext(context);
+
+        if (payload.StageIndex is not { } stageIndex)
+        {
+            for (int index = 0; index < stages.Count; index++)
+            {
+                ProcessEngineCommandResult result = await RunStage(stages[index], index);
+                if (result is not SuccessfulProcessEngineCommandResult)
+                {
+                    return result;
+                }
+            }
+            return new SuccessfulProcessEngineCommandResult();
+        }
+
+        if (stages.ElementAtOrDefault(stageIndex) is not { } stage)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                $"Task type '{altinnTaskType}' composes no {phase} stage at index {stageIndex}. A pipeline's indexes "
+                    + "are positions in its composition: if stages were inserted, reordered or removed since this "
+                    + "workflow was enqueued, every index behind the change has moved. Resume the workflow on the "
+                    + "code that enqueued it, or abandon it deliberately.",
+                "ProcessTaskStageNotFound"
+            );
+        }
+        return await RunStage(stage, stageIndex);
+
+        async Task<ProcessEngineCommandResult> RunStage(PipelineStage.Plain stage, int index) =>
+            MapResult(
+                await stage.Work(stageContext),
+                message => $"Task type '{altinnTaskType}' {phase} stage {index} failed: {message}",
+                FailedReasonCode
+            );
+    }
+
     /// <summary>
     /// The context for a stage run by this step: the instance data, the step's identity, and the engine's record of
     /// how many times the step has been attempted and how long it has waited.

@@ -112,7 +112,7 @@ public class StartTaskTests
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }
 
-    private sealed class StagedTask(List<string> ran) : IProcessTask
+    private sealed class StagedTask(List<string> ran, StageResult? firstStageResult = null) : IProcessTask
     {
         public string Type => "data";
 
@@ -121,7 +121,7 @@ public class StartTaskTests
                 .Stage(context =>
                 {
                     ran.Add($"first:{context.StepId}");
-                    return Task.FromResult(StageResult.Completed());
+                    return Task.FromResult(firstStageResult ?? StageResult.Completed());
                 })
                 .Stage(context =>
                 {
@@ -145,18 +145,30 @@ public class StartTaskTests
     }
 
     [Fact]
-    public async Task Execute_WithoutStageIndex_FailsPermanently()
+    public async Task Execute_WithoutStageIndex_RunsEveryStageInThisStep()
     {
-        // Every lifecycle step carries its stage index, as every service task step carries its item index.
+        // A version from before lifecycle stages planned one step with no payload and ran the whole lifecycle in
+        // it. A workflow it enqueued may still be in flight after an upgrade; its step runs the way it was planned.
         var ran = new List<string>();
         var command = CreateCommand(new StagedTask(ran));
+        var context = CreateContext(CreateInstance(), stageIndex: null);
+
+        var result = await command.Execute(context);
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Equal([$"first:{context.Payload.StepId}", $"second:{context.Payload.StepId}"], ran);
+    }
+
+    [Fact]
+    public async Task Execute_WithoutStageIndex_StopsAtTheFirstStageThatDoesNotComplete()
+    {
+        var ran = new List<string>();
+        var command = CreateCommand(new StagedTask(ran, firstStageResult: StageResult.Defer(TimeSpan.FromMinutes(2))));
 
         var result = await command.Execute(CreateContext(CreateInstance(), stageIndex: null));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
-        Assert.Empty(ran);
+        Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        Assert.Single(ran);
     }
 
     [Fact]
@@ -235,7 +247,7 @@ public class StartTaskTests
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal(permanent, failed.NonRetryable);
-        Assert.Equal(StartTask.FailedReasonCode, failed.ExceptionType);
+        Assert.Equal(StageExecution.FailedReasonCode, failed.ExceptionType);
         Assert.Contains(permanent ? "no signee provider" : "busy", failed.ErrorMessage);
         Assert.Contains("start stage 0", failed.ErrorMessage);
     }

@@ -225,6 +225,8 @@ app does not guard against it. Names would not help either, since a redeploy can
 
 - A step whose item no longer fits fails permanently with a code that names the index. It never moves to a neighboring
   item, which could read another exchange's message.
+- A lifecycle step enqueued by a version from before lifecycle stages carries no stage index. It runs every stage of
+  the task type's pipeline in that one step, as the version that enqueued it ran the whole lifecycle.
 - To recover, resume the workflow on the code that enqueued it, or abandon it. An open mailbox stays open until its
   deadline or until someone closes it.
 - A reply handler finds its opening stage from the pipeline at each hop. After a reshape, concluding the exchange can
