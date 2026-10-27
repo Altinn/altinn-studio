@@ -31,6 +31,35 @@ function SubmitProbe() {
   );
 }
 
+/** Remounts ProcessWrapper when the URL's task changes, as the task route does in the app. */
+function RemountPerTask() {
+  const taskId = useNavigationParam('taskId');
+  return (
+    <ProcessWrapper key={taskId}>
+      <div data-testid='task-content'>
+        <SubmitProbe />
+      </div>
+    </ProcessWrapper>
+  );
+}
+
+/**
+ * Keeps window.location on the memory router's URL until the test ends, as the browser router does
+ * in the app. Code that reads the live URL, such as useIsNavigating, sees a stale one otherwise.
+ */
+function mirrorRouterUrl(routerRef: RouterRef) {
+  const originalUrl = `${window.location.pathname}${window.location.search}`;
+  const router = routerRef.current!;
+  const mirror = () =>
+    window.history.replaceState({}, '', `${router.state.location.pathname}${router.state.location.search}`);
+  mirror();
+  const unsubscribe = router.subscribe(mirror);
+  onTestFinished(() => {
+    unsubscribe();
+    window.history.replaceState({}, '', originalUrl);
+  });
+}
+
 const processTasksWithServiceTask: NonNullable<IProcess['processTasks']> = [
   { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
   { altinnTaskType: 'scenario', elementId: 'Task_Service', elementType: 'ServiceTask' },
@@ -861,17 +890,6 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       return new Promise(() => {});
     });
 
-    function RemountPerTask() {
-      const taskId = useNavigationParam('taskId');
-      return (
-        <ProcessWrapper key={taskId}>
-          <div data-testid='task-content'>
-            <SubmitProbe />
-          </div>
-        </ProcessWrapper>
-      );
-    }
-
     const routerRef: RouterRef = { current: undefined };
     await renderWithDefaultProviders({
       renderer: () => (
@@ -900,6 +918,92 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+  });
+
+  it('keeps the page when process/next answers with the parked service task, until the next task', async () => {
+    // process/next answers once the task defers. The component that called it unmounted when the
+    // URL moved to the task, so the response must not navigate there again: that would drop the
+    // page the URL is on and remount the task.
+    setServiceTaskPages(['page1']);
+    let resolveProcessNext: (response: ProcessNextResponse) => void = () => {};
+    let phase: 'form' | 'serviceTask' | 'nextCommitted' | 'nextSettled' = 'form';
+    vi.mocked(doProcessNext).mockImplementationOnce(() => {
+      phase = 'serviceTask';
+      return new Promise((resolve) => {
+        resolveProcessNext = resolve;
+      });
+    });
+
+    const routerRef: RouterRef = { current: undefined };
+    await renderWithDefaultProviders({
+      renderer: () => (
+        <InstanceProvider>
+          <RemountPerTask />
+        </InstanceProvider>
+      ),
+      router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () => {
+            switch (phase) {
+              case 'form':
+                return getInstanceOnTask('Task_1', { status: 'idle' });
+              case 'serviceTask':
+                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+              case 'nextCommitted':
+                return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+              case 'nextSettled':
+                return getInstanceOnTask('Task_2', { status: 'idle' });
+            }
+          },
+        },
+      },
+    });
+    mirrorRouterUrl(routerRef);
+
+    expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
+    act(() => screen.getByRole('button', { name: 'submit-probe' }).click());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toMatch(/\/Task_Service$/);
+
+    // In the app, the task's index route redirects to its first page. The router's location carries
+    // the basename, which navigate() adds again.
+    await act(async () => {
+      await routerRef.current!.navigate(`${routerRef.current!.state.location.pathname.replace('/ttd/test', '')}/page1`);
+    });
+    const locationOnPage = routerRef.current!.state.location;
+
+    await act(async () => {
+      resolveProcessNext({
+        data: getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' }),
+        status: 200,
+        statusText: 'OK',
+        headers: new AxiosHeaders(),
+        config: { headers: new AxiosHeaders() },
+      });
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(routerRef.current!.state.location.key).toBe(locationOnPage.key);
+    expect(routerRef.current!.state.location.pathname).toMatch(/\/Task_Service\/page1$/);
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+
+    // The process moves on while the URL is still on the page: the page stays until the next task.
+    phase = 'nextCommitted';
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toMatch(/\/Task_Service\/page1$/);
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+
+    phase = 'nextSettled';
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
   });
 
   it('follows a feedback task when the process moves on', async () => {
