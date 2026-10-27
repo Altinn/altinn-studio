@@ -26,7 +26,7 @@ type goldenAppEnv struct {
 
 type goldenAppEnvCase struct {
 	Environment map[string]string `json:"environment"`
-	// OTLP is where the run reaches the environment's collector; nil while no collector runs.
+	// OTLP is where the run reaches the environment's collector, and nil while no collector runs.
 	OTLP                    *goldenOTLP `json:"otlp"`
 	Name                    string      `json:"name"`
 	KestrelURL              string      `json:"kestrelUrl"`

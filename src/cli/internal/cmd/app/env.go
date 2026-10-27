@@ -27,7 +27,7 @@ const (
 
 // newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
 // secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
-// the data-protection keys go; otlp is set only while the environment's collector runs, as the address this
+// the data-protection keys go. otlp is set only while the environment's collector runs, as the address this
 // run reaches it at.
 func newAppRunEnv(
 	current []string,
