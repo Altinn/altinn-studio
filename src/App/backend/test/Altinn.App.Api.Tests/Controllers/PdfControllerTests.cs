@@ -460,13 +460,13 @@ public class PdfControllerTests
         bool renderable = listsTasks || folder == PdfTaskFolder.WithPdfLayoutName;
         if (!renderable)
         {
-            var failed = Assert.IsType<ServiceTaskFailedResult>(taskResult);
+            var failed = Assert.IsType<FailedServiceTaskResult>(taskResult);
             Assert.Equal(failed.ErrorMessage, Assert.IsType<BadRequestObjectResult>(result).Value);
             Assert.Null(requestBody);
             return;
         }
 
-        Assert.IsType<ServiceTaskSuccessResult>(taskResult);
+        Assert.IsType<SuccessfulServiceTaskResult>(taskResult);
         Assert.IsType<FileContentResult>(result);
         Assert.NotNull(requestBody);
         Assert.Contains("/Task_Pdf?pdf=1", requestBody);
