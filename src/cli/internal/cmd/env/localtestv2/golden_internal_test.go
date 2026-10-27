@@ -21,7 +21,7 @@ var goldenPath = filepath.Join("testdata", "environment.golden.json") //nolint:g
 // goldenEnvironment is what the runtime builds from the manifest. Each container's env is the manifest's envs plus the
 // services__ variables.
 type goldenEnvironment struct {
-	// Groups are the containers each group selects with the default group, in start order; the minimal group, which
+	// Groups are the containers each group selects with the default group, in start order. The minimal group, which
 	// replaces the default one, alone.
 	Groups map[string][]string `json:"groups"`
 	// Default is `env up` with no flags: pulled images at the pin, no optional group.
@@ -35,7 +35,7 @@ type goldenEnvironment struct {
 	Minimal goldenOptions `json:"minimal"`
 	// CustomOrigin is `env up --host origin.test --port 18000`: the default group at another public origin.
 	CustomOrigin goldenOptions `json:"customOrigin"`
-	// VolumePrefix is this runtime's volume prefix; a mount's HostPath and each of Volumes is it plus a volume id.
+	// VolumePrefix is this runtime's volume prefix. A mount's HostPath and each of Volumes is it plus a volume id.
 	VolumePrefix string `json:"volumePrefix"`
 	// Volumes are the volumes env reset removes.
 	Volumes []string `json:"volumes"`
@@ -92,7 +92,7 @@ func TestTheEnvironmentMatchesTheGoldenFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	data = append(data, '\n')
-	// The copy's directory is the test's own; the snapshot has it where the runtime keeps it.
+	// The copy's directory is the test's own. The snapshot has it where the runtime keeps it.
 	data = bytes.ReplaceAll(data, []byte(caBundleDir), []byte(testCABundleDir))
 
 	if os.Getenv(envUpdateGolden) != "" {

@@ -257,7 +257,7 @@ func TestAFailedCreateRemovesWhatTheStartCreated(t *testing.T) {
 	f, client := newFakeRuntime()
 	// Notifications starts after postgres, register, profile, authorization and authentication.
 	f.failCreate["notifications"] = errCreate
-	// A probe that an earlier start, cancelled mid-way, could leave; the default stack has no receipt.
+	// A probe that an earlier start, cancelled mid-way, could leave. The default stack has no receipt.
 	f.containers[probeContainerOf("receipt")] = types.ContainerConfig{Name: probeContainerOf("receipt")}
 	out, env, err := startFailing(t, f, client)
 	if !errors.Is(err, errCreate) {

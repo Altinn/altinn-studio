@@ -40,7 +40,7 @@ type goldenAppEnvCase struct {
 	Arbeidsflate bool `json:"arbeidsflate,omitempty"`
 }
 
-// goldenSigning is a case's certificate, as the runner finds it; empty for a run without localtest-v2.
+// goldenSigning is a case's certificate, as the runner finds it. Empty for a run without localtest-v2.
 //
 //nolint:tagliatelle // The snapshot's field names are the Go field names of the code that wrote it first.
 type goldenSigning struct {

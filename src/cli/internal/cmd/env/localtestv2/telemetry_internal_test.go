@@ -53,7 +53,7 @@ func TestTheMonitoringGroupStartsTheCollectorItsStoresAndGrafana(t *testing.T) {
 }
 
 // While the collector runs, every other container gets the standard OpenTelemetry variables, its own name as the
-// service name; the monitoring containers get none, so the collector does not export to itself.
+// service name. The monitoring containers get none, so the collector does not export to itself.
 func TestTheCollectorGivesEveryOtherContainerTheOTLPVariables(t *testing.T) {
 	t.Parallel()
 	for name, c := range containersOf(t, withMonitoring()) {
@@ -84,7 +84,7 @@ func TestTheCollectorGivesEveryOtherContainerTheOTLPVariables(t *testing.T) {
 }
 
 // While the collector runs, every other container depends on it besides its manifest dependsOn, so it starts once the
-// collector is ready and stops before it; the monitoring containers keep their own dependencies, so there is no cycle.
+// collector is ready and stops before it. The monitoring containers keep their own dependencies, so there is no cycle.
 func TestEveryOtherContainerStartsAfterTheCollector(t *testing.T) {
 	t.Parallel()
 	for _, opts := range []*Options{withMonitoring(), everythingOptions()} {
@@ -175,7 +175,7 @@ func TestAContainersOwnEnvsWinOverTheOTLPDefaults(t *testing.T) {
 }
 
 // With Grafana running, the workflow engine's dashboard links a workflow's trace to Grafana on the public origin (and
-// --host/--port); no other container gets the settings, and the manifest does not set them, so Aspire never gets them.
+// --host/--port). No other container gets the settings, and the manifest does not set them, so Aspire never gets them.
 func TestTheWorkflowEngineLinksItsTracesToGrafanaWhileItRuns(t *testing.T) {
 	t.Parallel()
 	custom := withMonitoring()
@@ -223,7 +223,7 @@ func TestTheEngineLinksToGrafanasTracesDatasource(t *testing.T) {
 	}
 }
 
-// The front door routes /otlp to the running receiver's OTLP/HTTP port, by the service otlp's variable; the collector
+// The front door routes /otlp to the running receiver's OTLP/HTTP port, by the service otlp's variable. The collector
 // itself is not announced by name, its health being a TCP check.
 func TestTheReceiversHTTPPortIsAnnouncedAsOTLP(t *testing.T) {
 	t.Parallel()
@@ -320,7 +320,7 @@ func TestMinimalModeSendsEveryContainersTelemetryToTheFilesReceiver(t *testing.T
 }
 
 // otel-files writes to the telemetry folder on the host, read-write, as the developer (their uid:gid, keep-id under
-// Podman), so the files are theirs; no other container gets the folder or the user.
+// Podman), so the files are theirs. No other container gets the folder or the user.
 func TestTheFilesReceiverWritesToTheTelemetryFolderAsTheDeveloper(t *testing.T) {
 	t.Parallel()
 	opts := minimalOptions()
@@ -366,7 +366,7 @@ func writeTelemetry(t *testing.T, dir string) string {
 	return file
 }
 
-// Stopping a minimal-mode stack deletes the telemetry folder; stopping the default stack leaves it alone.
+// Stopping a minimal-mode stack deletes the telemetry folder. Stopping the default stack leaves it alone.
 func TestTeardownDeletesTheTelemetryFolderOfMinimalModeOnly(t *testing.T) {
 	t.Parallel()
 	for _, minimal := range []bool{true, false} {
@@ -392,7 +392,7 @@ func TestTeardownDeletesTheTelemetryFolderOfMinimalModeOnly(t *testing.T) {
 }
 
 // env up in minimal mode starts with an empty telemetry folder, unless otel-files runs (a converged stack keeps its
-// receiver and its open files); another mode does not touch it.
+// receiver and its open files). Another mode does not touch it.
 func TestUpEmptiesTheTelemetryFolderUnlessTheReceiverRuns(t *testing.T) {
 	t.Parallel()
 	cfg := testConfig(t)

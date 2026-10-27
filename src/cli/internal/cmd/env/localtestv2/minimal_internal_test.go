@@ -90,7 +90,7 @@ func TestMinimalModeMountsTmpfsForEveryManifestVolume(t *testing.T) {
 	for name, c := range containersOf(t, minimalOptions()) {
 		var binds, rest []types.VolumeMount
 		for _, v := range c.Volumes {
-			// The certificate's two mounts; otel-files's files and its telemetry folder are its own tests'.
+			// The certificate's two mounts. otel-files's files and its telemetry folder are its own tests'.
 			if v.Type == types.VolumeMountTypeBind && v.ReadOnly && strings.HasPrefix(v.HostPath, testFilesDir) {
 				continue
 			}

@@ -1,5 +1,5 @@
 // Package manifest holds the localtest-v2 manifest: the stack's containers (image, environment, start order, volumes,
-// port and health) and the groups that select them. studioctl's localtest-v2 runtime starts the stack from it; the
+// port and health) and the groups that select them. studioctl's localtest-v2 runtime starts the stack from it. The
 // manifest is embedded, and README.md beside it describes the format.
 package manifest
 
@@ -25,7 +25,7 @@ const (
 	// DefaultGroup is the group that is always on.
 	DefaultGroup = "default"
 	// MinimalGroup is the group that replaces the default one in minimal mode: the front door, Storage and the
-	// workflow engine (and Postgres through dependsOn); the front door emulates the rest of the default group.
+	// workflow engine (and Postgres through dependsOn). The front door emulates the rest of the default group.
 	MinimalGroup = "minimal"
 	// DefaultPort is a container's HTTP port when the manifest names none.
 	DefaultPort = 8080
@@ -41,7 +41,7 @@ const (
 var manifestJSON []byte
 
 // bundle is what ships with the manifest: the folders beside manifest.json that hold the files its containers mount
-// (files.go). Every such folder is named here; the package's tests fail on a folder beside the manifest that is not.
+// (files.go). Every such folder is named here. The package's tests fail on a folder beside the manifest that is not.
 //
 //go:embed manifest.json monitoring
 var bundle embed.FS
@@ -73,7 +73,7 @@ type Manifest struct {
 	Public     Public
 }
 
-// Group names the root containers of one group; the group starts them and their transitive dependencies.
+// Group names the root containers of one group. The group starts them and their transitive dependencies.
 type Group struct {
 	Name       string   `json:"name"`
 	Containers []string `json:"containers"`
@@ -85,10 +85,10 @@ type Container struct {
 	// (origin.go), which Manifest.Envs resolves.
 	Envs map[string]string `json:"envs"`
 	// Volumes maps a volume id to where the volume is mounted in the container. The id names one volume for the whole
-	// manifest (containers naming the same id share it); the runtime prefixes it with its own prefix.
+	// manifest (containers naming the same id share it). The runtime prefixes it with its own prefix.
 	Volumes map[string]string `json:"volumes"`
 	// Files maps a path in the container to a file or folder that ships with the manifest, relative to the manifest's
-	// directory and inside a folder beside it (monitoring/otel-collector.yaml); the runtime mounts it read-only.
+	// directory and inside a folder beside it (monitoring/otel-collector.yaml). The runtime mounts it read-only.
 	Files map[string]string `json:"files"`
 	// OTLPReceiver marks the stack's OpenTelemetry receiver: while it runs, the other containers send their telemetry
 	// to it. At most one runs at a time. Nil for every other container.
@@ -97,11 +97,11 @@ type Container struct {
 	Registry string `json:"registry"`
 	// Tag is the image tag (a digest may follow it: "7.2-alpine@sha256:...").
 	Tag string `json:"tag"`
-	// Health is an HTTP path answering 200 when the container is healthy, or HealthTCP; empty is DefaultHealth.
+	// Health is an HTTP path answering 200 when the container is healthy, or HealthTCP. Empty is DefaultHealth.
 	Health string `json:"health"`
 	// DependsOn are the containers that start before this one.
 	DependsOn []string `json:"dependsOn"`
-	// Port is the container port the health check and the services__ variables use; zero is DefaultPort.
+	// Port is the container port the health check and the services__ variables use. Zero is DefaultPort.
 	Port int `json:"port"`
 	// CABundle marks a container that trusts the host's CA bundle (STUDIO_CA_BUNDLE) when the host has one: the
 	// runner mounts a copy of it read-only at cabundle.ContainerPath and sets the variable there. For images that read the variable themselves
@@ -113,7 +113,7 @@ type Container struct {
 // receiver (the front door's /otlp route forwards there).
 type OTLPReceiver struct {
 	// Output is a path in the container where the runner mounts a folder on the host, read-write, for the files the
-	// receiver writes; empty for none. It is not a volume: what is in it is for the developer to read on the host.
+	// receiver writes. Empty for none. It is not a volume: what is in it is for the developer to read on the host.
 	Output string `json:"output"`
 	// GRPCPort is the OTLP/gRPC receiver's port, which the containers send to.
 	GRPCPort int `json:"grpcPort"`
@@ -146,7 +146,7 @@ func (c Container) IsHTTP() bool {
 	return c.HealthCheck() != HealthTCP
 }
 
-// loadDefault parses the embedded manifest on first use; the runtime asks for it many times per command.
+// loadDefault parses the embedded manifest on first use. The runtime asks for it many times per command.
 //
 //nolint:gochecknoglobals // A parse-once cache of embedded, immutable data.
 var loadDefault = sync.OnceValues(func() (*Manifest, error) {
@@ -170,7 +170,7 @@ func MustDefault() *Manifest {
 
 // Parse reads a manifest and checks it: known keys only, every reference resolves, no dependency cycle, every container
 // reached by a group, the values in range, every placeholder in envs one of the public origin's, and every source of
-// files one that ships with it. files holds what ships with the manifest, at paths relative to its directory; only the
+// files one that ships with it. files holds what ships with the manifest, at paths relative to its directory. Only the
 // files in its folders count (ShippedFiles), and nil ships none.
 func Parse(data []byte, files fs.FS) (*Manifest, error) {
 	var file struct {
@@ -241,7 +241,7 @@ func (m *Manifest) Group(name string) (Group, bool) {
 	return Group{Name: "", Containers: nil}, false
 }
 
-// VolumeIDs lists every volume id, sorted; an id several containers name is listed once.
+// VolumeIDs lists every volume id, sorted. An id several containers name is listed once.
 func (m *Manifest) VolumeIDs() []string {
 	set := map[string]bool{}
 	for _, c := range m.Containers {
@@ -253,7 +253,7 @@ func (m *Manifest) VolumeIDs() []string {
 }
 
 // Select returns the containers the named groups start, in start order: the groups' roots and their transitive
-// dependencies, every container after the ones it depends on, ties in file order. Unknown group names are ignored; the
+// dependencies, every container after the ones it depends on, ties in file order. Unknown group names are ignored. The
 // caller validates them.
 func (m *Manifest) Select(groups []string) []string {
 	selected := map[string]bool{}

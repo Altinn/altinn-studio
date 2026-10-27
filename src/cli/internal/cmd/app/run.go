@@ -389,7 +389,7 @@ func checkContainerOrigin(state localtestv2.State) error {
 
 // onStackNetwork puts an app container on the localtest-v2 stack's network, and returns the certificate it signs its
 // platform access tokens with. The front door reaches the app at its alias, <org>-<app>, which the container carries in
-// a label for studioctl-server's registration; the app calls the platform through the public origin, whose host names
+// a label for studioctl-server's registration. The app calls the platform through the public origin, whose host names
 // resolve to the host gateway, where the front door publishes the public port, exactly as the components do. The
 // certificate directory is mounted read-only where the components have it, and the localtest-v2 label lets every
 // teardown remove a container left running when the environment stops. A network of the apps' own does not work

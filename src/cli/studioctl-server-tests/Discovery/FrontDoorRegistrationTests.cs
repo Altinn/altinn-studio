@@ -304,8 +304,8 @@ public sealed class FrontDoorRegistrationTests
         );
 
     /// <summary>
-    /// The front door's app API: PUT registers, DELETE removes, GET lists; every call is recorded. Behind the same
-    /// origin, Storage knows every app; on its port, each app answers its metadata probe.
+    /// The front door's app API: PUT registers, DELETE removes, GET lists. Every call is recorded. Behind the same
+    /// origin, Storage knows every app. On its port, each app answers its metadata probe.
     /// </summary>
     private sealed class FakeFrontDoor : HttpMessageHandler
     {
@@ -415,7 +415,7 @@ public sealed class FrontDoorRegistrationTests
         public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
-    /// <summary>Finds the apps added to it on the host, at their ports; counts its passes.</summary>
+    /// <summary>Finds the apps added to it on the host, at their ports. Counts its passes.</summary>
     private sealed class FakeDiscovery(FakeFrontDoor frontDoor) : IAppDiscovery
     {
         private int _calls;

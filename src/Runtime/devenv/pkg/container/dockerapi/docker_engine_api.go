@@ -418,7 +418,7 @@ func buildMounts(volumes []types.VolumeMount) []dockermount.Mount {
 	return mounts
 }
 
-// buildTmpfs maps each tmpfs mount's path to its options; nil when there is none.
+// buildTmpfs maps each tmpfs mount's path to its options. nil when there is none.
 func buildTmpfs(volumes []types.VolumeMount) map[string]string {
 	var tmpfs map[string]string
 	for _, v := range volumes {

@@ -337,7 +337,7 @@ func (e *Env) Status(ctx context.Context) (*envtypes.Status, error) {
 	return &status, nil
 }
 
-// pulledRef names the reference a container's image is pulled from; a dev build has none.
+// pulledRef names the reference a container's image is pulled from. A dev build has none.
 func pulledRef(ctr *resource.Container) string {
 	pulled, ok := ctr.Image.Resource().(*resource.PulledImage)
 	if !ok {

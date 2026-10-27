@@ -123,7 +123,7 @@ type ContainerClient interface {
 	// If timeout is nil, a default timeout is used.
 	ContainerStop(ctx context.Context, nameOrID string, timeout *int) error
 
-	// ContainerRemove removes a container and its anonymous volumes; named volumes and bind mounts stay.
+	// ContainerRemove removes a container and its anonymous volumes. Named volumes and bind mounts stay.
 	// If force is true, the container is killed before removal.
 	ContainerRemove(ctx context.Context, nameOrID string, force bool) error
 

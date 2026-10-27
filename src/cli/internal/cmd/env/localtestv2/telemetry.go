@@ -15,7 +15,7 @@ import (
 // Telemetry: the manifest marks the stack's OpenTelemetry receiver (otlpReceiver): the monitoring group's collector,
 // which exports to the Victoria stores Grafana reads, or minimal mode's otel-files, which writes JSON Lines files to a
 // folder on the host. The manifest's groups never run two at once. While one runs, every other container is told where
-// to send its telemetry through the standard OpenTelemetry variables; a component exports exactly when they are set.
+// to send its telemetry through the standard OpenTelemetry variables. A component exports exactly when they are set.
 const (
 	// monitoringGroup is the manifest group of the collector, its stores and Grafana.
 	monitoringGroup = "monitoring"
@@ -26,12 +26,12 @@ const (
 	otlpEndpointVariable    = "OTEL_EXPORTER_OTLP_ENDPOINT"
 	otlpProtocolVariable    = "OTEL_EXPORTER_OTLP_PROTOCOL"
 	otelServiceNameVariable = "OTEL_SERVICE_NAME"
-	// metricExportIntervalVariable is the SDKs' metric export interval in milliseconds; locally 5 s instead of the
+	// metricExportIntervalVariable is the SDKs' metric export interval in milliseconds. Locally 5 s instead of the
 	// specification's 60 s, so a dashboard shows a request within seconds.
 	metricExportIntervalVariable = "OTEL_METRIC_EXPORT_INTERVAL"
 	metricExportInterval         = "5000"
 
-	// grafana is Grafana's manifest name; the front door serves it under grafanaPath on the public origin.
+	// grafana is Grafana's manifest name. The front door serves it under grafanaPath on the public origin.
 	grafana     = "grafana"
 	grafanaPath = "/grafana"
 	// workflowEngine is the workflow engine's manifest name. Its dashboard links a workflow's trace to Grafana's Explore
@@ -123,7 +123,7 @@ func telemetryDependsOn(running []string, name string) []string {
 }
 
 // otlpServiceVariable announces the running receiver's OTLP/HTTP port as the service otlp, for the front door's /otlp
-// route; nil while no receiver runs, so the route answers "not running".
+// route. nil while no receiver runs, so the route answers "not running".
 func otlpServiceVariable(running []string) map[string]string {
 	r := receiver(running)
 	if r == "" {

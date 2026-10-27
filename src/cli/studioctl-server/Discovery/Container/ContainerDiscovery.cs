@@ -138,7 +138,7 @@ internal sealed class ContainerDiscovery : IAppDiscovery
 
     /// <param name="FrontDoorUrl">
     /// Where the localtest-v2 front door reaches the container (<c>http://&lt;alias&gt;:&lt;port&gt;</c> on the localtest-v2
-    /// network), from its <c>altinn.studio/front-door-url</c> label; absent for a container that is not on that network.
+    /// network), from its <c>altinn.studio/front-door-url</c> label. Absent for a container that is not on that network.
     /// </param>
     internal sealed record ContainerCandidate(
         [property: JsonPropertyName("containerId")] string ContainerId,

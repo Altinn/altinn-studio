@@ -76,7 +76,7 @@ internal sealed class FrontDoorRegistration
     /// Starts bringing the front door in line with the discovered apps, without waiting for it. An app is registered
     /// when it is new, came back on another port or as another process or container (it may have changed, and the
     /// registration provisions it from its API again), or when the front door no longer lists it, as after the
-    /// localtest container lost its data; a failed registration is retried on the next refresh. An app that is gone is
+    /// localtest container lost its data. A failed registration is retried on the next refresh. An app that is gone is
     /// deregistered. Only apps this server registered are deregistered, so a registration left from an earlier session
     /// is not deprovisioned. An app with a call in flight is left to it and looked at again on a later refresh.
     /// </summary>
@@ -157,7 +157,7 @@ internal sealed class FrontDoorRegistration
         }
     }
 
-    /// <summary>Starts registering the app; the caller holds the lock and the app has no call in flight.</summary>
+    /// <summary>Starts registering the app. The caller holds the lock and the app has no call in flight.</summary>
     private void StartRegistration(
         Uri platform,
         string appId,
@@ -274,7 +274,7 @@ internal sealed class FrontDoorRegistration
     private static string Key(string appId, Uri url) => appId + " " + url.GetLeftPart(UriPartial.Authority);
 
     /// <summary>
-    /// The registrations the front door lists (<c>GET localtest/api/apps</c>), as app id and address; null when it
+    /// The registrations the front door lists (<c>GET localtest/api/apps</c>), as app id and address. Null when it
     /// cannot say, in which case the apps this server registered count as registered.
     /// </summary>
     private async Task<HashSet<string>?> Listed(HttpClient client, Uri platform, CancellationToken cancellationToken)
@@ -373,7 +373,7 @@ internal sealed class FrontDoorRegistration
     /// <summary>
     /// Whether the registration's answer says Dialogporten's sync failed (<c>provisioning.result.dialogporten</c>), as
     /// when the app is registered while the <c>dialogporten</c> group is still starting. The front door does not retry
-    /// it; registering again does.
+    /// it. Registering again does.
     /// </summary>
     private static bool DialogportenSyncFailed(string body)
     {

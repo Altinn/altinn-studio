@@ -167,7 +167,7 @@ internal static class Endpoints
 
     private sealed record HostBridgeStatusResponse(bool Enabled, bool Connected, string? Url);
 
-    /// <summary>Whether the discovered apps are registered with the localtest-v2 front door; studioctl compares it.</summary>
+    /// <summary>Whether the discovered apps are registered with the localtest-v2 front door. studioctl compares it.</summary>
     private sealed record LocaltestStatusResponse(bool RegisterApps);
 
     private sealed record RegisterAppRequest(

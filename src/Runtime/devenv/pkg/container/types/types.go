@@ -228,7 +228,7 @@ const (
 	VolumeMountTypeBind   VolumeMountType = "bind"
 	VolumeMountTypeVolume VolumeMountType = "volume"
 	// VolumeMountTypeTmpfs mounts a memory-backed file system at ContainerPath, gone with the container. HostPath is
-	// unused; Options holds the tmpfs options (size=1g).
+	// unused. Options holds the tmpfs options (size=1g).
 	VolumeMountTypeTmpfs VolumeMountType = "tmpfs"
 )
 
@@ -248,7 +248,7 @@ type VolumeMount struct {
 	ContainerPath  string
 	Type           VolumeMountType
 	SELinuxRelabel SELinuxRelabel
-	// Options are a tmpfs mount's options, comma-separated (size=1g); empty for the runtime's defaults.
+	// Options are a tmpfs mount's options, comma-separated (size=1g). Empty for the runtime's defaults.
 	Options  string `json:",omitempty"`
 	ReadOnly bool
 }

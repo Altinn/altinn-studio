@@ -48,7 +48,7 @@ func loadCABundle(t *testing.T, source, dir string) *envstack.CABundle {
 	return bundle
 }
 
-// mountedCABundle is the host path of the CA bundle that volumes mount read-only; "" for none.
+// mountedCABundle is the host path of the CA bundle that volumes mount read-only. "" for none.
 func mountedCABundle(volumes []types.VolumeMount) string {
 	for _, v := range volumes {
 		if v.ContainerPath == cabundle.ContainerPath && v.ReadOnly {
@@ -102,7 +102,7 @@ func TestOnlyTheContainersWithCABundleGetIt(t *testing.T) {
 			if host != want || variable != cabundle.ContainerPath {
 				t.Errorf("%s: mounted %q, %s=%q", name, host, cabundle.EnvStudioCABundle, variable)
 			}
-			// The runtime relabels it as its other bind mounts; the shared Mount leaves that to the runtime.
+			// The runtime relabels it as its other bind mounts. The shared Mount leaves that to the runtime.
 			for _, v := range c.Volumes {
 				if v.ContainerPath == cabundle.ContainerPath && v.SELinuxRelabel != types.SELinuxRelabelShared {
 					t.Errorf("%s: the CA bundle's relabel is %q, want shared", name, v.SELinuxRelabel)

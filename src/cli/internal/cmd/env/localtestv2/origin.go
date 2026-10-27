@@ -12,10 +12,10 @@ import (
 	"altinn.studio/studioctl/internal/localtestv2/manifest"
 )
 
-// The public origin of an environment (env up --host, --port). The manifest's public section is the default; the
+// The public origin of an environment (env up --host, --port). The manifest's public section is the default. The
 // state file records the origin the environment was started with, so a plain env up, env status, env down,
 // studioctl run and app env use it until the next env up with other values, which is a change: down, then up.
-// --port 0 picks a free port once, when the environment starts; a running environment keeps its port.
+// --port 0 picks a free port once, when the environment starts. A running environment keeps its port.
 const (
 	resolveTimeout = 5 * time.Second
 	loopbackLine   = "127.0.0.1"
@@ -44,7 +44,7 @@ func (e *Env) checkOrigin(ctx context.Context, opts UpOptions) error {
 	return checkResolution(ctx, e.lookupHost, stack().Origin(host, 0))
 }
 
-// lookupHostFunc resolves a host name to its addresses; tests replace it.
+// lookupHostFunc resolves a host name to its addresses. Tests replace it.
 type lookupHostFunc func(ctx context.Context, host string) ([]string, error)
 
 // checkOriginFlags refuses a --host or --port that cannot be the public origin's.
@@ -63,7 +63,7 @@ func checkOriginFlags(opts UpOptions) error {
 }
 
 // requestedOrigin is the origin env up asks for: the flags over the recorded origin (when there is a state file) over
-// the manifest's default. A --port 0 keeps the recorded port only while the front door runs on it (running); otherwise,
+// the manifest's default. A --port 0 keeps the recorded port only while the front door runs on it (running). Otherwise,
 // as after a start whose port was taken, it is zero: pick a free one.
 func requestedOrigin(
 	opts UpOptions,
@@ -115,7 +115,7 @@ func portTaken(err error) bool {
 }
 
 // freePort asks the system for a free TCP port. It asks on the loopback interface, where a port taken by another
-// process on the host shows; the front door's port is then published on every interface.
+// process on the host shows. The front door's port is then published on every interface.
 func freePort(ctx context.Context) (int, error) {
 	var lc net.ListenConfig
 	listener, err := lc.Listen(ctx, "tcp", "127.0.0.1:0")

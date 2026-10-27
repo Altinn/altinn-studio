@@ -18,7 +18,7 @@ import (
 )
 
 // Against localtest-v2, the front door (the localtest container) routes /{org}/{app}/ to an app once studioctl-server
-// has registered it, and provisions the app from its API on registration; a run waits for that. With --dev-frontend,
+// has registered it, and provisions the app from its API on registration. A run waits for that. With --dev-frontend,
 // the run also routes app-frontend.<public host>, where the app's assets then point, to the frontend dev server on
 // the host's port 8080, where the localtest runtime's host bridge sent that host too (`yarn docker` in the app frontend
 // builds and serves dist there with CORS, `yarn start --port 8080` runs Vite there), and removes the route when the run
@@ -30,7 +30,7 @@ var (
 	errFrontDoorUnreachable  = errors.New("the localtest-v2 front door does not answer")
 )
 
-// findLocaltestV2 is the localtest-v2 environment an app run and its environment go by (localtestv2.Current); none
+// findLocaltestV2 is the localtest-v2 environment an app run and its environment go by (localtestv2.Current). None
 // without a config.
 func findLocaltestV2(
 	ctx context.Context,
@@ -121,7 +121,7 @@ func waitForFrontDoorRegistration(
 }
 
 // registerDevFrontend routes the frontend dev server host to the dev server for a `--dev-frontend` run against
-// localtest-v2, and returns what removes the route again; without the flag or the running runtime it does nothing.
+// localtest-v2, and returns what removes the route again. Without the flag or the running runtime it does nothing.
 func (c *RunCommand) registerDevFrontend(
 	ctx context.Context,
 	topology envtopology.Local,

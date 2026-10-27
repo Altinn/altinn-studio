@@ -21,7 +21,7 @@ const (
 	// ModeMinimal is the mode env status reports for minimal mode.
 	ModeMinimal = "minimal"
 
-	// appRoutesFileVariable is the front door's file of registered app routes; empty keeps the routes in memory.
+	// appRoutesFileVariable is the front door's file of registered app routes. Empty keeps the routes in memory.
 	appRoutesFileVariable = "Proxy__AppRoutesFile"
 
 	// nothingToReset is what env reset says in minimal mode, which has no volumes.

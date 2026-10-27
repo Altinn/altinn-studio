@@ -11,7 +11,7 @@ import (
 )
 
 // teardown stops the environment: the container-mode apps on its network first, which the network's removal would
-// otherwise fail on, then the resource graph; then, for a stack that wrote telemetry files to the host (minimal mode),
+// otherwise fail on, then the resource graph. Then, for a stack that wrote telemetry files to the host (minimal mode),
 // the telemetry folder. A stack in another mode leaves the folder alone.
 func (e *Env) teardown(ctx context.Context, logStartMessage string) error {
 	current, err := e.currentOptions()

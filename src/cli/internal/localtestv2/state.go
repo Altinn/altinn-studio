@@ -1,6 +1,6 @@
 // Package localtestv2 holds what the localtest-v2 runtime shares with the rest of studioctl: while the runtime is up,
 // studioctl-server registers the apps it discovers with the localtest container's front door, and apps sign platform
-// access tokens with the runtime's certificate. Whether it is up comes from its containers (Current); the state file the
+// access tokens with the runtime's certificate. Whether it is up comes from its containers (Current). The state file the
 // runtime writes records only the configuration it was started with.
 package localtestv2
 
@@ -36,17 +36,17 @@ const (
 type State struct {
 	// CertificateDir holds CertificateFileName on the host.
 	CertificateDir string `json:"certificateDir"`
-	// PublicHost is the public origin's host (env up --host); empty is the manifest's default.
+	// PublicHost is the public origin's host (env up --host). Empty is the manifest's default.
 	PublicHost string `json:"publicHost,omitempty"`
 	// CABundle is the digest of the host's CA bundle (STUDIO_CA_BUNDLE, its usable certificates) the containers with
-	// caBundle were started with, hex; empty for none.
+	// caBundle were started with, hex. Empty for none.
 	CABundle string `json:"caBundle,omitempty"`
 	// Groups are the optional component groups the environment was started with.
 	Groups []string `json:"groups,omitempty"`
 	// Dev are the containers built from source (env up --dev-<container>), sorted.
 	Dev []string `json:"dev,omitempty"`
-	// PublicPort is the public origin's port, the front door's published port (env up --port; --port 0 records the
-	// port it picked); zero is the manifest's default.
+	// PublicPort is the public origin's port, the front door's published port (env up --port, and --port 0 records the
+	// port it picked). Zero is the manifest's default.
 	PublicPort int `json:"publicPort,omitempty"`
 	// LatestImages is set when the environment runs the research images at latest (env up --latest).
 	LatestImages bool `json:"latestImages,omitempty"`
@@ -77,7 +77,7 @@ type ContainerClientFunc func(ctx context.Context) (container.ContainerClient, e
 
 // Environment is localtest-v2 as studioctl finds it: the configuration it was started with, and whether it runs.
 type Environment struct {
-	// State is the recorded configuration; the zero state when there is none.
+	// State is the recorded configuration. The zero state when there is none.
 	State State
 	// Recorded is set when there is a state file.
 	Recorded bool
@@ -85,7 +85,7 @@ type Environment struct {
 	Running bool
 }
 
-// Topology is the public URLs of the running environment, at the origin it was started with; the default topology
+// Topology is the public URLs of the running environment, at the origin it was started with. The default topology
 // when it does not run. Everything that reaches the front door (a run's registration wait, the app's environment, the
 // frontend dev server's route) takes its URLs from here.
 func (e Environment) Topology() envtopology.Local {
@@ -96,7 +96,7 @@ func (e Environment) Topology() envtopology.Local {
 }
 
 // Current returns the configuration localtest-v2 was started with and whether it runs. It runs when a container with
-// the runtime's ownership label runs, which is also how env commands find the running runtime (its Env.Active); the
+// the runtime's ownership label runs, which is also how env commands find the running runtime (its Env.Active). The
 // state file alone is never that evidence. Without a state file the container runtime is not asked.
 func Current(ctx context.Context, cfg *config.Config, containers ContainerClientFunc) (Environment, error) {
 	state, recorded, err := ReadState(cfg)

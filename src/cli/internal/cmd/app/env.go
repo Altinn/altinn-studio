@@ -17,7 +17,7 @@ type appEnv struct {
 }
 
 // accessTokenSigning is the certificate an app signs its platform access tokens with. The localtest
-// runtime never checked those tokens, so a run against it has none (nil); the localtest-v2 components
+// runtime never checked those tokens, so a run against it has none (nil). The localtest-v2 components
 // validate them, so a run against that runtime gets the shared test certificate.
 //
 // Two generations of Altinn.Common.AccessTokenClient read the settings differently: 3.x (app-lib v8)
@@ -33,7 +33,7 @@ type accessTokenSigning struct {
 
 // newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
 // secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
-// the data-protection keys go; signing is set only while localtest-v2 is up.
+// the data-protection keys go. Signing is set only while localtest-v2 is up.
 func newAppRunEnv(
 	current []string,
 	kestrelURL string,

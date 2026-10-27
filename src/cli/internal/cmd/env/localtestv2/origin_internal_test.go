@@ -187,7 +187,7 @@ func TestPortZeroPicksAFreePortAndTheStateRecordsIt(t *testing.T) {
 	}
 }
 
-// A --port 0 keeps the recorded port only while the front door runs on it; a state whose start never bound its port
+// A --port 0 keeps the recorded port only while the front door runs on it. A state whose start never bound its port
 // (taken by another process) or whose containers are gone picks a new free port. An explicit port is always taken.
 func TestPortZeroKeepsTheRecordedPortOnlyWhileTheFrontDoorRuns(t *testing.T) {
 	t.Parallel()

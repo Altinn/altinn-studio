@@ -67,7 +67,7 @@ func (t healthTarget) String() string {
 }
 
 // probeScript is the bash a probe runs: up to attempts tries a second apart, exit 0 at the first success. The HTTP
-// check reads the status line only; the request is HTTP/1.0, so the server closes the connection.
+// check reads the status line only. The request is HTTP/1.0, so the server closes the connection.
 func probeScript(t healthTarget, attempts int) string {
 	connect := "{ exec 3<>/dev/tcp/" + t.name + "/" + strconv.Itoa(t.port) + "; } 2>/dev/null"
 	check := "if " + connect + "; then exec 3<&-; exit 0; fi"
@@ -107,7 +107,7 @@ func (p *prober) probes(target healthTarget) func(ctx context.Context) error {
 	}
 }
 
-// ensureImage pulls the probe image once when it is not on this machine yet; a probe can run before the Postgres
+// ensureImage pulls the probe image once when it is not on this machine yet. A probe can run before the Postgres
 // container's own image resource has been pulled, since containers that do not depend on Postgres start alongside it.
 func (p *prober) ensureImage(ctx context.Context) error {
 	p.pull.Do(func() {
@@ -185,7 +185,7 @@ func probeFinished(status string) bool {
 	return false
 }
 
-// remove deletes a probe container, which may not exist; also when the apply was cancelled.
+// remove deletes a probe container, which may not exist. Also when the apply was cancelled.
 func (p *prober) remove(ctx context.Context, name string) {
 	ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), probeRemoveTimeout)
 	defer cancel()

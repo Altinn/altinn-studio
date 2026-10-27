@@ -20,9 +20,9 @@ type UpOptions struct {
 	// DevComponents are the containers to build from source instead of pulling, by manifest name: the path to the
 	// Dockerfile or to the directory holding it, empty for the current directory.
 	DevComponents map[string]string
-	// PublicPort is --port; nil keeps the recorded or default port, 0 picks a free one.
+	// PublicPort is --port. nil keeps the recorded or default port, 0 picks a free one.
 	PublicPort *int
-	// PublicHost is --host; empty keeps the recorded or default host.
+	// PublicHost is --host. Empty keeps the recorded or default host.
 	PublicHost string
 	// With and Without name the optional groups to start or leave out.
 	With    []string

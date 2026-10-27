@@ -808,7 +808,7 @@ func assertAppCodesProvisioned(t *testing.T, secretsDir string) {
 }
 
 // With localtest-v2 up, the app listens on every interface, since the front door in the localtest container reaches it
-// through the runtime's host gateway; studioctl still reaches it on loopback.
+// through the runtime's host gateway. studioctl still reaches it on loopback.
 func TestBuildDotnetRunSpec_ListensOnEveryInterfaceForTheLocaltestV2FrontDoor(t *testing.T) {
 	t.Parallel()
 
@@ -856,7 +856,7 @@ func TestBuildDotnetRunSpec_IgnoresAStateFileWithoutContainers(t *testing.T) {
 }
 
 // localtestV2Service is a service for an app ttd/test-app with a localtest-v2 state file, whose containers run or
-// not; it returns the app's path and the certificate directory.
+// not. It returns the app's path and the certificate directory.
 func localtestV2Service(t *testing.T, state localtestv2.State, running bool) (*appsvc.Service, string, string) {
 	t.Helper()
 	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir(), Version: config.NewVersion("test-version")}
@@ -887,7 +887,7 @@ func localtestV2Containers(running bool) localtestv2.ContainerClientFunc {
 }
 
 // Under localtest-v2 the app container joins the stack's network under its alias, which the front door reaches it at, with
-// the public host names on the host gateway, the certificate at /certs and the app listening on every interface; it
+// the public host names on the host gateway, the certificate at /certs and the app listening on every interface. It
 // keeps its loopback port for studioctl-server's discovery.
 func TestBuildDockerRunSpec_JoinsTheLocaltestV2Network(t *testing.T) {
 	t.Parallel()

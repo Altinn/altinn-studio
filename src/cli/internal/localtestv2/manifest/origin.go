@@ -20,7 +20,7 @@ import (
 //	{{origin:<sub>}}  http://<sub>.<host>:<port>, for a listed subdomain
 //	{{host:<sub>}}    <sub>.<host>, for a listed subdomain
 //
-// Nothing else in a value is substituted; Parse refuses any other {{…}}.
+// Nothing else in a value is substituted. Parse refuses any other {{…}}.
 const (
 	// Scheme is the public origin's scheme.
 	Scheme = "http"
@@ -35,7 +35,7 @@ var (
 	errPlaceholder = errors.New("bad placeholder")
 	errHost        = errors.New("bad host name")
 
-	// placeholder matches one {{name}} or {{name:subdomain}}; the name and subdomain are checked after the match.
+	// placeholder matches one {{name}} or {{name:subdomain}}. The name and subdomain are checked after the match.
 	placeholder = regexp.MustCompile(`\{\{([^{}]*)\}\}`)
 	// hostLabel is one label of a host name: lower-case letters, digits and inner hyphens.
 	hostLabel = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
@@ -56,7 +56,7 @@ type Origin struct {
 	Port       int
 }
 
-// Origin is the public origin at host and port with the manifest's subdomains; an empty host or a zero port is the
+// Origin is the public origin at host and port with the manifest's subdomains. An empty host or a zero port is the
 // manifest's default.
 func (m *Manifest) Origin(host string, port int) Origin {
 	if host == "" {
@@ -98,7 +98,7 @@ func (o Origin) Hosts() []string {
 	return hosts
 }
 
-// Resolve replaces the placeholders in value; Parse has checked them.
+// Resolve replaces the placeholders in value. Parse has checked them.
 func (o Origin) Resolve(value string) string {
 	return placeholder.ReplaceAllStringFunc(value, func(match string) string {
 		resolved, err := o.resolveOne(match[2 : len(match)-2])

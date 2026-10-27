@@ -30,7 +30,7 @@ func (e *Env) startContainers(ctx context.Context, opts *Options) error {
 }
 
 // failedStart handles a start that failed after it began creating resources. A container that never became healthy
-// is left running, with the rest and the state file, so its logs can be read; env down removes them. Any other
+// is left running, with the rest and the state file, so its logs can be read. env down removes them. Any other
 // failure (a create or start error, the public port taken, a cancelled start) removes what the start created, as
 // Down does, and the state file, so nothing is left half up. The original error is returned, joined with the
 // cleanup's when that fails too.
@@ -73,7 +73,7 @@ func (e *Env) removeFailedStart(ctx context.Context) error {
 	return errors.Join(err, probeErr, e.forgetState(ctx, nil))
 }
 
-// removeProbes removes the probe containers a failed start left; normally each probe removes its own when it ends.
+// removeProbes removes the probe containers a failed start left. Normally each probe removes its own when it ends.
 func (e *Env) removeProbes(ctx context.Context) ([]string, error) {
 	var removed []string
 	var errs []error

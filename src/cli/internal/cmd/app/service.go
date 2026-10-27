@@ -28,7 +28,7 @@ type Service struct {
 // ServiceOption configures a Service.
 type ServiceOption func(*Service)
 
-// WithContainerClient sets how the service connects to the container runtime; the default is container.Detect.
+// WithContainerClient sets how the service connects to the container runtime. The default is container.Detect.
 func WithContainerClient(containers localtestv2.ContainerClientFunc) ServiceOption {
 	return func(s *Service) {
 		s.containers = containers

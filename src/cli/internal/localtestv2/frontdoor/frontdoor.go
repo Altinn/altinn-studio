@@ -1,6 +1,6 @@
 // Package frontdoor is a client of the localtest-v2 front door's API, which the localtest container serves on the
 // public origin (http://local.altinn.cloud:8000/localtest/api/...): the apps registered with it and the frontend dev
-// server's route. studioctl-server registers the apps (Discovery/FrontDoorRegistration.cs); studioctl reads the
+// server's route. studioctl-server registers the apps (Discovery/FrontDoorRegistration.cs). studioctl reads the
 // registrations and sets the dev-server route.
 package frontdoor
 
@@ -117,7 +117,7 @@ var (
 	errFailed        = errors.New("provisioning")
 )
 
-// registered reports whether apps has org/app at url, provisioned since; otherwise the error says what it has.
+// registered reports whether apps has org/app at url, provisioned since. Otherwise the error says what it has.
 func registered(apps []App, org, app, url string, since time.Time) (bool, error) {
 	for _, entry := range apps {
 		if entry.Org != org || entry.App != app {
@@ -165,7 +165,7 @@ func (c *Client) DeleteFrontendDevServer(ctx context.Context) error {
 	return nil
 }
 
-// do sends a request and returns the response of a 2xx answer; any other answer is ErrRefused, no answer
+// do sends a request and returns the response of a 2xx answer. Any other answer is ErrRefused, no answer
 // ErrUnreachable.
 func (c *Client) do(ctx context.Context, method, path string, body []byte) (*http.Response, error) {
 	target := c.baseURL + path

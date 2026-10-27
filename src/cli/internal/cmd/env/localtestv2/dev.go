@@ -18,7 +18,7 @@ var (
 )
 
 // resolveDevBuilds turns the --dev-<container>[=<path>] values (container name to path, empty for the current
-// directory) into builds. A directory is the build context and holds the Dockerfile; a file is the Dockerfile, built
+// directory) into builds. A directory is the build context and holds the Dockerfile. A file is the Dockerfile, built
 // with the current directory as its context when the file is inside it (cd localtest && --dev-postgres=postgres/Dockerfile)
 // and with the file's own directory otherwise. Relative paths are relative to cwd.
 func resolveDevBuilds(dev map[string]string, cwd string) (map[string]DevBuild, error) {

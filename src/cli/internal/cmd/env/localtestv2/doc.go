@@ -5,6 +5,6 @@
 // The localtest container is the front door: the runtime publishes its port as the public origin's
 // (http://local.altinn.cloud:8000), and it routes by host and path prefix to the other containers through the
 // services__<name>__http__0 variables the runtime gives every container, and to the apps registered with it.
-// studioctl-server registers the apps it discovers there; the containers reach the public origin and the apps through
+// studioctl-server registers the apps it discovers there. The containers reach the public origin and the apps through
 // the container runtime's host gateway.
 package localtestv2

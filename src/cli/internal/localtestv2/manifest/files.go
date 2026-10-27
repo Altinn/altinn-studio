@@ -17,7 +17,7 @@ import (
 // (monitoring/grafana-dashboards). The files at the top level (the manifest itself, its README and code) are never
 // sources.
 
-// shippedFiles lists the regular files in the folders of fsys, slash-separated and in lexical order; the files at its
+// shippedFiles lists the regular files in the folders of fsys, slash-separated and in lexical order. The files at its
 // top level are left out. A nil fsys ships none.
 func shippedFiles(fsys fs.FS) ([]string, error) {
 	if fsys == nil {
@@ -67,7 +67,7 @@ func (m *Manifest) ships(source string) bool {
 	return false
 }
 
-// checkFiles checks a container's files: each container path absolute and clean, and not a volume's path too; each
+// checkFiles checks a container's files: each container path absolute and clean, and not a volume's path too. Each
 // source a clean relative path without "..", and shipped with the manifest.
 func (m *Manifest) checkFiles(c Container) error {
 	volumeTargets := map[string]bool{}
@@ -124,7 +124,7 @@ func checkFileTargetsUnique(container json.RawMessage) error {
 		return fmt.Errorf("files: %w", err)
 	}
 	if tok != json.Delim('{') {
-		// null; anything else the strict decode refused already.
+		// null. Anything else the strict decode refused already.
 		return nil
 	}
 	seen := map[string]bool{}

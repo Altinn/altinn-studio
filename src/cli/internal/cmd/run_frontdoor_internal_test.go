@@ -34,7 +34,7 @@ func TestAnAppOnTheHostIsReachedThroughTheHostGateway(t *testing.T) {
 	}
 }
 
-// A container-mode app is registered at its alias on the localtest-v2 network; the run waits for exactly that address.
+// A container-mode app is registered at its alias on the localtest-v2 network. The run waits for exactly that address.
 func TestTheRunWaitsForTheRegistrationAtTheAddressItWasGiven(t *testing.T) {
 	t.Parallel()
 	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir(), Version: config.NewVersion("test-version")}

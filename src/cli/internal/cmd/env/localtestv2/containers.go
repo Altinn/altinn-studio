@@ -17,7 +17,7 @@ import (
 )
 
 // The manifest (internal/localtestv2/manifest/manifest.json) says which containers there are and what each one gets
-// of its own; everything below is what every container gets alike, which is this runtime's to decide.
+// of its own. Everything below is what every container gets alike, which is this runtime's to decide.
 const (
 	containerPrefix = "localtest-v2-"
 	networkName     = localtestv2.Network
@@ -45,14 +45,14 @@ const (
 	// legacyCertificateFile is the path Events, Notifications and Receipt read their signing certificate from:
 	// they never bind AccessTokenSettings, so the production SigningCredentialsResolver reads its default,
 	// ../accesstoken/accesstokencredentials.pfx from /app. The pinned images have nothing there, so the certificate is
-	// mounted at that path too, in every container like the directory; this goes once those three images link the
+	// mounted at that path too, in every container like the directory. This goes once those three images link the
 	// path to the directory.
 	legacyCertificateFile = "/accesstoken/accesstokencredentials.pfx"
 
 	// devImagePrefix names the image a --dev build produces: localtest-v2-dev-<container>.
 	devImagePrefix = "localtest-v2-dev-"
 
-	// pinnedTagPrefix marks a tag that names one build of the research images; --latest replaces it with latestTag.
+	// pinnedTagPrefix marks a tag that names one build of the research images. --latest replaces it with latestTag.
 	pinnedTagPrefix = "sha-"
 	latestTag       = "latest"
 	digestSeparator = "@sha256:"
@@ -78,12 +78,12 @@ type DevBuild struct {
 type Options struct {
 	// Dev are the containers built from source instead of pulled, by manifest name.
 	Dev map[string]DevBuild
-	// Groups are the optional groups that are on, sorted; the default group always is.
+	// Groups are the optional groups that are on, sorted. The default group always is.
 	Groups  []string
 	CertDir string
 	// FilesDir holds the files that ship with the manifest, at their paths relative to its directory.
 	FilesDir string
-	// CABundle is the host's CA bundle (cabundle.go), which the containers with caBundle mount; nil for none.
+	// CABundle is the host's CA bundle (cabundle.go), which the containers with caBundle mount. nil for none.
 	CABundle *envstack.CABundle
 	// TelemetryDir is the folder on the host an OTLP receiver with an output writes to (minimal mode's otel-files).
 	TelemetryDir string
@@ -123,7 +123,7 @@ func (opts *Options) topology() envtopology.Local {
 }
 
 // selected lists the containers the options start, in start order: the default group's and the enabled groups' root
-// containers and everything they depend on; in minimal mode the minimal group's instead.
+// containers and everything they depend on. In minimal mode the minimal group's instead.
 func selected(opts *Options) []string {
 	if opts.Minimal {
 		return stack().Select([]string{manifest.MinimalGroup})
@@ -141,7 +141,7 @@ func containerNames(opts *Options) []string {
 	return out
 }
 
-// readinessProbes returns the readiness check of a container, run before what depends on it starts; nil runs none.
+// readinessProbes returns the readiness check of a container, run before what depends on it starts. nil runs none.
 type readinessProbes func(target healthTarget) func(ctx context.Context) error
 
 // resources turns the selected containers into the devenv resource graph: the network, then per container its image
@@ -290,7 +290,7 @@ func writesToHost(c manifest.Container) bool {
 }
 
 // runnerEnv is what the runner adds to a container's own environment: the front door gets the public subdomains, and
-// in minimal mode its app routes stay in memory; a container with caBundle gets the host's CA bundle.
+// in minimal mode its app routes stay in memory. A container with caBundle gets the host's CA bundle.
 func runnerEnv(opts *Options, name string) map[string]string {
 	env, _ := caBundleMount(opts, stack().Containers[name], types.SELinuxRelabelNone)
 	if name != frontDoor {
