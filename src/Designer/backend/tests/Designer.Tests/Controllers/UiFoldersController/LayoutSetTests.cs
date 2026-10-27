@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -372,6 +373,67 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
             .AsArray()
             .Single(dataType => (string)dataType["id"] == "model");
         Assert.Equal("Task_1", (string)modelDataType["taskId"]);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-subform-pdf-v9", "testUser")]
+    public async Task UpdateLayoutSetName_WhenSubformPdfTaskNamesTheFolder_RenamesSubformUiFolderInProcess(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = $"{VersionPrefix(org, targetRepository)}/vehicleSubform";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize("vehicles"),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        XElement subformPdfConfig = GetSubformPdfConfig(org, targetRepository, developer, "SubformPdf");
+        Assert.Equal("vehicles", subformPdfConfig.Element(AltinnNamespace + "subformUiFolder")?.Value);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-subform-pdf-v9", "testUser")]
+    public async Task DeleteLayoutSet_WhenSubformPdfTaskNamesTheFolder_RemovesSubformUiFolderFromProcess(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = $"{VersionPrefix(org, targetRepository)}/vehicleSubform";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        XElement subformPdfConfig = GetSubformPdfConfig(org, targetRepository, developer, "SubformPdf");
+        Assert.Null(subformPdfConfig.Element(AltinnNamespace + "subformUiFolder"));
+    }
+
+    private static readonly XNamespace AltinnNamespace = "http://altinn.no/process";
+
+    private static XElement GetSubformPdfConfig(string org, string repository, string developer, string taskId)
+    {
+        XDocument process = XDocument.Parse(
+            TestDataHelper.GetFileFromRepo(org, repository, developer, "App/config/process/process.bpmn")
+        );
+        return process
+            .Descendants()
+            .Single(element => (string)element.Attribute("id") == taskId)
+            .Descendants(AltinnNamespace + "subformPdfConfig")
+            .Single();
     }
 
     private async Task<HttpResponseMessage> PostLayoutSet(string org, string repository, LayoutSetPayload payload)
