@@ -276,6 +276,11 @@ internal static class V8Tov9Upgrade
             );
         }
 
+        // After the layout-set conversion, so a subform PDF task's folder is ui/<taskId> and the subform's folder is
+        // named after its layout set.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateSubformPdfConfig(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
 
@@ -1863,6 +1868,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating layout-sets.json", ex);
+        }
+    }
+
+    /// <summary>
+    /// Rewrites each subform PDF task to name the subform's UI folder in subformUiFolder, and removes the task's
+    /// own UI folder when it holds only what Altinn Studio generates.
+    /// </summary>
+    static async Task<int> MigrateSubformPdfConfig(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Subform PDF tasks");
+        try
+        {
+            var result = await SubformPdfConfigMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No subform PDF tasks to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating subform PDF tasks", ex);
         }
     }
 
