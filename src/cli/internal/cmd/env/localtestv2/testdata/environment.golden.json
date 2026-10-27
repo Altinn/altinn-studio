@@ -1872,6 +1872,13 @@
             "Type": "bind",
             "SELinuxRelabel": "z",
             "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/ca-bundle/ca-bundle-c34e2872c51439ef.pem",
+            "ContainerPath": "/tmp/studio-ca-bundle.pem",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
           }
         ],
         "env": [
@@ -1882,6 +1889,7 @@
           "PDF3_ENVIRONMENT=localtest",
           "PDF3_LOCALTEST_PUBLIC_BASE_URL=http://local.altinn.cloud:8000",
           "PDF3_QUEUE_SIZE=3",
+          "STUDIO_CA_BUNDLE=/tmp/studio-ca-bundle.pem",
           "TZ=Europe/Oslo",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",

@@ -105,6 +105,7 @@ A map from the container's name to:
 | `volumes`      | Volume id to path in the container. An id is lower-case letters and digits in hyphen-separated words (`storage-blobs`) and names one volume for the whole manifest: containers naming the same id share it (`policy-store`: the PDP, Access Management, the Resource Registry). Each runtime names the volume by its own prefix and the id: studioctl `localtest-v2-<id>`, Aspire `altinn-localtest-<id>`; each runtime's reset deletes its own                |
 | `otlpReceiver` | Marks the stack's OpenTelemetry receiver, see [OTLP receivers](#otlp-receivers): `{"grpcPort": 4317}`, the OTLP/gRPC port the containers send to (its `port` is the OTLP/HTTP one), and optionally `"output": "/telemetry"`, a path in the container where studioctl mounts a folder on the host read-write for the files it writes                                                                                                                            |
 | `files`        | Path in the container to a file or folder that ships with the manifest, relative to the manifest's directory and inside a folder beside it (`"/etc/otelcol-contrib/config.yaml": "monitoring/otel-collector.yaml"`); mounted read-only, see [Files](#files). The container path is absolute and clean, named once and not a volume's path too; the source is a clean relative path without `..` that ships with the manifest (a file, or a folder holding one) |
+| `caBundle`     | `true` for a container that trusts the host's CA bundle: when the host has one (`STUDIO_CA_BUNDLE`), the runner mounts a copy read-only at `/tmp/studio-ca-bundle.pem` and sets `STUDIO_CA_BUNDLE` to that path, see [What the runner adds](#what-the-runner-adds). For images that import the variable themselves (pdf3); the container's `envs` must not set it |
 | `port`         | The container's HTTP (or TCP) port; default 8080                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `health`       | An HTTP path answering 200 when healthy (default `/health`), or `"tcp"` for a port that accepts connections (Postgres, Redis)                                                                                                                                                                                                                                                                                                                                  |
 
@@ -216,6 +217,22 @@ Every container gets, besides its `envs`:
   it) the certificate file at `/accesstoken/accesstokencredentials.pfx`.
 - each of its `files` read-only, from the runner's copy of the shipped files ([Files](#files)), after the certificate
   and sorted by container path;
+- for a container with `caBundle` (pdf3), while the host's `STUDIO_CA_BUNDLE` names a PEM file with a usable
+  certificate: a copy of its usable certificates read-only at `/tmp/studio-ca-bundle.pem`, after the files, and
+  `STUDIO_CA_BUNDLE=/tmp/studio-ca-bundle.pem`, as the `localtest` runtime gives its pdf3 (studioctl's
+  `internal/cmd/env/stack/cabundle.go` and devenv's `pkg/cabundle`). The image imports it where its own TLS client
+  looks (pdf3's entrypoint into its Chromium's NSS store, which ignores the system's), so behind a TLS-intercepting
+  proxy (a corporate network, a sandbox) pdf3 loads the app frontend from `altinncdn.no`. The copy is
+  `<data>/infra/localtest-v2/ca-bundle/ca-bundle-<hash>.pem` (Aspire `<DataDirectory>/ca-bundle/`), readable by
+  everyone and named by the first 16 hex digits of the SHA-256 of the certificates it holds: no host system file is
+  mounted or relabelled, Docker Desktop shares it, and a changed bundle changes the mount, so `env up` recreates the
+  containers (the state file records the digest; an unchanged one keeps a healthy environment running). A certificate
+  that is malformed or that Go's X.509 parser rejects is left out, with one warning naming it by line. Unset: nothing
+  is added and the copy is removed. Set but naming no readable file, or a file without a usable certificate: one
+  warning, and the containers start without it. No other image reads the variable, so no other container is marked:
+  the .NET components trust their image's system store and the Node ones (the Arbeidsflate BFF)
+  `NODE_EXTRA_CA_CERTS`, which a container runtime configured for the proxy sets, and which this does not touch. The
+  Aspire package reads the variable in the AppHost's environment and does the same.
 - each of its `volumes` as the named volume `localtest-v2-<id>` (`volumePrefix` in `containers.go`); `env reset`
   deletes those and no other.
 - in minimal mode: `services__<name>__http__0=http://localtest:8080` for each emulated container, a tmpfs at the path of

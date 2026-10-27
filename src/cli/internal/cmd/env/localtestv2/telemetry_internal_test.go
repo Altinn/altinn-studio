@@ -374,7 +374,7 @@ func TestTeardownDeletesTheTelemetryFolderOfMinimalModeOnly(t *testing.T) {
 		writeTestState(t, cfg, minimal)
 		file := writeTelemetry(t, localtestv2.TelemetryDir(cfg))
 		_, client := newFakeRuntime()
-		if err := NewEnv(
+		if err := newTestEnv(
 			cfg,
 			ui.NewOutput(io.Discard, io.Discard, false),
 			client,
@@ -397,7 +397,7 @@ func TestUpEmptiesTheTelemetryFolderUnlessTheReceiverRuns(t *testing.T) {
 	t.Parallel()
 	cfg := testConfig(t)
 	f, client := newFakeRuntime()
-	env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), client)
+	env := newTestEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), client)
 	opts := minimalOptions()
 	opts.TelemetryDir = localtestv2.TelemetryDir(cfg)
 

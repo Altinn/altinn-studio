@@ -410,7 +410,7 @@ func TestAnUpWithOtherGroupsOrImagesChangesTheRunningEnvironment(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	env := NewEnv(cfg, nil, nil)
+	env := newTestEnv(cfg, nil, nil)
 	for _, tc := range []struct {
 		name string
 		opts UpOptions

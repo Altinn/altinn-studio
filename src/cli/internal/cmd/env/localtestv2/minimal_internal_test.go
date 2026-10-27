@@ -129,7 +129,7 @@ func TestMinimalIsNotAnOptionalGroup(t *testing.T) {
 
 func TestPreflightRefusesWhatMinimalModeCannotRun(t *testing.T) {
 	t.Parallel()
-	env := NewEnv(&config.Config{Home: t.TempDir(), DataDir: t.TempDir()}, nil, mock.New())
+	env := newTestEnv(&config.Config{Home: t.TempDir(), DataDir: t.TempDir()}, nil, mock.New())
 	cases := map[string]struct {
 		err  error
 		text string
@@ -205,7 +205,7 @@ func TestAModeSwitchChangesTheRunningEnvironment(t *testing.T) {
 	t.Parallel()
 	cfg := testConfig(t)
 	writeTestState(t, cfg, false)
-	env := NewEnv(cfg, nil, nil)
+	env := newTestEnv(cfg, nil, nil)
 	if changed, err := env.Changed(UpOptions{Minimal: true}); err != nil || !changed {
 		t.Errorf("default to minimal: %v, %v", changed, err)
 	}
@@ -225,13 +225,13 @@ func TestAnUpInTheSameModeDoesNotStopTheEnvironment(t *testing.T) {
 	client := mock.New()
 	minimal := defaultOptions("", "")
 	minimal.Minimal = true
-	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), minimal); err != nil {
+	if err := newTestEnv(cfg, nil, client).stopOnSwitch(t.Context(), minimal); err != nil {
 		t.Fatal(err)
 	}
 	if len(client.Calls) != 0 {
 		t.Fatalf("the same mode looked at the containers: %v", client.Calls)
 	}
-	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("", "")); err != nil {
+	if err := newTestEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("", "")); err != nil {
 		t.Fatal(err)
 	}
 	if len(client.Calls) == 0 {
@@ -243,7 +243,7 @@ func TestTheStatusOfMinimalModeNamesTheModeAndTheEmulatedServices(t *testing.T) 
 	t.Parallel()
 	cfg := testConfig(t)
 	writeTestState(t, cfg, true)
-	status, err := NewEnv(cfg, nil, mock.New()).Status(t.Context())
+	status, err := newTestEnv(cfg, nil, mock.New()).Status(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,7 +252,7 @@ func TestTheStatusOfMinimalModeNamesTheModeAndTheEmulatedServices(t *testing.T) 
 	}
 
 	writeTestState(t, cfg, false)
-	status, err = NewEnv(cfg, nil, mock.New()).Status(context.Background())
+	status, err = newTestEnv(cfg, nil, mock.New()).Status(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -279,7 +279,7 @@ func TestResetInMinimalModeRemovesNoVolume(t *testing.T) {
 	writeTestState(t, cfg, true)
 	client := mock.New()
 	var out bytes.Buffer
-	if err := NewEnv(cfg, ui.NewOutput(&out, io.Discard, false), client).Reset(t.Context()); err != nil {
+	if err := newTestEnv(cfg, ui.NewOutput(&out, io.Discard, false), client).Reset(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 	if removed := volumeRemovals(client); len(removed) != 0 {
@@ -294,7 +294,7 @@ func TestResetInMinimalModeRemovesNoVolume(t *testing.T) {
 
 	writeTestState(t, cfg, false)
 	client = mock.New()
-	if err := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), client).Reset(t.Context()); err != nil {
+	if err := newTestEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), client).Reset(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 	if removed := volumeRemovals(client); !slices.Equal(removed, volumeNames()) {

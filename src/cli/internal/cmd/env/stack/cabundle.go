@@ -134,6 +134,7 @@ func (b *CABundle) Mount(env map[string]string, volumes []types.VolumeMount) []t
 		ContainerPath:  cabundle.ContainerPath,
 		Type:           types.VolumeMountTypeBind,
 		SELinuxRelabel: types.SELinuxRelabelNone,
+		Options:        "",
 		ReadOnly:       true,
 	})
 }

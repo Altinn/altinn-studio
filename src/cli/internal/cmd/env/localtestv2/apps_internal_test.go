@@ -19,7 +19,7 @@ func TestDownRemovesTheAppContainersAndTheNetwork(t *testing.T) {
 	cfg := testConfig(t)
 	writeTestState(t, cfg, false)
 	var out bytes.Buffer
-	env := NewEnv(cfg, ui.NewOutput(&out, io.Discard, false), client)
+	env := newTestEnv(cfg, ui.NewOutput(&out, io.Discard, false), client)
 	if err := env.applyResources(
 		t.Context(),
 		resources(defaultOptions(localtestv2.CertificateDir(cfg), localtestv2.FilesDir(cfg)), nil),

@@ -17,6 +17,8 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"altinn.studio/devenv/pkg/cabundle"
 )
 
 const (
@@ -101,6 +103,10 @@ type Container struct {
 	DependsOn []string `json:"dependsOn"`
 	// Port is the container port the health check and the services__ variables use; zero is DefaultPort.
 	Port int `json:"port"`
+	// CABundle marks a container that trusts the host's CA bundle (STUDIO_CA_BUNDLE) when the host has one: the
+	// runner mounts a copy of it read-only at cabundle.ContainerPath and sets the variable there. For images that read the variable themselves
+	// (pdf3's Chromium, whose NSS store ignores the system's).
+	CABundle bool `json:"caBundle"`
 }
 
 // OTLPReceiver is what a runner needs of the stack's OpenTelemetry receiver, besides its port, which is the OTLP/HTTP
@@ -457,6 +463,9 @@ func checkContainer(name string, c Container) error {
 	if err := checkReceiver(c); err != nil {
 		return err
 	}
+	if err := checkCABundle(c); err != nil {
+		return err
+	}
 	return checkEnvsAndVolumes(c)
 }
 
@@ -479,6 +488,22 @@ func checkReceiver(c Container) error {
 	_, isFile := c.Files[r.Output]
 	if isFile || slices.Contains(slices.Collect(maps.Values(c.Volumes)), r.Output) {
 		return fmt.Errorf("%w otlpReceiver: output %q is a volume's or a file's path too", errDuplicate, r.Output)
+	}
+	return nil
+}
+
+// checkCABundle refuses a container with caBundle that sets the variable itself or mounts something at the bundle's
+// path.
+func checkCABundle(c Container) error {
+	if !c.CABundle {
+		return nil
+	}
+	if _, set := c.Envs[cabundle.EnvStudioCABundle]; set {
+		return fmt.Errorf("%w: caBundle: envs sets %s, which the runner sets", errDuplicate, cabundle.EnvStudioCABundle)
+	}
+	_, isFile := c.Files[cabundle.ContainerPath]
+	if isFile || slices.Contains(slices.Collect(maps.Values(c.Volumes)), cabundle.ContainerPath) {
+		return fmt.Errorf("%w: caBundle: %s is a volume's or a file's path too", errDuplicate, cabundle.ContainerPath)
 	}
 	return nil
 }

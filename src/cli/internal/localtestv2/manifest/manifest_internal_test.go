@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"altinn.studio/devenv/pkg/cabundle"
 )
 
 func TestTheEmbeddedManifestParses(t *testing.T) {
@@ -161,6 +163,19 @@ func TestParseRefusesAnInvalidManifest(t *testing.T) {
 				groupNamed(m, "receipt")["containers"] = []any{"receipt", "otel-files"}
 			},
 			errReceivers,
+		},
+		"caBundle with the variable in its envs": {
+			func(m map[string]any) {
+				containerNamed(m, "pdf3")["envs"] = map[string]any{cabundle.EnvStudioCABundle: "/ca.pem"}
+			},
+			errDuplicate,
+		},
+		"caBundle on a volume's path": {
+			func(m map[string]any) {
+				containerNamed(m, "storage")["caBundle"] = true
+				containerNamed(m, "storage")["volumes"] = map[string]any{"storage-blobs": cabundle.ContainerPath}
+			},
+			errDuplicate,
 		},
 		"relative volume target": {
 			func(m map[string]any) {

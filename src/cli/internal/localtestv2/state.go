@@ -38,6 +38,9 @@ type State struct {
 	CertificateDir string `json:"certificateDir"`
 	// PublicHost is the public origin's host (env up --host); empty is the manifest's default.
 	PublicHost string `json:"publicHost,omitempty"`
+	// CABundle is the digest of the host's CA bundle (STUDIO_CA_BUNDLE, its usable certificates) the containers with
+	// caBundle were started with, hex; empty for none.
+	CABundle string `json:"caBundle,omitempty"`
 	// Groups are the optional component groups the environment was started with.
 	Groups []string `json:"groups,omitempty"`
 	// Dev are the containers built from source (env up --dev-<container>), sorted.
@@ -129,6 +132,12 @@ func FilesDir(cfg *config.Config) string {
 	return filepath.Join(cfg.DataDir, "infra", "localtest-v2", "files")
 }
 
+// CABundleDir returns where the runtime keeps its copy of the host's CA bundle (STUDIO_CA_BUNDLE), which the
+// containers with caBundle mount read-only.
+func CABundleDir(cfg *config.Config) string {
+	return filepath.Join(cfg.DataDir, "infra", "localtest-v2", "ca-bundle")
+}
+
 // TelemetryDir returns the folder minimal mode's OTLP receiver (otel-files) writes its JSON Lines files to: one
 // folder per service.name, with traces.jsonl, metrics.jsonl and logs.jsonl. env up in minimal mode empties it, and
 // env down of a minimal-mode stack deletes it.
@@ -160,6 +169,7 @@ func noState() State {
 		Dev:            nil,
 		PublicPort:     0,
 		LatestImages:   false,
+		CABundle:       "",
 		Minimal:        false,
 	}
 }

@@ -77,7 +77,7 @@ func TestAnUpAtAnotherOriginChangesTheRunningEnvironment(t *testing.T) {
 	t.Parallel()
 	cfg := testConfig(t)
 	writeTestState(t, cfg, false)
-	env := NewEnv(cfg, nil, nil)
+	env := newTestEnv(cfg, nil, nil)
 	if changed, err := env.Changed(UpOptions{}); err != nil || changed {
 		t.Errorf("the same origin: %v, %v", changed, err)
 	}
@@ -94,7 +94,7 @@ func TestAnOriginSwitchStopsTheRunningEnvironment(t *testing.T) {
 	cfg := testConfig(t)
 	writeTestState(t, cfg, false)
 	client := mock.New()
-	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("", "")); err != nil {
+	if err := newTestEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("", "")); err != nil {
 		t.Fatal(err)
 	}
 	if len(client.Calls) != 0 {
@@ -102,7 +102,7 @@ func TestAnOriginSwitchStopsTheRunningEnvironment(t *testing.T) {
 	}
 	custom := defaultOptions("", "")
 	custom.Origin = stack().Origin("origin.test", 18000)
-	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), custom); err != nil {
+	if err := newTestEnv(cfg, nil, client).stopOnSwitch(t.Context(), custom); err != nil {
 		t.Fatal(err)
 	}
 	if len(client.Calls) == 0 {
@@ -165,7 +165,7 @@ func TestACustomHostMustResolveToThisMachine(t *testing.T) {
 func TestPortZeroPicksAFreePortAndTheStateRecordsIt(t *testing.T) {
 	t.Parallel()
 	cfg := testConfig(t)
-	env := NewEnv(cfg, nil, mock.New())
+	env := newTestEnv(cfg, nil, mock.New())
 	opts, err := env.options(t.Context(), UpOptions{PublicHost: "origin.test", PublicPort: new(0)})
 	if err != nil {
 		t.Fatal(err)
@@ -238,7 +238,7 @@ func TestASecondPortZeroPicksAgainUnlessTheFrontDoorRuns(t *testing.T) {
 		t.Fatal(writeErr)
 	}
 
-	gone := NewEnv(cfg, nil, mock.New())
+	gone := newTestEnv(cfg, nil, mock.New())
 	picked, err := gone.options(t.Context(), UpOptions{PublicPort: new(0)})
 	if err != nil || picked.Origin.Port == recordedPort || picked.Origin.Port <= 0 {
 		t.Errorf("front door not running: port %d (%v), want a new one, not %d", picked.Origin.Port, err, recordedPort)
@@ -253,7 +253,7 @@ func TestASecondPortZeroPicksAgainUnlessTheFrontDoorRuns(t *testing.T) {
 		info.State.Running = true
 		return info, nil
 	}
-	kept, err := NewEnv(cfg, nil, client).options(t.Context(), UpOptions{PublicPort: new(0)})
+	kept, err := newTestEnv(cfg, nil, client).options(t.Context(), UpOptions{PublicPort: new(0)})
 	if err != nil || kept.Origin.Port != recordedPort {
 		t.Errorf("front door running: port %d (%v), want the recorded %d", kept.Origin.Port, err, recordedPort)
 	}

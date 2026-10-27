@@ -152,6 +152,7 @@
       "tag": "tt02",
       "port": 5031,
       "health": "/health/ready",
+      "caBundle": true,
       "envs": {
         "PDF3_ENVIRONMENT": "localtest",
         "PDF3_LOCALTEST_PUBLIC_BASE_URL": "{{origin}}",

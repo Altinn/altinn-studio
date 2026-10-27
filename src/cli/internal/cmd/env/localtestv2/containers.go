@@ -10,6 +10,7 @@ import (
 
 	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	envstack "altinn.studio/studioctl/internal/cmd/env/stack"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/localtestv2"
 	"altinn.studio/studioctl/internal/localtestv2/manifest"
@@ -82,6 +83,8 @@ type Options struct {
 	CertDir string
 	// FilesDir holds the files that ship with the manifest, at their paths relative to its directory.
 	FilesDir string
+	// CABundle is the host's CA bundle (cabundle.go), which the containers with caBundle mount; nil for none.
+	CABundle *envstack.CABundle
 	// TelemetryDir is the folder on the host an OTLP receiver with an output writes to (minimal mode's otel-files).
 	TelemetryDir string
 	// User and UsernsMode run a container that writes to the host (TelemetryDir) as the developer: their uid:gid, and
@@ -103,6 +106,7 @@ func defaultOptions(certDir, filesDir string) *Options {
 		Groups:       nil,
 		CertDir:      certDir,
 		FilesDir:     filesDir,
+		CABundle:     nil,
 		TelemetryDir: "",
 		User:         "",
 		UsernsMode:   "",
@@ -286,12 +290,16 @@ func writesToHost(c manifest.Container) bool {
 }
 
 // runnerEnv is what the runner adds to a container's own environment: the front door gets the public subdomains, and
-// in minimal mode its app routes stay in memory.
+// in minimal mode its app routes stay in memory; a container with caBundle gets the host's CA bundle.
 func runnerEnv(opts *Options, name string) map[string]string {
+	env, _ := caBundleMount(opts, stack().Containers[name], types.SELinuxRelabelNone)
 	if name != frontDoor {
-		return nil
+		return env
 	}
-	env := map[string]string{publicSubdomainsVariable: strings.Join(opts.Origin.Subdomains, ",")}
+	if env == nil {
+		env = map[string]string{}
+	}
+	env[publicSubdomainsVariable] = strings.Join(opts.Origin.Subdomains, ",")
 	maps.Copy(env, minimalEnv(opts, name))
 	return env
 }
@@ -332,14 +340,14 @@ func volumeNames() []string {
 }
 
 // containerVolumes are the shared certificate, read-only, then the container's files, read-only and sorted by their path
-// in the container, then its named volumes (tmpfs in minimal mode), then an OTLP receiver's output, the telemetry
+// in the container, then the host's CA bundle for a container with caBundle, read-only, then its named volumes (tmpfs in minimal mode), then an OTLP receiver's output, the telemetry
 // folder on the host, read-write.
 func containerVolumes(opts *Options, c manifest.Container) []types.VolumeMount {
 	relabel := types.SELinuxRelabelNone
 	if opts.RelabelBinds {
 		relabel = types.SELinuxRelabelShared
 	}
-	volumes := make([]types.VolumeMount, 0, 3+len(c.Files)+len(c.Volumes))
+	volumes := make([]types.VolumeMount, 0, 4+len(c.Files)+len(c.Volumes))
 	volumes = append(volumes,
 		types.VolumeMount{
 			HostPath:       opts.CertDir,
@@ -368,6 +376,8 @@ func containerVolumes(opts *Options, c manifest.Container) []types.VolumeMount {
 			ReadOnly:       true,
 		})
 	}
+	_, bundle := caBundleMount(opts, c, relabel)
+	volumes = append(volumes, bundle...)
 	for _, id := range slices.Sorted(maps.Keys(c.Volumes)) {
 		volumes = append(volumes, manifestVolume(opts, id, c.Volumes[id]))
 	}

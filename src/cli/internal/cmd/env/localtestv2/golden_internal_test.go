@@ -27,7 +27,8 @@ type goldenEnvironment struct {
 	// Default is `env up` with no flags: pulled images at the pin, no optional group.
 	Default goldenOptions `json:"default"`
 	// Everything is `env up --with everything --latest --dev-storage --dev-dialogporten-webapi=Dockerfile.webapi` on
-	// a runtime with SELinux relabelling.
+	// a runtime with SELinux relabelling, on a host with a CA bundle (STUDIO_CA_BUNDLE, its copy at a fixed path, so
+	// the snapshot does not depend on the machine). The other cases have none.
 	Everything goldenOptions `json:"everything"`
 	// Minimal is `env up --minimal` under Podman as uid 1000: the minimal group, the emulated services at the front
 	// door, tmpfs volumes, and otel-files writing to the telemetry folder as the developer.
@@ -46,12 +47,14 @@ type goldenOptions struct {
 	HealthTargets   []string         `json:"healthTargets"`
 }
 
+// Not parallel: the everything case's CA bundle is loaded through STUDIO_CA_BUNDLE.
 func TestTheEnvironmentMatchesTheGoldenFile(t *testing.T) {
-	t.Parallel()
+	caBundleDir := t.TempDir()
 	everything := defaultOptions("/home/dev/.altinn-studio/certs", "/home/dev/.altinn-studio/files")
 	everything.Groups = OptionalGroups()
 	everything.LatestImages = true
 	everything.RelabelBinds = true
+	everything.CABundle = loadCABundle(t, testCABundleSource, caBundleDir)
 	everything.Dev = map[string]DevBuild{
 		"storage": {
 			Context:    "/src/localtest/components/storage",
@@ -89,6 +92,8 @@ func TestTheEnvironmentMatchesTheGoldenFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	data = append(data, '\n')
+	// The copy's directory is the test's own; the snapshot has it where the runtime keeps it.
+	data = bytes.ReplaceAll(data, []byte(caBundleDir), []byte(testCABundleDir))
 
 	if os.Getenv(envUpdateGolden) != "" {
 		if mkdirErr := os.MkdirAll(filepath.Dir(goldenPath), 0o755); mkdirErr != nil {
