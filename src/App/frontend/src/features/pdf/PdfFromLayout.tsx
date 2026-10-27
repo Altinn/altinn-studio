@@ -18,9 +18,11 @@ import {
   usePdfExclusions,
   usePdfLayoutName,
 } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -92,6 +94,11 @@ export function PdfForServiceTask() {
 }
 
 function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
+  // Only a task with a UI folder of its own has pages to print. Any other entry, a blank one or the PDF task itself
+  // included, would print the pages of the PDF task's own folder, which are its waiting page.
+  const pdfTaskId = useNavigationParam('taskId');
+  const tasksToPrint = taskIds.filter((taskId) => taskId !== pdfTaskId && getUiFolderSettings(taskId));
+
   return (
     <DummyPresentation>
       <PdfWrapping>
@@ -105,7 +112,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             }}
           />
         </div>
-        {taskIds.map((taskId, idx) => (
+        {tasksToPrint.map((taskId, idx) => (
           <TaskSummaryWrapper
             key={taskId}
             taskId={taskId}

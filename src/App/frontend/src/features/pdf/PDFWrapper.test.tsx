@@ -192,6 +192,28 @@ describe('PDFWrapper', () => {
       expect(screen.queryByText('Designed PDF')).toBeNull();
     });
 
+    it('draws nothing for autoPdfTaskIds entries without a UI folder of their own', async () => {
+      setPdfTaskFolder(undefined);
+
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query: `pdf=1&task=&task=Task_Typo&task=${pdfTaskId}&task=Task_1`,
+        mutateProcess: asPdfTask,
+        layouts: {
+          WaitingPage: {
+            data: { layout: [{ id: 'waiting', type: 'Paragraph', textResourceBindings: { title: 'Waiting' } }] },
+          },
+          page1: {
+            data: { layout: [{ id: 'task-1', type: 'Paragraph', textResourceBindings: { title: 'Task 1' } }] },
+          },
+        },
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.getByText('Task 1')).toBeInTheDocument();
+      expect(screen.queryByText('Waiting')).not.toBeInTheDocument();
+    });
+
     it.each([
       ['with', 'pdf=1&task=Task_1'],
       ['without', 'pdf=1'],
