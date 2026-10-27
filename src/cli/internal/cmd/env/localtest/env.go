@@ -672,6 +672,7 @@ func (e *Env) releaseOptions(includeMonitoring, includePgAdmin, devWorkflowEngin
 		Images:            e.cfg.Images,
 		RuntimeUser:       "",
 		RuntimeUsernsMode: "",
+		CABundle:          nil,
 		RelabelBinds:      false,
 		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		ImageMode:         components.ReleaseMode,
@@ -887,8 +888,14 @@ func (e *Env) buildResourceOptions(
 		}
 	}
 
+	caBundle, err := components.ReadCABundle(os.Getenv)
+	if err != nil {
+		e.out.Warningf("%v; pdf3 starts without the CA bundle", err)
+	}
+
 	return &components.Options{
 		Paths:             e.paths,
+		CABundle:          caBundle,
 		RuntimeUser:       runtimeUser,
 		RuntimeUsernsMode: runtimeUsernsMode,
 		RelabelBinds:      relabelBinds,

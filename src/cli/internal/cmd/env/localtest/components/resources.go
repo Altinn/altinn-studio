@@ -37,6 +37,8 @@ type Options struct {
 	DevConfig         *DevImageConfig
 	RuntimeUser       string // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	RuntimeUsernsMode string
+	// CABundle is the content of the host's CA bundle (STUDIO_CA_BUNDLE) that pdf3 trusts; nil for none.
+	CABundle          []byte
 	Images            config.ImagesConfig
 	Paths             Paths
 	Topology          envtopology.Local
