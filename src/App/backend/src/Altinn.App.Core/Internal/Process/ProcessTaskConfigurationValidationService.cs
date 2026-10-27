@@ -182,7 +182,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
             findings,
             (hook, taskId) => hook.ShouldRunForTask(taskId)
         );
-        await AddMultipleTaskHooksFindings<IOnTaskAbandonHandler>(
+        await AddMultipleTaskHooksFindings<IOnTaskAbandoningHandler>(
             services,
             bpmnTasks,
             findings,

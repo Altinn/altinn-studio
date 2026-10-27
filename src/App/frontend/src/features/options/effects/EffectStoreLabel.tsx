@@ -36,8 +36,9 @@ export function EffectStoreLabel({ baseComponentId, parent, valueType, options }
 
   const translatedLabels = useMemo(
     () =>
-      options
-        .filter((option) => selectedValues.includes(option.value))
+      selectedValues
+        .map((value) => options.find((option) => option.value === value))
+        .filter((option) => option !== undefined)
         .map((option) => option.label)
         .map((label) => langAsString(label)),
     [langAsString, options, selectedValues],

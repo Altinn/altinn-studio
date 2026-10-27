@@ -8,10 +8,7 @@ import type { AxiosRequestConfig } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
-import {
-  type useGetCachedInitialValidations,
-  useIsUpdatingInitialValidations,
-} from 'src/core/queries/backendValidation';
+import { useIsUpdatingInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsMutating, useMutation, useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
@@ -55,7 +52,6 @@ export interface FormDataSliceProps {
   proxies: FormDataWriteProxies;
   changeInstance: ChangeInstanceData;
   selectFromInstance: InstanceDataSelector;
-  getCachedInitialValidations: ReturnType<typeof useGetCachedInitialValidations>;
   getCalculationDataSources: () => ExpressionDataSources;
 }
 
@@ -926,6 +922,12 @@ export const formDataHooks = {
    * @see useDataModelBindings
    */
   useSetLeafValue: () => FormStore.raw.useStaticSelector((s) => s.data.setLeafValue),
+
+  /**
+   * Returns a function to set a value in a row in a list, by use of a callback that lets you find the correct row.
+   * The value is set in the first row where the callback returns true. If no row matches, nothing happens.
+   */
+  useSetLeafValueInList: () => FormStore.raw.useStaticSelector((s) => s.data.setLeafValueInList),
 
   /**
    * This returns the raw method for setting multiple leaf values in the form data at once. This is

@@ -147,7 +147,7 @@ internal sealed class ProcessStepOptionsResolver
         if (commandKey == OnTaskAbandonHook.Key && taskId is not null)
         {
             return _appImplementationFactory
-                .GetAll<IOnTaskAbandonHandler>()
+                .GetAll<IOnTaskAbandoningHandler>()
                 .FirstOrDefault(x => x.ShouldRunForTask(taskId))
                 ?.StepOptions;
         }

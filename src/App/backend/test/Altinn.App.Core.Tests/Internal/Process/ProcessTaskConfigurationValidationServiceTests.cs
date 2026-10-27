@@ -716,7 +716,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     }
 
     public static TheoryData<Type> TaskHookTypes =>
-        [typeof(IOnTaskStartingHandler), typeof(IOnTaskEndingHandler), typeof(IOnTaskAbandonHandler)];
+        [typeof(IOnTaskStartingHandler), typeof(IOnTaskEndingHandler), typeof(IOnTaskAbandoningHandler)];
 
     [Theory]
     [MemberData(nameof(TaskHookTypes))]
@@ -790,7 +790,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             {
                 s.AddSingleton<IOnTaskStartingHandler>(hook);
                 s.AddSingleton<IOnTaskEndingHandler>(hook);
-                s.AddSingleton<IOnTaskAbandonHandler>(hook);
+                s.AddSingleton<IOnTaskAbandoningHandler>(hook);
                 s.AddSingleton<IOnProcessEndedHandler>(hook);
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn")
@@ -879,7 +879,7 @@ public class ProcessTaskConfigurationValidationServiceTests
         [
             typeof(IOnTaskStartingHandler),
             typeof(IOnTaskEndingHandler),
-            typeof(IOnTaskAbandonHandler),
+            typeof(IOnTaskAbandoningHandler),
             typeof(IOnProcessEndedHandler),
         ];
 
@@ -937,10 +937,10 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public bool ShouldRunForTask(string taskId) => true;
 
-        public Task<HookResult> Execute(OnTaskStartingContext context) =>
+        public Task<HandlerResult> Execute(OnTaskStartingContext context) =>
             throw new InvalidOperationException("Validation must not execute the hook.");
 
-        public Task<HookResult> Execute(OnTaskEndingContext context) =>
+        public Task<HandlerResult> Execute(OnTaskEndingContext context) =>
             throw new InvalidOperationException("Validation must not execute the hook.");
 
         public void Dispose() => disposals.Hooks.Add(this);
@@ -953,18 +953,18 @@ public class ProcessTaskConfigurationValidationServiceTests
     private class Hook(Func<string, bool> runsForTask)
         : IOnTaskStartingHandler,
             IOnTaskEndingHandler,
-            IOnTaskAbandonHandler,
+            IOnTaskAbandoningHandler,
             IOnProcessEndedHandler
     {
         public bool ShouldRunForTask(string taskId) => runsForTask(taskId);
 
-        public Task<HookResult> Execute(OnTaskStartingContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnTaskStartingContext context) => throw NotExecuted();
 
-        public Task<HookResult> Execute(OnTaskEndingContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnTaskEndingContext context) => throw NotExecuted();
 
-        public Task<HookResult> Execute(OnTaskAbandonContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnTaskAbandoningContext context) => throw NotExecuted();
 
-        public Task<HookResult> Execute(OnProcessEndedContext context) => throw NotExecuted();
+        public Task<HandlerResult> Execute(OnProcessEndedContext context) => throw NotExecuted();
 
         private static InvalidOperationException NotExecuted() => new("Validation must not execute the hook.");
     }
