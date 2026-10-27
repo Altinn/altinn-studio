@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/resource"
 	localbackend "altinn.studio/devenv/pkg/resource/executor/local"
@@ -318,11 +319,11 @@ func addGrafanaResources(
 		return fmt.Errorf("resolve CA bundle: %w", err)
 	}
 	var grafanaCA *manifests.GrafanaCABundle
-	caSet, hasCASet, err := cabundle.KubernetesConfigMapObjectSet(
+	caSet, hasCASet, err := kubeartifact.KubernetesConfigMapObjectSet(
 		bundle,
 		cluster,
 		monitoringGrafanaCA,
-		[]cabundle.KubernetesWorkload{{Deployment: "grafana", Namespace: manifests.GrafanaNamespace}},
+		[]kubeartifact.KubernetesWorkload{{Deployment: "grafana", Namespace: manifests.GrafanaNamespace}},
 		deps,
 	)
 	if err != nil {

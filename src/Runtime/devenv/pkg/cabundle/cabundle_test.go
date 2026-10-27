@@ -2,9 +2,12 @@ package cabundle
 
 import (
 	"errors"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -75,6 +78,33 @@ func TestFromEnvValidFileReturnsAbsolutePath(t *testing.T) {
 	}
 	if bundle.Digest == "" {
 		t.Fatal("Digest is empty")
+	}
+}
+
+// TestUsesOnlyTheStandardLibrary keeps the package importable by studioctl without Kubernetes or other modules;
+// what needs them lives in kubeartifact.
+func TestUsesOnlyTheStandardLibrary(t *testing.T) {
+	files, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
+		parsed, err := parser.ParseFile(token.NewFileSet(), file, nil, parser.ImportsOnly)
+		if err != nil {
+			t.Fatalf("parse %s: %v", file, err)
+		}
+		for _, spec := range parsed.Imports {
+			path, err := strconv.Unquote(spec.Path.Value)
+			if err != nil {
+				t.Fatalf("%s: import %s: %v", file, spec.Path.Value, err)
+			}
+			if first, _, _ := strings.Cut(path, "/"); strings.Contains(first, ".") {
+				t.Errorf("%s imports %s; keep cabundle on the standard library", file, path)
+			}
+		}
 	}
 }
 

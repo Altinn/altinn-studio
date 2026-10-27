@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
@@ -210,7 +211,7 @@ func pdf3Graph(
 	if err != nil {
 		return nil, nil, fmt.Errorf("resolve CA bundle: %w", err)
 	}
-	workloads := []cabundle.KubernetesWorkload{{
+	workloads := []kubeartifact.KubernetesWorkload{{
 		Deployment: "pdf3-worker",
 		Namespace:  "runtime-pdf3",
 	}}
@@ -244,7 +245,7 @@ func addPDF3PublishResources(
 	runtime *kind.KindContainerRuntime,
 	root string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 ) (pdf3PublishedResources, func() error, error) {
 	proxyImage := &resource.BuiltImage{
 		ContextPath: root,
@@ -266,7 +267,7 @@ func addPDF3PublishResources(
 		Source:    resource.Ref(workerImage),
 		DependsOn: []resource.ResourceRef{runtime.RegistryRef()},
 	}
-	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
+	preparedArtifact, err := kubeartifact.PrepareKubernetesArtifact(
 		filepath.Join(root, "infra/local"),
 		bundle,
 		workloads,
@@ -305,10 +306,10 @@ func addPDF3DeploymentResources(
 	root string,
 	variantName string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 	deps []resource.ResourceRef,
 ) error {
-	configMapSet, hasConfigMapSet, err := cabundle.KubernetesConfigMapObjectSet(
+	configMapSet, hasConfigMapSet, err := kubeartifact.KubernetesConfigMapObjectSet(
 		bundle,
 		runtime.ClusterRef(),
 		"deployment-pdf3-ca-bundle",
