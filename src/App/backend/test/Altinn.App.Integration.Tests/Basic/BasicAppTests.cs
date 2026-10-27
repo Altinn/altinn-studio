@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 using Json.Pointer;

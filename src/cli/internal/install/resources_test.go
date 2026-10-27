@@ -24,17 +24,18 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 
 	serverDir := filepath.Join(dir, "published-"+resourcesServerDir)
 	writeTestFile(t, filepath.Join(serverDir, config.StudioctlServerBinaryName), "binary")
-	resourcesDir := filepath.Join(dir, "resources")
-	writeTestFile(t, filepath.Join(resourcesDir, "agent", "skills", "app-development", "SKILL.md"), testSkill)
-	writeTestFile(t, filepath.Join(resourcesDir, "other", "resource.txt"), "other")
+	skillsDir := filepath.Join(dir, "skills")
+	writeTestFile(t, filepath.Join(skillsDir, "app-development", "SKILL.md"), testSkill)
+	writeTestFile(t, filepath.Join(skillsDir, "app-development", "references", "guide.md"), "guide")
+	writeTestFile(t, filepath.Join(skillsDir, "unshipped", "SKILL.md"), "---\nname: unshipped\ndescription: d\n---\n")
 
 	archivePath, err := CreateResourcesArchive(ResourcesArchiveOptions{
-		GOOS:         osutil.OSLinux,
-		GOARCH:       "amd64",
-		OutputDir:    outputDir,
-		ServerDir:    serverDir,
-		LocaltestDir: localtestDir,
-		ResourcesDir: resourcesDir,
+		GOOS:           osutil.OSLinux,
+		GOARCH:         "amd64",
+		OutputDir:      outputDir,
+		ServerDir:      serverDir,
+		LocaltestDir:   localtestDir,
+		AgentSkillDirs: []string{filepath.Join(skillsDir, "app-development")},
 	})
 	if err != nil {
 		t.Fatalf("CreateResourcesArchive() error = %v", err)
@@ -55,8 +56,13 @@ func TestCreateResourcesArchiveOwnsResourcesLayout(t *testing.T) {
 		filepath.Join(extractDir, "agent", "skills", "altinn-studio-app-development", "SKILL.md"),
 		testSkill,
 	)
+	assertFileContent(
+		t,
+		filepath.Join(extractDir, "agent", "skills", "altinn-studio-app-development", "references", "guide.md"),
+		"guide",
+	)
 	assertNoFile(t, filepath.Join(extractDir, "agent", "skills", "app-development", "SKILL.md"))
-	assertFileContent(t, filepath.Join(extractDir, "other", "resource.txt"), "other")
+	assertNoFile(t, filepath.Join(extractDir, "agent", "skills", "unshipped"))
 	assertNoFile(t, filepath.Join(extractDir, "localtest", "ignored.txt"))
 	// Testdata ships inside the localtest image, not in the resources archive.
 	assertNoFile(t, filepath.Join(extractDir, "localtest", "testdata", "apps", "app.json"))
@@ -80,16 +86,16 @@ func TestInstallBundleResourcesInstallsAgentSkills(t *testing.T) {
 			t.Fatal(chmodErr)
 		}
 	}
-	resourcesDir := filepath.Join(dir, "resources")
-	writeTestFile(t, filepath.Join(resourcesDir, "agent", "skills", "app-development", "SKILL.md"), testSkill)
+	skillDir := filepath.Join(dir, "skills", "app-development")
+	writeTestFile(t, filepath.Join(skillDir, "SKILL.md"), testSkill)
 
 	archivePath, err := CreateResourcesArchive(ResourcesArchiveOptions{
-		GOOS:         runtime.GOOS,
-		GOARCH:       runtime.GOARCH,
-		OutputDir:    filepath.Join(dir, "dist"),
-		ServerDir:    serverDir,
-		LocaltestDir: localtestDir,
-		ResourcesDir: resourcesDir,
+		GOOS:           runtime.GOOS,
+		GOARCH:         runtime.GOARCH,
+		OutputDir:      filepath.Join(dir, "dist"),
+		ServerDir:      serverDir,
+		LocaltestDir:   localtestDir,
+		AgentSkillDirs: []string{skillDir},
 	})
 	if err != nil {
 		t.Fatalf("CreateResourcesArchive() error = %v", err)

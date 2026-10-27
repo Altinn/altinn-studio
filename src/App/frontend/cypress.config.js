@@ -146,6 +146,8 @@ Valid environments are:
   viewportHeight: 768,
   viewportWidth: 1536,
   requestTimeout: 20000,
+  // Assertions retry until this timeout, so `should('not.exist')` passes as soon as the page moves on. To check that
+  // something is not shown at a given moment, first wait for a state the server reports, then use `{ timeout: 0 }`.
   defaultCommandTimeout: 20000,
   reporter: 'junit',
   reporterOptions: {

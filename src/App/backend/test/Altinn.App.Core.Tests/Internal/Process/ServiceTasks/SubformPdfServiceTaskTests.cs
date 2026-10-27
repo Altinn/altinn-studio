@@ -83,7 +83,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
 
         // Verify that GenerateSubformPdf was called for each data element
         _pdfServiceMock.Verify(
@@ -117,7 +117,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
 
         // Verify that GenerateSubformPdf was not called
         _pdfServiceMock.Verify(
@@ -528,7 +528,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
@@ -556,7 +556,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(

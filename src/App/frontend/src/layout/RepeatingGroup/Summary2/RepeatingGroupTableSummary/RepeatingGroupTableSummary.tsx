@@ -306,9 +306,17 @@ function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellPr
     <Table.Cell
       data-header-title={headerTitle}
       className={cn(tableClasses.dataCell, repeatingGroupClasses.tableCellFormatting)}
-      style={style}
     >
-      <span className={cn(repeatingGroupClasses.contentFormatting, tableClasses.cellValue)}>{displayData}</span>
+      <span
+        className={cn(
+          repeatingGroupClasses.contentFormatting,
+          repeatingGroupClasses.cellContentFormatting,
+          tableClasses.cellValue,
+        )}
+        style={style}
+      >
+        {displayData}
+      </span>
       <ValidationMessageList
         validations={errors}
         size='sm'
