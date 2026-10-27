@@ -56,7 +56,7 @@ public class ExecuteServiceTaskReplyTests
     /// A task answered by messages: a sending stage that opens the mailbox, an unrelated stage after it, and
     /// the two handlers that answer the exchange. Each handler records what it was handed.
     /// </summary>
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -112,7 +112,7 @@ public class ExecuteServiceTaskReplyTests
     /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an ordinary item rather
     /// than the conclusion, so the pipeline carries on after the exchange and ends with a final step.
     /// </summary>
-    private sealed class ContinuingTask : IPipelineServiceTask
+    private sealed class ContinuingTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -153,7 +153,7 @@ public class ExecuteServiceTaskReplyTests
     /// <summary>
     /// Two exchanges, one answered each way: the first's mid-pipeline, the second's by the terminal.
     /// </summary>
-    private sealed class TwoExchangeTask : IPipelineServiceTask
+    private sealed class TwoExchangeTask : IServiceTask
     {
         /// <summary>The item index of the handler answering the first exchange.</summary>
         public const int SegmentIndex = 1;
@@ -198,7 +198,7 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>The same task without a mailbox — it is never answered by a message.</summary>
-    private sealed class PlainTask : IPipelineServiceTask
+    private sealed class PlainTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -216,7 +216,7 @@ public class ExecuteServiceTaskReplyTests
                 });
     }
 
-    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
+    private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();

@@ -115,7 +115,7 @@ public class EFormidlingServiceTaskTests
         // shipment carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the
         // instance before our wait gives up.
         Assert.Equal(TimeSpan.FromHours(2.5), conclusion.StepOptions?.WaitBudget);
-        Assert.Null(((IPipelineServiceTask)_serviceTask).StepOptions);
+        Assert.Null(((IServiceTask)_serviceTask).StepOptions);
         Assert.Null(pipeline.Items[0].StepOptions);
     }
 

@@ -24,7 +24,7 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv;
 /// The app's <see cref="IFiksArkivMessageHandler"/>, when one is registered, is called from here —
 /// it must not move the process.
 /// </remarks>
-internal sealed class FiksArkivServiceTask : IPipelineServiceTask
+internal sealed class FiksArkivServiceTask : IServiceTask
 {
     private readonly ILogger<FiksArkivServiceTask> _logger;
     private readonly IFiksArkivMessageSender _fiksArkivMessageSender;

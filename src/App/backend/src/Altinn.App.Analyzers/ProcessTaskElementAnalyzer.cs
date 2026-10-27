@@ -14,7 +14,7 @@ namespace Altinn.App.Analyzers;
 public sealed class ProcessTaskElementAnalyzer : DiagnosticAnalyzer
 {
     private const string ProcessTaskInterface = "Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask";
-    private const string PipelineServiceTaskInterface = "Altinn.App.Core.Features.Process.IPipelineServiceTask";
+    private const string ServiceTaskInterface = "Altinn.App.Core.Features.Process.IServiceTask";
     private const string TypePropertyName = "Type";
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
@@ -31,7 +31,7 @@ public sealed class ProcessTaskElementAnalyzer : DiagnosticAnalyzer
                 return;
 
             var processTask = startContext.Compilation.GetTypeByMetadataName(ProcessTaskInterface);
-            var pipelineServiceTask = startContext.Compilation.GetTypeByMetadataName(PipelineServiceTaskInterface);
+            var serviceTask = startContext.Compilation.GetTypeByMetadataName(ServiceTaskInterface);
             var typeProperty = processTask?.GetMembers(TypePropertyName).OfType<IPropertySymbol>().FirstOrDefault();
 
             var constantTypeGetters = new ConcurrentDictionary<IMethodSymbol, string>(SymbolEqualityComparer.Default);
@@ -74,8 +74,8 @@ public sealed class ProcessTaskElementAnalyzer : DiagnosticAnalyzer
                         }
 
                         var isServiceTask =
-                            pipelineServiceTask is not null
-                            && type.AllInterfaces.Contains(pipelineServiceTask, SymbolEqualityComparer.Default);
+                            serviceTask is not null
+                            && type.AllInterfaces.Contains(serviceTask, SymbolEqualityComparer.Default);
                         (isServiceTask ? appServiceTaskTypes : appProcessTaskTypes).Add(taskType);
                     }
                 }

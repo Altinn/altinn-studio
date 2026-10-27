@@ -33,10 +33,10 @@ public class ProcessTaskElementAnalyzerTests
                 public sealed class FetchNote : IServiceTask
                 {
                     public string Type => "fetchNote";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
-                public sealed class Archive : IPipelineServiceTask
+                public sealed class Archive : IServiceTask
                 {
                     public const string TaskType = "archive";
                     public string Type => TaskType;
@@ -71,7 +71,7 @@ public class ProcessTaskElementAnalyzerTests
                 public sealed class FetchNote : IServiceTask
                 {
                     public string Type => "fetchNote";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
                 """,
             Process(Element("serviceTask", "Task_FetchNote", "fetchNote"), Element("serviceTask", "Task_Pdf", "pdf"))
@@ -91,7 +91,7 @@ public class ProcessTaskElementAnalyzerTests
                 {
                     private readonly string _type = "fetchNote";
                     public string Type => _type;
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class Lookup : IServiceTask
@@ -104,13 +104,13 @@ public class ProcessTaskElementAnalyzerTests
                             return type;
                         }
                     }
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class Initialized : IServiceTask
                 {
                     public string Type { get; } = "initialized";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
                 """,
             Process(
@@ -132,13 +132,13 @@ public class ProcessTaskElementAnalyzerTests
                 public sealed class Explicit : IServiceTask
                 {
                     string IProcessTask.Type => "explicit";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public abstract class TaskBase : IServiceTask
                 {
                     public string Type => "inherited";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class Inherited : TaskBase { }
@@ -160,7 +160,7 @@ public class ProcessTaskElementAnalyzerTests
                 public abstract class Base : IServiceTask
                 {
                     public virtual string Type => "{{baseType}}";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class Derived : Base
@@ -183,7 +183,7 @@ public class ProcessTaskElementAnalyzerTests
                 public abstract class Base : IServiceTask
                 {
                     public virtual string Type => "baseType";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class Derived : Base
@@ -208,7 +208,7 @@ public class ProcessTaskElementAnalyzerTests
                 public abstract class AbstractOnly : IServiceTask
                 {
                     public string Type => "abstractOnly";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
                 """,
             Process(Element("task", "Task_AbstractOnly", "abstractOnly"))
@@ -226,7 +226,7 @@ public class ProcessTaskElementAnalyzerTests
                 public abstract class Generic<T> : IServiceTask
                 {
                     public string Type => "generic";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class Closed : Generic<int> { }
@@ -247,7 +247,7 @@ public class ProcessTaskElementAnalyzerTests
                 public sealed class DeadCode : IServiceTask
                 {
                     public string Type => "data";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
                 """,
             Process(Element("task", "Task_Data", "data"))
@@ -266,7 +266,7 @@ public class ProcessTaskElementAnalyzerTests
                 public sealed class SharedService : IServiceTask
                 {
                     public string Type => "shared";
-                    public Task<ServiceTaskResult> Execute(StageContext context) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class SharedProcess : IProcessTask

@@ -147,7 +147,7 @@ public class MintMailboxTests
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     /// <summary>The shape the mint step is emitted for: a stage that sends, answered by messages.</summary>
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -159,7 +159,7 @@ public class MintMailboxTests
     }
 
     /// <summary>Drift: the pipeline composes a plain stage where this workflow expects a declaring one.</summary>
-    private sealed class NoLongerDeclaringTask : IPipelineServiceTask
+    private sealed class NoLongerDeclaringTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -167,7 +167,7 @@ public class MintMailboxTests
     }
 
     /// <summary>Drift: nothing composes at this index at all.</summary>
-    private sealed class ShorterPipelineTask : IPipelineServiceTask
+    private sealed class ShorterPipelineTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -175,7 +175,7 @@ public class MintMailboxTests
             pipeline.Stage(Send, _threeDays, out MailboxHandle archive).ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
-    private static MintMailbox CreateCommand(IPipelineServiceTask serviceTask, IWorkflowEngineClient client)
+    private static MintMailbox CreateCommand(IServiceTask serviceTask, IWorkflowEngineClient client)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();

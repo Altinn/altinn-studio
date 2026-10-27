@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The result of one pipeline stage of an <see cref="IPipelineServiceTask"/>. Deliberately missing compared
+/// The result of one pipeline stage of an <see cref="IServiceTask"/>. Deliberately missing compared
 /// to <see cref="ServiceTaskResult"/>: a plain stage cannot conclude the task or advance the process — that
 /// is reserved for the pipeline's conclusion and for a mailbox-opening stage's
 /// <see cref="ServiceTaskOpeningStageResult.Conclude"/>. A subtype of

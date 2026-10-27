@@ -38,13 +38,6 @@ public static class Diagnostics
 
     public static class Contracts
     {
-        public static readonly DiagnosticDescriptor SealedImplementationReplaced = Error(
-            "ALTINNAPP0700",
-            Category.Contracts,
-            "Sealed default implementation replaced",
-            "'{0}' replaces '{1}', whose default implementation on '{2}' is sealed. {3}."
-        );
-
         public static readonly DiagnosticDescriptor IncompleteBuilderDiscarded = Error(
             "ALTINNAPP0701",
             Category.Contracts,

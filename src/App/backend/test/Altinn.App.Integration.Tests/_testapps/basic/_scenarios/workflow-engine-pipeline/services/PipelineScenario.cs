@@ -16,7 +16,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEnginePipeline;
 /// run logs its run number via <see cref="SnapshotLogger"/>; the test asserts the exact sequence
 /// and, crucially, the absence of a second run of parts 1 and 3.
 /// </summary>
-public sealed class ThreePartPipelineTask : IPipelineServiceTask
+public sealed class ThreePartPipelineTask : IServiceTask
 {
     public string Type => "pipeline";
 
@@ -115,7 +115,7 @@ public static class ServiceRegistration
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IPipelineServiceTask, ThreePartPipelineTask>();
+        services.AddTransient<IServiceTask, ThreePartPipelineTask>();
         services.AddSingleton<IEndpointConfigurator, WorkflowEnginePipelineEndpoints>();
     }
 }

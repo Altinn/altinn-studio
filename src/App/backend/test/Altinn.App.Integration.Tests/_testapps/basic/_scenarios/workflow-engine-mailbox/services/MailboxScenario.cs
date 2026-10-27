@@ -36,7 +36,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailbox;
 /// process off its end event. A run that dispatched to the wrong half of the exchange therefore
 /// cannot pass.
 /// </remarks>
-public sealed class ArchivingServiceTask : IPipelineServiceTask
+public sealed class ArchivingServiceTask : IServiceTask
 {
     /// <summary>The <c>altinn:taskType</c> of Task_Service in this scenario's BPMN.</summary>
     public const string ServiceTaskType = "mailbox";
@@ -282,7 +282,7 @@ public static class ServiceRegistration
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IPipelineServiceTask, ArchivingServiceTask>();
+        services.AddTransient<IServiceTask, ArchivingServiceTask>();
         services.AddSingleton<IEndpointConfigurator, WorkflowEngineMailboxEndpoints>();
     }
 }

@@ -38,7 +38,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
         IProcessReader processReader;
         List<ProcessTask> bpmnTasks;
         List<IProcessTask> processTasks;
-        List<IPipelineServiceTask> serviceTasks;
+        List<IServiceTask> serviceTasks;
         ApplicationMetadata appMetadata;
         HostingEnvironment environment;
         var factory = new AppImplementationFactory(services);
@@ -70,14 +70,14 @@ internal sealed class ProcessTaskConfigurationValidationService(
                 findings.Add(
                     $"Task '{bpmnTask.Id}' has no task type: its <altinn:taskType> is missing or blank. "
                         + "Set it to a built-in task type or to the Type of a registered "
-                        + $"{nameof(IProcessTask)}, {nameof(IServiceTask)} or {nameof(IPipelineServiceTask)} implementation."
+                        + $"{nameof(IProcessTask)} or {nameof(IServiceTask)} implementation."
                 );
                 continue;
             }
 
             // Use the same lookup rules as task execution: prefer service tasks, then use the last exact
             // type match.
-            IPipelineServiceTask? serviceTask = serviceTasks.ResolveByTaskType(taskType);
+            IServiceTask? serviceTask = serviceTasks.ResolveByTaskType(taskType);
             IProcessTask? task = serviceTask ?? processTasks.ResolveByTaskType(taskType);
             if (task is null)
             {
@@ -413,7 +413,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
     /// A service task declared in any other assembly was registered by the app or by an opt-in builder call such as
     /// <c>AddFiksArkiv()</c>.
     /// </remarks>
-    private void WarnAboutUnreferencedServiceTasks(List<ProcessTask> bpmnTasks, List<IPipelineServiceTask> serviceTasks)
+    private void WarnAboutUnreferencedServiceTasks(List<ProcessTask> bpmnTasks, List<IServiceTask> serviceTasks)
     {
         HashSet<string> declaredTypes = bpmnTasks
             .Select(task => task.ExtensionElements?.TaskExtension?.TaskType)
@@ -421,12 +421,12 @@ internal sealed class ProcessTaskConfigurationValidationService(
             .ToHashSet(StringComparer.Ordinal);
         Assembly libraryAssembly = typeof(ProcessTaskConfigurationValidationService).Assembly;
 
-        IEnumerable<IPipelineServiceTask> unreferenced = serviceTasks
+        IEnumerable<IServiceTask> unreferenced = serviceTasks
             .Where(task => task.GetType().Assembly != libraryAssembly && !declaredTypes.Contains(task.Type))
             .GroupBy(task => task.Type, StringComparer.Ordinal)
             // Name the registration the lookup would use: the last one.
             .Select(registrations => registrations.Last());
-        foreach (IPipelineServiceTask task in unreferenced)
+        foreach (IServiceTask task in unreferenced)
         {
             logger.LogWarning(
                 "Service task type '{TaskType}' is registered ({ServiceTaskImplementation}), but no task in the process definition declares it.",

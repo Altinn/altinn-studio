@@ -44,7 +44,7 @@ public static class ServiceCollectionExtensions
         services.AddFiksIOClient();
         services.AddAltinnCdnClient();
         // Transient, like every other service task: `Define` runs per resolution.
-        services.AddTransient<IPipelineServiceTask, FiksArkivServiceTask>();
+        services.AddTransient<IServiceTask, FiksArkivServiceTask>();
         services.AddSingleton<IFiksArkivMessageSender, FiksArkivMessageSender>();
         services.AddSingleton<IFiksArkivPayloadGenerator, FiksArkivDefaultPayloadGenerator>();
         services.AddSingleton<IFiksArkivInstanceClient, FiksArkivInstanceClient>();

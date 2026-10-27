@@ -34,7 +34,7 @@ internal static class MailboxHandlers
 }
 
 // Violates ALTINNAPP0702: two HandleReplies for one exchange in one chain - the motivating example.
-internal sealed class TwoHandlersInOneChainTask : IPipelineServiceTask
+internal sealed class TwoHandlersInOneChainTask : IServiceTask
 {
     public string Type => "twoHandlersInOneChain";
 
@@ -48,7 +48,7 @@ internal sealed class TwoHandlersInOneChainTask : IPipelineServiceTask
 
 // Violates ALTINNAPP0702: the mixed case - a segment handler and then the terminal, same handle. Declared
 // with `out var`, the form app code is likeliest to write, so the declaration match is pinned for both forms.
-internal sealed class HandledThenConcludedTask : IPipelineServiceTask
+internal sealed class HandledThenConcludedTask : IServiceTask
 {
     public string Type => "handledThenConcluded";
 
@@ -60,7 +60,7 @@ internal sealed class HandledThenConcludedTask : IPipelineServiceTask
 }
 
 // Violates ALTINNAPP0702: still one straight line, spread over statements rather than one chain.
-internal sealed class TwoHandlersInSequenceTask : IPipelineServiceTask
+internal sealed class TwoHandlersInSequenceTask : IServiceTask
 {
     public string Type => "twoHandlersInSequence";
 
@@ -77,7 +77,7 @@ internal sealed class TwoHandlersInSequenceTask : IPipelineServiceTask
 }
 
 // Violates ALTINNAPP0703: the handle is never mentioned again, so nothing can answer this exchange.
-internal sealed class ForgottenMailboxTask : IPipelineServiceTask
+internal sealed class ForgottenMailboxTask : IServiceTask
 {
     public string Type => "forgottenMailbox";
 
@@ -88,7 +88,7 @@ internal sealed class ForgottenMailboxTask : IPipelineServiceTask
 }
 
 // Fine: two exchanges, each answered once - the shape this phase exists to allow.
-internal sealed class TwoExchangesTask : IPipelineServiceTask
+internal sealed class TwoExchangesTask : IServiceTask
 {
     public string Type => "twoExchanges";
 
@@ -102,7 +102,7 @@ internal sealed class TwoExchangesTask : IPipelineServiceTask
 
 // Fine to this analyzer: a handle handed to a helper is answered somewhere it cannot follow, so the
 // double consumption here is the builder's to report at startup.
-internal sealed class HelperAnsweredTask : IPipelineServiceTask
+internal sealed class HelperAnsweredTask : IServiceTask
 {
     public string Type => "helperAnswered";
 
@@ -122,7 +122,7 @@ internal sealed class HelperAnsweredTask : IPipelineServiceTask
 }
 
 // Fine to this analyzer: the handle travels through a field, which is not a local this rule can follow.
-internal sealed class FieldAnsweredTask : IPipelineServiceTask
+internal sealed class FieldAnsweredTask : IServiceTask
 {
     private MailboxHandle _stored;
 
@@ -142,7 +142,7 @@ internal sealed class FieldAnsweredTask : IPipelineServiceTask
 }
 
 // Fine: one handler per branch, so only one of them ever runs. Nothing here is provable.
-internal sealed class BranchedAnswerTask : IPipelineServiceTask
+internal sealed class BranchedAnswerTask : IServiceTask
 {
     public string Type => "branchedAnswer";
 
@@ -173,7 +173,7 @@ internal sealed class BranchedAnswerTask : IPipelineServiceTask
 
 // Fine: the same local, but reassigned by a second mailbox-opening stage, so the two handlers answer
 // two different exchanges.
-internal sealed class ReusedLocalTask : IPipelineServiceTask
+internal sealed class ReusedLocalTask : IServiceTask
 {
     public string Type => "reusedLocal";
 
@@ -192,7 +192,7 @@ internal sealed class ReusedLocalTask : IPipelineServiceTask
 
 // Fine to this analyzer: one answer is inside a lambda, whose control flow is its own, so whether it
 // runs before the other is not something the rule can read off this method.
-internal sealed class LambdaAnsweredTask : IPipelineServiceTask
+internal sealed class LambdaAnsweredTask : IServiceTask
 {
     public string Type => "lambdaAnswered";
 
@@ -212,7 +212,7 @@ internal sealed class LambdaAnsweredTask : IPipelineServiceTask
 
 // Fine: an explicit discard declares no local, so there is nothing to follow and nothing is reported - the
 // same reading of `_` that ALTINNAPP0701 takes. The builder still refuses this pipeline at startup.
-internal sealed class DiscardedHandleTask : IPipelineServiceTask
+internal sealed class DiscardedHandleTask : IServiceTask
 {
     public string Type => "discardedHandle";
 
@@ -222,7 +222,7 @@ internal sealed class DiscardedHandleTask : IPipelineServiceTask
 
 // Fine: both answers share a basic block, but it is one the method may never enter, and the pipeline the
 // method actually returns answers the exchange exactly once.
-internal sealed class UnreachedBranchTask : IPipelineServiceTask
+internal sealed class UnreachedBranchTask : IServiceTask
 {
     public string Type => "unreachedBranch";
 
@@ -247,7 +247,7 @@ internal sealed class UnreachedBranchTask : IPipelineServiceTask
 }
 
 // Fine: the same, with a loop body instead of a branch - a sequence that may hand out no iterations at all.
-internal sealed class UnreachedLoopTask : IPipelineServiceTask
+internal sealed class UnreachedLoopTask : IServiceTask
 {
     public string Type => "unreachedLoop";
 
@@ -273,7 +273,7 @@ internal sealed class UnreachedLoopTask : IPipelineServiceTask
 
 // Fine: a `ref` local aliases the handle, so a write through the alias would rewrite it out of sight. The
 // alias makes the local unfollowable, which is the point - nothing here is provable any more.
-internal sealed class RefAliasedTask : IPipelineServiceTask
+internal sealed class RefAliasedTask : IServiceTask
 {
     public string Type => "refAliased";
 
@@ -293,7 +293,7 @@ internal sealed class RefAliasedTask : IPipelineServiceTask
 }
 
 // Fine: a deconstruction rewrites the handle without ever being an assignment to the local itself.
-internal sealed class DeconstructedTask : IPipelineServiceTask
+internal sealed class DeconstructedTask : IServiceTask
 {
     public string Type => "deconstructed";
 
@@ -313,7 +313,7 @@ internal sealed class DeconstructedTask : IPipelineServiceTask
 
 // Violates ALTINNAPP0702: an earlier if/else merges before the chain, so the chain still runs on every path.
 // A branch anywhere earlier in the method must not buy the rest of it silence.
-internal sealed class AfterBranchMergeTask : IPipelineServiceTask
+internal sealed class AfterBranchMergeTask : IServiceTask
 {
     public string Type => "afterBranchMerge";
 
@@ -340,7 +340,7 @@ internal sealed class AfterBranchMergeTask : IPipelineServiceTask
 }
 
 // Violates ALTINNAPP0702: the same, after an earlier `??` - the shape a real Define is likeliest to have.
-internal sealed class AfterNullCoalesceTask : IPipelineServiceTask
+internal sealed class AfterNullCoalesceTask : IServiceTask
 {
     public string Type => "afterNullCoalesce";
 
@@ -359,7 +359,7 @@ internal sealed class AfterNullCoalesceTask : IPipelineServiceTask
 
 // Violates ALTINNAPP0702: a `using` wraps the composition in a try/finally, and a finally cannot swallow the
 // builder's complaint, so the chain still runs on every path that returns.
-internal sealed class InsideUsingTask : IPipelineServiceTask
+internal sealed class InsideUsingTask : IServiceTask
 {
     public string Type => "insideUsing";
 
@@ -378,7 +378,7 @@ internal sealed class InsideUsingTask : IPipelineServiceTask
 // swallowed, and Finally is satisfied - so a catch is the one construct that lets an execution enter the block,
 // throw inside it, and return anyway. Reachability alone cannot see that, which is why a try with a handler is
 // refused outright.
-internal sealed class SwallowedThrowTask : IPipelineServiceTask
+internal sealed class SwallowedThrowTask : IServiceTask
 {
     public string Type => "swallowedThrow";
 
@@ -407,7 +407,7 @@ internal sealed class SwallowedThrowTask : IPipelineServiceTask
 // Fine: when the parse throws, the handler returns a pipeline that answers the exchange exactly once, so an
 // execution returns without ever reaching the chain below - the chain is not on every path after all. Only
 // modelling the way into a catch makes that route visible; branches alone cannot see it.
-internal sealed class HandlerReturnsTask : IPipelineServiceTask
+internal sealed class HandlerReturnsTask : IServiceTask
 {
     public string Type => "handlerReturns";
 
@@ -438,7 +438,7 @@ internal sealed class HandlerReturnsTask : IPipelineServiceTask
 
 // Fine: the same, behind a catch filter - the filter and its handler are both ways onward, so the route out
 // stays visible whichever of them the flow graph makes the region's first block.
-internal sealed class FilteredHandlerTask : IPipelineServiceTask
+internal sealed class FilteredHandlerTask : IServiceTask
 {
     public string Type => "filteredHandler";
 
@@ -471,7 +471,7 @@ internal sealed class FilteredHandlerTask : IPipelineServiceTask
 
 // Violates ALTINNAPP0702: a rethrowing catch opens no way out, so the two answers really do run on every path
 // that returns - and nothing here returns at all. Coverage a blanket refusal of handled tries would lose.
-internal sealed class RethrowingCatchTask : IPipelineServiceTask
+internal sealed class RethrowingCatchTask : IServiceTask
 {
     public string Type => "rethrowingCatch";
 

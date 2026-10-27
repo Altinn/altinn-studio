@@ -57,12 +57,12 @@ public class ProcessNextRequestFactoryTests
         bool registerEvents = true,
         Action<IServiceCollection>? configureServices = null,
         IWorkflowCallbackTokenGenerator? callbackTokenGenerator = null,
-        params IPipelineServiceTask[] serviceTasks
+        params IServiceTask[] serviceTasks
     )
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        foreach (IPipelineServiceTask st in serviceTasks)
+        foreach (IServiceTask st in serviceTasks)
         {
             services.AddSingleton(st);
         }
@@ -1212,6 +1212,8 @@ public class ProcessNextRequestFactoryTests
 
         public ProcessStepOptions? StepOptions => options;
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
@@ -1221,7 +1223,7 @@ public class ProcessNextRequestFactoryTests
     /// options carry the 30 min timeout and the poll's 48 h wait budget; the stage overrides the timeout for
     /// itself.
     /// </summary>
-    private sealed class SigningTask : IPipelineServiceTask
+    private sealed class SigningTask : IServiceTask
     {
         public string Type => "signing";
 
@@ -1341,7 +1343,7 @@ public class ProcessNextRequestFactoryTests
     /// A pipeline answered by a message; its conclusion declares its own timeout so the receive step can be
     /// shown to resolve the <c>Finally</c>'s options.
     /// </summary>
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -1363,7 +1365,7 @@ public class ProcessNextRequestFactoryTests
     /// the declaring stage" is distinguishable from both "first" and "last" — the
     /// <c>send → unrelated stage → reply terminal</c> shape the design supports.
     /// </summary>
-    private sealed class SurroundedSendArchivingTask : IPipelineServiceTask
+    private sealed class SurroundedSendArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -1386,7 +1388,7 @@ public class ProcessNextRequestFactoryTests
     /// belonging to the continuation the archive's conclusion starts. The two handlers declare distinct timeouts so the
     /// receive step can be shown to resolve the handler that answers <em>it</em>.
     /// </summary>
-    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    private sealed class ArchiveThenJournalTask : IServiceTask
     {
         public string Type => "archiving";
 

@@ -256,6 +256,8 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => validate(context);
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
@@ -447,7 +449,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             {
                 s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
                 s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
-                s.AddSingleton<IPipelineServiceTask>(new SimpleTask("notify"));
+                s.AddSingleton<IServiceTask>(new SimpleTask("notify"));
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
             logger
@@ -495,7 +497,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             s =>
             {
                 s.AddSingleton<IServiceTask>(Uninitialized<PdfServiceTask>());
-                s.AddSingleton<IPipelineServiceTask>(Uninitialized<EFormidlingServiceTask>());
+                s.AddSingleton<IServiceTask>(Uninitialized<EFormidlingServiceTask>());
                 s.AddSingleton<IServiceTask>(Uninitialized<SubformPdfServiceTask>());
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
@@ -973,6 +975,8 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
@@ -983,6 +987,8 @@ public class ProcessTaskConfigurationValidationServiceTests
     private sealed class SimpleTask(string type) : IServiceTask
     {
         public string Type => type;
+
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");

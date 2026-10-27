@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// A service task's composed pipeline: the ordered durable items, ending with the one conclusion. Built via
-/// <see cref="PipelineBuilder"/> and returned from <see cref="IPipelineServiceTask.Define"/>; the
+/// <see cref="PipelineBuilder"/> and returned from <see cref="IServiceTask.Define"/>; the
 /// runtime reads it to expand, dispatch and validate the task — apps only compose and return it.
 /// </summary>
 public sealed class ServiceTaskPipeline
@@ -159,8 +159,8 @@ internal sealed class ReplySegment : PipelineItem, IReplyHandlerItem
 /// <summary>
 /// How a pipeline concludes — a closed set of exactly two shapes, so no execution has to interrogate nullable
 /// fields to discover whether a conclusion is secretly also a reply handler. A conclusion's
-/// <see cref="PipelineItem.StepOptions"/> are null for a simple <see cref="IServiceTask"/>, whose conclusion
-/// is configured by the task-level options alone.
+/// <see cref="PipelineItem.StepOptions"/> are null when the task gave its conclusion none, so it is
+/// configured by the task-level options alone.
 /// </summary>
 internal abstract class PipelineConclusion : PipelineItem
 {
@@ -168,7 +168,7 @@ internal abstract class PipelineConclusion : PipelineItem
         : base(stepOptions) { }
 
     /// <summary>
-    /// The pipeline ends with one more step — for an <see cref="IServiceTask"/>, its <c>Execute</c>.
+    /// The pipeline ends with one more step — for a task that does one thing, its whole work.
     /// </summary>
     internal sealed class FinalStep : PipelineConclusion
     {

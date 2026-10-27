@@ -162,7 +162,7 @@ public class MailboxRelayTests
         ) => throw new NotSupportedException();
     }
 
-    private static MailboxRelay CreateRelay(RelayRecorder recorder, IPipelineServiceTask? serviceTask = null)
+    private static MailboxRelay CreateRelay(RelayRecorder recorder, IServiceTask? serviceTask = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -231,7 +231,7 @@ public class MailboxRelayTests
         Task.FromResult(StageResult.Completed());
 
     /// <summary>A task that concludes on replies, so the relay has a step shape to build.</summary>
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
@@ -254,7 +254,7 @@ public class MailboxRelayTests
     /// send and the terminal that answers it. The segment after A therefore has both a stage and an ending
     /// receive enqueue, so the relay's ordering is visible.
     /// </summary>
-    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    private sealed class ArchiveThenJournalTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
@@ -275,7 +275,7 @@ public class MailboxRelayTests
     }
 
     /// <summary>The mid-pipeline reply followed by trailing stages and an ordinary <c>Finally</c>.</summary>
-    private sealed class ArchiveThenRecordTask : IPipelineServiceTask
+    private sealed class ArchiveThenRecordTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
@@ -291,7 +291,7 @@ public class MailboxRelayTests
     /// Both sends up front, so exchange B's clock starts in the primary workflow and the segment after A holds no step
     /// of its own — decision 3, seen from the planner's side.
     /// </summary>
-    private sealed class UpFrontSendsTask : IPipelineServiceTask
+    private sealed class UpFrontSendsTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 

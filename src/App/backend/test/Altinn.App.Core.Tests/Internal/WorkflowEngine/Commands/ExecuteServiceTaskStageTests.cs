@@ -11,11 +11,10 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The pipeline dispatch of <see cref="ExecuteServiceTask"/> for an
-/// <see cref="IPipelineServiceTask"/>: resolution by item index — the conclusion's included, since it is an
-/// item like any other — stage-result mapping, the plain index-not-found verdict, and the refusal of a
-/// payload naming no item at all. The simple dispatch (an <see cref="IServiceTask"/>, whose pipeline is the
-/// forwarding default <c>Finally(Execute)</c>) is covered by <see cref="ExecuteServiceTaskTests"/>.
+/// The pipeline dispatch of <see cref="ExecuteServiceTask"/> for a multi-stage <see cref="IServiceTask"/>:
+/// resolution by item index — the conclusion's included, since it is an item like any other — stage-result
+/// mapping, the plain index-not-found verdict, and the refusal of a payload naming no item at all. The
+/// dispatch of a pipeline that is just its conclusion is covered by <see cref="ExecuteServiceTaskTests"/>.
 /// </summary>
 public class ExecuteServiceTaskStageTests
 {
@@ -23,7 +22,7 @@ public class ExecuteServiceTaskStageTests
     /// A send→poll pipeline whose behavior each test scripts via delegates: the stage at item
     /// index 0 dispatches, and the Finally — item index 1 — awaits the receipt and concludes.
     /// </summary>
-    private sealed class ShippingTask : IPipelineServiceTask
+    private sealed class ShippingTask : IServiceTask
     {
         public string Type => "shipping";
 
@@ -37,7 +36,7 @@ public class ExecuteServiceTaskStageTests
             pipeline.Stage(ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
     }
 
-    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
+    private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -265,6 +264,8 @@ public class ExecuteServiceTaskStageTests
 
         public string Type => "shipping";
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
             Executed = true;
@@ -292,9 +293,8 @@ public class ExecuteServiceTaskStageTests
     [Fact]
     public async Task MockedTaskWhoseDefineReturnsNull_FailsRetryably_WithALegibleMessage()
     {
-        // Moq bypasses interface defaults: an unstubbed mock returns null from Define. The
-        // dispatch must fail legibly rather than NullReference — the same guard covers a broken
-        // real implementation.
+        // An unstubbed mock returns null from Define. The dispatch must fail legibly rather than
+        // NullReference — the same guard covers a broken real implementation.
         var mock = new Mock<IServiceTask>();
         mock.Setup(x => x.Type).Returns("shipping");
         var command = CreateCommand(mock.Object);
@@ -304,7 +304,6 @@ public class ExecuteServiceTaskStageTests
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Contains("Define returned null", failed.ErrorMessage);
-        mock.Verify(x => x.Execute(It.IsAny<StageContext>()), Times.Never);
     }
 
     [Fact]
@@ -347,7 +346,7 @@ public class ExecuteServiceTaskStageTests
     /// A pipeline whose item 1 is a reply handler rather than a stage — the earliest position a handler
     /// can occupy, since it names a stage composed before it.
     /// </summary>
-    private sealed class ReplyFirstTask : IPipelineServiceTask
+    private sealed class ReplyFirstTask : IServiceTask
     {
         public string Type => "shipping";
 

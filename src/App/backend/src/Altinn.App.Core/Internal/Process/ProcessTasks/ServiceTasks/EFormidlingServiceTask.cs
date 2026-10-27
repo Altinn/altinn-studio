@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 /// send stage's completion, so the shipment is dispatched exactly once per pass through the task no
 /// matter how often the wait re-checks, and the concluding step polls until the outcome arrives.
 /// </remarks>
-internal sealed class EFormidlingServiceTask : IPipelineServiceTask
+internal sealed class EFormidlingServiceTask : IServiceTask
 {
     private readonly ILogger<EFormidlingServiceTask> _logger;
     private readonly IProcessReader _processReader;

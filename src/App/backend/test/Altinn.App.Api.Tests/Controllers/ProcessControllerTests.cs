@@ -1761,6 +1761,8 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         public string Type => type;
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ExecuteCount++;

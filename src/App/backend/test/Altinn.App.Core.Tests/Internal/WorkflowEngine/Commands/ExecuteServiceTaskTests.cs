@@ -19,11 +19,9 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose
-/// pipeline is the forwarding default <c>Finally(Execute)</c> — every test here exercises that
-/// default end to end (a real class, not a mock: mocks bypass interface defaults, see
-/// <see cref="ExecuteServiceTaskStageTests"/> for that guard). The multi-stage dispatch is
-/// covered by <see cref="ExecuteServiceTaskStageTests"/>.
+/// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose pipeline
+/// is just its conclusion, <c>Finally(Execute)</c> — every test here runs that pipeline end to end. The
+/// multi-stage dispatch is covered by <see cref="ExecuteServiceTaskStageTests"/>.
 /// </summary>
 public class ExecuteServiceTaskTests
 {
@@ -35,6 +33,8 @@ public class ExecuteServiceTaskTests
         public StageContext? Observed { get; private set; }
 
         public string Type => "myServiceTask";
+
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -510,6 +510,8 @@ public class ExecuteServiceTaskTests
         : IServiceTask
     {
         public string Type => type;
+
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) => execute(context);
     }

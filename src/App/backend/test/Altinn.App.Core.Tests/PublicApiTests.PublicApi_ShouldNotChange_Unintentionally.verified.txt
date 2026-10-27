@@ -2173,17 +2173,13 @@ namespace Altinn.App.Core.Features.Process
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
         bool ShouldRunForTask(string taskId);
     }
-    public interface IPipelineServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
-    {
-        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
-    }
     public interface IProcessStepConfigurable
     {
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IServiceTask : Altinn.App.Core.Features.Process.IPipelineServiceTask, Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    public interface IServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.StageContext context);
+        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
     }
     public interface IServiceTaskReplyForwarder
     {

@@ -35,6 +35,8 @@ namespace Altinn.App.logic.Pdf
 
         public string Type => "pdfIfRequested";
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public async Task<ServiceTaskResult> Execute(StageContext context)
         {
             var mutator = context.InstanceDataMutator;

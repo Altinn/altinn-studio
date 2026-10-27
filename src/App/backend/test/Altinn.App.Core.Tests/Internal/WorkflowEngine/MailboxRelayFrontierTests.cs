@@ -205,7 +205,7 @@ public class MailboxRelayFrontierTests
     private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
@@ -216,7 +216,7 @@ public class MailboxRelayFrontierTests
     }
 
     /// <summary>Two exchanges: the first answered mid-pipeline, so concluding it starts a continuation.</summary>
-    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    private sealed class ArchiveThenJournalTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
@@ -237,7 +237,7 @@ public class MailboxRelayFrontierTests
     /// Both sends up front, so the first send's own step ends the primary workflow and the second rides a continuation
     /// — the hop where a workflow hands over to the next segment with no exchange in between.
     /// </summary>
-    private sealed class UpFrontSendsTask : IPipelineServiceTask
+    private sealed class UpFrontSendsTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
@@ -277,7 +277,7 @@ public class MailboxRelayFrontierTests
     /// The relay, wired to the model; the after-workflow is intercepted at the same <see cref="IProcessEngine"/>
     /// entry point production uses and enqueued with the shape it gives it.
     /// </summary>
-    private static MailboxRelay CreateRelay(CollectionModel collection, IPipelineServiceTask? serviceTask = null)
+    private static MailboxRelay CreateRelay(CollectionModel collection, IServiceTask? serviceTask = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();

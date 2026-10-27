@@ -27,7 +27,7 @@ namespace Altinn.App.Logic;
 /// Both service tasks (Task_Service and its layouted twin Task_ServiceLayout, via
 /// <c>serviceView</c>) run this same scenario. Pending outcomes use deferrals until ready.
 /// </summary>
-public sealed class ScenarioServiceTask : IPipelineServiceTask
+public sealed class ScenarioServiceTask : IServiceTask
 {
     public string Type => "scenario";
 

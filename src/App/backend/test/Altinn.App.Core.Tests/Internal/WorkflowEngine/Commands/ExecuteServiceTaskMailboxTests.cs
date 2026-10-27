@@ -32,7 +32,7 @@ public class ExecuteServiceTaskMailboxTests
     /// </summary>
     private const int ReplyHandlerIndex = 2;
 
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -79,7 +79,7 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>The same task without a mailbox, for the "declares none" branch.</summary>
-    private sealed class PlainTask : IPipelineServiceTask
+    private sealed class PlainTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -99,7 +99,7 @@ public class ExecuteServiceTaskMailboxTests
                 });
     }
 
-    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
+    private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -356,7 +356,7 @@ public class ExecuteServiceTaskMailboxTests
     // ---------------------------------------------------------------------------------------------
 
     /// <summary>The Fiks Arkiv shape: the reply handler is composed right after the opening stage.</summary>
-    private sealed class SendOnlyTask : IPipelineServiceTask
+    private sealed class SendOnlyTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -378,7 +378,7 @@ public class ExecuteServiceTaskMailboxTests
     /// stage which is its workflow's last step (item 2, with the handler composed next) from one which is not
     /// (item 1, with a stage composed next).
     /// </summary>
-    private sealed class SendThenTwoStagesTask : IPipelineServiceTask
+    private sealed class SendThenTwoStagesTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -595,7 +595,7 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>The archiving shape concluding from its opening stage, with a plain stage composed after it.</summary>
-    private sealed class MidPipelineConcluderTask : IPipelineServiceTask
+    private sealed class MidPipelineConcluderTask : IServiceTask
     {
         public string Type => "archiving";
 

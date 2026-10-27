@@ -103,7 +103,7 @@ internal sealed class ProcessStepOptionsResolver
     {
         if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
         {
-            IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
+            IServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
             if (serviceTask is null)
             {
                 return stageOptions;

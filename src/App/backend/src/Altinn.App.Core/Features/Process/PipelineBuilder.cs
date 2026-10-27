@@ -4,7 +4,7 @@ namespace Altinn.App.Core.Features.Process;
 /// Composes a pipeline, the one way for every kind of task: zero or more
 /// <see cref="Stage(Func{StageContext, Task{StageResult}}, ProcessStepOptions?)"/> calls and
 /// <see cref="HandleReplies"/> handlers, in any order, ended by exactly one terminal. A service task composes
-/// inside <see cref="IPipelineServiceTask.Define"/> and ends with a conclusion, <see cref="Finally"/> or
+/// inside <see cref="IServiceTask.Define"/> and ends with a conclusion, <see cref="Finally"/> or
 /// <see cref="ConcludeOnReplies"/>, the only sources of the <see cref="ServiceTaskPipeline"/> that <c>Define</c>
 /// must return. A process task composes the work it does when a task starts, ends or is abandoned inside
 /// <see cref="Internal.Process.ProcessTasks.IProcessTask.DefineStart"/>, <c>DefineEnd</c> or <c>DefineAbandon</c>

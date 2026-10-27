@@ -39,8 +39,8 @@ internal sealed class ProcessTaskResolver
     {
         string taskType = NormalizeTaskType(altinnTaskType);
 
-        IEnumerable<IPipelineServiceTask> serviceTasks = _appImplementationFactory.GetServiceTasks();
-        IPipelineServiceTask? serviceTask = serviceTasks.ResolveByTaskType(taskType);
+        IEnumerable<IServiceTask> serviceTasks = _appImplementationFactory.GetServiceTasks();
+        IServiceTask? serviceTask = serviceTasks.ResolveByTaskType(taskType);
 
         if (serviceTask is not null)
         {

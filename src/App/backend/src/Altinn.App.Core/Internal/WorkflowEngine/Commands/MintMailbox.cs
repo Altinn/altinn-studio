@@ -36,7 +36,7 @@ internal sealed class MintMailbox(
     {
         try
         {
-            IPipelineServiceTask serviceTask =
+            IServiceTask serviceTask =
                 appImplementationFactory.FindServiceTask(payload.ServiceTaskType)
                 ?? throw new ProcessException($"No service task found for type {payload.ServiceTaskType}");
 

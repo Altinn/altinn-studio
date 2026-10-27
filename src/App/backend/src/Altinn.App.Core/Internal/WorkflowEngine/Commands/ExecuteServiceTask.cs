@@ -70,7 +70,7 @@ internal sealed class ExecuteServiceTask(
 
         try
         {
-            IPipelineServiceTask serviceTask =
+            IServiceTask serviceTask =
                 appImplementationFactory.FindServiceTask(serviceTaskType)
                 ?? throw new ProcessException($"No service task found for type {serviceTaskType}");
 
@@ -148,7 +148,7 @@ internal sealed class ExecuteServiceTask(
         ProcessEngineCommandContext context,
         PipelineStage stage,
         int stageIndex,
-        IPipelineServiceTask serviceTask,
+        IServiceTask serviceTask,
         StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     ) =>
@@ -180,7 +180,7 @@ internal sealed class ExecuteServiceTask(
         ProcessEngineCommandContext context,
         PipelineStage.MailboxOpening stage,
         int stageIndex,
-        IPipelineServiceTask serviceTask,
+        IServiceTask serviceTask,
         StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     )
@@ -336,7 +336,7 @@ internal sealed class ExecuteServiceTask(
     /// <summary>The step that concludes the pipeline — the last step of its final segment.</summary>
     private static async Task<ProcessEngineCommandResult> ExecuteConclusion(
         PipelineConclusion.FinalStep final,
-        IPipelineServiceTask serviceTask,
+        IServiceTask serviceTask,
         StageContext serviceTaskContext
     ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
 
@@ -409,7 +409,7 @@ internal sealed class ExecuteServiceTask(
 
     private static ProcessEngineCommandResult MapStageResult(
         StageResult result,
-        IPipelineServiceTask task,
+        IServiceTask task,
         ProcessEngineCommandContext context,
         int stageIndex,
         ServiceTaskPipeline pipeline
@@ -457,7 +457,7 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     private static ProcessEngineCommandResult MapOpeningStageResult(
         ServiceTaskOpeningStageResult result,
-        IPipelineServiceTask task,
+        IServiceTask task,
         ProcessEngineCommandContext context,
         int stageIndex,
         ServiceTaskPipeline pipeline
@@ -500,10 +500,7 @@ internal sealed class ExecuteServiceTask(
             ),
         };
 
-    private static ProcessEngineCommandResult MapServiceTaskResult(
-        ServiceTaskResult result,
-        IPipelineServiceTask task
-    ) =>
+    private static ProcessEngineCommandResult MapServiceTaskResult(ServiceTaskResult result, IServiceTask task) =>
         result switch
         {
             FailedServiceTaskResult failed => MapFailure(
@@ -536,7 +533,7 @@ internal sealed class ExecuteServiceTask(
     /// here would be caught by <see cref="Execute"/> and retried forever.
     /// </summary>
     private static FailedProcessEngineCommandResult UnknownResultType(
-        IPipelineServiceTask task,
+        IServiceTask task,
         object result,
         string rootTypeName,
         string factoryNames
@@ -559,11 +556,7 @@ internal sealed class ExecuteServiceTask(
     internal static string FailedMessage(string serviceTaskType, string errorMessage) =>
         $"Service task '{serviceTaskType}' failed: {errorMessage}";
 
-    private static FailedProcessEngineCommandResult MapFailure(
-        IPipelineServiceTask task,
-        string errorMessage,
-        bool permanent
-    )
+    private static FailedProcessEngineCommandResult MapFailure(IServiceTask task, string errorMessage, bool permanent)
     {
         string message = FailedMessage(task.Type, errorMessage);
         return permanent

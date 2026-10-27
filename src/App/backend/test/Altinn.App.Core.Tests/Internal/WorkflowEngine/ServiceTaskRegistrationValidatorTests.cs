@@ -40,10 +40,12 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "simple";
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public Task<ServiceTaskResult> Execute(StageContext context) => NoopFinally(context);
     }
 
-    private sealed class GoodPipelineTask : IPipelineServiceTask
+    private sealed class GoodPipelineTask : IServiceTask
     {
         public string Type => "good";
 
@@ -61,7 +63,7 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task PipelineTask_PassesValidation()
     {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, GoodPipelineTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, GoodPipelineTask>());
 
         Assert.Null(exception);
     }
@@ -76,7 +78,7 @@ public class ServiceTaskRegistrationValidatorTests
 
     // ── Pipeline definitions ─────────────────────────────────────────────────────────────────
 
-    private sealed class InvalidStageOptionsTask : IPipelineServiceTask
+    private sealed class InvalidStageOptionsTask : IServiceTask
     {
         public string Type => "invalidOptions";
 
@@ -89,13 +91,13 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task InvalidPerStageOptions_FailStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, InvalidStageOptionsTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, InvalidStageOptionsTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("defining the pipeline failed", exception.Message);
     }
 
-    private sealed class ThrowingDefineTask : IPipelineServiceTask
+    private sealed class ThrowingDefineTask : IServiceTask
     {
         public string Type => "throwingDefine";
 
@@ -106,13 +108,13 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task DefineThrowing_FailsStartup_WithTheUnderlyingMessage()
     {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, ThrowingDefineTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, ThrowingDefineTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("no pipeline for you", exception.Message);
     }
 
-    private sealed class NullDefineTask : IPipelineServiceTask
+    private sealed class NullDefineTask : IServiceTask
     {
         public string Type => "nullDefine";
 
@@ -122,15 +124,15 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task DefineReturningNull_FailsStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, NullDefineTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, NullDefineTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("Define returned null", exception.Message);
     }
 
-    // ── The sealed forwarding Define (backstop for the ALTINNAPP0700 analyzer) ──────────────
+    // ── Mailbox composition ──────────────────────────────────────────────────────────────────
 
-    private sealed class UnansweredMailboxTask : IPipelineServiceTask
+    private sealed class UnansweredMailboxTask : IServiceTask
     {
         public string Type => "unansweredMailbox";
 
@@ -145,7 +147,7 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task PipelineTaskOpeningAMailboxNothingAnswers_FailsStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, UnansweredMailboxTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, UnansweredMailboxTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("opened at index 0", exception.Message, StringComparison.Ordinal);
@@ -155,7 +157,7 @@ public class ServiceTaskRegistrationValidatorTests
         Assert.Contains(nameof(PipelineBuilder.HandleReplies), exception.Message, StringComparison.Ordinal);
     }
 
-    private sealed class ForeignMailboxHandleTask : IPipelineServiceTask
+    private sealed class ForeignMailboxHandleTask : IServiceTask
     {
         public string Type => "foreignMailboxHandle";
 
@@ -181,32 +183,9 @@ public class ServiceTaskRegistrationValidatorTests
     [Fact]
     public async Task PipelineTaskAnsweringAnotherPipelinesMailbox_FailsStartup()
     {
-        var exception = await Validate(s => s.AddSingleton<IPipelineServiceTask, ForeignMailboxHandleTask>());
+        var exception = await Validate(s => s.AddSingleton<IServiceTask, ForeignMailboxHandleTask>());
 
         Assert.NotNull(exception);
         Assert.Contains("belongs to another task's pipeline", exception.Message, StringComparison.Ordinal);
-    }
-
-    private sealed class ReplacedDefineTask : IServiceTask
-    {
-        public string Type => "replacedDefine";
-
-        public Task<ServiceTaskResult> Execute(StageContext context) => NoopFinally(context);
-
-        // The violation: an IServiceTask providing its own Define, silently turning Execute into
-        // dead code. (Suppressing the compile-time diagnostic here would be circular — this test
-        // project doesn't run the app-facing analyzer.)
-        ServiceTaskPipeline IPipelineServiceTask.Define(PipelineBuilder pipeline) => pipeline.Finally(NoopFinally);
-    }
-
-    [Fact]
-    public async Task ServiceTaskReplacingTheForwardingDefine_FailsStartup()
-    {
-        var exception = await Validate(s => s.AddSingleton<IServiceTask, ReplacedDefineTask>());
-
-        Assert.NotNull(exception);
-        Assert.Contains("replaces", exception.Message);
-        Assert.Contains("would never run", exception.Message);
-        Assert.Contains(nameof(IPipelineServiceTask), exception.Message);
     }
 }

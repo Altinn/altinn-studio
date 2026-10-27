@@ -34,7 +34,7 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailboxMulti;
 /// other side by putting both sends up front.
 /// </para>
 /// </remarks>
-public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
+public sealed class SequentialExchangesServiceTask : IServiceTask
 {
     /// <summary>The <c>altinn:taskType</c> of Task_Sequential in this scenario's BPMN.</summary>
     public const string ServiceTaskType = "mailbox-sequential";
@@ -196,7 +196,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 /// whereas there they are a whole exchange apart.
 /// </para>
 /// </remarks>
-public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
+public sealed class UpfrontExchangesServiceTask : IServiceTask
 {
     /// <summary>The <c>altinn:taskType</c> of Task_Upfront in this scenario's BPMN.</summary>
     public const string ServiceTaskType = "mailbox-upfront";
@@ -466,8 +466,8 @@ public static class ServiceRegistration
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IPipelineServiceTask, SequentialExchangesServiceTask>();
-        services.AddTransient<IPipelineServiceTask, UpfrontExchangesServiceTask>();
+        services.AddTransient<IServiceTask, SequentialExchangesServiceTask>();
+        services.AddTransient<IServiceTask, UpfrontExchangesServiceTask>();
         services.AddSingleton<IEndpointConfigurator, WorkflowEngineMailboxMultiEndpoints>();
     }
 }

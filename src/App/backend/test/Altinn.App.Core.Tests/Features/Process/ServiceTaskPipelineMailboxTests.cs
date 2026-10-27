@@ -34,7 +34,7 @@ public class ServiceTaskPipelineMailboxTests
 
     /// <summary>A pipeline task whose <c>Define</c> the test scripts, so composition mistakes can be
     /// pushed through the runtime's own resolution path.</summary>
-    private sealed class ScriptedTask(Func<PipelineBuilder, ServiceTaskPipeline> define) : IPipelineServiceTask
+    private sealed class ScriptedTask(Func<PipelineBuilder, ServiceTaskPipeline> define) : IServiceTask
     {
         public string Type => "archiving";
 

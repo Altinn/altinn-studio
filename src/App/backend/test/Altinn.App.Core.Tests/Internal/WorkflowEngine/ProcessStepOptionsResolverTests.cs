@@ -52,6 +52,8 @@ public class ProcessStepOptionsResolverTests
 
         public ProcessStepOptions? StepOptions => stepOptions;
 
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }

@@ -62,7 +62,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         Func<StageContext, MailboxClosedReason, ServiceTaskResult> onClosed,
         Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null,
         bool trailingStage = false
-    ) : IPipelineServiceTask
+    ) : IServiceTask
     {
         public string Type => ServiceTaskType;
 
@@ -272,7 +272,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             App,
             configureServices: services =>
             {
-                services.AddSingleton<IPipelineServiceTask>(
+                services.AddSingleton<IServiceTask>(
                     new RelayProbeTask(
                         onMessage ?? ((_, _) => throw new InvalidOperationException("Unexpected message handler")),
                         onClosed ?? ((_, _) => throw new InvalidOperationException("Unexpected closure handler")),

@@ -1,15 +1,22 @@
 # Service task pipelines and mailboxes
 
-Authoring guide for service tasks built on `IPipelineServiceTask` — durable multi-step tasks, waiting,
+Authoring guide for service tasks built on `IServiceTask` — durable multi-step tasks, waiting,
 and message-answered (mailbox) exchanges. This is the app-developer companion to
 [workflow engine integration](workflow-engine-integration.md); until it lands on docs.altinn.studio,
 this file is the reference the API docs point to.
 
 ## The shape of a pipeline
 
-Every service task is a pipeline. A task that does one thing implements `IServiceTask` and only writes
-`Execute`; a task with more than one durable step implements `IPipelineServiceTask` and composes its
-pipeline in `Define`:
+Every service task is a pipeline, composed in `IServiceTask.Define`. A task that does one thing is a
+pipeline of just the conclusion:
+
+```csharp
+public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+private async Task<ServiceTaskResult> Execute(StageContext context) { ... }
+```
+
+A task with more than one durable step gives each its own stage ahead of the conclusion:
 
 ```csharp
 public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
@@ -35,7 +42,7 @@ App startup also checks the other side of the same invariant, in `process.bpmn`.
 carry a non-blank `<altinn:taskType>`, and that type must name something the app resolves: one of the
 built-in types (`data`, `confirmation`, `feedback`, `signing`, `payment`, `pdf`, `subformPdf`,
 `eFormidling`), a built-in you enabled with its own call (`fiksArkiv`, from `services.AddFiksArkiv()`), or
-an `IServiceTask` / `IPipelineServiceTask` / `IProcessTask` your app registered. A type that resolves to
+an `IServiceTask` or `IProcessTask` your app registered. A type that resolves to
 nothing would otherwise deploy quietly and strand the first instance to reach it — no work is scheduled,
 the process comes to rest on the task, and the advance that follows fails with an unexplained internal
 error — so the app refuses to start instead, naming every offending task, the type it declares, and the
