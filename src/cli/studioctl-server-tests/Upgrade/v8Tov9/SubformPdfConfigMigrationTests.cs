@@ -31,6 +31,8 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
             Process(Task("Task_1", "data"), SubformPdfTask("SubformPdf", "Subform", "SubformModel"))
         );
         WriteSubformFolder("SubformFolder", "SubformModel");
+        // A folder named after the component, which the copy does not point at.
+        WriteSubformFolder("Subform", "SubformModel");
         WriteTaskFolder("SubformPdf", GeneratedWaitingComponents + ",\n" + GeneratedCopy);
 
         var result = await Migrate();
