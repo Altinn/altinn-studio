@@ -26,9 +26,9 @@
 }
 
 /*
- * Side by side from the shared small breakpoint, but only when the component is wide enough, so they
- * stack in cards and narrow columns. Labels get their own row so the inputs stay aligned. The zip code
- * column fits its label and tag, up to half the row.
+ * Zip code and post place go side by side from `mediaSmUp`, but only when the component is wide enough,
+ * so they stack in cards and narrow columns. Labels get their own row so the inputs stay
+ * aligned. The zip code column fits its label and tag, up to half the row.
  */
 @media mediaSmUp {
   @container (min-width: 24rem) {
