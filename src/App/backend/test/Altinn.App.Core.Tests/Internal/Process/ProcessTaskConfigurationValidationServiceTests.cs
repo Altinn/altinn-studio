@@ -231,7 +231,7 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => validate(context);
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 
@@ -948,7 +948,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 
@@ -959,7 +959,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 

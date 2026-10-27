@@ -76,19 +76,19 @@ internal sealed class ExecuteServiceTask(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            ServiceTaskContext serviceTaskContext = new()
+            StageContext serviceTaskContext = new()
             {
                 InstanceDataMutator = instanceDataMutator,
                 CancellationToken = context.CancellationToken,
                 WorkflowId = context.Payload.WorkflowId,
                 StepId = context.Payload.StepId,
                 ExecutionReferenceTime = context.Payload.ExecutionReferenceTime,
-                Attempt = new ServiceTaskAttempt
+                Attempt = new StageAttempt
                 {
                     RetryCount = context.Payload.RetryCount,
                     Deadline = context.Payload.ExecutionDeadline,
                 },
-                Wait = new ServiceTaskWait
+                Wait = new StageWait
                 {
                     DeferCount = context.Payload.DeferCount,
                     StartedAt = context.Payload.FirstDeferredAt,
@@ -103,9 +103,9 @@ internal sealed class ExecuteServiceTask(
             {
                 null => PipelineItemNotFound(serviceTaskType, itemIndex),
 
-                ServiceTaskStage when rendezvous is not null => MailboxReceiptOnStage(serviceTaskType, itemIndex),
+                PipelineStage when rendezvous is not null => MailboxReceiptOnStage(serviceTaskType, itemIndex),
 
-                ServiceTaskStage stage => await ExecuteStage(
+                PipelineStage stage => await ExecuteStage(
                     context,
                     stage,
                     itemIndex,
@@ -165,22 +165,22 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     private static async Task<ProcessEngineCommandResult> ExecuteStage(
         ProcessEngineCommandContext context,
-        ServiceTaskStage stage,
+        PipelineStage stage,
         int stageIndex,
         IPipelineServiceTask serviceTask,
-        ServiceTaskContext serviceTaskContext,
+        StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     ) =>
         stage switch
         {
-            ServiceTaskStage.Plain plain => MapStageResult(
+            PipelineStage.Plain plain => MapStageResult(
                 await plain.Work(serviceTaskContext),
                 serviceTask,
                 context,
                 stageIndex,
                 pipeline
             ),
-            ServiceTaskStage.MailboxOpening opening => await ExecuteMailboxOpeningStage(
+            PipelineStage.MailboxOpening opening => await ExecuteMailboxOpeningStage(
                 context,
                 opening,
                 stageIndex,
@@ -197,10 +197,10 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     private static async Task<ProcessEngineCommandResult> ExecuteMailboxOpeningStage(
         ProcessEngineCommandContext context,
-        ServiceTaskStage.MailboxOpening stage,
+        PipelineStage.MailboxOpening stage,
         int stageIndex,
         IPipelineServiceTask serviceTask,
-        ServiceTaskContext serviceTaskContext,
+        StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     )
     {
@@ -295,7 +295,7 @@ internal sealed class ExecuteServiceTask(
         AppCallbackMailbox receipt,
         int handlerItemIndex,
         string serviceTaskType,
-        ServiceTaskContext serviceTaskContext
+        StageContext serviceTaskContext
     )
     {
         return ExecuteReply(
@@ -327,7 +327,7 @@ internal sealed class ExecuteServiceTask(
         AppCallbackMailbox receipt,
         int handlerItemIndex,
         string serviceTaskType,
-        ServiceTaskContext serviceTaskContext,
+        StageContext serviceTaskContext,
         ServiceTaskPipeline pipeline
     )
     {
@@ -338,7 +338,7 @@ internal sealed class ExecuteServiceTask(
             onClosed: async reason => Decide(await segment.OnClosed(serviceTaskContext, reason))
         );
 
-        ProcessEngineCommandResult Decide(ServiceTaskStageExchangeResult verdict) =>
+        ProcessEngineCommandResult Decide(StageExchangeResult verdict) =>
             MailboxRelay.DecideSegment(
                 verdict,
                 serviceTaskType,
@@ -355,7 +355,7 @@ internal sealed class ExecuteServiceTask(
     private static async Task<ProcessEngineCommandResult> ExecuteConclusion(
         PipelineConclusion.FinalStep final,
         IPipelineServiceTask serviceTask,
-        ServiceTaskContext serviceTaskContext
+        StageContext serviceTaskContext
     ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
 
     private static FailedProcessEngineCommandResult PipelineItemNotFound(string serviceTaskType, int itemIndex) =>
@@ -426,7 +426,7 @@ internal sealed class ExecuteServiceTask(
         );
 
     private static ProcessEngineCommandResult MapStageResult(
-        ServiceTaskStageResult result,
+        StageResult result,
         IPipelineServiceTask task,
         ProcessEngineCommandContext context,
         int stageIndex,
@@ -438,8 +438,7 @@ internal sealed class ExecuteServiceTask(
             // is a later step of this same workflow, and nothing to do, unless a reply handler is composed
             // next: a handler is alone in its workflow, so this stage is its own workflow's last step and
             // completing it is what starts that handler's receive workflow.
-            CompletedServiceTaskStageResult
-                when WorkflowCommandSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1) =>
+            CompletedStageResult when WorkflowCommandSet.ItemStartsItsOwnWorkflow(pipeline, stageIndex + 1) =>
                 MailboxRelay.DecideStageEnd(
                     task.Type,
                     context.Payload.StepId,
@@ -447,25 +446,21 @@ internal sealed class ExecuteServiceTask(
                     stageIndex,
                     pipeline
                 ),
-            CompletedServiceTaskStageResult => new SuccessfulProcessEngineCommandResult(),
-            DeferredServiceTaskStageResult deferred => new DeferredProcessEngineCommandResult
+            CompletedStageResult => new SuccessfulProcessEngineCommandResult(),
+            DeferredStageResult deferred => new DeferredProcessEngineCommandResult
             {
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            FailedServiceTaskStageResult failed => MapFailure(
-                task,
-                failed.ErrorMessage,
-                failed.Kind == FailureKind.Permanent
-            ),
+            FailedStageResult failed => MapFailure(task, failed.ErrorMessage, failed.Kind == FailureKind.Permanent),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
                 task,
                 result,
-                nameof(ServiceTaskStageResult),
-                $"{nameof(ServiceTaskStageResult.Completed)}, {nameof(ServiceTaskStageResult.Defer)}, "
-                    + $"{nameof(ServiceTaskStageResult.FailedRetryable)} or "
-                    + $"{nameof(ServiceTaskStageResult.FailedPermanent)}"
+                nameof(StageResult),
+                $"{nameof(StageResult.Completed)}, {nameof(StageResult.Defer)}, "
+                    + $"{nameof(StageResult.FailedRetryable)} or "
+                    + $"{nameof(StageResult.FailedPermanent)}"
             ),
         };
 

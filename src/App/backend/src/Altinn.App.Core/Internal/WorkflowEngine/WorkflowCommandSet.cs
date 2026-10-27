@@ -232,7 +232,7 @@ internal sealed class WorkflowCommandSet
                     steps.Add(CreateItemStep(serviceTaskType, index));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
-                case ServiceTaskStage.MailboxOpening:
+                case PipelineStage.MailboxOpening:
                     // The mint hugs the stage that sends, on both sides: the deadline clock starts here, and
                     // the stage must never send without an address. No stage index on the step — the mint must
                     // not inherit the stage's options.
@@ -247,7 +247,7 @@ internal sealed class WorkflowCommandSet
                     steps.Add(CreateItemStep(serviceTaskType, index));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
-                case ServiceTaskStage:
+                case PipelineStage:
                     steps.Add(CreateItemStep(serviceTaskType, index));
                     break;
 

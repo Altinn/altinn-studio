@@ -20,21 +20,18 @@ public class ServiceTaskRegistrationValidatorTests
             await Record.ExceptionAsync(() => validator.StartAsync(CancellationToken.None));
     }
 
-    private static Task<ServiceTaskStageResult> NoopStage(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> NoopStage(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskResult> NoopFinally(ServiceTaskContext context) =>
+    private static Task<ServiceTaskResult> NoopFinally(StageContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskOpeningStageResult> NoopSend(
-        ServiceTaskContext context,
-        ServiceTaskMailbox mailbox
-    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> NoopSend(StageContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> NoopMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+    private static Task<ServiceTaskExchangeResult> NoopMessage(StageContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskResult> NoopClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    private static Task<ServiceTaskResult> NoopClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     // ── Well-formed tasks ────────────────────────────────────────────────────────────────────
@@ -43,7 +40,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "simple";
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
+        public Task<ServiceTaskResult> Execute(StageContext context) => NoopFinally(context);
     }
 
     private sealed class GoodPipelineTask : IPipelineServiceTask
@@ -199,7 +196,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "replacedDefine";
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => NoopFinally(context);
+        public Task<ServiceTaskResult> Execute(StageContext context) => NoopFinally(context);
 
         // The violation: an IServiceTask providing its own Define, silently turning Execute into
         // dead code. (Suppressing the compile-time diagnostic here would be circular — this test

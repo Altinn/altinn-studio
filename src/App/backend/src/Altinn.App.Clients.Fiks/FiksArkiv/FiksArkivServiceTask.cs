@@ -68,10 +68,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
             .Stage(SendToArchive, new MailboxOptions { Timeout = ArchiveReplyTimeout }, out MailboxHandle archive)
             .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
-    private async Task<ServiceTaskOpeningStageResult> SendToArchive(
-        ServiceTaskContext context,
-        ServiceTaskMailbox mailbox
-    )
+    private async Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
     {
         // Two identities: klientMeldingId is the idempotency key (StepId, stable across retries);
         // klientKorrelasjonsId is echoed on every reply, so it must be the mailbox. Swapping them fails
@@ -161,7 +158,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     /// The exchange ended without the archive confirming the record. Both closure reasons are the same
     /// outcome for this task; only the wording differs.
     /// </summary>
-    private Task<ServiceTaskResult> HandleArchiveClosed(ServiceTaskContext context, MailboxClosedReason reason)
+    private Task<ServiceTaskResult> HandleArchiveClosed(StageContext context, MailboxClosedReason reason)
     {
         string cause =
             reason == MailboxClosedReason.Deadline
@@ -177,10 +174,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
         );
     }
 
-    private async Task<ServiceTaskExchangeResult> HandleArchiveMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    )
+    private async Task<ServiceTaskExchangeResult> HandleArchiveMessage(StageContext context, ServiceTaskReply reply)
     {
         if (ReadForwardedMessage(reply) is not { } message)
         {
@@ -236,10 +230,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     /// Returns <c>null</c> when the task's own decision should follow. A throw is retryable: the message is
     /// frozen at its position, so the next attempt hands it to the same handler.
     /// </summary>
-    private async Task<ServiceTaskResult?> InvokeMessageHandler(
-        ServiceTaskContext context,
-        FiksArkivReceivedMessage message
-    )
+    private async Task<ServiceTaskResult?> InvokeMessageHandler(StageContext context, FiksArkivReceivedMessage message)
     {
         IFiksArkivMessageHandler? handler = _appImplementationFactory.Get<IFiksArkivMessageHandler>();
         if (handler is null)
@@ -292,10 +283,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     private string ErrorAction() =>
         _fiksArkivSettings.ErrorHandling?.GetActionOrDefault() ?? FiksArkivErrorHandlingSettings.DefaultAction;
 
-    private async Task<ServiceTaskResult> HandleArchiveReceipt(
-        ServiceTaskContext context,
-        FiksArkivReceivedMessage message
-    )
+    private async Task<ServiceTaskResult> HandleArchiveReceipt(StageContext context, FiksArkivReceivedMessage message)
     {
         if (message.Payloads.OfType<FiksArkivReceivedMessagePayload.Receipt>().FirstOrDefault() is not { } receipt)
         {
@@ -336,7 +324,7 @@ internal sealed class FiksArkivServiceTask : IPipelineServiceTask
     /// Removing every element the configured (data type, filename) pair owns first is what makes a redelivered
     /// message harmless without recognizing it.
     /// </summary>
-    private void SaveArchiveReceipt(ServiceTaskContext context, FiksArkivReceivedMessagePayload.Receipt receipt)
+    private void SaveArchiveReceipt(StageContext context, FiksArkivReceivedMessagePayload.Receipt receipt)
     {
         ArgumentNullException.ThrowIfNull(_fiksArkivSettings.Receipt);
         FiksArkivDataTypeSettings settings = _fiksArkivSettings.Receipt.ConfirmationRecord;

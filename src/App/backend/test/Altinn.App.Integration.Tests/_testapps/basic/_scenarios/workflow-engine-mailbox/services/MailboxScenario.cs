@@ -68,14 +68,14 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
             .Stage(RecordDispatch)
             .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
 
-    private Task<ServiceTaskStageResult> PrepareDocuments(ServiceTaskContext context)
+    private Task<StageResult> PrepareDocuments(StageContext context)
     {
         int run = MailboxExchangeRecorder.NextRun(PrepareStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.PrepareDocuments.Run{run}.Completed");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(StageResult.Completed());
     }
 
-    private Task<ServiceTaskOpeningStageResult> SendToArchive(ServiceTaskContext context, ServiceTaskMailbox mailbox)
+    private Task<ServiceTaskOpeningStageResult> SendToArchive(StageContext context, ServiceTaskMailbox mailbox)
     {
         int run = MailboxExchangeRecorder.NextRun(SendStageLabel);
         // Standing in for the outbound message that would carry the reply address to the archive.
@@ -84,14 +84,14 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
         return Task.FromResult(ServiceTaskOpeningStageResult.Completed());
     }
 
-    private Task<ServiceTaskStageResult> RecordDispatch(ServiceTaskContext context)
+    private Task<StageResult> RecordDispatch(StageContext context)
     {
         int run = MailboxExchangeRecorder.NextRun(RecordStageLabel);
         SnapshotLogger.LogInfo($"Mailbox.RecordDispatch.Run{run}.Completed");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(StageResult.Completed());
     }
 
-    private Task<ServiceTaskExchangeResult> HandleArchiveMessage(ServiceTaskContext context, ServiceTaskReply reply)
+    private Task<ServiceTaskExchangeResult> HandleArchiveMessage(StageContext context, ServiceTaskReply reply)
     {
         MailboxExchangeRecorder.RecordMessage(reply);
         string kind = ReadKind(reply.Payload);
@@ -113,7 +113,7 @@ public sealed class ArchivingServiceTask : IPipelineServiceTask
         }
     }
 
-    private Task<ServiceTaskResult> HandleArchiveClosed(ServiceTaskContext context, MailboxClosedReason reason)
+    private Task<ServiceTaskResult> HandleArchiveClosed(StageContext context, MailboxClosedReason reason)
     {
         MailboxExchangeRecorder.RecordClosed(reason);
         SnapshotLogger.LogError($"Mailbox.OnClosed.{reason}.Tripwire");

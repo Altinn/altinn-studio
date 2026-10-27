@@ -47,31 +47,28 @@ public class EFormidlingServiceTaskTests
         );
     }
 
-    private static ServiceTaskContext CreateContext(
-        IInstanceDataMutator instanceDataMutator,
-        ServiceTaskWait? wait = null
-    ) =>
+    private static StageContext CreateContext(IInstanceDataMutator instanceDataMutator, StageWait? wait = null) =>
         new()
         {
             InstanceDataMutator = instanceDataMutator,
             WorkflowId = _workflowId,
             StepId = Guid.NewGuid(),
-            Wait = wait ?? new ServiceTaskWait(),
+            Wait = wait ?? new StageWait(),
         };
 
     /// <summary>
     /// Drives the send stage the way the engine does — by item index, through the composed pipeline — so
     /// dispatch by index is exercised rather than a direct method call.
     /// </summary>
-    private static Task<ServiceTaskStageResult> SendShipment(EFormidlingServiceTask task, ServiceTaskContext context)
+    private static Task<StageResult> SendShipment(EFormidlingServiceTask task, StageContext context)
     {
         var stage =
-            task.ResolvePipeline().Items[0] as ServiceTaskStage.Plain
+            task.ResolvePipeline().Items[0] as PipelineStage.Plain
             ?? throw new InvalidOperationException("The send stage is missing from the pipeline.");
         return stage.Work(context);
     }
 
-    private static Task<ServiceTaskResult> AwaitDelivery(EFormidlingServiceTask task, ServiceTaskContext context) =>
+    private static Task<ServiceTaskResult> AwaitDelivery(EFormidlingServiceTask task, StageContext context) =>
         Assert.IsType<PipelineConclusion.FinalStep>(task.ResolvePipeline().Items[^1]).Work(context);
 
     private void SetupShipmentStatus(
@@ -111,7 +108,7 @@ public class EFormidlingServiceTaskTests
         ServiceTaskPipeline pipeline = _serviceTask.ResolvePipeline();
 
         Assert.Equal(2, pipeline.Items.Count);
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[0]);
+        Assert.IsType<PipelineStage.Plain>(pipeline.Items[0]);
         PipelineConclusion conclusion = Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
         // The wait budget belongs to the conclusion, not the task — the send stage must not be
         // handed a budget it can never use. Deliberately longer than the two-hour lifetime the
@@ -132,7 +129,7 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        StageContext parameters = CreateContext(instanceMutatorMock.Object);
 
         var exception = await Assert.ThrowsAsync<ApplicationConfigException>(() =>
             SendShipment(_serviceTask, parameters)
@@ -159,7 +156,7 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        StageContext parameters = CreateContext(instanceMutatorMock.Object);
 
         // Act & Assert
         await Assert.ThrowsAsync<ProcessException>(() => SendShipment(serviceTask, parameters));
@@ -184,13 +181,13 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        StageContext parameters = CreateContext(instanceMutatorMock.Object);
 
         // Act
         var result = await SendShipment(serviceTask, parameters);
 
         // Assert
-        Assert.IsType<CompletedServiceTaskStageResult>(result);
+        Assert.IsType<CompletedStageResult>(result);
     }
 
     [Fact]
@@ -201,7 +198,7 @@ public class EFormidlingServiceTaskTests
 
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -253,7 +250,7 @@ public class EFormidlingServiceTaskTests
 
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         // Act
         await SendShipment(_serviceTask, parameters);
@@ -282,7 +279,7 @@ public class EFormidlingServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        ServiceTaskContext parameters = CreateContext(instanceMutatorMock.Object);
+        StageContext parameters = CreateContext(instanceMutatorMock.Object);
 
         // Act
         await SendShipment(_serviceTask, parameters);
@@ -328,7 +325,7 @@ public class EFormidlingServiceTaskTests
 
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         // Act
         await SendShipment(_serviceTask, parameters);
@@ -354,14 +351,14 @@ public class EFormidlingServiceTaskTests
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         SetShipmentOwner(instance, Guid.NewGuid().ToString());
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        var failed = Assert.IsType<FailedStageResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("earlier pass", failed.ErrorMessage);
         _eFormidlingServiceMock.Verify(
@@ -383,14 +380,14 @@ public class EFormidlingServiceTaskTests
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
         SetShipmentOwner(instance, _workflowId.ToString());
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        Assert.IsType<CompletedServiceTaskStageResult>(result);
+        Assert.IsType<CompletedStageResult>(result);
         _eFormidlingServiceMock.Verify(
             x =>
                 x.SendEFormidlingShipment(
@@ -408,14 +405,14 @@ public class EFormidlingServiceTaskTests
         Instance instance = GetInstance();
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        Assert.IsType<CompletedServiceTaskStageResult>(result);
+        Assert.IsType<CompletedStageResult>(result);
         Assert.Equal(
             _workflowId.ToString(),
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey]
@@ -428,7 +425,7 @@ public class EFormidlingServiceTaskTests
         Instance instance = GetInstance();
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -453,7 +450,7 @@ public class EFormidlingServiceTaskTests
         Instance instance = GetInstance();
         InstanceDataUnitOfWork unitOfWork = CreateUnitOfWork(instance);
 
-        ServiceTaskContext parameters = CreateContext(unitOfWork);
+        StageContext parameters = CreateContext(unitOfWork);
 
         var taskExtension = new AltinnTaskExtension { EFormidlingConfiguration = GetConfig() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension("taskId")).Returns(taskExtension);
@@ -469,7 +466,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, parameters);
 
-        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        var failed = Assert.IsType<FailedStageResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
     }
 
@@ -551,7 +548,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, CreateContext(unitOfWork));
 
-        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        var failed = Assert.IsType<FailedStageResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains($"{(int)statusCode} {statusCode}", failed.ErrorMessage);
         Assert.Contains("create eFormidling message", failed.ErrorMessage);
@@ -582,7 +579,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await SendShipment(_serviceTask, CreateContext(unitOfWork));
 
-        var failed = Assert.IsType<FailedServiceTaskStageResult>(result);
+        var failed = Assert.IsType<FailedStageResult>(result);
         Assert.Contains($"The integrasjonspunkt said: {expectedReason}", failed.ErrorMessage);
     }
 
@@ -594,9 +591,7 @@ public class EFormidlingServiceTaskTests
 
         // The message becomes a log line and an error-history entry, so a multi-line body is flattened.
         SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest, "first line\r\nsecond line"));
-        var flattened = Assert.IsType<FailedServiceTaskStageResult>(
-            await SendShipment(_serviceTask, CreateContext(unitOfWork))
-        );
+        var flattened = Assert.IsType<FailedStageResult>(await SendShipment(_serviceTask, CreateContext(unitOfWork)));
         Assert.Contains("first line", flattened.ErrorMessage);
         Assert.Contains("second line", flattened.ErrorMessage);
         Assert.DoesNotContain('\n', flattened.ErrorMessage);
@@ -604,9 +599,7 @@ public class EFormidlingServiceTaskTests
 
         // No body, no "said" clause: the status line and the consequence stand on their own.
         SetupSendThrows(IntegrasjonspunktAnswered(HttpStatusCode.BadRequest));
-        var bare = Assert.IsType<FailedServiceTaskStageResult>(
-            await SendShipment(_serviceTask, CreateContext(unitOfWork))
-        );
+        var bare = Assert.IsType<FailedStageResult>(await SendShipment(_serviceTask, CreateContext(unitOfWork)));
         Assert.DoesNotContain("The integrasjonspunkt said", bare.ErrorMessage);
         Assert.Contains("400 BadRequest", bare.ErrorMessage);
     }
@@ -697,7 +690,7 @@ public class EFormidlingServiceTaskTests
 
         var context = CreateContext(
             unitOfWork,
-            new ServiceTaskWait { DeferCount = deferCount, Deadline = DateTimeOffset.UtcNow.AddHours(1) }
+            new StageWait { DeferCount = deferCount, Deadline = DateTimeOffset.UtcNow.AddHours(1) }
         );
         var result = await AwaitDelivery(_serviceTask, context);
 
@@ -767,7 +760,7 @@ public class EFormidlingServiceTaskTests
         // classification, so the task ends it on its own terms instead.
         var context = CreateContext(
             unitOfWork,
-            new ServiceTaskWait
+            new StageWait
             {
                 DeferCount = 40,
                 Deadline = DateTimeOffset.UtcNow.AddSeconds(-1),

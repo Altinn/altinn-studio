@@ -1761,7 +1761,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ExecuteCount++;
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());

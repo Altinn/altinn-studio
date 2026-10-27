@@ -1376,7 +1376,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public async Task<ServiceTaskResult> Execute(StageContext context)
         {
             await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
             return ServiceTaskResult.Success();
@@ -1389,9 +1389,9 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskContext? ReceivedContext { get; private set; }
+        public StageContext? ReceivedContext { get; private set; }
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ReceivedContext = context;
             if (stageMutation)
@@ -1414,7 +1414,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             context.InstanceDataMutator.AddBinaryDataElement(
                 DataTypeId,
@@ -1432,7 +1432,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedRetryable("Expected failure"));
     }
 

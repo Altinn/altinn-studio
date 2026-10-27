@@ -9,7 +9,7 @@ public sealed class SuccessfulServiceTask : IServiceTask
 {
     public string Type => "write";
 
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    public Task<ServiceTaskResult> Execute(StageContext context)
     {
         SnapshotLogger.LogInfo("IServiceTask.Execute.Success");
         ServiceTaskResult result = ServiceTaskResult.Success();

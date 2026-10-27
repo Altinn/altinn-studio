@@ -27,10 +27,10 @@ public class ExecuteServiceTaskStageTests
     {
         public string Type => "shipping";
 
-        public Func<ServiceTaskContext, Task<ServiceTaskStageResult>> OnSend { get; init; } =
-            _ => Task.FromResult(ServiceTaskStageResult.Completed());
+        public Func<StageContext, Task<StageResult>> OnSend { get; init; } =
+            _ => Task.FromResult(StageResult.Completed());
 
-        public Func<ServiceTaskContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
+        public Func<StageContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
@@ -99,9 +99,9 @@ public class ExecuteServiceTaskStageTests
     /// Self-cleaning: closing the copy-constructor route properly stops <c>base(original)</c> compiling, and
     /// this test disappears with the arm it pins.
     /// </remarks>
-    private sealed record RogueStageResult : ServiceTaskStageResult
+    private sealed record RogueStageResult : StageResult
     {
-        public RogueStageResult(ServiceTaskStageResult original)
+        public RogueStageResult(StageResult original)
             : base(original) { }
     }
 
@@ -110,8 +110,7 @@ public class ExecuteServiceTaskStageTests
     {
         var task = new ShippingTask
         {
-            OnSend = _ =>
-                Task.FromResult<ServiceTaskStageResult>(new RogueStageResult(ServiceTaskStageResult.Completed())),
+            OnSend = _ => Task.FromResult<StageResult>(new RogueStageResult(StageResult.Completed())),
         };
 
         ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
@@ -139,7 +138,7 @@ public class ExecuteServiceTaskStageTests
         // Any stage may await an async dependency — deferral is not reserved for the conclusion.
         var task = new ShippingTask
         {
-            OnSend = _ => Task.FromResult(ServiceTaskStageResult.Defer(TimeSpan.FromSeconds(30), "queue is saturated")),
+            OnSend = _ => Task.FromResult(StageResult.Defer(TimeSpan.FromSeconds(30), "queue is saturated")),
         };
         var command = CreateCommand(task);
 
@@ -160,8 +159,8 @@ public class ExecuteServiceTaskStageTests
             OnSend = _ =>
                 Task.FromResult(
                     permanent
-                        ? ServiceTaskStageResult.FailedPermanent("shipment rejected")
-                        : ServiceTaskStageResult.FailedRetryable("shipment service timed out")
+                        ? StageResult.FailedPermanent("shipment rejected")
+                        : StageResult.FailedRetryable("shipment service timed out")
                 ),
         };
         var command = CreateCommand(task);
@@ -266,7 +265,7 @@ public class ExecuteServiceTaskStageTests
 
         public string Type => "shipping";
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             Executed = true;
             return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
@@ -305,19 +304,19 @@ public class ExecuteServiceTaskStageTests
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Contains("Define returned null", failed.ErrorMessage);
-        mock.Verify(x => x.Execute(It.IsAny<ServiceTaskContext>()), Times.Never);
+        mock.Verify(x => x.Execute(It.IsAny<StageContext>()), Times.Never);
     }
 
     [Fact]
     public async Task StageContext_CarriesTheEngineIdentityAndClocks()
     {
-        ServiceTaskContext? observed = null;
+        StageContext? observed = null;
         var task = new ShippingTask
         {
             OnSend = ctx =>
             {
                 observed = ctx;
-                return Task.FromResult(ServiceTaskStageResult.Completed());
+                return Task.FromResult(StageResult.Completed());
             },
         };
         var command = CreateCommand(task);
@@ -361,11 +360,8 @@ public class ExecuteServiceTaskStageTests
                 )
                 .HandleReplies(
                     handle,
-                    (_, _) =>
-                        Task.FromResult<ServiceTaskStageExchangeResult>(
-                            ServiceTaskStageExchangeResult.AwaitNextReply()
-                        ),
-                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed())
+                    (_, _) => Task.FromResult<StageExchangeResult>(StageExchangeResult.AwaitNextReply()),
+                    (_, _) => Task.FromResult(StageResult.Completed())
                 )
                 .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
     }

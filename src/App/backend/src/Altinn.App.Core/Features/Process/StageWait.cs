@@ -1,11 +1,11 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The whole-wait clock of a <see cref="ServiceTaskContext"/>: every check a deferring task makes,
+/// The whole-wait clock of a <see cref="StageContext"/>: every check a deferring task makes,
 /// bounded by <see cref="ProcessStepOptions.WaitBudget"/>. Distinct from
-/// <see cref="ServiceTaskAttempt"/>, which bounds one execution.
+/// <see cref="StageAttempt"/>, which bounds one execution.
 /// </summary>
-public sealed record ServiceTaskWait
+public sealed record StageWait
 {
     /// <summary>
     /// How many times this task has already deferred (<see cref="ServiceTaskResult.Defer"/>) while waiting

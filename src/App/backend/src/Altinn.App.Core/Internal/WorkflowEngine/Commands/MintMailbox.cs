@@ -42,7 +42,7 @@ internal sealed class MintMailbox(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not ServiceTaskStage.MailboxOpening declaring)
+            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not PipelineStage.MailboxOpening declaring)
             {
                 return FailedProcessEngineCommandResult.Permanent(
                     $"Service task '{payload.ServiceTaskType}' opened a mailbox from the stage at index "

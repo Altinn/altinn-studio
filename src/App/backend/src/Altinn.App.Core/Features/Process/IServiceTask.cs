@@ -18,7 +18,7 @@ public interface IServiceTask : IPipelineServiceTask
     /// <see cref="ServiceTaskResult.Defer"/> to run again later, or a failure result.
     /// Unhandled exceptions are treated as retryable failures.
     /// </summary>
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context);
+    public Task<ServiceTaskResult> Execute(StageContext context);
 
     /// <summary>
     /// A simple service task is a pipeline whose only step is the conclusion: <see cref="Execute"/>

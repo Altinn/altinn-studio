@@ -35,7 +35,7 @@ namespace Altinn.App.logic.Pdf
 
         public string Type => "pdfIfRequested";
 
-        public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public async Task<ServiceTaskResult> Execute(StageContext context)
         {
             var mutator = context.InstanceDataMutator;
             var settingsElement = mutator.Instance.Data.FirstOrDefault(d => d.DataType == "PdfSettings");

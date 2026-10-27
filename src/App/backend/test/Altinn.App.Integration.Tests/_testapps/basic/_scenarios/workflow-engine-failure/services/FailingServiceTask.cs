@@ -11,7 +11,7 @@ public sealed class FailingServiceTask : IServiceTask
 {
     public string Type => "failing-service";
 
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    public Task<ServiceTaskResult> Execute(StageContext context)
     {
         if (WorkflowEngineFailureState.FailServiceTask)
         {

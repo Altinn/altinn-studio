@@ -46,7 +46,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     public string Type => "pdf";
 
     /// <inheritdoc/>
-    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    public async Task<ServiceTaskResult> Execute(StageContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         string taskId = dataMutator.Instance.Process.CurrentTask.ElementId;

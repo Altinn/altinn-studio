@@ -48,20 +48,20 @@ public sealed class ScenarioServiceTask : IPipelineServiceTask
     /// race task completion. Otherwise completes immediately. Later retries/resumes re-enter
     /// <c>RunScenario</c> without re-running this completed stage.
     /// </summary>
-    private Task<ServiceTaskStageResult> PrepareScenario(ServiceTaskContext context)
+    private Task<StageResult> PrepareScenario(StageContext context)
     {
         Guid instanceGuid = Guid.Parse(context.InstanceDataMutator.Instance.Id.Split('/').Last());
-        return Task.FromResult<ServiceTaskStageResult>(
+        return Task.FromResult<StageResult>(
             ServiceTaskTestGate.IsHeld(instanceGuid)
-                ? ServiceTaskStageResult.Defer(
+                ? StageResult.Defer(
                     TimeSpan.FromSeconds(1),
                     "Waiting for the test to release the instance"
                 )
-                : ServiceTaskStageResult.Completed()
+                : StageResult.Completed()
         );
     }
 
-    private async Task<ServiceTaskResult> RunScenario(ServiceTaskContext context)
+    private async Task<ServiceTaskResult> RunScenario(StageContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");

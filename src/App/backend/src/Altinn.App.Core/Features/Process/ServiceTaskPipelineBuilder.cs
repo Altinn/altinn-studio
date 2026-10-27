@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// Composes a service task's pipeline inside <see cref="IPipelineServiceTask.Define"/>: zero or more
-/// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
+/// <see cref="Stage(Func{StageContext, Task{StageResult}}, ProcessStepOptions?)"/>
 /// calls and <see cref="HandleReplies"/> handlers, in any order, ended by exactly one terminal —
 /// <see cref="Finally"/> or <see cref="ConcludeOnReplies"/>, the only sources of the
 /// <see cref="ServiceTaskPipeline"/> that <c>Define</c> must return. Composition mistakes throw from the
@@ -31,20 +31,20 @@ public sealed class ServiceTaskPipelineBuilder
     /// </summary>
     /// <param name="work">
     /// The stage's work. <strong>MUST be idempotent — it may be retried on failure</strong>; use
-    /// <see cref="ServiceTaskContext.StepId"/> as the idempotency key for calls the stage must not repeat.
+    /// <see cref="StageContext.StepId"/> as the idempotency key for calls the stage must not repeat.
     /// </param>
     /// <param name="options">
     /// Optional per-stage execution options, winning field-wise over the task's own
     /// <see cref="IProcessStepConfigurable.StepOptions"/>.
     /// </param>
     public ServiceTaskPipelineBuilder Stage(
-        Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work,
+        Func<StageContext, Task<StageResult>> work,
         ProcessStepOptions? options = null
     )
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
-        _items.Add(new ServiceTaskStage.Plain(work, options));
+        _items.Add(new PipelineStage.Plain(work, options));
         return this;
     }
 
@@ -64,7 +64,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// </param>
     /// <param name="options">Optional per-stage execution options, as above.</param>
     public ServiceTaskPipelineBuilder Stage(
-        Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
+        Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
         MailboxOptions mailbox,
         out MailboxHandle handle,
         ProcessStepOptions? options = null
@@ -75,7 +75,7 @@ public sealed class ServiceTaskPipelineBuilder
         mailbox.Validate();
         options?.Validate();
         int openingIndex = _items.Count;
-        _items.Add(new ServiceTaskStage.MailboxOpening(work, mailbox, options));
+        _items.Add(new PipelineStage.MailboxOpening(work, mailbox, options));
 
         handle = new MailboxHandle(this, openingIndex);
         _mailboxes.Add(new IssuedMailbox(handle));
@@ -89,22 +89,22 @@ public sealed class ServiceTaskPipelineBuilder
     /// </summary>
     /// <param name="handle">The mailbox this handler answers, from the stage that opened it.</param>
     /// <param name="onMessage">
-    /// Answers one message: <see cref="ServiceTaskStageExchangeResult.AwaitNextReply"/> to be called again on
-    /// the next one, <see cref="ServiceTaskStageResult.Completed"/> to end the exchange and let the pipeline
+    /// Answers one message: <see cref="StageExchangeResult.AwaitNextReply"/> to be called again on
+    /// the next one, <see cref="StageResult.Completed"/> to end the exchange and let the pipeline
     /// continue.
     /// </param>
     /// <param name="onClosed">
     /// Answers the mailbox closing with the exchange unfinished — fatal
-    /// (<see cref="ServiceTaskStageResult.FailedPermanent"/>), or simply the end of an exchange the task can
-    /// live without (<see cref="ServiceTaskStageResult.Completed"/>).
+    /// (<see cref="StageResult.FailedPermanent"/>), or simply the end of an exchange the task can
+    /// live without (<see cref="StageResult.Completed"/>).
     /// </param>
     /// <param name="options">Optional execution options for the step each execution of these handlers runs as.</param>
     /// <exception cref="ArgumentException"><paramref name="handle"/> belongs to another pipeline.</exception>
     /// <exception cref="InvalidOperationException"><paramref name="handle"/> is already answered.</exception>
     public ServiceTaskPipelineBuilder HandleReplies(
         MailboxHandle handle,
-        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage,
-        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed,
+        Func<StageContext, ServiceTaskReply, Task<StageExchangeResult>> onMessage,
+        Func<StageContext, MailboxClosedReason, Task<StageResult>> onClosed,
         ProcessStepOptions? options = null
     )
     {
@@ -125,7 +125,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// </summary>
     /// <param name="work">
     /// The concluding work. The idempotency rules of
-    /// <see cref="Stage(Func{ServiceTaskContext, Task{ServiceTaskStageResult}}, ProcessStepOptions?)"/>
+    /// <see cref="Stage(Func{StageContext, Task{StageResult}}, ProcessStepOptions?)"/>
     /// apply here too.
     /// </param>
     /// <param name="options">
@@ -136,7 +136,7 @@ public sealed class ServiceTaskPipelineBuilder
     /// A mailbox this pipeline opens is left unanswered.
     /// </exception>
     public ServiceTaskPipeline Finally(
-        Func<ServiceTaskContext, Task<ServiceTaskResult>> work,
+        Func<StageContext, Task<ServiceTaskResult>> work,
         ProcessStepOptions? options = null
     )
     {
@@ -171,8 +171,8 @@ public sealed class ServiceTaskPipelineBuilder
     /// </exception>
     public ServiceTaskPipeline ConcludeOnReplies(
         MailboxHandle handle,
-        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
-        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
+        Func<StageContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
+        Func<StageContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
         ProcessStepOptions? options = null
     )
     {

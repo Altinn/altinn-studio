@@ -36,7 +36,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public Dictionary<string, ServiceTaskContext> Seen { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, StageContext> Seen { get; } = new(StringComparer.Ordinal);
 
         /// <summary>The address handed to the stage that opens the mailbox.</summary>
         public ServiceTaskMailbox? SentTo { get; private set; }
@@ -53,7 +53,7 @@ public class ExecuteServiceTaskMailboxTests
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
-                .Stage(Record<ServiceTaskStageResult>("RecordDispatch", ServiceTaskStageResult.Completed()))
+                .Stage(Record<StageResult>("RecordDispatch", StageResult.Completed()))
                 .ConcludeOnReplies(
                     archive,
                     onMessage: Record<ServiceTaskExchangeResult, ServiceTaskReply>(
@@ -63,14 +63,14 @@ public class ExecuteServiceTaskMailboxTests
                     onClosed: Record<ServiceTaskResult, MailboxClosedReason>("OnClosed", ServiceTaskResult.Success())
                 );
 
-        private Func<ServiceTaskContext, Task<T>> Record<T>(string step, T result) =>
+        private Func<StageContext, Task<T>> Record<T>(string step, T result) =>
             context =>
             {
                 Seen[step] = context;
                 return Task.FromResult(result);
             };
 
-        private Func<ServiceTaskContext, TArg, Task<T>> Record<T, TArg>(string step, T result) =>
+        private Func<StageContext, TArg, Task<T>> Record<T, TArg>(string step, T result) =>
             (context, _) =>
             {
                 Seen[step] = context;
@@ -83,14 +83,14 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public Dictionary<string, ServiceTaskContext> Seen { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, StageContext> Seen { get; } = new(StringComparer.Ordinal);
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
             pipeline
                 .Stage(context =>
                 {
                     Seen["SendStage"] = context;
-                    return Task.FromResult(ServiceTaskStageResult.Completed());
+                    return Task.FromResult(StageResult.Completed());
                 })
                 .Finally(context =>
                 {
@@ -360,7 +360,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> OnSend { get; init; } =
+        public Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> OnSend { get; init; } =
             (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
         public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
@@ -389,8 +389,8 @@ public class ExecuteServiceTaskMailboxTests
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .ConcludeOnReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
@@ -606,7 +606,7 @@ public class ExecuteServiceTaskMailboxTests
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .ConcludeOnReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),

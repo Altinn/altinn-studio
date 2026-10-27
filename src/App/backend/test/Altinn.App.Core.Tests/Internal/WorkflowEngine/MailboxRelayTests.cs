@@ -213,29 +213,22 @@ public class MailboxRelayTests
 
     private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(
-        ServiceTaskContext context,
-        ServiceTaskMailbox mailbox
-    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+    private static Task<StageExchangeResult> OnSegmentMessage(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<StageExchangeResult>(StageResult.Completed());
 
-    private static Task<ServiceTaskStageResult> OnSegmentClosed(
-        ServiceTaskContext context,
-        MailboxClosedReason reason
-    ) => Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
+        Task.FromResult(StageResult.Completed());
 
     /// <summary>A task that concludes on replies, so the relay has a step shape to build.</summary>
     private sealed class ArchivingTask : IPipelineServiceTask
@@ -1009,9 +1002,9 @@ public class MailboxRelayTests
     /// Self-cleaning, like its three siblings: closing the copy-constructor route properly stops
     /// <c>base(original)</c> compiling, and this test disappears with the arm it pins.
     /// </remarks>
-    private sealed record RogueStageVerdict : ServiceTaskStageExchangeResult
+    private sealed record RogueStageVerdict : StageExchangeResult
     {
-        public RogueStageVerdict(ServiceTaskStageExchangeResult original)
+        public RogueStageVerdict(StageExchangeResult original)
             : base(original) { }
     }
 
@@ -1022,7 +1015,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            new RogueStageVerdict(ServiceTaskStageResult.Completed()),
+            new RogueStageVerdict(StageResult.Completed()),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1047,7 +1040,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Completed(),
+            StageResult.Completed(),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1089,7 +1082,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageExchangeResult.AwaitNextReply(),
+            StageExchangeResult.AwaitNextReply(),
             ServiceTaskType,
             _stepId,
             Delivered(seq: 6),
@@ -1122,7 +1115,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
+            StageResult.FailedPermanent("the archive never confirmed"),
             ServiceTaskType,
             _stepId,
             Closed(),
@@ -1147,7 +1140,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.FailedRetryable("the archive is down"),
+            StageResult.FailedRetryable("the archive is down"),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1170,7 +1163,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Defer(TimeSpan.FromMinutes(5), "waiting for the archive to settle"),
+            StageResult.Defer(TimeSpan.FromMinutes(5), "waiting for the archive to settle"),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1197,7 +1190,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            awaitNext ? ServiceTaskStageExchangeResult.AwaitNextReply() : ServiceTaskStageResult.Completed(),
+            awaitNext ? StageExchangeResult.AwaitNextReply() : StageResult.Completed(),
             ServiceTaskType,
             Guid.Empty,
             Delivered(),
@@ -1220,7 +1213,7 @@ public class MailboxRelayTests
     {
         FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
             MailboxRelay.DecideSegment(
-                ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
+                StageResult.FailedPermanent("the archive never confirmed"),
                 ServiceTaskType,
                 Guid.Empty,
                 Closed(),
@@ -1234,7 +1227,7 @@ public class MailboxRelayTests
 
         Assert.IsType<DeferredProcessEngineCommandResult>(
             MailboxRelay.DecideSegment(
-                ServiceTaskStageResult.Defer(TimeSpan.FromMinutes(1)),
+                StageResult.Defer(TimeSpan.FromMinutes(1)),
                 ServiceTaskType,
                 Guid.Empty,
                 Delivered(),
@@ -1558,7 +1551,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(1, journalMailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Completed(),
+            StageResult.Completed(),
             ServiceTaskType,
             _stepId,
             Delivered(),
@@ -1592,7 +1585,7 @@ public class MailboxRelayTests
         carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
 
         ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
-            ServiceTaskStageResult.Completed(),
+            StageResult.Completed(),
             ServiceTaskType,
             _stepId,
             Delivered(),

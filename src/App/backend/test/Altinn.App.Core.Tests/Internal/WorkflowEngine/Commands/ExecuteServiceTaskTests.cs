@@ -28,15 +28,15 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 public class ExecuteServiceTaskTests
 {
     /// <summary>An <see cref="IServiceTask"/> scripted per test, recording what it observed.</summary>
-    private sealed class FakeServiceTask(Func<ServiceTaskContext, Task<ServiceTaskResult>> onExecute) : IServiceTask
+    private sealed class FakeServiceTask(Func<StageContext, Task<ServiceTaskResult>> onExecute) : IServiceTask
     {
         public int ExecuteCount { get; private set; }
 
-        public ServiceTaskContext? Observed { get; private set; }
+        public StageContext? Observed { get; private set; }
 
         public string Type => "myServiceTask";
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ExecuteCount++;
             Observed = context;
@@ -504,11 +504,11 @@ public class ExecuteServiceTaskTests
         );
     }
 
-    private sealed class DelegateServiceTask(string type, Func<ServiceTaskContext, Task<ServiceTaskResult>> execute)
+    private sealed class DelegateServiceTask(string type, Func<StageContext, Task<ServiceTaskResult>> execute)
         : IServiceTask
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => execute(context);
+        public Task<ServiceTaskResult> Execute(StageContext context) => execute(context);
     }
 }

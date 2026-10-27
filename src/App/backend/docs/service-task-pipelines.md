@@ -69,18 +69,18 @@ pipeline at the failed stage, not at the beginning. That step ledger — not any
 is the durable guard for send-then-poll and send-then-receive work: give the send its own stage.
 
 - **Every stage may be retried on failure, so its work MUST be idempotent.** Use
-  `ServiceTaskContext.StepId` as the idempotency key for an outbound call the stage must not repeat — it
+  `StageContext.StepId` as the idempotency key for an outbound call the stage must not repeat — it
   is stable across retries of the same step and covers the crash window between sending and completing.
-- **Never** branch on anything under `ServiceTaskContext.Attempt` or `ServiceTaskContext.Wait` to guard a
+- **Never** branch on anything under `StageContext.Attempt` or `StageContext.Wait` to guard a
   side effect: an attempt that sends and then crashes re-runs with all of those unchanged.
-- Stages share state through `ServiceTaskContext.InstanceDataMutator` and nothing else: a completed
+- Stages share state through `StageContext.InstanceDataMutator` and nothing else: a completed
   stage's data changes are saved into the workflow state and visible to every stage after it.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
   that must _record_ something records it and returns success.
 
 ### Stage results
 
-`ServiceTaskStageResult` is the stage vocabulary: `Completed()`, `Defer(delay, reason?)`,
+`StageResult` is the stage vocabulary: `Completed()`, `Defer(delay, reason?)`,
 `FailedRetryable(msg)`, `FailedPermanent(msg)`. A plain stage cannot conclude the task or advance the
 process — that is reserved for the pipeline's conclusion, and for a mailbox-opening stage's `Conclude`
 (see below). The concluding step returns `ServiceTaskResult`. Returning `Success(action?)` completes
@@ -99,7 +99,7 @@ process on this step — no worker held, no error recorded, retry counter reset 
 - The total wait is bounded by `ProcessStepOptions.WaitBudget` (or the engine default); expiry fails the
   step. Declare a polling pipeline's wait budget on `Finally`, not on the task — task-level options are
   inherited by every stage, including stages that never wait.
-- Read `ServiceTaskContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
+- Read `StageContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
   to pace the wait, and give up on `IsFinalCheck` with a message that names what never arrived.
   `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that owns the
   wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
@@ -167,7 +167,7 @@ Exactly one handler answers each mailbox, named by the handle the opening `Stage
   returns `ServiceTaskExchangeResult`: any `ServiceTaskResult` (concluding the task), or
   `AwaitNextReply()` to be called again on the next message.
 - `HandleReplies(handle, onMessage, onClosed)` — an exchange the pipeline **carries on past**. `onMessage`
-  returns `ServiceTaskStageExchangeResult`: any `ServiceTaskStageResult`, or `AwaitNextReply()`.
+  returns `StageExchangeResult`: any `StageResult`, or `AwaitNextReply()`.
   `Completed()` here means _this exchange is concluded, run the pipeline's next segment_ — concluding the
   task and advancing the process are deliberately not in this vocabulary.
 

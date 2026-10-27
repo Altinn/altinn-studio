@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Process;
 /// returns this type — its <c>onClosed</c>, and <see cref="ServiceTaskPipelineBuilder.Finally"/>, return
 /// <see cref="ServiceTaskResult"/>, so the compiler rejects <see cref="AwaitNextReply"/> where there is no
 /// next message to await. A handler the pipeline carries on past answers
-/// <see cref="ServiceTaskStageExchangeResult"/> instead — a separate root, on purpose.
+/// <see cref="StageExchangeResult"/> instead — a separate root, on purpose.
 /// </summary>
 public abstract record ServiceTaskExchangeResult
 {
@@ -34,7 +34,7 @@ public abstract record ServiceTaskExchangeResult
 
 /// <summary>A reply terminal finished its message while the exchange stays open.</summary>
 /// <remarks>
-/// Identical shape to <see cref="ServiceTaskStageAwaitNextReplyResult"/> on purpose — see that type's
+/// Identical shape to <see cref="StageAwaitNextReplyResult"/> on purpose — see that type's
 /// remarks. Do not deduplicate.
 /// </remarks>
 public sealed record ServiceTaskAwaitNextReplyResult : ServiceTaskExchangeResult

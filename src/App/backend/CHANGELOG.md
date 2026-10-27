@@ -58,6 +58,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - if the default has a condition, which the app never evaluates; remove it
     - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
 - Long text in Paragraph, Alert and Panel components and in field descriptions now wraps at about 70 characters per line, so it is easier to read on wide screens. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+- Breaking: the types a pipeline stage uses are named for stages, since process task lifecycle stages use them too: `ServiceTaskContext` is `StageContext`, `ServiceTaskStageResult` is `StageResult`, `ServiceTaskStageExchangeResult` is `StageExchangeResult`, `ServiceTaskStageAwaitNextReplyResult` is `StageAwaitNextReplyResult`, and `ServiceTaskAttempt` and `ServiceTaskWait` are `StageAttempt` and `StageWait`. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
 ### Fixed
 

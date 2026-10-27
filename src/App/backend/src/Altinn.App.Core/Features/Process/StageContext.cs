@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Features.Process;
 /// step (an <see cref="IServiceTask"/>'s <c>Execute</c>), or one execution of a reply terminal's
 /// <c>onMessage</c>/<c>onClosed</c> handler.
 /// </summary>
-public sealed record ServiceTaskContext
+public sealed record StageContext
 {
     /// <summary>
     /// An instance data mutator that can be used to read and modify the instance data during the service task execution.
@@ -56,7 +56,7 @@ public sealed record ServiceTaskContext
     /// The clock bounding <em>this attempt</em> (<see cref="ProcessStepOptions.MaxExecutionTime"/>):
     /// how many consecutive errors preceded it, and when it is cut off.
     /// </summary>
-    public ServiceTaskAttempt Attempt { get; init; } = new();
+    public StageAttempt Attempt { get; init; } = new();
 
     /// <summary>
     /// The clock bounding <em>the whole wait</em> (<see cref="ProcessStepOptions.WaitBudget"/>):
@@ -67,5 +67,5 @@ public sealed record ServiceTaskContext
     /// only after it answers, so an attempt that performed a side effect and crashed re-runs with all
     /// of these unchanged.
     /// </remarks>
-    public ServiceTaskWait Wait { get; init; } = new();
+    public StageWait Wait { get; init; } = new();
 }

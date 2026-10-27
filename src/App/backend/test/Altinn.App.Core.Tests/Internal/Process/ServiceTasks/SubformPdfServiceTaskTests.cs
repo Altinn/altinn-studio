@@ -785,7 +785,7 @@ public class SubformPdfServiceTaskTests
         };
     }
 
-    private static ServiceTaskContext CreateServiceTaskContext(
+    private static StageContext CreateServiceTaskContext(
         Instance instance,
         CancellationToken cancellationToken = default
     )
@@ -793,7 +793,7 @@ public class SubformPdfServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
         instanceMutatorMock.Setup(x => x.Language).Returns("en");
-        return new ServiceTaskContext
+        return new StageContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),

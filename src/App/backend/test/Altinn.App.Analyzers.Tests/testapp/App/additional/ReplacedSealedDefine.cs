@@ -8,7 +8,7 @@ internal sealed class ExplicitlyReplacedDefineTask : IServiceTask
 {
     public string Type => "explicitReplace";
 
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+    public Task<ServiceTaskResult> Execute(StageContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
@@ -19,7 +19,7 @@ internal sealed class ImplicitlyReplacedDefineTask : IServiceTask
 {
     public string Type => "implicitReplace";
 
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+    public Task<ServiceTaskResult> Execute(StageContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
@@ -30,7 +30,7 @@ internal sealed class WellBehavedSimpleTask : IServiceTask
 {
     public string Type => "simple";
 
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+    public Task<ServiceTaskResult> Execute(StageContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 }
 
@@ -41,6 +41,6 @@ internal sealed class WellBehavedPipelineTask : IPipelineServiceTask
 
     public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
         pipeline
-            .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 }

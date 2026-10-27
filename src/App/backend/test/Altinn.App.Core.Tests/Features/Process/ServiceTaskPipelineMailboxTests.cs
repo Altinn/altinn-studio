@@ -13,28 +13,26 @@ public class ServiceTaskPipelineMailboxTests
 {
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskOpeningStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+    private static Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
         Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> Handle(ServiceTaskContext context, ServiceTaskReply reply) =>
+    private static Task<ServiceTaskExchangeResult> Handle(StageContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskExchangeResult.AwaitNextReply());
 
-    private static Task<ServiceTaskResult> Closed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    private static Task<ServiceTaskResult> Closed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedPermanent("no answer"));
 
-    private static Task<ServiceTaskStageExchangeResult> HandleSegment(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageExchangeResult.AwaitNextReply());
+    private static Task<StageExchangeResult> HandleSegment(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<StageExchangeResult>(StageExchangeResult.AwaitNextReply());
 
-    private static Task<ServiceTaskStageResult> ClosedSegment(ServiceTaskContext context, MailboxClosedReason reason) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> ClosedSegment(StageContext context, MailboxClosedReason reason) =>
+        Task.FromResult(StageResult.Completed());
 
     /// <summary>The running shape: a send that opens the mailbox at item index 0, then an unrelated stage, then the terminal.</summary>
     private static ServiceTaskPipelineBuilder ComposeStages(
         ServiceTaskPipelineBuilder builder,
         out MailboxHandle handle
-    ) => builder.Stage(Send, _threeDays, out handle).Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()));
+    ) => builder.Stage(Send, _threeDays, out handle).Stage(_ => Task.FromResult(StageResult.Completed()));
 
     /// <summary>A pipeline task whose <c>Define</c> the test scripts, so composition mistakes can be
     /// pushed through the runtime's own resolution path.</summary>
@@ -54,8 +52,8 @@ public class ServiceTaskPipelineMailboxTests
 
         // Two stages plus the conclusion, which is the list's last item.
         Assert.Equal(3, pipeline.Items.Count);
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[1]);
-        var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
+        Assert.IsType<PipelineStage.Plain>(pipeline.Items[1]);
+        var opening = Assert.IsType<PipelineStage.MailboxOpening>(pipeline.Items[0]);
         Assert.Equal(TimeSpan.FromDays(3), opening.Declaration.Timeout);
         Assert.Equal(0, handle.OpeningIndex);
     }
@@ -114,7 +112,7 @@ public class ServiceTaskPipelineMailboxTests
             .ConcludeOnReplies(handle, Handle, Closed);
 
         var mailbox = new ServiceTaskMailbox { Id = Guid.NewGuid(), Deadline = DateTimeOffset.UtcNow.AddDays(3) };
-        var opening = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
+        var opening = Assert.IsType<PipelineStage.MailboxOpening>(pipeline.Items[0]);
         await opening.Work(TestContext(), mailbox);
 
         Assert.Same(mailbox, seen);
@@ -133,9 +131,9 @@ public class ServiceTaskPipelineMailboxTests
 
         Assert.Collection(
             pipeline.Items,
-            item => Assert.IsType<ServiceTaskStage.MailboxOpening>(item),
+            item => Assert.IsType<PipelineStage.MailboxOpening>(item),
             item => Assert.Equal(0, Assert.IsType<ReplySegment>(item).OpeningIndex),
-            item => Assert.IsType<ServiceTaskStage.MailboxOpening>(item),
+            item => Assert.IsType<PipelineStage.MailboxOpening>(item),
             item => Assert.Equal(2, Assert.IsType<PipelineConclusion.ReplyExchange>(item).OpeningIndex)
         );
     }
@@ -143,8 +141,8 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void HandleReplies_RecordsTheHandlersAgainstTheExchangeTheyAnswer()
     {
-        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage = HandleSegment;
-        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed = ClosedSegment;
+        Func<StageContext, ServiceTaskReply, Task<StageExchangeResult>> onMessage = HandleSegment;
+        Func<StageContext, MailboxClosedReason, Task<StageResult>> onClosed = ClosedSegment;
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
 
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
@@ -184,11 +182,11 @@ public class ServiceTaskPipelineMailboxTests
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
             .Stage(Send, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, HandleSegment, ClosedSegment)
-            .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
         Assert.Equal(4, pipeline.Items.Count);
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[2]);
+        Assert.IsType<PipelineStage.Plain>(pipeline.Items[2]);
         Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[3]);
     }
 
@@ -344,10 +342,10 @@ public class ServiceTaskPipelineMailboxTests
     public void NoMailbox_FinallyStillEndsThePipeline()
     {
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
-            .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
-        Assert.IsType<ServiceTaskStage.Plain>(pipeline.Items[0]);
+        Assert.IsType<PipelineStage.Plain>(pipeline.Items[0]);
         Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
     }
 
@@ -385,9 +383,7 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Throws<ArgumentNullException>(() => builder.HandleReplies(handle, null!, ClosedSegment));
         Assert.Throws<ArgumentNullException>(() => builder.HandleReplies(handle, HandleSegment, null!));
 
-        Assert.Throws<ArgumentNullException>(() =>
-            builder.Stage((Func<ServiceTaskContext, Task<ServiceTaskStageResult>>)null!)
-        );
+        Assert.Throws<ArgumentNullException>(() => builder.Stage((Func<StageContext, Task<StageResult>>)null!));
         Assert.Throws<ArgumentNullException>(() => builder.Stage(null!, new ProcessStepOptions()));
     }
 
@@ -418,7 +414,7 @@ public class ServiceTaskPipelineMailboxTests
         Assert.Same(cached, task.ResolvePipeline());
     }
 
-    private static ServiceTaskContext TestContext() =>
+    private static StageContext TestContext() =>
         new()
         {
             InstanceDataMutator = null!,

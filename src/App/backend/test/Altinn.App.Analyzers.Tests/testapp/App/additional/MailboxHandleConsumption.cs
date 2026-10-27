@@ -14,26 +14,22 @@ internal static class MailboxHandlers
 {
     internal static MailboxOptions Options() => new MailboxOptions { Timeout = TimeSpan.FromDays(1) };
 
-    internal static Task<ServiceTaskOpeningStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+    internal static Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
         Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    internal static Task<ServiceTaskStageExchangeResult> OnMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+    internal static Task<StageExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<StageExchangeResult>(StageResult.Completed());
 
-    internal static Task<ServiceTaskStageResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    internal static Task<StageResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
+        Task.FromResult(StageResult.Completed());
 
-    internal static Task<ServiceTaskExchangeResult> OnFinalMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+    internal static Task<ServiceTaskExchangeResult> OnFinalMessage(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
 
-    internal static Task<ServiceTaskResult> OnFinalClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    internal static Task<ServiceTaskResult> OnFinalClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    internal static Task<ServiceTaskResult> Conclude(ServiceTaskContext context) =>
+    internal static Task<ServiceTaskResult> Conclude(StageContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 }
 
