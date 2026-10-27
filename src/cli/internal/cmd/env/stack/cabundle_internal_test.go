@@ -2,6 +2,8 @@ package stack
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
 	"os"
@@ -43,11 +45,15 @@ func TestLoadCABundleCopiesTheBundleReadableByEveryone(t *testing.T) {
 	}
 }
 
-func TestLoadCABundleRewritesAChangedCopy(t *testing.T) {
+// The copy is named by the digest of what it holds, so a changed bundle is a new mount; the old copy goes.
+func TestLoadCABundleNamesTheCopyByItsDigestAndRemovesOldCopies(t *testing.T) {
 	dir := t.TempDir()
-	stale := filepath.Join(dir, caBundleFile)
-	if err := os.WriteFile(stale, []byte("old"), 0o600); err != nil {
-		t.Fatal(err)
+	stale := filepath.Join(dir, caBundlePrefix+"0123456789abcdef"+caBundleSuffix)
+	other := filepath.Join(dir, "localtest.json")
+	for _, path := range []string{stale, other} {
+		if err := os.WriteFile(path, []byte("old"), 0o600); err != nil {
+			t.Fatal(err)
+		}
 	}
 	t.Setenv(cabundle.EnvStudioCABundle, cabundletest.WriteFile(t))
 
@@ -56,24 +62,60 @@ func TestLoadCABundleRewritesAChangedCopy(t *testing.T) {
 		t.Fatal("no CA bundle loaded")
 	}
 	got, err := os.ReadFile(bundle.path)
-	if err != nil || string(got) == "old" {
-		t.Fatalf("copy: %q, %v; want the new bundle", got, err)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if info, err := os.Stat(bundle.path); err != nil || info.Mode().Perm()&0o044 != 0o044 {
-		t.Errorf("the rewritten copy is not readable by everyone: %v, %v", info, err)
+	sum := sha256.Sum256(got)
+	digest := hex.EncodeToString(sum[:])
+	if bundle.Digest() != digest ||
+		filepath.Base(bundle.path) != caBundlePrefix+digest[:caBundleDigestLength]+caBundleSuffix {
+		t.Errorf(
+			"copy %s with digest %s, want it named by its content's SHA-256 %s",
+			bundle.path,
+			bundle.Digest(),
+			digest,
+		)
+	}
+	if _, err := os.Stat(stale); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the old copy is left: %v", err)
+	}
+	if _, err := os.Stat(other); err != nil {
+		t.Errorf("another file in the directory was removed: %v", err)
 	}
 }
 
+func TestNilCABundleHasNoDigest(t *testing.T) {
+	var bundle *CABundle
+	if digest := bundle.Digest(); digest != "" {
+		t.Errorf("Digest() = %q, want none", digest)
+	}
+}
+
+// copies are the CA bundle's copies in dir.
+func copies(t *testing.T, dir string) []string {
+	t.Helper()
+	found, err := filepath.Glob(filepath.Join(dir, caBundlePrefix+"*"+caBundleSuffix))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return found
+}
+
+// Without a bundle, the copies of an earlier one go too.
 func TestLoadCABundleUnsetIsNothing(t *testing.T) {
 	t.Setenv(cabundle.EnvStudioCABundle, "")
 	dir := t.TempDir()
+	stale := filepath.Join(dir, caBundlePrefix+"0123456789abcdef"+caBundleSuffix)
+	if err := os.WriteFile(stale, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
 
 	var errOut bytes.Buffer
 	if bundle := LoadCABundle(ui.NewOutput(io.Discard, &errOut, false), dir); bundle != nil || errOut.Len() != 0 {
 		t.Fatalf("LoadCABundle() = %v, warned %q; want nil without a warning", bundle, errOut.String())
 	}
-	if _, err := os.Stat(filepath.Join(dir, caBundleFile)); !errors.Is(err, os.ErrNotExist) {
-		t.Errorf("a copy was written: %v", err)
+	if found := copies(t, dir); len(found) != 0 {
+		t.Errorf("copies %v left without a bundle", found)
 	}
 }
 
@@ -108,8 +150,8 @@ func TestLoadCABundleWarnsOnceAboutAnUnusableBundle(t *testing.T) {
 				!strings.Contains(warning, "starts without the CA bundle") {
 				t.Errorf("warning %q, want one line naming %s", warning, cabundle.EnvStudioCABundle)
 			}
-			if _, err := os.Stat(filepath.Join(dir, caBundleFile)); !errors.Is(err, os.ErrNotExist) {
-				t.Errorf("a copy was written: %v", err)
+			if found := copies(t, dir); len(found) != 0 {
+				t.Errorf("copies %v written", found)
 			}
 		})
 	}

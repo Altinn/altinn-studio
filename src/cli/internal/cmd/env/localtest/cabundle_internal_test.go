@@ -33,11 +33,16 @@ func TestStartGivesPDF3TheHostsCABundle(t *testing.T) {
 	}
 	pdf3 := mustContainerSpec(t, components.NewManifest(opts).Resources, components.ContainerPDF3)
 
-	copyPath := filepath.Join(components.NewPaths(dataDir).InfraDir, "ca-bundle.pem")
+	infraDir := components.NewPaths(dataDir).InfraDir
 	if !slices.ContainsFunc(pdf3.Volumes, func(v containertypes.VolumeMount) bool {
-		return v.HostPath == copyPath && v.ContainerPath == cabundle.ContainerPath && v.ReadOnly
+		return filepath.Dir(v.HostPath) == infraDir && v.ContainerPath == cabundle.ContainerPath && v.ReadOnly
 	}) {
-		t.Fatalf("pdf3 volumes = %+v, want %s read-only at %s", pdf3.Volumes, copyPath, cabundle.ContainerPath)
+		t.Fatalf(
+			"pdf3 volumes = %+v, want a copy in %s read-only at %s",
+			pdf3.Volumes,
+			infraDir,
+			cabundle.ContainerPath,
+		)
 	}
 	assertEnvValue(t, pdf3.Environment, cabundle.EnvStudioCABundle, cabundle.ContainerPath)
 }

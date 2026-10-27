@@ -2,6 +2,7 @@ package stack
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +14,14 @@ import (
 	"altinn.studio/studioctl/internal/ui"
 )
 
-const caBundleFile = "ca-bundle.pem"
+// The copy's name is caBundlePrefix, the first caBundleDigestLength hex digits of the bundle's digest, and
+// caBundleSuffix, so a changed bundle changes the mount of every container that takes it, and the runtime recreates
+// them; a copy is never rewritten under a running container.
+const (
+	caBundlePrefix       = "ca-bundle-"
+	caBundleSuffix       = ".pem"
+	caBundleDigestLength = 16
+)
 
 // maxSkippedListed caps the skipped certificates one warning lists, so a broken bundle cannot flood the output.
 const maxSkippedListed = 3
@@ -21,28 +29,60 @@ const maxSkippedListed = 3
 // CABundle is the host's CA bundle (STUDIO_CA_BUNDLE, such as a TLS-intercepting proxy's CA) as a copy a container
 // can mount. A container takes it with Mount; a nil CABundle mounts nothing.
 type CABundle struct {
-	path string
+	path   string
+	digest string
 }
 
 // LoadCABundle reads the bundle STUDIO_CA_BUNDLE names, through devenv's cabundle.FromEnv, and copies its usable
-// certificates to dir. It is nil when the variable is unset. Certificates that are malformed or that Go's X.509 parser
-// rejects are left out, with one warning listing them. Any error, including a file without a usable certificate, is
-// one warning and nil: the environment starts without the bundle.
+// certificates to dir, named by their digest; the copies of other bundles in dir are removed. It is nil when the
+// variable is unset. Certificates that are malformed or that Go's X.509 parser rejects are left out, with one warning
+// listing them. Any error, including a file without a usable certificate, is one warning and nil: the environment
+// starts without the bundle.
 func LoadCABundle(out *ui.Output, dir string) *CABundle {
 	bundle, configured, err := cabundle.FromEnv()
-	if !configured {
-		return nil
-	}
-	if err == nil {
+	var loaded *CABundle
+	if configured && err == nil {
 		if len(bundle.Skipped) > 0 {
 			out.Warning(skippedWarning(bundle))
 		}
-		path := filepath.Join(dir, caBundleFile)
+		path := filepath.Join(dir, caBundlePrefix+bundle.Digest[:caBundleDigestLength]+caBundleSuffix)
 		if err = writeCABundleCopy(path, bundle.Data); err == nil {
-			return &CABundle{path: path}
+			loaded = &CABundle{path: path, digest: bundle.Digest}
 		}
 	}
-	out.Warningf("%v; the environment starts without the CA bundle", err)
+	if configured && err != nil {
+		out.Warningf("%v; the environment starts without the CA bundle", err)
+	}
+	if removeErr := removeOtherCopies(dir, loaded); removeErr != nil {
+		out.Warningf("remove an old copy of the CA bundle: %v", removeErr)
+	}
+	return loaded
+}
+
+// Digest is the SHA-256 of the certificates the containers trust, hex, for a runtime to record what it started
+// with; "" for no bundle.
+func (b *CABundle) Digest() string {
+	if b == nil {
+		return ""
+	}
+	return b.digest
+}
+
+// removeOtherCopies removes every copy of a CA bundle in dir but the loaded one's: a changed bundle's old copy, and
+// every copy once there is no bundle.
+func removeOtherCopies(dir string, loaded *CABundle) error {
+	copies, err := filepath.Glob(filepath.Join(dir, caBundlePrefix+"*"+caBundleSuffix))
+	if err != nil {
+		return fmt.Errorf("list the CA bundle's copies: %w", err)
+	}
+	for _, path := range copies {
+		if loaded != nil && path == loaded.path {
+			continue
+		}
+		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("remove %s: %w", filepath.Base(path), err)
+		}
+	}
 	return nil
 }
 
