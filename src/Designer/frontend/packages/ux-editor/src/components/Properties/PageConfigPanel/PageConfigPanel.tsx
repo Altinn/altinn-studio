@@ -22,6 +22,9 @@ import type { SelectedItem } from '../../../AppContext';
 import { EditPageId } from './EditPageId';
 import { ConfigPanelHeader } from '../CommonElements/ConfigPanelHeader/ConfigPanelHeader';
 import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/MainSettingsHeader';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import useUxEditorParams from '../../../hooks/useUxEditorParams';
+import { useLayoutSetsExtendedQuery } from '../../../hooks/queries/useLayoutSetsExtendedQuery';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
@@ -46,6 +49,11 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
   const duplicateLayouts: string[] =
     findLayoutsContainingDuplicateComponents(layouts).duplicateLayouts;
   const hasDuplicatedIdsInAllLayouts = duplicateLayouts?.length > 0;
+
+  const { org, app } = useStudioEnvironmentParams();
+  const { layoutSet } = useUxEditorParams();
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const isPdfTask = layoutSets?.find((set) => set.id === layoutSet)?.taskType === 'pdf';
 
   if (hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedItem.id} layout={layout} />;
@@ -72,12 +80,14 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
             <HiddenExpressionOnLayout />
           </StudioDetails.Content>
         </StudioDetails>
-        <StudioDetails>
-          <StudioDetails.Summary>{t('right_menu.pdf')}</StudioDetails.Summary>
-          <StudioDetails.Content className={classes.pdf}>
-            <PdfConfig />
-          </StudioDetails.Content>
-        </StudioDetails>
+        {isPdfTask && (
+          <StudioDetails>
+            <StudioDetails.Summary>{t('right_menu.pdf')}</StudioDetails.Summary>
+            <StudioDetails.Content className={classes.pdf}>
+              <PdfConfig />
+            </StudioDetails.Content>
+          </StudioDetails>
+        )}
       </Fragment>
       <PageConfigWarningModal open={hasDuplicatedIdsInAllLayouts} />
     </>

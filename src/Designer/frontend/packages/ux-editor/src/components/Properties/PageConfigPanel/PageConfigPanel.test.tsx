@@ -12,6 +12,7 @@ import { layout1NameMock, layoutMock, pagesModelMock } from '@altinn/ux-editor/t
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { ItemType } from '../ItemType';
+import type { UiFolderLayoutSetModel } from 'app-shared/types/api/dto/UiFolderLayoutSetModel';
 
 // Test data
 const layoutSet = layoutSet1NameMock;
@@ -51,8 +52,20 @@ describe('PageConfigPanel', () => {
     renderPageConfigPanel(newSelectedPage);
     screen.getByText(textMock('right_menu.text'));
     screen.getByText(textMock('right_menu.dynamics'));
-    screen.getByText(textMock('right_menu.pdf'));
   });
+
+  it('renders the PDF card for a page in a PDF task', () => {
+    renderPageConfigPanel(layout1NameMock, defaultTexts, 'pdf');
+    expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
+  });
+
+  it.each(['data', 'subformPdf', 'eFormidling'])(
+    'does not render the PDF card for a page in a %s task',
+    (taskType) => {
+      renderPageConfigPanel(layout1NameMock, defaultTexts, taskType);
+      expect(screen.queryByText(textMock('right_menu.pdf'))).not.toBeInTheDocument();
+    },
+  );
 
   it('render warning when layout is selected and has duplicated ids', () => {
     renderPageConfigPanel(duplicatedLayout);
@@ -83,7 +96,12 @@ describe('PageConfigPanel', () => {
 const renderPageConfigPanel = (
   selectedLayoutName: string = layout1NameMock,
   textResources = defaultTexts,
+  taskType: string = 'data',
 ) => {
+  const layoutSets: UiFolderLayoutSetModel[] = [
+    { id: layoutSet, dataType: 'data-model', type: null, taskType },
+  ];
+  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSets);
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], pagesModelMock);
