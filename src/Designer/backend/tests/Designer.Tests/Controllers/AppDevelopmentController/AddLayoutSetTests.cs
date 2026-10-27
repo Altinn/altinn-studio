@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -229,6 +230,7 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
+    [InlineData("ttd", "app-with-layoutsets-v9", "testUser", "newSet")]
     public async Task AddLayoutSet_TaskTypeIsPdf_AddsLayoutSetWithPdfLayoutsAndReturnsOk(
         string org,
         string app,
@@ -255,15 +257,18 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        JsonNode pdfLayout = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "PdfLayout");
-        JsonNode serviceTaskPage = await GetLayoutFile(org, targetRepository, developer, layoutSetId, "ServiceTask");
+        Dictionary<string, JsonNode> layouts = await GetFormLayouts(org, targetRepository, developer, layoutSetId);
         LayoutSettings layoutSettings = await GetLayoutSettingsFile(org, targetRepository, developer, layoutSetId);
 
+        var layoutsByName = new JsonObject();
+        foreach (string layoutName in layouts.Keys.Order())
+        {
+            layoutsByName[layoutName] = layouts[layoutName];
+        }
         var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
 
         await Verifier.Verify(layoutSettings).UseTextForParameters($"{app}_layoutSettings");
-        await Verifier.Verify(pdfLayout.ToJsonString(jsonOptions)).UseTextForParameters($"{app}_pdfLayout");
-        await Verifier.Verify(serviceTaskPage.ToJsonString(jsonOptions)).UseTextForParameters($"{app}_serviceTaskPage");
+        await Verifier.Verify(layoutsByName.ToJsonString(jsonOptions)).UseTextForParameters($"{app}_layouts");
     }
 
     [Theory]
@@ -307,6 +312,25 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
         );
 
         return await altinnAppGitRepository.GetLayoutSetsFile();
+    }
+
+    private async Task<Dictionary<string, JsonNode>> GetFormLayouts(
+        string org,
+        string app,
+        string developer,
+        string layoutSetName
+    )
+    {
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            app,
+            developer
+        );
+
+        return await altinnAppGitRepository.GetFormLayouts(layoutSetName);
     }
 
     private async Task<JsonNode> GetLayoutFile(string org, string app, string developer, string layoutSetName)
