@@ -36,9 +36,9 @@ func arbeidsflateLinks(signing *accessTokenSigning) []string {
 	return links
 }
 
-// The app frontend shows a platform link only when it is configured, so without the arbeidsflate group (minimal mode
-// included) the inbox link goes to the front door's Home and the others stay unset; with it all four go into the
-// local Arbeidsflate. A run without localtest-v2 sets none.
+// Without the arbeidsflate group, minimal mode included, the inbox link goes to the front door's Home and the others
+// stay unset. With it, all four go to the local Arbeidsflate. A run without localtest-v2 sets only the inbox link, to
+// localtest's start page.
 func TestTheArbeidsflateLinksFollowTheArbeidsflateGroup(t *testing.T) {
 	t.Parallel()
 	signing := accessTokenSigning{
@@ -61,8 +61,11 @@ func TestTheArbeidsflateLinksFollowTheArbeidsflateGroup(t *testing.T) {
 	if links := arbeidsflateLinks(&signing); !slices.Equal(links, want) {
 		t.Fatalf("with the group: %v, want %v", links, want)
 	}
-	if links := arbeidsflateLinks(nil); len(links) != 0 {
-		t.Fatalf("without localtest-v2: %v, want none", links)
+	want = []string{
+		"PlatformFrontendSettings__ArbeidsflateInboxUrl=" + envtopology.NewLocal("8000").LocaltestURL() + "/",
+	}
+	if links := arbeidsflateLinks(nil); !slices.Equal(links, want) {
+		t.Fatalf("without localtest-v2: %v, want %v", links, want)
 	}
 }
 
@@ -139,7 +142,7 @@ func localtestV2Containers(running bool) localtestv2.ContainerClientFunc {
 }
 
 // Every localtest-v2 run gets the platform's logout as the app frontend's logout link, with or without the
-// arbeidsflate group; a run without localtest-v2 gets none.
+// arbeidsflate group. A run without localtest-v2 gets localtest's start page instead.
 func TestALocaltestV2RunLinksLogoutToThePlatformLogout(t *testing.T) {
 	t.Parallel()
 	const want = "PlatformFrontendSettings__LogoutUrl=http://local.altinn.cloud:8000/authentication/api/v1/logout"
