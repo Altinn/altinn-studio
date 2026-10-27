@@ -36,6 +36,7 @@ public class WorkflowEngineServiceTests
     [InlineData("Completed")]
     [InlineData("Failed")]
     [InlineData("Processing")]
+    [InlineData("Waiting")]
     public async Task EnqueueAndWaitForProcessNext_AcquireAnchorWaitsForContinuation(string status)
     {
         var continuationStatus = Enum.Parse<PersistentItemStatus>(status);
@@ -196,6 +197,11 @@ public class WorkflowEngineServiceTests
                         ),
                     Times.AtLeastOnce
                 );
+                break;
+            case PersistentItemStatus.Waiting:
+                // The deferring task parks the chain, and the wait releases on the first poll that sees it.
+                Assert.Null(result.WorkflowFailure);
+                Assert.Equal(2, polls);
                 break;
         }
     }
@@ -812,8 +818,9 @@ public class WorkflowEngineServiceTests
     {
         // A chain whose only active workflow is Waiting is parked on a deferring service task and may
         // stay parked for its whole wait budget. The wait must release with the ordinary success shape
-        // (deferral is post-commit, so the instance already carries the committed target task) instead
-        // of holding the request into the timeout and misreporting a designed wait as a failure.
+        // (deferral is post-commit, so the instance already carries the committed target task) on the
+        // first observation, so the task's page takes over at once instead of the request holding the
+        // user on the loading view.
         Guid workflowId = Guid.NewGuid();
         var instance = CreateInstance(Guid.NewGuid());
         string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
@@ -864,10 +871,7 @@ public class WorkflowEngineServiceTests
             client.Object,
             instanceClient.Object,
             new AppIdentifier(Org, App)
-        )
-        {
-            WorkflowParkedReleaseGraceMs = 0,
-        };
+        );
 
         ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
             instance,
@@ -887,6 +891,11 @@ public class WorkflowEngineServiceTests
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
+        );
+        client.Verify(
+            c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()),
+            Times.Once,
+            "a parked chain releases on the first poll that observes it, without waiting"
         );
     }
 
@@ -944,7 +953,6 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App)
         )
         {
-            WorkflowParkedReleaseGraceMs = 0,
             WorkflowPollingTimeoutMs = 500,
         };
 
@@ -957,92 +965,6 @@ public class WorkflowEngineServiceTests
         Assert.NotNull(result.WorkflowFailure);
         Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure.Kind);
         Assert.False(result.ProcessStateCommitted);
-    }
-
-    [Fact]
-    public async Task ResumeAndWaitForWorkflow_ParkedWithinGrace_SettlesNormallyWithoutEarlyRelease()
-    {
-        // The grace window exists so a task deferring for a couple of seconds still completes
-        // synchronously: while it is open, a parked observation must not trigger the chain fetch or
-        // the early release — the wait keeps polling and takes the ordinary settled path.
-        Guid workflowId = Guid.NewGuid();
-        var instance = CreateInstance(Guid.NewGuid());
-        string collectionKey = new InstanceIdentifier(instance).InstanceGuid.ToString();
-        int collectionCalls = 0;
-
-        var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
-        client
-            .Setup(c => c.ResumeWorkflow(Namespace, workflowId, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ResumeWorkflowResponse(workflowId, DateTimeOffset.UtcNow, []));
-        client
-            .Setup(c => c.GetCollection(Namespace, collectionKey, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() =>
-                CreateCollection(
-                    collectionKey,
-                    workflowId,
-                    ++collectionCalls == 1 ? PersistentItemStatus.Waiting : PersistentItemStatus.Completed
-                )
-            );
-        client
-            .Setup(c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([
-                CreateWorkflowStatus(
-                    DateTimeOffset.UtcNow,
-                    status: PersistentItemStatus.Completed,
-                    databaseId: workflowId,
-                    steps: [CreateStep(CommitProcessState.Key, PersistentItemStatus.Completed)]
-                ),
-            ]);
-
-        var instanceClient = new Mock<IInstanceClientWithStorageMetadata>(MockBehavior.Strict);
-        instanceClient
-            .Setup(c =>
-                c.GetInstanceWithStorageMetadata(
-                    instance,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new InstanceWithStorageMetadata(instance, StorageVersionMetadata.Empty));
-
-        var service = new WorkflowEngineService(
-            processNextRequestFactory: null!,
-            client.Object,
-            instanceClient.Object,
-            new AppIdentifier(Org, App)
-        )
-        {
-            WorkflowParkedReleaseGraceMs = 60_000,
-        };
-
-        ProcessNextWorkflowResult result = await service.ResumeAndWaitForWorkflow(
-            instance,
-            workflowId,
-            CancellationToken.None
-        );
-
-        Assert.Null(result.WorkflowFailure);
-        Assert.True(result.ProcessStateCommitted);
-        // The chain was fetched only by the settled path — never while parked inside the grace window.
-        client.Verify(
-            c =>
-                c.ListWorkflows(
-                    Namespace,
-                    collectionKey,
-                    It.IsAny<Dictionary<string, string>?>(),
-                    It.IsAny<IReadOnlyList<PersistentItemStatus>?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
     }
 
     [Fact]
@@ -1564,7 +1486,6 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App)
         )
         {
-            WorkflowParkedReleaseGraceMs = 0,
             WorkflowPollingTimeoutMs = 500,
         };
 
@@ -1664,7 +1585,6 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App)
         )
         {
-            WorkflowParkedReleaseGraceMs = 0,
             WorkflowPollingTimeoutMs = 500,
         };
 

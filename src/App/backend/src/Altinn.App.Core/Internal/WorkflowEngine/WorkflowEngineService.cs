@@ -18,11 +18,11 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 {
     // A transition is only observed at a rung of this ladder, so the ladder decides both how long the
     // wait adds to a settled transition and how many collection reads a slow one costs. Poll tightly
-    // for as long as a synchronous completion is still plausible - the same window as the parked
-    // release grace below - then slope off to the 2s cap, which bounds what a genuinely slow
-    // transition costs. Doubling from 100ms was the old shape, and its rungs (100/300/700/1500)
-    // overshot a ~115ms transition by ~190ms; a permanently tight ladder is the opposite mistake,
-    // turning a slow transition into a thousand reads. Change none of these without measuring both.
+    // for as long as a synchronous completion is still plausible, then slope off to the 2s cap, which
+    // bounds what a genuinely slow transition costs. Doubling from 100ms was the old shape, and its
+    // rungs (100/300/700/1500) overshot a ~115ms transition by ~190ms; a permanently tight ladder is
+    // the opposite mistake, turning a slow transition into a thousand reads. Change none of these
+    // without measuring both.
     private const int InitialWorkflowPollingDelayMs = 50;
     private const int WorkflowPollingTightWindowMs = 2_000;
     private const int WorkflowPollingBackoffPercent = 50;
@@ -30,7 +30,6 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
 
     // Mutable so tests can shrink the windows; production always runs the defaults.
     internal int WorkflowPollingTimeoutMs = 100_000;
-    internal int WorkflowParkedReleaseGraceMs = 2_000;
 
     private readonly ProcessNextRequestFactory _processNextRequestFactory;
     private readonly IWorkflowEngineClient _workflowEngineClient;
@@ -427,10 +426,9 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
     /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
     /// active workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because
-    /// a mailbox receive workflow is waiting for its message — is released as a committed success once
-    /// <see cref="WorkflowParkedReleaseGraceMs"/> has elapsed, and a chain that is neither settled nor
-    /// parked when <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a
-    /// <see cref="WorkflowFailureKind.Timeout"/>.
+    /// a mailbox receive workflow is waiting for its message — is released as a committed success on the
+    /// first poll that sees it, and a chain that is neither settled nor parked when
+    /// <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a <see cref="WorkflowFailureKind.Timeout"/>.
     /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
         Instance instance,
@@ -485,11 +483,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                         );
                     }
                 }
-                else if (
-                    collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus)
-                    && _timeProvider.GetElapsedTime(startedAt)
-                        >= TimeSpan.FromMilliseconds(WorkflowParkedReleaseGraceMs)
-                )
+                else if (collection.Heads.Where(IsActiveCollectionHeadStatus).All(IsParkedCollectionHeadStatus))
                 {
                     // Parked (deferring task, or a Held receiver) may last its whole budget; holding the request would
                     // misreport a designed wait as a timeout. Both are post-commit by construction, so the ordinary
