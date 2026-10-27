@@ -36,14 +36,9 @@ export const SingleValueSummary = ({
 }: SingleValueSummaryProps) => {
   const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const label = (
-    <Label
-      asChild
-      weight='regular'
-    >
-      <span>
-        {title}
-        {!!title?.toString()?.length && isCompact && ':'}
-      </span>
+    <Label weight='regular'>
+      {title}
+      {!!title?.toString()?.length && isCompact && ':'}
     </Label>
   );
   return (
