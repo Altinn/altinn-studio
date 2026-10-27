@@ -120,17 +120,10 @@ internal static class DashboardEndpoints
         app.MapGet(
                 "/dashboard/config",
                 (IOptions<EngineSettings> settings) =>
-                {
-                    DashboardSettings dashboard = settings.Value.Dashboard;
-                    return Results.Json(
-                        new
-                        {
-                            grafanaUrl = dashboard.GrafanaUrl,
-                            grafanaTracesDatasourceUid = dashboard.GrafanaTracesDatasourceUid,
-                        },
+                    Results.Json(
+                        new { traceUrlTemplate = TraceUrlTemplate.Resolve(settings.Value.Dashboard) },
                         _jsonCompact
-                    );
-                }
+                    )
             )
             .ExcludeFromDescription();
 

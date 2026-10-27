@@ -1,6 +1,6 @@
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
-import { getRepeatingBinding, isRepeatingComponent } from 'src/features/form/layout/utils/repeating';
+import { getRepeatingBinding, isRepeatingParent } from 'src/features/form/layout/utils/repeating';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 
 export function makeIndexedId(
@@ -34,13 +34,15 @@ export function makeIndexedId(
 }
 
 function isInsideRepeatingComponent(subjectId: string, lookups: LayoutLookups): boolean {
-  let current = lookups.componentToParent[subjectId];
+  let childId = subjectId;
+  let current = lookups.componentToParent[childId];
   while (current && current.type === 'node') {
     const parent = lookups.allComponents[current.id];
-    if (isRepeatingComponent(parent)) {
+    if (isRepeatingParent(parent, childId)) {
       return true;
     }
-    current = lookups.componentToParent[current.id];
+    childId = current.id;
+    current = lookups.componentToParent[childId];
   }
   return false;
 }
@@ -55,10 +57,11 @@ function findRepeatingParents(
   lookups: LayoutLookups,
 ): string[] | undefined {
   const repeating: string[] = [];
-  let current = lookups.componentToParent[subjectId];
+  let childId = subjectId;
+  let current = lookups.componentToParent[childId];
   while (current && current.type === 'node') {
     const parent = lookups.allComponents[current.id];
-    if (isRepeatingComponent(parent)) {
+    if (isRepeatingParent(parent, childId)) {
       const parentBinding = getRepeatingBinding(parent.type, parent.dataModelBindings);
       if (!parentBinding) {
         return undefined;
@@ -76,7 +79,8 @@ function findRepeatingParents(
       }
       repeating.push(current.id);
     }
-    current = lookups.componentToParent[current.id];
+    childId = current.id;
+    current = lookups.componentToParent[childId];
   }
   return repeating;
 }
