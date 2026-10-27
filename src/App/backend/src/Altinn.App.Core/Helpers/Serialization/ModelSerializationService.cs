@@ -4,8 +4,8 @@ using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -38,32 +38,13 @@ public sealed class ModelSerializationService
     /// </summary>
     /// <param name="data">The binary data</param>
     /// <param name="dataType">The data type used to get content type and the classRef for the object to be returned</param>
-    /// <returns>The model specified in </returns>
-    [Obsolete("DeserializeFromStorage needs a DataElement parameter to support json in storage")]
-    public object DeserializeFromStorage(ReadOnlySpan<byte> data, DataType dataType)
-    {
-        if (DataClient.TypeAllowsJson(dataType))
-        {
-            throw new InvalidOperationException(
-                $"Data type {dataType.Id} allows application/json and must use DeserializeFromStorage with DataElement specified"
-            );
-        }
-        var type = GetModelTypeForDataType(dataType);
-        return DeserializeXml(data, type);
-    }
-
-    /// <summary>
-    /// Deserialize binary data from storage to a model of the classRef specified in the dataType
-    /// </summary>
-    /// <param name="data">The binary data</param>
-    /// <param name="dataType">The data type used to get content type and the classRef for the object to be returned</param>
     /// <param name="dataElement"></param>
     /// <returns>The model specified in </returns>
     public object DeserializeFromStorage(ReadOnlySpan<byte> data, DataType dataType, DataElement dataElement)
     {
         var type = GetModelTypeForDataType(dataType);
 
-        return dataElement.ContentType?.ToLowerInvariant() switch
+        var model = dataElement.ContentType?.ToLowerInvariant() switch
         {
             "application/xml" => DeserializeXml(data, type),
             "application/json" => DeserializeJson(data, type),
@@ -74,25 +55,19 @@ public sealed class ModelSerializationService
                 $"Unsupported content type {dataElement.ContentType} on data element {dataElement.Id}"
             ),
         };
+
+        return RestoreFixedValues(model, dataType, dataElement);
     }
 
     /// <summary>
-    /// Serialize an object to binary data for storage, respecting classRef and content type in dataType
+    /// Set properties with a fixed value (typically XSD attributes with fixed="...") back to the value declared in the model class.
+    /// Data stored with other fixed values (for example before the fixed value changed in the schema) still loads,
+    /// and gets the correct values the next time it is saved.
     /// </summary>
-    /// <param name="model">The object to serialize (must match the classRef in DataType)</param>
-    /// <param name="dataType">The data type</param>
-    /// <returns>the binary data and the content type (currently only application/xml, but likely also json in the future)</returns>
-    /// <exception cref="InvalidOperationException">If the classRef in dataType does not match type of the model</exception>
-    [Obsolete("SerializeToStorage needs a DataElement parameter to support json in storage")]
-    public (ReadOnlyMemory<byte> data, string contentType) SerializeToStorage(object model, DataType dataType)
+    private static object RestoreFixedValues(object model, DataType dataType, DataElement? dataElement)
     {
-        if (DataClient.TypeAllowsJson(dataType))
-        {
-            throw new InvalidOperationException(
-                $"Data type {dataType.Id} allows application/json and must use SerializeToStorage with DataElement specified"
-            );
-        }
-        return SerializeToStorage(model, dataType, null);
+        FormDataWrapperFactory.Create(model, dataType, dataElement).RestoreFixedValues();
+        return model;
     }
 
     /// <summary>
@@ -102,7 +77,9 @@ public sealed class ModelSerializationService
     /// <param name="dataType">The data type</param>
     /// <param name="dataElement">The existing data element to preserve content type</param>
     /// <returns>the binary data and the content type (application/xml or application/json)</returns>
-    /// <exception cref="InvalidOperationException">If the classRef in dataType does not match type of the model</exception>
+    /// <exception cref="InvalidOperationException">
+    /// If the classRef in dataType does not match type of the model, or a property with a fixed value has another value
+    /// </exception>
     public (ReadOnlyMemory<byte> data, string contentType) SerializeToStorage(
         object model,
         DataType dataType,
@@ -114,6 +91,16 @@ public sealed class ModelSerializationService
         {
             throw new InvalidOperationException(
                 $"DataType {dataType.Id} expects {type.FullName}, found {model.GetType().FullName}"
+            );
+        }
+
+        // Fixed values are restored when data is loaded from storage and rejected when clients change them,
+        // so a mismatch here means that app code changed a fixed value.
+        var fixedValueErrors = FormDataWrapperFactory.Create(model, dataType, dataElement).RestoreFixedValues();
+        if (fixedValueErrors.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Data of type {dataType.Id} can't be stored, because properties with a fixed value were changed. {string.Join(" ", fixedValueErrors)}"
             );
         }
 
@@ -169,7 +156,8 @@ public sealed class ModelSerializationService
     }
 
     /// <summary>
-    /// Deserialize a single object from a stream
+    /// Deserialize a single object received from a client. Fails with a 400 problem when the data
+    /// changes a property with a fixed value.
     /// </summary>
     public async Task<ServiceResult<object, ProblemDetails>> DeserializeSingleFromStream(
         Stream body,
@@ -230,6 +218,13 @@ public sealed class ModelSerializationService
                 Detail = $"Content type {contentType} is not supported for deserialization",
                 Status = StatusCodes.Status415UnsupportedMediaType,
             };
+        }
+
+        // Clients can't change fixed values (typically XSD attributes with fixed="...")
+        var fixedValueErrors = FormDataWrapperFactory.Create(model, dataType, dataElement: null).RestoreFixedValues();
+        if (fixedValueErrors.Count > 0)
+        {
+            return FixedValueValidator.ToProblemDetails(fixedValueErrors);
         }
 
         return model;

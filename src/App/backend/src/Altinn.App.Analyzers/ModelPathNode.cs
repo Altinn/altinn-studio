@@ -21,7 +21,8 @@ public record ModelPathNode
         ModelPathNode[]? properties = null,
         string? listType = null,
         bool isNullableList = false,
-        bool isIndexableList = true
+        bool isIndexableList = true,
+        FixedValueNode[]? fixedValues = null
     )
     {
         CSharpName = cSharpName;
@@ -33,6 +34,7 @@ public record ModelPathNode
         IsNullable = isNullable;
         IsJsonValueType = properties is null;
         Properties = properties ?? [];
+        FixedValues = fixedValues ?? [];
     }
 
     /// <summary>
@@ -93,6 +95,12 @@ public record ModelPathNode
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
     public EquatableArray<ModelPathNode> Properties { get; init; }
+
+    /// <summary>
+    /// Properties of this node that have [BindNever] and a literal initializer.
+    /// These are typically XSD attributes with a fixed value, and are not part of <see cref="Properties"/>.
+    /// </summary>
+    public EquatableArray<FixedValueNode> FixedValues { get; init; }
 
     private string _debugDisplayString =>
         $"{JsonName}{(ListType is null ? "" : "[]")} with {Properties.Count} children";
