@@ -1460,6 +1460,8 @@
   "process_editor.configuration_panel_subform_pdf_no_ui_folder_to_select": "Fant ingen underskjemaer. Legg til et underskjema i Utforming.",
   "process_editor.configuration_panel_subform_pdf_ui_folder_description": "Velg underskjemaet du vil lage PDF fra. Du utformer innholdet i PDF-en på PDF-siden til underskjemaet.",
   "process_editor.configuration_panel_subform_pdf_ui_folder_label": "Underskjema",
+  "process_editor.configuration_panel_subform_pdf_ui_folder_suggestion": "Oppgaven lager PDF fra underskjemaet {{uiFolder}}, som komponenten {{componentId}} åpner. Velg underskjemaet her for å fortsette med det. Studio sletter da ventesiden som Studio laget for oppgaven, hvis du ikke har endret den.",
+  "process_editor.configuration_panel_subform_pdf_ui_folder_suggestion_button": "Velg {{uiFolder}}",
   "process_editor.configuration_panel_userControlledSigning_task": "Brukerstyrt signering",
   "process_editor.configuration_view_panel_id_label": "ID:",
   "process_editor.configuration_view_panel_name_label": "Navn: ",
