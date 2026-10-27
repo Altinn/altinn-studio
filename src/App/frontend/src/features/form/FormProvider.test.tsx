@@ -7,7 +7,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
-import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
+import { useProcessNextOutsideFormProvider, useProcessResume } from 'src/features/instance/useProcessNext';
 import { ActionButtonComponent } from 'src/layout/ActionButton/ActionButtonComponent';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
@@ -15,7 +15,7 @@ import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonCompo
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
-import { doProcessNext } from 'src/queries/queries';
+import { doProcessNext, doProcessResume } from 'src/queries/queries';
 import {
   InstanceRouter,
   renderGenericComponentTest,
@@ -23,11 +23,13 @@ import {
 } from 'src/test/renderWithProviders';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { FormStoreApi } from 'src/features/form/FormContext';
 import type { IProcess } from 'src/types/shared';
 
 vi.mock('src/queries/queries', async () => ({
   ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
   doProcessNext: vi.fn(),
+  doProcessResume: vi.fn(),
 }));
 
 describe('FormProvider', () => {
@@ -139,6 +141,8 @@ describe('FormProvider while the instance is transitioning', () => {
       { id: 'lookupPerson', authorized: true, type: 'ServerAction' },
     ];
     vi.mocked(doProcessNext).mockReset();
+    vi.mocked(doProcessResume).mockReset();
+    store = undefined;
   });
 
   function WriteProbe() {
@@ -165,6 +169,25 @@ describe('FormProvider while the instance is transitioning', () => {
     );
   }
 
+  function ResumeProbe() {
+    const processResume = useProcessResume();
+    return (
+      <button
+        type='button'
+        onClick={() => processResume.mutate()}
+      >
+        resume-probe
+      </button>
+    );
+  }
+
+  /** The store survives the page being replaced by a loader, so a test can read its state afterwards. */
+  let store: FormStoreApi | undefined;
+  function StoreProbe() {
+    store = FormStore.raw.useStore();
+    return null;
+  }
+
   function makeTask1AServiceTask() {
     process.currentTask!.elementType = ELEMENT_TYPE.SERVICE_TASK;
     process.processTasks = [{ altinnTaskType: 'data', elementId: 'Task_1', elementType: ELEMENT_TYPE.SERVICE_TASK }];
@@ -178,6 +201,8 @@ describe('FormProvider while the instance is transitioning', () => {
           <InputComponent {...props} />
           <WriteProbe />
           <SubmitProbe />
+          <ResumeProbe />
+          <StoreProbe />
         </>
       ),
       component: { dataModelBindings: { simpleBinding: inputBinding } },
@@ -214,6 +239,31 @@ describe('FormProvider while the instance is transitioning', () => {
     await user.type(screen.getByRole('textbox'), 'typed');
     expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
     expect(screen.getByRole('textbox')).toHaveValue('typed');
+  });
+
+  it('stays read-only once the process has moved past the task while process/next is pending', async () => {
+    const user = userEvent.setup();
+    vi.mocked(doProcessNext).mockImplementation(() => new Promise(() => {}));
+    await renderInput();
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+    await waitFor(() => expect(doProcessNext).toHaveBeenCalled());
+    expect(store!.getState().transitioning).toBe(false);
+
+    // Polling while process/next is pending finds the next task, and the task's pages give way to a loader
+    process = { ...process, currentTask: { ...process.currentTask!, elementId: 'Task_2' } };
+    await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'task-transition'));
+    expect(store!.getState().transitioning).toBe(true);
+  });
+
+  it('renders inputs read-only while process/resume is pending', async () => {
+    const user = userEvent.setup();
+    vi.mocked(doProcessResume).mockImplementation(() => new Promise(() => {}));
+    await renderInput();
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+
+    await user.click(screen.getByRole('button', { name: 'resume-probe' }));
+    await waitFor(() => expect(screen.getByRole('textbox')).toHaveAttribute('readonly'));
   });
 
   it("renders a service task's page read-only and rejects writes, also while its workflow is idle", async () => {
