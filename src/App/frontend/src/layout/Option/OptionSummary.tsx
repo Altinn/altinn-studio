@@ -64,6 +64,7 @@ export const OptionSummary = ({ targetBaseComponentId }: Summary2Props) => {
         hideEditButton={true}
         isCompact={compact}
         emptyFieldText={emptyFieldText}
+        showLabelMetadata={false}
       />
     </SummaryFlex>
   );
