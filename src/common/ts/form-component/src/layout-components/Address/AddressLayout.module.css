@@ -1,20 +1,69 @@
+@value mediaSmUp from '@app/form-component/styles/breakpoints.module.css';
+
 .addressComponent {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   width: 100%;
   gap: 18px;
 }
 
-.addressComponentPostplace {
-  flex-grow: 4;
+.addressComponentPostPlace {
   max-width: 300px;
 }
 
-.addressComponentZipCode {
-  flex-grow: 0;
-  box-sizing: content-box;
+.addressComponentPostPlaceLabel {
+  margin-top: var(--ds-size-6);
+}
+
+.addressComponentZipCodeLabel {
+  /* A long word must not set the zip code column's minimum width and squeeze the post place */
+  overflow-wrap: anywhere;
 }
 
 .addressComponentSmallInputs {
   max-width: 90px;
+}
+
+/*
+ * Zip code and post place go side by side from the shared small breakpoint, like other components, but
+ * only when the component itself is wide enough, so they still stack in narrow columns and cards.
+ * Labels get their own grid row, so the inputs stay aligned even when one label wraps. The zip code
+ * column fits its label and tag on one line, but at most half the row.
+ */
+@media mediaSmUp {
+  @container (min-width: 24rem) {
+    .addressComponentZipCodeAndPostPlace {
+      display: grid;
+      grid-template-columns: fit-content(50%) minmax(0, 1fr);
+      grid-template-areas:
+        'zipCodeLabel postPlaceLabel'
+        'zipCode postPlace'
+        'zipCodeValidation zipCodeValidation';
+      column-gap: var(--ds-size-6);
+    }
+
+    .addressComponentZipCodeLabel {
+      grid-area: zipCodeLabel;
+      align-self: end;
+    }
+
+    .addressComponentZipCode {
+      grid-area: zipCode;
+    }
+
+    .addressComponentZipCodeValidation {
+      grid-area: zipCodeValidation;
+    }
+
+    .addressComponentPostPlaceLabel {
+      grid-area: postPlaceLabel;
+      align-self: end;
+      margin-top: 0;
+    }
+
+    .addressComponentPostPlace {
+      grid-area: postPlace;
+    }
+  }
 }

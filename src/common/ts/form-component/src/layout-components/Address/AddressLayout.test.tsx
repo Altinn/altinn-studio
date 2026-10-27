@@ -115,6 +115,14 @@ describe('AddressLayout', () => {
     expect(screen.getByRole('textbox', { name: /Bolignummer Valgfritt/i })).toBeInTheDocument();
   });
 
+  it.each([true, false])(
+    'shows no required/optional indicator on the post place field when required is %s',
+    (required) => {
+      render({ required });
+      expect(screen.getByRole('textbox', { name: 'Poststed' })).not.toBeRequired();
+    },
+  );
+
   it('hides optional indicators when showOptionalMarking is false', () => {
     render({ simplified: false, required: false, showOptionalMarking: false });
     expect(
@@ -163,6 +171,9 @@ describe('AddressLayout', () => {
       zipCodeValidation: <span data-testid='zip-val' />,
     });
     expect(screen.getByTestId('addr-val')).toBeInTheDocument();
-    expect(screen.getByTestId('zip-val')).toBeInTheDocument();
+    const zipValidation = screen.getByTestId('zip-val');
+    // The zip code message is read right after the zip code input, before the post place field
+    expect(screen.getByRole('textbox', { name: 'Postnr' })).toAppearBefore(zipValidation);
+    expect(zipValidation).toAppearBefore(screen.getByRole('textbox', { name: 'Poststed' }));
   });
 });
