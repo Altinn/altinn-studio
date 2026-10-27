@@ -78,6 +78,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `PUT .../process/next` no longer leaves the instance stuck in `processing` when it cannot work out the next task, for example because an `IProcessExclusiveGateway` throws. The call answers `500` and leaves the process on the current task, so it can be made again.
 - Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
 - Apps owned by `ttd` now act as `ttd`, not `digdir`, when they call Altinn as the service owner, so the `[org]` rules in `policy.xml` apply to them. A separate rule for `digdir` is no longer needed. ([#21474](https://github.com/Altinn/altinn-studio/pull/21474))
+- The app's OpenAPI documentation for `PUT .../process/next` now describes the response it returns, including `processTasks`, `workflow` and the actions on `currentTask`, instead of a top-level `actions` that never appears. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 
 ### Removed
 
@@ -86,6 +87,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandoningHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
+- Breaking: `Altinn.App.Api.Models.AppProcessState` is removed. Use `Altinn.App.Core.Internal.Process.Elements.AppProcessState`, which the process endpoints return. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 
 ## [9.0.0-preview.8] - 2026-10-14
 
