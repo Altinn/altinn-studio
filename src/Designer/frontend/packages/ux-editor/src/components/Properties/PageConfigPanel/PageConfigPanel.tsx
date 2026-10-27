@@ -25,6 +25,7 @@ import { MainSettingsHeader } from 'app-shared/components/MainSettingsHeader/Mai
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import useUxEditorParams from '../../../hooks/useUxEditorParams';
 import { useLayoutSetsExtendedQuery } from '../../../hooks/queries/useLayoutSetsExtendedQuery';
+import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 
 type PageConfigPanelProps = {
   selectedItem: Extract<SelectedItem, { type: ItemType.Page }>;
@@ -53,10 +54,14 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const { data: layoutSettings } = useFormLayoutSettingsQuery(org, app, layoutSet);
   const selectedLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
-  // A PDF task's PDF and each subform entry's PDF come from the folder's PDF page.
+  // A PDF task's PDF and each subform entry's PDF come from the folder's PDF page. The PDF page
+  // itself shows the card wherever it is, since the card is the only way to convert it back.
   const showPdfCard =
-    selectedLayoutSet?.taskType === 'pdf' || selectedLayoutSet?.type === 'subform';
+    selectedLayoutSet?.taskType === 'pdf' ||
+    selectedLayoutSet?.type === 'subform' ||
+    layoutSettings?.pages?.pdfLayoutName === selectedItem.id;
 
   if (hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedItem.id} layout={layout} />;

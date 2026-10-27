@@ -4,7 +4,7 @@ import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mo
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { ITextResources } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { IFormLayouts } from '../../../types/global';
@@ -64,6 +64,16 @@ describe('PageConfigPanel', () => {
     expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
   });
 
+  it('renders the PDF card for the PDF page outside a PDF task, so it can be converted back', () => {
+    renderPageConfigPanel(
+      layout1NameMock,
+      defaultTexts,
+      { taskType: 'data' },
+      { pages: { order: [], pdfLayoutName: layout1NameMock } },
+    );
+    expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
+  });
+
   it.each(['data', 'subformPdf', 'eFormidling'])(
     'does not render the PDF card for a page in a %s task',
     (taskType) => {
@@ -102,6 +112,7 @@ const renderPageConfigPanel = (
   selectedLayoutName: string = layout1NameMock,
   textResources = defaultTexts,
   layoutSetModel: Partial<UiFolderLayoutSetModel> = {},
+  layoutSettings: ILayoutSettings = formLayoutSettingsMock,
 ) => {
   const layoutSets: UiFolderLayoutSetModel[] = [
     { id: layoutSet, dataType: 'data-model', type: null, taskType: 'data', ...layoutSetModel },
@@ -110,10 +121,7 @@ const renderPageConfigPanel = (
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
   queryClientMock.setQueryData([QueryKey.Pages, org, app, layoutSet], pagesModelMock);
-  queryClientMock.setQueryData(
-    [QueryKey.FormLayoutSettings, org, app, layoutSet],
-    formLayoutSettingsMock,
-  );
+  queryClientMock.setQueryData([QueryKey.FormLayoutSettings, org, app, layoutSet], layoutSettings);
   queryClientMock.setQueryData(
     [QueryKey.DataModelMetadata, org, app, layoutSet, dataModelName],
     [],
