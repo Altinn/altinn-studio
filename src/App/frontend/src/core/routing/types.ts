@@ -5,6 +5,8 @@ export enum SearchParams {
   Validate = 'validate',
   Pdf = 'pdf',
   PdfForTask = 'task',
+  PdfSubformUiFolder = 'subformUiFolder',
+  PdfSubformDataElementId = 'subformDataElementId',
   BackToPage = 'backToPage',
   Language = 'lang',
 }

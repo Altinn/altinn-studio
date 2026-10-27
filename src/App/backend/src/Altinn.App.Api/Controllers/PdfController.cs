@@ -25,6 +25,7 @@ public class PdfController : ControllerBase
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly IAppResources _appResources;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfController"/> class.
@@ -33,17 +34,20 @@ public class PdfController : ControllerBase
     /// <param name="pdfService">The PDF service</param>
     /// <param name="processReader">The process reader</param>
     /// <param name="authenticationContext">The authentication context, for the user's language</param>
+    /// <param name="appResources">The app resources, for the UI folder a subform PDF service task renders</param>
     public PdfController(
         IInstanceClient instanceClient,
         IPdfService pdfService,
         IProcessReader processReader,
-        IAuthenticationContext authenticationContext
+        IAuthenticationContext authenticationContext,
+        IAppResources appResources
     )
     {
         _instanceClient = instanceClient;
         _pdfService = pdfService;
         _processReader = processReader;
         _authenticationContext = authenticationContext;
+        _appResources = appResources;
     }
 
     /// <summary>
@@ -137,26 +141,37 @@ public class PdfController : ControllerBase
             return BadRequest("taskId must identify a PDF or subform PDF service task");
         }
 
-        // Like the service task, only render a subform of the configured data type
+        // Like the service task, only render an entry of the subform UI folder's data type
         ValidAltinnSubformPdfConfiguration subformConfig = (
             taskExtension.SubformPdfConfiguration
             ?? throw new ApplicationConfigException(
                 "The subformPdfConfig node is missing in the subform pdf process task configuration."
             )
         ).Validate();
+        if (
+            !SubformPdfServiceTask.TryGetSubformDataType(
+                _appResources,
+                taskId,
+                subformConfig,
+                out string? subformDataType,
+                out string? subformFolderReason
+            )
+        )
+        {
+            return BadRequest(subformFolderReason);
+        }
+
         string? subformId = dataElementId?.ToString();
         DataElement? subform = instance.Data.Find(element => element.Id == subformId);
-        if (subform is null || subform.DataType != subformConfig.SubformDataTypeId)
+        if (subform is null || subform.DataType != subformDataType)
         {
-            return BadRequest(
-                $"dataElementId must be the id of a data element of type {subformConfig.SubformDataTypeId}"
-            );
+            return BadRequest($"dataElementId must be the id of a data element of type {subformDataType}");
         }
 
         byte[] subformPreview = await _pdfService.GenerateSubformPdf(
             instance,
             taskId,
-            new SubformPdfContext(subformConfig.SubformComponentId, subform.Id),
+            new SubformPdfContext(subformConfig.SubformUiFolder, subform.Id),
             pdfLanguage,
             isPreview: true,
             cancellationToken: cancellationToken

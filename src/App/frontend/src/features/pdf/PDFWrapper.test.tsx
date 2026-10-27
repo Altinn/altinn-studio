@@ -5,7 +5,7 @@ import { screen, waitFor } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceDataMock, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
@@ -229,6 +229,88 @@ describe('PDFWrapper', () => {
       await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
       expect(screen.queryByText('Designed PDF')).not.toBeNull();
       expect(screen.queryByText('Avsender:')).toBeNull();
+    });
+  });
+
+  describe('subform entry', () => {
+    const subformId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+    class ErrorCatcher extends React.Component<React.PropsWithChildren, { error?: Error }> {
+      state: { error?: Error } = {};
+      static getDerivedStateFromError(error: Error) {
+        return { error };
+      }
+      render() {
+        return this.state.error ? <div role='alert'>{this.state.error.message}</div> : this.props.children;
+      }
+    }
+
+    // A subform PDF service task has no UI folder of its own, so nothing loads a form around the PdfWrapper
+    const renderSubform = async (query: string) => {
+      const instance = getInstanceWithProcessMock();
+      instance.data.push({ ...instance.data[0], id: subformId, dataType: 'subform' });
+      window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
+      window.altinnAppGlobalData.ui.folders.NoDataType = { pages: { order: ['Side1'] } };
+      const fetchFormBootstrapForInstance = vi.fn(async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {};
+        }),
+      );
+
+      const result = await renderWithoutInstanceAndLayout({
+        renderer: () => (
+          <ErrorCatcher>
+            <InstanceProvider>
+              <PdfWrapper>
+                <div>Not a PDF</div>
+              </PdfWrapper>
+            </InstanceProvider>
+          </ErrorCatcher>
+        ),
+        router: ({ children }) => (
+          <InstanceRouter
+            instanceId={instance.id}
+            taskId='Task_SubformPdf'
+            initialPage=''
+            query={`pdf=1&${query}`}
+          >
+            {children}
+          </InstanceRouter>
+        ),
+        waitUntilLoaded: false,
+        queries: { fetchFormBootstrapForInstance },
+        apis: { instanceApi: { getInstance: async () => instance } },
+      });
+      return { result, fetchFormBootstrapForInstance };
+    };
+
+    it('renders the entry from the subform UI folder, with the entry as its data', async () => {
+      const { result, fetchFormBootstrapForInstance } = await renderSubform(
+        `subformUiFolder=Subform&subformDataElementId=${subformId}`,
+      );
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(fetchFormBootstrapForInstance).toHaveBeenCalledWith(
+        expect.objectContaining({ uiFolder: 'Subform', dataElementId: subformId, pdf: true }),
+      );
+      expect(screen.queryByText('Not a PDF')).toBeNull();
+    });
+
+    it.each([
+      [`subformUiFolder=Unknown&subformDataElementId=${subformId}`, `the app has no UI folder 'Unknown'`],
+      [
+        `subformUiFolder=NoDataType&subformDataElementId=${subformId}`,
+        `the subform UI folder 'NoDataType' has no defaultDataType`,
+      ],
+      ['subformUiFolder=Subform', 'A subform PDF requires both subformUiFolder and subformDataElementId'],
+      [`subformDataElementId=${subformId}`, 'A subform PDF requires both subformUiFolder and subformDataElementId'],
+    ])('explains why it cannot render the entry with %s', async (query, message) => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { fetchFormBootstrapForInstance } = await renderSubform(query);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(message);
+      expect(fetchFormBootstrapForInstance).not.toHaveBeenCalled();
+      vi.restoreAllMocks();
     });
   });
 });

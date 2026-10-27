@@ -1,9 +1,11 @@
 import React from 'react';
+import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
+import { SearchParams } from 'src/core/routing/types';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { findProcessTask, useProcessQuery } from 'src/features/instance/useProcessQuery';
-import { PdfForServiceTask, PdfFromLayout } from 'src/features/pdf/PdfFromLayout';
+import { PdfForServiceTask, PdfForSubform, PdfFromLayout } from 'src/features/pdf/PdfFromLayout';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { ELEMENT_TYPE } from 'src/types/shared';
@@ -18,6 +20,19 @@ export function PdfWrapper({ children }: PropsWithChildren) {
   const { data: process } = useProcessQuery();
 
   const PdfComponent = getPdfSource(process, taskId) === 'automatic' ? PdfForServiceTask : PdfFromLayout;
+
+  // A subform PDF renders one entry from the subform's UI folder, whatever the task in the URL is
+  const [params] = useSearchParams();
+  const subformUiFolder = params.get(SearchParams.PdfSubformUiFolder);
+  const subformDataElementId = params.get(SearchParams.PdfSubformDataElementId);
+  if (renderInstead && (subformUiFolder !== null || subformDataElementId !== null)) {
+    return (
+      <PdfForSubform
+        uiFolder={subformUiFolder}
+        dataElementId={subformDataElementId}
+      />
+    );
+  }
 
   if (renderInstead) {
     return <PdfComponent />;

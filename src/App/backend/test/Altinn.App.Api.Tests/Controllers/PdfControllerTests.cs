@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -290,12 +291,35 @@ public class PdfControllerTests
             dataElementId: new Guid(SubformDataElementId)
         );
 
+        // The entry is rendered from the subform's UI folder, which the subform PDF task does not need one of
         result.Should().BeOfType<FileContentResult>();
-        requestBody
+        RenderedUrl(requestBody)
             .Should()
-            .Contain(
-                $@"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_SubformPdf/subform/subform-component/{SubformDataElementId}/?pdf=1"
+            .Be(
+                "http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_SubformPdf"
+                    + $"?pdf=1&lang=nb&subformUiFolder=Subform&subformDataElementId={SubformDataElementId}"
             );
+    }
+
+    [Fact]
+    public async Task Request_For_Subform_Pdf_Service_Task_With_A_Folder_It_Cannot_Render_Should_Return_BadRequest()
+    {
+        // Like a PDF service task the frontend cannot render, the preview says why instead of timing out
+        SetupSubformPdfTask(subformDataType: null);
+
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: "Task_SubformPdf",
+            dataElementId: new Guid(SubformDataElementId)
+        );
+
+        result
+            .Should()
+            .BeOfType<BadRequestObjectResult>()
+            .Which.Value.Should()
+            .BeOfType<string>()
+            .Which.Should()
+            .Contain("'ui/Subform/Settings.json' has no defaultDataType");
+        requestBody.Should().BeNull();
     }
 
     [Fact]
@@ -310,10 +334,11 @@ public class PdfControllerTests
         );
 
         result.Should().BeOfType<FileContentResult>();
-        requestBody
+        RenderedUrl(requestBody)
             .Should()
-            .Contain($"/Task_SubformPdf/subform/subform-component/{SubformDataElementId}/?pdf=1")
-            .And.NotContain("task=Task_1");
+            .EndWith(
+                $"/Task_SubformPdf?pdf=1&lang=nb&subformUiFolder=Subform&subformDataElementId={SubformDataElementId}"
+            );
     }
 
     [Theory]
@@ -564,8 +589,11 @@ public class PdfControllerTests
         return (result, rendered);
     }
 
-    private void SetupSubformPdfTask(List<string>? autoPdfTaskIds = null)
+    private void SetupSubformPdfTask(List<string>? autoPdfTaskIds = null, string? subformDataType = "subform-model")
     {
+        _appResources
+            .Setup(x => x.GetLayoutSettingsForFolder("Subform"))
+            .Returns(new LayoutSettings { DefaultDataType = subformDataType });
         _processReader
             .Setup(x => x.GetFlowElement("Task_SubformPdf"))
             .Returns(
@@ -580,11 +608,7 @@ public class PdfControllerTests
                             PdfConfiguration = autoPdfTaskIds is null
                                 ? null
                                 : new() { AutoPdfTaskIds = autoPdfTaskIds },
-                            SubformPdfConfiguration = new()
-                            {
-                                SubformComponentId = "subform-component",
-                                SubformDataTypeId = "subform-model",
-                            },
+                            SubformPdfConfiguration = new() { SubformUiFolder = "Subform" },
                         },
                     },
                 }
@@ -643,6 +667,12 @@ public class PdfControllerTests
         );
         return (result, requestBody);
     }
+
+    /// <summary>
+    /// The URL the PDF generator was asked to render.
+    /// </summary>
+    private static string? RenderedUrl(string? requestBody) =>
+        requestBody is null ? null : JsonDocument.Parse(requestBody).RootElement.GetProperty("url").GetString();
 
     private static Mock<IAuthenticationTokenResolver> BuildAuthenticationTokenResolver()
     {

@@ -9,10 +9,12 @@ import { Heading } from '@digdir/designsystemet-react';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
+import { FormProvider } from 'src/features/form/FormProvider';
 import {
   usePageSettings,
   usePdfExclusions,
@@ -91,6 +93,47 @@ export function PdfForServiceTask() {
   }
 
   return <AutoGeneratePdfFromTasks taskIds={taskIds} />;
+}
+
+interface PdfForSubformProps {
+  uiFolder: string | null;
+  dataElementId: string | null;
+}
+
+/**
+ * The PDF of one subform entry, rendered from the subform's UI folder with the entry as its data. A subform PDF
+ * service task renders each entry this way, whether or not the task has a UI folder of its own.
+ */
+export function PdfForSubform({ uiFolder, dataElementId }: PdfForSubformProps) {
+  if (!uiFolder || !dataElementId) {
+    throw new Error(
+      `A subform PDF requires both ${SearchParams.PdfSubformUiFolder} and ${SearchParams.PdfSubformDataElementId} ` +
+        `as search params`,
+    );
+  }
+
+  const settings = getUiFolderSettings(uiFolder);
+  if (!settings) {
+    throw new Error(`Cannot render the subform PDF: the app has no UI folder '${uiFolder}'`);
+  }
+  if (!settings.defaultDataType) {
+    throw new Error(
+      `Cannot render the subform PDF: the subform UI folder '${uiFolder}' has no defaultDataType, which names the ` +
+        `data type of its entries`,
+    );
+  }
+
+  return (
+    <TaskOverrides
+      uiFolder={uiFolder}
+      dataModelType={settings.defaultDataType}
+      dataModelElementId={dataElementId}
+    >
+      <FormProvider readOnly={true}>
+        <PdfFromLayout />
+      </FormProvider>
+    </TaskOverrides>
+  );
 }
 
 function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
