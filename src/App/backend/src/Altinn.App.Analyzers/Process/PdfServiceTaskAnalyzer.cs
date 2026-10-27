@@ -11,7 +11,11 @@ namespace Altinn.App.Analyzers;
 public sealed class PdfServiceTaskAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [Diagnostics.Process.PdfServiceTaskHasNothingToRender, Diagnostics.Process.PdfServiceTaskIncludesTaskWithoutUi];
+        [
+            Diagnostics.Process.PdfServiceTaskHasNothingToRender,
+            Diagnostics.Process.PdfServiceTaskIncludesTaskWithoutUi,
+            Diagnostics.Process.PdfServiceTaskIncludesEntryThatAddsNothing,
+        ];
 
     public override void Initialize(AnalysisContext context)
     {

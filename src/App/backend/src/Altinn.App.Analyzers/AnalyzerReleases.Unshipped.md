@@ -42,3 +42,4 @@ ALTINNAPP1020 | Process | Error | Task configuration is missing a required setti
 ALTINNAPP1021 | Process | Warning | Task configuration contains an element the app ignores
 ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the app cannot use
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
+ALTINNAPP1025 | Process | Warning | PDF service task lists an entry that adds nothing to its PDF

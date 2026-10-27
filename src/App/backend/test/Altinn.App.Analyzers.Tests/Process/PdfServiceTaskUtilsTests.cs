@@ -13,6 +13,7 @@ public class PdfServiceTaskUtilsTests
 
     private const string NothingToRender = "ALTINNAPP1000";
     private const string TaskWithoutUi = "ALTINNAPP1002";
+    private const string EntryAddsNothing = "ALTINNAPP1025";
 
     [Fact]
     public void Listing_Tasks_With_UI_Folders_Is_Valid()
@@ -73,6 +74,33 @@ public class PdfServiceTaskUtilsTests
         var diagnostics = Collect(Process(PdfTask("PdfTask", " ")), UiFolder("Task_1"));
 
         Assert.Equal(NothingToRender, Assert.Single(diagnostics).Id);
+    }
+
+    [Fact]
+    public void A_Blank_Entry_Next_To_Listed_Tasks_Is_A_Warning()
+    {
+        var diagnostics = Collect(Process(PdfTask("PdfTask", "Task_1", " ")), UiFolder("Task_1"));
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(EntryAddsNothing, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Contains("lists a blank task id", diagnostic.GetMessage());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Listing_Itself_Is_A_Warning(bool hasOwnUiFolder)
+    {
+        // The PDF task's own folder holds its waiting page, which is never PDF content
+        AdditionalText[] uiFolders = hasOwnUiFolder ? [UiFolder("Task_1"), UiFolder("PdfTask")] : [UiFolder("Task_1")];
+
+        var diagnostics = Collect(Process(PdfTask("PdfTask", "Task_1", "PdfTask")), uiFolders);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(EntryAddsNothing, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Contains("'PdfTask' lists itself", diagnostic.GetMessage());
     }
 
     [Fact]

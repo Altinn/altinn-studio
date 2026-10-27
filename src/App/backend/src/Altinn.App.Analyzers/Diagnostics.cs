@@ -146,6 +146,17 @@ public static class Diagnostics
                 + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
         );
 
+        // The automatic PDF prints each listed task from that task's own UI folder. The PDF task's own folder holds
+        // what people see while the process is at the task, never PDF content. '{1}' names the entry: "itself" or
+        // "a blank task id".
+        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesEntryThatAddsNothing = Warning(
+            "ALTINNAPP1025",
+            Category.Process,
+            "PDF service task lists an entry that adds nothing to its PDF",
+            "PDF service task '{0}' lists {1} in <altinn:autoPdfTaskIds>, which adds nothing to the PDF. Remove "
+                + "the entry."
+        );
+
         // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which also covers the
         // types this rule cannot see: those from packages, and a Type that is not a constant. Reported once the
         // whole compilation is analyzed, since a task's type can be declared by any class in it.
