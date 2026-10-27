@@ -913,8 +913,8 @@ const IDataModelBindingsOptionsSimple = {
       additionalProperties: false,
       title: { en: 'Data model binding for label', nb: 'Datamodellbinding for ledetekst' },
       description: {
-        en: 'Describes the location in the data model where the component should store its labels',
-        nb: 'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+        en: 'Location in the data model for the translated labels. Must point to a string for single-select components or an array of strings for multi-select components. With a group binding, must point to a string inside each row.',
+        nb: 'Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad.',
       },
       semanticType: 'dataModelBinding',
       required: false,
@@ -925,8 +925,8 @@ const IDataModelBindingsOptionsSimple = {
       additionalProperties: false,
       title: { en: 'Data model binding for metadata', nb: 'Datamodellbinding for metadata' },
       description: {
-        en: 'Describes the location in the data model where the component should store its metadata',
-        nb: 'Angir hvor i datamodellen komponenten skal lagre metadata.',
+        en: 'Location in the data model for options metadata. Must point to a string.',
+        nb: 'Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng.',
       },
       semanticType: 'dataModelBinding',
       required: false,

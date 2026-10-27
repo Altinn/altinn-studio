@@ -5,6 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
+import { validateOptionsDataModelBindings } from 'src/features/options/validation';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
@@ -63,6 +64,9 @@ export class Dropdown extends DropdownDef {
     bindings: IDataModelBindings<'Dropdown'>,
     { lookupBinding, layoutLookups }: DataModelBindingValidationContext,
   ): string[] {
-    return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
+    return [
+      ...validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups),
+      ...validateOptionsDataModelBindings(baseComponentId, bindings, lookupBinding, layoutLookups, 'single'),
+    ];
   }
 }

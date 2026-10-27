@@ -505,7 +505,7 @@ function NonEditableCell({
   return (
     <Table.Cell className={classes.tableCell}>
       <span
-        className={classes.contentFormatting}
+        className={cn(classes.contentFormatting, classes.cellContentFormatting)}
         style={style}
       >
         {isEditingRow ? null : <DisplayData baseComponentId={baseComponentId} />}
