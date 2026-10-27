@@ -282,6 +282,10 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
 
+        // After the layout-set conversion, so a PDF task's folder is ui/<taskId>.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigratePdfTaskPages(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
 
@@ -1888,6 +1892,28 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Index.cshtml", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the page Altinn Studio generated in each PDF task's UI folder, which v9 would show while the task
+    /// runs.
+    /// </summary>
+    static async Task<int> MigratePdfTaskPages(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("PDF task pages");
+        try
+        {
+            var result = await PdfTaskPageMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No PDF task lists a page",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing the pages of PDF tasks", ex);
         }
     }
 
