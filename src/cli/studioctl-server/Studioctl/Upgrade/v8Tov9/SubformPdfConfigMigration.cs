@@ -1,5 +1,6 @@
 using System.Security;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -35,6 +36,12 @@ internal static class SubformPdfConfigMigration
     {
         CommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true,
+    };
+
+    private static readonly JsonSerializerOptions _serializerOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
     /// <summary>
@@ -163,11 +170,17 @@ internal static class SubformPdfConfigMigration
 
         foreach (var plan in applied)
         {
+            var added = await CompleteSubformSettings(Path.Combine(uiPath, plan.UiFolder, "Settings.json"));
             messages.Warn(
                 $"Subform PDF task '{plan.TaskId}' now names the subform's UI folder '{plan.UiFolder}' in "
                     + $"{UiFolderName}, instead of the Subform component '{plan.ComponentIdElement.Value.Trim()}' in "
                     + $"{ComponentIdName} and the data type in {DataTypeIdName}. The data type is the folder's "
                     + "defaultDataType."
+                    + (
+                        added.Count == 0
+                            ? ""
+                            : $" Added {string.Join(" and ", added)} to ui/{plan.UiFolder}/Settings.json."
+                    )
             );
             RemoveTaskFolder(uiPath, plan, messages);
         }
@@ -263,7 +276,12 @@ internal static class SubformPdfConfigMigration
         }
 
         var uiFolder = StringValue(copies[0]["layoutSet"]);
-        if (string.IsNullOrWhiteSpace(uiFolder) || !Directory.Exists(Path.Combine(uiPath, uiFolder)))
+        if (
+            string.IsNullOrWhiteSpace(uiFolder)
+            || uiFolder.IndexOfAny(['/', '\\']) >= 0
+            || uiFolder is "." or ".."
+            || !Directory.Exists(Path.Combine(uiPath, uiFolder))
+        )
         {
             messages.Todo(
                 $"Left subform PDF task '{taskId}' unchanged, because the Subform component '{componentId}' in "
@@ -411,6 +429,52 @@ internal static class SubformPdfConfigMigration
                 + $"component '{componentId}'. A v9 subform PDF task needs no UI folder, and the app shows its own "
                 + "waiting view while the task runs."
         );
+    }
+
+    /// <summary>
+    /// Adds <c>"type": "subform"</c>, which Altinn Studio finds subform folders by, to the subform folder's
+    /// settings when they have no type. Keeps the file's comments, byte order mark, line endings and final line
+    /// ending. Returns what it added; settings that are missing or cannot be read are left alone.
+    /// </summary>
+    private static async Task<List<string>> CompleteSubformSettings(string settingsFile)
+    {
+        if (!File.Exists(settingsFile))
+            return [];
+
+        string text;
+        bool hadBom;
+        JsonObject settings;
+        try
+        {
+            (text, hadBom) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(settingsFile));
+            if (JsonNode.Parse(text, documentOptions: _layoutOptions) is not JsonObject parsed)
+                return [];
+            settings = parsed;
+        }
+        catch (Exception ex) when (ex is JsonException or DecoderFallbackException)
+        {
+            return [];
+        }
+
+        var added = new List<string>();
+        if (!settings.ContainsKey("type"))
+        {
+            settings["type"] = "subform";
+            added.Add("\"type\": \"subform\"");
+        }
+
+        if (added.Count == 0)
+            return added;
+
+        var lineEnding = text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        var updated = LayoutJsonComments
+            .Restore(text, settings.ToJsonString(_serializerOptions))
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\n", lineEnding, StringComparison.Ordinal);
+        if (text.EndsWith('\n'))
+            updated += lineEnding;
+        await Utf8TextFile.Write(settingsFile, updated, hadBom);
+        return added;
     }
 
     /// <summary>The components of a layout file, or null when it is not a readable layout.</summary>

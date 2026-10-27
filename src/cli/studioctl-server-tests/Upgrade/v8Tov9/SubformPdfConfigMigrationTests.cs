@@ -148,6 +148,19 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task LeavesTheTaskUnchangedWhenTheCopyNamesAFolderOutsideUi()
+    {
+        var process = Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel"));
+        _app.Write(ProcessPath, process);
+        WriteTaskFolder("SubformPdf", """{ "id": "Subform", "type": "Subform", "layoutSet": ".." }""");
+
+        var result = await Migrate();
+
+        Assert.Equal(process, _app.Read(ProcessPath));
+        Assert.Contains("which is not a UI folder", Assert.Single(result.Todos), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task MigratesTwoSubformPdfTasks()
     {
         _app.Write(
@@ -237,6 +250,58 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
 
         Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
         Assert.Contains("defaultDataType 'OtherModel'", Assert.Single(result.Todos), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task MarksTheSubformFolderAsASubform()
+    {
+        _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
+        WriteSubformFolder("SubformFolder", "SubformModel");
+        const string settings = """
+            {
+              "pages": {
+                "order": [
+                  "Page"
+                ]
+              },
+              "defaultDataType": "SubformModel"
+            }
+
+            """;
+        _app.WriteBytes(
+            "ui/SubformFolder/Settings.json",
+            [0xEF, 0xBB, 0xBF, .. System.Text.Encoding.UTF8.GetBytes(settings.Replace("\n", "\r\n"))]
+        );
+        WriteTaskFolder("SubformPdf", GeneratedCopy);
+
+        var result = await Migrate();
+
+        Assert.False(result.RequiresManualFollowUp);
+        var expected = settings.Replace(
+            "\"defaultDataType\": \"SubformModel\"\n",
+            "\"defaultDataType\": \"SubformModel\",\n  \"type\": \"subform\"\n"
+        );
+        Assert.Equal(
+            [0xEF, 0xBB, 0xBF, .. System.Text.Encoding.UTF8.GetBytes(expected.Replace("\n", "\r\n"))],
+            _app.ReadBytes("ui/SubformFolder/Settings.json")
+        );
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("\"type\": \"subform\" to ui/SubformFolder/Settings.json", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public async Task LeavesTheTypeOfAMarkedSubformFolder()
+    {
+        _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
+        WriteSubformFolder("SubformFolder", "SubformModel");
+        var settings = _app.Read("ui/SubformFolder/Settings.json");
+        WriteTaskFolder("SubformPdf", GeneratedCopy);
+
+        await Migrate();
+
+        Assert.Equal(settings, _app.Read("ui/SubformFolder/Settings.json"));
     }
 
     [Fact]
