@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"altinn.studio/devenv/pkg/cabundle"
 	"altinn.studio/devenv/pkg/container/types"
@@ -14,21 +15,28 @@ import (
 
 const caBundleFile = "ca-bundle.pem"
 
+// maxSkippedListed caps the skipped certificates one warning lists, so a broken bundle cannot flood the output.
+const maxSkippedListed = 3
+
 // CABundle is the host's CA bundle (STUDIO_CA_BUNDLE, such as a TLS-intercepting proxy's CA) as a copy a container
 // can mount. A container takes it with Mount; a nil CABundle mounts nothing.
 type CABundle struct {
 	path string
 }
 
-// LoadCABundle reads the bundle STUDIO_CA_BUNDLE names, through devenv's cabundle.FromEnv, and copies it to dir. It is
-// nil when the variable is unset. Any error, including a file without a PEM certificate, is one warning and nil:
-// the environment starts without the bundle.
+// LoadCABundle reads the bundle STUDIO_CA_BUNDLE names, through devenv's cabundle.FromEnv, and copies its usable
+// certificates to dir. It is nil when the variable is unset. Certificates that are malformed or that Go's X.509 parser
+// rejects are left out, with one warning listing them. Any error, including a file without a usable certificate, is
+// one warning and nil: the environment starts without the bundle.
 func LoadCABundle(out *ui.Output, dir string) *CABundle {
 	bundle, configured, err := cabundle.FromEnv()
 	if !configured {
 		return nil
 	}
 	if err == nil {
+		if len(bundle.Skipped) > 0 {
+			out.Warning(skippedWarning(bundle))
+		}
 		path := filepath.Join(dir, caBundleFile)
 		if err = writeCABundleCopy(path, bundle.Data); err == nil {
 			return &CABundle{path: path}
@@ -36,6 +44,22 @@ func LoadCABundle(out *ui.Output, dir string) *CABundle {
 	}
 	out.Warningf("%v; the environment starts without the CA bundle", err)
 	return nil
+}
+
+// skippedWarning names the certificates of the bundle that the environment does not trust, the first few by line.
+func skippedWarning(bundle *cabundle.Bundle) string {
+	listed := bundle.Skipped
+	more := ""
+	if len(listed) > maxSkippedListed {
+		more = fmt.Sprintf("; and %d more", len(listed)-maxSkippedListed)
+		listed = listed[:maxSkippedListed]
+	}
+	noun := "certificate"
+	if len(bundle.Skipped) > 1 {
+		noun = "certificates"
+	}
+	return fmt.Sprintf("%s (%s): skipping %d unusable %s, the environment trusts the rest: %s%s",
+		cabundle.EnvStudioCABundle, bundle.HostPath, len(bundle.Skipped), noun, strings.Join(listed, "; "), more)
 }
 
 // writeCABundleCopy writes the copy, readable by everyone, unless it holds the content already. A copy, not the

@@ -115,6 +115,44 @@ func TestLoadCABundleWarnsOnceAboutAnUnusableBundle(t *testing.T) {
 	}
 }
 
+// A bundle with an unusable certificate is still taken, without that certificate, and one warning names it.
+func TestLoadCABundleWarnsOnceAboutSkippedCertificates(t *testing.T) {
+	good := cabundletest.PEM(t)
+	malformed := "-----BEGIN CERTIFICATE-----\nnot base64!\n-----END CERTIFICATE-----\n"
+	source := filepath.Join(t.TempDir(), "ca.pem")
+	if err := os.WriteFile(source, append([]byte(malformed), good...), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv(cabundle.EnvStudioCABundle, source)
+
+	var errOut bytes.Buffer
+	bundle := LoadCABundle(ui.NewOutput(io.Discard, &errOut, false), t.TempDir())
+	if bundle == nil {
+		t.Fatal("LoadCABundle() = nil, want the usable certificate")
+	}
+	got, err := os.ReadFile(bundle.path)
+	if err != nil || !bytes.Equal(got, good) {
+		t.Fatalf("copy: %q, %v; want only the usable certificate", got, err)
+	}
+	want := cabundle.EnvStudioCABundle + " (" + source + "): skipping 1 unusable certificate, " +
+		"the environment trusts the rest: line 1: malformed PEM block"
+	if !strings.Contains(errOut.String(), want) || strings.Count(strings.TrimSpace(errOut.String()), "\n") != 0 {
+		t.Errorf("warning %q, want %q", errOut.String(), want)
+	}
+}
+
+func TestSkippedWarningListsTheFirstFew(t *testing.T) {
+	warning := skippedWarning(&cabundle.Bundle{
+		HostPath: "/ca.pem",
+		Skipped:  []string{"line 1: a", "line 2: b", "line 3: c", "line 4: d", "line 5: e"},
+	})
+	want := cabundle.EnvStudioCABundle + " (/ca.pem): skipping 5 unusable certificates, the environment trusts " +
+		"the rest: line 1: a; line 2: b; line 3: c; and 2 more"
+	if warning != want {
+		t.Errorf("skippedWarning() = %q, want %q", warning, want)
+	}
+}
+
 func TestCABundleMountIsReadOnlyWithTheVariable(t *testing.T) {
 	bundle := &CABundle{path: "/data/infra/ca-bundle.pem"}
 	env := map[string]string{"TZ": "Europe/Oslo"}

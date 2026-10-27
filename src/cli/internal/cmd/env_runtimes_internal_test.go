@@ -24,6 +24,9 @@ type fakeRuntime struct {
 }
 
 type fakeRuntimeEnv struct {
+	out *ui.Output
+	// warning is printed by Up when set.
+	warning     string
 	widgets     int
 	activeCalls int
 	up          envtypes.UpOptions
@@ -47,7 +50,10 @@ func (r *fakeRuntime) BindUpFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&r.env.verbose, "monitoring", false, "Talk more")
 }
 
-func (r *fakeRuntime) Env(container.ContainerClient, *ui.Output) envtypes.Env { return r.env }
+func (r *fakeRuntime) Env(_ container.ContainerClient, out *ui.Output) envtypes.Env {
+	r.env.out = out
+	return r.env
+}
 
 func (e *fakeRuntimeEnv) Name() string { return fakeRuntimeName }
 func (e *fakeRuntimeEnv) Active(context.Context) (bool, error) {
@@ -59,6 +65,9 @@ func (e *fakeRuntimeEnv) Down(context.Context) error { return nil }
 func (e *fakeRuntimeEnv) Up(_ context.Context, opts envtypes.UpOptions) (envtypes.UpResult, error) {
 	e.up = opts
 	e.started = true
+	if e.warning != "" {
+		e.out.Warning(e.warning)
+	}
 	return envtypes.UpResult{AlreadyRunning: false}, nil
 }
 
@@ -103,6 +112,38 @@ func TestEnvUpStartsTheChosenRuntimeWithItsOwnFlags(t *testing.T) {
 	}
 	if got.Runtime != fakeRuntimeName || !got.Started || got.AlreadyRunning {
 		t.Fatalf("output = %+v, want the other runtime started", got)
+	}
+}
+
+// With --json, a warning the environment prints while it starts is in the JSON and still on stderr.
+func TestEnvUpJSONReportsTheEnvironmentsWarnings(t *testing.T) {
+	t.Parallel()
+	var out, errOut bytes.Buffer
+	command, fake := commandWithFakeRuntime(t, &out)
+	command.out = ui.NewOutput(&out, &errOut, false)
+	fake.env.warning = "STUDIO_CA_BUNDLE (/ca.pem): skipping 1 unusable certificate"
+
+	if err := command.Run(t.Context(), []string{"up", "-r", fakeRuntimeName, "--json"}); err != nil {
+		t.Fatalf("Run(up -r other --json) = %v", err)
+	}
+	var got envUpOutput
+	if err := json.Unmarshal(bytes.TrimSpace(out.Bytes()), &got); err != nil {
+		t.Fatalf("json.Unmarshal(%q) error = %v", out.String(), err)
+	}
+	if len(got.Warnings) != 1 || got.Warnings[0] != fake.env.warning {
+		t.Fatalf("warnings = %q, want [%q]", got.Warnings, fake.env.warning)
+	}
+	if !strings.Contains(errOut.String(), fake.env.warning) {
+		t.Fatalf("stderr = %q, want the warning", errOut.String())
+	}
+
+	out.Reset()
+	fake.env.warning = ""
+	if err := command.Run(t.Context(), []string{"up", "-r", fakeRuntimeName, "--json"}); err != nil {
+		t.Fatalf("Run(up -r other --json) = %v", err)
+	}
+	if strings.Contains(out.String(), "warnings") {
+		t.Fatalf("output = %s, want no warnings field without a warning", out.String())
 	}
 }
 
