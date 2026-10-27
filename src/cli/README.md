@@ -36,6 +36,15 @@ runs that installation.
   because the socket path for `studioctl-server` is too long. Set `STUDIOCTL_SOCKET_DIR` to a short directory.
 - The top level of `internal/cmd` parses commands, orchestrates and renders output. The work lives in its subpackages
   and the rest of `internal`.
+- Each `env` runtime, such as localtest, is one package under `internal/cmd/env` that implements the `Runtime` and
+  `Env` interfaces in [types.go](internal/cmd/env/types.go), and is listed in the
+  [registry](internal/cmd/env/registry/registry.go). `env.go` names no runtime, so a new runtime is a package and a
+  line in the registry. `env hosts` is the exception, since every runtime shares localtest's hostnames.
+- What the runtimes do alike lives in [stack](internal/cmd/env/stack), such as applying the resources, status, logs,
+  the container user and the host's CA bundle. A runtime does not import another runtime's package, so each can change
+  without breaking the others.
+- `Env.Active` reads which runtime is up from its running containers, not from a file that studioctl writes, so it
+  stays right after a reboot, a failed `env up` or a container removed by hand.
 - Output states facts in a line: what is configured or wrong, and the command that changes it. It gives no advice
   prose, and no paths to files that studioctl manages.
 - The [app-development skill](../../agents/_skills/app-development/SKILL.md) ships with studioctl, for the app
