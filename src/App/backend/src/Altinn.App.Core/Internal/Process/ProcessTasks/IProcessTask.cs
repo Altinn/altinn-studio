@@ -55,6 +55,43 @@ public interface IProcessTask
     {
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Composes the work to do when the task starts as stages, each saved and retried on its own, the way a service
+    /// task composes its pipeline. The stages run inside the transition into the task, before it commits. The default
+    /// is one stage that calls <see cref="Start"/>; override this instead of <see cref="Start"/> when the work makes
+    /// several calls that should not all be repeated when one of them fails.
+    /// </summary>
+    /// <remarks>
+    /// Added in v9. The pipeline is composed again for every step and must not depend on the instance or on
+    /// configuration that can change while a transition is in flight, since a step is dispatched by the position of
+    /// its stage.
+    /// </remarks>
+    Pipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(Start, context)).Build();
+
+    /// <summary>
+    /// Composes the work to do when the task ends as stages. See <see cref="DefineStart"/>. The default is one
+    /// stage that calls <see cref="End"/>.
+    /// </summary>
+    Pipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(End, context)).Build();
+
+    /// <summary>
+    /// Composes the work to do when the task is abandoned as stages. See <see cref="DefineStart"/>. The default is
+    /// one stage that calls <see cref="Abandon"/>.
+    /// </summary>
+    Pipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(Abandon, context)).Build();
+
+    private static async Task<StageResult> RunAsStage(Func<ProcessTaskContext, Task> work, StageContext context)
+    {
+        await work(
+            new ProcessTaskContext
+            {
+                InstanceDataMutator = context.InstanceDataMutator,
+                CancellationToken = context.CancellationToken,
+            }
+        );
+        return StageResult.Completed();
+    }
 }
 
 /// <summary>

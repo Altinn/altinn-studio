@@ -33,6 +33,7 @@ public class AbandonTaskTests
                 WorkflowId = Guid.Empty,
                 StepId = Guid.NewGuid(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+                Payload = CommandPayloadSerializer.Serialize(new ProcessTaskStagePayload(StageIndex: 0)),
             },
         };
     }
@@ -50,7 +51,7 @@ public class AbandonTaskTests
         };
     }
 
-    private static AbandonTask CreateCommand(IProcessTask processTask)
+    private static IWorkflowEngineCommand CreateCommand(IProcessTask processTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -64,7 +65,7 @@ public class AbandonTaskTests
     public async Task Execute_ResolvesProcessTaskAndCallsAbandon_ReturnsSuccess()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask.Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
         var command = CreateCommand(processTask.Object);
@@ -91,7 +92,7 @@ public class AbandonTaskTests
     public async Task Execute_WhenAbandonThrows_ReturnsFailedResult()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask
             .Setup(x => x.Abandon(It.IsAny<ProcessTaskContext>()))

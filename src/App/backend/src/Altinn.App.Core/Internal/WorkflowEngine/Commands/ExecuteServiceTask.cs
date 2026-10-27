@@ -76,26 +76,7 @@ internal sealed class ExecuteServiceTask(
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            StageContext serviceTaskContext = new()
-            {
-                InstanceDataMutator = instanceDataMutator,
-                CancellationToken = context.CancellationToken,
-                WorkflowId = context.Payload.WorkflowId,
-                StepId = context.Payload.StepId,
-                ExecutionReferenceTime = context.Payload.ExecutionReferenceTime,
-                Attempt = new StageAttempt
-                {
-                    RetryCount = context.Payload.RetryCount,
-                    Deadline = context.Payload.ExecutionDeadline,
-                },
-                Wait = new StageWait
-                {
-                    DeferCount = context.Payload.DeferCount,
-                    StartedAt = context.Payload.FirstDeferredAt,
-                    Deadline = context.Payload.WaitDeadline,
-                    IsFinalCheck = context.Payload.IsFinalWaitCheck,
-                },
-            };
+            StageContext serviceTaskContext = StageExecution.CreateContext(context);
 
             AppCallbackMailbox? rendezvous = context.Payload.Mailbox;
             PipelineItem? pipelineItem = pipeline.Items.ElementAtOrDefault(itemIndex);

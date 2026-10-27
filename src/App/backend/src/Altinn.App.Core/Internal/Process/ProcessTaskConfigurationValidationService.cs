@@ -127,6 +127,28 @@ internal sealed class ProcessTaskConfigurationValidationService(
             {
                 findings.Add($"Task '{bpmnTask.Id}': validating its configuration failed: {e.Message}");
             }
+
+            // Lifecycle pipelines are composed on every transition, so one that cannot be composed would fail every
+            // transition into or out of the task.
+            foreach (
+                (string phase, Func<Pipeline> compose) in new (string, Func<Pipeline>)[]
+                {
+                    ("start", () => task.DefineStart(new PipelineBuilder())),
+                    ("end", () => task.DefineEnd(new PipelineBuilder())),
+                    ("abandon", () => task.DefineAbandon(new PipelineBuilder())),
+                }
+            )
+            {
+                try
+                {
+                    _ = compose();
+                }
+                catch (Exception e)
+                    when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+                {
+                    findings.Add($"Task '{bpmnTask.Id}': composing its {phase} pipeline failed: {e.Message}");
+                }
+            }
         }
 
         HashSet<string>? gatewaysWithCode = null;

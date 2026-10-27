@@ -23,6 +23,10 @@ these rules:
   steps already read the target task.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
+- `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
+  (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
+  stage retries without the ones before it. The default pipeline is one stage that calls `Start`, `End` or `Abandon`.
+  A stage is named by position, like a service task item, so [in-flight workflows](#in-flight-workflows) applies.
 - A service task runs its steps after the commit. When it concludes, its last step enqueues the next transition as a
   dependent workflow, which does not acquire the instance again.
 

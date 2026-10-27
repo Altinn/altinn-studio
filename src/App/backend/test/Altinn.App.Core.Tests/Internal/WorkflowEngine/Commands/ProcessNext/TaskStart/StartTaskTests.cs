@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
@@ -13,7 +14,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 
 public class StartTaskTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance)
+    private static ProcessEngineCommandContext CreateContext(Instance instance, int? stageIndex = 0)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
@@ -33,6 +34,9 @@ public class StartTaskTests
                 WorkflowId = Guid.Empty,
                 StepId = Guid.NewGuid(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+                Payload = stageIndex is { } index
+                    ? CommandPayloadSerializer.Serialize(new ProcessTaskStagePayload(index))
+                    : null,
             },
         };
     }
@@ -50,7 +54,7 @@ public class StartTaskTests
         };
     }
 
-    private static StartTask CreateCommand(IProcessTask processTask)
+    private static IWorkflowEngineCommand CreateCommand(IProcessTask processTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -64,7 +68,7 @@ public class StartTaskTests
     public async Task Execute_ResolvesProcessTaskAndCallsStart_ReturnsSuccess()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask.Setup(x => x.Start(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
         var command = CreateCommand(processTask.Object);
@@ -91,7 +95,7 @@ public class StartTaskTests
     public async Task Execute_WhenStartThrows_ReturnsFailedResult()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask
             .Setup(x => x.Start(It.IsAny<ProcessTaskContext>()))
@@ -106,5 +110,113 @@ public class StartTaskTests
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal("Start failed", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
+    }
+
+    private sealed class StagedTask(List<string> ran) : IProcessTask
+    {
+        public string Type => "data";
+
+        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(context =>
+                {
+                    ran.Add($"first:{context.StepId}");
+                    return Task.FromResult(StageResult.Completed());
+                })
+                .Stage(context =>
+                {
+                    ran.Add($"second:{context.StepId}");
+                    return Task.FromResult(StageResult.Completed());
+                })
+                .Build();
+    }
+
+    [Fact]
+    public async Task Execute_WithStageIndex_RunsOnlyThatStage()
+    {
+        var ran = new List<string>();
+        var command = CreateCommand(new StagedTask(ran));
+        var context = CreateContext(CreateInstance(), stageIndex: 1);
+
+        var result = await command.Execute(context);
+
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.Equal([$"second:{context.Payload.StepId}"], ran);
+    }
+
+    [Fact]
+    public async Task Execute_WithoutStageIndex_FailsPermanently()
+    {
+        // Every lifecycle step carries its stage index, as every service task step carries its item index.
+        var ran = new List<string>();
+        var command = CreateCommand(new StagedTask(ran));
+
+        var result = await command.Execute(CreateContext(CreateInstance(), stageIndex: null));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("InvalidPayloadException", failed.ExceptionType);
+        Assert.Empty(ran);
+    }
+
+    [Fact]
+    public async Task Execute_WithStageIndexPastTheDefinition_FailsPermanently()
+    {
+        var ran = new List<string>();
+        var command = CreateCommand(new StagedTask(ran));
+
+        var result = await command.Execute(CreateContext(CreateInstance(), stageIndex: 2));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ProcessTaskStageNotFound", failed.ExceptionType);
+        Assert.Empty(ran);
+    }
+
+    private sealed class DeferringTask : IProcessTask
+    {
+        public string Type => "data";
+
+        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline.Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(1), "not yet"))).Build();
+    }
+
+    [Fact]
+    public async Task Execute_StageDefers_DefersTheStep()
+    {
+        var command = CreateCommand(new DeferringTask());
+
+        var result = await command.Execute(CreateContext(CreateInstance()));
+
+        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        Assert.Equal(TimeSpan.FromMinutes(1), deferred.Delay);
+        Assert.Equal("not yet", deferred.Reason);
+    }
+
+    private sealed class FailingTask(StageResult result) : IProcessTask
+    {
+        public string Type => "data";
+
+        public Pipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(_ => Task.FromResult(result)).Build();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Execute_StageFails_FailsTheStepAsTheStageSaid(bool permanent)
+    {
+        var command = CreateCommand(
+            new FailingTask(
+                permanent ? StageResult.FailedPermanent("no signee provider") : StageResult.FailedRetryable("busy")
+            )
+        );
+
+        var result = await command.Execute(CreateContext(CreateInstance()));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.Equal(permanent, failed.NonRetryable);
+        Assert.Equal(StartTask.FailedReasonCode, failed.ExceptionType);
+        Assert.Contains(permanent ? "no signee provider" : "busy", failed.ErrorMessage);
+        Assert.Contains("start stage 0", failed.ErrorMessage);
     }
 }

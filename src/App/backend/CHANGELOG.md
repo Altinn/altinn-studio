@@ -27,6 +27,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
+- Custom process tasks can split the work they do when a task starts, ends or is abandoned into stages with `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`, composed and run exactly like the stages of a service task: each stage is saved and retried on its own, and can defer or fail permanently. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
 ### Changed
 
