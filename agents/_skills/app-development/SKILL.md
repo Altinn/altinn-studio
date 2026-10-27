@@ -122,6 +122,11 @@ For investigating failures, use `studioctl app logs` and `studioctl env logs`.
 If local hostnames do not resolve, inspect `studioctl env hosts status`. `studioctl env hosts add` changes the system
 hosts file, so explain that effect before running it with the host's normal privilege mechanism.
 
+To see the app's traces, metrics and logs, start the environment with `studioctl env up --monitoring`. While it runs,
+`studioctl run` and `studioctl app env` turn on OpenTelemetry for the app, and Grafana at
+`http://local.altinn.cloud:8000/grafana/` shows what the app sends. Restart an app that was started before monitoring.
+An `OTEL_EXPORTER_OTLP_ENDPOINT` or `AppSettings__UseOpenTelemetry` set in the shell wins.
+
 Open the `url` from the `run` result; `logPath` identifies its log file. `app ps` reports status in `running` and
 `apps[]`, but does not return the app URL. The `http://local.altinn.cloud:8000` root page contains the login form,
 not the app.
