@@ -4,7 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultMockDataElementId, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
@@ -101,11 +101,18 @@ describe('SummaryComponent', () => {
     });
   });
 
+  test('should not show the change button while the instance is transitioning', async () => {
+    await render({ componentRef: 'Input', transitioning: true });
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
   type IRenderProps = {
     componentRef: string;
     currentPageId?: string;
     layout?: ILayoutCollection;
     validationIssues?: BackendValidationIssue[];
+    transitioning?: boolean;
   };
 
   const render = async ({
@@ -113,6 +120,7 @@ describe('SummaryComponent', () => {
     currentPageId,
     layout = layoutMock(),
     validationIssues = [],
+    transitioning = false,
   }: IRenderProps) => {
     const layoutPage = layout.FormLayout.data.layout;
     layoutPage?.push({
@@ -140,6 +148,14 @@ describe('SummaryComponent', () => {
             obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
           }),
       },
+      apis: transitioning
+        ? {
+            instanceApi: {
+              getInstance: async () =>
+                getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' })),
+            },
+          }
+        : undefined,
     });
   };
 });
