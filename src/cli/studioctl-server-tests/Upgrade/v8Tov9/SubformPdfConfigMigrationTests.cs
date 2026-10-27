@@ -74,7 +74,7 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task KeepsATaskFolderWithOtherContentAndWarns()
+    public async Task KeepsATaskFolderWithOtherContentAndLeavesATodoForItsPages()
     {
         _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
         WriteSubformFolder("SubformFolder", "SubformModel");
@@ -83,11 +83,29 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
 
         var result = await Migrate();
 
-        Assert.False(result.RequiresManualFollowUp);
         Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
         Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf", "layouts", "ServiceTask.json")));
+        var todo = Assert.Single(result.Todos);
+        Assert.StartsWith("Kept ui/SubformPdf", todo, StringComparison.Ordinal);
+        Assert.Contains("layouts/ServiceTask.json (custom-text)", todo, StringComparison.Ordinal);
+        Assert.Contains("RuleHandler.js", todo, StringComparison.Ordinal);
+        Assert.Contains("pages.order [ServiceTask]", todo, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task KeepsATaskFolderWithOtherContentButNoPagesAndWarns()
+    {
+        _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
+        WriteSubformFolder("SubformFolder", "SubformModel");
+        WriteTaskFolder("SubformPdf", GeneratedCopy);
+        _app.Write("ui/SubformPdf/Settings.json", """{ "pages": { "order": [] }, "defaultDataType": "Model" }""");
+        _app.Write("ui/SubformPdf/RuleHandler.js", "// custom");
+
+        var result = await Migrate();
+
+        Assert.False(result.RequiresManualFollowUp);
+        Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
         var warning = Assert.Single(result.Warnings, w => w.StartsWith("Kept ui/SubformPdf", StringComparison.Ordinal));
-        Assert.Contains("layouts/ServiceTask.json (custom-text)", warning, StringComparison.Ordinal);
         Assert.Contains("RuleHandler.js", warning, StringComparison.Ordinal);
     }
 

@@ -17,7 +17,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 ///
 /// Runs after the layout-set conversion, so the task's UI folder is <c>ui/&lt;taskId&gt;</c> and a subform's
 /// folder is named after its layout set. The task's folder is removed when it holds nothing but the waiting
-/// page Altinn Studio generates and the copy, and kept with a warning otherwise.
+/// page Altinn Studio generates and the copy. Otherwise it is kept, with a to-do when its <c>pages.order</c>
+/// lists pages, which v9 shows while the task runs.
 /// </summary>
 internal static class SubformPdfConfigMigration
 {
@@ -72,7 +73,8 @@ internal static class SubformPdfConfigMigration
 
     /// <summary>
     /// Runs the migration. Warnings describe what was rewritten or kept; a to-do names a task that was left
-    /// unchanged and what to do about it. No messages means there was no subform PDF task to migrate.
+    /// unchanged, or a kept folder whose pages show while the task runs, and what to do about it. No messages
+    /// means there was no subform PDF task to migrate.
     /// </summary>
     public static async Task<MigrationResult> Migrate(string projectFolder)
     {
@@ -331,7 +333,8 @@ internal static class SubformPdfConfigMigration
 
     /// <summary>
     /// Removes the task's UI folder when it holds only its settings, the waiting page Altinn Studio generates
-    /// and the Subform component copy. Otherwise keeps it and says what else it holds.
+    /// and the Subform component copy. Otherwise keeps it and says what else it holds, as a to-do when it lists
+    /// pages.
     /// </summary>
     private static void RemoveTaskFolder(string uiPath, Plan plan, List<UpgradeMessage> messages)
     {
@@ -371,12 +374,27 @@ internal static class SubformPdfConfigMigration
         var displayFolder = $"ui/{Path.GetRelativePath(uiPath, plan.TaskFolder).Replace('\\', '/')}";
         if (otherContent.Count > 0)
         {
-            messages.Warn(
+            var kept =
                 $"Kept {displayFolder}, because it holds more than the waiting page Altinn Studio generates and the "
-                    + $"Subform component '{componentId}': {string.Join("; ", otherContent)}. A v9 subform PDF task needs "
-                    + "no UI folder: the app shows its own waiting view while the task runs, or the folder's pages if it "
-                    + $"has one. Remove the folder unless those pages are wanted, and remove the Subform component "
-                    + $"'{componentId}', which v9 does not use."
+                + $"Subform component '{componentId}': {string.Join("; ", otherContent)}.";
+            var cleanUp =
+                $"Remove the folder unless those pages are wanted, and remove the Subform component '{componentId}', "
+                + "which v9 does not use.";
+
+            // In v9 the pages in pages.order show while the task runs, so a kept folder changes what users see.
+            var pages = ListedPages(Path.Combine(plan.TaskFolder, "Settings.json"));
+            if (pages.Count > 0)
+            {
+                messages.Todo(
+                    $"{kept} In v9 a subform PDF task shows the pages in its folder's pages.order "
+                        + $"[{string.Join(", ", pages)}] while it runs. {cleanUp}"
+                );
+                return;
+            }
+
+            messages.Warn(
+                $"{kept} A v9 subform PDF task needs no UI folder: the app shows its own waiting view while the task "
+                    + $"runs, or the folder's pages if it has one. {cleanUp}"
             );
             return;
         }
@@ -402,6 +420,29 @@ internal static class SubformPdfConfigMigration
         catch (Exception ex) when (ex is JsonException or DecoderFallbackException or InvalidOperationException)
         {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// The pages a folder's settings list in <c>pages.order</c>, or in the orders of <c>pages.groups</c>.
+    /// Settings that cannot be read list none.
+    /// </summary>
+    private static List<string> ListedPages(string settingsFile)
+    {
+        if (!File.Exists(settingsFile))
+            return [];
+        try
+        {
+            var (text, _) = Utf8TextFile.Decode(File.ReadAllBytes(settingsFile));
+            var pages = JsonNode.Parse(text, documentOptions: _layoutOptions)?["pages"] as JsonObject;
+            var orders = new List<JsonNode?> { pages?["order"] };
+            if (pages?["groups"] is JsonArray groups)
+                orders.AddRange(groups.Select(group => (group as JsonObject)?["order"]));
+            return [.. orders.OfType<JsonArray>().SelectMany(order => order).Select(StringValue).OfType<string>()];
+        }
+        catch (Exception ex) when (ex is JsonException or DecoderFallbackException or InvalidOperationException)
+        {
+            return [];
         }
     }
 
