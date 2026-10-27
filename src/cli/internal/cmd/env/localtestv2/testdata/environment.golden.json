@@ -77,7 +77,8 @@
       "postgres",
       "storage",
       "localtest",
-      "workflow-engine"
+      "workflow-engine",
+      "otel-files"
     ],
     "monitoring": [
       "postgres",
@@ -124,13 +125,13 @@
         "driver": "bridge"
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-postgres",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -189,13 +190,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-register",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -247,13 +248,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-profile",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -310,13 +311,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authentication",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -371,13 +372,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authorization",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -439,13 +440,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-storage",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -508,13 +509,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-events",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -572,13 +573,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-resource-registry",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -642,13 +643,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-notifications",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -708,13 +709,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-localtest",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -902,13 +903,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-access-management",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -1054,7 +1055,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1132,7 +1133,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1213,7 +1214,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1292,7 +1293,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1378,7 +1379,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1470,7 +1471,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1552,7 +1553,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1640,7 +1641,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1724,7 +1725,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1817,7 +1818,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1896,7 +1897,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -1978,7 +1979,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2053,7 +2054,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2139,7 +2140,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2207,7 +2208,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2275,7 +2276,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2343,7 +2344,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2406,6 +2407,13 @@
             "Type": "bind",
             "SELinuxRelabel": "z",
             "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/files/monitoring/otel-processors.yaml",
+            "ContainerPath": "/etc/otelcol-contrib/processors.yaml",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
           }
         ],
         "env": [
@@ -2423,7 +2431,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2525,7 +2533,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2613,7 +2621,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2702,7 +2710,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2779,7 +2787,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2856,7 +2864,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -2936,7 +2944,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -3030,7 +3038,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -3127,7 +3135,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -3204,7 +3212,7 @@
           "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
-          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__otlp__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
@@ -3269,15 +3277,18 @@
         "driver": "bridge"
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-postgres",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
+        ],
+        "dependsOn": [
+          "container:localtest-v2-otel-files"
         ],
         "volumes": [
           {
@@ -3304,6 +3315,10 @@
           }
         ],
         "env": [
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-files:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=postgres",
           "POSTGRES_PASSWORD=postgres",
           "POSTGRES_USER=postgres",
           "TZ=UTC",
@@ -3313,6 +3328,7 @@
           "services__events__http__0=http://localtest:8080",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://localtest:8080",
+          "services__otlp__http__0=http://otel-files:4318",
           "services__pdf3__http__0=http://localtest:8080",
           "services__profile__http__0=http://localtest:8080",
           "services__register__http__0=http://localtest:8080",
@@ -3335,18 +3351,19 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-storage",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
         "dependsOn": [
-          "container:localtest-v2-postgres"
+          "container:localtest-v2-postgres",
+          "container:localtest-v2-otel-files"
         ],
         "volumes": [
           {
@@ -3375,6 +3392,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "GeneralSettings__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-files:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=storage",
           "PostgreSqlSettings__AdminConnectionString=Host=postgres;Port=5432;Username=platform_storage_admin;Password={0};Database=storagedb",
           "PostgreSqlSettings__ConnectionString=Host=postgres;Port=5432;Username=platform_storage;Password={0};Database=storagedb;Include Error Detail=True",
           "services__access-management__http__0=http://localtest:8080",
@@ -3383,6 +3404,7 @@
           "services__events__http__0=http://localtest:8080",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://localtest:8080",
+          "services__otlp__http__0=http://otel-files:4318",
           "services__pdf3__http__0=http://localtest:8080",
           "services__profile__http__0=http://localtest:8080",
           "services__register__http__0=http://localtest:8080",
@@ -3405,15 +3427,18 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-localtest",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
+        ],
+        "dependsOn": [
+          "container:localtest-v2-otel-files"
         ],
         "ports": [
           {
@@ -3451,6 +3476,10 @@
           "Localtest__AccessTokenCertificatePath=/certs/localtest-accesstoken.pfx",
           "Localtest__PlatformEndpoint=http://local.altinn.cloud:8000/",
           "Localtest__PublicSubdomains=pdf,workflow-engine,app-frontend,af",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-files:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=localtest",
           "Proxy__AppRoutesFile=",
           "services__access-management__http__0=http://localtest:8080",
           "services__authentication__http__0=http://localtest:8080",
@@ -3458,6 +3487,7 @@
           "services__events__http__0=http://localtest:8080",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://localtest:8080",
+          "services__otlp__http__0=http://otel-files:4318",
           "services__pdf3__http__0=http://localtest:8080",
           "services__profile__http__0=http://localtest:8080",
           "services__register__http__0=http://localtest:8080",
@@ -3491,7 +3521,8 @@
           "network:localtest-v2_network"
         ],
         "dependsOn": [
-          "container:localtest-v2-postgres"
+          "container:localtest-v2-postgres",
+          "container:localtest-v2-otel-files"
         ],
         "volumes": [
           {
@@ -3514,12 +3545,17 @@
           "ASPNETCORE_HTTP_PORTS=9090",
           "AppCommandSettings__CommandEndpoint=http://local.altinn.cloud:8000/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
           "ConnectionStrings__WorkflowEngine=Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-files:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=workflow-engine",
           "services__access-management__http__0=http://localtest:8080",
           "services__authentication__http__0=http://localtest:8080",
           "services__authorization__http__0=http://localtest:8080",
           "services__events__http__0=http://localtest:8080",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://localtest:8080",
+          "services__otlp__http__0=http://otel-files:4318",
           "services__pdf3__http__0=http://localtest:8080",
           "services__profile__http__0=http://localtest:8080",
           "services__register__http__0=http://localtest:8080",
@@ -3540,13 +3576,93 @@
         ],
         "waitForReady": true,
         "readinessProbe": true
+      },
+      {
+        "id": "image:pulled:docker.io/otel/opentelemetry-collector-contrib:0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+        "ref": "docker.io/otel/opentelemetry-collector-contrib:0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+        "pullPolicy": "ifNotPresent"
+      },
+      {
+        "id": "container:localtest-v2-otel-files",
+        "image": "image:pulled:docker.io/otel/opentelemetry-collector-contrib:0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+        "user": "1000:1000",
+        "usernsMode": "keep-id",
+        "networks": [
+          "network:localtest-v2_network"
+        ],
+        "volumes": [
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs",
+            "ContainerPath": "/certs",
+            "Type": "bind",
+            "SELinuxRelabel": "",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs/localtest-accesstoken.pfx",
+            "ContainerPath": "/accesstoken/accesstokencredentials.pfx",
+            "Type": "bind",
+            "SELinuxRelabel": "",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/files/monitoring/otel-files.yaml",
+            "ContainerPath": "/etc/otelcol-contrib/config.yaml",
+            "Type": "bind",
+            "SELinuxRelabel": "",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/files/monitoring/otel-processors.yaml",
+            "ContainerPath": "/etc/otelcol-contrib/processors.yaml",
+            "Type": "bind",
+            "SELinuxRelabel": "",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/telemetry",
+            "ContainerPath": "/telemetry",
+            "Type": "bind",
+            "SELinuxRelabel": "",
+            "ReadOnly": false
+          }
+        ],
+        "env": [
+          "services__access-management__http__0=http://localtest:8080",
+          "services__authentication__http__0=http://localtest:8080",
+          "services__authorization__http__0=http://localtest:8080",
+          "services__events__http__0=http://localtest:8080",
+          "services__localtest__http__0=http://localtest:8080",
+          "services__notifications__http__0=http://localtest:8080",
+          "services__otlp__http__0=http://otel-files:4318",
+          "services__pdf3__http__0=http://localtest:8080",
+          "services__profile__http__0=http://localtest:8080",
+          "services__register__http__0=http://localtest:8080",
+          "services__resource-registry__http__0=http://localtest:8080",
+          "services__storage__http__0=http://storage:5010",
+          "services__workflow-engine__http__0=http://workflow-engine:9090"
+        ],
+        "extraHosts": [
+          "local.altinn.cloud:host-gateway",
+          "pdf.local.altinn.cloud:host-gateway",
+          "workflow-engine.local.altinn.cloud:host-gateway",
+          "app-frontend.local.altinn.cloud:host-gateway",
+          "af.local.altinn.cloud:host-gateway",
+          "host.docker.internal:host-gateway"
+        ],
+        "networkAliases": [
+          "otel-files"
+        ],
+        "waitForReady": true,
+        "readinessProbe": true
       }
     ],
     "healthTargets": [
       "postgres tcp postgres:5432",
       "storage http://storage:5010/health",
       "localtest http://localtest:8080/health",
-      "workflow-engine http://workflow-engine:9090/api/v1/health/ready"
+      "workflow-engine http://workflow-engine:9090/api/v1/health/ready",
+      "otel-files tcp otel-files:4318"
     ]
   },
   "customOrigin": {
@@ -3557,13 +3673,13 @@
         "driver": "bridge"
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-postgres",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3622,13 +3738,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-register",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3680,13 +3796,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-profile",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3743,13 +3859,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authentication",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3804,13 +3920,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authorization",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3872,13 +3988,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-storage",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3941,13 +4057,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-events",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -4005,13 +4121,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-resource-registry",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -4075,13 +4191,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-notifications",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -4141,13 +4257,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-localtest",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -4335,13 +4451,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-ddef433",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-ddef433",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-access-management",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-ddef433",
         "networks": [
           "network:localtest-v2_network"
         ],

@@ -30,7 +30,7 @@ var wantEmulated = []string{ //nolint:gochecknoglobals // A test fixture.
 
 func TestMinimalModeStartsTheMinimalGroupInStartOrder(t *testing.T) {
 	t.Parallel()
-	want := []string{"postgres", "storage", "localtest", "workflow-engine"}
+	want := []string{"postgres", "storage", "localtest", "workflow-engine", "otel-files"}
 	if got := selected(minimalOptions()); !slices.Equal(got, want) {
 		t.Fatalf("selected() = %v, want %v", got, want)
 	}
@@ -85,10 +85,18 @@ func TestMinimalModeMountsTmpfsForEveryManifestVolume(t *testing.T) {
 		},
 		"localtest":       {{ContainerPath: "/data", Type: types.VolumeMountTypeTmpfs, Options: "mode=1777"}},
 		"workflow-engine": nil,
+		"otel-files":      nil,
 	}
 	for name, c := range containersOf(t, minimalOptions()) {
 		var binds, rest []types.VolumeMount
 		for _, v := range c.Volumes {
+			// The certificate's two mounts; otel-files's files and its telemetry folder are its own tests'.
+			if v.Type == types.VolumeMountTypeBind && v.ReadOnly && strings.HasPrefix(v.HostPath, testFilesDir) {
+				continue
+			}
+			if v.Type == types.VolumeMountTypeBind && !v.ReadOnly && name == "otel-files" {
+				continue
+			}
 			if v.Type == types.VolumeMountTypeBind {
 				binds = append(binds, v)
 			} else {
@@ -239,7 +247,7 @@ func TestTheStatusOfMinimalModeNamesTheModeAndTheEmulatedServices(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if status.Mode != ModeMinimal || !slices.Equal(status.Emulated, wantEmulated) || len(status.Containers) != 4 {
+	if status.Mode != ModeMinimal || !slices.Equal(status.Emulated, wantEmulated) || len(status.Containers) != 5 {
 		t.Fatalf("status %+v", status)
 	}
 

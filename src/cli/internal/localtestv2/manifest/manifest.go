@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/fs"
 	"maps"
+	"path"
 	"regexp"
 	"slices"
 	"strings"
@@ -57,6 +58,7 @@ var (
 	errNoDefault  = errors.New("no " + DefaultGroup + " group")
 	errUnknownKey = errors.New("unknown key")
 	errNoFile     = errors.New("no such file beside the manifest")
+	errReceivers  = errors.New("more than one OTLP receiver")
 )
 
 // Manifest is the parsed manifest.
@@ -86,6 +88,9 @@ type Container struct {
 	// Files maps a path in the container to a file or folder that ships with the manifest, relative to the manifest's
 	// directory and inside a folder beside it (monitoring/otel-collector.yaml); the runtime mounts it read-only.
 	Files map[string]string `json:"files"`
+	// OTLPReceiver marks the stack's OpenTelemetry receiver: while it runs, the other containers send their telemetry
+	// to it. At most one runs at a time. Nil for every other container.
+	OTLPReceiver *OTLPReceiver `json:"otlpReceiver"`
 	// Registry is the image repository, with the registry host.
 	Registry string `json:"registry"`
 	// Tag is the image tag (a digest may follow it: "7.2-alpine@sha256:...").
@@ -96,6 +101,16 @@ type Container struct {
 	DependsOn []string `json:"dependsOn"`
 	// Port is the container port the health check and the services__ variables use; zero is DefaultPort.
 	Port int `json:"port"`
+}
+
+// OTLPReceiver is what a runner needs of the stack's OpenTelemetry receiver, besides its port, which is the OTLP/HTTP
+// receiver (the front door's /otlp route forwards there).
+type OTLPReceiver struct {
+	// Output is a path in the container where the runner mounts a folder on the host, read-write, for the files the
+	// receiver writes; empty for none. It is not a volume: what is in it is for the developer to read on the host.
+	Output string `json:"output"`
+	// GRPCPort is the OTLP/gRPC receiver's port, which the containers send to.
+	GRPCPort int `json:"grpcPort"`
 }
 
 // Image is the container's image reference.
@@ -256,6 +271,17 @@ func (m *Manifest) Select(groups []string) []string {
 	return m.startOrder(selected)
 }
 
+// Receivers lists the OTLP receivers among the named containers, in their order.
+func (m *Manifest) Receivers(names []string) []string {
+	var out []string
+	for _, name := range names {
+		if m.Containers[name].OTLPReceiver != nil {
+			out = append(out, name)
+		}
+	}
+	return out
+}
+
 // readContainers reads the containers object, keeping the file order of its keys.
 func (m *Manifest) readContainers(data json.RawMessage) error {
 	if len(data) == 0 {
@@ -351,6 +377,28 @@ func (m *Manifest) check() error {
 			return fmt.Errorf("%w: %s", errUnreached, name)
 		}
 	}
+	return m.checkReceivers()
+}
+
+// checkReceivers refuses a selection that can run two OTLP receivers: the minimal group alone, or every other group
+// together (minimal mode takes no optional group).
+func (m *Manifest) checkReceivers() error {
+	var rest []string
+	for _, name := range m.GroupNames() {
+		if name != MinimalGroup {
+			rest = append(rest, name)
+		}
+	}
+	for _, selection := range [][]string{{MinimalGroup}, rest} {
+		if receivers := m.Receivers(m.Select(selection)); len(receivers) > 1 {
+			return fmt.Errorf(
+				"%w in %s: %s",
+				errReceivers,
+				strings.Join(selection, ", "),
+				strings.Join(receivers, ", "),
+			)
+		}
+	}
 	return nil
 }
 
@@ -406,7 +454,33 @@ func checkContainer(name string, c Container) error {
 	if err := checkImage(c); err != nil {
 		return err
 	}
+	if err := checkReceiver(c); err != nil {
+		return err
+	}
 	return checkEnvsAndVolumes(c)
+}
+
+// checkReceiver checks an OTLP receiver's gRPC port and its output path: absolute, clean, and not one of the
+// container's volume or file paths.
+func checkReceiver(c Container) error {
+	r := c.OTLPReceiver
+	if r == nil {
+		return nil
+	}
+	if r.GRPCPort <= 0 || r.GRPCPort > maxPort || r.GRPCPort == c.HTTPPort() {
+		return fmt.Errorf("%w: otlpReceiver: grpcPort %d", errValue, r.GRPCPort)
+	}
+	if r.Output == "" {
+		return nil
+	}
+	if r.Output == "/" || !strings.HasPrefix(r.Output, "/") || path.Clean(r.Output) != r.Output {
+		return fmt.Errorf("%w: otlpReceiver: output %q is not an absolute, clean path", errValue, r.Output)
+	}
+	_, isFile := c.Files[r.Output]
+	if isFile || slices.Contains(slices.Collect(maps.Values(c.Volumes)), r.Output) {
+		return fmt.Errorf("%w otlpReceiver: output %q is a volume's or a file's path too", errDuplicate, r.Output)
+	}
+	return nil
 }
 
 func checkImage(c Container) error {

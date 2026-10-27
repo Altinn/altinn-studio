@@ -21,6 +21,7 @@ import (
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/localtestv2"
+	"altinn.studio/studioctl/internal/localtestv2/manifest"
 	"altinn.studio/studioctl/internal/osutil"
 	"altinn.studio/studioctl/internal/studioctlserver"
 	"altinn.studio/studioctl/internal/ui"
@@ -158,6 +159,9 @@ func (e *Env) Start(ctx context.Context, upOpts UpOptions) error {
 		return err
 	}
 	if err := e.stopOnSwitch(ctx, opts); err != nil {
+		return err
+	}
+	if err := e.emptyTelemetry(ctx, opts); err != nil {
 		return err
 	}
 	if err := localtestv2.WriteState(e.cfg, localtestv2.State{
@@ -346,7 +350,9 @@ func (e *Env) forgetState(ctx context.Context, passthrough error) error {
 }
 
 func (e *Env) defaultOptions() *Options {
-	return defaultOptions(localtestv2.CertificateDir(e.cfg), localtestv2.FilesDir(e.cfg))
+	opts := defaultOptions(localtestv2.CertificateDir(e.cfg), localtestv2.FilesDir(e.cfg))
+	opts.TelemetryDir = localtestv2.TelemetryDir(e.cfg)
+	return opts
 }
 
 // currentOptions are the options of the environment as it was started: the optional groups, the image tags and the
@@ -365,17 +371,17 @@ func (e *Env) currentOptions() (*Options, error) {
 	return opts, nil
 }
 
-// teardownOptions include every optional group, so that stopping or resetting finds the containers of whichever were
-// started, even when the state file is gone.
+// teardownOptions include every optional group and the minimal one (whose otel-files no other group starts), so that
+// stopping or resetting finds the containers of whichever were started, even when the state file is gone.
 func (e *Env) teardownOptions() *Options {
 	opts := e.defaultOptions()
-	opts.Groups = OptionalGroups()
+	opts.Groups = append(OptionalGroups(), manifest.MinimalGroup)
 	return opts
 }
 
 func (e *Env) options(ctx context.Context, upOpts UpOptions) (*Options, error) {
 	opts := e.defaultOptions()
-	_, _, opts.RelabelBinds = envstack.RuntimeUser(e.client.Toolchain())
+	opts.User, opts.UsernsMode, opts.RelabelBinds = envstack.RuntimeUser(e.client.Toolchain())
 	opts.LatestImages = upOpts.LatestImages
 	opts.Minimal = upOpts.Minimal
 	groups, err := ResolveGroups(upOpts.With, upOpts.Without)

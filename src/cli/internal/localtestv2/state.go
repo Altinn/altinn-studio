@@ -129,6 +129,13 @@ func FilesDir(cfg *config.Config) string {
 	return filepath.Join(cfg.DataDir, "infra", "localtest-v2", "files")
 }
 
+// TelemetryDir returns the folder minimal mode's OTLP receiver (otel-files) writes its JSON Lines files to: one
+// folder per service.name, with traces.jsonl, metrics.jsonl and logs.jsonl. env up in minimal mode empties it, and
+// env down of a minimal-mode stack deletes it.
+func TelemetryDir(cfg *config.Config) string {
+	return filepath.Join(cfg.DataDir, "infra", "localtest-v2", "telemetry")
+}
+
 // ReadState returns the recorded configuration, and whether there is one. Whether the environment runs is Current's.
 func ReadState(cfg *config.Config) (State, bool, error) {
 	data, err := os.ReadFile(StatePath(cfg))

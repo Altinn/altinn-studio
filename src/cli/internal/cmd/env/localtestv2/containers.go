@@ -82,6 +82,12 @@ type Options struct {
 	CertDir string
 	// FilesDir holds the files that ship with the manifest, at their paths relative to its directory.
 	FilesDir string
+	// TelemetryDir is the folder on the host an OTLP receiver with an output writes to (minimal mode's otel-files).
+	TelemetryDir string
+	// User and UsernsMode run a container that writes to the host (TelemetryDir) as the developer: their uid:gid, and
+	// under Podman keep-id, so the files are theirs to read and delete.
+	User       string
+	UsernsMode string
 	// Origin is the public origin: its host and port, the front door's published port, and the subdomains.
 	Origin manifest.Origin
 	// LatestImages runs the research images at "latest" instead of their pinned sha- tag.
@@ -97,6 +103,9 @@ func defaultOptions(certDir, filesDir string) *Options {
 		Groups:       nil,
 		CertDir:      certDir,
 		FilesDir:     filesDir,
+		TelemetryDir: "",
+		User:         "",
+		UsernsMode:   "",
 		Origin:       stack().DefaultOrigin(),
 		LatestImages: false,
 		RelabelBinds: false,
@@ -164,15 +173,18 @@ func resources(opts *Options, probes readinessProbes) []resource.Resource {
 	return out
 }
 
-// serviceVariables announce every running HTTP container (and the OpenTelemetry collector's HTTP receiver, see
-// announced) to every container, the way Aspire's service discovery does: services__<name>__http__0=
-// http://<name>:<port>, the container's name being its network alias. An emulated
-// container (minimal mode) is announced at the front door, which answers for it.
+// serviceVariables announce every running HTTP container to every container, the way Aspire's service discovery does:
+// services__<name>__http__0=http://<name>:<port>, the container's name being its network alias. The running OTLP
+// receiver's HTTP port is announced as the service otlp (otlpServiceVariable). An emulated container (minimal mode) is
+// announced at the front door, which answers for it.
 func serviceVariables(running, emulated []string) map[string]string {
-	vars := map[string]string{}
+	vars := otlpServiceVariable(running)
+	if vars == nil {
+		vars = map[string]string{}
+	}
 	for _, name := range running {
 		c := stack().Containers[name]
-		if announced(name) {
+		if c.IsHTTP() {
 			vars["services__"+name+"__http__0"] = "http://" + name + ":" + strconv.Itoa(c.HTTPPort())
 		}
 	}
@@ -224,6 +236,10 @@ func containerResource(
 	for _, dep := range append(slices.Clone(c.DependsOn), implicit...) {
 		deps = append(deps, resource.RefID(resource.ContainerID(containerOf(dep))))
 	}
+	user, usernsMode := "", ""
+	if writesToHost(c) {
+		user, usernsMode = opts.User, opts.UsernsMode
+	}
 	var ports []types.PortMapping
 	if name == frontDoor {
 		// Every interface, not loopback only: the containers reach the public origin through the host gateway.
@@ -259,9 +275,14 @@ func containerResource(
 		},
 		NetworkAliases: []string{name},
 		RestartPolicy:  "",
-		User:           "",
-		UsernsMode:     "",
+		User:           user,
+		UsernsMode:     usernsMode,
 	}
+}
+
+// writesToHost reports whether a container writes to a folder on the host: an OTLP receiver with an output.
+func writesToHost(c manifest.Container) bool {
+	return c.OTLPReceiver != nil && c.OTLPReceiver.Output != ""
 }
 
 // runnerEnv is what the runner adds to a container's own environment: the front door gets the public subdomains, and
@@ -311,13 +332,14 @@ func volumeNames() []string {
 }
 
 // containerVolumes are the shared certificate, read-only, then the container's files, read-only and sorted by their path
-// in the container, then its named volumes (tmpfs in minimal mode).
+// in the container, then its named volumes (tmpfs in minimal mode), then an OTLP receiver's output, the telemetry
+// folder on the host, read-write.
 func containerVolumes(opts *Options, c manifest.Container) []types.VolumeMount {
 	relabel := types.SELinuxRelabelNone
 	if opts.RelabelBinds {
 		relabel = types.SELinuxRelabelShared
 	}
-	volumes := make([]types.VolumeMount, 0, 2+len(c.Files)+len(c.Volumes))
+	volumes := make([]types.VolumeMount, 0, 3+len(c.Files)+len(c.Volumes))
 	volumes = append(volumes,
 		types.VolumeMount{
 			HostPath:       opts.CertDir,
@@ -348,6 +370,16 @@ func containerVolumes(opts *Options, c manifest.Container) []types.VolumeMount {
 	}
 	for _, id := range slices.Sorted(maps.Keys(c.Volumes)) {
 		volumes = append(volumes, manifestVolume(opts, id, c.Volumes[id]))
+	}
+	if writesToHost(c) {
+		volumes = append(volumes, types.VolumeMount{
+			HostPath:       opts.TelemetryDir,
+			ContainerPath:  c.OTLPReceiver.Output,
+			Type:           types.VolumeMountTypeBind,
+			SELinuxRelabel: relabel,
+			Options:        "",
+			ReadOnly:       false,
+		})
 	}
 	return volumes
 }

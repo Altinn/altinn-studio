@@ -160,3 +160,16 @@ func TestEveryFolderBesideTheManifestShips(t *testing.T) {
 			shipped)
 	}
 }
+
+// The collectors read monitoring/otel-processors.yaml through their file provider, which expands the file's text,
+// comments included: a dollar-brace anywhere in it fails the collector's start ("too many recursive expansions").
+func TestTheSharedProcessorsExpandNothing(t *testing.T) {
+	t.Parallel()
+	data, err := MustDefault().ReadFile("monitoring/otel-processors.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "${") {
+		t.Error("monitoring/otel-processors.yaml contains ${")
+	}
+}

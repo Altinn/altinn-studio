@@ -1,15 +1,30 @@
 package localtestv2
 
 import (
+	"errors"
+	"io"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
+	"altinn.studio/studioctl/internal/localtestv2"
+	"altinn.studio/studioctl/internal/ui"
+)
+
+const (
+	otelCollector = "otel-collector"
+	otelFiles     = "otel-files"
+	// testUser and testUsernsMode are a developer's runtime user under Podman.
+	testUser       = "1000:1000"
+	testUsernsMode = "keep-id"
 )
 
 var monitoringContainers = []string{ //nolint:gochecknoglobals // A test fixture.
-	"victoria-metrics", "victoria-traces", "victoria-logs", "otel-collector", "grafana",
+	"victoria-metrics", "victoria-traces", "victoria-logs", otelCollector, "grafana",
 }
 
 func withMonitoring() *Options {
@@ -113,11 +128,11 @@ func everythingOptions() *Options {
 	return opts
 }
 
-// withoutTheCollector are the default stack, minimal mode and every optional group but monitoring.
+// withoutTheCollector are the default stack and every optional group but monitoring: no receiver runs.
 func withoutTheCollector() []*Options {
 	all := defaultOptions(testCertDir, testFilesDir)
 	all.Groups = slices.DeleteFunc(OptionalGroups(), func(g string) bool { return g == monitoringGroup })
-	return []*Options{defaultOptions(testCertDir, testFilesDir), minimalOptions(), all}
+	return []*Options{defaultOptions(testCertDir, testFilesDir), all}
 }
 
 func TestWithoutTheCollectorNoContainerGetsTheOTLPVariables(t *testing.T) {
@@ -126,7 +141,7 @@ func TestWithoutTheCollectorNoContainerGetsTheOTLPVariables(t *testing.T) {
 		for name, c := range containersOf(t, opts) {
 			for key, value := range envOf(c) {
 				if key == otlpEndpointVariable || key == otlpProtocolVariable || key == otelServiceNameVariable ||
-					key == metricExportIntervalVariable || key == "services__otel-collector__http__0" ||
+					key == metricExportIntervalVariable || key == "services__otlp__http__0" ||
 					key == engineGrafanaURLVariable || key == engineGrafanaDatasourceVariable {
 					t.Errorf("%s: %s=%s without the collector", name, key, value)
 				}
@@ -208,15 +223,28 @@ func TestTheEngineLinksToGrafanasTracesDatasource(t *testing.T) {
 	}
 }
 
-// The front door routes /otlp to the collector's OTLP/HTTP receiver, by its services__ variable, although the
-// collector's health is a TCP check.
-func TestTheCollectorsHTTPReceiverIsAnnounced(t *testing.T) {
+// The front door routes /otlp to the running receiver's OTLP/HTTP port, by the service otlp's variable; the collector
+// itself is not announced by name, its health being a TCP check.
+func TestTheReceiversHTTPPortIsAnnouncedAsOTLP(t *testing.T) {
 	t.Parallel()
+	for opts, want := range map[*Options]string{
+		withMonitoring(): "http://otel-collector:4318",
+		minimalOptions(): "http://otel-files:4318",
+	} {
+		for name, c := range containersOf(t, opts) {
+			env := envOf(c)
+			if got := env["services__otlp__http__0"]; got != want {
+				t.Errorf("%s: otlp is %q, want %q", name, got, want)
+			}
+			for _, receiver := range []string{otelCollector, otelFiles} {
+				if value, ok := env["services__"+receiver+"__http__0"]; ok {
+					t.Errorf("%s: %s announced as %s", name, receiver, value)
+				}
+			}
+		}
+	}
 	containers := containersOf(t, withMonitoring())
 	env := envOf(containers[frontDoor])
-	if got := env["services__otel-collector__http__0"]; got != "http://otel-collector:4318" {
-		t.Errorf("the collector is %q", got)
-	}
 	if got := env["services__grafana__http__0"]; got != "http://grafana:3000" {
 		t.Errorf("grafana is %q", got)
 	}
@@ -232,7 +260,7 @@ func TestGrafanaAndTheCollectorMountTheirFiles(t *testing.T) {
 	t.Parallel()
 	containers := containersOf(t, withMonitoring())
 	want := map[string][]string{
-		otelCollector: {"/etc/otelcol-contrib/config.yaml"},
+		otelCollector: {"/etc/otelcol-contrib/config.yaml", "/etc/otelcol-contrib/processors.yaml"},
 		"grafana": {
 			"/etc/grafana/provisioning/dashboards/dashboards.yaml",
 			"/etc/grafana/provisioning/datasources/datasources.yaml",
@@ -252,5 +280,151 @@ func TestGrafanaAndTheCollectorMountTheirFiles(t *testing.T) {
 	}
 	if got := envOf(containers["grafana"])["GF_SERVER_ROOT_URL"]; got != "http://local.altinn.cloud:8000/grafana/" {
 		t.Errorf("grafana's root URL is %q", got)
+	}
+}
+
+// Minimal mode always runs otel-files, the receiver that writes files: every other container sends to it, starts after
+// it, and the engine gets no Grafana links, since no Grafana runs.
+func TestMinimalModeSendsEveryContainersTelemetryToTheFilesReceiver(t *testing.T) {
+	t.Parallel()
+	opts := minimalOptions()
+	if !slices.Contains(selected(opts), otelFiles) || slices.Contains(selected(opts), otelCollector) {
+		t.Fatalf("minimal mode starts %v", selected(opts))
+	}
+	for name, c := range containersOf(t, opts) {
+		env := envOf(c)
+		var deps []string
+		for _, dep := range c.DependsOn {
+			deps = append(deps, strings.TrimPrefix(dep.ID().String(), "container:"+containerPrefix))
+		}
+		if name == otelFiles {
+			if _, ok := env[otlpEndpointVariable]; ok || len(deps) != 0 {
+				t.Errorf("otel-files: endpoint %q, depends on %v", env[otlpEndpointVariable], deps)
+			}
+			continue
+		}
+		if got := env[otlpEndpointVariable]; got != "http://otel-files:4317" {
+			t.Errorf("%s: endpoint %q", name, got)
+		}
+		if env[otlpProtocolVariable] != "grpc" || env[otelServiceNameVariable] != name ||
+			env[metricExportIntervalVariable] != "5000" {
+			t.Errorf("%s: %v", name, env)
+		}
+		if !slices.Contains(deps, otelFiles) {
+			t.Errorf("%s depends on %v, not on otel-files", name, deps)
+		}
+		if _, ok := env[engineGrafanaURLVariable]; ok {
+			t.Errorf("%s: a Grafana link in minimal mode", name)
+		}
+	}
+}
+
+// otel-files writes to the telemetry folder on the host, read-write, as the developer (their uid:gid, keep-id under
+// Podman), so the files are theirs; no other container gets the folder or the user.
+func TestTheFilesReceiverWritesToTheTelemetryFolderAsTheDeveloper(t *testing.T) {
+	t.Parallel()
+	opts := minimalOptions()
+	opts.TelemetryDir = "/home/dev/.altinn-studio/telemetry"
+	opts.User, opts.UsernsMode = testUser, testUsernsMode
+	for name, c := range containersOf(t, opts) {
+		var telemetry []string
+		for _, v := range c.Volumes {
+			if v.HostPath == opts.TelemetryDir {
+				telemetry = append(telemetry, v.ContainerPath)
+				if v.ReadOnly || v.Type != "bind" {
+					t.Errorf("%s: the telemetry folder is mounted %+v", name, v)
+				}
+			}
+		}
+		if name == otelFiles {
+			if !slices.Equal(telemetry, []string{"/telemetry"}) || c.User != testUser ||
+				c.UsernsMode != testUsernsMode {
+				t.Errorf("otel-files: telemetry at %v, user %q, userns %q", telemetry, c.User, c.UsernsMode)
+			}
+			continue
+		}
+		if len(telemetry) != 0 || c.User != "" || c.UsernsMode != "" {
+			t.Errorf("%s: telemetry at %v, user %q, userns %q", name, telemetry, c.User, c.UsernsMode)
+		}
+	}
+	if !writesTelemetryFiles(opts) || writesTelemetryFiles(withMonitoring()) ||
+		writesTelemetryFiles(everythingOptions()) {
+		t.Error("only minimal mode writes telemetry files")
+	}
+}
+
+// writeTelemetry leaves a file in the telemetry folder, as otel-files does, and returns its path.
+func writeTelemetry(t *testing.T, dir string) string {
+	t.Helper()
+	file := filepath.Join(dir, "storage", "traces.jsonl")
+	if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(file, []byte("{}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return file
+}
+
+// Stopping a minimal-mode stack deletes the telemetry folder; stopping the default stack leaves it alone.
+func TestTeardownDeletesTheTelemetryFolderOfMinimalModeOnly(t *testing.T) {
+	t.Parallel()
+	for _, minimal := range []bool{true, false} {
+		cfg := testConfig(t)
+		writeTestState(t, cfg, minimal)
+		file := writeTelemetry(t, localtestv2.TelemetryDir(cfg))
+		_, client := newFakeRuntime()
+		if err := NewEnv(
+			cfg,
+			ui.NewOutput(io.Discard, io.Discard, false),
+			client,
+		).teardown(t.Context(), ""); err != nil {
+			t.Fatal(err)
+		}
+		_, err := os.Stat(localtestv2.TelemetryDir(cfg))
+		if minimal && !errors.Is(err, os.ErrNotExist) {
+			t.Errorf("minimal mode: the telemetry folder is still there (%v)", err)
+		}
+		if _, err := os.Stat(file); !minimal && err != nil {
+			t.Errorf("default stack: the telemetry file is gone: %v", err)
+		}
+	}
+}
+
+// env up in minimal mode starts with an empty telemetry folder, unless otel-files runs (a converged stack keeps its
+// receiver and its open files); another mode does not touch it.
+func TestUpEmptiesTheTelemetryFolderUnlessTheReceiverRuns(t *testing.T) {
+	t.Parallel()
+	cfg := testConfig(t)
+	f, client := newFakeRuntime()
+	env := NewEnv(cfg, ui.NewOutput(io.Discard, io.Discard, false), client)
+	opts := minimalOptions()
+	opts.TelemetryDir = localtestv2.TelemetryDir(cfg)
+
+	file := writeTelemetry(t, opts.TelemetryDir)
+	other := defaultOptions(testCertDir, testFilesDir)
+	other.TelemetryDir = opts.TelemetryDir
+	if err := env.emptyTelemetry(t.Context(), other); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(file); err != nil {
+		t.Errorf("the default stack touched the telemetry folder: %v", err)
+	}
+
+	f.containers[containerOf(otelFiles)] = types.ContainerConfig{Name: containerOf(otelFiles)}
+	if err := env.emptyTelemetry(t.Context(), opts); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(file); err != nil {
+		t.Errorf("a running otel-files lost its file: %v", err)
+	}
+
+	delete(f.containers, containerOf(otelFiles))
+	if err := env.emptyTelemetry(t.Context(), opts); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := os.ReadDir(opts.TelemetryDir)
+	if err != nil || len(entries) != 0 {
+		t.Errorf("the telemetry folder holds %v (%v), want it empty", entries, err)
 	}
 }

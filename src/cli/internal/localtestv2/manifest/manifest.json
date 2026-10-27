@@ -1,7 +1,7 @@
 {
   "groups": [
     { "name": "default", "containers": ["postgres", "register", "profile", "authentication", "authorization", "storage", "access-management", "events", "resource-registry", "notifications", "localtest", "pdf3", "workflow-engine"] },
-    { "name": "minimal", "containers": ["localtest", "storage", "workflow-engine"] },
+    { "name": "minimal", "containers": ["localtest", "storage", "workflow-engine", "otel-files"] },
     { "name": "dialogporten", "containers": ["dialogporten-graphql", "dialogporten-service", "dialogporten-adapter"] },
     { "name": "receipt", "containers": ["receipt"] },
     { "name": "correspondence", "containers": ["correspondence"] },
@@ -12,7 +12,7 @@
   "containers": {
     "postgres": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5432,
       "health": "tcp",
       "envs": {
@@ -26,7 +26,7 @@
     },
     "register": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-register",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5020,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -36,7 +36,7 @@
     },
     "profile": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-profile",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5030,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -48,7 +48,7 @@
     },
     "authentication": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5101,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -58,7 +58,7 @@
     },
     "authorization": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5070,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -71,7 +71,7 @@
     },
     "storage": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-storage",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5010,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -86,7 +86,7 @@
     },
     "access-management": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5080,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -99,7 +99,7 @@
     },
     "events": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-events",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5080,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -111,7 +111,7 @@
     },
     "resource-registry": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5100,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -126,7 +126,7 @@
     },
     "notifications": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5090,
       "envs": {
         "AccessTokenSettings__AccessTokenSigningCertificateFullPath": "/certs/localtest-accesstoken.pfx",
@@ -138,7 +138,7 @@
     },
     "localtest": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "envs": {
         "Localtest__AccessTokenCertificatePath": "/certs/localtest-accesstoken.pfx",
         "Localtest__PlatformEndpoint": "{{origin}}/"
@@ -174,13 +174,13 @@
     },
     "redis": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-redis",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 6379,
       "health": "tcp"
     },
     "dialogporten-webapi": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-webapi",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "health": "/health/readiness",
       "envs": {
         "Localtest__Dialogporten__PlatformEndpoint": "{{origin}}/"
@@ -189,7 +189,7 @@
     },
     "dialogporten-graphql": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-graphql",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "health": "/health/readiness",
       "envs": {
         "Localtest__Dialogporten__PlatformEndpoint": "{{origin}}/"
@@ -198,7 +198,7 @@
     },
     "dialogporten-service": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-service",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "health": "/health/readiness",
       "envs": {
         "Localtest__Dialogporten__PlatformEndpoint": "{{origin}}/"
@@ -207,7 +207,7 @@
     },
     "dialogporten-adapter": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-dialogporten-adapter",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5011,
       "envs": {
         "Localtest__Adapter__PlatformEndpoint": "{{origin}}/"
@@ -216,7 +216,7 @@
     },
     "receipt": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-receipt",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 5060,
       "envs": {
         "GeneralSettings__Hostname": "{{host}}",
@@ -231,7 +231,7 @@
     },
     "correspondence": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-correspondence",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 2525,
       "envs": {
         "DatabaseOptions__ConnectionString": "Host=postgres;Port=5432;Database=correspondence;Username=correspondence;Password=localtest",
@@ -245,7 +245,7 @@
     },
     "arbeidsflate-bff": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-arbeidsflate-bff",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 80,
       "health": "/api/readiness",
       "envs": {
@@ -270,7 +270,7 @@
     },
     "arbeidsflate": {
       "registry": "ghcr.io/ivarne-agent/localtest-research/localtest-arbeidsflate",
-      "tag": "sha-609c646",
+      "tag": "sha-ddef433",
       "port": 80,
       "health": "/",
       "envs": {
@@ -293,13 +293,26 @@
       "tag": "v1.52.0@sha256:47b820890d64c4575a2a0a46415dcd8a4fd59a0f1fcd6a377693d7aea639442e",
       "port": 9428
     },
+    "otel-files": {
+      "registry": "docker.io/otel/opentelemetry-collector-contrib",
+      "tag": "0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+      "port": 4318,
+      "health": "tcp",
+      "otlpReceiver": { "grpcPort": 4317, "output": "/telemetry" },
+      "files": {
+        "/etc/otelcol-contrib/config.yaml": "monitoring/otel-files.yaml",
+        "/etc/otelcol-contrib/processors.yaml": "monitoring/otel-processors.yaml"
+      }
+    },
     "otel-collector": {
       "registry": "docker.io/otel/opentelemetry-collector-contrib",
       "tag": "0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
       "port": 4318,
       "health": "tcp",
+      "otlpReceiver": { "grpcPort": 4317 },
       "files": {
-        "/etc/otelcol-contrib/config.yaml": "monitoring/otel-collector.yaml"
+        "/etc/otelcol-contrib/config.yaml": "monitoring/otel-collector.yaml",
+        "/etc/otelcol-contrib/processors.yaml": "monitoring/otel-processors.yaml"
       },
       "dependsOn": ["victoria-metrics", "victoria-traces", "victoria-logs"]
     },

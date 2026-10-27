@@ -4,18 +4,33 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/studioctl/internal/localtestv2"
 )
 
 // teardown stops the environment: the container-mode apps on its network first, which the network's removal would
-// otherwise fail on, then the resource graph.
+// otherwise fail on, then the resource graph; then, for a stack that wrote telemetry files to the host (minimal mode),
+// the telemetry folder. A stack in another mode leaves the folder alone.
 func (e *Env) teardown(ctx context.Context, logStartMessage string) error {
+	current, err := e.currentOptions()
+	if err != nil {
+		return err
+	}
 	if err := e.removeAppContainers(ctx); err != nil {
 		return err
 	}
-	return e.destroyResources(ctx, resources(e.teardownOptions(), nil), logStartMessage)
+	if err := e.destroyResources(ctx, resources(e.teardownOptions(), nil), logStartMessage); err != nil {
+		return err
+	}
+	if !writesTelemetryFiles(current) {
+		return nil
+	}
+	if err := os.RemoveAll(current.TelemetryDir); err != nil {
+		return fmt.Errorf("remove the telemetry files: %w", err)
+	}
+	return nil
 }
 
 // removeAppContainers removes the container-mode apps (studioctl run --mode container) on the network, running or not,

@@ -14,8 +14,8 @@ func TestTheEmbeddedManifestParses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(m.Names()) != 27 {
-		t.Fatalf("%d containers, want 27", len(m.Names()))
+	if len(m.Names()) != 28 {
+		t.Fatalf("%d containers, want 28", len(m.Names()))
 	}
 	want := []string{
 		DefaultGroup, MinimalGroup, "dialogporten", "receipt", "correspondence", "arbeidsflate", "monitoring",
@@ -116,6 +116,51 @@ func TestParseRefusesAnInvalidManifest(t *testing.T) {
 		"health neither a path nor tcp": {
 			func(m map[string]any) { containerNamed(m, "storage")["health"] = "health" },
 			errValue,
+		},
+		"otlpReceiver without a gRPC port": {
+			func(m map[string]any) { containerNamed(m, "otel-files")["otlpReceiver"] = map[string]any{} },
+			errValue,
+		},
+		"otlpReceiver gRPC port on the HTTP port": {
+			func(m map[string]any) {
+				containerNamed(m, "otel-files")["otlpReceiver"] = map[string]any{"grpcPort": 4318}
+			},
+			errValue,
+		},
+		"unknown otlpReceiver key": {
+			func(m map[string]any) {
+				containerNamed(m, "otel-files")["otlpReceiver"] = map[string]any{"grpcPort": 4317, "http": 4318}
+			},
+			errUnknownKey,
+		},
+		"relative otlpReceiver output": {
+			func(m map[string]any) {
+				containerNamed(m, "otel-files")["otlpReceiver"] = map[string]any{
+					"grpcPort": 4317,
+					"output":   "telemetry",
+				}
+			},
+			errValue,
+		},
+		"otlpReceiver output on a file's path": {
+			func(m map[string]any) {
+				containerNamed(m, "otel-files")["otlpReceiver"] = map[string]any{
+					"grpcPort": 4317, "output": "/etc/otelcol-contrib/config.yaml",
+				}
+			},
+			errDuplicate,
+		},
+		"two receivers in minimal mode": {
+			func(m map[string]any) {
+				groupNamed(m, MinimalGroup)["containers"] = []any{"localtest", "otel-files", "otel-collector"}
+			},
+			errReceivers,
+		},
+		"two receivers among the optional groups": {
+			func(m map[string]any) {
+				groupNamed(m, "receipt")["containers"] = []any{"receipt", "otel-files"}
+			},
+			errReceivers,
 		},
 		"relative volume target": {
 			func(m map[string]any) {
@@ -238,12 +283,38 @@ func TestSelectStartsTheRootsAndTheirDependenciesInOrder(t *testing.T) {
 	}
 }
 
-func TestTheMinimalGroupStartsTheFrontDoorStorageAndTheWorkflowEngine(t *testing.T) {
+func TestTheMinimalGroupStartsTheFrontDoorStorageTheWorkflowEngineAndTheFilesCollector(t *testing.T) {
 	t.Parallel()
 	m := MustDefault()
-	want := []string{"postgres", "storage", "localtest", "workflow-engine"}
+	want := []string{"postgres", "storage", "localtest", "workflow-engine", "otel-files"}
 	if got := m.Select([]string{MinimalGroup}); !slices.Equal(got, want) {
 		t.Fatalf("minimal: %v, want %v", got, want)
+	}
+}
+
+// The stack's OTLP receivers: the monitoring group's collector, and minimal mode's files collector, which alone writes
+// to a folder on the host. Each selection a runner can start runs one at most (Parse refuses more).
+func TestEachModeHasOneOTLPReceiver(t *testing.T) {
+	t.Parallel()
+	m := MustDefault()
+	if got := m.Receivers(m.Select([]string{MinimalGroup})); !slices.Equal(got, []string{"otel-files"}) {
+		t.Fatalf("minimal: receivers %v, want [otel-files]", got)
+	}
+	if got := m.Receivers(m.Select([]string{DefaultGroup})); len(got) != 0 {
+		t.Fatalf("default: receivers %v, want none", got)
+	}
+	if got := m.Receivers(
+		m.Select([]string{DefaultGroup, "monitoring"}),
+	); !slices.Equal(
+		got,
+		[]string{"otel-collector"},
+	) {
+		t.Fatalf("monitoring: receivers %v, want [otel-collector]", got)
+	}
+	files, collector := m.Containers["otel-files"].OTLPReceiver, m.Containers["otel-collector"].OTLPReceiver
+	if *files != (OTLPReceiver{Output: "/telemetry", GRPCPort: 4317}) ||
+		*collector != (OTLPReceiver{Output: "", GRPCPort: 4317}) {
+		t.Fatalf("receivers %+v and %+v", *files, *collector)
 	}
 }
 

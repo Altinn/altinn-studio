@@ -29,7 +29,8 @@ type goldenEnvironment struct {
 	// Everything is `env up --with everything --latest --dev-storage --dev-dialogporten-webapi=Dockerfile.webapi` on
 	// a runtime with SELinux relabelling.
 	Everything goldenOptions `json:"everything"`
-	// Minimal is `env up --minimal`: the minimal group, the emulated services at the front door, tmpfs volumes.
+	// Minimal is `env up --minimal` under Podman as uid 1000: the minimal group, the emulated services at the front
+	// door, tmpfs volumes, and otel-files writing to the telemetry folder as the developer.
 	Minimal goldenOptions `json:"minimal"`
 	// CustomOrigin is `env up --host origin.test --port 18000`: the default group at another public origin.
 	CustomOrigin goldenOptions `json:"customOrigin"`
@@ -64,6 +65,8 @@ func TestTheEnvironmentMatchesTheGoldenFile(t *testing.T) {
 
 	minimal := defaultOptions("/home/dev/.altinn-studio/certs", "/home/dev/.altinn-studio/files")
 	minimal.Minimal = true
+	minimal.TelemetryDir = "/home/dev/.altinn-studio/telemetry"
+	minimal.User, minimal.UsernsMode = testUser, testUsernsMode
 
 	custom := defaultOptions("/home/dev/.altinn-studio/certs", "/home/dev/.altinn-studio/files")
 	custom.Origin = stack().Origin("origin.test", 18000)
