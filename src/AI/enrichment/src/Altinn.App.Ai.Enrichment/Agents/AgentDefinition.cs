@@ -57,6 +57,11 @@ public sealed class StepDefinition
     /// <summary>Max parallel per-item LLM loops. Default: 5.</summary>
     public int? Concurrency { get; set; }
 
-    /// <summary>If set, write per-item traces here. Relative paths resolve under <c>Path.GetTempPath()</c>; absolute paths are used as-is.</summary>
+    /// <summary>
+    /// Removed. The file dump this configured wrote whole conversations — application
+    /// data included — as plaintext under the temp directory; Langfuse tracing replaces
+    /// it. Still deserialized so a stale <c>traceDir</c> in an agent.yaml fails
+    /// validation with an explanation instead of being silently ignored.
+    /// </summary>
     public string? TraceDir { get; set; }
 }

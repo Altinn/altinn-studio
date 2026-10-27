@@ -24,9 +24,6 @@ public sealed record OrchestratorOptions
 
     /// <summary>Max parallel per-item loops in flight.</summary>
     public int Concurrency { get; init; } = 5;
-
-    /// <summary>If set, write per-item JSON traces here. Folder is created if needed.</summary>
-    public string? TraceDirAbsolutePath { get; init; }
 }
 
 public sealed record OrchestratorResult

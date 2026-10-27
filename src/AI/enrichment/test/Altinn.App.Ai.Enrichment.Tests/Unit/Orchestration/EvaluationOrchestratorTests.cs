@@ -1,6 +1,8 @@
 using System.Text.Json;
 using Altinn.App.Ai.Enrichment.Chat;
+using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Orchestration;
+using Altinn.App.Ai.Enrichment.Telemetry;
 using Altinn.App.Ai.Enrichment.Tools;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -52,7 +54,7 @@ public class EvaluationOrchestratorTests
         var chat = new StubChatService([
             new ChatResponse { Content = """{"status":"vurdert_ok","merknad":"OK"}""", StatusCode = 200 },
         ]);
-        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
+        var orchestrator = NewOrchestrator(chat);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("formalia.ansvarlig_myndig")], new OrchestratorOptions());
@@ -81,7 +83,7 @@ public class EvaluationOrchestratorTests
             },
             new ChatResponse { Content = """{"status":"vurdert_ok","merknad":"14 dager"}""", StatusCode = 200 },
         ]);
-        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
+        var orchestrator = NewOrchestrator(chat);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions());
@@ -107,7 +109,7 @@ public class EvaluationOrchestratorTests
             StatusCode = 200,
         }).ToList();
         var chat = new StubChatService(responses);
-        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
+        var orchestrator = NewOrchestrator(chat);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions { MaxToolIterations = 5 });
@@ -122,7 +124,7 @@ public class EvaluationOrchestratorTests
         var chat = new StubChatService([
             new ChatResponse { Error = "HTTP 503: gateway error", StatusCode = 503 },
         ]);
-        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
+        var orchestrator = NewOrchestrator(chat);
 
         using var app = SampleApp();
         var result = await orchestrator.RunAsync(app, [Rule("p.q")], new OrchestratorOptions());
@@ -144,7 +146,7 @@ public class EvaluationOrchestratorTests
             StatusCode = 200,
         }), delayMs: 200);
 
-        var orchestrator = new EvaluationOrchestrator(chat, ToolRegistry.ForTesting(), new StubSystemPromptProvider(), NullLogger<EvaluationOrchestrator>.Instance);
+        var orchestrator = NewOrchestrator(chat);
 
         using var app = SampleApp();
         var rules = new[] { Rule("a.1"), Rule("a.2"), Rule("a.3") };
@@ -153,6 +155,15 @@ public class EvaluationOrchestratorTests
         result.Verdicts.Should().HaveCount(3);
         result.WallTimeMs.Should().BeLessThan(400);
     }
+
+    private static EvaluationOrchestrator NewOrchestrator(IChatService chat) =>
+        new(
+            chat,
+            ToolRegistry.ForTesting(),
+            new StubSystemPromptProvider(),
+            Microsoft.Extensions.Options.Options.Create(new AgentOptions { Model = "test-model" }),
+            EnrichmentTrace.Disabled,
+            NullLogger<EvaluationOrchestrator>.Instance);
 }
 
 internal sealed class StubSystemPromptProvider : ISystemPromptProvider

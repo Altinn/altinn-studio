@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Altinn.App.Ai.Enrichment.Models;
 using Altinn.App.Ai.Enrichment.Pipeline;
+using Altinn.App.Ai.Enrichment.Telemetry;
 
 namespace Altinn.App.Ai.Enrichment.Agents;
 
@@ -13,12 +14,14 @@ namespace Altinn.App.Ai.Enrichment.Agents;
 public sealed class AgentRuntime
 {
     private readonly IReadOnlyList<IEnrichmentStep> _steps;
+    private readonly EnrichmentTrace _trace;
     private readonly ILogger _logger;
 
-    internal AgentRuntime(string name, IReadOnlyList<IEnrichmentStep> steps, ILogger logger)
+    internal AgentRuntime(string name, IReadOnlyList<IEnrichmentStep> steps, EnrichmentTrace trace, ILogger logger)
     {
         Name = name;
         _steps = steps;
+        _trace = trace;
         _logger = logger;
     }
 
@@ -31,9 +34,12 @@ public sealed class AgentRuntime
         var context = new PipelineContext();
         var files = new List<GeneratedFile>();
 
-        foreach (var step in _steps)
+        for (var index = 0; index < _steps.Count; index++)
         {
+            var step = _steps[index];
             _logger.LogInformation("Agent {AgentName}: running step {StepName}", Name, step.Name);
+
+            using var stepActivity = _trace.StartStep(step.Name, index);
             var produced = await step.ExecuteAsync(application, context, cancellationToken);
 
             foreach (var file in produced)

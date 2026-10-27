@@ -13,6 +13,13 @@ public sealed record ChatResponse
 
     public string? FinishReason { get; init; }
 
+    /// <summary>
+    /// Model name as reported by the gateway, which is not necessarily the one
+    /// requested: gateways commonly strip a provider prefix, and may route to a
+    /// different backend entirely. Null when the response carried no model field.
+    /// </summary>
+    public string? Model { get; init; }
+
     /// <summary>OpenAI usage block (prompt/completion/total tokens). May be empty when the gateway omits it.</summary>
     public IReadOnlyDictionary<string, object?> Usage { get; init; } = new Dictionary<string, object?>();
 

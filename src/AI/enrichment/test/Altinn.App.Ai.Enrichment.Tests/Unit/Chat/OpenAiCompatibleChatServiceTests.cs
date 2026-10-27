@@ -68,11 +68,91 @@ public class OpenAiCompatibleChatServiceTests
         body.RootElement.GetProperty("max_tokens").GetInt32().Should().Be(99);
     }
 
+    // --- stream_options.include_usage ---------------------------------------------
+
+    [Fact]
+    public async Task RunAsync_Streaming_AsksTheGatewayToIncludeUsage()
+    {
+        // Without this the gateway omits the usage block entirely when streaming, and
+        // every generation in Langfuse shows zero tokens.
+        var handler = new CapturingHandler(SseResponse("hei"));
+        var sut = CreateSut(handler, timeoutSeconds: 300, useStreaming: true);
+
+        await sut.RunAsync(MinimalRequest());
+
+        using var body = JsonDocument.Parse(handler.SentBody!);
+        body.RootElement.GetProperty("stream_options").GetProperty("include_usage").GetBoolean().Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RunAsync_NonStreaming_OmitsStreamOptions()
+    {
+        var handler = new CapturingHandler(BlockingResponse("hei"));
+        var sut = CreateSut(handler, timeoutSeconds: 300, useStreaming: false);
+
+        await sut.RunAsync(MinimalRequest());
+
+        using var body = JsonDocument.Parse(handler.SentBody!);
+        body.RootElement.TryGetProperty("stream_options", out _).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RunAsync_StreamIncludeUsageDisabled_OmitsStreamOptions()
+    {
+        // The escape hatch for a gateway that rejects unknown request fields.
+        var handler = new CapturingHandler(SseResponse("hei"));
+        var sut = CreateSut(handler, timeoutSeconds: 300, useStreaming: true, streamIncludeUsage: false);
+
+        await sut.RunAsync(MinimalRequest());
+
+        using var body = JsonDocument.Parse(handler.SentBody!);
+        body.RootElement.TryGetProperty("stream_options", out _).Should().BeFalse();
+    }
+
+    /// <summary>
+    /// The trailing chunk is copied verbatim from api.aivar.no. Note it carries a
+    /// choices entry with an empty delta rather than the empty array the OpenAI docs
+    /// suggest — the parser has to walk past that to reach the usage block, so this
+    /// pins the real wire shape rather than the documented one.
+    /// </summary>
+    [Fact]
+    public async Task RunAsync_Streaming_TrailingUsageChunk_PopulatesUsageAndModel()
+    {
+        var sse = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """
+                data: {"id":"x","model":"Borealis2-preview","choices":[{"index":0,"delta":{"role":"assistant","content":""}}]}
+
+                data: {"id":"x","model":"Borealis2-preview","choices":[{"index":0,"delta":{"content":"OK"}}]}
+
+                data: {"id":"x","model":"Borealis2-preview","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+                data: {"id":"x","model":"Borealis2-preview","choices":[{"index":0,"delta":{}}],"usage":{"completion_tokens":2,"prompt_tokens":21,"total_tokens":23,"completion_tokens_details":{"reasoning_tokens":0}}}
+
+                data: [DONE]
+
+                """,
+                System.Text.Encoding.UTF8,
+                "text/event-stream"),
+        };
+        var sut = CreateSut(new CapturingHandler(sse), timeoutSeconds: 300, useStreaming: true);
+
+        var response = await sut.RunAsync(MinimalRequest());
+
+        response.Content.Should().Be("OK");
+        response.FinishReason.Should().Be("stop");
+        response.Model.Should().Be("Borealis2-preview");
+        response.Usage.Should().ContainKey("prompt_tokens");
+        response.Usage.Should().ContainKey("completion_tokens_details");
+    }
+
     private static OpenAiCompatibleChatService CreateSut(
         HttpMessageHandler handler,
         int timeoutSeconds,
         bool useStreaming = false,
-        int maxTokens = 4096)
+        int maxTokens = 4096,
+        bool streamIncludeUsage = true)
     {
         var options = Options.Create(new AgentOptions
         {
@@ -82,6 +162,7 @@ public class OpenAiCompatibleChatServiceTests
             TimeoutSeconds = timeoutSeconds,
             UseStreaming = useStreaming,
             MaxTokens = maxTokens,
+            StreamIncludeUsage = streamIncludeUsage,
         });
         return new OpenAiCompatibleChatService(
             new StubHttpClientFactory(handler),

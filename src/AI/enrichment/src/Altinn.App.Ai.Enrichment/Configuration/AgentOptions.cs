@@ -53,6 +53,14 @@ public sealed class AgentOptions
     public bool UseStreaming { get; set; } = true;
 
     /// <summary>
+    /// Ask the gateway to include a token-usage block in streaming responses
+    /// (<c>stream_options.include_usage</c>). Without it most OpenAI-compatible
+    /// gateways omit usage entirely when streaming, leaving traces with no token
+    /// counts. Turn off only for a gateway that rejects the field.
+    /// </summary>
+    public bool StreamIncludeUsage { get; set; } = true;
+
+    /// <summary>
     /// Maximum time in seconds to wait for a single chat call. Budget expiry
     /// surfaces as a per-item transport verdict, not a failed task. For
     /// non-streaming calls, keep this below the gateway's own request timeout

@@ -4,6 +4,7 @@ using Altinn.App.Ai.Enrichment.Chat;
 using Altinn.App.Ai.Enrichment.Configuration;
 using Altinn.App.Ai.Enrichment.Orchestration;
 using Altinn.App.Ai.Enrichment.Rendering;
+using Altinn.App.Ai.Enrichment.Telemetry;
 using Altinn.App.Ai.Enrichment.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -75,6 +76,40 @@ public class AgentRuntimeFactoryTests
         sjekkliste.EnumerateObject().Should().NotBeEmpty();
     }
 
+    [Fact]
+    public void Create_StepWithRemovedTraceDir_FailsWithMigrationMessage()
+    {
+        // The YAML loader ignores unmatched properties, so simply deleting the model
+        // property would let a stale traceDir sit in an agent.yaml doing nothing while
+        // its author believed traces were still being written.
+        var dir = Directory.CreateTempSubdirectory("tracedir-agent-").FullName;
+        try
+        {
+            CopyDemoAgentTo(dir);
+            var yaml = Path.Combine(dir, "agent.yaml");
+            File.AppendAllText(yaml, "    traceDir: augmenter-traces" + System.Environment.NewLine);
+
+            var act = () => CreateFactory().Create(dir);
+
+            act.Should().Throw<InvalidOperationException>()
+                .WithMessage("*traceDir*has been removed*");
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    private static void CopyDemoAgentTo(string destination)
+    {
+        foreach (var source in Directory.EnumerateFiles(TestPaths.DemoAgentRoot, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(destination, Path.GetRelativePath(TestPaths.DemoAgentRoot, source));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(source, target);
+        }
+    }
+
     private static AgentRuntimeFactory CreateFactory(string? typstPath = null)
     {
         var typstOptions = Options.Create(new TypstOptions { BinaryPath = typstPath ?? "typst" });
@@ -82,6 +117,8 @@ public class AgentRuntimeFactoryTests
             new StubChatService(),
             new TypstRenderer(NullLogger<TypstRenderer>.Instance, typstOptions),
             new MarkdownRulesLoader(),
+            Options.Create(new AgentOptions { Model = "test-model" }),
+            EnrichmentTrace.Disabled,
             NullLoggerFactory.Instance);
     }
 
