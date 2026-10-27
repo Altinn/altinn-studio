@@ -13,7 +13,7 @@ const INACTIVE_RESOURCE_STATUSES: ReadonlyArray<string> = [
  * Resources with any other status, or without a status, are treated as active.
  */
 export const isResourceInactive = (resource: ResourceListItem): boolean => {
-  const statusLower = resource.status?.toLocaleLowerCase();
+  const statusLower = resource.status?.toLowerCase();
   return !!statusLower && INACTIVE_RESOURCE_STATUSES.includes(statusLower);
 };
 
