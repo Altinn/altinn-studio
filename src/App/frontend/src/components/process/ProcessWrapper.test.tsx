@@ -8,6 +8,7 @@ import { AxiosHeaders } from 'axios';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
+import { WorkflowTroubleBanner } from 'src/components/process/WorkflowEngine';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -232,6 +233,36 @@ describe('ProcessWrapper workflow state machine', () => {
     }
   });
 
+  it('a service task page shows the trouble banner above its content while a step fails and is retried', async () => {
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.workflow = {
+      status: 'processing',
+      targetTask: instance.process.currentTask!.elementId,
+      failedAttempts: 2,
+    };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <WorkflowTroubleBanner />
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    const content = await screen.findByTestId('task-content');
+    const banner = screen.getByRole('status');
+    expect(banner).toHaveTextContent(/vi kan ikke behandle skjemaet ditt/i);
+    expect(banner.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+  });
+
   it('a failure after a service task with a page shows the error page, not the page', async () => {
     // The transition onward from the service task failed before committing the next task: no task
     // UI owns that failure, so the terminal error page wins over the service task's page.
@@ -345,7 +376,8 @@ describe('ProcessWrapper workflow state machine', () => {
         await vi.advanceTimersByTimeAsync(1);
       });
       const status = screen.getByRole('status');
-      expect(status).toHaveAttribute('aria-live', 'polite');
+      // role='status' is already a polite live region; adding aria-live makes VoiceOver announce twice.
+      expect(status).not.toHaveAttribute('aria-live');
       expect(status).toHaveAttribute('aria-atomic', 'true');
       expect(status).toHaveTextContent(/du kan trygt lukke siden/i);
       expect(status.parentElement).toContainElement(screen.getByTestId('loader'));

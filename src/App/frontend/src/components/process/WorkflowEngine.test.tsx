@@ -1,13 +1,32 @@
 import React from 'react';
 
-import { act, render, screen } from '@testing-library/react';
+import { act, render, renderHook, screen } from '@testing-library/react';
 
-import { WorkflowProcessing } from 'src/components/process/WorkflowEngine';
+import {
+  useIsWorkflowHavingTrouble,
+  WorkflowProcessing,
+  WorkflowTroubleBanner,
+} from 'src/components/process/WorkflowEngine';
 import { useProcessWorkflow } from 'src/features/instance/useProcessQuery';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 
 vi.mock('src/features/instance/useProcessQuery', () => ({ useProcessWorkflow: vi.fn() }));
 vi.mock('src/core/loading/Loader', () => ({ Loader: ({ overlay }: { overlay?: React.ReactNode }) => overlay }));
 vi.mock('src/features/language/Lang', () => ({ Lang: ({ id }: { id: string }) => id }));
+vi.mock('src/hooks/useIsPdf', () => ({ useIsPdf: vi.fn(() => false) }));
+
+const startedAt = '2026-09-16T12:00:00.000Z';
+
+/** A processing workflow whose current run has lasted `elapsedMs` on the engine clock. */
+function processingFor(elapsedMs: number, failedAttempts?: number, resumedAt?: string) {
+  return {
+    status: 'processing' as const,
+    startedAt,
+    resumedAt,
+    currentTime: new Date(Date.parse(resumedAt ?? startedAt) + elapsedMs).toISOString(),
+    failedAttempts,
+  };
+}
 
 it('only counts time in processing status and resets when processing ends', async () => {
   vi.useFakeTimers();
@@ -147,14 +166,6 @@ describe('engine clock reference', () => {
 });
 
 describe('failing transition', () => {
-  const startedAt = '2026-09-16T12:00:00.000Z';
-  const processingFor = (elapsedMs: number, failedAttempts?: number) => ({
-    status: 'processing' as const,
-    startedAt,
-    currentTime: new Date(Date.parse(startedAt) + elapsedMs).toISOString(),
-    failedAttempts,
-  });
-
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
@@ -221,5 +232,111 @@ describe('failing transition', () => {
     vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(35_000));
     rerender(<WorkflowProcessing />);
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
+  });
+});
+
+describe('useIsWorkflowHavingTrouble', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('reports trouble at once after two failed attempts', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(1_000, 2));
+    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+    expect(result.current).toBe(true);
+  });
+
+  it('reports a single failed attempt once the run is twenty seconds old on the engine clock', async () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(5_000, 1));
+    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+    expect(result.current).toBe(false);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(14_999);
+    });
+    expect(result.current).toBe(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it('reports a single failed attempt at once when the run is already twenty seconds old', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(20_000, 1));
+    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+    expect(result.current).toBe(true);
+  });
+
+  it('never reports trouble without failed attempts, however long the run', async () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(10 * 60_000));
+    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    expect(result.current).toBe(false);
+  });
+
+  it('clears when the failing step succeeds or defers and failedAttempts returns to zero', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(30_000, 3));
+    const { result, rerender } = renderHook(() => useIsWorkflowHavingTrouble());
+    expect(result.current).toBe(true);
+
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(35_000));
+    rerender();
+    expect(result.current).toBe(false);
+  });
+
+  it('starts over when the run is resumed', async () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(30_000, 1));
+    const { result, rerender } = renderHook(() => useIsWorkflowHavingTrouble());
+    expect(result.current).toBe(true);
+
+    // The resume keeps startedAt, long past twenty seconds; the run is timed from the resume.
+    const resumedAt = new Date(Date.parse(startedAt) + 10 * 60_000).toISOString();
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(2_000, 1, resumedAt));
+    rerender();
+    expect(result.current).toBe(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(18_000);
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it.each([{ status: 'idle' as const }, { status: 'failed' as const }, undefined])(
+    'never reports trouble when the workflow is not processing: %o',
+    (workflow) => {
+      vi.mocked(useProcessWorkflow).mockReturnValue(workflow);
+      const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+      expect(result.current).toBe(false);
+    },
+  );
+});
+
+describe('WorkflowTroubleBanner', () => {
+  beforeEach(() => vi.mocked(useIsPdf).mockReturnValue(false));
+
+  it('shows the trouble warning as a polite status while the workflow is having trouble', () => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 2));
+    render(<WorkflowTroubleBanner />);
+    const banner = screen.getByRole('status');
+    expect(banner).toHaveTextContent('process_workflow.having_trouble');
+    expect(banner).not.toHaveAttribute('aria-live');
+  });
+
+  it('is never shown in PDF mode', () => {
+    vi.mocked(useIsPdf).mockReturnValue(true);
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 2));
+    render(<WorkflowTroubleBanner />);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['idle', { status: 'idle' as const }],
+    ['processing without failures', processingFor(3_000)],
+    ['a long but healthy run', processingFor(10 * 60_000)],
+    ['a single quick failure', processingFor(3_000, 1)],
+  ])('is not shown when %s', (_, workflow) => {
+    vi.mocked(useProcessWorkflow).mockReturnValue(workflow);
+    render(<WorkflowTroubleBanner />);
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });

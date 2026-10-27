@@ -9,6 +9,7 @@ import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IProcessWorkflowFailure } from 'src/types/shared';
 
@@ -23,25 +24,13 @@ const TROUBLE_AFTER_ONE_FAILURE_MS = 20_000;
 
 /**
  * Uses the ordinary form loader while a workflow transition is running. After eight seconds
- * of processing, the user also sees the safe-to-leave message. When a step keeps failing and is
- * being retried, that message is replaced by a warning: after a second failed attempt, or after
- * one failed attempt once processing has run for twenty seconds, so a single quick blip passes
- * unnoticed while a slow failure is reported at once. Both timestamps come from the engine clock;
- * a browser timer covers the remaining wait between status responses.
+ * of processing, the user also sees the safe-to-leave message. While the workflow is having
+ * trouble (see useIsWorkflowHavingTrouble), that message is replaced by a warning.
  */
 export function WorkflowProcessing() {
-  const workflow = useProcessWorkflow();
-  const isProcessing = workflow?.status === 'processing';
-  // A resume reruns the transition and keeps startedAt, so the current run is timed from the resume.
-  const runStartedAt = isProcessing ? (workflow.resumedAt ?? workflow.startedAt) : undefined;
-  const currentTime = isProcessing ? workflow.currentTime : undefined;
-  const failedAttempts = isProcessing ? (workflow.failedAttempts ?? 0) : 0;
-  const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(runStartedAt ?? '');
-  // Older engines and invalid timestamps fall back to measuring from when this screen appeared.
-  const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
+  const { isProcessing, runStartedAt, elapsedMs } = useWorkflowRun();
   const stillWorking = useHasProcessedFor(STILL_WORKING_MS, isProcessing, runStartedAt, elapsedMs);
-  const failingForLong = useHasProcessedFor(TROUBLE_AFTER_ONE_FAILURE_MS, failedAttempts > 0, runStartedAt, elapsedMs);
-  const havingTrouble = failedAttempts >= TROUBLE_FAILED_ATTEMPTS || failingForLong;
+  const havingTrouble = useIsWorkflowHavingTrouble();
 
   return (
     <Loader
@@ -50,7 +39,6 @@ export function WorkflowProcessing() {
         isProcessing && (stillWorking || havingTrouble) ? (
           <div
             role='status'
-            aria-live='polite'
             aria-atomic='true'
             className={classes.stillWorkingOverlay}
           >
@@ -65,6 +53,61 @@ export function WorkflowProcessing() {
       }
     />
   );
+}
+
+/**
+ * A warning at the top of a service task's own page while the workflow is having trouble (see
+ * useIsWorkflowHavingTrouble). It stays in view while the page scrolls, cannot be dismissed, and
+ * clears itself once a step succeeds again. Never shown in PDF mode.
+ */
+export function WorkflowTroubleBanner() {
+  const havingTrouble = useIsWorkflowHavingTrouble();
+  const isPdf = useIsPdf();
+
+  if (!havingTrouble || isPdf) {
+    return null;
+  }
+
+  return (
+    <Alert
+      role='status'
+      data-color='warning'
+      className={classes.troubleBanner}
+    >
+      <Lang id='process_workflow.having_trouble' />
+    </Alert>
+  );
+}
+
+/**
+ * Whether the processing workflow is having trouble: its current step has failed twice in a row,
+ * or once after the run has lasted twenty seconds, so a single quick blip passes unnoticed while
+ * a slow failure is reported at once. The run is timed on the engine clock, with a browser timer
+ * covering the wait between status responses. It clears when the step succeeds or defers (the
+ * engine resets failedAttempts) and starts over with a new run or a resume.
+ */
+export function useIsWorkflowHavingTrouble() {
+  const { runStartedAt, elapsedMs, failedAttempts } = useWorkflowRun();
+  const failingForLong = useHasProcessedFor(TROUBLE_AFTER_ONE_FAILURE_MS, failedAttempts > 0, runStartedAt, elapsedMs);
+  return failedAttempts >= TROUBLE_FAILED_ATTEMPTS || failingForLong;
+}
+
+/**
+ * The processing workflow's current run: when it started, how long it has run on the engine
+ * clock, and how many attempts in a row of its current step have failed. Zero and undefined
+ * when no transition is processing.
+ */
+function useWorkflowRun() {
+  const workflow = useProcessWorkflow();
+  const isProcessing = workflow?.status === 'processing';
+  // A resume reruns the transition and keeps startedAt, so the current run is timed from the resume.
+  const runStartedAt = isProcessing ? (workflow.resumedAt ?? workflow.startedAt) : undefined;
+  const currentTime = isProcessing ? workflow.currentTime : undefined;
+  const failedAttempts = isProcessing ? (workflow.failedAttempts ?? 0) : 0;
+  const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(runStartedAt ?? '');
+  // Older engines and invalid timestamps fall back to measuring from when this screen appeared.
+  const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
+  return { isProcessing, runStartedAt, elapsedMs, failedAttempts };
 }
 
 /**
