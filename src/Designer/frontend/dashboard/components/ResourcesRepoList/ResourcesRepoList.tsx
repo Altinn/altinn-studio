@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from './ResourcesRepoList.module.css';
 import { RESOURCEADM_BASENAME } from 'app-shared/constants';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { FilterableResourceTable } from 'resourceadm/components/FilterableResourceTable';
@@ -68,7 +69,7 @@ export const ResourcesRepoList = ({
       {isLoadingResourceList ? (
         <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (
-        <div data-testid='resource-table-wrapper'>
+        <div className={classes.tableWrapper} data-testid='resource-table-wrapper'>
           <FilterableResourceTable
             list={resourceListData ?? []}
             headingLevel={3}
