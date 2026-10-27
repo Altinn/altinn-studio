@@ -3,7 +3,9 @@ package cabundle
 
 import (
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/hex"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
@@ -30,6 +32,10 @@ const (
 	redHatTrustPath = "/etc/pki/ca-trust/source/anchors/studio-ca-bundle.crt"
 )
 
+// ErrNoCertificate is returned for a STUDIO_CA_BUNDLE file that holds no PEM certificate, such as an empty file or
+// one in another format. Trust stores reject or skip such a file, and pdf3's entrypoint does not start with it.
+var ErrNoCertificate = errors.New("STUDIO_CA_BUNDLE contains no PEM certificate")
+
 var (
 	errCABundleNotRegular = errors.New("STUDIO_CA_BUNDLE must point to a regular file")
 
@@ -53,7 +59,8 @@ type Bundle struct {
 	Digest        string
 }
 
-// FromEnv returns the configured complete CA bundle and whether STUDIO_CA_BUNDLE is set.
+// FromEnv returns the configured complete CA bundle and whether STUDIO_CA_BUNDLE is set. A set variable that names no
+// readable regular file holding at least one PEM certificate is an error (ErrNoCertificate for the last).
 func FromEnv() (*Bundle, bool, error) {
 	hostPath := os.Getenv(EnvStudioCABundle)
 	if hostPath == "" {
@@ -79,6 +86,9 @@ func FromEnv() (*Bundle, bool, error) {
 	if err != nil {
 		return nil, true, fmt.Errorf("read %s: %w", EnvStudioCABundle, err)
 	}
+	if !hasCertificate(data) {
+		return nil, true, fmt.Errorf("%w: %s", ErrNoCertificate, hostPath)
+	}
 	digest := sha256.Sum256(data)
 
 	return &Bundle{
@@ -87,6 +97,24 @@ func FromEnv() (*Bundle, bool, error) {
 		ContainerPath: ContainerPath,
 		Digest:        hex.EncodeToString(digest[:]),
 	}, true, nil
+}
+
+// hasCertificate reports whether data holds a PEM CERTIFICATE block that parses as an X.509 certificate. Text around
+// the blocks, as in the comments of a system bundle, is ignored.
+func hasCertificate(data []byte) bool {
+	for {
+		var block *pem.Block
+		block, data = pem.Decode(data)
+		if block == nil {
+			return false
+		}
+		if block.Type != "CERTIFICATE" {
+			continue
+		}
+		if _, err := x509.ParseCertificate(block.Bytes); err == nil {
+			return true
+		}
+	}
 }
 
 // EnvVars returns the names of environment variables set for CA-aware cluster pods.

@@ -1,6 +1,7 @@
 package cabundle
 
 import (
+	"encoding/pem"
 	"errors"
 	"go/parser"
 	"go/token"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"altinn.studio/devenv/pkg/cabundle/cabundletest"
 )
 
 func TestFromEnvUnset(t *testing.T) {
@@ -54,7 +57,7 @@ func TestFromEnvDirectory(t *testing.T) {
 func TestFromEnvValidFileReturnsAbsolutePath(t *testing.T) {
 	tmp := t.TempDir()
 	t.Chdir(tmp)
-	if writeErr := os.WriteFile("ca.pem", []byte("complete-test-ca-bundle"), 0o600); writeErr != nil {
+	if writeErr := os.WriteFile("ca.pem", cabundletest.PEM(t), 0o600); writeErr != nil {
 		t.Fatalf("write bundle: %v", writeErr)
 	}
 	t.Setenv(EnvStudioCABundle, "ca.pem")
@@ -78,6 +81,52 @@ func TestFromEnvValidFileReturnsAbsolutePath(t *testing.T) {
 	}
 	if bundle.Digest == "" {
 		t.Fatal("Digest is empty")
+	}
+}
+
+func TestFromEnvRejectsABundleWithoutCertificate(t *testing.T) {
+	for name, content := range map[string][]byte{
+		"empty":                   nil,
+		"not PEM":                 []byte("complete-test-ca-bundle\n"),
+		"a key, no certificate":   pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: []byte("key")}),
+		"a malformed certificate": pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("not DER")}),
+	} {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "ca.pem")
+			if err := os.WriteFile(path, content, 0o600); err != nil {
+				t.Fatalf("write bundle: %v", err)
+			}
+			t.Setenv(EnvStudioCABundle, path)
+
+			bundle, configured, err := FromEnv()
+			if !errors.Is(err, ErrNoCertificate) {
+				t.Fatalf("FromEnv() error = %v, want ErrNoCertificate", err)
+			}
+			if !configured || bundle != nil {
+				t.Fatalf("FromEnv() = %v, %v; want nil, configured", bundle, configured)
+			}
+			if !strings.Contains(err.Error(), path) {
+				t.Fatalf("FromEnv() error = %v, want it to name %s", err, path)
+			}
+		})
+	}
+}
+
+func TestFromEnvAcceptsASystemBundleWithComments(t *testing.T) {
+	content := "# A system bundle has comments between certificates.\n" + string(cabundletest.PEM(t)) +
+		"\n# Another\n" + string(cabundletest.PEM(t))
+	path := filepath.Join(t.TempDir(), "ca-certificates.crt")
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatalf("write bundle: %v", err)
+	}
+	t.Setenv(EnvStudioCABundle, path)
+
+	bundle, _, err := FromEnv()
+	if err != nil {
+		t.Fatalf("FromEnv() error = %v", err)
+	}
+	if string(bundle.Data) != content {
+		t.Fatal("FromEnv() changed the bundle's content")
 	}
 }
 
