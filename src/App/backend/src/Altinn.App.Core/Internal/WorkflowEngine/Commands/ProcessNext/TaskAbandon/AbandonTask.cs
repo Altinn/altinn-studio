@@ -35,8 +35,8 @@ internal sealed class AbandonTask : WorkflowEngineCommandBase<ProcessTaskStagePa
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            Pipeline pipeline = processTask.DefineAbandon(new PipelineBuilder());
-            return await StageExecution.Run(pipeline, payload, context, "abandon", altinnTaskType);
+            Pipeline pipeline = processTask.ResolvePipeline(LifecyclePhase.Abandon);
+            return await StageExecution.Run(pipeline, payload, context, LifecyclePhase.Abandon, altinnTaskType);
         }
         catch (Exception ex)
         {

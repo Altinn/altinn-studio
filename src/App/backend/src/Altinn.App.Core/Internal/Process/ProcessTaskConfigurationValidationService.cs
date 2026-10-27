@@ -130,23 +130,16 @@ internal sealed class ProcessTaskConfigurationValidationService(
 
             // Lifecycle pipelines are composed on every transition, so one that cannot be composed would fail every
             // transition into or out of the task.
-            foreach (
-                (string phase, Func<Pipeline> compose) in new (string, Func<Pipeline>)[]
-                {
-                    ("start", () => task.DefineStart(new PipelineBuilder())),
-                    ("end", () => task.DefineEnd(new PipelineBuilder())),
-                    ("abandon", () => task.DefineAbandon(new PipelineBuilder())),
-                }
-            )
+            foreach (LifecyclePhase phase in Enum.GetValues<LifecyclePhase>())
             {
                 try
                 {
-                    _ = compose();
+                    _ = task.ResolvePipeline(phase);
                 }
                 catch (Exception e)
                     when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
                 {
-                    findings.Add($"Task '{bpmnTask.Id}': composing its {phase} pipeline failed: {e.Message}");
+                    findings.Add($"Task '{bpmnTask.Id}': composing its {phase.Name()} pipeline failed: {e.Message}");
                 }
             }
         }

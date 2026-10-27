@@ -35,8 +35,8 @@ internal sealed class StartTask : WorkflowEngineCommandBase<ProcessTaskStagePayl
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            Pipeline pipeline = processTask.DefineStart(new PipelineBuilder());
-            return await StageExecution.Run(pipeline, payload, context, "start", altinnTaskType);
+            Pipeline pipeline = processTask.ResolvePipeline(LifecyclePhase.Start);
+            return await StageExecution.Run(pipeline, payload, context, LifecyclePhase.Start, altinnTaskType);
         }
         catch (Exception ex)
         {

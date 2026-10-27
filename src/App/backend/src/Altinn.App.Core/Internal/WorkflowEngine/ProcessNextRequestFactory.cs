@@ -526,10 +526,7 @@ internal sealed class ProcessNextRequestFactory
                     new TaskStartContext
                     {
                         TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
-                        StartPipeline = ResolveProcessTaskPipeline(
-                            altinnTaskType,
-                            (task, pipeline) => task.DefineStart(pipeline)
-                        ),
+                        StartPipeline = ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Start),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
@@ -542,11 +539,11 @@ internal sealed class ProcessNextRequestFactory
             case InstanceEventType.process_EndTask:
                 return WorkflowCommandSet.GetTaskEndSteps(
                     GetRequiredEventTaskId(instanceEvent, eventType),
-                    ResolveProcessTaskPipeline(altinnTaskType, (task, pipeline) => task.DefineEnd(pipeline))
+                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End)
                 );
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps(
-                    ResolveProcessTaskPipeline(altinnTaskType, (task, pipeline) => task.DefineAbandon(pipeline))
+                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Abandon)
                 );
             case InstanceEventType.process_EndEvent:
                 return WorkflowCommandSet.GetProcessEndSteps(
@@ -578,17 +575,14 @@ internal sealed class ProcessNextRequestFactory
             : null;
 
     /// <summary>
-    /// The lifecycle pipeline the task type composes with <paramref name="define"/>, resolved the same way the
+    /// The lifecycle pipeline the task type composes for <paramref name="phase"/>, resolved the same way the
     /// step resolves it when it runs. Read at enqueue time to plan one step per stage. A type with no registered
     /// implementation (startup validation rejects that) gets a single step, which reports the missing
     /// implementation when it runs.
     /// </summary>
-    private Pipeline ResolveProcessTaskPipeline(
-        string? altinnTaskType,
-        Func<IProcessTask, PipelineBuilder, Pipeline> define
-    ) =>
+    private Pipeline ResolveProcessTaskPipeline(string? altinnTaskType, LifecyclePhase phase) =>
         new ProcessTaskResolver(_appImplementationFactory).FindProcessTaskInstance(altinnTaskType) is { } task
-            ? define(task, new PipelineBuilder())
+            ? task.ResolvePipeline(phase)
             : _unresolvedTaskPipeline;
 
     private static readonly Pipeline _unresolvedTaskPipeline = new PipelineBuilder()

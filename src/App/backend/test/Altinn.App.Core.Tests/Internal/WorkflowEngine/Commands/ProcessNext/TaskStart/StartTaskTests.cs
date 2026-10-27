@@ -150,14 +150,46 @@ public class StartTaskTests
     {
         // A version from before lifecycle stages planned one step with no payload and ran the whole lifecycle in
         // it. A workflow it enqueued may still be in flight after an upgrade; its step runs the way it was planned.
+        // Each stage runs under an id of its own, the same on every attempt, so what the stages key on it stays apart.
         var ran = new List<string>();
         var command = CreateCommand(new StagedTask(ran));
         var context = CreateContext(CreateInstance(), stageIndex: null);
 
         var result = await command.Execute(context);
+        var secondAttempt = await command.Execute(context);
 
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        Assert.Equal([$"first:{context.Payload.StepId}", $"second:{context.Payload.StepId}"], ran);
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(secondAttempt);
+        Guid stepId = context.Payload.StepId;
+        Guid secondStageId = StageExecution.StepIdForStage(stepId, 1);
+        Assert.NotEqual(stepId, secondStageId);
+        Assert.Equal([$"first:{stepId}", $"second:{secondStageId}", $"first:{stepId}", $"second:{secondStageId}"], ran);
+    }
+
+    private sealed class RecordThenPollTask : IProcessTask
+    {
+        public string Type => "data";
+
+        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(2))))
+                .Build();
+    }
+
+    [Fact]
+    public async Task Execute_WithoutStageIndex_ALaterStageThatDefersFailsPermanently()
+    {
+        // The step cannot save between its stages, and a deferral discards what was staged before it. Run as a step
+        // of its own, the same stage defers freely (Execute_StageDefers_DefersTheStep).
+        var command = CreateCommand(new RecordThenPollTask());
+
+        var result = await command.Execute(CreateContext(CreateInstance(), stageIndex: null));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal(StageExecution.DeferredAfterOtherStagesReasonCode, failed.ExceptionType);
+        Assert.Contains("start stage 1 deferred", failed.ErrorMessage);
     }
 
     [Fact]

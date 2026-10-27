@@ -71,7 +71,10 @@ public interface IProcessTask
     /// <remarks>
     /// Added in v9. The pipeline is composed again for every step and must not depend on the instance or on
     /// configuration that can change while a transition is in flight, since a step is dispatched by the position of
-    /// its stage.
+    /// its stage. For the same reason a deploy that changes the number or order of the stages reshapes the pipeline
+    /// under transitions already in flight: each of their steps runs the stage now at its index and no other, so the
+    /// first override of a task that ran the one default stage leaves such a transition with the first new stage
+    /// only. Deploy such a change when no transition can be in flight, as for a service task pipeline.
     /// </remarks>
 #pragma warning disable CS0618 // The defaults run the deprecated members on purpose, until those are removed.
     Pipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(Start, context)).Build();

@@ -1,4 +1,7 @@
+using System.Buffers.Binary;
+using System.Security.Cryptography;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
@@ -12,6 +15,12 @@ internal static class StageExecution
     internal const string FailedReasonCode = "ProcessTaskStageFailedException";
 
     /// <summary>
+    /// Reason code for a stage that deferred in a step that runs every stage, after the stages before it ran.
+    /// Operator-visible.
+    /// </summary>
+    internal const string DeferredAfterOtherStagesReasonCode = "ProcessTaskStageDeferredAfterOthers";
+
+    /// <summary>
     /// The step's stage payload. A step enqueued by a version from before lifecycle stages carries none: that
     /// version ran the whole lifecycle as one step, so the step is run that way here, as a payload with no stage
     /// index. A payload of another type is invalid, as for any command.
@@ -23,17 +32,24 @@ internal static class StageExecution
                 as ProcessTaskStagePayload;
 
     /// <summary>
-    /// Runs the stage the step names, or every stage in order when the step names none (see
-    /// <see cref="ResolvePayload"/>), and reports the outcome as the step's. A stage index the pipeline no longer
+    /// Runs the stage the step names and reports the outcome as the step's. A stage index the pipeline no longer
     /// has fails permanently: the pipeline was reshaped while this workflow was in flight, and running whatever
     /// stage now sits at that position could do the wrong work. The step's messages name the lifecycle
-    /// <paramref name="phase"/> (<c>start</c>, <c>end</c> or <c>abandon</c>) and the task type.
+    /// <paramref name="phase"/> and the task type.
     /// </summary>
+    /// <remarks>
+    /// A step that names no stage (see <see cref="ResolvePayload"/>) runs every stage in order, as the version that
+    /// enqueued it ran the whole lifecycle. The step cannot save between the stages, which bounds what they get.
+    /// The first stage runs under the step's id and each later one under an id derived from it and the stage's
+    /// position, the same on every attempt of the step and distinct from the others', so calls keyed on
+    /// <see cref="StageContext.StepId"/> stay apart. Only the first stage can defer: a deferral discards what the
+    /// stages before it changed, so a later stage that defers fails the step permanently instead.
+    /// </remarks>
     public static async Task<ProcessEngineCommandResult> Run(
         Pipeline pipeline,
         ProcessTaskStagePayload payload,
         ProcessEngineCommandContext context,
-        string phase,
+        LifecyclePhase phase,
         string? altinnTaskType
     )
     {
@@ -44,10 +60,27 @@ internal static class StageExecution
         {
             for (int index = 0; index < stages.Count; index++)
             {
-                ProcessEngineCommandResult result = await RunStage(stages[index], index);
-                if (result is not SuccessfulProcessEngineCommandResult)
+                StageContext stageOwnContext = stageContext with
                 {
-                    return result;
+                    StepId = StepIdForStage(stageContext.StepId, index),
+                };
+                ProcessEngineCommandResult result = await RunStage(stages[index], index, stageOwnContext);
+                switch (result)
+                {
+                    case SuccessfulProcessEngineCommandResult:
+                        continue;
+                    case DeferredProcessEngineCommandResult when index > 0:
+                        return FailedProcessEngineCommandResult.Permanent(
+                            $"Task type '{altinnTaskType}' {phase.Name()} stage {index} deferred after the stages "
+                                + "before it ran. This step was enqueued before the task composed stages and runs "
+                                + "every stage without saving in between, so a deferral would discard what they "
+                                + "changed. Resume the workflow on the code that enqueued it, or abandon it "
+                                + "deliberately; a transition started on this code runs each stage as a step of its "
+                                + "own.",
+                            DeferredAfterOtherStagesReasonCode
+                        );
+                    default:
+                        return result;
                 }
             }
             return new SuccessfulProcessEngineCommandResult();
@@ -56,21 +89,41 @@ internal static class StageExecution
         if (stages.ElementAtOrDefault(stageIndex) is not { } stage)
         {
             return FailedProcessEngineCommandResult.Permanent(
-                $"Task type '{altinnTaskType}' composes no {phase} stage at index {stageIndex}. A pipeline's indexes "
-                    + "are positions in its composition: if stages were inserted, reordered or removed since this "
+                $"Task type '{altinnTaskType}' composes no {phase.Name()} stage at index {stageIndex}. A pipeline's "
+                    + "indexes are positions in its composition: if stages were inserted, reordered or removed since this "
                     + "workflow was enqueued, every index behind the change has moved. Resume the workflow on the "
                     + "code that enqueued it, or abandon it deliberately.",
                 "ProcessTaskStageNotFound"
             );
         }
-        return await RunStage(stage, stageIndex);
+        return await RunStage(stage, stageIndex, stageContext);
 
-        async Task<ProcessEngineCommandResult> RunStage(PipelineStage.Plain stage, int index) =>
+        async Task<ProcessEngineCommandResult> RunStage(PipelineStage.Plain stage, int index, StageContext context) =>
             MapResult(
-                await stage.Work(stageContext),
-                message => $"Task type '{altinnTaskType}' {phase} stage {index} failed: {message}",
+                await stage.Work(context),
+                message => $"Task type '{altinnTaskType}' {phase.Name()} stage {index} failed: {message}",
                 FailedReasonCode
             );
+    }
+
+    /// <summary>
+    /// The id a stage runs under when one step runs every stage: the step's own for the first stage, and for each
+    /// later one an id derived from the step's and the stage's position, so that the stages' ids differ from each
+    /// other and are the same every time the step is attempted.
+    /// </summary>
+    internal static Guid StepIdForStage(Guid stepId, int index)
+    {
+        if (index == 0)
+        {
+            return stepId;
+        }
+
+        Span<byte> input = stackalloc byte[20];
+        stepId.TryWriteBytes(input);
+        BinaryPrimitives.WriteInt32LittleEndian(input[16..], index);
+        Span<byte> hash = stackalloc byte[SHA256.HashSizeInBytes];
+        SHA256.HashData(input, hash);
+        return new Guid(hash[..16]);
     }
 
     /// <summary>
