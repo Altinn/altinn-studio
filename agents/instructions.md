@@ -1,12 +1,8 @@
 # Altinn Studio Agent
 
-You are an agent working on the Altinn Studio product and its related projects.
-
-## Product
-
-Altinn Studio is the tooling for developing, operating and managing public digital services on Altinn 3. Its main
-repository is `Altinn/altinn-studio`. In a checkout, `README.md` says what the product is and maps the repository,
-and `docs/repositories.md` lists the related repositories and what lives where.
+You are an agent working on Altinn Studio and its related repositories. In a checkout of `Altinn/altinn-studio`, its
+`AGENTS.md`, `README.md`, `CONTRIBUTING.md` and `docs/` are the source of truth for how we work, and
+`docs/repositories.md` lists the related repositories. In another repository, follow its own docs.
 
 ## Workspace
 
@@ -27,20 +23,6 @@ Do task work in a dedicated Git worktree under `/home/agent/code/.worktrees/`, w
 checkouts clean for synchronizing remotes and creating, inspecting, or removing worktrees. Start new Altinn Studio
 work from the current `origin/main`; for forked repositories, inspect the remotes and start from the current upstream
 default branch. Never push to `main`, protected release branches, or merge pull requests.
-
-## Development
-
-- State important assumptions when they affect the implementation.
-- Stop and ask when requirements remain materially ambiguous after inspecting the relevant code and context.
-- Challenge flawed approaches and change code at the appropriate architectural layer.
-- Keep changes focused on the requested outcome; separate unrelated work.
-- Check relevant code, tests, specifications, logs, or primary documentation before presenting assumptions as facts.
-- Run the closest formatting, lint, build, and test targets before reporting completion.
-
-Define success before nontrivial changes. Debug with a reproduction or failing test, make the smallest coherent change,
-and rerun the evidence that demonstrates the outcome. Benchmark and profile performance work. When full verification
-is impractical, run the lightest meaningful check and state exactly what remains unverified. Say “I am not sure” or
-“I cannot confirm” instead of guessing.
 
 ## References in responses
 
@@ -70,22 +52,13 @@ When posting multiline GitHub comments from a shell, pass the body through stdin
 
 ## Environment
 
-The tools installed on this computer are listed in the section that follows this shared text. Detect a tool before
-relying on it.
-
-The image carries no APT package lists, so run `sudo apt-get update` before installing anything. Without it
-`apt-get install` reports `has no installation candidate` for packages that are in fact available, which reads like
-the package is missing from the distribution rather than from your index.
-
-Store reusable local scripts under `/home/agent/code/.scripts/` and downloaded reference repositories or source
-material under `/home/agent/code/.reference/`. Check for existing material before downloading another copy.
-
-Subagents are your harness's own delegated workers, such as Claude Code's Agent tool or Codex subagents. They run
-inside this Sandbox and need no extra setup; use them for reviews, research and parallel work.
-
-The .NET SDKs 8, 10 and 11 sit side by side, so each project's `global.json` selects its own; `uv` runs the Python
-projects under `src/AI` and installs the Python release their `.python-version` names. `studioctl` is logged in to each
-configured production, staging or development Studio environment at boot with a host-mediated API key.
-
-The clock is Norwegian local time (Europe/Oslo), not UTC. Dates and times you read from this computer, and any you
-write into commits, changelogs or files, are in that zone.
+- The section after this one lists what is special about this computer. Detect a tool before you rely on it.
+- The image has no APT package lists, so run `sudo apt-get update` before you install anything. Without it,
+  `apt-get install` reports `has no installation candidate` even for packages that exist.
+- Store reusable local scripts in `/home/agent/code/.scripts/` and downloaded repositories or source material in
+  `/home/agent/code/.reference/`. Check for an existing copy before you download another.
+- Subagents, your harness's own delegated workers, run in this Sandbox with no setup. Use them for reviews, research
+  and parallel work.
+- `studioctl` is logged in at boot to each Studio environment that has an API key.
+- The clock is Norwegian local time (Europe/Oslo), not UTC, and so are the dates you write into commits, changelogs
+  and files.

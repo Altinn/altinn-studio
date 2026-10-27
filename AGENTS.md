@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Follow [CONTRIBUTING.md](CONTRIBUTING.md). The [README](README.md) maps the repository.
+Follow [CONTRIBUTING.md](CONTRIBUTING.md). The [README](README.md) says how the parts fit together.
 
 - Read the code, not the docs, to learn how something works.
 - Projects use different languages and versions. Check the project's `global.json`, `go.mod`, `package.json` or

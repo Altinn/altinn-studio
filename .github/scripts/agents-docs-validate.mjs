@@ -10,15 +10,10 @@ import { execFileSync } from 'node:child_process';
 //   5. Relative links in the root docs, AGENTS.md, README.md and docs/ files resolve.
 //   6. Every docs/ folder has a README.md that links each doc in it, directly or through a link to a folder that
 //      holds it. Images and generated files need no link.
-//   7. The root README.md repository map mentions every tracked top-level directory and every
-//      tracked directory directly under src/.
 
-const ROOT_DOC = 'README.md';
 const DOCS_DIR = 'docs';
 const INDEX_EXEMPT = /\.(png|jpe?g|gif|webp)$|\.generated\./;
 const SKILLS_DIRS = ['agents/_skills/', 'src/AI/assistant/agents/skills/'];
-// Directories that intentionally have no entry in the root map.
-const COVERAGE_EXEMPT = new Set(['node_modules']);
 
 const errors = [];
 
@@ -30,14 +25,6 @@ function gitListFiles(...patterns) {
   );
   // A file deleted in the working tree is still listed by --cached until the deletion is staged.
   return out.split('\n').filter((file) => file && fs.existsSync(file));
-}
-
-function gitListDirs(treeish) {
-  const out = execFileSync('git', ['ls-tree', '-d', '--name-only', treeish], {
-    encoding: 'utf8',
-    maxBuffer: 16 * 1024 * 1024,
-  });
-  return out.split('\n').filter(Boolean);
 }
 
 // Text outside fenced code blocks, so examples in code are not checked as links.
@@ -146,26 +133,6 @@ for (const [dir, files] of docsByDir) {
   for (const file of files) {
     const covered = linked.some((target) => file === target || file.startsWith(`${target}/`));
     if (!covered) errors.push(`${file}: not linked from ${index}`);
-  }
-}
-
-// --- 7. Root map coverage ---
-
-if (!fs.existsSync(ROOT_DOC)) {
-  errors.push(`${ROOT_DOC}: missing`);
-} else {
-  const rootDoc = fs.readFileSync(ROOT_DOC, 'utf8');
-  const trackedDirs = [...gitListDirs('HEAD'), ...gitListDirs('HEAD:src').map((d) => `src/${d}`)];
-  for (const dir of trackedDirs) {
-    const name = path.basename(dir);
-    if (COVERAGE_EXEMPT.has(name) || name.startsWith('.')) continue;
-    const mentioned = new RegExp(
-      `(^|[\\s\`\\[/(])${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([\\s\`\\]/).,]|$)`,
-      'm',
-    ).test(rootDoc);
-    if (!mentioned) {
-      errors.push(`${ROOT_DOC}: tracked directory "${dir}" is not mentioned in the repository map`);
-    }
   }
 }
 

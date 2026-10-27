@@ -10,7 +10,7 @@ services belongs where it is defined.
 
 | What                                                                     | Home                                                                    |
 | ------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| What the product is, and a map of the repository                         | [README.md](../README.md)                                               |
+| What the product is, and how its parts fit together                      | [README.md](../README.md)                                               |
 | How we work: issues, pull requests, changelogs and releases              | [CONTRIBUTING.md](../CONTRIBUTING.md)                                   |
 | How we write code                                                        | [coding-standards.md](coding-standards.md)                              |
 | The terms we use                                                         | [GLOSSARY.md](../GLOSSARY.md)                                           |
@@ -24,10 +24,9 @@ services belongs where it is defined.
 | What the published Agents run with                                       | [agents/](../agents/README.md)                                          |
 | What service owners and app developers need, such as how to build an app | [docs.altinn.studio](https://docs.altinn.studio), in altinn-studio-docs |
 
-- An ADR records a decision at a point in time. The other docs describe the current state and link to the ADRs
-  behind it.
+- An ADR records a decision at a point in time. The other docs describe the current state.
 - Facts about another repository live in that repository. Say how we use it and link there.
-- Private information stays in Confluence. Development docs live here, not in the GitHub wiki.
+- Private information stays in Confluence.
 
 ## Names
 
@@ -46,12 +45,14 @@ and pull request descriptions and comments.
 - Write what the code cannot show: what a component is for, what uses it and what it uses, why it is the way it is,
   and constraints enforced somewhere else, such as by infrastructure, a pipeline or another service. Link to the code
   or configuration that defines a connection.
-- Leave out what a refactor that keeps the behavior would change, such as folder trees, lists of classes or
-  endpoints, configuration field by field, and versions.
+- Leave out details the code already shows, which go stale each time the code changes, such as folder trees, lists
+  of classes or endpoints, each configuration setting, and versions.
+- Describe the outcome a rule is for, rather than the tools and settings that achieve it today.
 - State the rule and why it exists, not a list of the cases it covers.
 - Write the way you would say it to a colleague, in short sentences with a subject and a verb. Use periods rather
   than semicolons or em dashes, and leave out words that add nothing.
 - Name what acts: "the operator deletes the secret", not "the secret is deleted".
+- Use bullet points to enumerate things, rather than a long sentence with commas.
 - Use the terms in the [glossary](../GLOSSARY.md), the same term for the same thing every time.
 
 ## AGENTS.md and skills

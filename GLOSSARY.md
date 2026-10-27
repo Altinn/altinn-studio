@@ -1,9 +1,7 @@
 # Glossary
 
-The terms we use for the Altinn domain and for how we work. The [repository map](README.md#repository-map) says what
-each component is.
-
-## Altinn
+The terms we use for the Altinn domain. The [README](README.md#how-it-fits-together) says how the parts of Altinn
+Studio fit together.
 
 | Term                 | Meaning                                                                                                                                                                                                         |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -38,27 +36,3 @@ each component is.
 | Text resource        | A translatable text with a key, in `config/texts/resource.<language>.json`.                                                                                                                                     |
 | UI folder            | In a v9 app, `ui/<task id>/` holds the pages of one task, and each subform has a UI folder of its own. Say UI folder, not layout set, which is the v8 name.                                                     |
 | User                 | A person using an app, logged in with ID-porten, acting for themselves or for a party they may represent.                                                                                                       |
-
-## Building and running Altinn Studio
-
-| Term               | Meaning                                                                                                                                                                                                                                                                                |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auxiliary workflow | A workflow in the workflow engine that runs beside an instance's process. It never blocks or moves the process, and when it fails, work is lost and must be run again. See [the technical guide](src/Runtime/workflow-engine/docs/technical-guide.md#primary-and-auxiliary-workflows). |
-| Deployment         | Putting a release of an app in an environment.                                                                                                                                                                                                                                         |
-| DIS                | The platform team's Kubernetes platform: DIS Core runs shared platform services and DIS Edge is its ingress. See [Environments](docs/infrastructure/environments.md).                                                                                                                  |
-| Environment        | A named place to deploy to. Apps deploy to test environments, such as `tt02`, and to production. The [service owner registry](https://github.com/Altinn/altinn-cdn/blob/master/orgs/altinn-orgs.json) lists each service owner's. Studio itself runs in `dev`, `staging` and `prod`.   |
-| Primary workflow   | A workflow in the workflow engine that an instance's process waits on.                                                                                                                                                                                                                 |
-| Release            | A version of an app, built from a commit in its repository.                                                                                                                                                                                                                            |
-| Release ring       | A group of service owners that a runtime service is rolled out to together. `ring1` is only `ttd`, and `ring2` is the rest.                                                                                                                                                            |
-| Runtime cluster    | A Kubernetes cluster that runs one service owner's apps in one environment, with our runtime services beside them.                                                                                                                                                                     |
-| Studio cluster     | A Kubernetes cluster that runs Designer and Gitea for one Studio environment.                                                                                                                                                                                                          |
-| Syncroot           | The root of the Kubernetes configuration that Flux applies to a cluster, published as an OCI artifact.                                                                                                                                                                                 |
-| `ttd`              | The service owner that the Studio team uses for testing.                                                                                                                                                                                                                               |
-
-## Agents
-
-| Term    | Meaning                                                                                                                                                                                                                                                                |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Agent   | With a capital A, one of the `agentctl` Agents defined in [agents/](agents/README.md). Write "agent" for any coding agent.                                                                                                                                             |
-| Harness | The program that runs a model in a loop with tools, such as Claude Code, Codex or Pi.                                                                                                                                                                                  |
-| Skill   | A directory with a `SKILL.md` in the [Agent Skills](https://agentskills.io/specification) format that tells an agent how to do one kind of task. A harness loads it only when a task needs it. The skills for coding agents are in [agents/\_skills/](agents/_skills). |

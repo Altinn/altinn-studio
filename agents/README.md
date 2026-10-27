@@ -16,7 +16,7 @@ See its [README](https://github.com/digdir/digdir-agents/blob/main/agentctl/READ
 | `desktop` `worktree`     | Desktop published image with the current checkout mounted read-write |
 
 `minimal` suits code and review work. `desktop` adds containers, kind, a browser and a graphical desktop, for
-LocalTest, browser evidence and computer use. Each Agent's `environment.md` lists its tools. Both build on the
+LocalTest, browser evidence and computer use. Each Agent's `environment.md` says what is special about it. Both build on the
 [agentctl base image](https://github.com/digdir/digdir-agents/tree/main/images/agentctl-base), which provides the
 harnesses and the desktop.
 

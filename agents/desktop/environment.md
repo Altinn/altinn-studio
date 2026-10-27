@@ -1,48 +1,17 @@
 ## This computer
 
-.NET, Node.js with Yarn, Go, Rust, Neovim, the GitHub CLI, and `studioctl` with its companion server and LocalTest
-resources.
-External Altinn app repositories belong under `/home/agent/code/apps`; LocalTest hostnames are prepared at boot.
-`typos` and `hunspell` for the repository spell check (`yarn spell:quick`, `yarn spell:check`).
-`cargo-machete` for the github-runner coordinator's unused-dependency check (`make deps-check`) and `cargo-deny`
-for the root `deny.toml`.
-Python 3 with `venv` and `pip`; create a virtual environment per project, as the system interpreter is externally
-managed.
-`golangci-lint` for the Go modules, `typst`, which renders the augmenter-agent's PDFs, and `hurl` for the gitea-proxy
-tests (Ubuntu's 7.1, where CI uses 8.0).
-`yq`, `actionlint` and `shellcheck` for manifests, workflows and shell scripts. `psql`, `unzip`, `zip`, `rsync` and
-`file`.
-`dotnet-ef` for the Designer's Entity Framework migrations.
-Debugging and profiling: `dotnet-trace`, `dotnet-counters` and `dotnet-dump` alongside `perf`, `lldb` and `strace`;
-`ilspycmd` to decompile .NET assemblies; `hyperfine` for benchmarks; `lsof`, `tcpdump`, `socat`, `nc` and `dig`.
-
-Podman, with the `docker` command and Docker Compose on `/run/docker.sock`, kind, kubectl, Helm and Flux.
-`agentctl` and `agentd` for nested Agents, where the Agent sandbox section says they can run; the `agentctl` skill
-describes them.
-
-Pull request evidence: `asciinema` and `agg` for terminal recordings; `playwright-cli` with Chromium (open it with
-`--browser chromium`), `ffmpeg`, and the `video-to-gif` and `media-preview` helpers for browser captures.
-
-App frontend's Cypress tests run in the same Chromium: `CHROME_PATH` names it, and Cypress finds it only by path, so
-pass `--browser "$CHROME_PATH"`. Yarn does not run the Cypress postinstall, so run `yarn cypress install` once per
-Cypress version first. `k6` runs App frontend's `yarn k6:browser:*` scripts.
-
-Containers and build steps trust the mediated CA, bundled at `/run/agent/tls/ca-bundle.pem`. Chromium trusts it once
-`$XDG_RUNTIME_DIR/chromium-ca-ready` exists, seconds after boot; after an early certificate error, wait for that file
-and reopen the browser. A Buildah bug drops default environment variables in build stages, so a `RUN` that downloads
-through Node or uv exports `NODE_EXTRA_CA_CERTS` or `SSL_CERT_FILE` with that path when it is readable. Never persist
-them with `ENV`.
-
-Podman ignores a Dockerfile's own `<Dockerfile>.dockerignore` when the build context has a `.dockerignore`, where
-Docker prefers it. Pass it with `--ignorefile`, for example
-`docker build -f src/AI/assistant/dockerfile --ignorefile src/AI/assistant/dockerfile.dockerignore .`. Compose has no
-such option, so a compose service whose Dockerfile has its own ignore file builds with the context's instead.
-
-Kind clusters run here. Kind detects Podman on its own, so `KIND_EXPERIMENTAL_PROVIDER` is unnecessary, and
-`STUDIO_CA_BUNDLE` is preset so that devenv registers the mediated CA in the node trust stores and in the Flux
-controllers. The `kind` Podman network is created IPv4-only at boot: on the dual-stack network kind would create,
-connections to a published port on `[::1]` hang, and .NET clients calling `localhost` time out instead of falling back
-to IPv4. Keep that network rather than deleting it.
-
-Podman tags an unqualified image name as `localhost/<name>`, where Docker uses `docker.io/library/<name>`, so an image
-built here and loaded with `kind load` matches a manifest only when both use the fully qualified name.
+- Containers run on Podman, behind the `docker` command and Docker Compose. kind, kubectl, Helm and Flux are installed,
+  and the LocalTest hostnames are set at boot.
+- A Buildah bug drops default environment variables in build stages. A `RUN` that downloads through Node or uv must
+  export `NODE_EXTRA_CA_CERTS` or `SSL_CERT_FILE` with `/run/agent/tls/ca-bundle.pem`. Never persist them with `ENV`.
+- Podman ignores a Dockerfile's own `<Dockerfile>.dockerignore` when the build context has a `.dockerignore`. Pass it
+  with `--ignorefile`. Compose has no such option.
+- Podman names an unqualified image `localhost/<name>`, so an image loaded with `kind load` matches a manifest only when
+  both use the fully qualified name.
+- The `kind` Podman network is IPv4-only, because on a dual-stack network .NET clients calling `localhost` time out.
+  Keep it rather than delete it. devenv registers the mediated CA in the kind nodes through `STUDIO_CA_BUNDLE`.
+- Chromium trusts the mediated CA once `$XDG_RUNTIME_DIR/chromium-ca-ready` exists, seconds after boot. After an early
+  certificate error, wait for that file and reopen the browser.
+- App frontend's Cypress tests find Chromium only by path, so pass `--browser "$CHROME_PATH"`. Run `yarn cypress install`
+  once per Cypress version, since Yarn skips its postinstall.
+- `hurl` is Ubuntu's 7.1, where CI uses 8.0.

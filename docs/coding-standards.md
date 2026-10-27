@@ -15,31 +15,24 @@ How we write code in this repository, beyond what the formatters and linters enf
 
 ## Comments
 
-A comment says why the code next to it is the way it is, and the constraints the code cannot show. It does not
-narrate the code. Enforce a rule with a type, validation or a test where you can, and link to a doc or an ADR when the
+A comment says why the code next to it is the way it is, and the constraints the code cannot show. Enforce a rule with a type, validation or a test where you can, and link to a doc or an ADR when the
 reason is bigger than the code.
 
 ## Language and formatting
 
+- We prefer automated formatting and linting. When a tool can enforce a rule, configure the tool instead of writing
+  the rule down, and run the component's checks before you push.
 - Code, comments and docs are in US English. The [spell check](../scripts/spellcheck/README.md) says which text is in
   another language and where exceptions go.
-- Formatters and linters run in each component's checks: CSharpier for .NET, ESLint and Prettier for TypeScript, Ruff
-  for Python and golangci-lint for Go. Prettier takes its indentation from `.editorconfig`, so format a file where it is:
-  a copy outside the tree is formatted against other rules.
 
 ## .NET
 
 - Make types `internal` and classes `sealed` unless there is a reason not to.
 - Do not add the `Async` suffix to method names.
 - Write an XML doc comment on every public type and member.
-- Most areas treat warnings as errors only when `CI=true`, and an incremental build does not repeat the warnings of a
-  project it skips. To reproduce CI, run `CI=true dotnet build <solution> --no-incremental`. A bare `-warnaserror` is
-  not the same, since it also fails on the NuGet audit advisories (`NU1901` to `NU1904`) that CI allows.
+- Warnings fail the build in CI. To see a warning locally as CI does, build with `CI=true` and `--no-incremental`.
 
 ## Go
 
-We use Go for cloud-native services and tooling, as [the ADR](adr/2025-10-17-using-go.md) decided. Each Go module's
-golangci-lint configuration enables nearly every linter.
-
-- Fix a finding rather than adding `//nolint`. A `//nolint` names the linter and gives a reason.
-- `make lint-fix` reorders struct fields for the `fieldalignment` check.
+We use Go for cloud-native services and tooling, as [the ADR](adr/2025-10-17-using-go.md) decided. Fix a lint finding
+rather than suppress it. A suppression names the linter and says why.
