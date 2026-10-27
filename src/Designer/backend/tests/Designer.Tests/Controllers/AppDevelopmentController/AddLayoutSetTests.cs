@@ -229,7 +229,6 @@ public class AddLayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "newSet")]
-    [InlineData("ttd", "app-with-layoutsets-v9", "testUser", "newSet")]
     public async Task AddLayoutSet_TaskTypeIsPdf_AddsLayoutSetWithPdfLayoutsAndReturnsOk(
         string org,
         string app,

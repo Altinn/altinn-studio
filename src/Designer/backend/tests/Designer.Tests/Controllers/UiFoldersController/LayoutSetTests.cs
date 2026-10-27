@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -143,7 +144,11 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
-    public async Task AddLayoutSet_WhenPdfTask_CreatesWaitingPageAndPdfLayout(string org, string app, string developer)
+    public async Task AddLayoutSet_WhenPdfTask_CreatesOnlyPdfLayoutWithEmptyOrder(
+        string org,
+        string app,
+        string developer
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -158,23 +163,74 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        Assert.True(
-            TestDataHelper.FileExistsInRepo(
-                org,
-                targetRepository,
-                developer,
-                LayoutPath(NewLayoutSetName, "ServiceTask")
-            )
+        string layoutsDirectory = Path.Join(
+            TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer),
+            "App",
+            "ui",
+            NewLayoutSetName,
+            "layouts"
         );
-        Assert.True(
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
+        string layoutFile = Assert.Single(Directory.GetFiles(layoutsDirectory));
+        Assert.Equal("PdfLayout.json", Path.GetFileName(layoutFile));
+
+        JsonNode pdfLayout = JsonNode.Parse(
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
         );
+        Assert.Empty(pdfLayout["data"]["layout"].AsArray());
 
         JsonNode settings = JsonNode.Parse(
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
         );
         Assert.Equal("PdfLayout", (string)settings["pages"]["pdfLayoutName"]);
-        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
+        Assert.Empty(settings["pages"]["order"].AsArray());
+        Assert.Equal("model", (string)settings["defaultDataType"]);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task AddLayoutSet_WhenPdfTask_PagesListNoPageUntilOneIsAdded(string org, string app, string developer)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        const string NewLayoutSetName = "pdfTask";
+        var payload = new LayoutSetPayload
+        {
+            TaskType = TaskType.Pdf,
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+        };
+        using HttpResponseMessage addResponse = await PostLayoutSet(org, targetRepository, payload);
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+
+        string pagesUrl = $"/designer/api/{org}/{targetRepository}/layouts/layoutSet/{NewLayoutSetName}/pages";
+        PagesDto pagesBefore = await GetPages(pagesUrl);
+        Assert.NotNull(pagesBefore.Pages);
+        Assert.Empty(pagesBefore.Pages);
+        Assert.Equal("PdfLayout", pagesBefore.PdfLayoutName);
+
+        using var createPageRequest = new HttpRequestMessage(HttpMethod.Post, pagesUrl)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new PageDto { Id = "WaitingPage" }),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+        using HttpResponseMessage createPageResponse = await HttpClient.SendAsync(createPageRequest);
+        Assert.Equal(HttpStatusCode.Created, createPageResponse.StatusCode);
+
+        PagesDto pagesAfter = await GetPages(pagesUrl);
+        PageDto page = Assert.Single(pagesAfter.Pages);
+        Assert.Equal("WaitingPage", page.Id);
+        Assert.Equal("PdfLayout", pagesAfter.PdfLayoutName);
+    }
+
+    private async Task<PagesDto> GetPages(string pagesUrl)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, pagesUrl);
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return JsonSerializer.Deserialize<PagesDto>(await response.Content.ReadAsStringAsync());
     }
 
     [Theory]
