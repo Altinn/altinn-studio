@@ -3,7 +3,7 @@ using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
-public sealed class PdfTaskPageMigrationTests : IDisposable
+public sealed class ServiceTaskPageMigrationTests : IDisposable
 {
     private const string ProcessPath = "config/process/process.bpmn";
 
@@ -40,7 +40,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
-    private Task<MigrationResult> Migrate() => PdfTaskPageMigration.Migrate(_app.Root);
+    private Task<MigrationResult> Migrate() => ServiceTaskPageMigration.Migrate(_app.Root);
 
     public static TheoryData<string> GeneratedPages =>
         new(DesignerPage("Header"), DesignerPage("Heading"), UpgradeWaitingPage);
@@ -50,7 +50,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
     public async Task RemovesThePageAltinnStudioGenerated(string components)
     {
         _app.Write(ProcessPath, Process(Task("Task_1", "data"), PdfServiceTask("PdfTask")));
-        WritePdfTaskFolder("PdfTask", Settings(), components);
+        WriteTaskFolder("PdfTask", Settings(), components);
 
         var result = await Migrate();
 
@@ -81,7 +81,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
             "ui/PdfTask/Settings.json",
             [0xEF, 0xBB, 0xBF, .. System.Text.Encoding.UTF8.GetBytes(settings.Replace("\n", "\r\n"))]
         );
-        WritePdfTaskFolder(
+        WriteTaskFolder(
             "PdfTask",
             settings: null,
             DesignerPage()
@@ -113,7 +113,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
     public async Task KeepsAChangedPageAndLeavesATodo(string generated, string changed)
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
-        WritePdfTaskFolder("PdfTask", Settings(), DesignerPage().Replace(generated, changed, StringComparison.Ordinal));
+        WriteTaskFolder("PdfTask", Settings(), DesignerPage().Replace(generated, changed, StringComparison.Ordinal));
 
         var result = await Migrate();
 
@@ -128,7 +128,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
     public async Task RemovesTheGeneratedPageAndLeavesATodoForTheOthers()
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
-        WritePdfTaskFolder("PdfTask", Settings(order: "\"Intro\", \"ServiceTask\""), DesignerPage());
+        WriteTaskFolder("PdfTask", Settings(order: "\"Intro\", \"ServiceTask\""), DesignerPage());
         _app.Write("ui/PdfTask/layouts/Intro.json", """{ "data": { "layout": [] } }""");
 
         var result = await Migrate();
@@ -145,7 +145,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
         var settings = """{ "pages": { "pdfLayoutName": "ServiceTask", "order": ["ServiceTask"] } }""";
-        WritePdfTaskFolder("PdfTask", settings, DesignerPage());
+        WriteTaskFolder("PdfTask", settings, DesignerPage());
 
         var result = await Migrate();
 
@@ -159,7 +159,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
         var settings = """{ "pages": { "pdfLayoutName": "PdfLayout", "groups": [{ "order": ["ServiceTask"] }] } }""";
-        WritePdfTaskFolder("PdfTask", settings, DesignerPage());
+        WriteTaskFolder("PdfTask", settings, DesignerPage());
 
         var result = await Migrate();
 
@@ -167,29 +167,67 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
         Assert.Contains("[ServiceTask]", Assert.Single(result.Todos), StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("eFormidling")]
+    [InlineData("fiksArkiv")]
+    [InlineData("myCustomTask")]
+    public async Task LeavesATodoForThePagesOfOtherServiceTasks(string taskType)
+    {
+        _app.Write(ProcessPath, Process(Task("Task_1", "data"), ServiceTask("Service", taskType)));
+        var settings = """{ "pages": { "order": ["Waiting", "ServiceTask"] } }""";
+        WriteTaskFolder("Service", settings, DesignerPage());
+
+        var result = await Migrate();
+
+        Assert.Equal(settings, _app.Read("ui/Service/Settings.json"));
+        Assert.True(File.Exists(LayoutFile("Service", "ServiceTask")));
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains(
+            $"Service task 'Service' ({taskType}) lists the page(s) [Waiting, ServiceTask]",
+            todo,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("read-only", todo, StringComparison.Ordinal);
+        Assert.Contains("otherwise empty pages.order", todo, StringComparison.Ordinal);
+    }
+
     [Fact]
-    public async Task LeavesOtherTasksAndPdfTasksWithoutPagesAlone()
+    public async Task LeavesATodoForTheGroupedPagesOfABuiltInServiceTaskWrittenAsATask()
+    {
+        _app.Write(ProcessPath, Process(Task("Arkiv", "fiksArkiv")));
+        WriteTaskFolder("Arkiv", """{ "pages": { "groups": [{ "order": ["Waiting"] }] } }""", UpgradeWaitingPage);
+
+        var result = await Migrate();
+
+        Assert.Contains("Service task 'Arkiv' (fiksArkiv) lists the page(s) [Waiting]", Assert.Single(result.Todos));
+    }
+
+    [Fact]
+    public async Task LeavesUserTasksSubformPdfTasksAndServiceTasksWithoutPagesAlone()
     {
         _app.Write(
             ProcessPath,
             Process(
                 Task("Task_1", "data"),
-                ServiceTask("EFormidling", "eFormidling"),
+                Task("Signing", "signing"),
                 ServiceTask("SubformPdf", "subformPdf"),
+                ServiceTask("EFormidling", "eFormidling"),
+                ServiceTask("NoFolder", "eFormidling"),
                 PdfServiceTask("AutoPdf"),
                 PdfServiceTask("PdfTask")
             )
         );
-        WritePdfTaskFolder("Task_1", Settings(), DesignerPage());
-        WritePdfTaskFolder("EFormidling", Settings(), DesignerPage());
-        WritePdfTaskFolder("SubformPdf", Settings(), DesignerPage());
-        WritePdfTaskFolder("PdfTask", Settings(order: ""), DesignerPage());
+        WriteTaskFolder("Task_1", Settings(), DesignerPage());
+        WriteTaskFolder("Signing", Settings(), DesignerPage());
+        WriteTaskFolder("SubformPdf", Settings(), DesignerPage());
+        WriteTaskFolder("EFormidling", """{ "pages": { "order": [] } }""", DesignerPage());
+        WriteTaskFolder("PdfTask", Settings(order: ""), DesignerPage());
 
         var result = await Migrate();
 
         Assert.Empty(result.Messages);
         Assert.True(File.Exists(LayoutFile("Task_1", "ServiceTask")));
-        Assert.True(File.Exists(LayoutFile("EFormidling", "ServiceTask")));
+        Assert.True(File.Exists(LayoutFile("Signing", "ServiceTask")));
         Assert.True(File.Exists(LayoutFile("SubformPdf", "ServiceTask")));
         Assert.True(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
     }
@@ -198,7 +236,7 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
     public async Task DoesNothingOnASecondRun()
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
-        WritePdfTaskFolder("PdfTask", Settings(), DesignerPage());
+        WriteTaskFolder("PdfTask", Settings(), DesignerPage());
         await Migrate();
 
         var result = await Migrate();
@@ -210,36 +248,45 @@ public sealed class PdfTaskPageMigrationTests : IDisposable
     [Fact]
     public async Task WaitsForTheLayoutSetConversion()
     {
-        _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
+        _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask"), ServiceTask("EFormidling", "eFormidling")));
         _app.Write("ui/layout-sets.json", """{ "sets": [] }""");
-        WritePdfTaskFolder("PdfTask", Settings(), DesignerPage());
+        WriteTaskFolder("PdfTask", Settings(), DesignerPage());
 
         var result = await Migrate();
 
-        Assert.Contains("layout-sets.json", Assert.Single(result.Todos), StringComparison.Ordinal);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("[PdfTask, EFormidling]", todo, StringComparison.Ordinal);
+        Assert.Contains("layout-sets.json", todo, StringComparison.Ordinal);
         Assert.True(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
     }
 
-    [Fact]
-    public async Task LeavesATodoForUnreadableSettings()
+    [Theory]
+    [InlineData("pdf")]
+    [InlineData("eFormidling")]
+    public async Task LeavesATodoForUnreadableSettings(string taskType)
     {
-        _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
-        WritePdfTaskFolder("PdfTask", "{ not json", DesignerPage());
+        _app.Write(ProcessPath, Process(ServiceTask("Service", taskType)));
+        WriteTaskFolder("Service", "{ not json", DesignerPage());
 
         var result = await Migrate();
 
-        Assert.Contains("ui/PdfTask/Settings.json", Assert.Single(result.Todos), StringComparison.Ordinal);
-        Assert.True(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
+        Assert.Contains(
+            "Could not read ui/Service/Settings.json",
+            Assert.Single(result.Todos),
+            StringComparison.Ordinal
+        );
+        Assert.True(File.Exists(LayoutFile("Service", "ServiceTask")));
     }
 
     private string LayoutFile(string folder, string page) =>
         Path.Combine(_app.Root, "App", "ui", folder, "layouts", $"{page}.json");
 
     /// <summary>
-    /// A PDF task's folder as Altinn Studio Designer creates it: an empty PDF layout and a ServiceTask page
-    /// holding <paramref name="components"/>. Null <paramref name="settings"/> leaves the settings as they are.
+    /// A task folder like the one Altinn Studio Designer creates for a PDF task: an empty PDF layout and a
+    /// ServiceTask page holding <paramref name="components"/>. Null <paramref name="settings"/> leaves the settings
+    /// as they are.
     /// </summary>
-    private void WritePdfTaskFolder(string folder, string? settings, string components)
+    private void WriteTaskFolder(string folder, string? settings, string components)
     {
         if (settings is not null)
             _app.Write($"ui/{folder}/Settings.json", settings);

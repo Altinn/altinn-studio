@@ -6,11 +6,11 @@ using static Studioctl.Tests.Upgrade.v8Tov9.BpmnBuilder;
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
-/// End-to-end ordering check for the PDF task page step: it runs after the layout-set conversion, so it finds a
-/// v8 PDF task's layout set at ui/&lt;taskId&gt;. The csproj upgrade and semantic analysis are skipped so the run
+/// End-to-end ordering check for the service task page step: it runs after the layout-set conversion, so it finds
+/// a v8 PDF task's layout set at ui/&lt;taskId&gt;. The csproj upgrade and semantic analysis are skipped so the run
 /// stays offline and local.
 /// </summary>
-public sealed class V8Tov9UpgradePdfTaskPageTests : IDisposable
+public sealed class V8Tov9UpgradeServiceTaskPageTests : IDisposable
 {
     private readonly TempAppFolder _app = new();
 
@@ -79,7 +79,7 @@ public sealed class V8Tov9UpgradePdfTaskPageTests : IDisposable
             )
         );
 
-        var step = Assert.Single(report.Steps, step => step.Name == "PDF task pages");
+        var step = Assert.Single(report.Steps, step => step.Name == "Service task pages");
         Assert.DoesNotContain(step.Messages, message => message.Status == UpgradeMessageStatus.Todo);
         Assert.Contains(
             step.Messages,

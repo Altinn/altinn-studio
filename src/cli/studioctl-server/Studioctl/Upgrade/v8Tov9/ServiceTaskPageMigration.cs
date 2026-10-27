@@ -8,19 +8,38 @@ using System.Xml.Linq;
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
 /// <summary>
-/// Removes the page Altinn Studio generated in each PDF service task's UI folder. For a PDF task, Altinn Studio
-/// Designer lists a page, <c>ServiceTask</c>, in the folder's <c>pages.order</c>: a "something went wrong" message
-/// with retry and back buttons. In v9 a service task shows the pages in its <c>pages.order</c> from the moment the
-/// process reaches it, so users would see that message on every PDF run. A page that is exactly what Altinn Studio
-/// generated, ignoring property order and formatting, leaves <c>pages.order</c> and its layout file is deleted;
-/// <c>pdfLayoutName</c> stays. Any other page the folder lists is kept, with a to-do.
+/// Deals with the pages in service tasks' UI folders, which v9 shows, read-only, from the moment the process
+/// reaches the task until the next task shows.
 ///
-/// Runs after the layout-set conversion, so a task's folder is <c>ui/&lt;taskId&gt;</c>.
+/// For a PDF task, Altinn Studio Designer lists a page, <c>ServiceTask</c>, in the folder's <c>pages.order</c>: a
+/// "something went wrong" message with retry and back buttons, which users would see on every PDF run. A page that
+/// is exactly what Altinn Studio generated, ignoring property order and formatting, leaves <c>pages.order</c> and
+/// its layout file is deleted; <c>pdfLayoutName</c> stays. Any other page a service task's folder lists is kept,
+/// with a to-do, since only the developer knows whether it is meant for users waiting on the task. Subform PDF
+/// tasks are left out: the step that moves them to <c>subformUiFolder</c> deals with their folders.
+///
+/// A task counts as a service task when it is a <c>serviceTask</c> element, as Altinn Studio writes them, or has
+/// the type of one of the app library's service tasks. Runs after the layout-set conversion, so a task's folder is
+/// <c>ui/&lt;taskId&gt;</c>.
 /// </summary>
-internal static class PdfTaskPageMigration
+internal static class ServiceTaskPageMigration
 {
     private const string ProcessPath = "config/process/process.bpmn";
+    private const string PdfTaskType = "pdf";
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
+
+    /// <summary>The types of the app library's service tasks, which apply to any task element.</summary>
+    private static readonly HashSet<string> _serviceTaskTypes = new(StringComparer.Ordinal)
+    {
+        PdfTaskType,
+        "subformPdf",
+        "eFormidling",
+        "fiksArkiv",
+    };
+
+    private const string ShownWhileRunning =
+        "In v9 a service task shows the pages in its pages.order, read-only, from the moment the process reaches it "
+        + "until the next task shows.";
 
     private static readonly JsonDocumentOptions _documentOptions = new()
     {
@@ -59,8 +78,8 @@ internal static class PdfTaskPageMigration
     ];
 
     /// <summary>
-    /// Runs the migration. A warning names each page removed; a to-do names the pages a PDF task's folder still
-    /// lists, or a folder that could not be read or changed. No messages means no PDF task lists a page.
+    /// Runs the migration. A warning names each page removed; a to-do names the pages a service task's folder
+    /// still lists, or settings that could not be read. No messages means no service task lists a page.
     /// </summary>
     public static async Task<MigrationResult> Migrate(string projectFolder)
     {
@@ -70,22 +89,22 @@ internal static class PdfTaskPageMigration
         if (processFile is null)
             return new MigrationResult(messages);
 
-        List<string> taskIds;
+        List<(string TaskId, string? TaskType)> tasks;
         try
         {
             var (text, _) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(processFile));
-            taskIds = PdfTaskIds(XDocument.Parse(text)).ToList();
+            tasks = ServiceTasks(XDocument.Parse(text)).Where(task => task.TaskType != "subformPdf").ToList();
         }
         catch (Exception ex) when (ex is DecoderFallbackException or XmlException)
         {
             messages.Todo(
-                $"Could not read {ProcessPath} ({ex.Message}); skipped the pages of PDF tasks. Fix the file and run "
-                    + "the upgrade again."
+                $"Could not read {ProcessPath} ({ex.Message}); skipped the pages of service tasks. Fix the file and "
+                    + "run the upgrade again."
             );
             return new MigrationResult(messages);
         }
 
-        if (taskIds.Count == 0)
+        if (tasks.Count == 0)
             return new MigrationResult(messages);
 
         var uiPath = Path.Combine(projectFolder, "App", "ui");
@@ -94,19 +113,19 @@ internal static class PdfTaskPageMigration
         if (File.Exists(Path.Combine(uiPath, "layout-sets.json")))
         {
             messages.Todo(
-                $"Left the pages of PDF task(s) [{string.Join(", ", taskIds)}] unchanged, because layout-sets.json is "
-                    + "still there. Resolve what kept it, then run the upgrade again."
+                $"Left the pages of service task(s) [{string.Join(", ", tasks.Select(task => task.TaskId))}] unchanged, "
+                    + "because layout-sets.json is still there. Resolve what kept it, then run the upgrade again."
             );
             return new MigrationResult(messages);
         }
 
-        foreach (var taskId in taskIds)
-            await MigrateTask(Path.Combine(uiPath, taskId), taskId, messages);
+        foreach (var (taskId, taskType) in tasks)
+            await MigrateTask(Path.Combine(uiPath, taskId), taskId, taskType, messages);
 
         return new MigrationResult(messages);
     }
 
-    private static IEnumerable<string> PdfTaskIds(XDocument doc)
+    private static IEnumerable<(string TaskId, string? TaskType)> ServiceTasks(XDocument doc)
     {
         foreach (var process in doc.Root?.Elements().Where(e => e.Name.LocalName == "process") ?? [])
         {
@@ -115,23 +134,26 @@ internal static class PdfTaskPageMigration
                 var taskType = task.Elements()
                     .FirstOrDefault(e => e.Name.LocalName == "extensionElements")
                     ?.Element(_altinnNs + "taskExtension")
-                    ?.Element(_altinnNs + "taskType");
-                if (taskType?.Value.Trim() == "pdf" && task.Attribute("id")?.Value is { } taskId)
-                    yield return taskId;
+                    ?.Element(_altinnNs + "taskType")
+                    ?.Value.Trim();
+                if (
+                    (
+                        task.Name.LocalName == "serviceTask"
+                        || (taskType is not null && _serviceTaskTypes.Contains(taskType))
+                    ) && task.Attribute("id")?.Value is { } taskId
+                )
+                    yield return (taskId, taskType);
             }
         }
     }
 
-    private static async Task MigrateTask(string folder, string taskId, List<UpgradeMessage> messages)
+    private static async Task MigrateTask(string folder, string taskId, string? taskType, List<UpgradeMessage> messages)
     {
         var settingsFile = Path.Combine(folder, "Settings.json");
         if (!File.Exists(settingsFile))
             return;
 
         var displaySettings = $"ui/{taskId}/Settings.json";
-        var shownWhileRunning =
-            "In v9 a service task shows the pages in its pages.order from the moment the process reaches it until the "
-            + "next task shows, and they are not part of the PDF.";
 
         string text;
         bool hadBom;
@@ -146,29 +168,42 @@ internal static class PdfTaskPageMigration
         catch (Exception ex) when (ex is JsonException or DecoderFallbackException)
         {
             messages.Todo(
-                $"Could not read {displaySettings} of PDF task '{taskId}' ({ex.Message}). {shownWhileRunning} Remove "
-                    + "the page Altinn Studio generated, ServiceTask, from pages.order unless it is meant for users "
-                    + "waiting for the PDF, and keep pdfLayoutName."
+                $"Could not read {displaySettings} of service task '{taskId}' ({ex.Message}). {ShownWhileRunning} "
+                    + "Keep the pages it lists only if they are meant for users waiting on the task"
+                    + (taskType == PdfTaskType ? ", and keep pdfLayoutName." : ".")
             );
             return;
         }
 
         var pages = settings["pages"] as JsonObject;
-        var order = (pages?["order"] as JsonArray)?.Select(StringValue).ToList() ?? [];
-        var pdfLayoutName = StringValue(pages?["pdfLayoutName"]);
-        var generated = order
-            .OfType<string>()
-            .Distinct(StringComparer.Ordinal)
-            .Where(page => page != pdfLayoutName && IsGenerated(Path.Combine(folder, "layouts", $"{page}.json")))
-            .ToList();
         var groupPages = (pages?["groups"] as JsonArray)
             ?.OfType<JsonObject>()
             .SelectMany(group => group["order"] as JsonArray ?? [])
             .Select(StringValue)
             .OfType<string>()
             .ToList();
+        var order = (pages?["order"] as JsonArray)?.Select(StringValue).OfType<string>().ToList() ?? [];
+
+        if (taskType != PdfTaskType)
+        {
+            var allPages = order.Concat(groupPages ?? []).Distinct(StringComparer.Ordinal).ToList();
+            if (allPages.Count > 0)
+            {
+                messages.Todo(
+                    $"Service task '{taskId}'{(taskType is null ? "" : $" ({taskType})")} lists the page(s) "
+                        + $"[{string.Join(", ", allPages)}] in {displaySettings}. {ShownWhileRunning} Keep them only if "
+                        + "they are meant for users waiting on the task; otherwise empty pages.order."
+                );
+            }
+            return;
+        }
+
+        var pdfLayoutName = StringValue(pages?["pdfLayoutName"]);
+        var generated = order
+            .Distinct(StringComparer.Ordinal)
+            .Where(page => page != pdfLayoutName && IsGenerated(Path.Combine(folder, "layouts", $"{page}.json")))
+            .ToList();
         var listed = order
-            .OfType<string>()
             .Where(page => !generated.Contains(page, StringComparer.Ordinal))
             .Concat(groupPages ?? [])
             .Distinct(StringComparer.Ordinal)
@@ -201,8 +236,8 @@ internal static class PdfTaskPageMigration
         {
             messages.Todo(
                 $"PDF task '{taskId}' lists the page(s) [{string.Join(", ", listed)}] in {displaySettings}. "
-                    + $"{shownWhileRunning} Remove them from pages.order (keep pdfLayoutName) unless they are meant for "
-                    + "users waiting for the PDF."
+                    + $"{ShownWhileRunning} They are not part of the PDF. Remove them from pages.order (keep "
+                    + "pdfLayoutName) unless they are meant for users waiting for the PDF."
             );
         }
     }
