@@ -38,7 +38,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
-- An app no longer starts when more than one `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandonHandler` runs for the same task, or more than one `IOnProcessEndedHandler` is registered. Combine them into one. ([#21069](https://github.com/Altinn/altinn-studio/pull/21069))
+- An app no longer starts when more than one `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandoningHandler` runs for the same task, or more than one `IOnProcessEndedHandler` is registered. Combine them into one. ([#21069](https://github.com/Altinn/altinn-studio/pull/21069))
 - An app that uses Fiks Arkiv no longer starts when `allowedContentTypes` on the data type for the archive record or the confirmation record leaves out `application/xml`. The Fiks Arkiv task failed instead, for the confirmation record after the archive had already received the message. Add `application/xml` to the list, or remove the list. ([#21415](https://github.com/Altinn/altinn-studio/pull/21415))
 - With `RemoveHiddenData` enabled, as it is by default, data annotation validation no longer reports errors in hidden fields, whose data is removed when the task ends anyway. ([Altinn/app-lib-dotnet#1865](https://github.com/Altinn/app-lib-dotnet/issues/1865))
 - XSD validation errors point to the field that failed, such as `/Skjema/melding/gruppe[2]/felt`. ([Altinn/app-lib-dotnet#1859](https://github.com/Altinn/app-lib-dotnet/pull/1859))
@@ -58,6 +58,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - if the default has a condition, which the app never evaluates; remove it
     - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
 - Long text in Paragraph, Alert and Panel components and in field descriptions now wraps at about 70 characters per line, so it is easier to read on wide screens. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+- Breaking: process handler and service task result types are renamed. Change the type names in your code; factories such as `HandlerResult.Success()` work as before: ([#21554](https://github.com/Altinn/altinn-studio/pull/21554))
+    - `HookResult` is `HandlerResult`, with `SuccessfulHandlerResult` and `FailedHandlerResult`
+    - `IOnTaskAbandonHandler` is `IOnTaskAbandoningHandler`, with `OnTaskAbandoningContext`
+    - `ServiceTaskSuccessResult`, `ServiceTaskFailedResult` and `ServiceTaskDeferredResult` are `SuccessfulServiceTaskResult`, `FailedServiceTaskResult` and `DeferredServiceTaskResult`
 
 ### Fixed
 
@@ -79,7 +83,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Breaking: `IPdfService.GenerateAndStorePdf` is removed. Call `GeneratePdf` with the instance and data mutator's language, then store the returned bytes with your chosen filename using `IInstanceDataMutator.AddBinaryDataElement`. Use `ref-data-as-pdf` and `generatedFromTask` to preserve cleanup when the task restarts. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: the `PdfService.GenerateAndStorePdf` trace span is removed. Update queries, dashboards and alerts to use `PdfService.GeneratePdf` for PDF service tasks. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
-- Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandonHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandoningHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: remove `IProcessEnd`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. `studioctl app upgrade v9` lists the classes and registrations to port. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
 
