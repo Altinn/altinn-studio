@@ -1,25 +1,25 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// Base type for task hook execution results. Construct via <see cref="Success"/>,
-/// <see cref="FailedRetryable"/>, or <see cref="FailedPermanent"/>.
+/// Base type for the results of the process handlers, such as <see cref="IOnTaskStartingHandler"/>. Construct via
+/// <see cref="Success"/>, <see cref="FailedRetryable"/>, or <see cref="FailedPermanent"/>.
 /// </summary>
-public abstract record HookResult
+public abstract record HandlerResult
 {
     /// <summary>
-    /// Creates a result representing successful hook execution.
+    /// Creates a result representing successful handler execution.
     /// </summary>
-    public static SuccessfulHookResult Success() => new();
+    public static SuccessfulHandlerResult Success() => new();
 
     /// <summary>
     /// Creates a retryable failure. The workflow engine will retry the step with backoff.
     /// Use this for transient errors (external service down, timeout, rate limit, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedHookResult FailedRetryable(string errorMessage)
+    public static FailedHandlerResult FailedRetryable(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedHookResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
+        return new FailedHandlerResult { ErrorMessage = errorMessage, Kind = FailureKind.Retryable };
     }
 
     /// <summary>
@@ -28,25 +28,25 @@ public abstract record HookResult
     /// Use this for errors that won't resolve by retrying (validation failure, missing config, bad data, etc.).
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static FailedHookResult FailedPermanent(string errorMessage)
+    public static FailedHandlerResult FailedPermanent(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedHookResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
+        return new FailedHandlerResult { ErrorMessage = errorMessage, Kind = FailureKind.Permanent };
     }
 }
 
 /// <summary>
-/// Represents a successful hook execution.
+/// Represents a successful handler execution.
 /// </summary>
-public sealed record SuccessfulHookResult : HookResult;
+public sealed record SuccessfulHandlerResult : HandlerResult;
 
 /// <summary>
-/// Represents a failed hook execution. Construct via <see cref="HookResult.FailedRetryable"/>
-/// or <see cref="HookResult.FailedPermanent"/>.
+/// Represents a failed handler execution. Construct via <see cref="HandlerResult.FailedRetryable"/>
+/// or <see cref="HandlerResult.FailedPermanent"/>.
 /// </summary>
-public sealed record FailedHookResult : HookResult
+public sealed record FailedHandlerResult : HandlerResult
 {
-    internal FailedHookResult() { }
+    internal FailedHandlerResult() { }
 
     /// <summary>
     /// Human-readable error message describing the failure.
@@ -60,7 +60,7 @@ public sealed record FailedHookResult : HookResult
 }
 
 /// <summary>
-/// Classifies how a failed hook or service task result should be handled by the workflow engine.
+/// Classifies how a failed handler or service task result should be handled by the workflow engine.
 /// </summary>
 internal enum FailureKind
 {

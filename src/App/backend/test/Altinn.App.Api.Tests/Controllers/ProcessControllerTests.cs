@@ -17,6 +17,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -409,10 +410,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         public bool ShouldRunForTask(string taskId) => true;
 
-        public Task<HookResult> Execute(OnTaskEndingContext context)
+        public Task<HandlerResult> Execute(OnTaskEndingContext context)
         {
             Language = context.InstanceDataMutator.Language;
-            return Task.FromResult<HookResult>(HookResult.Success());
+            return Task.FromResult<HandlerResult>(HandlerResult.Success());
         }
     }
 

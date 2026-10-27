@@ -13,8 +13,8 @@ namespace Altinn.App.Core.Features.Process;
 /// <remarks>
 /// Deliberately narrower than the engine's wire model: whether an individual failure is worth
 /// retrying is expressed semantically by the handler itself (returning a permanent vs retryable
-/// failure result, e.g. <see cref="HookResult.FailedPermanent"/> vs
-/// <see cref="HookResult.FailedRetryable"/>), never by tuning transport-level details here.
+/// failure result, e.g. <see cref="HandlerResult.FailedPermanent"/> vs
+/// <see cref="HandlerResult.FailedRetryable"/>), never by tuning transport-level details here.
 /// </remarks>
 public sealed record ProcessStepRetryStrategy
 {

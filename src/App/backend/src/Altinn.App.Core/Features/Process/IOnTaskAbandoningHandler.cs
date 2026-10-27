@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Process;
 /// <strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong>
 /// </remarks>
 [ImplementableByApps]
-public interface IOnTaskAbandonHandler : IProcessStepConfigurable
+public interface IOnTaskAbandoningHandler : IProcessStepConfigurable
 {
     /// <summary>
     /// Determines whether the hook should run for the given task ID. At most one implementation may run for a
@@ -22,20 +22,20 @@ public interface IOnTaskAbandonHandler : IProcessStepConfigurable
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>
-    /// A result indicating success or failure. Construct via <see cref="HookResult.Success"/>,
-    /// <see cref="HookResult.FailedRetryable"/>, or <see cref="HookResult.FailedPermanent"/>.
+    /// A result indicating success or failure. Construct via <see cref="HandlerResult.Success"/>,
+    /// <see cref="HandlerResult.FailedRetryable"/>, or <see cref="HandlerResult.FailedPermanent"/>.
     /// </returns>
-    public Task<HookResult> Execute(OnTaskAbandonContext context);
+    public Task<HandlerResult> Execute(OnTaskAbandoningContext context);
 }
 
 /// <summary>
 /// Parameters for abandon task hook execution.
 /// </summary>
-public sealed class OnTaskAbandonContext
+public sealed class OnTaskAbandoningContext
 {
     /// <summary>
     /// The ID of the task this hook is running for (the task being abandoned).
-    /// Matches the <c>taskId</c> passed to <see cref="IOnTaskAbandonHandler.ShouldRunForTask"/>.
+    /// Matches the <c>taskId</c> passed to <see cref="IOnTaskAbandoningHandler.ShouldRunForTask"/>.
     /// </summary>
     public required string TaskId { get; init; }
 
