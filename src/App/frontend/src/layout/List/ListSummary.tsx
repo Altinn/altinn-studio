@@ -87,17 +87,19 @@ const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
             />
           </div>
           <Table>
-            {title && (
+            {(title || captionProps.description || captionProps.helpText) && (
               <Caption
                 {...captionProps}
                 className={classes.tableCaption}
                 title={
-                  <Heading
-                    data-size='xs'
-                    level={4}
-                  >
-                    <Lang id={title} />
-                  </Heading>
+                  title ? (
+                    <Heading
+                      data-size='xs'
+                      level={4}
+                    >
+                      <Lang id={title} />
+                    </Heading>
+                  ) : undefined
                 }
               />
             )}
