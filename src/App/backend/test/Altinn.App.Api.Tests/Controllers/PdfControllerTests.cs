@@ -2,6 +2,7 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.AppModel;
@@ -12,8 +13,11 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Expressions;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -33,7 +37,7 @@ public class PdfControllerTests
     private readonly string _app = "app";
     private readonly Guid _instanceId = new("e11e3e0b-a45c-48fb-a968-8d4ddf868c80");
     private readonly int _partyId = 12345;
-    private readonly string _taskId = "Task_1";
+    private string _taskId = "Task_1";
     private const string ModelDataElementId = "7b5a1f0e-6d8c-4a3b-9e2f-1c4d5e6f7a8b";
     private const string SubformDataElementId = "3c9e2d1f-8a7b-4c6d-9e5f-0a1b2c3d4e5f";
 
@@ -124,7 +128,8 @@ public class PdfControllerTests
             _instanceClient.Object,
             pdfService,
             _processReader.Object,
-            _authenticationContext.Object
+            _authenticationContext.Object,
+            _appResources.Object
         );
     }
 
@@ -377,6 +382,156 @@ public class PdfControllerTests
 
         result.Should().BeOfType<BadRequestObjectResult>();
         requestBody.Should().BeNull();
+    }
+
+    public enum PdfTaskFolder
+    {
+        None,
+        WithoutPdfLayoutName,
+        WithPdfLayoutName,
+    }
+
+    public static TheoryData<PdfTaskFolder, bool, bool> PdfServiceTaskSetups()
+    {
+        var data = new TheoryData<PdfTaskFolder, bool, bool>();
+        foreach (PdfTaskFolder folder in Enum.GetValues<PdfTaskFolder>())
+        {
+            foreach (bool listsTasks in new[] { false, true })
+            {
+                foreach (bool atTheTask in new[] { false, true })
+                {
+                    data.Add(folder, listsTasks, atTheTask);
+                }
+            }
+        }
+
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(PdfServiceTaskSetups))]
+    public async Task Preview_Of_Pdf_Service_Task_Matches_The_Service_Task(
+        PdfTaskFolder folder,
+        bool listsTasks,
+        bool atTheTask
+    )
+    {
+        // The preview either renders what the service task renders, or fails for the same reason
+        List<string> autoPdfTaskIds = listsTasks ? ["Task_1", "Task_2"] : [];
+        var taskExtension = new AltinnTaskExtension
+        {
+            TaskType = "pdf",
+            PdfConfiguration = new() { AutoPdfTaskIds = autoPdfTaskIds },
+        };
+        _processReader
+            .Setup(x => x.GetFlowElement("Task_Pdf"))
+            .Returns(
+                new ServiceTask
+                {
+                    Id = "Task_Pdf",
+                    ExtensionElements = new() { TaskExtension = taskExtension },
+                }
+            );
+        _processReader.Setup(x => x.GetAltinnTaskExtension("Task_Pdf")).Returns(taskExtension);
+        _appResources
+            .Setup(x => x.GetLayoutSettingsForFolder("Task_Pdf"))
+            .Returns(
+                folder switch
+                {
+                    PdfTaskFolder.None => null,
+                    PdfTaskFolder.WithoutPdfLayoutName => new LayoutSettings
+                    {
+                        Pages = new Pages { Order = ["WaitingPage"] },
+                    },
+                    _ => new LayoutSettings
+                    {
+                        Pages = new Pages { Order = ["WaitingPage"], PdfLayoutName = "PdfLayout" },
+                    },
+                }
+            );
+        if (atTheTask)
+        {
+            _taskId = "Task_Pdf";
+        }
+
+        (ServiceTaskResult taskResult, List<List<string>?> renderedTasks) = await ExecutePdfServiceTask("Task_Pdf");
+        (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: atTheTask ? null : "Task_Pdf");
+
+        bool renderable = listsTasks || folder == PdfTaskFolder.WithPdfLayoutName;
+        if (!renderable)
+        {
+            var failed = Assert.IsType<ServiceTaskFailedResult>(taskResult);
+            Assert.Equal(failed.ErrorMessage, Assert.IsType<BadRequestObjectResult>(result).Value);
+            Assert.Null(requestBody);
+            return;
+        }
+
+        Assert.IsType<ServiceTaskSuccessResult>(taskResult);
+        Assert.IsType<FileContentResult>(result);
+        Assert.NotNull(requestBody);
+        Assert.Contains("/Task_Pdf?pdf=1", requestBody);
+        List<string> expectedTaskParams = (Assert.Single(renderedTasks) ?? []).Select(id => $"task={id}").ToList();
+        Assert.Equal(autoPdfTaskIds.Select(id => $"task={id}"), expectedTaskParams);
+        Assert.Equal(
+            expectedTaskParams,
+            System.Text.RegularExpressions.Regex.Matches(requestBody, @"task=\w+").Select(m => m.Value)
+        );
+    }
+
+    private async Task<(ServiceTaskResult Result, List<List<string>?> RenderedTasks)> ExecutePdfServiceTask(
+        string pdfTaskId
+    )
+    {
+        List<List<string>?> rendered = [];
+        var pdfService = new Mock<IPdfService>();
+        pdfService
+            .Setup(x =>
+                x.GeneratePdf(
+                    It.IsAny<Instance>(),
+                    pdfTaskId,
+                    It.IsAny<string>(),
+                    It.IsAny<List<string>?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Instance, string, string, List<string>?, bool, StorageAuthenticationMethod?, CancellationToken>(
+                (_, _, _, taskIds, _, _, _) => rendered.Add(taskIds)
+            )
+            .ReturnsAsync([1, 2, 3]);
+        var instance = _instance;
+        instance.Process.CurrentTask.ElementId = pdfTaskId;
+        var dataMutator = new Mock<IInstanceDataMutator>();
+        dataMutator.Setup(x => x.Instance).Returns(instance);
+        var translationService = new Mock<ITranslationService>();
+        translationService
+            .Setup(x =>
+                x.TranslateTextKey(
+                    It.IsAny<string>(),
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<ComponentContext?>(),
+                    It.IsAny<Dictionary<string, string>?>()
+                )
+            )
+            .ReturnsAsync("receipt.pdf");
+        var serviceTask = new PdfServiceTask(
+            pdfService.Object,
+            translationService.Object,
+            _processReader.Object,
+            _appResources.Object,
+            new Mock<ILogger<PdfServiceTask>>().Object
+        );
+
+        ServiceTaskResult result = await serviceTask.Execute(
+            new StageContext
+            {
+                InstanceDataMutator = dataMutator.Object,
+                WorkflowId = Guid.NewGuid(),
+                StepId = Guid.NewGuid(),
+            }
+        );
+        return (result, rendered);
     }
 
     private void SetupSubformPdfTask(List<string>? autoPdfTaskIds = null)

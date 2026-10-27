@@ -6,6 +6,8 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +26,7 @@ public class PdfController : ControllerBase
     private readonly IPdfService _pdfService;
     private readonly IProcessReader _processReader;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly IAppResources _appResources;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfController"/> class.
@@ -32,17 +35,20 @@ public class PdfController : ControllerBase
     /// <param name="pdfService">The PDF service</param>
     /// <param name="processReader">The process reader</param>
     /// <param name="authenticationContext">The authentication context, for the user's language</param>
+    /// <param name="appResources">The app resources, for the UI folder of a PDF service task</param>
     public PdfController(
         IInstanceClient instanceClient,
         IPdfService pdfService,
         IProcessReader processReader,
-        IAuthenticationContext authenticationContext
+        IAuthenticationContext authenticationContext,
+        IAppResources appResources
     )
     {
         _instanceClient = instanceClient;
         _pdfService = pdfService;
         _processReader = processReader;
         _authenticationContext = authenticationContext;
+        _appResources = appResources;
     }
 
     /// <summary>
@@ -93,6 +99,12 @@ public class PdfController : ControllerBase
             ? await _authenticationContext.Current.GetLanguage()
             : language;
 
+        // An instance at a PDF service task previews that task the way the service task renders it
+        if (taskId is null && IsPdfServiceTask(_processReader.GetFlowElement(currentTaskId)))
+        {
+            taskId = currentTaskId;
+        }
+
         if (taskId is null)
         {
             byte[] pdfContent = await _pdfService.GeneratePdf(
@@ -114,6 +126,18 @@ public class PdfController : ControllerBase
         AltinnTaskExtension? taskExtension = task.ExtensionElements?.TaskExtension;
         if (taskExtension?.TaskType == "pdf")
         {
+            if (
+                PdfServiceTask.GetUnrenderableConfigurationReason(
+                    _appResources,
+                    taskId,
+                    taskExtension.PdfConfiguration?.AutoPdfTaskIds
+                ) is
+                { } reason
+            )
+            {
+                return BadRequest(reason);
+            }
+
             byte[] pdfPreview = await _pdfService.GeneratePdf(
                 instance,
                 taskId,
@@ -156,4 +180,7 @@ public class PdfController : ControllerBase
         );
         return File(subformPreview, "application/pdf");
     }
+
+    private static bool IsPdfServiceTask(ProcessElement? element) =>
+        element is ProcessTask { ExtensionElements.TaskExtension.TaskType: "pdf" };
 }

@@ -12,7 +12,6 @@ public class PdfServiceTaskUtilsTests
     private const string ProcessPath = AppRoot + "config/process/process.bpmn";
 
     private const string NothingToRender = "ALTINNAPP1000";
-    private const string MissingPdfLayoutName = "ALTINNAPP1001";
     private const string TaskWithoutUi = "ALTINNAPP1002";
 
     [Fact]
@@ -43,14 +42,13 @@ public class PdfServiceTaskUtilsTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Own_UI_Folder_Without_PdfLayoutName_Is_An_Error(string? pdfLayoutName)
+    public void Own_UI_Folder_Without_PdfLayoutName_Or_AutoPdfTaskIds_Has_Nothing_To_Render(string? pdfLayoutName)
     {
-        // The folder's pages are what people see while the process is at the task, so the frontend would render
-        // those - in the folder Altinn Studio creates, the waiting page - instead of a PDF layout.
+        // The folder's pages are what people see while the process is at the task, never the PDF.
         var diagnostics = Collect(Process(PdfTask("PdfTask")), UiFolder("Task_1"), UiFolder("PdfTask", pdfLayoutName));
 
         var diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(MissingPdfLayoutName, diagnostic.Id);
+        Assert.Equal(NothingToRender, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Contains("'ui/PdfTask/Settings.json'", diagnostic.GetMessage());
     }
@@ -66,7 +64,7 @@ public class PdfServiceTaskUtilsTests
         Assert.Equal(NothingToRender, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Contains("'PdfTask'", diagnostic.GetMessage());
-        Assert.Contains("'ui/PdfTask'", diagnostic.GetMessage());
+        Assert.Contains("'ui/PdfTask/Settings.json'", diagnostic.GetMessage());
     }
 
     [Fact]
@@ -78,14 +76,26 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Fact]
-    public void Own_UI_Folder_Without_PdfLayoutName_Is_An_Error_With_AutoPdfTaskIds_Too()
+    public void Own_UI_Folder_Without_PdfLayoutName_Renders_AutoPdfTaskIds()
     {
-        // The frontend rejects the task parameters outright in this case, so listing tasks does not help.
+        // Without pdfLayoutName the PDF is generated from the listed tasks, as if the folder were missing.
         var diagnostics = Collect(Process(PdfTask("PdfTask", "Task_1")), UiFolder("Task_1"), UiFolder("PdfTask"));
 
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void Own_UI_Folder_Without_PdfLayoutName_Checks_The_Listed_Tasks()
+    {
+        var diagnostics = Collect(
+            Process(PdfTask("PdfTask", "Task_1", "Task_9")),
+            UiFolder("Task_1"),
+            UiFolder("PdfTask")
+        );
+
         var diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(MissingPdfLayoutName, diagnostic.Id);
-        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal(TaskWithoutUi, diagnostic.Id);
+        Assert.Contains("'Task_9'", diagnostic.GetMessage());
     }
 
     [Fact]

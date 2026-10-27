@@ -127,29 +127,15 @@ public static class Diagnostics
     internal static class Process
     {
         // Worded like the runtime backstop in PdfServiceTask, so an author who meets one of them after the
-        // other reads one explanation rather than two. Without these, a PDF service task that cannot be
-        // rendered fails only when an instance reaches it, and the cause shows up only in the PDF generator's
-        // browser log.
+        // other reads one explanation rather than two. Without it, a PDF service task that cannot be rendered
+        // fails only when an instance reaches it.
         public static readonly DiagnosticDescriptor PdfServiceTaskHasNothingToRender = Error(
             "ALTINNAPP1000",
             Category.Process,
             "PDF service task has nothing to render",
             "PDF service task '{0}' has nothing to render, so generating its PDF will fail. List the tasks to "
-                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or add a UI folder 'ui/{0}' with a "
-                + "Settings.json to design the PDF yourself."
-        );
-
-        // Stricter than the runtime backstop, which fails only when autoPdfTaskIds lists tasks too. Without
-        // them the frontend renders the folder's pages, which in the folder Altinn Studio creates is the
-        // waiting page, so the PDF is never what the author designed.
-        public static readonly DiagnosticDescriptor PdfServiceTaskMissingPdfLayoutName = Error(
-            "ALTINNAPP1001",
-            Category.Process,
-            "PDF service task has a UI folder without pdfLayoutName",
-            "PDF service task '{0}' has its own UI folder 'ui/{0}' without a pdfLayoutName. The folder's pages are "
-                + "what people see while the process is at the task, and pdfLayoutName names the layout to render "
-                + "as the PDF. Set pdfLayoutName in 'ui/{0}/Settings.json', or remove the UI folder and list the "
-                + "tasks to include in <altinn:pdfConfig><altinn:autoPdfTaskIds>."
+                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or set pdfLayoutName in "
+                + "'ui/{0}/Settings.json' to design the PDF yourself."
         );
 
         public static readonly DiagnosticDescriptor PdfServiceTaskIncludesTaskWithoutUi = Warning(

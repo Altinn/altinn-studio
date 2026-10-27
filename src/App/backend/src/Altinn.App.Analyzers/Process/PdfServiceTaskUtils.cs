@@ -7,10 +7,9 @@ namespace Altinn.App.Analyzers.Process;
 /// <summary>
 /// Checks that every <c>pdf</c> service task in <c>config/process/process.bpmn</c> has something the app
 /// frontend can render. The frontend renders a PDF service task from exactly one of two sources: the layout that
-/// the <c>pdfLayoutName</c> of its own UI folder (<c>ui/{taskId}</c>) names, or - when the task has no UI folder -
-/// the tasks the backend passes as <c>task</c> query parameters, taken from <c>autoPdfTaskIds</c>. See
-/// <c>PdfWrapper</c> and <c>PdfFromLayout</c> in the app frontend; the runtime backstop is <c>PdfServiceTask</c>
-/// in Altinn.App.Core.
+/// the <c>pdfLayoutName</c> of its own UI folder (<c>ui/{taskId}</c>) names, or - when that is not set - the tasks
+/// the backend passes as <c>task</c> query parameters, taken from <c>autoPdfTaskIds</c>. See <c>PdfWrapper</c> and
+/// <c>PdfFromLayout</c> in the app frontend; the runtime backstop is <c>PdfServiceTask</c> in Altinn.App.Core.
 /// </summary>
 internal static class PdfServiceTaskUtils
 {
@@ -43,21 +42,15 @@ internal static class PdfServiceTaskUtils
         foreach (var pdfTask in FindPdfServiceTasks(document))
         {
             var location = FileLocationHelper.GetXmlElementLocation(processFile, content, pdfTask.Element);
-            var hasOwnUiFolder = uiFolders.TryGetValue(pdfTask.Id, out var ownSettings);
 
-            if (hasOwnUiFolder)
+            // pdfLayoutName names the layout to render, and the frontend then ignores autoPdfTaskIds. The pages
+            // in the folder's order are what people see while the process is at the task, never the PDF. A
+            // Settings.json that cannot be read is left alone.
+            bool? hasPdfLayoutName = uiFolders.TryGetValue(pdfTask.Id, out var ownSettings)
+                ? HasPdfLayoutName(ownSettings, token)
+                : false;
+            if (hasPdfLayoutName is not false)
             {
-                // The folder's pages are what people see while the process is at the task, so only
-                // pdfLayoutName says which layout is the PDF. The frontend then renders that layout and ignores
-                // autoPdfTaskIds. Without one it renders the folder's pages instead, or rejects the task
-                // parameters outright when autoPdfTaskIds lists any.
-                if (HasPdfLayoutName(ownSettings, token) is false)
-                {
-                    diagnostics.Add(
-                        Diagnostic.Create(Diagnostics.Process.PdfServiceTaskMissingPdfLayoutName, location, pdfTask.Id)
-                    );
-                }
-
                 continue;
             }
 

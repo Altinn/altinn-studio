@@ -19,8 +19,8 @@ public sealed class AltinnPdfConfiguration
     /// </summary>
     /// <remarks>
     /// A PDF service task needs either this list or a UI folder of its own (<c>ui/{pdfTaskId}</c>) whose
-    /// <c>pdfLayoutName</c> names the layout to render as a custom PDF; the folder's pages are what people see
-    /// while the process is at the task. With such a folder, this list is ignored.
+    /// <c>pdfLayoutName</c> names the layout to render as a custom PDF. When <c>pdfLayoutName</c> is set, this list
+    /// is ignored. The pages in that folder's <c>order</c> are never part of the PDF.
     /// </remarks>
     [XmlArray(ElementName = "autoPdfTaskIds", Namespace = "http://altinn.no/process", IsNullable = true)]
     [XmlArrayItem(ElementName = "taskId", Namespace = "http://altinn.no/process")]

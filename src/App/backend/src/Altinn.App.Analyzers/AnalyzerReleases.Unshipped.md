@@ -20,7 +20,6 @@ ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id
 ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry references an unknown data type
 ALTINNAPP0902 | Metadata | Error | autoDeleteOnProcessEnd combined with preventInstanceDeletionForDays
 ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
-ALTINNAPP1001 | Process | Error | PDF service task has a UI folder without pdfLayoutName
 ALTINNAPP1002 | Process | Warning | PDF service task includes a task without a UI folder
 ALTINNAPP1003 | Process | Error | Task uses the wrong BPMN element
 ALTINNAPP1004 | Process | Error | Sequence flow leads to an element the app cannot move to
