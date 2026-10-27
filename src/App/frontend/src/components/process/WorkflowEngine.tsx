@@ -20,7 +20,7 @@ const STILL_WORKING_MS = 8_000;
 /** Failed attempts after which the user is told processing is having trouble, however recent. */
 const TROUBLE_FAILED_ATTEMPTS = 2;
 
-/** Time into processing after which a single failed attempt is enough to tell the user. */
+/** How long polls must keep reporting a single failed attempt before the user is told. */
 const TROUBLE_AFTER_ONE_FAILURE_MS = 20_000;
 
 /**
@@ -95,33 +95,53 @@ export function WorkflowTroubleBanner() {
 
 /**
  * Whether the processing workflow is having trouble: its current step has failed twice in a row,
- * or once after the run has lasted twenty seconds, so a single quick blip passes unnoticed while
- * a slow failure is reported at once. The run is timed on the engine clock, with a browser timer
- * covering the wait between status responses. It clears when the step succeeds or defers (the
- * engine resets failedAttempts) and starts over with a new run or a resume.
+ * or a poll still reports a failed attempt twenty seconds after this page first saw one, so a
+ * single quick blip passes unnoticed. How long the run has lasted does not count, so one failed
+ * re-check after hours of deferring is a blip too. The twenty seconds are measured between the
+ * polls' engine clock readings, without a timer, so the answer changes only when a poll arrives and
+ * never reports a step that recovered before the next poll could say so. It clears when the step
+ * succeeds or defers (the engine resets failedAttempts) and starts over with a new run or a resume.
+ * A reload starts the twenty seconds over.
  */
 export function useIsWorkflowHavingTrouble() {
-  const { runStartedAt, elapsedMs, failedAttempts } = useWorkflowRun();
-  const failingForLong = useHasProcessedFor(TROUBLE_AFTER_ONE_FAILURE_MS, failedAttempts > 0, runStartedAt, elapsedMs);
-  return failedAttempts >= TROUBLE_FAILED_ATTEMPTS || failingForLong;
+  const { runStartedAt, sampledAt, failedAttempts } = useWorkflowRun();
+  const failing = failedAttempts > 0;
+  const [firstFailure, setFirstFailure] = useState<{ run: string | undefined; seenAt: number } | undefined>();
+
+  useEffect(() => {
+    setFirstFailure((seen) => {
+      if (!failing) {
+        return undefined;
+      }
+      if (seen !== undefined && seen.run === runStartedAt) {
+        return seen;
+      }
+      // Every engine that reports failedAttempts also reports currentTime.
+      return Number.isFinite(sampledAt) ? { run: runStartedAt, seenAt: sampledAt } : undefined;
+    });
+  }, [failing, runStartedAt, sampledAt]);
+
+  const failingForMs =
+    failing && firstFailure !== undefined && firstFailure.run === runStartedAt ? sampledAt - firstFailure.seenAt : 0;
+  return failedAttempts >= TROUBLE_FAILED_ATTEMPTS || failingForMs >= TROUBLE_AFTER_ONE_FAILURE_MS;
 }
 
 /**
- * The processing workflow's current run: when it started, how long it has run on the engine
- * clock, and how many attempts in a row of its current step have failed. Zero and undefined
- * when no transition is processing.
+ * The processing workflow's current run: when it started, when the engine sampled its status,
+ * how long it has run on the engine clock, and how many attempts in a row of its current step have
+ * failed. Zero or unknown (NaN, undefined) when no transition is processing.
  */
 function useWorkflowRun() {
   const workflow = useProcessWorkflow();
   const isProcessing = workflow?.status === 'processing';
   // A resume reruns the transition and keeps startedAt, so the current run is timed from the resume.
   const runStartedAt = isProcessing ? (workflow.resumedAt ?? workflow.startedAt) : undefined;
-  const currentTime = isProcessing ? workflow.currentTime : undefined;
+  const sampledAt = Date.parse((isProcessing ? workflow.currentTime : undefined) ?? '');
   const failedAttempts = isProcessing ? (workflow.failedAttempts ?? 0) : 0;
-  const engineElapsed = Date.parse(currentTime ?? '') - Date.parse(runStartedAt ?? '');
+  const engineElapsed = sampledAt - Date.parse(runStartedAt ?? '');
   // Older engines and invalid timestamps fall back to measuring from when this screen appeared.
   const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
-  return { isProcessing, runStartedAt, elapsedMs, failedAttempts };
+  return { isProcessing, runStartedAt, sampledAt, elapsedMs, failedAttempts };
 }
 
 /**

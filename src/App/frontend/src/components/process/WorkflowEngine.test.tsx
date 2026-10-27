@@ -9,6 +9,7 @@ import {
 } from 'src/components/process/WorkflowEngine';
 import { useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { useIsPdf } from 'src/hooks/useIsPdf';
+import type { IProcessWorkflow } from 'src/types/shared';
 
 vi.mock('src/features/instance/useProcessQuery', () => ({ useProcessWorkflow: vi.fn() }));
 vi.mock('src/core/loading/Loader', () => ({ Loader: ({ overlay }: { overlay?: React.ReactNode }) => overlay }));
@@ -169,9 +170,9 @@ describe('failing transition', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('gives a single quick failure until twenty seconds into processing', async () => {
+  it('warns about a single failed attempt once a poll still reports it twenty seconds later', async () => {
     vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(2_000, 1));
-    render(<WorkflowProcessing />);
+    const { rerender } = render(<WorkflowProcessing />);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
     await act(async () => {
@@ -179,13 +180,12 @@ describe('failing transition', () => {
     });
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
 
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(11_999);
-    });
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(21_999, 1));
+    rerender(<WorkflowProcessing />);
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1);
-    });
+
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(22_000, 1));
+    rerender(<WorkflowProcessing />);
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
   });
 
@@ -195,22 +195,17 @@ describe('failing transition', () => {
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
   });
 
-  it('warns at once when a first attempt failed slowly', () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(100_000, 1));
+  it('does not warn at once about a single failed attempt after a long wait', () => {
+    // A task that deferred for hours and then failed one re-check.
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3 * 60 * 60_000, 1));
     render(<WorkflowProcessing />);
-    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
+    expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
   });
 
   it('times a resumed transition from the resume, not the original submit', async () => {
     const resumedAt = new Date(Date.parse(startedAt) + 10 * 60_000).toISOString();
-    vi.mocked(useProcessWorkflow).mockReturnValue({
-      status: 'processing',
-      startedAt,
-      resumedAt,
-      currentTime: new Date(Date.parse(resumedAt) + 2_000).toISOString(),
-      failedAttempts: 1,
-    });
-    render(<WorkflowProcessing />);
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(2_000, 1, resumedAt));
+    const { rerender } = render(<WorkflowProcessing />);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
 
     await act(async () => {
@@ -218,9 +213,8 @@ describe('failing transition', () => {
     });
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.still_working');
 
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(12_000);
-    });
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(22_000, 1, resumedAt));
+    rerender(<WorkflowProcessing />);
     expect(screen.getByRole('status')).toHaveTextContent('process_workflow.having_trouble');
   });
 
@@ -239,73 +233,93 @@ describe('useIsWorkflowHavingTrouble', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
+  /** Renders the hook with a first poll's workflow; `poll` delivers the next one. */
+  function renderWithPolls(first: IProcessWorkflow | undefined) {
+    vi.mocked(useProcessWorkflow).mockReturnValue(first);
+    const { result, rerender } = renderHook(() => useIsWorkflowHavingTrouble());
+    const poll = (workflow: IProcessWorkflow | undefined) => {
+      vi.mocked(useProcessWorkflow).mockReturnValue(workflow);
+      rerender();
+      return result.current;
+    };
+    return { result, poll };
+  }
+
+  const laterRun = new Date(Date.parse(startedAt) + 10 * 60_000).toISOString();
+
   it('reports trouble at once after two failed attempts', () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(1_000, 2));
-    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+    const { result } = renderWithPolls(processingFor(1_000, 2));
     expect(result.current).toBe(true);
   });
 
-  it('reports a single failed attempt once the run is twenty seconds old on the engine clock', async () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(5_000, 1));
-    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+  it('reports a single failed attempt once a poll still reports it twenty seconds after the first', () => {
+    const { result, poll } = renderWithPolls(processingFor(5_000, 1));
     expect(result.current).toBe(false);
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(14_999);
-    });
-    expect(result.current).toBe(false);
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1);
-    });
-    expect(result.current).toBe(true);
+    expect(poll(processingFor(24_999, 1))).toBe(false);
+    expect(poll(processingFor(25_000, 1))).toBe(true);
   });
 
-  it('reports a single failed attempt at once when the run is already twenty seconds old', () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(20_000, 1));
-    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
-    expect(result.current).toBe(true);
+  it('does not report a single failed attempt at once, however long the run has lasted', () => {
+    // A task that deferred for hours and then failed one re-check.
+    const { result } = renderWithPolls(processingFor(3 * 60 * 60_000, 1));
+    expect(result.current).toBe(false);
+  });
+
+  it('decides only when a poll arrives, so a step that recovers in between is never reported', async () => {
+    const { result, poll } = renderWithPolls(processingFor(5_000, 1));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+    expect(result.current).toBe(false);
+    expect(poll(processingFor(65_000))).toBe(false);
   });
 
   it('never reports trouble without failed attempts, however long the run', async () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(10 * 60_000));
-    const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+    const { result } = renderWithPolls(processingFor(10 * 60_000));
     await act(async () => {
       await vi.advanceTimersByTimeAsync(60_000);
     });
     expect(result.current).toBe(false);
   });
 
-  it('clears when the failing step succeeds or defers and failedAttempts returns to zero', () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(30_000, 3));
-    const { result, rerender } = renderHook(() => useIsWorkflowHavingTrouble());
+  it('clears when failedAttempts returns to zero, and times the next failure from scratch', () => {
+    const { result, poll } = renderWithPolls(processingFor(30_000, 3));
     expect(result.current).toBe(true);
 
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(35_000));
-    rerender();
-    expect(result.current).toBe(false);
+    // The failing step succeeded or deferred.
+    expect(poll(processingFor(35_000))).toBe(false);
+    expect(poll(processingFor(40_000, 1))).toBe(false);
+    expect(poll(processingFor(59_999, 1))).toBe(false);
+    expect(poll(processingFor(60_000, 1))).toBe(true);
   });
 
-  it('starts over when the run is resumed', async () => {
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(30_000, 1));
-    const { result, rerender } = renderHook(() => useIsWorkflowHavingTrouble());
-    expect(result.current).toBe(true);
+  it.each([
+    ['the run is resumed', (elapsedMs: number) => processingFor(elapsedMs, 1, laterRun)],
+    [
+      'the process moves on to another transition',
+      (elapsedMs: number) => ({ ...processingFor(elapsedMs, 1, laterRun), startedAt: laterRun, resumedAt: undefined }),
+    ],
+  ])('starts over when %s', (_, nextRun) => {
+    const { poll } = renderWithPolls(processingFor(0, 1));
+    expect(poll(processingFor(20_000, 1))).toBe(true);
 
-    // The resume keeps startedAt, long past twenty seconds; the run is timed from the resume.
-    const resumedAt = new Date(Date.parse(startedAt) + 10 * 60_000).toISOString();
-    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(2_000, 1, resumedAt));
-    rerender();
+    expect(poll(nextRun(2_000))).toBe(false);
+    expect(poll(nextRun(21_999))).toBe(false);
+    expect(poll(nextRun(22_000))).toBe(true);
+  });
+
+  it('times a single failed attempt also when the engine leaves out startedAt', () => {
+    const withoutStart = (elapsedMs: number) => ({ ...processingFor(elapsedMs, 1), startedAt: undefined });
+    const { result, poll } = renderWithPolls(withoutStart(5_000));
     expect(result.current).toBe(false);
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(18_000);
-    });
-    expect(result.current).toBe(true);
+    expect(poll(withoutStart(24_999))).toBe(false);
+    expect(poll(withoutStart(25_000))).toBe(true);
   });
 
   it.each([{ status: 'idle' as const }, { status: 'failed' as const }, undefined])(
     'never reports trouble when the workflow is not processing: %o',
     (workflow) => {
-      vi.mocked(useProcessWorkflow).mockReturnValue(workflow);
-      const { result } = renderHook(() => useIsWorkflowHavingTrouble());
+      const { result } = renderWithPolls(workflow);
       expect(result.current).toBe(false);
     },
   );
