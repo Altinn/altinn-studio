@@ -235,7 +235,7 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
-    public async Task AddLayoutSet_WhenSubformPdfTask_CreatesWaitingPageWithoutPdfLayout(
+    public async Task AddLayoutSet_WhenSubformPdfTask_ReturnsBadRequestAndCreatesNoUiFolder(
         string org,
         string app,
         string developer
@@ -245,34 +245,19 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
         const string NewLayoutSetName = "subformPdfTask";
-        var payload = new LayoutSetPayload
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(org, targetRepository))
         {
-            TaskType = TaskType.SubformPdf,
-            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+            Content = new StringContent(
+                """{"taskType":"subformPdf","LayoutSetConfig":{"id":"subformPdfTask","dataType":"model"}}""",
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
         };
 
-        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
-        Assert.True(
-            TestDataHelper.FileExistsInRepo(
-                org,
-                targetRepository,
-                developer,
-                LayoutPath(NewLayoutSetName, "ServiceTask")
-            )
-        );
-
-        Assert.False(
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
-        );
-
-        JsonNode settings = JsonNode.Parse(
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
-        );
-        Assert.Null(settings["pages"]["pdfLayoutName"]);
-        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
-        Assert.Equal("model", (string)settings["defaultDataType"]);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.False(TestDataHelper.FileExistsInRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName)));
     }
 
     [Theory]
