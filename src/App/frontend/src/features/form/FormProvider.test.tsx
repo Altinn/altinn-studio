@@ -1,17 +1,33 @@
 import React from 'react';
 
 import { act, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
+import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStore } from 'src/features/form/FormContext';
+import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
+import { ActionButtonComponent } from 'src/layout/ActionButton/ActionButtonComponent';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
+import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
+import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonComponent';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
+import { InputComponent } from 'src/layout/Input/InputComponent';
+import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
+import { doProcessNext } from 'src/queries/queries';
 import {
   InstanceRouter,
   renderGenericComponentTest,
   renderWithoutInstanceAndLayout,
 } from 'src/test/renderWithProviders';
+import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { IProcess } from 'src/types/shared';
+
+vi.mock('src/queries/queries', async () => ({
+  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
+  doProcessNext: vi.fn(),
+}));
 
 describe('FormProvider', () => {
   it('loads the UI folder of a subform PDF service task with the subform being rendered', async () => {
@@ -104,5 +120,184 @@ describe('FormProvider', () => {
     expect(screen.getByDisplayValue('Feil')).toBeInTheDocument();
     expect(mutations.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
     logError.mockRestore();
+  });
+});
+
+describe('FormProvider while the instance is transitioning', () => {
+  const inputBinding = { dataType: defaultDataTypeMock, field: 'myInput' };
+
+  /** The instance the backend returns, changed by each test to move the process along. */
+  let process: IProcess;
+  const getInstance = async (): Promise<IInstanceWithProcess> => ({ ...getInstanceWithProcessMock(), process });
+
+  beforeEach(() => {
+    process = getInstanceWithProcessMock().process;
+    process.currentTask!.userActions = [
+      { id: 'write', authorized: true, type: 'ProcessAction' },
+      { id: 'reject', authorized: true, type: 'ProcessAction' },
+      { id: 'lookupPerson', authorized: true, type: 'ServerAction' },
+    ];
+    vi.mocked(doProcessNext).mockReset();
+  });
+
+  function WriteProbe() {
+    const setLeafValue = FormStore.data.useSetLeafValue();
+    return (
+      <button
+        type='button'
+        onClick={() => setLeafValue({ reference: inputBinding, newValue: 'written' })}
+      >
+        write-probe
+      </button>
+    );
+  }
+
+  function SubmitProbe() {
+    const processNext = useProcessNextOutsideFormProvider();
+    return (
+      <button
+        type='button'
+        onClick={() => processNext.mutate()}
+      >
+        submit-probe
+      </button>
+    );
+  }
+
+  async function renderInput(query?: string) {
+    return await renderGenericComponentTest({
+      type: 'Input',
+      renderer: (props) => (
+        <>
+          <InputComponent {...props} />
+          <WriteProbe />
+          <SubmitProbe />
+        </>
+      ),
+      component: { dataModelBindings: { simpleBinding: inputBinding } },
+      query,
+      apis: { instanceApi: { getInstance } },
+    });
+  }
+
+  it('renders inputs read-only and rejects writes while a workflow is processing, until the instance is idle', async () => {
+    const user = userEvent.setup();
+    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+    process.workflow = { status: 'processing' };
+    await renderInput();
+
+    expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
+    await user.click(screen.getByRole('button', { name: 'write-probe' }));
+    expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
+    expect(screen.getByRole('textbox')).toHaveValue('');
+
+    process = { ...process, workflow: { status: 'idle' } };
+    await waitFor(() => expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly'));
+    await user.type(screen.getByRole('textbox'), 'typed');
+    expect(screen.getByRole('textbox')).toHaveValue('typed');
+    logError.mockRestore();
+  });
+
+  it('keeps the form editable while process/next is pending and the process has not moved on', async () => {
+    const user = userEvent.setup();
+    vi.mocked(doProcessNext).mockImplementation(() => new Promise(() => {}));
+    await renderInput();
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+    await waitFor(() => expect(doProcessNext).toHaveBeenCalled());
+    await user.type(screen.getByRole('textbox'), 'typed');
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+    expect(screen.getByRole('textbox')).toHaveValue('typed');
+  });
+
+  it('leaves PDF mode unaffected', async () => {
+    process.workflow = { status: 'processing' };
+    await renderInput('pdf=1');
+
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+  });
+
+  it('disables the submit button', async () => {
+    process.workflow = { status: 'processing' };
+    await renderGenericComponentTest({
+      type: 'Button',
+      renderer: (props) => <ButtonComponent {...props} />,
+      component: { textResourceBindings: { title: 'Submit' } },
+      apis: { instanceApi: { getInstance } },
+    });
+
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+    process = { ...process, workflow: { status: 'idle' } };
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
+  });
+
+  it('disables action buttons', async () => {
+    process.workflow = { status: 'processing' };
+    await renderGenericComponentTest({
+      type: 'ActionButton',
+      renderer: (props) => <ActionButtonComponent {...props} />,
+      component: { action: 'reject', buttonStyle: 'primary', textResourceBindings: { title: 'Reject' } },
+      apis: { instanceApi: { getInstance } },
+    });
+
+    expect(screen.getByRole('button', { name: 'Reject' })).toBeDisabled();
+  });
+
+  it('disables custom buttons with server actions', async () => {
+    process.workflow = { status: 'processing' };
+    await renderGenericComponentTest({
+      type: 'CustomButton',
+      renderer: (props) => <CustomButtonComponent {...props} />,
+      component: {
+        textResourceBindings: { title: 'Look up' },
+        actions: [
+          { id: 'lookupPerson', type: 'ServerAction' },
+          { id: 'nextPage', type: 'ClientAction' },
+        ],
+      },
+      apis: { instanceApi: { getInstance } },
+    });
+    expect(screen.getByRole('button', { name: 'Look up' })).toBeDisabled();
+  });
+
+  it('keeps custom buttons that only navigate enabled', async () => {
+    process.workflow = { status: 'processing' };
+    await renderGenericComponentTest({
+      type: 'CustomButton',
+      renderer: (props) => <CustomButtonComponent {...props} />,
+      component: {
+        textResourceBindings: { title: 'Next page' },
+        actions: [{ id: 'nextPage', type: 'ClientAction' }],
+      },
+      apis: { instanceApi: { getInstance } },
+    });
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeEnabled();
+  });
+
+  it('keeps page navigation working', async () => {
+    process.workflow = { status: 'processing' };
+    window.altinnAppGlobalData.ui = getUiConfigMock(
+      (obj) => (obj.folders.Task_1.pages = { order: ['page1', 'page2'] }),
+    );
+    const navigationButtons = { id: 'nav', type: 'NavigationButtons', textResourceBindings: {} } as const;
+    await renderGenericComponentTest({
+      type: 'NavigationButtons',
+      renderer: (props) => <NavigationButtonsComponent {...props} />,
+      component: navigationButtons,
+      initialPage: 'page1',
+      apis: { instanceApi: { getInstance } },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              page1: { data: { layout: [navigationButtons] } },
+              page2: { data: { layout: [{ id: 'page2-heading', type: 'Heading', size: 'L' }] } },
+            };
+          }),
+      },
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Neste' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Neste' })).not.toBeInTheDocument());
   });
 });

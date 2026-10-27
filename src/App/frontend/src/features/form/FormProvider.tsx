@@ -8,6 +8,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { useIsMutating } from 'src/core/queries/reactQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
@@ -43,6 +44,7 @@ import {
   useOptimisticallyUpdateCachedInstance,
   useSelectFromInstanceData,
 } from 'src/features/instance/InstanceContext';
+import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/features/instance/processNextMutationKey';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { RunOptionsEffects } from 'src/features/options/RunOptionsEffects';
@@ -74,6 +76,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
   const isPdfOfOtherTask = useIsPdfOfOtherTask();
+  const transitioning = useIsInstanceTransitioning();
   const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
@@ -87,6 +90,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     storeRef.current = createFormStore({
       parent,
       readOnly: readOnly || isPdfOfOtherTask,
+      transitioning,
       data: dataSliceProps,
       bootstrap,
     });
@@ -94,6 +98,11 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   }
 
   useLayoutOverrides(storeRef);
+
+  const store = storeRef.current;
+  useEffect(() => {
+    store?.setState({ transitioning });
+  }, [store, transitioning]);
 
   useEffect(() => {
     // This injects validations for subform data elements into the top-most form store. They are maintained by
@@ -194,6 +203,28 @@ function useIsPdfOfOtherTask(): boolean {
 }
 
 /**
+ * The instance is transitioning while a workflow is processing it, or while this session's process/resume is pending.
+ * A pending process/next only counts once the process has moved past the task on screen, as between two chained
+ * workflows: before that, the form is still being validated and saved for the request. A failed workflow is not
+ * transitioning: the instance is not locked then, and the retry page replaces the task's pages.
+ */
+function useIsInstanceTransitioning(): boolean {
+  const isPdf = useIsPdf();
+  const taskId = useNavigationParam('taskId');
+  const process = useProcessQuery().data;
+  const isProcessNextPending = useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
+  const isProcessResumePending = useIsMutating({ mutationKey: PROCESS_RESUME_MUTATION_KEY, status: 'pending' }) > 0;
+  if (isPdf) {
+    return false;
+  }
+
+  const processHasMovedOn = process !== undefined && process.currentTask?.elementId !== taskId;
+  return (
+    process?.workflow?.status === 'processing' || isProcessResumePending || (isProcessNextPending && processHasMovedOn)
+  );
+}
+
+/**
  * A subform PDF service task renders its subform through its own UI folder, which uses the subform data type. There
  * is one such data element per subform, so loading that folder needs the id of the subform being rendered.
  */
@@ -266,11 +297,13 @@ function createFormStore({
   parent,
   data,
   readOnly,
+  transitioning,
   bootstrap,
 }: {
   parent: FormStoreApi | undefined;
   data: FormDataSliceProps;
   readOnly: boolean;
+  transitioning: boolean;
   bootstrap: FormBootstrapBase;
 }): FormStoreApi {
   const store = createStore<FormStoreState>()(
@@ -278,6 +311,7 @@ function createFormStore({
       parent,
       nestedFormStatus: { unsaved: 0, unloadWarnings: 0 },
       readOnly,
+      transitioning,
       data: createFormDataWriteSlice(data, set),
       attachments: createAttachmentsSlice(set),
       validation: createValidationSlice(processBootstrap(bootstrap), set),

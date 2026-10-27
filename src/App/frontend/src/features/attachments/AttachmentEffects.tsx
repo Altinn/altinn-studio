@@ -93,7 +93,7 @@ export function AttachmentEffects() {
 function makeAttachmentEffectsSnapshot(state: FormStoreState): AttachmentEffectsSnapshot {
   const bindings = getUploaderBindings(state);
   return {
-    readOnly: state.readOnly,
+    readOnly: state.readOnly || state.transitioning,
     bindings,
     currentValues: Object.fromEntries(
       bindings.map((binding) => [

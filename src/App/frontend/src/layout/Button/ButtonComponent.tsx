@@ -36,6 +36,7 @@ export const ButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'
   const { mutate: processNext, isPending: isProcessingNext } = useProcessNext();
   const { mutate: processConfirm, isPending: isConfirming } = useProcessNext({ action: 'confirm' });
   const setReturnToView = FormStore.pageNavigation.useSetReturnToView();
+  const transitioning = FormStore.useIsTransitioning();
   if (useIsSubformPage()) {
     throw new Error('Cannot use process navigation in a subform');
   }
@@ -50,6 +51,7 @@ export const ButtonComponent = ({ baseComponentId }: PropsFromGenericComponent<'
     }
   }
   const disabled =
+    transitioning ||
     attachmentState.hasPending ||
     (currentTaskType === ProcessTaskType.Data && !write) ||
     (currentTaskType === ProcessTaskType.Confirm && !actions?.confirm);

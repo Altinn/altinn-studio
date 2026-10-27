@@ -1,34 +1,47 @@
 import { useCallback, useMemo } from 'react';
 
+import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { ExpressionDescriptor } from '@app/layout-contract';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { evaluateDescriptor } from 'src/features/expressions/evaluateDescriptor';
 import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
+import { FormStore } from 'src/features/form/FormContext';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { useCurrentComponentId } from 'src/layout/FormComponentContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { DescriptorExpression, ExpressionRuntimeOptions } from 'src/features/expressions/evaluateDescriptor';
 import type { ExprVal, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 
+const readOnlyDescriptors = new Set<ExpressionDescriptor>([
+  CommonExpressions.readOnly,
+  ...Object.values(Expressions).flatMap((component) => ('readOnly' in component ? [component.readOnly] : [])),
+]);
+
 /**
  * Evaluates one property at the current data model location. Component properties can use generated descriptors:
  * `useEvalExpression(config.required, Expressions.Input.required)`.
+ *
+ * A component's `readOnly` property is true while the instance is transitioning, whatever the layout says.
  */
 export function useEvalExpression<D extends ExpressionDescriptor>(
   expr: DescriptorExpression<D> | undefined,
   descriptor: D,
   runtimeOptions?: ExpressionRuntimeOptions<D['returnType']>,
 ): ExprValToActual<D['returnType']> | D['defaultValue'] {
+  const forceReadOnly = FormStore.useIsTransitioning() && readOnlyDescriptors.has(descriptor);
   const dataSources = useExpressionDataSources(expr);
   const baseComponentId = useCurrentComponentId();
   const componentId = useIndexedId(baseComponentId);
   const stableDescriptor = useShallowMemo(descriptor);
   const options = useShallowMemo(runtimeOptions ?? {});
-  return useMemo(
+  const value = useMemo(
     () => evaluateDescriptor(expr, stableDescriptor, dataSources, baseComponentId ? componentId : undefined, options),
     [baseComponentId, componentId, dataSources, stableDescriptor, expr, options],
   );
+
+  // Every readOnly descriptor returns a boolean
+  return forceReadOnly ? (true as typeof value) : value;
 }
 
 /** Evaluates one property at an explicit location for aggregate queries or event handlers. */

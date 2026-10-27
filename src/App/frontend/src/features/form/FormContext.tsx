@@ -44,7 +44,10 @@ export const FormStore = {
     return useLaxCtx() !== ContextNotProvided;
   },
   useIsReadOnly() {
-    return FormStore.raw.useSelector((state) => state.readOnly);
+    return FormStore.raw.useSelector((state) => state.readOnly || state.transitioning);
+  },
+  useIsTransitioning() {
+    return FormStore.raw.useLaxSelector((state) => state.transitioning) === true;
   },
   raw: {
     ...raw,
@@ -76,6 +79,11 @@ export interface FormStoreState {
   // prevent any write operations from happening in case components inside try to write new form data, but it will
   // prevent automatic effects from happening.
   readOnly: boolean;
+
+  // True while the instance is transitioning to another process state. The instance is locked on the server then, so
+  // every write is rejected, no effects run, components render as read-only and buttons that change the instance are
+  // disabled. Never set in PDF mode.
+  transitioning: boolean;
 
   data: FormDataSliceState & FormDataMethods;
   attachments: AttachmentsSliceState;
