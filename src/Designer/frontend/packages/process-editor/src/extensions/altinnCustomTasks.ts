@@ -242,6 +242,13 @@ export const altinnCustomTasks = {
           type: 'FilenameTextResourceKey',
         },
         {
+          name: 'subformUiFolder',
+          isMany: false,
+          type: 'String',
+        },
+        // The settings that subformUiFolder replaces. Known here only so that saving the process keeps
+        // them for the upgrade; choosing a UI folder removes them.
+        {
           name: 'subformComponentId',
           isMany: false,
           type: 'String',
