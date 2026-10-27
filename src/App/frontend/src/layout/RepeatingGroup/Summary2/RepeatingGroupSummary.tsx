@@ -6,6 +6,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -17,7 +18,7 @@ import { RepGroupSummaryEditableProvider } from 'src/layout/RepeatingGroup/Summa
 import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
-import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import {
   ComponentSummary,
   SummaryContains,
@@ -42,6 +43,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
   const config = useComponentConfig(targetBaseComponentId, 'RepeatingGroup');
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'RepeatingGroup');
   const summaryTitle = useEvalOptionalText(
     config.textResourceBindings?.summaryTitle,
@@ -96,17 +98,17 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
         className={cn(classes.summaryWrapper, { [classes.nestedSummaryWrapper]: isNested })}
         data-testid='summary-repeating-group-component'
       >
-        <SummaryLabel
-          baseComponentId={targetBaseComponentId}
-          title={<Lang id={title} />}
-        >
-          <Heading
-            data-size='xs'
-            level={4}
-          >
-            <Lang id={title} />
-          </Heading>
-        </SummaryLabel>
+        <LabelContent
+          {...labelProps}
+          label={
+            <Heading
+              data-size='xs'
+              level={4}
+            >
+              <Lang id={title} />
+            </Heading>
+          }
+        />
         <div className={cn(classes.contentWrapper, { [classes.nestedContentWrapper]: isNested })}>
           {rows.map((row, index) => {
             if (!row) {

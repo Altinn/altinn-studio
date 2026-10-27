@@ -3,11 +3,12 @@ import React from 'react';
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { Lang } from 'src/features/language/Lang';
 import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import classes from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
-import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import type { BaseValidation } from 'src/features/validation';
 
 type SingleValueSummaryProps = {
@@ -33,6 +34,7 @@ export const SingleValueSummary = ({
   emptyFieldText,
   showLabelMetadata = true,
 }: SingleValueSummaryProps) => {
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const label = (
     <Label
       asChild
@@ -52,13 +54,11 @@ export const SingleValueSummary = ({
       <div className={classes.summaryItem}>
         <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
           {showLabelMetadata ? (
-            <SummaryLabel
-              baseComponentId={targetBaseComponentId}
-              title={title}
+            <LabelContent
+              {...labelProps}
+              label={label}
               isCompact={isCompact}
-            >
-              {label}
-            </SummaryLabel>
+            />
           ) : (
             label
           )}

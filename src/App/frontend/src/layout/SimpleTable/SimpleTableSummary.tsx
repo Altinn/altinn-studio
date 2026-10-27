@@ -3,12 +3,13 @@ import React from 'react';
 import { AppTable, useIsMobile } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isJSONSchema7Definition } from 'src/layout/AddToList/AddToList';
-import { SummaryCaption } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryCaptionProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -30,6 +31,7 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
 
   const { formData } = useDataModelBindings(dataModelBindings, 1, 'raw');
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
   const isMobile = useIsMobile();
   const { langAsString } = useLanguage();
 
@@ -65,8 +67,8 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
       <AppTable
         caption={
           title && (
-            <SummaryCaption
-              baseComponentId={targetBaseComponentId}
+            <Caption
+              {...captionProps}
               title={<Lang id={title} />}
             />
           )

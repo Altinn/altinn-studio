@@ -14,7 +14,7 @@ import classes from 'src/layout/Map/Summary2/MapSummary.module.css';
 import { isLocationValid, parseLocation } from 'src/layout/Map/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
-import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';

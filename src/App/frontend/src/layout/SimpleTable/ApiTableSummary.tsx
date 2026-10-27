@@ -5,11 +5,12 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { pick } from 'dot-object';
 import type { FormDataObject } from '@app/form-component';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/core/queries/externalApi';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { isFormDataObject, isFormDataObjectArray } from 'src/layout/SimpleTable/typeguards';
-import { SummaryCaption } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryCaptionProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -27,6 +28,7 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
   );
 
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
   const isMobile = useIsMobile();
   const { langAsString } = useLanguage();
   const { data } = useExternalApis(config.externalApi ? [config.externalApi.id] : []);
@@ -60,8 +62,8 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
       <AppTable
         caption={
           title && (
-            <SummaryCaption
-              baseComponentId={targetBaseComponentId}
+            <Caption
+              {...captionProps}
               title={<Lang id={title} />}
             />
           )

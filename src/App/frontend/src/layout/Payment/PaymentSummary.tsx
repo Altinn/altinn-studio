@@ -3,7 +3,7 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { PaymentReceiptDetails } from 'src/layout/Payment/PaymentReceiptDetails/PaymentReceiptDetails';
-import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';

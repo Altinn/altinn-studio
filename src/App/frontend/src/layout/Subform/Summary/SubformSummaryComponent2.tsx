@@ -2,9 +2,10 @@ import React, { Fragment, type PropsWithChildren } from 'react';
 
 import { Flex } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Label as DesignSystemLabel, Paragraph } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/components/label/Label';
+import { LabelContent } from 'src/components/label/LabelContent';
 import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
@@ -21,7 +22,10 @@ import {
   useSubformFormData,
 } from 'src/layout/Subform/utils';
 import classes_singlevaluesummary from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary.module.css';
-import { SummaryLabel, useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import {
+  useSummaryLabelProps,
+  useSummaryLabelText,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
@@ -112,6 +116,7 @@ const DoSummaryWrapper = ({
 }>) => {
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData);
+  const labelProps = useSummaryLabelProps(baseComponentId);
 
   if (isSubformDataFetching) {
     return <Loader reason='subform-data' />;
@@ -127,10 +132,19 @@ const DoSummaryWrapper = ({
       : null;
 
   const label = title ? (
-    <SummaryLabel
-      baseComponentId={baseComponentId}
-      id={`label-${baseComponentId}`}
-      title={<Lang id={title} />}
+    <LabelContent
+      {...labelProps}
+      wrapperId={`label-${baseComponentId}`}
+      label={
+        <DesignSystemLabel
+          asChild
+          weight='regular'
+        >
+          <span>
+            <Lang id={title} />
+          </span>
+        </DesignSystemLabel>
+      }
     />
   ) : null;
 

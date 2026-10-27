@@ -7,6 +7,8 @@ import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 import type { GridCell, GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
+import { Caption } from 'src/components/form/caption/Caption';
+import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
 import { usePdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
@@ -25,7 +27,10 @@ import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
-import { SummaryCaption, SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import {
+  useSummaryCaptionProps,
+  useSummaryLabelProps,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import utilClasses from 'src/styles/utils.module.css';
@@ -56,6 +61,7 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   );
 
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(baseComponentId, title);
   const tableIds = useTableComponentIds(baseComponentId);
   const hiddenColumns = useHiddenColumns(config.tableColumns);
   const pdfExclusions = usePdfExclusions();
@@ -77,8 +83,8 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
       data-testid='summary-repeating-group-component'
     >
       <Table className={cn({ [tableClasses.mobileTable]: isSmall })}>
-        <SummaryCaption
-          baseComponentId={baseComponentId}
+        <Caption
+          {...captionProps}
           title={<Lang id={title} />}
         />
         <Table.Body>
@@ -180,6 +186,7 @@ function HeaderCell({
 }) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
   const title = useTableTitle(baseComponentId);
+  const labelProps = useSummaryLabelProps(baseComponentId);
 
   const isHidden = columnSettings[baseComponentId]?.hidden === true;
   if (isHidden) {
@@ -191,15 +198,16 @@ function HeaderCell({
       className={repeatingGroupClasses.tableCellFormatting}
       style={style}
     >
-      <SummaryLabel
-        baseComponentId={baseComponentId}
-        title={<Lang id={title} />}
-      >
-        <RepeatingGroupTableTitle
-          baseComponentId={baseComponentId}
-          columnSettings={columnSettings}
-        />
-      </SummaryLabel>
+      <LabelContent
+        {...labelProps}
+        label={
+          <RepeatingGroupTableTitle
+            baseComponentId={baseComponentId}
+            columnSettings={columnSettings}
+          />
+        }
+        helpTitle={title}
+      />
     </Table.HeaderCell>
   );
 }

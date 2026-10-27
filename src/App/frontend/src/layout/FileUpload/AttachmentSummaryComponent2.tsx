@@ -13,7 +13,7 @@ import classes from 'src/layout/FileUpload/FileUploadTable/FileTableComponent.mo
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { fileUploadHasTag } from 'src/layout/FileUpload/Tag/hasTag';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
-import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';

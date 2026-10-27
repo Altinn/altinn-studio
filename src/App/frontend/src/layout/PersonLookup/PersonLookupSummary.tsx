@@ -3,13 +3,14 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Heading } from '@digdir/designsystemet-react';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useBindingValidationsFor } from 'src/features/validation/selectors/bindingValidationsForNode';
 import classes from 'src/layout/PersonLookup/PersonLookupSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
-import { SummaryLabel } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -18,6 +19,7 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
   const config = useComponentConfig(targetBaseComponentId, 'PersonLookup');
+  const labelProps = useSummaryLabelProps(targetBaseComponentId);
   const dataModelBindings = useDataModelBindingsFor(targetBaseComponentId, 'PersonLookup');
   const required = useEvalExpression(config.required, Expressions.PersonLookup.required);
   const title = useEvalOptionalText(
@@ -44,17 +46,17 @@ export function PersonLookupSummary({ targetBaseComponentId }: Summary2Props) {
       }
     >
       <div className={classes.personSummaryWrapper}>
-        <SummaryLabel
-          baseComponentId={targetBaseComponentId}
-          title={<Lang id={title} />}
-        >
-          <Heading
-            data-size='sm'
-            level={2}
-          >
-            <Lang id={title} />
-          </Heading>
-        </SummaryLabel>
+        <LabelContent
+          {...labelProps}
+          label={
+            <Heading
+              data-size='sm'
+              level={2}
+            >
+              <Lang id={title} />
+            </Heading>
+          }
+        />
         <div className={classes.personLookupComponent}>
           <div className={classes.personLookupComponentSsn}>
             <SingleValueSummary

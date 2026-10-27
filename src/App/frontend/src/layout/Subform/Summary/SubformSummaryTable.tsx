@@ -6,6 +6,7 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { Paragraph, Table } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
 import { FormStore } from 'src/features/form/FormContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
@@ -23,7 +24,10 @@ import classes1 from 'src/layout/Subform/SubformComponent.module.css';
 import classes2 from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
 import { useExpressionDataSourcesForSubform, useSubformFormData } from 'src/layout/Subform/utils';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
-import { SummaryCaption, useSummaryLabelText } from 'src/layout/Summary2/CommonSummaryComponents/SummaryLabel';
+import {
+  useSummaryCaptionProps,
+  useSummaryLabelText,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import utilClasses from 'src/styles/utils.module.css';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -126,6 +130,7 @@ export function SubformSummaryTable({
   );
   const title = summaryTitle ?? resolvedTitle;
   const labelText = useSummaryLabelText(targetBaseComponentId);
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
 
   const navigation = useNavigation();
 
@@ -189,8 +194,8 @@ export function SubformSummaryTable({
           className={classes1.subformTable}
         >
           {title && (
-            <SummaryCaption
-              baseComponentId={targetBaseComponentId}
+            <Caption
+              {...captionProps}
               id={`subform-${componentId}-caption`}
               title={<Lang id={title} />}
             />
