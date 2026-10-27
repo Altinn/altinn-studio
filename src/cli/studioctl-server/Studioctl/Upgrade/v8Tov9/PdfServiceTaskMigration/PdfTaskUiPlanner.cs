@@ -10,7 +10,8 @@ internal abstract record PdfTaskUi
 {
     /// <summary>
     /// The layout set Altinn Studio creates for a custom PDF: the PDF layout, with its summaries pointing at
-    /// the source task, and a waiting page, for anyone who opens the instance while the PDF is generated.
+    /// the source task, and no pages, so that anyone who opens the instance while the PDF is generated sees the
+    /// app's own waiting view.
     /// </summary>
     public sealed record OwnLayoutSet(UiFolderFiles Files, PdfLayoutRetargetingResult Retargeting) : PdfTaskUi;
 
@@ -33,9 +34,6 @@ internal abstract record PdfTaskUi
 /// </summary>
 internal static class PdfTaskUiPlanner
 {
-    /// <summary>The page Altinn Studio shows in a PDF service task's layout set while the PDF is generated.</summary>
-    private const string WaitingPage = "ServiceTask";
-    private const string LayoutSchema = "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json";
     private const string SettingsSchema = "https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json";
 
     private static readonly JsonDocumentOptions _documentOptions = new()
@@ -111,23 +109,13 @@ internal static class PdfTaskUiPlanner
             return new PdfTaskUi.TaskFolderCopy(UiFolderFiles.CopyOf(source.UiFolder), blockers);
         }
 
-        // Page names are file names, which may be compared without regard to case.
-        var waitingPage = string.Equals(source.PdfLayoutName, WaitingPage, StringComparison.OrdinalIgnoreCase)
-            ? $"{WaitingPage}Waiting"
-            : WaitingPage;
-
         return new PdfTaskUi.OwnLayoutSet(
             new UiFolderFiles([
                 KeyValuePair.Create(
                     "Settings.json",
                     settingsText.Encode(
-                        PdfTaskSettings(settingsRoot, source.PdfLayoutName, waitingPage, dataType)
-                            .ToJsonString(_serializerOptions)
+                        PdfTaskSettings(settingsRoot, source.PdfLayoutName, dataType).ToJsonString(_serializerOptions)
                     )
-                ),
-                KeyValuePair.Create(
-                    $"layouts/{waitingPage}.json",
-                    layoutText.Encode(WaitingLayout(layoutRoot).ToJsonString(_serializerOptions))
                 ),
                 KeyValuePair.Create(
                     $"layouts/{source.PdfLayoutName}.json",
@@ -142,16 +130,12 @@ internal static class PdfTaskUiPlanner
 
     /// <summary>
     /// The settings Altinn Studio gives a PDF service task's layout set, keeping the source task's
-    /// <c>hideAppNameInPdf</c>: a folder's own value overrides the app's for the PDF it renders.
+    /// <c>hideAppNameInPdf</c>: a folder's own value overrides the app's for the PDF it renders. The order lists
+    /// no page, since v9 shows the pages it lists while the task runs.
     /// </summary>
-    private static JsonObject PdfTaskSettings(
-        JsonObject source,
-        string pdfLayoutName,
-        string waitingPage,
-        string dataType
-    )
+    private static JsonObject PdfTaskSettings(JsonObject source, string pdfLayoutName, string dataType)
     {
-        var pages = new JsonObject { ["pdfLayoutName"] = pdfLayoutName, ["order"] = new JsonArray(waitingPage) };
+        var pages = new JsonObject { ["pdfLayoutName"] = pdfLayoutName, ["order"] = new JsonArray() };
         if ((source["pages"] as JsonObject)?["hideAppNameInPdf"] is { } hideAppNameInPdf)
             pages["hideAppNameInPdf"] = hideAppNameInPdf.DeepClone();
 
@@ -162,31 +146,6 @@ internal static class PdfTaskUiPlanner
             ["defaultDataType"] = dataType,
         };
     }
-
-    /// <summary>The waiting page Altinn Studio creates, with the texts of the frontend's own waiting view.</summary>
-    private static JsonObject WaitingLayout(JsonObject pdfLayout) =>
-        new()
-        {
-            ["$schema"] = StringValue(pdfLayout["$schema"]) ?? LayoutSchema,
-            ["data"] = new JsonObject
-            {
-                ["layout"] = new JsonArray(
-                    new JsonObject
-                    {
-                        ["size"] = "L",
-                        ["id"] = "service-task-waiting-title",
-                        ["type"] = "Heading",
-                        ["textResourceBindings"] = new JsonObject { ["title"] = "service_task.waiting_title" },
-                    },
-                    new JsonObject
-                    {
-                        ["id"] = "service-task-waiting-body",
-                        ["type"] = "Paragraph",
-                        ["textResourceBindings"] = new JsonObject { ["title"] = "service_task.waiting_body" },
-                    }
-                ),
-            },
-        };
 
     private static string? StringValue(JsonNode? node) =>
         node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
