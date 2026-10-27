@@ -229,7 +229,7 @@
       "automerge": true
     },
     {
-      "description": "Keep the v8 app template on .NET 10: it targets net10.0, so its SDK and both Dockerfile images stay on 10.x. The src/App/** rule further down excludes the template, since it would hold them at 8",
+      "description": "Keep the v8 app template on .NET 10: it targets net10.0, so its SDK and both Dockerfile images stay on 10.x. The src/App/** rule further down excludes the v8 template, since it would hold them at 8",
       "matchFileNames": ["src/App/template/v8/global.json", "src/App/template/v8/src/Dockerfile"],
       "matchPackageNames": [
         "dotnet-sdk",
