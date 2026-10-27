@@ -33,6 +33,7 @@ public class UiFoldersService : IUiFoldersService
     private readonly IPublisher _publisher;
     private readonly ILogger<UiFoldersService> _logger;
     private const string LayoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
+    private const string SubformComponentType = "Subform";
 
     public UiFoldersService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -99,7 +100,7 @@ public class UiFoldersService : IUiFoldersService
         {
             Id = info.LayoutSetName,
             DataType = info.LayoutSettings.DefaultDataType,
-            Type = info.LayoutSettings.Type,
+            Type = info.IsSubform ? Constants.General.SubformId : info.LayoutSettings.Type,
             TaskType = info.TaskType,
         };
 
@@ -463,7 +464,9 @@ public class UiFoldersService : IUiFoldersService
     /// <summary>
     /// Shared logic for resolving layout sets from the UI folders. Since v9 apps no longer have a
     /// layout-sets.json file, layout sets are derived from the UI folders combined with the process
-    /// definitions. Only folders that are subforms or that match a task are included.
+    /// definitions. Only folders that are subforms or that match a task are included. Like the app, this
+    /// treats a folder that a Subform component opens as a subform, also without the <c>subform</c> type
+    /// that Studio writes to the subforms it creates.
     /// </summary>
     private async Task<List<LayoutSetInfo>> GetLayoutSetInfos(
         AltinnRepoEditingContext editingContext,
@@ -481,8 +484,7 @@ public class UiFoldersService : IUiFoldersService
             .Select((taskId, index) => (taskId, index))
             .ToDictionary(entry => entry.taskId, entry => entry.index);
 
-        List<LayoutSetInfo> layoutSets = [];
-
+        List<(string Name, LayoutSettings Settings)> folders = [];
         foreach (string layoutSetName in uiFolders)
         {
             LayoutSettings? layoutSettings = await TryGetLayoutSettings(
@@ -490,24 +492,44 @@ public class UiFoldersService : IUiFoldersService
                 layoutSetName,
                 cancellationToken
             );
-
-            if (layoutSettings is null)
+            if (layoutSettings is not null)
             {
-                continue;
+                folders.Add((layoutSetName, layoutSettings));
             }
+        }
 
-            bool isSubform = layoutSettings.Type == Constants.General.SubformId;
-            bool hasMatchingTask = taskOrderById.ContainsKey(layoutSetName);
-            bool isCustomReceipt = layoutSetName == Constants.General.CustomReceiptId;
+        bool IsMarkedSubform(LayoutSettings layoutSettings) => layoutSettings.Type == Constants.General.SubformId;
+        bool HasMatchingTask(string layoutSetName) => taskOrderById.ContainsKey(layoutSetName);
+        bool IsCustomReceipt(string layoutSetName) => layoutSetName == Constants.General.CustomReceiptId;
 
-            if (!isSubform && !hasMatchingTask && !isCustomReceipt)
+        // Reading the layouts is needed only when some folder is not marked, a task's or the custom receipt.
+        bool hasUnmarkedFolders = folders.Any(folder =>
+            !IsMarkedSubform(folder.Settings) && !HasMatchingTask(folder.Name) && !IsCustomReceipt(folder.Name)
+        );
+        HashSet<string> openedBySubformComponents = hasUnmarkedFolders
+            ? await GetUiFoldersOpenedBySubformComponents(
+                altinnAppGitRepository,
+                folders.Where(folder => HasMatchingTask(folder.Name)).Select(folder => folder.Name),
+                cancellationToken
+            )
+            : [];
+
+        List<LayoutSetInfo> layoutSets = [];
+        foreach ((string layoutSetName, LayoutSettings layoutSettings) in folders)
+        {
+            bool hasMatchingTask = HasMatchingTask(layoutSetName);
+            bool isSubform =
+                IsMarkedSubform(layoutSettings)
+                || (!hasMatchingTask && openedBySubformComponents.Contains(layoutSetName));
+
+            if (!isSubform && !hasMatchingTask && !IsCustomReceipt(layoutSetName))
             {
                 continue;
             }
 
             string? taskType = hasMatchingTask ? definitions.Process.TaskTypeOf(layoutSetName) ?? string.Empty : null;
 
-            layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType));
+            layoutSets.Add(new LayoutSetInfo(layoutSetName, layoutSettings, taskType, isSubform));
         }
 
         return
@@ -518,7 +540,60 @@ public class UiFoldersService : IUiFoldersService
         ];
     }
 
-    private sealed record LayoutSetInfo(string LayoutSetName, LayoutSettings LayoutSettings, string? TaskType);
+    /// <summary>
+    /// Returns the UI folders that a Subform component in the given UI folders opens through <c>layoutSet</c>.
+    /// Skips layouts that cannot be read, as <see cref="TryGetLayoutSettings"/> skips such settings.
+    /// </summary>
+    private async Task<HashSet<string>> GetUiFoldersOpenedBySubformComponents(
+        AltinnAppGitRepository altinnAppGitRepository,
+        IEnumerable<string> layoutSetNames,
+        CancellationToken cancellationToken
+    )
+    {
+        HashSet<string> openedUiFolders = new(StringComparer.Ordinal);
+        foreach (string layoutSetName in layoutSetNames)
+        {
+            Dictionary<string, JsonNode> layouts;
+            try
+            {
+                layouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName, cancellationToken);
+            }
+            catch (Exception e) when (e is FileNotFoundException or JsonException)
+            {
+                _logger.LogWarning(
+                    e,
+                    "Could not read the layouts of layout set {LayoutSetName}. Skipping.",
+                    SanitizeForLog(layoutSetName)
+                );
+                continue;
+            }
+
+            IEnumerable<JsonObject> components = layouts.Values.SelectMany(layout =>
+                (layout?["data"]?["layout"] as JsonArray ?? []).OfType<JsonObject>()
+            );
+            foreach (JsonObject component in components)
+            {
+                if (IsSubformComponent(component) && GetStringProperty(component, "layoutSet") is { } openedUiFolder)
+                {
+                    openedUiFolders.Add(openedUiFolder);
+                }
+            }
+        }
+        return openedUiFolders;
+    }
+
+    private static bool IsSubformComponent(JsonObject component) =>
+        string.Equals(GetStringProperty(component, "type"), SubformComponentType, StringComparison.OrdinalIgnoreCase);
+
+    private static string? GetStringProperty(JsonObject component, string propertyName) =>
+        component[propertyName] is JsonValue value && value.TryGetValue(out string? text) ? text : null;
+
+    private sealed record LayoutSetInfo(
+        string LayoutSetName,
+        LayoutSettings LayoutSettings,
+        string? TaskType,
+        bool IsSubform
+    );
 
     public async Task<ValidationOnNavigation?> GetGlobalValidationOnNavigation(
         AltinnRepoEditingContext editingContext,

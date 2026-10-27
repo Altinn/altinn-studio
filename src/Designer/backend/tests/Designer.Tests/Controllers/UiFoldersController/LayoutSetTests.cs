@@ -78,6 +78,38 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
     }
 
     [Theory]
+    [InlineData("ttd", "app-with-subform-pdf-v9", "testUser")]
+    public async Task GetLayoutSets_WhenSubformFolderIsUnmarked_ReturnsItAsSubformWhenASubformComponentOpensIt(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        // The app treats a folder as a subform when a Subform component opens it, with or without the marker.
+        string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+        string settingsFile = Path.Join(repositoryDirectory, SettingsPath("notesSubform"));
+        JsonObject settings = JsonNode.Parse(await File.ReadAllTextAsync(settingsFile))!.AsObject();
+        settings.Remove("type");
+        await File.WriteAllTextAsync(settingsFile, settings.ToJsonString());
+        Directory.CreateDirectory(Path.Join(repositoryDirectory, "App", "ui", "unusedFolder"));
+        await File.WriteAllTextAsync(settingsFile.Replace("notesSubform", "unusedFolder"), settings.ToJsonString());
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix(org, targetRepository));
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        List<LayoutSetConfigDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetConfigDto>>(
+            await response.Content.ReadAsStringAsync()
+        );
+        LayoutSetConfigDto notesSubform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "notesSubform");
+        Assert.Equal("subform", notesSubform.Type);
+        Assert.DoesNotContain(layoutSets, layoutSet => layoutSet.Id == "unusedFolder");
+        Assert.Null(Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1").Type);
+    }
+
+    [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
     public async Task AddLayoutSet_WhenValidPayload_CreatesLayoutSetFiles(string org, string app, string developer)
     {
