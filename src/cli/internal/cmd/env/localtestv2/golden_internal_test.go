@@ -47,7 +47,7 @@ type goldenOptions struct {
 
 func TestTheEnvironmentMatchesTheGoldenFile(t *testing.T) {
 	t.Parallel()
-	everything := defaultOptions("/home/dev/.altinn-studio/certs")
+	everything := defaultOptions("/home/dev/.altinn-studio/certs", "/home/dev/.altinn-studio/files")
 	everything.Groups = OptionalGroups()
 	everything.LatestImages = true
 	everything.RelabelBinds = true
@@ -62,17 +62,17 @@ func TestTheEnvironmentMatchesTheGoldenFile(t *testing.T) {
 		},
 	}
 
-	minimal := defaultOptions("/home/dev/.altinn-studio/certs")
+	minimal := defaultOptions("/home/dev/.altinn-studio/certs", "/home/dev/.altinn-studio/files")
 	minimal.Minimal = true
 
-	custom := defaultOptions("/home/dev/.altinn-studio/certs")
+	custom := defaultOptions("/home/dev/.altinn-studio/certs", "/home/dev/.altinn-studio/files")
 	custom.Origin = stack().Origin("origin.test", 18000)
 
 	got := goldenEnvironment{
 		Groups:       map[string][]string{},
 		Volumes:      volumeNames(),
 		VolumePrefix: volumePrefix,
-		Default:      goldenOf(t, defaultOptions("/home/dev/.altinn-studio/certs")),
+		Default:      goldenOf(t, defaultOptions("/home/dev/.altinn-studio/certs", "/home/dev/.altinn-studio/files")),
 		Everything:   goldenOf(t, everything),
 		Minimal:      goldenOf(t, minimal),
 		CustomOrigin: goldenOf(t, custom),

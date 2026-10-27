@@ -5,11 +5,12 @@ package manifest
 
 import (
 	"bytes"
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"maps"
 	"regexp"
 	"slices"
@@ -36,6 +37,12 @@ const (
 //go:embed manifest.json
 var manifestJSON []byte
 
+// bundle is what ships with the manifest: the folders beside manifest.json that hold the files its containers mount
+// (files.go). Every such folder is named here; the package's tests fail on a folder beside the manifest that is not.
+//
+//go:embed manifest.json monitoring
+var bundle embed.FS
+
 // volumeID is a volume id: lower-case letters and digits in hyphen-separated words (postgres-data). Each runtime
 // names the volume by its own prefix and the id, so the two runtimes' data never mixes.
 var volumeID = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)
@@ -49,13 +56,16 @@ var (
 	errValue      = errors.New("bad value")
 	errNoDefault  = errors.New("no " + DefaultGroup + " group")
 	errUnknownKey = errors.New("unknown key")
+	errNoFile     = errors.New("no such file beside the manifest")
 )
 
 // Manifest is the parsed manifest.
 type Manifest struct {
 	Containers map[string]Container
+	files      fs.FS
 	Groups     []Group
 	names      []string
+	shipped    []string
 	Public     Public
 }
 
@@ -73,6 +83,9 @@ type Container struct {
 	// Volumes maps a volume id to where the volume is mounted in the container. The id names one volume for the whole
 	// manifest (containers naming the same id share it); the runtime prefixes it with its own prefix.
 	Volumes map[string]string `json:"volumes"`
+	// Files maps a path in the container to a file or folder that ships with the manifest, relative to the manifest's
+	// directory and inside a folder beside it (monitoring/otel-collector.yaml); the runtime mounts it read-only.
+	Files map[string]string `json:"files"`
 	// Registry is the image repository, with the registry host.
 	Registry string `json:"registry"`
 	// Tag is the image tag (a digest may follow it: "7.2-alpine@sha256:...").
@@ -116,7 +129,7 @@ func (c Container) IsHTTP() bool {
 //
 //nolint:gochecknoglobals // A parse-once cache of embedded, immutable data.
 var loadDefault = sync.OnceValues(func() (*Manifest, error) {
-	return Parse(manifestJSON)
+	return Parse(manifestJSON, bundle)
 })
 
 // Default returns the embedded manifest, parsed and checked once.
@@ -135,8 +148,10 @@ func MustDefault() *Manifest {
 }
 
 // Parse reads a manifest and checks it: known keys only, every reference resolves, no dependency cycle, every container
-// reached by a group, the values in range, and every placeholder in envs one of the public origin's.
-func Parse(data []byte) (*Manifest, error) {
+// reached by a group, the values in range, every placeholder in envs one of the public origin's, and every source of
+// files one that ships with it. files holds what ships with the manifest, at paths relative to its directory; only the
+// files in its folders count (ShippedFiles), and nil ships none.
+func Parse(data []byte, files fs.FS) (*Manifest, error) {
 	var file struct {
 		Containers json.RawMessage `json:"containers"`
 		Groups     []Group         `json:"groups"`
@@ -145,7 +160,18 @@ func Parse(data []byte) (*Manifest, error) {
 	if err := strictDecode(data, &file); err != nil {
 		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
-	m := &Manifest{Containers: map[string]Container{}, Groups: file.Groups, Public: file.Public, names: nil}
+	shipped, err := shippedFiles(files)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errInvalid, err)
+	}
+	m := &Manifest{
+		Containers: map[string]Container{},
+		files:      files,
+		Groups:     file.Groups,
+		names:      nil,
+		shipped:    shipped,
+		Public:     file.Public,
+	}
 	if err := m.readContainers(file.Containers); err != nil {
 		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
@@ -256,6 +282,9 @@ func (m *Manifest) readContainers(data json.RawMessage) error {
 		if err := strictDecode(raw, &c); err != nil {
 			return fmt.Errorf("container %s: %w", name, err)
 		}
+		if err := checkFileTargetsUnique(raw); err != nil {
+			return fmt.Errorf("container %s: %w", name, err)
+		}
 		if _, dup := m.Containers[name]; dup {
 			return fmt.Errorf("%w container %s", errDuplicate, name)
 		}
@@ -351,6 +380,9 @@ func (m *Manifest) checkContainers() error {
 	for _, name := range m.names {
 		c := m.Containers[name]
 		if err := checkContainer(name, c); err != nil {
+			return fmt.Errorf("container %s: %w", name, err)
+		}
+		if err := m.checkFiles(c); err != nil {
 			return fmt.Errorf("container %s: %w", name, err)
 		}
 		seen := map[string]bool{}

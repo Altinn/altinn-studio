@@ -140,9 +140,9 @@ func (e *Env) Changed(opts UpOptions) (bool, error) {
 		!slices.Equal(slices.Sorted(maps.Keys(opts.DevComponents)), state.Dev), nil
 }
 
-// Start starts the environment: writes the certificate and the state file, applies the containers (each one's health
-// checked before what depends on it starts), waits until the front door answers on the public origin, and restarts
-// studioctl-server so that it registers the apps it discovers with the front door.
+// Start starts the environment: writes the certificate, the manifest's files and the state file, applies the containers
+// (each one's health checked before what depends on it starts), waits until the front door answers on the public
+// origin, and restarts studioctl-server so that it registers the apps it discovers with the front door.
 func (e *Env) Start(ctx context.Context, upOpts UpOptions) error {
 	toolchain := e.client.Toolchain()
 	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
@@ -152,6 +152,9 @@ func (e *Env) Start(ctx context.Context, upOpts UpOptions) error {
 		return err
 	}
 	if err := ensureCertificate(opts.CertDir); err != nil {
+		return err
+	}
+	if err := ensureFiles(opts.FilesDir, stack()); err != nil {
 		return err
 	}
 	if err := e.stopOnSwitch(ctx, opts); err != nil {
@@ -343,7 +346,7 @@ func (e *Env) forgetState(ctx context.Context, passthrough error) error {
 }
 
 func (e *Env) defaultOptions() *Options {
-	return defaultOptions(localtestv2.CertificateDir(e.cfg))
+	return defaultOptions(localtestv2.CertificateDir(e.cfg), localtestv2.FilesDir(e.cfg))
 }
 
 // currentOptions are the options of the environment as it was started: the optional groups, the image tags and the

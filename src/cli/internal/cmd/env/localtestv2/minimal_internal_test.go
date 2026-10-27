@@ -18,7 +18,7 @@ import (
 )
 
 func minimalOptions() *Options {
-	opts := defaultOptions(testCertDir)
+	opts := defaultOptions(testCertDir, testFilesDir)
 	opts.Minimal = true
 	return opts
 }
@@ -41,7 +41,7 @@ func TestTheEmulatedServicesAreTheDefaultGroupsOtherHTTPContainers(t *testing.T)
 	if got := emulated(minimalOptions()); !slices.Equal(got, wantEmulated) {
 		t.Fatalf("emulated() = %v, want %v", got, wantEmulated)
 	}
-	if got := emulated(defaultOptions(testCertDir)); got != nil {
+	if got := emulated(defaultOptions(testCertDir, testFilesDir)); got != nil {
 		t.Fatalf("emulated() outside minimal mode = %v", got)
 	}
 }
@@ -69,7 +69,7 @@ func TestMinimalModeAnnouncesTheEmulatedServicesAtTheFrontDoor(t *testing.T) {
 			t.Errorf("%s = %q, want empty", appRoutesFileVariable, env[appRoutesFileVariable])
 		}
 	}
-	if _, set := envOf(containersOf(t, defaultOptions(testCertDir))[frontDoor])[appRoutesFileVariable]; set {
+	if _, set := envOf(containersOf(t, defaultOptions(testCertDir, testFilesDir))[frontDoor])[appRoutesFileVariable]; set {
 		t.Errorf("the default stack sets %s", appRoutesFileVariable)
 	}
 }
@@ -129,6 +129,11 @@ func TestPreflightRefusesWhatMinimalModeCannotRun(t *testing.T) {
 	}{
 		"with": {
 			opts: UpOptions{Minimal: true, With: []string{"receipt"}},
+			err:  errMinimalWithGroups,
+			text: "drop --minimal",
+		},
+		"monitoring": {
+			opts: UpOptions{Minimal: true, With: []string{"monitoring"}},
 			err:  errMinimalWithGroups,
 			text: "drop --minimal",
 		},
@@ -210,7 +215,7 @@ func TestAnUpInTheSameModeDoesNotStopTheEnvironment(t *testing.T) {
 	cfg := testConfig(t)
 	writeTestState(t, cfg, true)
 	client := mock.New()
-	minimal := defaultOptions("")
+	minimal := defaultOptions("", "")
 	minimal.Minimal = true
 	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), minimal); err != nil {
 		t.Fatal(err)
@@ -218,7 +223,7 @@ func TestAnUpInTheSameModeDoesNotStopTheEnvironment(t *testing.T) {
 	if len(client.Calls) != 0 {
 		t.Fatalf("the same mode looked at the containers: %v", client.Calls)
 	}
-	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("")); err != nil {
+	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("", "")); err != nil {
 		t.Fatal(err)
 	}
 	if len(client.Calls) == 0 {

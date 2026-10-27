@@ -233,7 +233,7 @@ func startFailing(t *testing.T, f *fakeRuntime, client *mock.Client) (*bytes.Buf
 	writeTestState(t, cfg, false)
 	var out bytes.Buffer
 	env := NewEnv(cfg, ui.NewOutput(&out, io.Discard, false), client)
-	err := env.startContainers(t.Context(), defaultOptions(localtestv2.CertificateDir(cfg)))
+	err := env.startContainers(t.Context(), defaultOptions(localtestv2.CertificateDir(cfg), localtestv2.FilesDir(cfg)))
 	if err == nil {
 		t.Fatal("the start did not fail")
 	}

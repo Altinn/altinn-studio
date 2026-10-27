@@ -94,13 +94,13 @@ func TestAnOriginSwitchStopsTheRunningEnvironment(t *testing.T) {
 	cfg := testConfig(t)
 	writeTestState(t, cfg, false)
 	client := mock.New()
-	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("")); err != nil {
+	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), defaultOptions("", "")); err != nil {
 		t.Fatal(err)
 	}
 	if len(client.Calls) != 0 {
 		t.Fatalf("the same origin looked at the containers: %v", client.Calls)
 	}
-	custom := defaultOptions("")
+	custom := defaultOptions("", "")
 	custom.Origin = stack().Origin("origin.test", 18000)
 	if err := NewEnv(cfg, nil, client).stopOnSwitch(t.Context(), custom); err != nil {
 		t.Fatal(err)

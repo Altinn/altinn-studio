@@ -14,10 +14,12 @@ func TestTheEmbeddedManifestParses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(m.Names()) != 22 {
-		t.Fatalf("%d containers, want 22", len(m.Names()))
+	if len(m.Names()) != 27 {
+		t.Fatalf("%d containers, want 27", len(m.Names()))
 	}
-	want := []string{DefaultGroup, MinimalGroup, "dialogporten", "receipt", "correspondence", "arbeidsflate"}
+	want := []string{
+		DefaultGroup, MinimalGroup, "dialogporten", "receipt", "correspondence", "arbeidsflate", "monitoring",
+	}
 	if got := m.GroupNames(); !slices.Equal(got, want) {
 		t.Fatalf("groups %v, want %v", got, want)
 	}
@@ -35,7 +37,7 @@ func mutated(t *testing.T, mutate func(m map[string]any)) error {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = Parse(data)
+	_, err = Parse(data, bundle)
 	return err
 }
 
@@ -181,11 +183,11 @@ func TestParseRefusesADuplicateContainerAndTrailingData(t *testing.T) {
 	t.Parallel()
 	dup := `{"groups":[{"name":"default","containers":["a"]}],"containers":{` +
 		`"a":{"registry":"r","tag":"t"},"a":{"registry":"r","tag":"t"}}}`
-	if _, err := Parse([]byte(dup)); !errors.Is(err, errDuplicate) {
+	if _, err := Parse([]byte(dup), nil); !errors.Is(err, errDuplicate) {
 		t.Fatalf("duplicate container: %v", err)
 	}
 	trailing := `{"groups":[{"name":"default","containers":["a"]}],"containers":{"a":{"registry":"r","tag":"t"}}} {}`
-	if _, err := Parse([]byte(trailing)); !errors.Is(err, errValue) {
+	if _, err := Parse([]byte(trailing), nil); !errors.Is(err, errValue) {
 		t.Fatalf("trailing data: %v", err)
 	}
 }

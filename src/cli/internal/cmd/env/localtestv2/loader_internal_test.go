@@ -15,7 +15,10 @@ import (
 	"altinn.studio/studioctl/internal/localtestv2"
 )
 
-const testCertDir = "/home/dev/.altinn-studio/certs"
+const (
+	testCertDir  = "/home/dev/.altinn-studio/certs"
+	testFilesDir = "/home/dev/.altinn-studio/files"
+)
 
 func containersOf(t *testing.T, opts *Options) map[string]*resource.Container {
 	t.Helper()
@@ -39,7 +42,7 @@ func envOf(c *resource.Container) map[string]string {
 
 func TestOnlyTheFrontDoorPublishesAPort(t *testing.T) {
 	t.Parallel()
-	opts := defaultOptions(testCertDir)
+	opts := defaultOptions(testCertDir, testFilesDir)
 	opts.Groups = OptionalGroups()
 	for name, c := range containersOf(t, opts) {
 		if name != frontDoor {
@@ -57,7 +60,7 @@ func TestOnlyTheFrontDoorPublishesAPort(t *testing.T) {
 
 func TestEveryContainerGetsItsNameTheHostsAndTheCertificate(t *testing.T) {
 	t.Parallel()
-	opts := defaultOptions(testCertDir)
+	opts := defaultOptions(testCertDir, testFilesDir)
 	opts.Groups = OptionalGroups()
 	for name, c := range containersOf(t, opts) {
 		if !slices.Equal(c.NetworkAliases, []string{name}) {
@@ -95,7 +98,7 @@ func TestEveryContainerGetsItsNameTheHostsAndTheCertificate(t *testing.T) {
 // running" for a service without an address.
 func TestTheServiceVariablesNameTheRunningHTTPContainers(t *testing.T) {
 	t.Parallel()
-	containers := containersOf(t, defaultOptions(testCertDir))
+	containers := containersOf(t, defaultOptions(testCertDir, testFilesDir))
 	if len(containers) != 13 {
 		t.Fatalf("%d containers by default, want 13", len(containers))
 	}
@@ -113,7 +116,7 @@ func TestTheServiceVariablesNameTheRunningHTTPContainers(t *testing.T) {
 			}
 		}
 	}
-	withDialogporten := defaultOptions(testCertDir)
+	withDialogporten := defaultOptions(testCertDir, testFilesDir)
 	withDialogporten.Groups = []string{"dialogporten"}
 	env := envOf(containersOf(t, withDialogporten)[frontDoor])
 	if got := env["services__dialogporten-graphql__http__0"]; got != "http://dialogporten-graphql:8080" {
@@ -123,9 +126,9 @@ func TestTheServiceVariablesNameTheRunningHTTPContainers(t *testing.T) {
 
 func TestTheManifestEnvironmentComesFirstResolvedForTheOrigin(t *testing.T) {
 	t.Parallel()
-	custom := defaultOptions(testCertDir)
+	custom := defaultOptions(testCertDir, testFilesDir)
 	custom.Origin = stack().Origin("origin.test", 18000)
-	for _, opts := range []*Options{defaultOptions(testCertDir), custom} {
+	for _, opts := range []*Options{defaultOptions(testCertDir, testFilesDir), custom} {
 		for name, c := range containersOf(t, opts) {
 			own := stack().Envs(name, opts.Origin)
 			if own == nil {
@@ -153,7 +156,7 @@ func TestTheManifestEnvironmentComesFirstResolvedForTheOrigin(t *testing.T) {
 
 func TestACustomOriginMovesThePublishedPortTheHostsAndTheValues(t *testing.T) {
 	t.Parallel()
-	opts := defaultOptions(testCertDir)
+	opts := defaultOptions(testCertDir, testFilesDir)
 	opts.Origin = stack().Origin("origin.test", 18000)
 	containers := containersOf(t, opts)
 	if ports := containers[frontDoor].Ports; len(ports) != 1 || ports[0].HostPort != "18000" {
@@ -187,7 +190,7 @@ func TestACustomOriginMovesThePublishedPortTheHostsAndTheValues(t *testing.T) {
 
 func TestTheGroupsSelectTheirRootsAndTheirDependencies(t *testing.T) {
 	t.Parallel()
-	opts := defaultOptions(testCertDir)
+	opts := defaultOptions(testCertDir, testFilesDir)
 	opts.Groups = []string{"arbeidsflate"}
 	got := selected(opts)
 	for _, want := range []string{"arbeidsflate", "arbeidsflate-bff", "dialogporten-graphql", "dialogporten-webapi", "redis"} {
@@ -217,13 +220,13 @@ func TestResolveGroups(t *testing.T) {
 		"everything": gc(
 			[]string{"everything"},
 			nil,
-			[]string{"arbeidsflate", "correspondence", "dialogporten", "receipt"},
+			[]string{"arbeidsflate", "correspondence", "dialogporten", "monitoring", "receipt"},
 			nil,
 		),
 		"everything but one": gc(
 			[]string{"everything"},
 			[]string{"dialogporten"},
-			[]string{"arbeidsflate", "correspondence", "receipt"},
+			[]string{"arbeidsflate", "correspondence", "monitoring", "receipt"},
 			nil,
 		),
 		"without what is off": gc(nil, []string{"receipt"}, nil, nil),
@@ -241,7 +244,7 @@ func TestResolveGroups(t *testing.T) {
 // The --with values are what the Aspire package's typed methods name too.
 func TestTheGroupNames(t *testing.T) {
 	t.Parallel()
-	want := []string{"dialogporten", "receipt", "correspondence", "arbeidsflate", GroupEverything}
+	want := []string{"dialogporten", "receipt", "correspondence", "arbeidsflate", "monitoring", GroupEverything}
 	if got := GroupNames(); !slices.Equal(got, want) {
 		t.Fatalf("GroupNames() = %v, want %v", got, want)
 	}
@@ -264,7 +267,7 @@ func TestThePullPolicyFollowsTheTag(t *testing.T) {
 
 func TestLatestMovesOnlyThePinnedImages(t *testing.T) {
 	t.Parallel()
-	opts := defaultOptions(testCertDir)
+	opts := defaultOptions(testCertDir, testFilesDir)
 	opts.LatestImages = true
 	refs := map[string]string{}
 	for _, r := range resources(opts, nil) {
@@ -284,7 +287,7 @@ func TestLatestMovesOnlyThePinnedImages(t *testing.T) {
 
 func TestADevBuildReplacesThePulledImage(t *testing.T) {
 	t.Parallel()
-	opts := defaultOptions(testCertDir)
+	opts := defaultOptions(testCertDir, testFilesDir)
 	opts.Dev = map[string]DevBuild{"storage": {Context: "/src/storage", Dockerfile: "/src/storage/Dockerfile"}}
 	for _, r := range resources(opts, nil) {
 		if c, ok := r.(*resource.Container); ok && c.Name == containerOf("storage") {

@@ -108,7 +108,7 @@ func checkMinimal(opts UpOptions) error {
 	if len(opts.With) > 0 || len(opts.Without) > 0 {
 		return errMinimalWithGroups
 	}
-	minimal := defaultOptions("")
+	minimal := defaultOptions("", "")
 	minimal.Minimal = true
 	running := selected(minimal)
 	for _, name := range slices.Sorted(maps.Keys(opts.DevComponents)) {

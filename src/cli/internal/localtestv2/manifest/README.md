@@ -2,7 +2,8 @@
 
 `manifest.json` lists the stack's containers, the groups that select them and the public origin's defaults. studioctl's `localtest-v2` runtime
 (`internal/cmd/env/localtestv2`) starts the stack from it; the file is embedded in the binary. There is no schema: the
-package's test (`manifest_internal_test.go`) validates the file, and `Parse` refuses an invalid one.
+package's test (`manifest_internal_test.go`) validates the file, and `Parse` refuses an invalid one. The folders beside
+it hold the files its containers mount ([Files](#files)), which ship with it.
 
 ```json
 {
@@ -44,6 +45,16 @@ engine, and Postgres through `dependsOn`. It is a constant name for the runners 
 listed: every HTTP container of `default` that `minimal` does not start (Register, Profile, Authentication,
 Authorization, Access Management, Events, the Resource Registry, Notifications, pdf3), which the front door emulates.
 
+`monitoring` is the OpenTelemetry collector and Grafana (roots), with the VictoriaMetrics, VictoriaTraces and
+VictoriaLogs stores they depend on, all on the stock upstream images pinned by tag and digest and configured by their
+[files](#files) under `monitoring/` and Grafana's `GF_*` envs (served from `{{origin}}/grafana/`, the front door's
+`/grafana` route). The collector's config is the router's in Altinn's environments, exporting to the stores by
+container name; Grafana's datasources carry the shared Grafana's UIDs, so the dashboards work in both. The stores keep
+their data inside the container. studioctl's `everything` includes the group; the Aspire package ignores it, since
+its dashboard receives the telemetry; minimal mode takes no optional group, so not this one either. The workflow engine
+exports exactly when `OTEL_EXPORTER_OTLP_ENDPOINT` is set
+([altinn-studio#21515](https://github.com/Altinn/altinn-studio/pull/21515)), so it needs no setting of its own.
+
 One group implying another is a dependency, not a group rule: `--with correspondence` starts Dialogporten's WebApi and
 Redis because Correspondence depends on them.
 
@@ -84,19 +95,35 @@ Aspire allocates a value is a `ReferenceExpression` over the front door's endpoi
 
 A map from the container's name to:
 
-| Key         | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `registry`  | The image repository, with the registry host                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `tag`       | The image tag (a digest may follow: `7.2-alpine@sha256:…`). The research images all carry one `sha-<commit>` pin                                                                                                                                                                                                                                                                                                                                |
-| `envs`      | Environment variables, literal strings but for the public origin's [placeholders](#the-placeholders) (`{{origin}}/`); the data stores by name and port (`Host=postgres;Port=5432`, `redis://redis:6379/2`), another service by its name (`http://authorization/authorization/api/v1/`, see [Service names](#service-names)), the certificate as `/certs/localtest-accesstoken.pfx`                                                              |
-| `dependsOn` | Containers that start, and are healthy, before this one                                                                                                                                                                                                                                                                                                                                                                                         |
-| `volumes`   | Volume id to path in the container. An id is lower-case letters and digits in hyphen-separated words (`storage-blobs`) and names one volume for the whole manifest: containers naming the same id share it (`policy-store`: the PDP, Access Management, the Resource Registry). Each runtime names the volume by its own prefix and the id: studioctl `localtest-v2-<id>`, Aspire `altinn-localtest-<id>`; each runtime's reset deletes its own |
-| `port`      | The container's HTTP (or TCP) port; default 8080                                                                                                                                                                                                                                                                                                                                                                                                |
-| `health`    | An HTTP path answering 200 when healthy (default `/health`), or `"tcp"` for a port that accepts connections (Postgres, Redis)                                                                                                                                                                                                                                                                                                                   |
+| Key         | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `registry`  | The image repository, with the registry host                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `tag`       | The image tag (a digest may follow: `7.2-alpine@sha256:…`). The research images all carry one `sha-<commit>` pin                                                                                                                                                                                                                                                                                                                                               |
+| `envs`      | Environment variables, literal strings but for the public origin's [placeholders](#the-placeholders) (`{{origin}}/`); the data stores by name and port (`Host=postgres;Port=5432`, `redis://redis:6379/2`), another service by its name (`http://authorization/authorization/api/v1/`, see [Service names](#service-names)), the certificate as `/certs/localtest-accesstoken.pfx`                                                                             |
+| `dependsOn` | Containers that start, and are healthy, before this one                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `volumes`   | Volume id to path in the container. An id is lower-case letters and digits in hyphen-separated words (`storage-blobs`) and names one volume for the whole manifest: containers naming the same id share it (`policy-store`: the PDP, Access Management, the Resource Registry). Each runtime names the volume by its own prefix and the id: studioctl `localtest-v2-<id>`, Aspire `altinn-localtest-<id>`; each runtime's reset deletes its own                |
+| `files`     | Path in the container to a file or folder that ships with the manifest, relative to the manifest's directory and inside a folder beside it (`"/etc/otelcol-contrib/config.yaml": "monitoring/otel-collector.yaml"`); mounted read-only, see [Files](#files). The container path is absolute and clean, named once and not a volume's path too; the source is a clean relative path without `..` that ships with the manifest (a file, or a folder holding one) |
+| `port`      | The container's HTTP (or TCP) port; default 8080                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `health`    | An HTTP path answering 200 when healthy (default `/health`), or `"tcp"` for a port that accepts connections (Postgres, Redis)                                                                                                                                                                                                                                                                                                                                  |
 
 Nothing else is allowed (an unknown key is an error): no descriptions, routes, host ports, commands, health-check
 commands or build information. A container's notes belong in its component's README; a command belongs in its image
 (the [Postgres](https://github.com/ivarne-agent/localtest-research/blob/main/localtest/postgres/Dockerfile) and [Redis](https://github.com/ivarne-agent/localtest-research/blob/main/localtest/redis/Dockerfile) images); a dev build is `env up --dev-<container>=<path>`.
+
+## Files
+
+A container's `files` mount configuration that stock images read from a path, so they run as published, without a
+build of their own. The files live in folders beside `manifest.json` (`monitoring/otel-collector.yaml`), never at its
+top level, which holds the manifest, this README and the reader's code. Every file in those folders ships with the
+manifest: studioctl embeds each folder (the `go:embed` directive of `bundle` in `manifest.go` names it, and
+`TestEveryFolderBesideTheManifestShips` fails on a folder it does not name), and the Aspire package embeds every
+folder beside the manifest. A source names one file, or a folder for every file under it (a folder of dashboards).
+
+Before it starts the containers, each runtime writes every shipped file under its data directory at the same relative
+path (studioctl `<data>/infra/localtest-v2/files/`, beside the certificate; Aspire `<DataDirectory>/files/`),
+rewriting a changed file in place and removing what no longer ships, and bind-mounts each source from there read-only
+at its container path. The files and their folders are readable by everyone (0644 and 0755), since the images run as
+their own non-root users (the OpenTelemetry collector as UID 10001).
 
 ## Tags
 
@@ -140,12 +167,29 @@ Every container gets, besides its `envs`:
 
 - `services__<name>__http__0=http://<name>:<port>` for every running container with an HTTP health (not Postgres or
   Redis), itself included: service discovery as Aspire does it. A group that is off has no variables, so the front
-  door answers "not running" for it.
+  door answers "not running" for it. The OpenTelemetry collector is announced too, at its OTLP/HTTP port (4318), for
+  the front door's `/otlp` route, although its health is `tcp`: its receiver answers no `GET` with 200.
+- while `otel-collector` runs (the `monitoring` group), every container outside that group gets the standard
+  OpenTelemetry variables, unless its own `envs` set them: `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`,
+  `OTEL_EXPORTER_OTLP_PROTOCOL=grpc` (inside the network gRPC needs no front door, and some components send gRPC
+  whatever the variable says), `OTEL_SERVICE_NAME=<name>` and `OTEL_METRIC_EXPORT_INTERVAL=5000` (metrics every 5 s
+  instead of the SDKs' 60 s; Altinn's environments use 15 s). A component exports exactly when the endpoint is set;
+  the monitoring containers get none, so the collector never exports to itself. Such a container also depends on
+  `otel-collector`, besides its `dependsOn`: it starts once the collector is ready (a TCP connection to 4318; the
+  collector opens its receivers last, gRPC before HTTP) and stops before it, so no start-up or shutdown telemetry is
+  lost. The collector depends only on the Victoria stores, so this makes no cycle. While Grafana runs too, the
+  workflow engine also gets the links from its dashboard to a workflow's trace in Grafana:
+  `EngineSettings__Dashboard__GrafanaUrl=<public origin>/grafana` and
+  `EngineSettings__Dashboard__GrafanaTracesDatasourceUid=altinn-studio-traces` (the traces datasource in
+  `monitoring/grafana-datasources.yaml`). They are not in the engine's `envs`, so the Aspire host, which ignores the
+  group, does not get them and links its own dashboard instead. Without the group nothing is added.
 - its name as network alias, the public host and its listed subdomains (`local.altinn.cloud`, `pdf.`,
   `workflow-engine.`, `app-frontend.`, `af.` by default) and `host.docker.internal` pointed at the host gateway;
 - for the front door, `Localtest__PublicSubdomains`: the listed subdomains, comma-separated;
 - the shared certificate directory read-only at `/certs`, and (until the Events, Notifications and Receipt images link
   it) the certificate file at `/accesstoken/accesstokencredentials.pfx`.
+- each of its `files` read-only, from the runner's copy of the shipped files ([Files](#files)), after the certificate
+  and sorted by container path;
 - each of its `volumes` as the named volume `localtest-v2-<id>` (`volumePrefix` in `containers.go`); `env reset`
   deletes those and no other.
 - in minimal mode: `services__<name>__http__0=http://localtest:8080` for each emulated container, a tmpfs at the path of
@@ -156,6 +200,9 @@ Only the `localtest` container publishes a port: the public port (8000, or `--po
 in the manifest: it is runner code (`internal/cmd/app/env.go`), held by `internal/cmd/app/testdata/app-environment.golden.json`.
 
 ## Changing it
+
+- A new folder of files beside the manifest goes into the `go:embed` directive of `bundle` in `manifest.go`; the Aspire
+  package picks it up by itself.
 
 - Regenerate the snapshot after any change and review the diff:
   `STUDIOCTL_UPDATE_GOLDEN=1 go test ./internal/cmd/env/localtestv2/` (under `src/cli`).

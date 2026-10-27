@@ -124,6 +124,11 @@ func CertificateDir(cfg *config.Config) string {
 	return filepath.Join(cfg.DataDir, "infra", "localtest-v2", "certs")
 }
 
+// FilesDir returns where the runtime writes the files that ship with the manifest, which containers mount read-only.
+func FilesDir(cfg *config.Config) string {
+	return filepath.Join(cfg.DataDir, "infra", "localtest-v2", "files")
+}
+
 // ReadState returns the recorded configuration, and whether there is one. Whether the environment runs is Current's.
 func ReadState(cfg *config.Config) (State, bool, error) {
 	data, err := os.ReadFile(StatePath(cfg))

@@ -79,6 +79,26 @@
       "localtest",
       "workflow-engine"
     ],
+    "monitoring": [
+      "postgres",
+      "register",
+      "profile",
+      "authentication",
+      "authorization",
+      "storage",
+      "events",
+      "resource-registry",
+      "notifications",
+      "localtest",
+      "pdf3",
+      "workflow-engine",
+      "victoria-metrics",
+      "victoria-traces",
+      "victoria-logs",
+      "otel-collector",
+      "grafana",
+      "access-management"
+    ],
     "receipt": [
       "postgres",
       "register",
@@ -104,13 +124,13 @@
         "driver": "bridge"
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-postgres",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -169,13 +189,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-register",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -227,13 +247,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-profile",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -290,13 +310,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authentication",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -351,13 +371,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authorization",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -419,13 +439,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-storage",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -488,13 +508,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-events",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -552,13 +572,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-resource-registry",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -622,13 +642,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-notifications",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -688,13 +708,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-localtest",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -854,7 +874,6 @@
           "ASPNETCORE_HTTP_PORTS=9090",
           "AppCommandSettings__CommandEndpoint=http://local.altinn.cloud:8000/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
           "ConnectionStrings__WorkflowEngine=Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres",
-          "EngineSettings__EnableTelemetry=false",
           "services__access-management__http__0=http://access-management:5080",
           "services__authentication__http__0=http://authentication:5101",
           "services__authorization__http__0=http://authorization:5070",
@@ -883,13 +902,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-access-management",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -987,6 +1006,9 @@
         "networks": [
           "network:localtest-v2_network"
         ],
+        "dependsOn": [
+          "container:localtest-v2-otel-collector"
+        ],
         "volumes": [
           {
             "HostPath": "/home/dev/.altinn-studio/certs",
@@ -1011,6 +1033,10 @@
           }
         ],
         "env": [
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=postgres",
           "POSTGRES_PASSWORD=postgres",
           "POSTGRES_USER=postgres",
           "TZ=UTC",
@@ -1025,14 +1051,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1060,6 +1091,9 @@
         "networks": [
           "network:localtest-v2_network"
         ],
+        "dependsOn": [
+          "container:localtest-v2-otel-collector"
+        ],
         "volumes": [
           {
             "HostPath": "/home/dev/.altinn-studio/certs",
@@ -1079,6 +1113,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "GeneralSettings__OpenIdWellKnownEndpoint=http://local.altinn.cloud:8000/authentication/api/v1/openid/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=register",
           "PlatformSettings__ApiAuthorizationEndpoint=http://authorization/authorization/api/v1/",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
@@ -1091,14 +1129,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1128,7 +1171,8 @@
         ],
         "dependsOn": [
           "container:localtest-v2-postgres",
-          "container:localtest-v2-register"
+          "container:localtest-v2-register",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1149,6 +1193,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "Localtest__Profile__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=profile",
           "PostgreSqlSettings__AdminConnectionString=Host=postgres;Port=5432;Username=platform_profile_admin;Password={0};Database=profiledb",
           "PostgreSqlSettings__ConnectionString=Host=postgres;Port=5432;Username=platform_profile;Password={0};Database=profiledb;Include Error Detail=True",
           "services__access-management__http__0=http://access-management:5080",
@@ -1162,14 +1210,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1199,7 +1252,8 @@
         ],
         "dependsOn": [
           "container:localtest-v2-register",
-          "container:localtest-v2-profile"
+          "container:localtest-v2-profile",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1220,6 +1274,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "GeneralSettings__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=authentication",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -1231,14 +1289,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1268,7 +1331,8 @@
         ],
         "dependsOn": [
           "container:localtest-v2-register",
-          "container:localtest-v2-profile"
+          "container:localtest-v2-profile",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1296,6 +1360,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "Localtest__Authorization__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=authorization",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -1307,14 +1375,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1348,7 +1421,8 @@
           "network:localtest-v2_network"
         ],
         "dependsOn": [
-          "container:localtest-v2-postgres"
+          "container:localtest-v2-postgres",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1376,6 +1450,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "GeneralSettings__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=storage",
           "PostgreSqlSettings__AdminConnectionString=Host=postgres;Port=5432;Username=platform_storage_admin;Password={0};Database=storagedb",
           "PostgreSqlSettings__ConnectionString=Host=postgres;Port=5432;Username=platform_storage;Password={0};Database=storagedb;Include Error Detail=True",
           "services__access-management__http__0=http://access-management:5080",
@@ -1389,14 +1467,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1427,7 +1510,8 @@
         "dependsOn": [
           "container:localtest-v2-postgres",
           "container:localtest-v2-register",
-          "container:localtest-v2-authorization"
+          "container:localtest-v2-authorization",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1448,6 +1532,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "Localtest__Events__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=events",
           "PostgreSQLSettings__AdminConnectionString=Host=postgres;Port=5432;Username=platform_events_admin;Password={0};Database=eventsdb",
           "PostgreSQLSettings__ConnectionString=Host=postgres;Port=5432;Username=platform_events;Password={0};Database=eventsdb;Include Error Detail=True",
           "services__access-management__http__0=http://access-management:5080",
@@ -1461,14 +1549,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1498,7 +1591,8 @@
         ],
         "dependsOn": [
           "container:localtest-v2-postgres",
-          "container:localtest-v2-storage"
+          "container:localtest-v2-storage",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1526,6 +1620,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "Localtest__ResourceRegistry__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=resource-registry",
           "PostgreSQLSettings__AdminConnectionString=Host=postgres;Port=5432;Username=platform_authorization_admin;Password={0};Database=resourceregistrydb",
           "PostgreSQLSettings__ConnectionString=Host=postgres;Port=5432;Username=platform_authorization;Password={0};Database=resourceregistrydb;Include Error Detail=True",
           "services__access-management__http__0=http://access-management:5080",
@@ -1539,14 +1637,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1579,7 +1682,8 @@
           "container:localtest-v2-register",
           "container:localtest-v2-profile",
           "container:localtest-v2-authorization",
-          "container:localtest-v2-authentication"
+          "container:localtest-v2-authentication",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1600,6 +1704,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "Localtest__Notifications__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=notifications",
           "PostgreSQLSettings__AdminConnectionString=Host=postgres;Port=5432;Username=platform_notifications_admin;Password={0};Database=notificationsdb",
           "PostgreSQLSettings__ConnectionString=Host=postgres;Port=5432;Username=platform_notifications;Password={0};Database=notificationsdb;Include Error Detail=True",
           "services__access-management__http__0=http://access-management:5080",
@@ -1613,14 +1721,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1647,6 +1760,9 @@
         "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:latest",
         "networks": [
           "network:localtest-v2_network"
+        ],
+        "dependsOn": [
+          "container:localtest-v2-otel-collector"
         ],
         "ports": [
           {
@@ -1683,6 +1799,10 @@
           "Localtest__AccessTokenCertificatePath=/certs/localtest-accesstoken.pfx",
           "Localtest__PlatformEndpoint=http://local.altinn.cloud:8000/",
           "Localtest__PublicSubdomains=pdf,workflow-engine,app-frontend,af",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=localtest",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -1694,14 +1814,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1729,6 +1854,9 @@
         "networks": [
           "network:localtest-v2_network"
         ],
+        "dependsOn": [
+          "container:localtest-v2-otel-collector"
+        ],
         "volumes": [
           {
             "HostPath": "/home/dev/.altinn-studio/certs",
@@ -1746,6 +1874,10 @@
           }
         ],
         "env": [
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=pdf3",
           "PDF3_ENVIRONMENT=localtest",
           "PDF3_LOCALTEST_PUBLIC_BASE_URL=http://local.altinn.cloud:8000",
           "PDF3_QUEUE_SIZE=3",
@@ -1761,14 +1893,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1797,7 +1934,8 @@
           "network:localtest-v2_network"
         ],
         "dependsOn": [
-          "container:localtest-v2-postgres"
+          "container:localtest-v2-postgres",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1820,7 +1958,12 @@
           "ASPNETCORE_HTTP_PORTS=9090",
           "AppCommandSettings__CommandEndpoint=http://local.altinn.cloud:8000/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
           "ConnectionStrings__WorkflowEngine=Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres",
-          "EngineSettings__EnableTelemetry=false",
+          "EngineSettings__Dashboard__GrafanaTracesDatasourceUid=altinn-studio-traces",
+          "EngineSettings__Dashboard__GrafanaUrl=http://local.altinn.cloud:8000/grafana",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=workflow-engine",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -1832,14 +1975,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1867,6 +2015,9 @@
         "networks": [
           "network:localtest-v2_network"
         ],
+        "dependsOn": [
+          "container:localtest-v2-otel-collector"
+        ],
         "volumes": [
           {
             "HostPath": "/home/dev/.altinn-studio/certs",
@@ -1884,6 +2035,10 @@
           }
         ],
         "env": [
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=redis",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -1895,14 +2050,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1934,7 +2094,8 @@
           "container:localtest-v2-register",
           "container:localtest-v2-profile",
           "container:localtest-v2-authentication",
-          "container:localtest-v2-storage"
+          "container:localtest-v2-storage",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -1956,6 +2117,10 @@
           "GeneralSettings__Hostname=local.altinn.cloud",
           "GeneralSettings__OpenIdWellKnownEndpoint=http://local.altinn.cloud:8000/authentication/api/v1/openid/",
           "Localtest__Receipt__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=receipt",
           "PlatformSettings__ApiAuthenticationEndpoint=http://local.altinn.cloud:8000/authentication/api/v1/",
           "PlatformSettings__ApiProfileEndpoint=http://profile/profile/api/v1/",
           "PlatformSettings__ApiRegisterEndpoint=http://register/register/api/v1/",
@@ -1971,14 +2136,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -1991,6 +2161,392 @@
         ],
         "networkAliases": [
           "receipt"
+        ],
+        "waitForReady": true,
+        "readinessProbe": true
+      },
+      {
+        "id": "image:pulled:docker.io/victoriametrics/victoria-metrics:v1.153.0@sha256:5eff7af5341e401471002f58d106d399e614a62f3d240f2dbc21901e49eed5dd",
+        "ref": "docker.io/victoriametrics/victoria-metrics:v1.153.0@sha256:5eff7af5341e401471002f58d106d399e614a62f3d240f2dbc21901e49eed5dd",
+        "pullPolicy": "ifNotPresent"
+      },
+      {
+        "id": "container:localtest-v2-victoria-metrics",
+        "image": "image:pulled:docker.io/victoriametrics/victoria-metrics:v1.153.0@sha256:5eff7af5341e401471002f58d106d399e614a62f3d240f2dbc21901e49eed5dd",
+        "networks": [
+          "network:localtest-v2_network"
+        ],
+        "volumes": [
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs",
+            "ContainerPath": "/certs",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs/localtest-accesstoken.pfx",
+            "ContainerPath": "/accesstoken/accesstokencredentials.pfx",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          }
+        ],
+        "env": [
+          "services__access-management__http__0=http://access-management:5080",
+          "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
+          "services__arbeidsflate__http__0=http://arbeidsflate:80",
+          "services__authentication__http__0=http://authentication:5101",
+          "services__authorization__http__0=http://authorization:5070",
+          "services__correspondence__http__0=http://correspondence:2525",
+          "services__dialogporten-adapter__http__0=http://dialogporten-adapter:5011",
+          "services__dialogporten-graphql__http__0=http://dialogporten-graphql:8080",
+          "services__dialogporten-service__http__0=http://dialogporten-service:8080",
+          "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
+          "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
+          "services__localtest__http__0=http://localtest:8080",
+          "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__pdf3__http__0=http://pdf3:5031",
+          "services__profile__http__0=http://profile:5030",
+          "services__receipt__http__0=http://receipt:5060",
+          "services__register__http__0=http://register:5020",
+          "services__resource-registry__http__0=http://resource-registry:5100",
+          "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
+          "services__workflow-engine__http__0=http://workflow-engine:9090"
+        ],
+        "extraHosts": [
+          "local.altinn.cloud:host-gateway",
+          "pdf.local.altinn.cloud:host-gateway",
+          "workflow-engine.local.altinn.cloud:host-gateway",
+          "app-frontend.local.altinn.cloud:host-gateway",
+          "af.local.altinn.cloud:host-gateway",
+          "host.docker.internal:host-gateway"
+        ],
+        "networkAliases": [
+          "victoria-metrics"
+        ],
+        "waitForReady": true,
+        "readinessProbe": true
+      },
+      {
+        "id": "image:pulled:docker.io/victoriametrics/victoria-traces:v0.12.0@sha256:80919fcc85cc6dd87f598d20ccf42d0ab1120de8f25d4dcf08c5ea2515a496ba",
+        "ref": "docker.io/victoriametrics/victoria-traces:v0.12.0@sha256:80919fcc85cc6dd87f598d20ccf42d0ab1120de8f25d4dcf08c5ea2515a496ba",
+        "pullPolicy": "ifNotPresent"
+      },
+      {
+        "id": "container:localtest-v2-victoria-traces",
+        "image": "image:pulled:docker.io/victoriametrics/victoria-traces:v0.12.0@sha256:80919fcc85cc6dd87f598d20ccf42d0ab1120de8f25d4dcf08c5ea2515a496ba",
+        "networks": [
+          "network:localtest-v2_network"
+        ],
+        "volumes": [
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs",
+            "ContainerPath": "/certs",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs/localtest-accesstoken.pfx",
+            "ContainerPath": "/accesstoken/accesstokencredentials.pfx",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          }
+        ],
+        "env": [
+          "services__access-management__http__0=http://access-management:5080",
+          "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
+          "services__arbeidsflate__http__0=http://arbeidsflate:80",
+          "services__authentication__http__0=http://authentication:5101",
+          "services__authorization__http__0=http://authorization:5070",
+          "services__correspondence__http__0=http://correspondence:2525",
+          "services__dialogporten-adapter__http__0=http://dialogporten-adapter:5011",
+          "services__dialogporten-graphql__http__0=http://dialogporten-graphql:8080",
+          "services__dialogporten-service__http__0=http://dialogporten-service:8080",
+          "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
+          "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
+          "services__localtest__http__0=http://localtest:8080",
+          "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__pdf3__http__0=http://pdf3:5031",
+          "services__profile__http__0=http://profile:5030",
+          "services__receipt__http__0=http://receipt:5060",
+          "services__register__http__0=http://register:5020",
+          "services__resource-registry__http__0=http://resource-registry:5100",
+          "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
+          "services__workflow-engine__http__0=http://workflow-engine:9090"
+        ],
+        "extraHosts": [
+          "local.altinn.cloud:host-gateway",
+          "pdf.local.altinn.cloud:host-gateway",
+          "workflow-engine.local.altinn.cloud:host-gateway",
+          "app-frontend.local.altinn.cloud:host-gateway",
+          "af.local.altinn.cloud:host-gateway",
+          "host.docker.internal:host-gateway"
+        ],
+        "networkAliases": [
+          "victoria-traces"
+        ],
+        "waitForReady": true,
+        "readinessProbe": true
+      },
+      {
+        "id": "image:pulled:docker.io/victoriametrics/victoria-logs:v1.52.0@sha256:47b820890d64c4575a2a0a46415dcd8a4fd59a0f1fcd6a377693d7aea639442e",
+        "ref": "docker.io/victoriametrics/victoria-logs:v1.52.0@sha256:47b820890d64c4575a2a0a46415dcd8a4fd59a0f1fcd6a377693d7aea639442e",
+        "pullPolicy": "ifNotPresent"
+      },
+      {
+        "id": "container:localtest-v2-victoria-logs",
+        "image": "image:pulled:docker.io/victoriametrics/victoria-logs:v1.52.0@sha256:47b820890d64c4575a2a0a46415dcd8a4fd59a0f1fcd6a377693d7aea639442e",
+        "networks": [
+          "network:localtest-v2_network"
+        ],
+        "volumes": [
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs",
+            "ContainerPath": "/certs",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs/localtest-accesstoken.pfx",
+            "ContainerPath": "/accesstoken/accesstokencredentials.pfx",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          }
+        ],
+        "env": [
+          "services__access-management__http__0=http://access-management:5080",
+          "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
+          "services__arbeidsflate__http__0=http://arbeidsflate:80",
+          "services__authentication__http__0=http://authentication:5101",
+          "services__authorization__http__0=http://authorization:5070",
+          "services__correspondence__http__0=http://correspondence:2525",
+          "services__dialogporten-adapter__http__0=http://dialogporten-adapter:5011",
+          "services__dialogporten-graphql__http__0=http://dialogporten-graphql:8080",
+          "services__dialogporten-service__http__0=http://dialogporten-service:8080",
+          "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
+          "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
+          "services__localtest__http__0=http://localtest:8080",
+          "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__pdf3__http__0=http://pdf3:5031",
+          "services__profile__http__0=http://profile:5030",
+          "services__receipt__http__0=http://receipt:5060",
+          "services__register__http__0=http://register:5020",
+          "services__resource-registry__http__0=http://resource-registry:5100",
+          "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
+          "services__workflow-engine__http__0=http://workflow-engine:9090"
+        ],
+        "extraHosts": [
+          "local.altinn.cloud:host-gateway",
+          "pdf.local.altinn.cloud:host-gateway",
+          "workflow-engine.local.altinn.cloud:host-gateway",
+          "app-frontend.local.altinn.cloud:host-gateway",
+          "af.local.altinn.cloud:host-gateway",
+          "host.docker.internal:host-gateway"
+        ],
+        "networkAliases": [
+          "victoria-logs"
+        ],
+        "waitForReady": true,
+        "readinessProbe": true
+      },
+      {
+        "id": "image:pulled:docker.io/otel/opentelemetry-collector-contrib:0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+        "ref": "docker.io/otel/opentelemetry-collector-contrib:0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+        "pullPolicy": "ifNotPresent"
+      },
+      {
+        "id": "container:localtest-v2-otel-collector",
+        "image": "image:pulled:docker.io/otel/opentelemetry-collector-contrib:0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1",
+        "networks": [
+          "network:localtest-v2_network"
+        ],
+        "dependsOn": [
+          "container:localtest-v2-victoria-metrics",
+          "container:localtest-v2-victoria-traces",
+          "container:localtest-v2-victoria-logs"
+        ],
+        "volumes": [
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs",
+            "ContainerPath": "/certs",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs/localtest-accesstoken.pfx",
+            "ContainerPath": "/accesstoken/accesstokencredentials.pfx",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/files/monitoring/otel-collector.yaml",
+            "ContainerPath": "/etc/otelcol-contrib/config.yaml",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          }
+        ],
+        "env": [
+          "services__access-management__http__0=http://access-management:5080",
+          "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
+          "services__arbeidsflate__http__0=http://arbeidsflate:80",
+          "services__authentication__http__0=http://authentication:5101",
+          "services__authorization__http__0=http://authorization:5070",
+          "services__correspondence__http__0=http://correspondence:2525",
+          "services__dialogporten-adapter__http__0=http://dialogporten-adapter:5011",
+          "services__dialogporten-graphql__http__0=http://dialogporten-graphql:8080",
+          "services__dialogporten-service__http__0=http://dialogporten-service:8080",
+          "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
+          "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
+          "services__localtest__http__0=http://localtest:8080",
+          "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__pdf3__http__0=http://pdf3:5031",
+          "services__profile__http__0=http://profile:5030",
+          "services__receipt__http__0=http://receipt:5060",
+          "services__register__http__0=http://register:5020",
+          "services__resource-registry__http__0=http://resource-registry:5100",
+          "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
+          "services__workflow-engine__http__0=http://workflow-engine:9090"
+        ],
+        "extraHosts": [
+          "local.altinn.cloud:host-gateway",
+          "pdf.local.altinn.cloud:host-gateway",
+          "workflow-engine.local.altinn.cloud:host-gateway",
+          "app-frontend.local.altinn.cloud:host-gateway",
+          "af.local.altinn.cloud:host-gateway",
+          "host.docker.internal:host-gateway"
+        ],
+        "networkAliases": [
+          "otel-collector"
+        ],
+        "waitForReady": true,
+        "readinessProbe": true
+      },
+      {
+        "id": "image:pulled:docker.io/grafana/grafana:12.4.8@sha256:7753ad493720e33560077e8bc5e05fbce4ade777f1387b19ab5050b6777111dd",
+        "ref": "docker.io/grafana/grafana:12.4.8@sha256:7753ad493720e33560077e8bc5e05fbce4ade777f1387b19ab5050b6777111dd",
+        "pullPolicy": "ifNotPresent"
+      },
+      {
+        "id": "container:localtest-v2-grafana",
+        "image": "image:pulled:docker.io/grafana/grafana:12.4.8@sha256:7753ad493720e33560077e8bc5e05fbce4ade777f1387b19ab5050b6777111dd",
+        "networks": [
+          "network:localtest-v2_network"
+        ],
+        "dependsOn": [
+          "container:localtest-v2-victoria-metrics",
+          "container:localtest-v2-victoria-traces",
+          "container:localtest-v2-victoria-logs"
+        ],
+        "volumes": [
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs",
+            "ContainerPath": "/certs",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/certs/localtest-accesstoken.pfx",
+            "ContainerPath": "/accesstoken/accesstokencredentials.pfx",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/files/monitoring/grafana-dashboards.yaml",
+            "ContainerPath": "/etc/grafana/provisioning/dashboards/dashboards.yaml",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/files/monitoring/grafana-datasources.yaml",
+            "ContainerPath": "/etc/grafana/provisioning/datasources/datasources.yaml",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          },
+          {
+            "HostPath": "/home/dev/.altinn-studio/files/monitoring/grafana-dashboards",
+            "ContainerPath": "/var/lib/grafana/dashboards",
+            "Type": "bind",
+            "SELinuxRelabel": "z",
+            "ReadOnly": true
+          }
+        ],
+        "env": [
+          "GF_AUTH_ANONYMOUS_ENABLED=true",
+          "GF_AUTH_ANONYMOUS_ORG_ROLE=Admin",
+          "GF_AUTH_DISABLE_LOGIN_FORM=true",
+          "GF_LOG_LEVEL=error",
+          "GF_PLUGINS_PREINSTALL_AUTO_UPDATE=false",
+          "GF_PLUGINS_PREINSTALL_SYNC=victoriametrics-logs-datasource@0.32.0",
+          "GF_SERVER_ROOT_URL=http://local.altinn.cloud:8000/grafana/",
+          "GF_SERVER_SERVE_FROM_SUB_PATH=true",
+          "services__access-management__http__0=http://access-management:5080",
+          "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
+          "services__arbeidsflate__http__0=http://arbeidsflate:80",
+          "services__authentication__http__0=http://authentication:5101",
+          "services__authorization__http__0=http://authorization:5070",
+          "services__correspondence__http__0=http://correspondence:2525",
+          "services__dialogporten-adapter__http__0=http://dialogporten-adapter:5011",
+          "services__dialogporten-graphql__http__0=http://dialogporten-graphql:8080",
+          "services__dialogporten-service__http__0=http://dialogporten-service:8080",
+          "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
+          "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
+          "services__localtest__http__0=http://localtest:8080",
+          "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
+          "services__pdf3__http__0=http://pdf3:5031",
+          "services__profile__http__0=http://profile:5030",
+          "services__receipt__http__0=http://receipt:5060",
+          "services__register__http__0=http://register:5020",
+          "services__resource-registry__http__0=http://resource-registry:5100",
+          "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
+          "services__workflow-engine__http__0=http://workflow-engine:9090"
+        ],
+        "extraHosts": [
+          "local.altinn.cloud:host-gateway",
+          "pdf.local.altinn.cloud:host-gateway",
+          "workflow-engine.local.altinn.cloud:host-gateway",
+          "app-frontend.local.altinn.cloud:host-gateway",
+          "af.local.altinn.cloud:host-gateway",
+          "host.docker.internal:host-gateway"
+        ],
+        "networkAliases": [
+          "grafana"
         ],
         "waitForReady": true,
         "readinessProbe": true
@@ -2010,7 +2566,8 @@
           "container:localtest-v2-postgres",
           "container:localtest-v2-register",
           "container:localtest-v2-resource-registry",
-          "container:localtest-v2-profile"
+          "container:localtest-v2-profile",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2038,6 +2595,10 @@
         "env": [
           "AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
           "Localtest__AccessManagement__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=access-management",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -2049,14 +2610,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2097,7 +2663,8 @@
           "container:localtest-v2-authorization",
           "container:localtest-v2-access-management",
           "container:localtest-v2-events",
-          "container:localtest-v2-resource-registry"
+          "container:localtest-v2-resource-registry",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2117,6 +2684,10 @@
         ],
         "env": [
           "Localtest__Dialogporten__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=dialogporten-webapi",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -2128,14 +2699,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2164,7 +2740,8 @@
           "network:localtest-v2_network"
         ],
         "dependsOn": [
-          "container:localtest-v2-dialogporten-webapi"
+          "container:localtest-v2-dialogporten-webapi",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2184,6 +2761,10 @@
         ],
         "env": [
           "Localtest__Dialogporten__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=dialogporten-graphql",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -2195,14 +2776,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2231,7 +2817,8 @@
           "network:localtest-v2_network"
         ],
         "dependsOn": [
-          "container:localtest-v2-dialogporten-webapi"
+          "container:localtest-v2-dialogporten-webapi",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2251,6 +2838,10 @@
         ],
         "env": [
           "Localtest__Dialogporten__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=dialogporten-service",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -2262,14 +2853,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2301,7 +2897,8 @@
           "container:localtest-v2-storage",
           "container:localtest-v2-register",
           "container:localtest-v2-authentication",
-          "container:localtest-v2-dialogporten-webapi"
+          "container:localtest-v2-dialogporten-webapi",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2321,6 +2918,10 @@
         ],
         "env": [
           "Localtest__Adapter__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=dialogporten-adapter",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -2332,14 +2933,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2376,7 +2982,8 @@
           "container:localtest-v2-notifications",
           "container:localtest-v2-events",
           "container:localtest-v2-redis",
-          "container:localtest-v2-dialogporten-webapi"
+          "container:localtest-v2-dialogporten-webapi",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2405,6 +3012,10 @@
           "DatabaseOptions__ConnectionString=Host=postgres;Port=5432;Database=correspondence;Username=correspondence;Password=localtest",
           "GeneralSettings__RedisConnectionString=redis:6379,defaultDatabase=1",
           "Localtest__Correspondence__PlatformEndpoint=http://local.altinn.cloud:8000/",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=correspondence",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -2416,14 +3027,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2457,7 +3073,8 @@
           "container:localtest-v2-register",
           "container:localtest-v2-profile",
           "container:localtest-v2-authentication",
-          "container:localtest-v2-dialogporten-graphql"
+          "container:localtest-v2-dialogporten-graphql",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2489,6 +3106,10 @@
           "OIDC_CLIENT_ID=arbeidsflate-localtest",
           "OIDC_CLIENT_SECRET=arbeidsflate-localtest-secret",
           "OIDC_PLATFORM_URL=http://local.altinn.cloud:8000/authentication/api/v1/openid",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=arbeidsflate-bff",
           "PLATFORM_BASEURL=http://localtest:8080",
           "REDIS_CONNECTION_STRING=redis://redis:6379/2",
           "SESSION_SECRET=localtest-arbeidsflate-session-secret-not-a-secret",
@@ -2503,14 +3124,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2539,7 +3165,8 @@
           "network:localtest-v2_network"
         ],
         "dependsOn": [
-          "container:localtest-v2-arbeidsflate-bff"
+          "container:localtest-v2-arbeidsflate-bff",
+          "container:localtest-v2-otel-collector"
         ],
         "volumes": [
           {
@@ -2559,6 +3186,10 @@
         ],
         "env": [
           "DIALOGPORTEN_STREAM_URL=http://local.altinn.cloud:8000/dialogporten/graphql/stream",
+          "OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317",
+          "OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+          "OTEL_METRIC_EXPORT_INTERVAL=5000",
+          "OTEL_SERVICE_NAME=arbeidsflate",
           "services__access-management__http__0=http://access-management:5080",
           "services__arbeidsflate-bff__http__0=http://arbeidsflate-bff:80",
           "services__arbeidsflate__http__0=http://arbeidsflate:80",
@@ -2570,14 +3201,19 @@
           "services__dialogporten-service__http__0=http://dialogporten-service:8080",
           "services__dialogporten-webapi__http__0=http://dialogporten-webapi:8080",
           "services__events__http__0=http://events:5080",
+          "services__grafana__http__0=http://grafana:3000",
           "services__localtest__http__0=http://localtest:8080",
           "services__notifications__http__0=http://notifications:5090",
+          "services__otel-collector__http__0=http://otel-collector:4318",
           "services__pdf3__http__0=http://pdf3:5031",
           "services__profile__http__0=http://profile:5030",
           "services__receipt__http__0=http://receipt:5060",
           "services__register__http__0=http://register:5020",
           "services__resource-registry__http__0=http://resource-registry:5100",
           "services__storage__http__0=http://storage:5010",
+          "services__victoria-logs__http__0=http://victoria-logs:9428",
+          "services__victoria-metrics__http__0=http://victoria-metrics:8428",
+          "services__victoria-traces__http__0=http://victoria-traces:10428",
           "services__workflow-engine__http__0=http://workflow-engine:9090"
         ],
         "extraHosts": [
@@ -2610,6 +3246,11 @@
       "workflow-engine http://workflow-engine:9090/api/v1/health/ready",
       "redis tcp redis:6379",
       "receipt http://receipt:5060/health",
+      "victoria-metrics http://victoria-metrics:8428/health",
+      "victoria-traces http://victoria-traces:10428/health",
+      "victoria-logs http://victoria-logs:9428/health",
+      "otel-collector tcp otel-collector:4318",
+      "grafana http://grafana:3000/api/health",
       "access-management http://access-management:5080/health",
       "dialogporten-webapi http://dialogporten-webapi:8080/health/readiness",
       "dialogporten-graphql http://dialogporten-graphql:8080/health/readiness",
@@ -2628,13 +3269,13 @@
         "driver": "bridge"
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-postgres",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -2694,13 +3335,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-storage",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -2764,13 +3405,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-localtest",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -2873,7 +3514,6 @@
           "ASPNETCORE_HTTP_PORTS=9090",
           "AppCommandSettings__CommandEndpoint=http://local.altinn.cloud:8000/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
           "ConnectionStrings__WorkflowEngine=Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres",
-          "EngineSettings__EnableTelemetry=false",
           "services__access-management__http__0=http://localtest:8080",
           "services__authentication__http__0=http://localtest:8080",
           "services__authorization__http__0=http://localtest:8080",
@@ -2917,13 +3557,13 @@
         "driver": "bridge"
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-postgres",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-postgres:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -2982,13 +3622,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-register",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-register:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3040,13 +3680,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-profile",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-profile:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3103,13 +3743,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authentication",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authentication:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3164,13 +3804,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-authorization",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-authorization:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3232,13 +3872,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-storage",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-storage:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3301,13 +3941,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-events",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-events:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3365,13 +4005,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-resource-registry",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-resource-registry:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3435,13 +4075,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-notifications",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-notifications:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3501,13 +4141,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-localtest",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-localtest:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],
@@ -3667,7 +4307,6 @@
           "ASPNETCORE_HTTP_PORTS=9090",
           "AppCommandSettings__CommandEndpoint=http://origin.test:18000/{Org}/{App}/instances/{InstanceOwnerPartyId}/{InstanceGuid}/workflow-engine-callbacks/",
           "ConnectionStrings__WorkflowEngine=Host=postgres;Port=5432;Database=workflow_engine;Username=postgres;Password=postgres",
-          "EngineSettings__EnableTelemetry=false",
           "services__access-management__http__0=http://access-management:5080",
           "services__authentication__http__0=http://authentication:5101",
           "services__authorization__http__0=http://authorization:5070",
@@ -3696,13 +4335,13 @@
         "readinessProbe": true
       },
       {
-        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-e2a9b82",
-        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-e2a9b82",
+        "id": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
+        "ref": "ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
         "pullPolicy": "ifNotPresent"
       },
       {
         "id": "container:localtest-v2-access-management",
-        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-e2a9b82",
+        "image": "image:pulled:ghcr.io/ivarne-agent/localtest-research/localtest-access-management:sha-609c646",
         "networks": [
           "network:localtest-v2_network"
         ],

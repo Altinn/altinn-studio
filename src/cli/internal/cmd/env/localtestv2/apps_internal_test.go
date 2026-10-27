@@ -22,7 +22,7 @@ func TestDownRemovesTheAppContainersAndTheNetwork(t *testing.T) {
 	env := NewEnv(cfg, ui.NewOutput(&out, io.Discard, false), client)
 	if err := env.applyResources(
 		t.Context(),
-		resources(defaultOptions(localtestv2.CertificateDir(cfg)), nil),
+		resources(defaultOptions(localtestv2.CertificateDir(cfg), localtestv2.FilesDir(cfg)), nil),
 		false,
 	); err != nil {
 		t.Fatal(err)
