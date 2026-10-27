@@ -55,14 +55,19 @@ describe('PageConfigPanel', () => {
   });
 
   it('renders the PDF card for a page in a PDF task', () => {
-    renderPageConfigPanel(layout1NameMock, defaultTexts, 'pdf');
+    renderPageConfigPanel(layout1NameMock, defaultTexts, { taskType: 'pdf' });
+    expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
+  });
+
+  it('renders the PDF card for a page in a subform', () => {
+    renderPageConfigPanel(layout1NameMock, defaultTexts, { type: 'subform', taskType: undefined });
     expect(screen.getByText(textMock('right_menu.pdf'))).toBeInTheDocument();
   });
 
   it.each(['data', 'subformPdf', 'eFormidling'])(
     'does not render the PDF card for a page in a %s task',
     (taskType) => {
-      renderPageConfigPanel(layout1NameMock, defaultTexts, taskType);
+      renderPageConfigPanel(layout1NameMock, defaultTexts, { taskType });
       expect(screen.queryByText(textMock('right_menu.pdf'))).not.toBeInTheDocument();
     },
   );
@@ -96,10 +101,10 @@ describe('PageConfigPanel', () => {
 const renderPageConfigPanel = (
   selectedLayoutName: string = layout1NameMock,
   textResources = defaultTexts,
-  taskType: string = 'data',
+  layoutSetModel: Partial<UiFolderLayoutSetModel> = {},
 ) => {
   const layoutSets: UiFolderLayoutSetModel[] = [
-    { id: layoutSet, dataType: 'data-model', type: null, taskType },
+    { id: layoutSet, dataType: 'data-model', type: null, taskType: 'data', ...layoutSetModel },
   ];
   queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSets);
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);

@@ -53,7 +53,10 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { layoutSet } = useUxEditorParams();
   const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
-  const isPdfTask = layoutSets?.find((set) => set.id === layoutSet)?.taskType === 'pdf';
+  const selectedLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
+  // A PDF task's PDF and each subform entry's PDF come from the folder's PDF page.
+  const showPdfCard =
+    selectedLayoutSet?.taskType === 'pdf' || selectedLayoutSet?.type === 'subform';
 
   if (hasDuplicatedIds) {
     return <PageConfigWarning selectedFormLayoutName={selectedItem.id} layout={layout} />;
@@ -80,7 +83,7 @@ export const PageConfigPanel = ({ selectedItem }: PageConfigPanelProps) => {
             <HiddenExpressionOnLayout />
           </StudioDetails.Content>
         </StudioDetails>
-        {isPdfTask && (
+        {showPdfCard && (
           <StudioDetails>
             <StudioDetails.Summary>{t('right_menu.pdf')}</StudioDetails.Summary>
             <StudioDetails.Content className={classes.pdf}>
