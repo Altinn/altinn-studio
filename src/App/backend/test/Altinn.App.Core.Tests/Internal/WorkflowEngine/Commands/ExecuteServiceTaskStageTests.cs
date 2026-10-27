@@ -33,7 +33,7 @@ public class ExecuteServiceTaskStageTests
         public Func<StageContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline.Stage(ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
     }
 
@@ -351,7 +351,7 @@ public class ExecuteServiceTaskStageTests
     {
         public string Type => "shipping";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),

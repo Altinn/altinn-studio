@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// The result of a pipeline stage that <strong>opens a mailbox</strong> — the work delegate of
-/// <see cref="ServiceTaskPipelineBuilder.Stage(Func{StageContext, ServiceTaskMailbox, Task{ServiceTaskOpeningStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>:
+/// <see cref="PipelineBuilder.Stage(Func{StageContext, ServiceTaskMailbox, Task{ServiceTaskOpeningStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>:
 /// the whole stage vocabulary, plus <see cref="Conclude"/> for the send that discovers the task's outcome
 /// on its own — an answer that can never arrive needs no exchange to say so.
 /// </summary>

@@ -40,7 +40,7 @@ public class ProcessTaskElementAnalyzerTests
                 {
                     public const string TaskType = "archive";
                     public string Type => TaskType;
-                    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => throw new System.NotImplementedException();
+                    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => throw new System.NotImplementedException();
                 }
 
                 public sealed class Review : IProcessTask

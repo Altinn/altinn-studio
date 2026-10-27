@@ -20,7 +20,7 @@ public class WorkflowCommandSetTests
 
     /// <summary>The pipeline a simple service task forwards to: the conclusion and nothing else.</summary>
     private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
-        new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
     /// <summary>The lifecycle pipeline every task type without its own definition forwards to.</summary>
     private static Pipeline SingleStagePipeline() =>
@@ -286,7 +286,7 @@ public class WorkflowCommandSetTests
         var send = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(2) };
         var handler = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
         var conclusion = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(4) };
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(PlainStage, stage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive, send)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, handler)
@@ -305,7 +305,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_SingleExchangePipeline_EndsMainOnTheSendAndAnswersItInAWorkflowOfItsOwn()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .ConcludeOnReplies(archive, OnMessage, OnClosed);
@@ -328,7 +328,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_PipelineWithNoExchange_EndsWithTheConcludingStepAndNoReceive()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder().Stage(PlainStage).Finally(FinalWork);
+        ServiceTaskPipeline pipeline = new PipelineBuilder().Stage(PlainStage).Finally(FinalWork);
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("signing", pipeline);
 
@@ -388,7 +388,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_AfterTheLastHandler_EndsWithTheConclusion()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Stage(PlainStage)
@@ -408,7 +408,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_APlainStageBeforeAHandler_EndsItsRunAndTheHandlerRunsAlone()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(PlainStage)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -442,7 +442,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_EndsAtAMailboxOpeningStage_EvenWithStagesComposedAfterIt()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(PlainStage)
@@ -476,7 +476,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_UpFrontSends_RidesOneSegmentPerSend_ThenOnePerHandler()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -519,7 +519,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_HandlerOrderRatherThanSendOrder_DecidesTheSegments()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(journal, OnSegmentMessage, OnSegmentClosed)
@@ -596,7 +596,7 @@ public class WorkflowCommandSetTests
     }
 
     private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>
-        new ServiceTaskPipelineBuilder()
+        new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Stage(PlainStage)

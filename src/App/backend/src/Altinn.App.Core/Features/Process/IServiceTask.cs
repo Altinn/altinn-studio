@@ -28,5 +28,5 @@ public interface IServiceTask : IPipelineServiceTask
     [SealedImplementation(
         $"Implement {nameof(IPipelineServiceTask)} directly instead — on an {nameof(IServiceTask)}, {nameof(Execute)} would never run"
     )]
-    ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
+    ServiceTaskPipeline IPipelineServiceTask.Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 }

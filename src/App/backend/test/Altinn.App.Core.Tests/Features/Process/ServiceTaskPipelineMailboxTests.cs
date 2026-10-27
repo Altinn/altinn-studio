@@ -29,25 +29,22 @@ public class ServiceTaskPipelineMailboxTests
         Task.FromResult(StageResult.Completed());
 
     /// <summary>The running shape: a send that opens the mailbox at item index 0, then an unrelated stage, then the terminal.</summary>
-    private static ServiceTaskPipelineBuilder ComposeStages(
-        ServiceTaskPipelineBuilder builder,
-        out MailboxHandle handle
-    ) => builder.Stage(Send, _threeDays, out handle).Stage(_ => Task.FromResult(StageResult.Completed()));
+    private static PipelineBuilder ComposeStages(PipelineBuilder builder, out MailboxHandle handle) =>
+        builder.Stage(Send, _threeDays, out handle).Stage(_ => Task.FromResult(StageResult.Completed()));
 
     /// <summary>A pipeline task whose <c>Define</c> the test scripts, so composition mistakes can be
     /// pushed through the runtime's own resolution path.</summary>
-    private sealed class ScriptedTask(Func<ServiceTaskPipelineBuilder, ServiceTaskPipeline> define)
-        : IPipelineServiceTask
+    private sealed class ScriptedTask(Func<PipelineBuilder, ServiceTaskPipeline> define) : IPipelineServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) => define(pipeline);
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => define(pipeline);
     }
 
     [Fact]
     public void MailboxStage_RecordsTheDeclarationOnTheStageThatOpensIt()
     {
-        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+        ServiceTaskPipeline pipeline = ComposeStages(new PipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed);
 
         // Two stages plus the conclusion, which is the list's last item.
@@ -61,11 +58,11 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void MailboxHandle_CarriesTheOpeningItemsIndex()
     {
-        ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle);
+        ComposeStages(new PipelineBuilder(), out MailboxHandle handle);
 
         Assert.Equal(0, handle.OpeningIndex);
 
-        new ServiceTaskPipelineBuilder()
+        new PipelineBuilder()
             .Stage(Send, _threeDays, out MailboxHandle first)
             .Stage(Send, _threeDays, out MailboxHandle second);
         Assert.Equal(0, first.OpeningIndex);
@@ -75,7 +72,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void ConcludeOnReplies_RecordsAnExchangeKeyedOnTheOpeningIndex()
     {
-        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+        ServiceTaskPipeline pipeline = ComposeStages(new PipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed);
 
         var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[^1]);
@@ -88,7 +85,7 @@ public class ServiceTaskPipelineMailboxTests
     {
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
 
-        ServiceTaskPipeline pipeline = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+        ServiceTaskPipeline pipeline = ComposeStages(new PipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed, options);
 
         var exchange = Assert.IsType<PipelineConclusion.ReplyExchange>(pipeline.Items[^1]);
@@ -99,7 +96,7 @@ public class ServiceTaskPipelineMailboxTests
     public async Task MailboxStage_HandsTheMintedMailboxToTheWork()
     {
         ServiceTaskMailbox? seen = null;
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(
                 (_, mailbox) =>
                 {
@@ -123,7 +120,7 @@ public class ServiceTaskPipelineMailboxTests
     {
         // The archive-then-journal shape: the first exchange is answered mid-pipeline and the pipeline carries
         // on to open, and end on, the second.
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(Send, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, HandleSegment, ClosedSegment)
             .Stage(Send, _threeDays, out MailboxHandle journal)
@@ -145,7 +142,7 @@ public class ServiceTaskPipelineMailboxTests
         Func<StageContext, MailboxClosedReason, Task<StageResult>> onClosed = ClosedSegment;
         var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
 
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(Send, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, onMessage, onClosed, options)
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
@@ -162,7 +159,7 @@ public class ServiceTaskPipelineMailboxTests
     {
         // Both sends up front, and the exchanges answered in the opposite order. Legal by design: handler
         // order is exchange order, and it is the author's call — nothing here validates it against the sends.
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle archive);
         builder.Stage(Send, _threeDays, out MailboxHandle journal);
 
@@ -179,7 +176,7 @@ public class ServiceTaskPipelineMailboxTests
     {
         // A reply handled mid-pipeline, with ordinary work after it and a final step to conclude: the shape a
         // mailbox pipeline could not have while the exchange had to be the conclusion.
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(Send, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, HandleSegment, ClosedSegment)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
@@ -194,7 +191,7 @@ public class ServiceTaskPipelineMailboxTests
     public void TerminalLeavingAnotherMailboxUnanswered_ThrowsNamingTheFirstIndex()
     {
         // Two mailboxes go unanswered, so the message has a choice: it names the first one composed.
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle _);
         builder.Stage(Send, _threeDays, out MailboxHandle _);
         builder.Stage(Send, _threeDays, out MailboxHandle journal);
@@ -205,20 +202,16 @@ public class ServiceTaskPipelineMailboxTests
 
         Assert.Contains("opened at index 0", exception.Message, StringComparison.Ordinal);
         Assert.DoesNotContain("index 1", exception.Message, StringComparison.Ordinal);
-        Assert.Contains(
-            nameof(ServiceTaskPipelineBuilder.ConcludeOnReplies),
-            exception.Message,
-            StringComparison.Ordinal
-        );
-        Assert.Contains(nameof(ServiceTaskPipelineBuilder.HandleReplies), exception.Message, StringComparison.Ordinal);
+        Assert.Contains(nameof(PipelineBuilder.ConcludeOnReplies), exception.Message, StringComparison.Ordinal);
+        Assert.Contains(nameof(PipelineBuilder.HandleReplies), exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public void HandleFromAnotherPipeline_Throws()
     {
         // Not a hypothetical: a task that caches a handle from a previous Define call lands here.
-        new ServiceTaskPipelineBuilder().Stage(Send, _threeDays, out MailboxHandle foreign);
-        var builder = new ServiceTaskPipelineBuilder();
+        new PipelineBuilder().Stage(Send, _threeDays, out MailboxHandle foreign);
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle _);
 
         ArgumentException exception = Assert.Throws<ArgumentException>(() =>
@@ -231,7 +224,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void HandleAnsweredTwice_Throws()
     {
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle handle);
         builder.ConcludeOnReplies(handle, Handle, Closed);
 
@@ -249,7 +242,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void HandleAnsweredTwiceByHandleReplies_Throws()
     {
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle handle);
         builder.HandleReplies(handle, HandleSegment, ClosedSegment);
 
@@ -265,7 +258,7 @@ public class ServiceTaskPipelineMailboxTests
     {
         // Interleaving — the same exchange read by a segment and then by the terminal — stays out: the handle
         // is consumed once, whichever position consumes it.
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle handle);
         builder.HandleReplies(handle, HandleSegment, ClosedSegment);
 
@@ -283,8 +276,8 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void HandleRepliesWithAHandleFromAnotherPipeline_Throws()
     {
-        new ServiceTaskPipelineBuilder().Stage(Send, _threeDays, out MailboxHandle foreign);
-        var builder = new ServiceTaskPipelineBuilder();
+        new PipelineBuilder().Stage(Send, _threeDays, out MailboxHandle foreign);
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle _);
 
         ArgumentException exception = Assert.Throws<ArgumentException>(() =>
@@ -297,7 +290,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void MailboxOpenedButFinallyEndsThePipeline_Throws()
     {
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle _);
 
         InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
@@ -306,11 +299,7 @@ public class ServiceTaskPipelineMailboxTests
 
         Assert.Contains("opened at index 0", exception.Message, StringComparison.Ordinal);
         Assert.Contains("nothing answers it", exception.Message, StringComparison.Ordinal);
-        Assert.Contains(
-            nameof(ServiceTaskPipelineBuilder.ConcludeOnReplies),
-            exception.Message,
-            StringComparison.Ordinal
-        );
+        Assert.Contains(nameof(PipelineBuilder.ConcludeOnReplies), exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -320,7 +309,7 @@ public class ServiceTaskPipelineMailboxTests
         // by a terminal, in the pipeline that terminal returned". Collapse the builder's mark to a plain bool
         // and this composition starts succeeding, handing back a pipeline that opens a mailbox and answers it
         // nowhere — every other test here passes either way.
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle handle);
         builder.ConcludeOnReplies(handle, Handle, Closed);
 
@@ -341,7 +330,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void NoMailbox_FinallyStillEndsThePipeline()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
@@ -355,7 +344,7 @@ public class ServiceTaskPipelineMailboxTests
     public void NonPositiveTimeout_Throws(int hours)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new ServiceTaskPipelineBuilder().Stage(
+            new PipelineBuilder().Stage(
                 Send,
                 new MailboxOptions { Timeout = TimeSpan.FromHours(hours) },
                 out MailboxHandle _
@@ -366,14 +355,10 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void NullArguments_Throw()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            new ServiceTaskPipelineBuilder().Stage(Send, null!, out MailboxHandle _)
-        );
-        Assert.Throws<ArgumentNullException>(() =>
-            new ServiceTaskPipelineBuilder().Stage(null!, _threeDays, out MailboxHandle _)
-        );
+        Assert.Throws<ArgumentNullException>(() => new PipelineBuilder().Stage(Send, null!, out MailboxHandle _));
+        Assert.Throws<ArgumentNullException>(() => new PipelineBuilder().Stage(null!, _threeDays, out MailboxHandle _));
 
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle handle);
         Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(null!, Handle, Closed));
         Assert.Throws<ArgumentNullException>(() => builder.ConcludeOnReplies(handle, null!, Closed));
@@ -406,7 +391,7 @@ public class ServiceTaskPipelineMailboxTests
     {
         // Caching violates Define's contract but must not become a hard error: the pipeline is immutable, and
         // this call's builder issued no handle of its own.
-        ServiceTaskPipeline cached = ComposeStages(new ServiceTaskPipelineBuilder(), out MailboxHandle handle)
+        ServiceTaskPipeline cached = ComposeStages(new PipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed);
         var task = new ScriptedTask(_ => cached);
 

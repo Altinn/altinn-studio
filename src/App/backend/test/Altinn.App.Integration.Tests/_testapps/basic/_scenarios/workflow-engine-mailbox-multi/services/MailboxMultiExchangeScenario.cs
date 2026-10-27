@@ -15,9 +15,9 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEngineMailboxMulti;
 
 /// <summary>
 /// Two mailbox exchanges in one task, answered one after the other: "SendToArchive" opens the first,
-/// a <see cref="ServiceTaskPipelineBuilder.HandleReplies"/> handler answers it <em>without</em>
+/// a <see cref="PipelineBuilder.HandleReplies"/> handler answers it <em>without</em>
 /// concluding the task, and the segment that handler's conclusion starts opens the second
-/// ("SendToJournal") which <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/> ends the task on.
+/// ("SendToJournal") which <see cref="PipelineBuilder.ConcludeOnReplies"/> ends the task on.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -56,7 +56,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendToArchive, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle archive)
             .HandleReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed)
@@ -184,7 +184,7 @@ public sealed class SequentialExchangesServiceTask : IPipelineServiceTask
 /// <item>
 /// <description>
 /// <strong>A continuation that concludes the task itself.</strong> The last segment ends in
-/// <see cref="ServiceTaskPipelineBuilder.Finally"/> rather than an exchange, so the concluding step runs
+/// <see cref="PipelineBuilder.Finally"/> rather than an exchange, so the concluding step runs
 /// on a continuation workflow and the process advances from there — the path the plan expects to work
 /// with no controller change.
 /// </description>
@@ -215,7 +215,7 @@ public sealed class UpfrontExchangesServiceTask : IPipelineServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendAlpha, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle alpha)
             .Stage(SendBeta, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle beta)

@@ -48,7 +48,7 @@ internal static class ServiceTaskLookupExtensions
     public static ServiceTaskPipeline ResolvePipeline(this IPipelineServiceTask task)
     {
         // Fresh per call, so the mailbox handle it issues cannot be answered from another task's Define.
-        var builder = new ServiceTaskPipelineBuilder();
+        var builder = new PipelineBuilder();
 
         ServiceTaskPipeline pipeline =
             task.Define(builder)

@@ -12,7 +12,7 @@ Every service task is a pipeline. A task that does one thing implements `IServic
 pipeline in `Define`:
 
 ```csharp
-public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
     pipeline
         .Stage(SendToArchive, new MailboxOptions { Timeout = TimeSpan.FromDays(14) }, out MailboxHandle archive)
         .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
@@ -62,7 +62,7 @@ The built-in eFormidling task uses this hook for its environment-specific BPMN c
 types, and required service registrations.
 
 The work any task type does when a task starts, ends or is abandoned composes the same way, from the same
-stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take a `PipelineBuilder` and compose
+stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take the same `PipelineBuilder` and compose
 `Stage(work, options?)` calls, where `work` takes a `StageContext` and returns a `StageResult`, exactly as a service
 task stage does. `Start`, `End` and `Abandon` are deprecated and removed before v9 ships; until then the defaults run
 them as a single stage. Each stage runs as its own workflow

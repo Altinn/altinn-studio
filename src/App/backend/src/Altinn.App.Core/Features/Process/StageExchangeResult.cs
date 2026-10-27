@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// What a reply handler that leaves the task unconcluded may answer — the <c>onMessage</c> of
-/// <see cref="ServiceTaskPipelineBuilder.HandleReplies"/>: anything a pipeline stage answers
+/// <see cref="PipelineBuilder.HandleReplies"/>: anything a pipeline stage answers
 /// (<see cref="StageResult"/>, the whole vocabulary below this type) plus
 /// <see cref="AwaitNextReply"/>. The same move as <see cref="ServiceTaskExchangeResult"/>, one rung down —
 /// concluding the task and advancing the process live on <see cref="ServiceTaskResult"/>, which is not below

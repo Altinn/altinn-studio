@@ -52,7 +52,7 @@ public static class Diagnostics
             "The result of '{0}' is discarded, but '{1}' is not a usable registration on its own. {2}."
         );
 
-        // Close to the runtime backstop in ServiceTaskPipelineBuilder.ClaimMailbox (which names the opening
+        // Close to the runtime backstop in PipelineBuilder.ClaimMailbox (which names the opening
         // stage's item index, which the analyzer cannot know), so an author who meets one of them after the
         // other reads one rule rather than two. '{0}' is the identifier of the local the handle was declared
         // into.
@@ -65,7 +65,7 @@ public static class Diagnostics
                 + "second handler for the same exchange would be dead code."
         );
 
-        // Likewise close to the wording of ServiceTaskPipelineBuilder.RequireEveryMailboxAnswered, which is
+        // Likewise close to the wording of PipelineBuilder.RequireEveryMailboxAnswered, which is
         // what fails app startup for every shape this rule cannot prove.
         public static readonly DiagnosticDescriptor MailboxNeverAnswered = Error(
             "ALTINNAPP0703",

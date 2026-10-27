@@ -22,5 +22,5 @@ public interface IPipelineServiceTask : IProcessTask, IProcessStepConfigurable
     /// <c>Finally</c>, or <c>ConcludeOnReplies</c> when a stage opened a mailbox. Called at enqueue, on
     /// every callback, and at app startup, so it must be cheap, deterministic and side-effect free.
     /// </summary>
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline);
+    public ServiceTaskPipeline Define(PipelineBuilder pipeline);
 }

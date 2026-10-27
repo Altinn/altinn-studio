@@ -2,10 +2,10 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// The mailbox a stage opened, handed out by the mailbox-opening
-/// <see cref="ServiceTaskPipelineBuilder.Stage(Func{StageContext, ServiceTaskMailbox, Task{ServiceTaskOpeningStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>
+/// <see cref="PipelineBuilder.Stage(Func{StageContext, ServiceTaskMailbox, Task{ServiceTaskOpeningStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>
 /// overload and passed to the one handler that answers it —
-/// <see cref="ServiceTaskPipelineBuilder.HandleReplies"/> or
-/// <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/>.
+/// <see cref="PipelineBuilder.HandleReplies"/> or
+/// <see cref="PipelineBuilder.ConcludeOnReplies"/>.
 /// </summary>
 /// <remarks>
 /// Being unconstructable is the point: passing one is proof that the mailbox it names is really declared,
@@ -14,14 +14,14 @@ namespace Altinn.App.Core.Features.Process;
 /// </remarks>
 public sealed class MailboxHandle
 {
-    internal MailboxHandle(ServiceTaskPipelineBuilder owner, int openingIndex)
+    internal MailboxHandle(PipelineBuilder owner, int openingIndex)
     {
         Owner = owner;
         OpeningIndex = openingIndex;
     }
 
     /// <summary>The builder that issued this handle — a handle answers its own pipeline and no other.</summary>
-    internal ServiceTaskPipelineBuilder Owner { get; }
+    internal PipelineBuilder Owner { get; }
 
     /// <summary>
     /// The item that opens the mailbox — the exchange's identity everywhere downstream: the carry's key, the

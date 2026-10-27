@@ -1228,7 +1228,7 @@ public class ProcessNextRequestFactoryTests
         public ProcessStepOptions? StepOptions =>
             new() { MaxExecutionTime = TimeSpan.FromMinutes(30), WaitBudget = TimeSpan.FromHours(48) };
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     _ => Task.FromResult(StageResult.Completed()),
@@ -1347,7 +1347,7 @@ public class ProcessNextRequestFactoryTests
 
         public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(
@@ -1367,7 +1367,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(PlainStage)
                 .Stage(
@@ -1392,7 +1392,7 @@ public class ProcessNextRequestFactoryTests
 
         public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(

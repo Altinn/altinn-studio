@@ -61,6 +61,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Long text in Paragraph, Alert and Panel components and in field descriptions now wraps at about 70 characters per line, so it is easier to read on wide screens. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 - Breaking: the types a pipeline stage uses are named for stages, since process task lifecycle stages use them too: `ServiceTaskContext` is `StageContext`, `ServiceTaskStageResult` is `StageResult`, `ServiceTaskStageExchangeResult` is `StageExchangeResult`, `ServiceTaskStageAwaitNextReplyResult` is `StageAwaitNextReplyResult`, and `ServiceTaskAttempt` and `ServiceTaskWait` are `StageAttempt` and `StageWait`. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 - Breaking: the service task results are named adjective-first, like every other result: `ServiceTaskSuccessResult` is `SuccessfulServiceTaskResult`, `ServiceTaskFailedResult` is `FailedServiceTaskResult` and `ServiceTaskDeferredResult` is `DeferredServiceTaskResult`. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+- Breaking: `ServiceTaskPipelineBuilder` is `PipelineBuilder`, the one builder every pipeline is composed with. A service task's `Define` still ends it with `Finally` or `ConcludeOnReplies`; a task's `DefineStart`, `DefineEnd` and `DefineAbandon` end it with `Build()`, which refuses a pipeline that opened a mailbox. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
 ### Fixed
 

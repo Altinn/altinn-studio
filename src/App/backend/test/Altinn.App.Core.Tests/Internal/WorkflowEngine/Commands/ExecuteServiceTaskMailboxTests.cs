@@ -41,7 +41,7 @@ public class ExecuteServiceTaskMailboxTests
         /// <summary>The address handed to the stage that opens the mailbox.</summary>
         public ServiceTaskMailbox? SentTo { get; private set; }
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (context, mailbox) =>
@@ -85,7 +85,7 @@ public class ExecuteServiceTaskMailboxTests
 
         public Dictionary<string, StageContext> Seen { get; } = new(StringComparer.Ordinal);
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(context =>
                 {
@@ -363,7 +363,7 @@ public class ExecuteServiceTaskMailboxTests
         public Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> OnSend { get; init; } =
             (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(OnSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle archive)
                 .ConcludeOnReplies(
@@ -382,7 +382,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
@@ -599,7 +599,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success())),

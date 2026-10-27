@@ -101,7 +101,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// age fails with its verdict rather than ours.
     /// </para>
     /// </remarks>
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendShipment)
             .Finally(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });

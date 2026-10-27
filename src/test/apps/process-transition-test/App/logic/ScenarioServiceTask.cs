@@ -38,7 +38,7 @@ public sealed class ScenarioServiceTask : IPipelineServiceTask
     /// </summary>
     internal static readonly TimeSpan ScenarioWaitBudget = TimeSpan.FromSeconds(30);
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
         pipeline
             .Stage(PrepareScenario, new ProcessStepOptions { WaitBudget = TimeSpan.FromMinutes(5) })
             .Finally(RunScenario, new ProcessStepOptions { WaitBudget = ScenarioWaitBudget });

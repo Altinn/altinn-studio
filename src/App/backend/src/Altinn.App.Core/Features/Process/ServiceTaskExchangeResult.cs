@@ -3,8 +3,8 @@ namespace Altinn.App.Core.Features.Process;
 /// <summary>
 /// What a reply handler may answer: anything a service task concludes with (<see cref="ServiceTaskResult"/>,
 /// the whole vocabulary below this type) plus <see cref="AwaitNextReply"/>, which concludes nothing and waits
-/// for the next message. Only <see cref="ServiceTaskPipelineBuilder.ConcludeOnReplies"/>'s <c>onMessage</c>
-/// returns this type — its <c>onClosed</c>, and <see cref="ServiceTaskPipelineBuilder.Finally"/>, return
+/// for the next message. Only <see cref="PipelineBuilder.ConcludeOnReplies"/>'s <c>onMessage</c>
+/// returns this type — its <c>onClosed</c>, and <see cref="PipelineBuilder.Finally"/>, return
 /// <see cref="ServiceTaskResult"/>, so the compiler rejects <see cref="AwaitNextReply"/> where there is no
 /// next message to await. A handler the pipeline carries on past answers
 /// <see cref="StageExchangeResult"/> instead — a separate root, on purpose.

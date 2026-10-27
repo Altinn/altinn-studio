@@ -20,7 +20,7 @@ public sealed class ThreePartPipelineTask : IPipelineServiceTask
 {
     public string Type => "pipeline";
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
         pipeline
             .Stage(ReserveResources)
             .Stage(

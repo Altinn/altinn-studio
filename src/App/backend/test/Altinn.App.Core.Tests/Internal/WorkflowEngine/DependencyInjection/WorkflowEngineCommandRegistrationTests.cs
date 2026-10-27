@@ -128,10 +128,10 @@ public class WorkflowEngineCommandRegistrationTests
         new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
 
     private static ServiceTaskPipeline CreatePipeline() =>
-        new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
     private static ServiceTaskPipeline CreateMailboxPipeline() =>
-        new ServiceTaskPipelineBuilder()
+        new PipelineBuilder()
             .Stage(
                 (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
                 new MailboxOptions { Timeout = TimeSpan.FromDays(1) },

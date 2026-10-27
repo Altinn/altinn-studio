@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// A service task's composed pipeline: the ordered durable items, ending with the one conclusion. Built via
-/// <see cref="ServiceTaskPipelineBuilder"/> and returned from <see cref="IPipelineServiceTask.Define"/>; the
+/// <see cref="PipelineBuilder"/> and returned from <see cref="IPipelineServiceTask.Define"/>; the
 /// runtime reads it to expand, dispatch and validate the task — apps only compose and return it.
 /// </summary>
 public sealed class ServiceTaskPipeline
