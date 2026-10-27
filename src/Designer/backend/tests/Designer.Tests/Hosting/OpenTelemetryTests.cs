@@ -82,6 +82,11 @@ public class OpenTelemetryTests
                     )
                     .ThrowsAsync(_releasesException);
                 services.AddSingleton(releaseService.Object);
+                var userOrganizationService = new Mock<IUserOrganizationService>();
+                userOrganizationService
+                    .Setup(service => service.UserIsMemberOfOrganization(It.IsAny<string>()))
+                    .ReturnsAsync(true);
+                services.AddSingleton(userOrganizationService.Object);
             }
         };
     }

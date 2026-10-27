@@ -17,6 +17,12 @@ public static class AltinnPolicy
     public const string MustHaveGiteaDeployPermission = "MustHaveGiteaDeployPermission";
 
     /// <summary>
+    /// MustHaveGiteaReleasePermission
+    /// User must be in a Deploy team or the Owners team of the organization, the teams that open the deploy page.
+    /// </summary>
+    public const string MustHaveGiteaReleasePermission = "MustHaveGiteaReleasePermission";
+
+    /// <summary>
     /// MustHaveGiteaPublishResourcePermission
     /// </summary>
     public const string MustHaveGiteaPublishResourcePermission = "MustHaveGiteaPublishResourcePermission";
