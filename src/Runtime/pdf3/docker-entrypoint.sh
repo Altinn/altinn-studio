@@ -21,15 +21,24 @@ install_ca_bundle() {
   awk -v dir="$certs" '/-----BEGIN CERTIFICATE-----/ { close(f); f = dir "/" ++n ".pem" } f { print > f }' \
     "$STUDIO_CA_BUNDLE"
   imported=0
+  skipped=0
   for cert in "$certs"/*.pem; do
     # A bundle without a certificate leaves the pattern unexpanded; start without one rather than fail.
     [ -e "$cert" ] || continue
-    certutil -d "sql:$nss_db" -A -t "C,," -n "studio-ca-bundle-${cert##*/}" -i "$cert"
-    imported=$((imported + 1))
+    # A certificate certutil cannot import is skipped, so one bad block does not keep the worker from starting.
+    if certutil -d "sql:$nss_db" -A -t "C,," -n "studio-ca-bundle-${cert##*/}" -i "$cert"; then
+      imported=$((imported + 1))
+    else
+      skipped=$((skipped + 1))
+      number=${cert##*/}
+      echo "pdf3 worker: skipped certificate ${number%.pem} of STUDIO_CA_BUNDLE ($STUDIO_CA_BUNDLE), which certutil cannot import" >&2
+    fi
   done
   rm -rf "$certs"
-  if [ "$imported" -eq 0 ]; then
+  if [ "$imported" -eq 0 ] && [ "$skipped" -eq 0 ]; then
     echo "pdf3 worker: STUDIO_CA_BUNDLE ($STUDIO_CA_BUNDLE) holds no certificate; none installed" >&2
+  elif [ "$skipped" -gt 0 ]; then
+    echo "pdf3 worker: installed $imported of $((imported + skipped)) certificates from STUDIO_CA_BUNDLE" >&2
   fi
 }
 
