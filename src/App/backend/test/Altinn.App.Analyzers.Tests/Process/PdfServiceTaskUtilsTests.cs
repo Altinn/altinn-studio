@@ -290,6 +290,28 @@ public class PdfServiceTaskUtilsTests
     }
 
     [Theory]
+    [InlineData("Task_1")]
+    [InlineData("SubformPdf")]
+    public void Subform_Pdf_Task_Naming_The_UI_Folder_Of_A_Task_Is_An_Error(string uiFolder)
+    {
+        // A task's folder renders the task's own form, so the entries would be the main form's data
+        var diagnostics = Collect(
+            Process(SubformPdfTask("SubformPdf", uiFolder)),
+            SubformFolder("Subform", "vehicle"),
+            SubformFolder(uiFolder, "vehicle"),
+            Metadata("vehicle")
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(SubformUiFolderCannotRender, diagnostic.Id);
+        Assert.Contains(
+            $"but 'ui/{uiFolder}' is the UI folder of the task '{uiFolder}', not of a subform, so the app does not "
+                + "start. Name the UI folder that holds the subform's pages.",
+            diagnostic.GetMessage()
+        );
+    }
+
+    [Theory]
     [InlineData("""{ "pages": { "order": ["Page1"] } }""")]
     [InlineData("""{ "defaultDataType": " ", "pages": { "order": ["Page1"] } }""")]
     [InlineData("""{ "defaultDataType": 1, "pages": { "order": ["Page1"] } }""")]

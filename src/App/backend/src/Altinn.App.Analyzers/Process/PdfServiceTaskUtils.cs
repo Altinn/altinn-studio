@@ -124,8 +124,8 @@ internal static class PdfServiceTaskUtils
     }
 
     /// <summary>
-    /// Reports every <c>subformPdf</c> service task whose <c>subformUiFolder</c> is not a UI folder, has no
-    /// <c>defaultDataType</c>, or has one applicationmetadata.json does not declare. A missing or blank
+    /// Reports every <c>subformPdf</c> service task whose <c>subformUiFolder</c> is a process task's UI folder, is
+    /// not a UI folder, has no <c>defaultDataType</c>, or has one applicationmetadata.json does not declare. A missing or blank
     /// <c>subformUiFolder</c> is ALTINNAPP1020's, and a data type is checked only when applicationmetadata.json can
     /// be read.
     /// </summary>
@@ -141,6 +141,14 @@ internal static class PdfServiceTaskUtils
     {
         var metadataFile = MetadataFile.FindSingle(additionalFiles);
         var dataTypes = metadataFile is null ? null : MetadataFile.TryRead(metadataFile, token)?.DataTypes;
+        var taskIds = new HashSet<string>(
+            document
+                .Descendants(ProcessFile.Task)
+                .Concat(document.Descendants(ProcessFile.ServiceTask))
+                .Select(task => task.Attribute("id")?.Value)
+                .OfType<string>(),
+            StringComparer.Ordinal
+        );
 
         foreach (var taskType in document.Descendants(ProcessFile.Altinn + "taskType"))
         {
@@ -166,7 +174,13 @@ internal static class PdfServiceTaskUtils
 
             string? problem = null;
             string? fix = null;
-            if (!uiFolders.TryGetValue(uiFolder, out var settingsFile))
+            if (taskIds.Contains(uiFolder))
+            {
+                // A task's folder renders the task's own form, so its "entries" would be the main form
+                problem = $"'ui/{uiFolder}' is the UI folder of the task '{uiFolder}', not of a subform";
+                fix = "Name the UI folder that holds the subform's pages";
+            }
+            else if (!uiFolders.TryGetValue(uiFolder, out var settingsFile))
             {
                 problem = $"the app has no UI folder 'ui/{uiFolder}' with a Settings.json";
                 fix = "Name the UI folder that holds the subform's pages";

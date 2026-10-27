@@ -697,6 +697,18 @@ public class SubformPdfServiceTaskTests
     }
 
     [Fact]
+    public void ValidateConfiguration_SubformUiFolderOfATask_ReturnsFinding()
+    {
+        // The task's folder holds the main form, so its entries would be the main form's data
+        SetupProcessReader("Task_1");
+        _processReaderMock.Setup(x => x.IsProcessTask("Task_1")).Returns(true);
+
+        string finding = Assert.Single(_serviceTask.ValidateConfiguration(ValidationContext()));
+
+        Assert.Contains("'ui/Task_1' is the UI folder of the task 'Task_1', not of a subform", finding);
+    }
+
+    [Fact]
     public void ValidateConfiguration_SubformUiFolderWithoutDefaultDataType_ReturnsFinding()
     {
         SetupProcessReader();

@@ -48,7 +48,16 @@ internal sealed class SubformPdfServiceTask(
             return [e.Message];
         }
 
-        if (!TryGetSubformDataType(appResources, context.TaskId, validConfig, out string? dataType, out string? reason))
+        if (
+            !TryGetSubformDataType(
+                processReader,
+                appResources,
+                context.TaskId,
+                validConfig,
+                out string? dataType,
+                out string? reason
+            )
+        )
         {
             return [reason];
         }
@@ -72,9 +81,10 @@ internal sealed class SubformPdfServiceTask(
     /// <summary>
     /// Gets the data type of the subform's entries: the <c>defaultDataType</c> of the subform's UI folder, which the
     /// frontend renders each entry with. Gives the reason instead when the folder or its data type is missing, so
-    /// the frontend cannot render the entries.
+    /// the frontend cannot render the entries, or when the folder is a task's.
     /// </summary>
     internal static bool TryGetSubformDataType(
+        IProcessReader processReader,
         IAppResources appResources,
         string taskId,
         ValidAltinnSubformPdfConfiguration config,
@@ -83,6 +93,18 @@ internal sealed class SubformPdfServiceTask(
     )
     {
         string uiFolder = config.SubformUiFolder;
+
+        // A task's folder renders the task's own form, so its "entries" would be the main form
+        if (processReader.IsProcessTask(uiFolder))
+        {
+            dataType = null;
+            reason =
+                $"Subform PDF service task '{taskId}' renders the subform UI folder '{uiFolder}' named in "
+                + $"<altinn:subformPdfConfig><altinn:subformUiFolder>, but 'ui/{uiFolder}' is the UI folder of the "
+                + $"task '{uiFolder}', not of a subform. Name the UI folder that holds the subform's pages.";
+            return false;
+        }
+
         LayoutSettings? settings = appResources.GetLayoutSettingsForFolder(uiFolder);
         if (settings is null)
         {
@@ -122,7 +144,16 @@ internal sealed class SubformPdfServiceTask(
         // The frontend cannot render the entries without the folder and its data type, which surfaces only as a
         // PDF generator timeout that the engine retries. Fail at once with the actual reason instead. The startup
         // check and the analyzer report the same.
-        if (!TryGetSubformDataType(appResources, taskId, config, out string? subformDataType, out string? reason))
+        if (
+            !TryGetSubformDataType(
+                processReader,
+                appResources,
+                taskId,
+                config,
+                out string? subformDataType,
+                out string? reason
+            )
+        )
         {
             return ServiceTaskResult.FailedPermanent(reason);
         }

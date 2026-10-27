@@ -150,6 +150,7 @@ public class PdfController : ControllerBase
         ).Validate();
         if (
             !SubformPdfServiceTask.TryGetSubformDataType(
+                _processReader,
                 _appResources,
                 taskId,
                 subformConfig,
