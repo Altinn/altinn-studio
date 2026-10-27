@@ -253,6 +253,25 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
         Assert.Equal([0xEF, 0xBB, 0xBF, .. System.Text.Encoding.UTF8.GetBytes(expected)], _app.ReadBytes(ProcessPath));
     }
 
+    [Fact]
+    public async Task KeepsCarriageReturnLineEndings()
+    {
+        _app.Write(
+            ProcessPath,
+            Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")).Replace("\n", "\r") + "\r"
+        );
+        WriteSubformFolder("SubformFolder", "SubformModel");
+        WriteTaskFolder("SubformPdf", GeneratedCopy);
+
+        var result = await Migrate();
+
+        Assert.False(result.RequiresManualFollowUp);
+        Assert.Equal(
+            Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")).Replace("\n", "\r") + "\r",
+            _app.Read(ProcessPath)
+        );
+    }
+
     /// <summary>
     /// A subform PDF task: the v8 configuration when <paramref name="componentId"/> is set, the v9 one when
     /// <paramref name="uiFolder"/> is.

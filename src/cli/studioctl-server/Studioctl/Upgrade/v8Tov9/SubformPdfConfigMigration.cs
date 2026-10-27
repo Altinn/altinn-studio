@@ -28,6 +28,9 @@ internal static class SubformPdfConfigMigration
     private const string UiFolderName = "subformUiFolder";
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
+    /// <summary>Matches after each line ending: LF, CRLF or CR.</summary>
+    private static readonly Regex _lineEnd = new(@"(?<=\r\n|\r(?!\n)|\n)", RegexOptions.CultureInvariant);
+
     private static readonly JsonDocumentOptions _layoutOptions = new()
     {
         CommentHandling = JsonCommentHandling.Skip,
@@ -127,7 +130,9 @@ internal static class SubformPdfConfigMigration
         if (plans.Count == 0)
             return new MigrationResult(messages);
 
-        string?[] lines = text.Split('\n');
+        // Each line keeps its own line ending, which the XML parser's line numbers count whether it is LF, CRLF
+        // or CR.
+        string?[] lines = _lineEnd.Split(text);
         var applied = new List<Plan>();
         foreach (var plan in plans)
         {
@@ -138,7 +143,7 @@ internal static class SubformPdfConfigMigration
         if (applied.Count == 0)
             return new MigrationResult(messages);
 
-        var rewritten = string.Join('\n', lines.Where(line => line is not null));
+        var rewritten = string.Concat(lines);
         try
         {
             XDocument.Parse(rewritten);
@@ -285,7 +290,8 @@ internal static class SubformPdfConfigMigration
     /// <summary>
     /// Replaces the <c>subformComponentId</c> line with a <c>subformUiFolder</c> line and removes the
     /// <c>subformDataTypeId</c> line, leaving the rest of the file as it was. Each element must sit alone on its
-    /// line; otherwise the task is left unchanged with a to-do. Removed lines are set to null.
+    /// line; otherwise the task is left unchanged with a to-do. Removed lines, with their line endings, are set
+    /// to null.
     /// </summary>
     private static bool TryRewriteLines(string?[] lines, Plan plan, List<UpgradeMessage> messages)
     {
@@ -307,7 +313,7 @@ internal static class SubformPdfConfigMigration
         }
 
         var line = lines[componentLine] ?? "";
-        var lineEnd = line.EndsWith('\r') ? "\r" : "";
+        var lineEnd = line[line.TrimEnd('\r', '\n').Length..];
         var indent = componentMatch.Groups["indent"].Value;
         var prefix = componentMatch.Groups["prefix"].Value;
         lines[componentLine] =
@@ -324,7 +330,7 @@ internal static class SubformPdfConfigMigration
         if (line is null)
             return null;
         var match = Regex.Match(
-            line.TrimEnd('\r'),
+            line.TrimEnd('\r', '\n'),
             $@"^(?<indent>\s*)<(?<prefix>[\w.-]+:){localName}>[^<]*</\k<prefix>{localName}>\s*$",
             RegexOptions.CultureInvariant
         );
