@@ -1,0 +1,23 @@
+{
+  "defaultStatus": "ikke_vurdert",
+  "sections": [
+    {
+      "id": "formalia",
+      "label": "Formalia",
+      "items": [
+        { "id": "soker_identifisert",      "label": "Søker er identifisert" },
+        { "id": "dato_i_fremtiden",        "label": "Bookingdato er frem i tid" },
+        { "id": "tid_innenfor_aapningstid","label": "Tidsrom innenfor åpningstid" }
+      ]
+    },
+    {
+      "id": "praktisk",
+      "label": "Praktisk",
+      "items": [
+        { "id": "ansvarlig_myndig", "label": "Ansvarlig person er myndig" },
+        { "id": "rom_finnes",       "label": "Rommet finnes i rom-registeret" },
+        { "id": "vedlegg_komplett", "label": "Nødvendige vedlegg er lastet opp" }
+      ]
+    }
+  ]
+}

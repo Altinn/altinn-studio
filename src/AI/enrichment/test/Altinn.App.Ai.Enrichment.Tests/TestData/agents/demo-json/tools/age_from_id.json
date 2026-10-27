@@ -1,0 +1,13 @@
+{
+  "name": "age_from_id",
+  "description": "Beregn alder i hele år for en person ut fra en identifikator (f.eks. fødselsnummer) på en referansedato. Bruk dette når du må vite om en person har nådd en aldersgrense. Spesifiser hvilken decoder som skal brukes for å tolke ID-en.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string", "description": "Identifikatoren, f.eks. et 11-sifret fødselsnummer." },
+      "reference_date": { "type": "string", "description": "Referansedato i ISO-format (YYYY-MM-DD), typisk dagens dato." },
+      "decoder": { "type": "string", "description": "Decoder for ID-en. Støttet: 'fnr-no' (norsk fødselsnummer/D-nummer)." }
+    },
+    "required": ["id", "reference_date", "decoder"]
+  }
+}

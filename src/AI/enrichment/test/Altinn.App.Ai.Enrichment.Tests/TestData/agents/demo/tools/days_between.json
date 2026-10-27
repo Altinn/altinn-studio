@@ -1,0 +1,12 @@
+{
+  "name": "days_between",
+  "description": "Antall hele dager fra én dato til en annen. Positivt tall når to_date er etter from_date, negativt når den er før.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "from_date": { "type": "string", "description": "Startdato i ISO-format (YYYY-MM-DD)." },
+      "to_date":   { "type": "string", "description": "Sluttdato i ISO-format (YYYY-MM-DD)." }
+    },
+    "required": ["from_date", "to_date"]
+  }
+}

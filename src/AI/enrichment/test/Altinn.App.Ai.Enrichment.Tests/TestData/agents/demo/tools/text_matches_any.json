@@ -1,0 +1,12 @@
+{
+  "name": "text_matches_any",
+  "description": "Sjekk om en tekst er nøyaktig lik (case-insensitivt) en av flere kandidater. Bruk for kontrollerte verdier, ikke fritekst.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "haystack": { "type": "string", "description": "Teksten som skal sjekkes." },
+      "needles":  { "type": "array", "items": { "type": "string" }, "description": "Kandidatverdier." }
+    },
+    "required": ["haystack", "needles"]
+  }
+}
