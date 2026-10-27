@@ -100,6 +100,9 @@ public static class AgentValidator
             ? folder.RulesDirectory
             : Path.Combine(folder.RulesDirectory, rulesSubfolder);
 
+        if (step.Concurrency is < 1)
+            errors.Add($"{prefix}: concurrency must be at least 1 (was {step.Concurrency}).");
+
         if (Directory.Exists(folder.RulesDirectory) && !Directory.Exists(rulesPath))
             errors.Add($"{prefix}: references rulesFolder '{step.RulesFolder}' but {rulesPath} does not exist.");
 

@@ -67,6 +67,17 @@ exactly like the task type; grant `ai` to the same roles that have `write`.
 `ApiKeySecretName` resolves through the app's `ISecretsClient` (Key Vault in
 TT02/prod, `secrets.json` locally); a directly configured `ApiKey` wins for local dev.
 
+**Concurrency is per environment.** `AiEnrichment:Agent:Concurrency` caps how many
+items an `agent-pdf-orchestrated` step evaluates in parallel. Set it in each
+environment's `appsettings.<env>.json`: a local LLM server that handles one request at
+a time wants `1`, the deployed gateway takes more. The step uses, in order,
+`AiEnrichment:Agent:Concurrency`, then `concurrency` in agent.yaml, then 5. The value
+must be at least 1, and the app fails at start-up otherwise. `concurrency` in
+agent.yaml still works but is deprecated: the file is shared by every environment, so a
+value meant for one reaches all of them. Loading an agent that sets it logs a warning,
+or a note when the appsetting overrides it. Each run logs the value it used and where it
+came from, e.g. `concurrency=4 (from appsettings)`.
+
 When the process enters the task, the service task serializes the instance's form data
 (the single data type with `appLogic`, or `AiEnrichment:Tasks:<taskId>:InputDataType`
 when there are several), runs the agent, and stores every published JSON entry on
@@ -92,12 +103,12 @@ Tune it under `AiEnrichment:Step`:
 
 ```jsonc
 {
-  "YieldBeforeRun": true,      // false runs inside the request, as before
-  "YieldDelay": "00:00:05",    // must stay wider than app-lib's 2s poll interval
-  "WaitBudget": "01:00:00",    // how long the yield itself may take
+  "YieldBeforeRun": true, // false runs inside the request, as before
+  "YieldDelay": "00:00:05", // must stay wider than app-lib's 2s poll interval
+  "WaitBudget": "01:00:00", // how long the yield itself may take
   "MaxExecutionTime": "01:00:00",
   "MaxRetries": 2,
-  "RetryInterval": "00:01:00"
+  "RetryInterval": "00:01:00",
 }
 ```
 

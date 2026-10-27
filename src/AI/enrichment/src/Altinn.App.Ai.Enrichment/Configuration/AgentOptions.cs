@@ -67,4 +67,13 @@ public sealed class AgentOptions
     /// so this budget fires first.
     /// </summary>
     public int TimeoutSeconds { get; set; } = 300;
+
+    /// <summary>
+    /// Maximum parallel per-item LLM loops in an <c>agent-pdf-orchestrated</c>
+    /// step. How many requests the gateway can take at once belongs to the
+    /// environment, so this wins over <c>concurrency</c> in agent.yaml, which
+    /// every environment shares. Unset falls back to agent.yaml, then to 5.
+    /// Must be at least 1.
+    /// </summary>
+    public int? Concurrency { get; set; }
 }

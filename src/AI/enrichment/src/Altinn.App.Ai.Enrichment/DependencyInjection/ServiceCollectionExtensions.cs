@@ -52,7 +52,13 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<AgentOptions>(configuration.GetSection(AgentOptions.SectionName));
+        services
+            .AddOptions<AgentOptions>()
+            .Bind(configuration.GetSection(AgentOptions.SectionName))
+            .Validate(
+                options => options.Concurrency is null or >= 1,
+                $"{AgentOptions.SectionName}:Concurrency must be at least 1.")
+            .ValidateOnStart();
         services.Configure<TypstOptions>(configuration.GetSection(TypstOptions.SectionName));
         services.Configure<LangfuseOptions>(configuration.GetSection(LangfuseOptions.SectionName));
 

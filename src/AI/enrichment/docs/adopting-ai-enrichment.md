@@ -150,6 +150,16 @@ attachment list in the eFormidling configuration.
   `MaxExecutionTime` (default `"01:00:00"`), `MaxRetries` (default 2 — a retry
   runs the whole agent again, keep it low) and `RetryInterval` (default
   `"00:01:00"`). Apps on 8.x (classic synchronous `process/next`) ignore this.
+- **Concurrency per environment**: `AiEnrichment:Agent:Concurrency` controls how
+  many items an `agent-pdf-orchestrated` step assesses at the same time. Set it
+  in `appsettings.<environment>.json` for each environment: a local LLM server
+  that takes one request at a time wants `1`, and the gateway in the
+  environments can take more. The order is `AiEnrichment:Agent:Concurrency`,
+  then `concurrency` in agent.yaml, then 5. The value must be at least 1, or the
+  app does not start. `concurrency` in agent.yaml still works but is
+  deprecated: the file is shared by all environments, so a value meant for one
+  environment ends up in all of them. The log shows which value each run used
+  and where it came from.
 
 ## Step 7 — Build the agent (`App/agents/<name>/`)
 
@@ -180,7 +190,6 @@ steps:
     template: assessment.typ # optional; requires typst
     output: assessment.pdf # required when template is set
     publishTo: assessment # key for the JSON result (default: the step name)
-    concurrency: 4 # max parallel LLM calls (default 5)
     maxToolIterations: 5 # tool rounds per item before the default verdict
 ```
 
@@ -265,12 +274,14 @@ Remember also that the Docker build needs the local NuGet feed:
    (`http://localhost:1234/v1`). Lessons learned: use a model in the 12B class
    or larger for meaningful assessments; **warm up the model** with one small
    call before the process run (parallel calls otherwise race the JIT loading
-   and get 400); small/local models may need `concurrency: 1`.
+   and get 400); small/local models may need
+   `AiEnrichment__Agent__Concurrency=1`.
 
 ```bash
 export AiEnrichment__Agent__BaseUrl="http://localhost:1234/v1"
 export AiEnrichment__Agent__Model="<model name in LM Studio>"
 export AiEnrichment__Agent__ApiKey="lm-studio"   # LM Studio does not validate the key
+export AiEnrichment__Agent__Concurrency=1   # one request at a time; the environments set their own value
 dotnet run
 ```
 
@@ -287,16 +298,16 @@ dotnet run
 
 ## Common pitfalls
 
-| Symptom                                                   | Cause                                                                                                                    |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 403 on `process/next` into the task                       | The `ai` action is missing from policy.xml (step 4)                                                                      |
-| "Agent definition not found … agent.yaml"                 | The agent folder does not match the task ID and the `Tasks` mapping is missing; or `agents/**` has no copy rule (step 8) |
-| "ambiguous input — N candidate data elements"             | Several data types with `appLogic` → set `InputDataType` (step 6)                                                        |
-| All items `ikke_vurdert` with an HTTP error in the remark | Wrong gateway config/key, model not loaded, or `concurrency` too high for the gateway                                    |
-| "Typst compilation failed" / the process fails at PDF     | `typst` is missing from the image/PATH, or the template reads fields the mapper does not produce                         |
-| Rules do not hit the data                                 | The paths in rules/mappings do not match the model's JSON shape — verify against an actual serialized instance           |
-| `Transport: timeout after Ns` in the remarks              | The gateway took longer than the budget — raise `AiEnrichment:Agent:TimeoutSeconds` or lower `concurrency`               |
-| The process stops at the task after a failure             | That is the retry semantics: fix the cause and call `process/next` again — the run resumes                               |
+| Symptom                                                   | Cause                                                                                                                         |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 403 on `process/next` into the task                       | The `ai` action is missing from policy.xml (step 4)                                                                           |
+| "Agent definition not found … agent.yaml"                 | The agent folder does not match the task ID and the `Tasks` mapping is missing; or `agents/**` has no copy rule (step 8)      |
+| "ambiguous input — N candidate data elements"             | Several data types with `appLogic` → set `InputDataType` (step 6)                                                             |
+| All items `ikke_vurdert` with an HTTP error in the remark | Wrong gateway config/key, model not loaded, or `AiEnrichment:Agent:Concurrency` too high for the gateway                      |
+| "Typst compilation failed" / the process fails at PDF     | `typst` is missing from the image/PATH, or the template reads fields the mapper does not produce                              |
+| Rules do not hit the data                                 | The paths in rules/mappings do not match the model's JSON shape — verify against an actual serialized instance                |
+| `Transport: timeout after Ns` in the remarks              | The gateway took longer than the budget — raise `AiEnrichment:Agent:TimeoutSeconds` or lower `AiEnrichment:Agent:Concurrency` |
+| The process stops at the task after a failure             | That is the retry semantics: fix the cause and call `process/next` again — the run resumes                                    |
 
 ## References
 
