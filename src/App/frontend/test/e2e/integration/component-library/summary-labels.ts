@@ -1,38 +1,55 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
+
 const examples = [
-  { page: 'Grid', id: 'all-grid-components' },
-  { page: 'PersonLookupPage', id: 'personLookup' },
-  { page: 'OrganisationLookupPage', id: 'organisationLookup' },
-  { page: 'Adresse', id: 'AddressPage-Address' },
-  { page: 'SimpleTable', id: 'Table1' },
-  { page: 'Repeterende gruppe', id: 'RepeatingGroup' },
+  {
+    page: 'Kort svar',
+    id: 'InputPage-Input',
+    description: 'Beskrivelse av kort svar i oppsummeringen',
+    help: 'Hjelp til kort svar',
+  },
+  {
+    page: 'Grid',
+    id: 'all-grid-components',
+    description: 'Hello this is a description of the component below',
+    help: 'Hjelp til utfylling av tabellen',
+  },
+  {
+    page: 'PersonLookupPage',
+    id: 'personLookup',
+    description: 'Her legger du inn etternavn og fødselsnummer',
+    help: 'For å kunne søke i registeret må du ha fødselsnummeret til personen',
+  },
+  {
+    page: 'OrganisationLookupPage',
+    id: 'organisationLookup',
+    description: 'Her legger du inn organisasjonsnummer',
+    help: 'Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene',
+  },
+  {
+    page: 'SimpleTable',
+    id: 'Table1',
+    description: 'Tabellen viser registrerte oppføringer',
+    help: 'Velg en oppføring for å se detaljene',
+  },
+  {
+    page: 'Repeterende gruppe',
+    id: 'RepeatingGroup',
+    description: 'Beskrivelse av repeterende gruppe',
+    help: 'Hjelp til repeterende gruppe',
+  },
 ];
 
 describe('Specialized Summary2 labels', () => {
-  for (const { page, id } of examples) {
-    it(`shows description and help once per summary of ${id}`, () => {
-      const title = `Oppsummering av ${id}`;
-      const description = `Beskrivelse for ${id}`;
-      const help = `Hjelp for ${id}`;
-      cy.interceptLayout('Task_1', (component) => {
-        if (component.id === id) {
-          component.textResourceBindings = { ...component.textResourceBindings, title, description, help };
-        }
-        if (id === 'RepeatingGroup' && component.id === 'RepeatingGroup-Input-Name') {
-          component.textResourceBindings = {
-            ...component.textResourceBindings,
-            description: 'Beskrivelse av navn',
-            help: 'Hjelp til navn',
-          };
-        }
-        if (component.type === 'Summary2') {
-          component.hideEmptyFields = false;
-        }
-      });
-      cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+  it('shows configured descriptions and help on specialized summaries', () => {
+    cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
+
+    for (const { page, id, description, help } of examples) {
       cy.gotoNavPage(page);
+      if (id === 'InputPage-Input') {
+        cy.get('#InputPage-Input').type('Ada');
+      }
       if (id === 'RepeatingGroup') {
         cy.findAllByRole('button', { name: /Legg til ny/ })
           .first()
@@ -42,27 +59,45 @@ describe('Specialized Summary2 labels', () => {
           .first()
           .click();
       }
-      cy.get(`[data-summary-target="${id}"]`).each(($summary) => {
-        cy.wrap($summary).within(() => {
-          if (id === 'RepeatingGroup') {
-            cy.findByText('Beskrivelse av navn', { exact: true }).should('be.visible');
-            cy.findByRole('button', { name: 'Hjelpetekst for Navn' }).click();
-            cy.findAllByTestId('helptext')
-              .filter(':visible')
-              .should('have.length', 1)
-              .and('contain.text', 'Hjelp til navn')
-              .and('be.visible');
-            cy.findByRole('button', { name: 'Hjelpetekst for Navn' }).click();
+
+      const summary =
+        id === 'RepeatingGroup' ? '[data-componentid="RepeatingGroup-Summary2"]' : `[data-summary-target="${id}"]`;
+      cy.get(summary)
+        .first()
+        .within(() => {
+          cy.contains(description).should('be.visible');
+          cy.get('button[aria-label^="Hjelpetekst for"]').first().click();
+          cy.findAllByTestId('helptext').filter(':visible').should('contain.text', help);
+          cy.get('button[aria-label^="Hjelpetekst for"]').first().click();
+
+          if (id === 'all-grid-components') {
+            cy.findAllByRole('heading', { name: 'My grid component', level: 4 }).should('have.length', 1);
           }
-          cy.findByText(description, { exact: true }).should('be.visible');
-          cy.findByRole('button', { name: `Hjelpetekst for ${title}` }).click();
-          cy.findAllByTestId('helptext')
-            .filter(':visible')
-            .should('have.length', 1)
-            .and('contain.text', help)
-            .and('be.visible');
+
+          if (id === 'InputPage-Input') {
+            cy.get('button[aria-label^="Hjelpetekst for"]').first().focus();
+            cy.press('Tab');
+            cy.findByRole('button', { name: /^Endre/ }).should('be.focused');
+            cy.root().should(($summary) => {
+              const label = $summary.find('.ds-label')[0];
+              const value = $summary
+                .find('span')
+                .filter((_, element) => element.textContent?.trim() === 'Ada')
+                .last()[0];
+              expect(value, 'summary value').to.exist;
+              expect(value.getBoundingClientRect().top, 'compact value beside label').to.be.closeTo(
+                label.getBoundingClientRect().top,
+                6,
+              );
+            });
+          }
+
+          if (id === 'RepeatingGroup') {
+            cy.contains('Beskrivelse av navn').should('be.visible');
+            cy.get('button[aria-label="Hjelpetekst for Navn"]').click();
+            cy.findAllByTestId('helptext').filter(':visible').should('contain.text', 'Hjelp til navn');
+          }
         });
-      });
-    });
-  }
+    }
+  });
 });

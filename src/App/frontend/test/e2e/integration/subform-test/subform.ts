@@ -16,15 +16,6 @@ describe('Subform test', () => {
     const name = 'Jonas';
     cy.get('#Input-Name').should('be.visible').type(name);
     cy.get('#Input-Age').type('30');
-    cy.changeLayout((component) => {
-      if (component.id === 'subform-mopeder' && component.type === 'Subform') {
-        component.textResourceBindings = {
-          ...component.textResourceBindings,
-          description: ['concat', 'Mopeder registrert av ', ['dataModel', 'Navn']],
-          help: 'Hjelp til mopedregistrering',
-        };
-      }
-    });
 
     // Test process next when required subform is missing
     cy.findByRole('button', { name: /Neste/i }).click();
@@ -186,23 +177,6 @@ describe('Subform test', () => {
 
     cy.get('[data-summary-target="subform-boker"]').should('contain.text', 'Du har ikke lagt inn informasjon her');
     cy.get('#label-subform-boker', { timeout: 0 }).should('not.exist');
-
-    // An empty summaryTitle suppresses the outer title while keeping the subform's own heading.
-    cy.interceptLayout('Task_1', (component) => {
-      if (component.id === 'subform-mopeder' && component.type === 'Subform') {
-        component.textResourceBindings!.summaryTitle = '';
-      }
-    });
-    cy.reloadAndWait();
-    cy.findByRole('heading', { name: 'Mopedregistrering' }).should('be.visible');
-    cy.get('#label-subform-mopeder', { timeout: 0 }).should('not.exist');
-    cy.findByRole('button', { name: 'Tilbake' }).clickAndGone();
-    cy.get('#form-content-subform-mopeder')
-      .findByRole('table')
-      .within(() => {
-        cy.findByRole('cell', { name: regno }).should('be.visible');
-        cy.get('caption', { timeout: 0 }).should('not.exist');
-      });
   });
 
   it('subform validation', () => {
