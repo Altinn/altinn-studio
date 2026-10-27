@@ -1477,7 +1477,7 @@ App host. In Explore, its datasources are _Metrics_ (uid `altinn-studio-metrics`
 (`altinn-studio-traces`, Grafana's Tempo datasource over VictoriaTraces, so it takes TraceQL) and _Logs_
 (`altinn-studio-logs`).
 
-The engine dashboard's trace links — the Grafana icon on a workflow card, _Open trace_ in the step
+The engine dashboard's trace links — the trace icon on a workflow card, _Open trace_ in the step
 modal — open the workflow's trace in the viewer the host names in its
 [dashboard settings](#dashboard-trace-links), a Grafana or any viewer with a page per trace, and are not
 drawn while it names none. studioctl names its own Grafana for the engine it runs. How an engine on the host or in the compose stack reaches a collector, how
