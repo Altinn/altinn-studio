@@ -157,6 +157,17 @@ public static class Diagnostics
                 + "the entry."
         );
 
+        // Worded like the runtime backstop in PdfServiceTask. Without it the frontend finds no layout to render,
+        // and the PDF generator times out on every attempt.
+        public static readonly DiagnosticDescriptor PdfServiceTaskPdfLayoutNotFound = Error(
+            "ALTINNAPP1026",
+            Category.Process,
+            "PDF service task's pdfLayoutName names a layout that does not exist",
+            "PDF service task '{0}' sets pdfLayoutName '{1}' in 'ui/{0}/Settings.json', but there is no layout "
+                + "'ui/{0}/layouts/{1}.json', so generating its PDF will fail. Correct pdfLayoutName, or add the "
+                + "layout."
+        );
+
         // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which also covers the
         // types this rule cannot see: those from packages, and a Type that is not a constant. Reported once the
         // whole compilation is analyzed, since a task's type can be declared by any class in it.

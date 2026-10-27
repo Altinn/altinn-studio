@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Helpers;
@@ -121,9 +122,15 @@ internal sealed class PdfServiceTask : IPdfServiceTask
         List<string>? autoPdfTaskIds
     )
     {
-        if (!string.IsNullOrWhiteSpace(appResources.GetLayoutSettingsForFolder(taskId)?.Pages?.PdfLayoutName))
+        string? pdfLayoutName = appResources.GetLayoutSettingsForFolder(taskId)?.Pages?.PdfLayoutName;
+        if (!string.IsNullOrWhiteSpace(pdfLayoutName))
         {
-            return null;
+            // The analyzer reports the same at build time (ALTINNAPP1026)
+            return HasLayout(appResources, taskId, pdfLayoutName)
+                ? null
+                : $"PDF service task '{taskId}' sets pdfLayoutName '{pdfLayoutName}' in 'ui/{taskId}/Settings.json', "
+                    + $"but there is no layout 'ui/{taskId}/layouts/{pdfLayoutName}.json'. Correct pdfLayoutName, or "
+                    + "add the layout.";
         }
 
         if (autoPdfTaskIds?.Exists(id => !string.IsNullOrWhiteSpace(id)) is true)
@@ -134,5 +141,20 @@ internal sealed class PdfServiceTask : IPdfServiceTask
         return $"PDF service task '{taskId}' has nothing to render. List the tasks to include in "
             + $"<altinn:pdfConfig><altinn:autoPdfTaskIds>, or set pdfLayoutName in 'ui/{taskId}/Settings.json' to "
             + "design the PDF yourself.";
+    }
+
+    /// <summary>
+    /// Whether the UI folder has the layout, which the frontend looks up by its exact name. An
+    /// <see cref="IAppResources"/> that returns no layouts at all is not second-guessed.
+    /// </summary>
+    private static bool HasLayout(IAppResources appResources, string folder, string page)
+    {
+        if (appResources.GetLayoutsInFolder(folder) is not { } layoutsJson)
+        {
+            return true;
+        }
+
+        using JsonDocument layouts = JsonDocument.Parse(layoutsJson);
+        return layouts.RootElement.ValueKind != JsonValueKind.Object || layouts.RootElement.TryGetProperty(page, out _);
     }
 }

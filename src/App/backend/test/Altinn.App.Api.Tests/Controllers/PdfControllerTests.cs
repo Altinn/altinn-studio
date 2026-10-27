@@ -389,6 +389,7 @@ public class PdfControllerTests
         None,
         WithoutPdfLayoutName,
         WithPdfLayoutName,
+        WithPdfLayoutNameOfNoLayout,
     }
 
     public static TheoryData<PdfTaskFolder, bool, bool> PdfServiceTaskSetups()
@@ -449,6 +450,13 @@ public class PdfControllerTests
                     },
                 }
             );
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder("Task_Pdf"))
+            .Returns(
+                folder == PdfTaskFolder.WithPdfLayoutName
+                    ? """{ "WaitingPage": {}, "PdfLayout": {} }"""
+                    : """{ "WaitingPage": {} }"""
+            );
         if (atTheTask)
         {
             _taskId = "Task_Pdf";
@@ -457,7 +465,9 @@ public class PdfControllerTests
         (ServiceTaskResult taskResult, List<List<string>?> renderedTasks) = await ExecutePdfServiceTask("Task_Pdf");
         (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: atTheTask ? null : "Task_Pdf");
 
-        bool renderable = listsTasks || folder == PdfTaskFolder.WithPdfLayoutName;
+        bool renderable =
+            folder == PdfTaskFolder.WithPdfLayoutName
+            || (listsTasks && folder != PdfTaskFolder.WithPdfLayoutNameOfNoLayout);
         if (!renderable)
         {
             var failed = Assert.IsType<FailedServiceTaskResult>(taskResult);

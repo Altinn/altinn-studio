@@ -251,6 +251,38 @@ public class PdfServiceTaskTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Execute_Fails_Permanently_When_PdfLayoutName_Names_No_Layout_In_The_Folder(bool listsTasks)
+    {
+        // The frontend renders pdfLayoutName and ignores the listed tasks, so they cannot make up for it
+        SetupAutoPdfTaskIds("pdfTask", listsTasks ? ["Task_1"] : []);
+        SetupUiFolder("pdfTask", UiFolder.WithPdfLayoutName);
+        _appResourcesMock.Setup(x => x.GetLayoutsInFolder("pdfTask")).Returns("""{ "WaitingPage": {} }""");
+
+        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
+
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
+        Assert.Equal(FailureKind.Permanent, failed.Kind);
+        Assert.Contains("no layout 'ui/pdfTask/layouts/PdfLayout.json'", failed.ErrorMessage);
+        _pdfServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Execute_Generates_The_Pdf_When_The_Folder_Has_The_PdfLayoutName_Layout()
+    {
+        SetupAutoPdfTaskIds("pdfTask", []);
+        SetupUiFolder("pdfTask", UiFolder.WithPdfLayoutName);
+        _appResourcesMock
+            .Setup(x => x.GetLayoutsInFolder("pdfTask"))
+            .Returns("""{ "WaitingPage": {}, "PdfLayout": {} }""");
+
+        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
+
+        Assert.IsType<SuccessfulServiceTaskResult>(result);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData(" ")]
     public async Task Execute_Treats_A_Blank_PdfLayoutName_As_None(string pdfLayoutName)

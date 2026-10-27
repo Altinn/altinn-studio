@@ -15,6 +15,7 @@ public sealed class PdfServiceTaskAnalyzer : DiagnosticAnalyzer
             Diagnostics.Process.PdfServiceTaskHasNothingToRender,
             Diagnostics.Process.PdfServiceTaskIncludesTaskWithoutUi,
             Diagnostics.Process.PdfServiceTaskIncludesEntryThatAddsNothing,
+            Diagnostics.Process.PdfServiceTaskPdfLayoutNotFound,
         ];
 
     public override void Initialize(AnalysisContext context)

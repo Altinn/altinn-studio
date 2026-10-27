@@ -18,8 +18,9 @@ internal static class PdfServiceTaskUtils
     private const string PdfTaskType = "pdf";
 
     /// <summary>
-    /// Appends a diagnostic for every <c>pdf</c> service task that does not say what to render as its PDF, and for
-    /// every <c>autoPdfTaskIds</c> entry that would contribute nothing to its PDF.
+    /// Appends a diagnostic for every <c>pdf</c> service task that does not say what to render as its PDF or names a
+    /// layout its UI folder does not have, and for every <c>autoPdfTaskIds</c> entry that would contribute nothing to
+    /// its PDF.
     /// </summary>
     internal static void CollectDiagnostics(
         ImmutableArray<AdditionalText> additionalFiles,
@@ -37,7 +38,8 @@ internal static class PdfServiceTaskUtils
 
         // The package props that expose config/** to the analysis expose ui/**/*.json as well, so no UI folders
         // here means the app has none.
-        var uiFolders = FindUiFolders(additionalFiles, AppRoot(processFile));
+        var appRoot = AppRoot(processFile);
+        var uiFolders = FindUiFolders(additionalFiles, appRoot);
 
         foreach (var pdfTask in FindPdfServiceTasks(document))
         {
@@ -46,11 +48,28 @@ internal static class PdfServiceTaskUtils
             // pdfLayoutName names the layout to render, and the frontend then ignores autoPdfTaskIds. The pages
             // in the folder's order are what people see while the process is at the task, never the PDF. A
             // Settings.json that cannot be read is left alone.
-            bool? hasPdfLayoutName = uiFolders.TryGetValue(pdfTask.Id, out var ownSettings)
-                ? HasPdfLayoutName(ownSettings, token)
-                : false;
-            if (hasPdfLayoutName is not false)
+            var pdfLayoutName = uiFolders.TryGetValue(pdfTask.Id, out var ownSettings)
+                ? ReadPdfLayoutName(ownSettings, token)
+                : "";
+            if (pdfLayoutName is null)
             {
+                continue;
+            }
+
+            if (pdfLayoutName.Length > 0)
+            {
+                if (!HasLayout(additionalFiles, appRoot, pdfTask.Id, pdfLayoutName))
+                {
+                    diagnostics.Add(
+                        Diagnostic.Create(
+                            Diagnostics.Process.PdfServiceTaskPdfLayoutNotFound,
+                            location,
+                            pdfTask.Id,
+                            pdfLayoutName
+                        )
+                    );
+                }
+
                 continue;
             }
 
@@ -179,10 +198,27 @@ internal static class PdfServiceTaskUtils
     }
 
     /// <summary>
-    /// Whether the UI folder's settings set <c>pages.pdfLayoutName</c>, or null when the file cannot be read -
-    /// so a malformed file never produces a diagnostic about its content.
+    /// Whether the UI folder has the layout <c>ui/{folder}/layouts/{page}.json</c>. The frontend looks the page up
+    /// by its exact name.
     /// </summary>
-    private static bool? HasPdfLayoutName(AdditionalText? settingsFile, CancellationToken token)
+    private static bool HasLayout(
+        ImmutableArray<AdditionalText> additionalFiles,
+        string appRoot,
+        string folder,
+        string page
+    )
+    {
+        var layoutPath = $"{appRoot}{UiFolder}{folder}/layouts/{page}.json";
+        return additionalFiles.Any(file =>
+            string.Equals(ProcessFile.NormalizedPath(file), layoutPath, StringComparison.Ordinal)
+        );
+    }
+
+    /// <summary>
+    /// The UI folder's <c>pages.pdfLayoutName</c>, an empty string when it sets none, or null when the file cannot
+    /// be read - so a malformed file never produces a diagnostic about its content.
+    /// </summary>
+    private static string? ReadPdfLayoutName(AdditionalText? settingsFile, CancellationToken token)
     {
         var content = settingsFile?.GetText(token)?.ToString();
         if (content is null)
@@ -201,7 +237,9 @@ internal static class PdfServiceTaskUtils
             // The app backend reads Settings.json ignoring property case and hands the result to the frontend.
             var pages = settings.GetPropertyIgnoreCase("pages");
             var pdfLayoutName = pages?.Type == JsonType.Object ? pages.GetPropertyIgnoreCase("pdfLayoutName") : null;
-            return pdfLayoutName?.Type == JsonType.String && !string.IsNullOrWhiteSpace(pdfLayoutName.GetString());
+            return pdfLayoutName?.Type == JsonType.String && !string.IsNullOrWhiteSpace(pdfLayoutName.GetString())
+                ? pdfLayoutName.GetString()
+                : "";
         }
         catch (NanoJsonException)
         {

@@ -43,3 +43,4 @@ ALTINNAPP1021 | Process | Warning | Task configuration contains an element the a
 ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the app cannot use
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
 ALTINNAPP1025 | Process | Warning | PDF service task lists an entry that adds nothing to its PDF
+ALTINNAPP1026 | Process | Error | PDF service task's pdfLayoutName names a layout that does not exist

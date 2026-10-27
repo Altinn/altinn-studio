@@ -14,6 +14,7 @@ public class PdfServiceTaskUtilsTests
     private const string NothingToRender = "ALTINNAPP1000";
     private const string TaskWithoutUi = "ALTINNAPP1002";
     private const string EntryAddsNothing = "ALTINNAPP1025";
+    private const string PdfLayoutNotFound = "ALTINNAPP1026";
 
     [Fact]
     public void Listing_Tasks_With_UI_Folders_Is_Valid()
@@ -33,10 +34,34 @@ public class PdfServiceTaskUtilsTests
         var diagnostics = Collect(
             Process(PdfTask("PdfTask")),
             UiFolder("Task_1"),
-            UiFolder("PdfTask", pdfLayoutName: "PdfLayout")
+            UiFolder("PdfTask", pdfLayoutName: "PdfLayout"),
+            Layout("PdfTask", "PdfLayout")
         );
 
         Assert.Empty(diagnostics);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Task_1")]
+    [InlineData("PdfTask", "pdfLayout")]
+    [InlineData("PdfTask", " PdfLayout")]
+    public void PdfLayoutName_Without_Its_Layout_In_The_Own_UI_Folder_Is_An_Error(
+        string? layoutFolder,
+        string layoutPage = "PdfLayout"
+    )
+    {
+        // The frontend looks the layout up by its exact name among the PDF task folder's layouts
+        AdditionalText[] files = layoutFolder is null
+            ? [UiFolder("Task_1"), UiFolder("PdfTask", pdfLayoutName: "PdfLayout")]
+            : [UiFolder("Task_1"), UiFolder("PdfTask", pdfLayoutName: "PdfLayout"), Layout(layoutFolder, layoutPage)];
+
+        var diagnostics = Collect(Process(PdfTask("PdfTask", "Task_1")), files);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(PdfLayoutNotFound, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Contains("'ui/PdfTask/layouts/PdfLayout.json'", diagnostic.GetMessage());
     }
 
     [Theory]
@@ -134,7 +159,8 @@ public class PdfServiceTaskUtilsTests
         var diagnostics = Collect(
             Process(PdfTask("PdfTask", "Task_9")),
             UiFolder("Task_1"),
-            UiFolder("PdfTask", pdfLayoutName: "PdfLayout")
+            UiFolder("PdfTask", pdfLayoutName: "PdfLayout"),
+            Layout("PdfTask", "PdfLayout")
         );
 
         Assert.Empty(diagnostics);
@@ -155,7 +181,8 @@ public class PdfServiceTaskUtilsTests
             new InMemoryAdditionalText(
                 AppRoot + "ui/PdfTask/Settings.json",
                 $$"""{ "{{pagesProperty}}": { "order": ["Page1"], "{{pdfLayoutNameProperty}}": "PdfLayout" } }"""
-            )
+            ),
+            Layout("PdfTask", "PdfLayout")
         );
 
         Assert.Empty(diagnostics);
@@ -308,6 +335,9 @@ public class PdfServiceTaskUtilsTests
 
     private static AdditionalText UiFolder(string folder, string? pdfLayoutName = null) =>
         new InMemoryAdditionalText(AppRoot + $"ui/{folder}/Settings.json", Settings(pdfLayoutName));
+
+    private static AdditionalText Layout(string folder, string page) =>
+        new InMemoryAdditionalText(AppRoot + $"ui/{folder}/layouts/{page}.json", """{ "data": { "layout": [] } }""");
 
     private static string Settings(string? pdfLayoutName) =>
         pdfLayoutName is null
