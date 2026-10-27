@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using Altinn.App.Analyzers.Metadata;
 using Altinn.App.Analyzers.Utils;
 using NanoJsonReader;
 
@@ -10,17 +11,23 @@ namespace Altinn.App.Analyzers.Process;
 /// the <c>pdfLayoutName</c> of its own UI folder (<c>ui/{taskId}</c>) names, or - when that is not set - the tasks
 /// the backend passes as <c>task</c> query parameters, taken from <c>autoPdfTaskIds</c>. See <c>PdfWrapper</c> and
 /// <c>PdfFromLayout</c> in the app frontend; the runtime backstop is <c>PdfServiceTask</c> in Altinn.App.Core.
+/// <para>
+/// Also checks that every <c>subformPdf</c> service task names a UI folder the frontend can render its entries from:
+/// one with a <c>defaultDataType</c> that applicationmetadata.json declares. The runtime checks the same at startup
+/// in <c>SubformPdfServiceTask</c>.
+/// </para>
 /// </summary>
 internal static class PdfServiceTaskUtils
 {
     private const string UiFolder = "ui/";
     private const string UiFolderSettingsSuffix = "/Settings.json";
     private const string PdfTaskType = "pdf";
+    private const string SubformPdfTaskType = "subformPdf";
 
     /// <summary>
     /// Appends a diagnostic for every <c>pdf</c> service task that does not say what to render as its PDF or names a
-    /// layout its UI folder does not have, and for every <c>autoPdfTaskIds</c> entry that would contribute nothing to
-    /// its PDF.
+    /// layout its UI folder does not have, for every <c>autoPdfTaskIds</c> entry that would contribute nothing to its
+    /// PDF, and for every <c>subformPdf</c> service task whose subform UI folder cannot be rendered.
     /// </summary>
     internal static void CollectDiagnostics(
         ImmutableArray<AdditionalText> additionalFiles,
@@ -110,6 +117,88 @@ internal static class PdfServiceTaskUtils
                 {
                     ReportEntryThatAddsNothing($"'{taskId}'", $"there is no UI folder 'ui/{taskId}'");
                 }
+            }
+        }
+
+        CollectSubformPdfDiagnostics(additionalFiles, token, diagnostics, processFile, content, document, uiFolders);
+    }
+
+    /// <summary>
+    /// Reports every <c>subformPdf</c> service task whose <c>subformUiFolder</c> is not a UI folder, has no
+    /// <c>defaultDataType</c>, or has one applicationmetadata.json does not declare. A missing or blank
+    /// <c>subformUiFolder</c> is ALTINNAPP1020's, and a data type is checked only when applicationmetadata.json can
+    /// be read.
+    /// </summary>
+    private static void CollectSubformPdfDiagnostics(
+        ImmutableArray<AdditionalText> additionalFiles,
+        CancellationToken token,
+        List<Diagnostic> diagnostics,
+        AdditionalText processFile,
+        string content,
+        XDocument document,
+        Dictionary<string, AdditionalText> uiFolders
+    )
+    {
+        var metadataFile = MetadataFile.FindSingle(additionalFiles);
+        var dataTypes = metadataFile is null ? null : MetadataFile.TryRead(metadataFile, token)?.DataTypes;
+
+        foreach (var taskType in document.Descendants(ProcessFile.Altinn + "taskType"))
+        {
+            if (!string.Equals(taskType.Value.Trim(), SubformPdfTaskType, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            // Like the runtime, only the first subformPdfConfig and subformUiFolder are read, as written.
+            var task = ProcessFile.FindHostingTask(taskType);
+            var uiFolder = taskType
+                .Parent?.Element(ProcessFile.Altinn + "subformPdfConfig")
+                ?.Element(ProcessFile.Altinn + "subformUiFolder")
+                ?.Value;
+            if (
+                task?.Attribute("id")?.Value is not { Length: > 0 } id
+                || uiFolder is null
+                || string.IsNullOrWhiteSpace(uiFolder)
+            )
+            {
+                continue;
+            }
+
+            string? problem = null;
+            string? fix = null;
+            if (!uiFolders.TryGetValue(uiFolder, out var settingsFile))
+            {
+                problem = $"the app has no UI folder 'ui/{uiFolder}' with a Settings.json";
+                fix = "Name the UI folder that holds the subform's pages";
+            }
+            else if (ReadSettingsString(settingsFile, token, "defaultDataType") is { } dataType)
+            {
+                if (string.IsNullOrWhiteSpace(dataType))
+                {
+                    problem = $"'ui/{uiFolder}/Settings.json' has no defaultDataType";
+                    fix = "Set defaultDataType to the data type the subform stores its entries in";
+                }
+                else if (dataTypes is not null && dataTypes.Find(dataType) is null)
+                {
+                    problem =
+                        $"its defaultDataType '{dataType}' is not a data type in applicationmetadata.json, so "
+                        + "no subform entry can be stored";
+                    fix = "Correct defaultDataType, or add the data type";
+                }
+            }
+
+            if (problem is not null)
+            {
+                diagnostics.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.SubformPdfUiFolderCannotRender,
+                        FileLocationHelper.GetXmlElementLocation(processFile, content, task),
+                        id,
+                        uiFolder,
+                        problem,
+                        fix
+                    )
+                );
             }
         }
     }
@@ -211,7 +300,21 @@ internal static class PdfServiceTaskUtils
     /// The UI folder's <c>pages.pdfLayoutName</c>, an empty string when it sets none, or null when the file cannot
     /// be read - so a malformed file never produces a diagnostic about its content.
     /// </summary>
-    private static string? ReadPdfLayoutName(AdditionalText? settingsFile, CancellationToken token)
+    private static string? ReadPdfLayoutName(AdditionalText? settingsFile, CancellationToken token) =>
+        ReadSettingsString(settingsFile, token, "pages", "pdfLayoutName") is { } pdfLayoutName
+            ? (string.IsNullOrWhiteSpace(pdfLayoutName) ? "" : pdfLayoutName)
+            : null;
+
+    /// <summary>
+    /// The string at <paramref name="path"/> in the UI folder's settings, read ignoring property case like the app
+    /// backend, which hands the result to the frontend. Empty when it is missing or not a string, and null when the
+    /// file cannot be read.
+    /// </summary>
+    private static string? ReadSettingsString(
+        AdditionalText? settingsFile,
+        CancellationToken token,
+        params string[] path
+    )
     {
         var content = settingsFile?.GetText(token)?.ToString();
         if (content is null)
@@ -219,20 +322,21 @@ internal static class PdfServiceTaskUtils
             return null;
         }
 
+        // The reader parses lazily, so reading a property can throw as well.
         try
         {
-            var settings = JsonValue.Parse(content);
-            if (settings.Type != JsonType.Object)
+            JsonValue? value = JsonValue.Parse(content);
+            if (value.Type != JsonType.Object)
             {
                 return null;
             }
 
-            // The app backend reads Settings.json ignoring property case and hands the result to the frontend.
-            var pages = settings.GetPropertyIgnoreCase("pages");
-            var pdfLayoutName = pages?.Type == JsonType.Object ? pages.GetPropertyIgnoreCase("pdfLayoutName") : null;
-            return pdfLayoutName?.Type == JsonType.String && !string.IsNullOrWhiteSpace(pdfLayoutName.GetString())
-                ? pdfLayoutName.GetString()
-                : "";
+            foreach (var name in path)
+            {
+                value = value?.Type == JsonType.Object ? value.GetPropertyIgnoreCase(name) : null;
+            }
+
+            return value?.Type == JsonType.String ? value.GetString() : "";
         }
         catch (NanoJsonException)
         {

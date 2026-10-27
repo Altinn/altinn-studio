@@ -13,7 +13,9 @@ public class PdfServiceTaskUtilsTests
 
     private const string NothingToRender = "ALTINNAPP1000";
     private const string EntryAddsNothing = "ALTINNAPP1002";
+    private const string SubformUiFolderCannotRender = "ALTINNAPP1024";
     private const string PdfLayoutNotFound = "ALTINNAPP1026";
+    private const string MetadataPath = AppRoot + "config/applicationmetadata.json";
 
     [Fact]
     public void Listing_Tasks_With_UI_Folders_Is_Valid()
@@ -248,7 +250,112 @@ public class PdfServiceTaskUtilsTests
     [Fact]
     public void Other_Service_Task_Types_Are_Not_Checked()
     {
-        var diagnostics = Collect(Process(ServiceTask("SubformPdf", "subformPdf")), UiFolder("Task_1"));
+        var diagnostics = Collect(Process(ServiceTask("Send", "eFormidling")), UiFolder("Task_1"));
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void Subform_Pdf_Task_Naming_A_Folder_With_A_Declared_Default_Data_Type_Is_Valid()
+    {
+        // The subform PDF task needs no UI folder of its own
+        var diagnostics = Collect(
+            Process(SubformPdfTask("SubformPdf", "Subform")),
+            SubformFolder("Subform", "vehicle"),
+            Metadata("vehicle")
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Theory]
+    [InlineData("Unknown", "the app has no UI folder 'ui/Unknown' with a Settings.json")]
+    // Folder names are matched exactly, like the app backend.
+    [InlineData("subform", "the app has no UI folder 'ui/subform' with a Settings.json")]
+    public void Subform_Pdf_Task_Naming_A_Folder_That_Does_Not_Exist_Is_An_Error(string uiFolder, string problem)
+    {
+        var process = Process(SubformPdfTask("SubformPdf", uiFolder));
+
+        var diagnostic = Assert.Single(Collect(process, SubformFolder("Subform", "vehicle"), Metadata("vehicle")));
+
+        Assert.Equal(SubformUiFolderCannotRender, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal(
+            $"Subform PDF service task 'SubformPdf' renders the subform UI folder '{uiFolder}' named in "
+                + $"<altinn:subformPdfConfig><altinn:subformUiFolder>, but {problem}, so the app does not start. "
+                + "Name the UI folder that holds the subform's pages.",
+            diagnostic.GetMessage()
+        );
+        Assert.Equal("<bpmn:serviceTask", process.Substring(diagnostic.Location.SourceSpan.Start, 17));
+    }
+
+    [Theory]
+    [InlineData("""{ "pages": { "order": ["Page1"] } }""")]
+    [InlineData("""{ "defaultDataType": " ", "pages": { "order": ["Page1"] } }""")]
+    [InlineData("""{ "defaultDataType": 1, "pages": { "order": ["Page1"] } }""")]
+    public void Subform_Pdf_Task_Naming_A_Folder_Without_A_Default_Data_Type_Is_An_Error(string settings)
+    {
+        var diagnostics = Collect(
+            Process(SubformPdfTask("SubformPdf", "Subform")),
+            new InMemoryAdditionalText(AppRoot + "ui/Subform/Settings.json", settings),
+            Metadata("vehicle")
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(SubformUiFolderCannotRender, diagnostic.Id);
+        Assert.Contains("but 'ui/Subform/Settings.json' has no defaultDataType", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public void Subform_Pdf_Task_Naming_A_Folder_Whose_Data_Type_Is_Not_Declared_Is_An_Error()
+    {
+        var diagnostics = Collect(
+            Process(SubformPdfTask("SubformPdf", "Subform")),
+            SubformFolder("Subform", "vehicle"),
+            Metadata("model")
+        );
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(SubformUiFolderCannotRender, diagnostic.Id);
+        Assert.Contains(
+            "but its defaultDataType 'vehicle' is not a data type in applicationmetadata.json",
+            diagnostic.GetMessage()
+        );
+    }
+
+    [Fact]
+    public void Subform_Default_Data_Type_Is_Read_Ignoring_Case_And_Not_Checked_Without_Metadata()
+    {
+        var diagnostics = Collect(
+            Process(SubformPdfTask("SubformPdf", "Subform")),
+            new InMemoryAdditionalText(AppRoot + "ui/Subform/Settings.json", """{ "DefaultDataType": "vehicle" }""")
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Theory]
+    // A missing or blank subformUiFolder is ALTINNAPP1020's.
+    [InlineData("")]
+    [InlineData("<altinn:subformPdfConfig />")]
+    [InlineData(
+        "<altinn:subformPdfConfig><altinn:subformUiFolder> </altinn:subformUiFolder></altinn:subformPdfConfig>"
+    )]
+    public void Subform_Pdf_Task_Without_A_Ui_Folder_Setting_Is_Left_To_The_Task_Configuration_Check(string config)
+    {
+        var diagnostics = Collect(Process(ServiceTask("SubformPdf", "subformPdf", config)), Metadata("vehicle"));
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void Unreadable_Subform_Folder_Settings_Are_Not_Reported()
+    {
+        var diagnostics = Collect(
+            Process(SubformPdfTask("SubformPdf", "Subform")),
+            new InMemoryAdditionalText(AppRoot + "ui/Subform/Settings.json", "{ not json"),
+            Metadata("vehicle")
+        );
 
         Assert.Empty(diagnostics);
     }
@@ -331,6 +438,29 @@ public class PdfServiceTaskUtilsTests
         PdfServiceTaskUtils.CollectDiagnostics(files.ToImmutable(), CancellationToken.None, diagnostics);
         return diagnostics;
     }
+
+    private static AdditionalText SubformFolder(string folder, string defaultDataType) =>
+        new InMemoryAdditionalText(
+            AppRoot + $"ui/{folder}/Settings.json",
+            $$"""{ "defaultDataType": "{{defaultDataType}}", "pages": { "order": ["Page1"] } }"""
+        );
+
+    private static AdditionalText Metadata(params string[] dataTypes) =>
+        new InMemoryAdditionalText(
+            MetadataPath,
+            $$"""{ "id": "ttd/app", "org": "ttd", "dataTypes": [{{string.Join(
+                ", ",
+                dataTypes.Select(id => $$"""{ "id": "{{id}}" }""")
+            )}}] }"""
+        );
+
+    /// <summary>A subform PDF service task as the Studio process editor writes it.</summary>
+    private static string SubformPdfTask(string id, string uiFolder) =>
+        ServiceTask(
+            id,
+            "subformPdf",
+            $"<altinn:subformPdfConfig><altinn:filenameTextResourceKey>name</altinn:filenameTextResourceKey><altinn:subformUiFolder>{uiFolder}</altinn:subformUiFolder></altinn:subformPdfConfig>"
+        );
 
     private static AdditionalText UiFolder(string folder, string? pdfLayoutName = null) =>
         new InMemoryAdditionalText(AppRoot + $"ui/{folder}/Settings.json", Settings(pdfLayoutName));

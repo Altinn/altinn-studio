@@ -376,6 +376,17 @@ public static class Diagnostics
             "Task '{0}' has {1} on {2}, {3}. {4}."
         );
 
+        // The frontend renders each subform entry from the folder with its defaultDataType, and the app checks both
+        // at startup (SubformPdfServiceTask.ValidateConfiguration). '{2}' says what is wrong with the folder, '{3}'
+        // how to fix it.
+        public static readonly DiagnosticDescriptor SubformPdfUiFolderCannotRender = Error(
+            "ALTINNAPP1024",
+            Category.Process,
+            "Subform PDF service task names a UI folder it cannot render",
+            "Subform PDF service task '{0}' renders the subform UI folder '{1}' named in "
+                + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but {2}, so the app does not start. {3}."
+        );
+
         // The app never evaluates the default's condition, and also fails to start on one, so a condition that
         // seems to work in a test does not decide anything.
         public static readonly DiagnosticDescriptor GatewayDefaultHasCondition = Error(
@@ -403,6 +414,18 @@ public static class Diagnostics
             Category.Deprecation,
             "Legacy eFormidling configuration is not supported",
             "The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead."
+        );
+
+        // The app ignores these elements, so a subform PDF task that still has them has no subformUiFolder either,
+        // which ALTINNAPP1020 would report as well; this says what to change instead. '{1}' is the element.
+        public static readonly DiagnosticDescriptor SubformPdfComponentSettings = Error(
+            "ALTINNAPP0602",
+            Category.Deprecation,
+            "subformComponentId and subformDataTypeId are not supported",
+            "Task '{0}' has <altinn:{1}> in <altinn:subformPdfConfig>, which is no longer supported by this version of "
+                + "the app backend. Name the subform's UI folder in <altinn:subformUiFolder> instead: the app renders "
+                + "the entries from that folder and takes their data type from its defaultDataType. "
+                + "'studioctl app upgrade v9' makes this change."
         );
     }
 
