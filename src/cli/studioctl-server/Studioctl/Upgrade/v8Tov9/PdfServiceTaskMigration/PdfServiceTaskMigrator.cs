@@ -15,10 +15,10 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.PdfServiceTaskMigration;
 /// Its service task gets a layout set of its own instead, as Altinn Studio sets up a custom PDF: the PDF
 /// layout, with its summaries pointing at the task, and no pages, since v9 shows the pages in
 /// <c>pages.order</c> while the task runs. The frontend renders a service task with a UI folder like a data
-/// task's own PDF. When the PDF layout refers to other content of the
-/// task folder, the service task gets a copy of the whole folder, which renders the PDF as before, and a
-/// to-do asks for the rest of the conversion. Either way the task's own PDF layout is then unused, and is
-/// removed when nothing else needs it (see <see cref="SourcePdfLayoutRemoval"/>).
+/// task's own PDF. When the PDF layout refers to other content of the task folder, the service task gets a
+/// copy of the whole folder with an empty <c>pages.order</c>, which renders the PDF as before, and a to-do
+/// asks for the rest of the conversion. Either way the task's own PDF layout is then unused, and is removed
+/// when nothing else needs it (see <see cref="SourcePdfLayoutRemoval"/>).
 /// </summary>
 internal sealed class PdfServiceTaskMigrator
 {
@@ -295,7 +295,7 @@ internal sealed class PdfServiceTaskMigrator
         $"Task '{taskId}' renders its PDF from the custom layout '{custom.PdfLayoutName}' (pages.pdfLayoutName), "
         + $"which refers to content only the task's own folder has: {string.Join("; ", blockers)}. So that the PDF "
         + $"keeps working, copied {layoutResolver.DisplayPath(custom.UiFolder)} to "
-        + $"{layoutResolver.DisplayPath(custom.PdfTaskUiFolder)}, which PDF service task "
+        + $"{layoutResolver.DisplayPath(custom.PdfTaskUiFolder)}, with an empty pages.order, which PDF service task "
         + $"'{PdfProcessRewriter.PdfTaskIdFor(taskId)}' renders the PDF from. {removal} Replace the copy with the layout set "
         + $"Altinn Studio uses for a custom PDF ({V9MigrationDocs.Pdf}): keep only layouts/{custom.PdfLayoutName}.json "
         + "and an empty pages.order (keep pdfLayoutName and defaultDataType); point each Summary2 at task "

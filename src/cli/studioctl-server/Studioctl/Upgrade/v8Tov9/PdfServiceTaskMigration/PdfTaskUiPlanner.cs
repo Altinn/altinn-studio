@@ -17,7 +17,8 @@ internal abstract record PdfTaskUi
 
     /// <summary>
     /// A copy of the whole source task folder, because the PDF layout refers to content only that folder
-    /// has, as <paramref name="Blockers"/> lists. It renders the PDF as before the upgrade.
+    /// has, as <paramref name="Blockers"/> lists. It renders the PDF as before the upgrade. Its settings list
+    /// no pages, since v9 shows the pages in <c>pages.order</c> while the task runs.
     /// </summary>
     public sealed record TaskFolderCopy(UiFolderFiles Files, IReadOnlyList<string> Blockers) : PdfTaskUi;
 
@@ -106,7 +107,10 @@ internal static class PdfTaskUiPlanner
             || settings is not JsonObject settingsRoot
         )
         {
-            return new PdfTaskUi.TaskFolderCopy(UiFolderFiles.CopyOf(source.UiFolder), blockers);
+            return new PdfTaskUi.TaskFolderCopy(
+                CopyWithoutPages(source.UiFolder, settings as JsonObject, settingsText),
+                blockers
+            );
         }
 
         return new PdfTaskUi.OwnLayoutSet(
@@ -145,6 +149,27 @@ internal static class PdfTaskUiPlanner
             ["pages"] = pages,
             ["defaultDataType"] = dataType,
         };
+    }
+
+    /// <summary>
+    /// A copy of the task folder whose settings list no pages: <c>pages.order</c> is empty and
+    /// <c>pages.groups</c>, which the frontend reads instead of an order, is gone. Settings without a
+    /// <c>pages</c> object are copied as they are.
+    /// </summary>
+    private static UiFolderFiles CopyWithoutPages(string folder, JsonObject? settings, TextFile settingsText)
+    {
+        var copy = UiFolderFiles.CopyOf(folder);
+        if (settings?.DeepClone() is not JsonObject copiedSettings || copiedSettings["pages"] is not JsonObject pages)
+            return copy;
+
+        pages.Remove("groups");
+        pages["order"] = new JsonArray();
+        return copy.With(
+            "Settings.json",
+            settingsText.Encode(
+                LayoutJsonComments.Restore(settingsText.Text, copiedSettings.ToJsonString(_serializerOptions))
+            )
+        );
     }
 
     private static string? StringValue(JsonNode? node) =>

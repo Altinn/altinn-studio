@@ -1343,8 +1343,19 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
 
         var result = await MigrateResult();
 
+        // The copy lists no pages, since v9 shows the pages in pages.order while the task runs.
         Assert.False(HasAutoPdfTaskIds(PdfTaskAfter("Task_1")));
-        Assert.Equal(taskFolderBefore, Files(PdfTaskFolder));
+        var copy = Files(PdfTaskFolder);
+        Assert.Equal(taskFolderBefore.Keys, copy.Keys);
+        Assert.All(
+            copy.Where(file => file.Key != "Settings.json"),
+            file => Assert.Equal(taskFolderBefore[file.Key], file.Value)
+        );
+        Assert.Equal(
+            """{"excludeFromPdf":["01_Intro"],"order":[],"showProgress":true,"pdfLayoutName":"pdfReceipt"}""",
+            Json($"{PdfTaskFolder}/Settings.json")["pages"]?.ToJsonString()
+        );
+        Assert.Equal("datamodel", Json($"{PdfTaskFolder}/Settings.json")["defaultDataType"]?.GetValue<string>());
         Assert.DoesNotContain(
             "enablePdfCreation",
             _app.Read("config/applicationmetadata.json"),
@@ -1352,7 +1363,11 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         var todo = Assert.Single(result.Todos);
         Assert.Contains(reason, todo, StringComparison.Ordinal);
-        Assert.Contains("copied App/ui/Task_1 to App/ui/PdfTask_Task_1", todo, StringComparison.Ordinal);
+        Assert.Contains(
+            "copied App/ui/Task_1 to App/ui/PdfTask_Task_1, with an empty pages.order",
+            todo,
+            StringComparison.Ordinal
+        );
         Assert.Contains(
             "Removed pdfLayoutName and layouts/pdfReceipt.json from App/ui/Task_1",
             todo,
@@ -1360,6 +1375,33 @@ public sealed class PdfServiceTaskMigratorTests : IDisposable
         );
         Assert.Contains("target.taskId", todo, StringComparison.Ordinal);
         Assert.Contains("https://docs.altinn.studio/", todo, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CopyOfATaskFolderWithPageGroups_ListsNoPages()
+    {
+        WriteMetadataForTask1();
+        WriteDataThenFeedbackProcess();
+        WriteTaskUi(
+            DataTaskFolder,
+            """
+            {
+              "pages": {
+                "groups": [{ "order": ["01_Intro", "02_Kontaktinformasjon"] }],
+                "pdfLayoutName": "pdfReceipt"
+              },
+              "defaultDataType": "datamodel"
+            }
+            """,
+            """{ "id": "nav", "type": "NavigationBar" }"""
+        );
+
+        await MigrateResult();
+
+        Assert.Equal(
+            """{"pdfLayoutName":"pdfReceipt","order":[]}""",
+            Json($"{PdfTaskFolder}/Settings.json")["pages"]?.ToJsonString()
+        );
     }
 
     [Fact]
