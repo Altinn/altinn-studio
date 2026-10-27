@@ -17,6 +17,8 @@ type studioctlServerClient interface {
 	Status(ctx context.Context) (*studioctlserver.Status, error)
 	UnregisterApp(ctx context.Context, appID string) error
 	UpgradeApp(ctx context.Context, upgrade studioctlserver.AppUpgrade) (studioctlserver.AppUpgradeResult, error)
+	Validate(ctx context.Context, req studioctlserver.ValidateRequest) (studioctlserver.ValidateResponse, error)
+	ListValidationRules(ctx context.Context) ([]studioctlserver.ValidateRule, error)
 }
 
 type studioctlServerAccess struct {

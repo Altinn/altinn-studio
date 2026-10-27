@@ -1,0 +1,88 @@
+{
+  "name": "altinn-studio-lsp",
+  "displayName": "Altinn Studio Language Server",
+  "description": "Validation and language support for Altinn Studio projects.",
+  "version": "0.0.0-dev",
+  "publisher": "altinnstudio",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Altinn/altinn-studio"
+  },
+  "activationEvents": [
+    "workspaceContains:**/config/applicationmetadata.json"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "altinnStudioLsp.restart",
+        "title": "Restart Altinn Studio Language Server",
+        "category": "Altinn"
+      }
+    ],
+    "configuration": {
+      "title": "Altinn Studio Language Server",
+      "properties": {
+        "altinnStudioLsp.serverCommand": {
+          "type": "string",
+          "default": "studioctl",
+          "markdownDescription": "The `studioctl` executable that hosts the language server. Must be on your `PATH` or an absolute path."
+        },
+        "altinnStudioLsp.serverArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "app",
+            "lsp"
+          ],
+          "description": "Arguments passed to the server command to start the language server over stdio."
+        },
+        "altinnStudioLsp.logLevel": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "default": "info",
+          "markdownDescription": "Verbosity of the language server's own logging in the output channel. `debug` adds validation summaries; `trace` logs every message received and sent. (Restart the server after changing.)"
+        },
+        "altinnStudioLsp.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Trace the communication between VS Code and the language server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.84.0",
+    "@vscode/vsce": "3.9.2",
+    "typescript": "^5.4.0"
+  }
+}

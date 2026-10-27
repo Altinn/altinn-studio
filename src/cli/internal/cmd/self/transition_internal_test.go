@@ -269,6 +269,19 @@ func (f *fakeSelfTransitionStudioctlServerClient) UpgradeApp(
 	return studioctlserver.AppUpgradeResult{}, nil
 }
 
+func (f *fakeSelfTransitionStudioctlServerClient) Validate(
+	context.Context,
+	studioctlserver.ValidateRequest,
+) (studioctlserver.ValidateResponse, error) {
+	return studioctlserver.ValidateResponse{}, nil
+}
+
+func (f *fakeSelfTransitionStudioctlServerClient) ListValidationRules(
+	context.Context,
+) ([]studioctlserver.ValidateRule, error) {
+	return nil, nil
+}
+
 func selfTransitionTestConfig(t *testing.T) *config.Config {
 	t.Helper()
 

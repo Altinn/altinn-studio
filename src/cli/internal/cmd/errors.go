@@ -48,4 +48,7 @@ var (
 
 	// ErrInvalidFlagValue is returned when a flag value is invalid.
 	ErrInvalidFlagValue = errors.New("invalid flag value")
+
+	// ErrReportedFailure signals a non-zero exit code for a failure the command has already printed.
+	ErrReportedFailure = errors.New("the command reported a failure above")
 )

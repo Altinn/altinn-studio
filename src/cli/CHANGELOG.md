@@ -11,6 +11,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- Add `studioctl app vet`, which validates an app's configuration files (application metadata, layouts, layout settings, process definition, policy, text resources, options and data model references) against the app's frontend version and reports findings with file positions. Returns a non-zero exit code when validation fails.
+- Add `studioctl app lsp` running a language server over stdio (diagnostics, hover, go-to-definition, find-references, rename, completion, quick-fixes, code lenses). Editor extensions for VS Code and JetBrains IDEs are distributed via their marketplaces; `studioctl app lsp --help` describes editor setup.
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 - Localtest has a _Messages_ page that shows the messages apps have sent, with their attachments, and the emails and SMS messages that would have gone out. A button clears them without resetting the rest of your data. ([#21224](https://github.com/Altinn/altinn-studio/pull/21224))
