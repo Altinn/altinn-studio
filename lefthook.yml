@@ -46,13 +46,16 @@ pre-commit:
       # gate, and `yarn spell:check` runs the full harness.
       run: if command -v typos >/dev/null && command -v node >/dev/null; then node scripts/spellcheck/run.mjs quick {staged_files}; fi
     prettier:
-      glob: '*.{js,jsx,tsx,ts,css,md}'
-      # JS/TS inside the eslint roots are already prettier-formatted by their
-      # eslint runs (eslint-plugin-prettier), so skip them here to avoid a
-      # redundant second pass and any parallel write race. CSS/MD in those
-      # dirs are still covered (not excluded).
+      # Limited to the areas that are kept prettier-formatted, so the hook
+      # never reformats files that aren't supposed to be, e.g. other areas'
+      # files staged by a merge commit.
+      glob:
+        - 'src/Designer/frontend/**.{js,jsx,ts,tsx,css,md}'
+        # JS/TS here is formatted by app-frontend-eslint.
+        - 'src/App/frontend/**.{css,md}'
+        - 'src/common/ts/**.{js,jsx,ts,tsx,css,md}'
       exclude:
-        - 'src/App/frontend/**/*.{js,jsx,ts,tsx}'
-        - 'src/common/ts/form-component/**/*.{js,jsx,ts,tsx}'
+        # JS/TS here is formatted by form-component-eslint.
+        - 'src/common/ts/form-component/**.{js,jsx,ts,tsx}'
       run: yarn prettier -w {staged_files}
       stage_fixed: true
