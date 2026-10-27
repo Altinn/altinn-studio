@@ -8,11 +8,11 @@ import { AxiosHeaders } from 'axios';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
-import { WorkflowTroubleBanner } from 'src/components/process/WorkflowEngine';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { doProcessNext } from 'src/queries/queries';
+import Page from 'src/routes/page/page.route';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcess, IProcessWorkflow } from 'src/types/shared';
@@ -242,11 +242,11 @@ describe('ProcessWrapper workflow state machine', () => {
       failedAttempts: 2,
     };
 
+    // The page route, as the task route renders it, so the banner's place on the page is tested too.
     await renderWithInstanceAndLayout({
       renderer: () => (
         <ProcessWrapper>
-          <WorkflowTroubleBanner />
-          <div data-testid='task-content'>Task content</div>
+          <Page />
         </ProcessWrapper>
       ),
       apis: {
@@ -256,10 +256,12 @@ describe('ProcessWrapper workflow state machine', () => {
       },
     });
 
-    const content = await screen.findByTestId('task-content');
-    const banner = screen.getByRole('status');
+    const firstComponent = await screen.findByRole('heading', { name: /you haven't added any components yet/i });
+    // The visible warning; the status region beside it is visually hidden and only for screen readers.
+    const banner = document.querySelector('.ds-alert[data-color="warning"]');
     expect(banner).toHaveTextContent(/vi kan ikke behandle skjemaet ditt/i);
-    expect(banner.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByTestId('presentation')).toContainElement(banner as HTMLElement);
+    expect(banner!.compareDocumentPosition(firstComponent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
 

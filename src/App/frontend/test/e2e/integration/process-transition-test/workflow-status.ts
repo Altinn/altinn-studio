@@ -605,7 +605,10 @@ describe('Live workflow status (real engine)', () => {
     cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 0 }).should('not.exist');
 
     // The banner joins the page rather than replacing it, the way the loading view's warning would.
-    cy.contains('[role="status"]', 'Vi kan ikke behandle skjemaet ditt', { timeout: 30000 }).should('be.visible');
+    // Its status region for screen readers is visually hidden, so check the visible warning itself.
+    cy.contains('div.ds-alert[data-color="warning"]', 'Vi kan ikke behandle skjemaet ditt', { timeout: 30000 }).should(
+      'be.visible',
+    );
     cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 0 }).should('be.visible');
     workflowLoader().should('not.exist');
 
