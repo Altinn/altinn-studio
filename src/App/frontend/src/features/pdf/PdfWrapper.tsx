@@ -23,13 +23,12 @@ export function PdfWrapper({ children }: PropsWithChildren) {
 
   // A subform PDF renders one entry from the subform's UI folder, whatever the task in the URL is
   const [params] = useSearchParams();
-  const subformUiFolder = params.get(SearchParams.PdfSubformUiFolder);
-  const subformDataElementId = params.get(SearchParams.PdfSubformDataElementId);
-  if (renderInstead && (subformUiFolder !== null || subformDataElementId !== null)) {
+  const isSubformPdf = useIsSubformPdf();
+  if (isSubformPdf) {
     return (
       <PdfForSubform
-        uiFolder={subformUiFolder}
-        dataElementId={subformDataElementId}
+        uiFolder={params.get(SearchParams.PdfSubformUiFolder)}
+        dataElementId={params.get(SearchParams.PdfSubformDataElementId)}
       />
     );
   }
@@ -39,6 +38,15 @@ export function PdfWrapper({ children }: PropsWithChildren) {
   }
 
   return children;
+}
+
+/**
+ * Whether this is the PDF of one subform entry, which renders from the subform's UI folder rather than the task's.
+ */
+export function useIsSubformPdf(): boolean {
+  const isPdf = useIsPdf();
+  const [params] = useSearchParams();
+  return isPdf && (params.has(SearchParams.PdfSubformUiFolder) || params.has(SearchParams.PdfSubformDataElementId));
 }
 
 /**
