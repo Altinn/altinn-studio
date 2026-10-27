@@ -1420,31 +1420,6 @@ public class SourceControlService(
         );
     }
 
-    /// <inheritdoc/>
-    public async Task DeleteRepository(AltinnRepoEditingContext editingContext)
-    {
-        using var activity = StartActivity(editingContext);
-        await ExecuteWithTelemetryAsync(
-            activity,
-            editingContext,
-            static async (self, editingContext) =>
-            {
-                string localServiceRepoFolder = self._repositorySettings.GetServicePath(
-                    editingContext.Org,
-                    editingContext.Repo,
-                    editingContext.Developer
-                );
-
-                if (Directory.Exists(localServiceRepoFolder))
-                {
-                    DirectoryHelper.DeleteFilesAndDirectory(localServiceRepoFolder);
-                }
-
-                await self._giteaClient.DeleteRepository(editingContext.Org, editingContext.Repo);
-            }
-        );
-    }
-
     private static bool LocalBranchExists(LibGit2Sharp.Repository repo, string branchName)
     {
         return repo.Branches.Any(branch => branch.FriendlyName == branchName);

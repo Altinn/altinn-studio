@@ -151,6 +151,12 @@ public class RepositoryController : ControllerBase
         targetOrg ??= org;
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        // targetRepository is guaranteed non-null and valid by IsValidCopyAppRequestAsync above.
+        AltinnRepoEditingContext targetContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            targetOrg,
+            targetRepository!,
+            developer
+        );
 
         try
         {
@@ -167,12 +173,12 @@ public class RepositoryController : ControllerBase
                 return Created(repo.CloneUrl, repo);
             }
 
-            await _repository.DeleteRepository(targetOrg, targetRepository);
+            await _repository.DeleteRepository(targetContext);
             return StatusCode((int)repo.RepositoryCreatedStatus);
         }
         catch (Exception e)
         {
-            await _repository.DeleteRepository(targetOrg, targetRepository);
+            await _repository.DeleteRepository(targetContext);
             return StatusCode(500, e);
         }
     }
