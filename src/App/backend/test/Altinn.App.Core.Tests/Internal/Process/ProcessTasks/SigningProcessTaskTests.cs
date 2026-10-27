@@ -23,7 +23,6 @@ public sealed class SigningProcessTaskTests : IDisposable
 {
     private readonly Mock<IProcessReader> _processReaderMock = new(MockBehavior.Strict);
     private readonly Mock<ISigningService> _signingServiceMock = new(MockBehavior.Strict);
-    private readonly Mock<ISigneeContextsManager> _signeeContextsManagerMock = new(MockBehavior.Strict);
     private readonly Mock<IPdfService> _pdfServiceMock = new(MockBehavior.Strict);
     private readonly SigningProcessTask _signingProcessTask;
     private readonly ServiceProvider _services;
@@ -39,8 +38,7 @@ public sealed class SigningProcessTaskTests : IDisposable
             _processReaderMock.Object,
             _services,
             _logger,
-            _pdfServiceMock.Object,
-            _signeeContextsManagerMock.Object
+            _pdfServiceMock.Object
         );
     }
 
@@ -152,39 +150,60 @@ public sealed class SigningProcessTaskTests : IDisposable
         };
 
     [Fact]
-    public async Task Start_ShouldDeleteExistingSigningData()
+    public async Task DefineStart_ResolvesDelegatesAndNotifiesInSeparateStages()
     {
         Instance instance = CreateInstance();
         var dataMutator = CreateDataMutator(instance);
         var altinnTaskExtension = new AltinnTaskExtension { SignatureConfiguration = CreateSigningConfiguration() };
+        AltinnSignatureConfiguration configuration = altinnTaskExtension.SignatureConfiguration;
+        Guid stepId = Guid.NewGuid();
+        var calls = new List<string>();
 
-        _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
-        _signeeContextsManagerMock
-            .Setup(x =>
-                x.GenerateSigneeContexts(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<AltinnSignatureConfiguration>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([])
-            .Verifiable(Times.Once);
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("Task_1")).Returns(altinnTaskExtension);
         _signingServiceMock
-            .Setup(x =>
-                x.InitializeSignees(
-                    It.IsAny<IInstanceDataMutator>(),
-                    It.IsAny<List<SigneeContext>>(),
-                    It.IsAny<AltinnSignatureConfiguration>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync([])
-            .Verifiable(Times.Once);
+            .Setup(x => x.ResolveSignees(dataMutator.Object, configuration, It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("resolve"))
+            .Returns(Task.CompletedTask);
+        _signingServiceMock
+            .Setup(x => x.DelegateSigneeRights(dataMutator.Object, configuration, It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("delegate"))
+            .Returns(Task.CompletedTask);
+        _signingServiceMock
+            .Setup(x => x.NotifySignees(dataMutator.Object, configuration, stepId, It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("notify"))
+            .Returns(Task.CompletedTask);
 
-        await _signingProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineStart(new PipelineBuilder()).Stages;
 
-        _signeeContextsManagerMock.VerifyAll();
-        _signingServiceMock.VerifyAll();
+        Assert.Equal(3, stages.Count);
+        Assert.All(stages, stage => Assert.Equal(TimeSpan.FromMinutes(5), stage.StepOptions?.MaxExecutionTime));
+        foreach (PipelineStage.Plain stage in stages)
+        {
+            await stage.Work(CreateStageContext(dataMutator.Object, stepId));
+        }
+        Assert.Equal(["resolve", "delegate", "notify"], calls);
+    }
+
+    [Fact]
+    public async Task DefineStart_StagesDoNothing_WhenRuntimeDelegatedSigningNotConfigured()
+    {
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        var altinnTaskExtension = new AltinnTaskExtension
+        {
+            SignatureConfiguration = new AltinnSignatureConfiguration { SignatureDataType = "SignatureDataType" },
+        };
+        _processReaderMock.Setup(x => x.GetAltinnTaskExtension("Task_1")).Returns(altinnTaskExtension);
+
+        // The stages are the same with or without delegation, since steps are dispatched by position.
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineStart(new PipelineBuilder()).Stages;
+
+        Assert.Equal(3, stages.Count);
+        foreach (PipelineStage.Plain stage in stages)
+        {
+            await stage.Work(CreateStageContext(dataMutator.Object));
+        }
+        _signingServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -376,6 +395,14 @@ public sealed class SigningProcessTaskTests : IDisposable
 
     private static ProcessTaskContext CreateProcessTaskContext(IInstanceDataMutator dataMutator) =>
         new() { InstanceDataMutator = dataMutator };
+
+    private static StageContext CreateStageContext(IInstanceDataMutator dataMutator, Guid? stepId = null) =>
+        new()
+        {
+            InstanceDataMutator = dataMutator,
+            WorkflowId = Guid.Empty,
+            StepId = stepId ?? Guid.NewGuid(),
+        };
 
     private static Instance CreateInstance(params DataElement[] dataElements)
     {

@@ -454,6 +454,7 @@ public class WorkflowEngineCallbackControllerTests
             .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
             .ReturnsAsync(() => "%PDF"u8.ToArray());
         var processReader = new Mock<IProcessReader>();
+        processReader.Setup(r => r.GetProcessTasks()).Returns([]);
         processReader
             .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))
             .Returns(
@@ -1246,6 +1247,8 @@ public class WorkflowEngineCallbackControllerTests
                 MaxCount = 10,
             }
         );
+        // Callback state capture reads the process for the signee-state data types it carries.
+        services.Mock<IProcessReader>().Setup(reader => reader.GetProcessTasks()).Returns([]);
         configureServices(services);
         services.Mock<IWorkflowEngineService>();
         services.Services.AddSingleton<WorkflowCallbackStateService>();
