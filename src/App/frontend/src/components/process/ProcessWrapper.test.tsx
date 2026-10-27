@@ -1112,6 +1112,40 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing');
   });
 
+  it('shows the page after a reload on the previous task while the service task runs', async () => {
+    setServiceTaskPages(['page1']);
+    const routerRef: RouterRef = { current: undefined };
+    await renderWithDefaultProviders({
+      renderer: () => (
+        <InstanceProvider>
+          <RemountPerTask />
+        </InstanceProvider>
+      ),
+      router: ({ children }) => (
+        <InstanceRouter
+          routerRef={routerRef}
+          taskId='Task_1'
+        >
+          {children}
+        </InstanceRouter>
+      ),
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () =>
+            getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' }),
+        },
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+  });
+
   it('follows a feedback task when the process moves on', async () => {
     let advanced = false;
     const routerRef: RouterRef = { current: undefined };
