@@ -44,6 +44,19 @@ describe('ConfigSubformPdfServiceTask', () => {
     ).toBeInTheDocument();
   });
 
+  it('offers no UI folders while the layout sets are not loaded', async () => {
+    const user = userEvent.setup();
+    renderConfigSubformPdfServiceTask({ layoutSets: null });
+
+    await user.click(getUiFolderField());
+
+    expect(
+      await screen.findByText(
+        textMock('process_editor.configuration_panel_subform_pdf_no_ui_folder_to_select'),
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('saves the selected UI folder in the BPMN and nothing else', async () => {
     const user = userEvent.setup();
     const { saveBpmn, emitCommandStackChanged } = renderConfigSubformPdfServiceTask();
@@ -127,7 +140,7 @@ async function selectUiFolder(
 
 type RenderProps = {
   subformPdfConfig?: object;
-  layoutSets?: LayoutSets;
+  layoutSets?: LayoutSets | null;
 };
 
 const renderConfigSubformPdfServiceTask = ({
@@ -142,7 +155,7 @@ const renderConfigSubformPdfServiceTask = ({
   const fixture = createBpmnTestModeler(
     'bpmn:ServiceTask',
     { id: 'SubformPdf' },
-    { layoutSets, saveBpmn },
+    { layoutSets: layoutSets ?? undefined, saveBpmn },
   );
   const { moddle, businessObject, Wrapper } = fixture;
   businessObject.extensionElements = moddle.create('bpmn:ExtensionElements', {
