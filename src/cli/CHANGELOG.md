@@ -31,7 +31,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl doctor` shows the _Disk_ checks by name, such as _Home_ and _Server state_, without their paths. `studioctl doctor --json` still has the paths, and `studioctl -v doctor` shows those of failing checks. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - studioctl keeps 30 days of logs, so they no longer grow without limit on disk: the studioctl server deletes its older log files when it starts and once a day, and `studioctl run` deletes app logs not written to for 30 days, for all your apps. ([#21435](https://github.com/Altinn/altinn-studio/pull/21435), [#21438](https://github.com/Altinn/altinn-studio/pull/21438))
 - `studioctl app upgrade v9` names `HandlerResult` instead of `HookResult` in its to-dos for v8 process hooks, to match the renamed type. ([#21554](https://github.com/Altinn/altinn-studio/pull/21554))
-- `studioctl app upgrade v9` removes the "Noe gikk galt" page Altinn Studio generated in each PDF task's UI folder, since v9 shows the pages in a service task's `pages.order` while it runs, and gives the PDF tasks it adds no page either. Any other service task, such as eFormidling, whose UI folder lists pages gets a to-do, since users now see those pages, read-only, while the task runs. So does a PDF task folder that lists other pages. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
+- `studioctl app upgrade v9` removes the "Noe gikk galt" page Altinn Studio generated for PDF tasks, and adds PDF tasks without a page, since v9 shows a service task's pages while it runs. Other pages in a service task's UI folder get a to-do. ([#21563](https://github.com/Altinn/altinn-studio/pull/21563))
 
 ### Fixed
 
