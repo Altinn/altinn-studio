@@ -20,10 +20,17 @@ install_ca_bundle() {
   certs=$(mktemp -d)
   awk -v dir="$certs" '/-----BEGIN CERTIFICATE-----/ { close(f); f = dir "/" ++n ".pem" } f { print > f }' \
     "$STUDIO_CA_BUNDLE"
+  imported=0
   for cert in "$certs"/*.pem; do
+    # A bundle without a certificate leaves the pattern unexpanded; start without one rather than fail.
+    [ -e "$cert" ] || continue
     certutil -d "sql:$nss_db" -A -t "C,," -n "studio-ca-bundle-${cert##*/}" -i "$cert"
+    imported=$((imported + 1))
   done
   rm -rf "$certs"
+  if [ "$imported" -eq 0 ]; then
+    echo "pdf3 worker: STUDIO_CA_BUNDLE ($STUDIO_CA_BUNDLE) holds no certificate; none installed" >&2
+  fi
 }
 
 install_ca_bundle
