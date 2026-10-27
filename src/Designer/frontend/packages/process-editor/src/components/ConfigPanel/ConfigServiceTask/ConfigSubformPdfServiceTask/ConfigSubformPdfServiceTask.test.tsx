@@ -85,12 +85,16 @@ describe('ConfigSubformPdfServiceTask', () => {
     await selectUiFolder(user, subformUiFolder);
     await act(async () => emitCommandStackChanged());
 
-    const [savedXml] = saveBpmn.mock.calls[0];
+    const [savedXml, metadata] = saveBpmn.mock.calls[0];
     expect(savedXml).toContain(
       `<altinn:subformUiFolder>${subformUiFolder}</altinn:subformUiFolder>`,
     );
     expect(savedXml).not.toContain('subformComponentId');
     expect(savedXml).not.toContain('subformDataTypeId');
+    // The backend then removes the task's UI folder if it holds only what Studio generated for the old settings.
+    expect(metadata).toEqual({
+      subformPdfConfigUpgrade: { taskId: 'SubformPdf', subformComponentId: 'vehicles' },
+    });
   });
 
   it('shows the saved UI folder', async () => {

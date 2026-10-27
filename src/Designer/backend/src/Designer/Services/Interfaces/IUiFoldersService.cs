@@ -29,6 +29,19 @@ public interface IUiFoldersService
     );
 
     /// <summary>
+    /// Deletes the UI folder of a subform PDF task when it holds only what earlier Designer versions generated for
+    /// the task: its settings, a waiting page and a copy of the Subform component the task named. Keeps a folder
+    /// with anything else, since its pages may be wanted while the task runs.
+    /// </summary>
+    /// <returns>Whether the folder was deleted.</returns>
+    public Task<bool> DeleteGeneratedSubformPdfTaskUiFolder(
+        AltinnRepoEditingContext editingContext,
+        string taskId,
+        string subformComponentId,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
     /// Validates that a process task can be renamed. A task whose layout set folder carries its id can only
     /// take a new id that the layout set could also be renamed to.
     /// </summary>
