@@ -62,7 +62,8 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const lock = FormStore.data.useLocking(componentId);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
-  const isAddingDisabled = useIsAnyProcessing();
+  const transitioning = FormStore.useIsTransitioning();
+  const isAddingDisabled = useIsAnyProcessing() || transitioning;
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
@@ -70,6 +71,10 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
 
   const addEntry = () =>
     performProcess(async () => {
+      // Adding an entry writes to the instance, which is locked while transitioning
+      if (transitioning) {
+        return;
+      }
       const currentLock = await lock();
       try {
         const result = await addSubformEntryMutation.mutateAsync({});
@@ -226,6 +231,7 @@ function SubformTableRow({
 
   const { mutate: deleteSubformEntry, isPending: isDeleting } = useDeleteEntryMutation();
   const deleteButtonText = langAsString('general.delete');
+  const transitioning = FormStore.useIsTransitioning();
 
   const editButtonText = component?.textResourceBindings?.tableEditButton
     ? langAsString(evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource))
@@ -278,7 +284,7 @@ function SubformTableRow({
       <Table.Cell className={classes.buttonCell}>
         <div className={classes.buttonInCellWrapper}>
           <Button
-            disabled={isDeleting}
+            disabled={isDeleting || transitioning}
             variant='tertiary'
             color='second'
             onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
@@ -297,10 +303,15 @@ function SubformTableRow({
         <Table.Cell className={classes.buttonCell}>
           <div className={classes.buttonInCellWrapper}>
             <Button
-              disabled={isDeleting}
+              disabled={isDeleting || transitioning}
               variant='tertiary'
               color='danger'
-              onClick={() => deleteSubformEntry(id)}
+              onClick={() => {
+                // Deleting an entry writes to the instance, which is locked while transitioning
+                if (!transitioning) {
+                  deleteSubformEntry(id);
+                }
+              }}
               aria-label={deleteButtonText}
               className={classes.tableButton}
             >
