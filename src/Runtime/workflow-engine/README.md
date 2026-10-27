@@ -1,90 +1,26 @@
 # Workflow Engine
 
-An asynchronous workflow orchestration service for Altinn Studio. It accepts process-advancement requests for app instances, queues them internally, and executes each step sequentially with idempotency guarantees, automatic retries (exponential backoff), and distributed tracing. Step execution is carried out by issuing HTTP callbacks to the originating Altinn app.
+The workflow engine runs workflows asynchronously. It queues each workflow in PostgreSQL, runs its steps in order and
+retries a step that fails. A step runs a command, such as an HTTP call.
 
-Built on .NET 10, PostgreSQL, and OpenTelemetry.
+The engine is a class library, not a service of its own. A host composes it into a web application and adds its own
+commands. [Workflow Engine App](../workflow-engine-app/README.md) is the host for Altinn apps, and calls back to the
+app for each step. The [TestApp](tests/WorkflowEngine.TestApp) composes the engine with the built-in webhook command
+for local development and tests.
 
-## Getting started
+The [technical guide](docs/technical-guide.md) describes how the engine behaves. [The docs](docs/README.md) list the
+rest.
 
-### Prerequisites
+## Running locally
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/)
-- [Docker](https://docs.docker.com/get-docker/)
+`make dev` starts PostgreSQL, PgAdmin and WireMock. Run the TestApp against them with
+`dotnet run --project tests/WorkflowEngine.TestApp`, or run it in a container as well with `make run`. Either way the
+engine serves its API and a dashboard on port 9090. The dashboard shows workflows as they run, and its actions call the
+public API like any other caller. [Docker Compose stack](docs/docker.md) covers the stack and monitoring.
 
-### Running locally
+## Development
 
-> [!TIP]
-> All Docker Compose commands below have `make` equivalents. Run `make help` to see available targets.
+Tests start PostgreSQL and WireMock with Testcontainers, so they need Docker or Podman but no compose stack.
 
-Start the infrastructure (Postgres, PgAdmin, WireMock):
-
-```sh
-docker compose up -d
-```
-
-Then run the test host application:
-
-```sh
-dotnet run --project tests/WorkflowEngine.TestApp
-```
-
-The database is migrated automatically on startup (EF Core). No manual migration step needed.
-
-The [TestApp](tests/WorkflowEngine.TestApp) is a minimal host that composes the core engine with the built-in WebhookCommand — ideal for local development and testing against the engine itself.
-
-Alternatively, run the TestApp as a Docker container using the `core` profile:
-
-```sh
-docker compose --profile core up -d
-```
-
-The dashboard's `wwwroot/` directory is bind-mounted into the container, so frontend file edits are reflected immediately without rebuilding.
-
-### Monitoring
-
-The engine — on the host or in the `core` profile — exports its telemetry over OTLP to a collector on the host, at port 4317. Any collector works; `studioctl env up --monitoring` runs one, with Grafana and the _Workflow Engine_ dashboard. On Docker Engine for Linux, the `core` profile's engine cannot reach a collector published on the host's loopback, as studioctl's is: there, run the engine on the host, as above. See [Monitoring](docs/docker.md#monitoring) for how, for the two settings that turn on the dashboard's trace links, and for the studioctl flag that clashes with this stack.
-
-### Ports & URLs
-
-| Service    | URL                                                             | Notes                                                   |
-| ---------- | --------------------------------------------------------------- | ------------------------------------------------------- |
-| Engine API | [http://localhost:9090](http://localhost:9090)                  | Swagger UI at [/swagger](http://localhost:9090/swagger) |
-| WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
-| PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |
-| PostgreSQL | `localhost:9543`                                                |                                                         |
-
-### API endpoints
-
-See swagger for a [full list](http://localhost:9090/swagger) of endpoints. The main ones:
-
-```
-GET  /api/v1/namespaces                        (list distinct namespaces)
-POST /api/v1/{namespace}/workflows             (enqueue workflows)
-GET  /api/v1/{namespace}/workflows             (list workflows; filter by ?status, ?label, ?collectionKey; cursor-paginated via ?cursor & ?pageSize)
-GET  /api/v1/{namespace}/workflows/{id}        (get single workflow with steps)
-POST /api/v1/{namespace}/workflows/{id}/cancel (request cancellation)
-POST /api/v1/{namespace}/workflows/{id}/resume (resume a terminal workflow)
-GET  /api/v1/{namespace}/collections           (list collections in the namespace)
-GET  /api/v1/{namespace}/collections/{key}     (get single collection with head statuses)
-```
-
-## Migrations
-
-Migrations are applied automatically on startup. To add a new migration after modifying entities:
-
-```sh
-dotnet ef migrations add <Name> \
-  --project src/WorkflowEngine.Data \
-  --startup-project tests/WorkflowEngine.TestApp
-```
-
-## Load testing
-
-k6 scripts for stress testing and benchmarking are available in the [`.k6/`](.k6/) directory. See the [k6 README](.k6/README.md) for setup instructions, available scripts, and configuration options.
-
-## Further reading
-
-- [Technical guide](docs/technical-guide.md)
-- [Architectural overview](docs/architecture.md)
-- [Batch enqueue & dependency graphs](docs/technical-guide.md#dependency-graphs)
-- [Notes on db connections during dev cycle](docs/db-connections-notes.md)
+Response models use `init` setters. System.Text.Json skips an `internal set`, so a client that deserializes the model
+reads `null`.
