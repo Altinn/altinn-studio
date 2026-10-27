@@ -13,6 +13,8 @@ describe('List component', () => {
     cy.get(source).find('caption').should('have.attr', 'id', 'label-ListPage-InformationalList');
     cy.get(summary).findByRole('table', { name: 'Personoversikt' }).should('be.visible');
     cy.get(summary).find('caption').should('have.attr', 'id', 'label-ListPage-InformationalList-summary');
+    cy.get(summary).findByRole('button', { name: 'Hjelpetekst for Personoversikt' }).click();
+    cy.get(summary).findByTestId('helptext').should('contain.text', 'Hjelp til personoversikten');
     cy.get(summary).findByRole('cell', { name: 'Kari' }).should('be.visible');
     cy.get(summary).findByRole('cell', { name: 'Johanne' }).should('be.visible');
     cy.get(summary).findByRole('button', { name: 'Endre', timeout: 0 }).should('not.exist');
