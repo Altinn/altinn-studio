@@ -568,6 +568,29 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
   });
 
+  it('a service task with a page shows it from the commit, while the task runs and process/next is pending', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', serviceView: 'layout', delayMs: 15000 });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The task runs without deferring, so process/next has not answered yet; the page shows anyway.
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 10000 }).should('be.visible');
+    cy.url().should('contain', '/Task_ServiceLayout');
+
+    // Past the loading view's eight-second message: the page owns the waiting presentation.
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(9000);
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 0 }).should('be.visible');
+    cy.contains(/du kan trygt lukke siden/i, { timeout: 0 }).should('not.exist');
+    workflowLoader().should('not.exist');
+
+    cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+  });
+
   it('failed on the layouted service task: the failure view takes precedence over the custom layout', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', serviceView: 'layout', attempts: 1, endState: 'failure' });

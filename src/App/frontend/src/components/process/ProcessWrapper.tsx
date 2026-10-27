@@ -7,15 +7,14 @@ import { PresentationComponent } from 'src/components/presentation/Presentation'
 import classes from 'src/components/process/ProcessWrapper.module.css';
 import {
   useIsWorkflowFailedOnCurrentServiceTask,
-  useIsWorkflowProcessingOnCurrentServiceTask,
   WorkflowFailed,
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
-import { useIsMutating, useQueryClient } from 'src/core/queries/reactQuery';
+import { useQueryClient } from 'src/core/queries/reactQuery';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { getProcessNextMutationKey } from 'src/features/instance/processNextMutationKey';
+import { getProcessNextMutationKey, useIsProcessNextPending } from 'src/features/instance/processNextMutationKey';
 import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -128,28 +127,76 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean, 
   }, [enabled, status, failedOnCurrentServiceTask, processNextPending, process, taskId, navigateToTask]);
 }
 
+/**
+ * Moves the URL onto a service task with a page as soon as a poll shows the process committed to
+ * it, while the task runs, defers or retries, including while this session's process/next call is
+ * still pending: the page shows from the commit, not from when the call returns.
+ */
+function useNavigateToCommittedServiceTaskPage(
+  taskId: string | undefined,
+  pageTask: string | undefined,
+  enabled: boolean,
+) {
+  const isProcessing = useProcessWorkflow()?.status === 'processing';
+  const navigateToTask = useNavigateToTask();
+
+  useEffect(() => {
+    if (enabled && isProcessing && pageTask && pageTask !== taskId) {
+      navigateToTask(pageTask);
+    }
+  }, [enabled, isProcessing, pageTask, taskId, navigateToTask]);
+}
+
+/**
+ * Whether the URL's service task shows its page in place of the loading view. The page shows once
+ * the process is committed to the task, and stays while the process moves on from it until the
+ * next task is on screen, so the loading view never returns in between. A URL opened on the task
+ * after the process left it gets no page.
+ */
+function useShowServiceTaskPage(taskId: string | undefined, pageTask: string | undefined, inFlight: boolean) {
+  const [shownTask, setShownTask] = useState<string | undefined>(undefined);
+  const committedHere = taskId !== undefined && pageTask === taskId;
+
+  useEffect(() => {
+    setShownTask((shown) => (committedHere ? taskId : shown === taskId ? shown : undefined));
+  }, [committedHere, taskId]);
+
+  return committedHere || (inFlight && taskId !== undefined && shownTask === taskId);
+}
+
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskId = useNavigationParam('taskId');
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
-  const taskType = useGetTaskTypeById()(taskId);
+  const getTaskType = useGetTaskTypeById();
+  const taskType = getTaskType(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
   const isProcessNextPending = useIsProcessNextPending();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
-  const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
   const { data: process } = useProcessQuery();
 
+  // The committed service task, when it has a page (getTaskTypeById classifies those as Data).
+  const currentTask = process?.currentTask;
+  const pageTask =
+    currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK &&
+    getTaskType(currentTask.elementId) === ProcessTaskType.Data
+      ? currentTask.elementId
+      : undefined;
+  const isInFlight = workflow?.status === 'processing' || isProcessNextPending;
+  const showServiceTaskPage = useShowServiceTaskPage(taskId, pageTask, isInFlight) && !isPdfMode;
+
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
   useNavigateToSettledTask(taskId, !isPdfMode, isProcessNextPending);
+  useNavigateToCommittedServiceTaskPage(taskId, pageTask, !isPdfMode);
 
   // A process parked on a service task advances out-of-band (the task is waiting for an external
   // outcome), so nothing in this session would otherwise observe the advance: the live workflow
   // annotation is idle (no transition in flight) and InstanceContext only polls while processing.
   // Poll here and carry the user forward when the process moves. Keyed on the committed task's
-  // element type - not the classified taskType - so a service task with a custom layout (which
-  // classifies and renders as a Data task) is followed the same way as the default waiting view.
+  // element type - not the classified taskType - so a service task with a page (which classifies
+  // and renders as a Data task) is followed the same way as the default waiting view.
   const isParkedOnServiceTask =
     process?.currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK && (workflow?.status ?? 'idle') === 'idle';
   // Follow feedback here as well, so observing a new task cannot unmount the component owning navigation.
@@ -162,13 +209,14 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // A poll can observe a committed task before process/next responds, including the brief idle gap
   // between chained workflows. Keep the loading view stable until the response navigates or a
   // terminal failure takes over. This cannot interrupt client validation because it requires the
-  // server-reported task to have moved away from the URL.
+  // server-reported task to have moved away from the URL. A service task's page stays up instead.
   const holdLoaderForPendingTransition =
     !isPdfMode &&
     isProcessNextPending &&
     workflow?.status !== 'failed' &&
     taskId !== undefined &&
-    process?.currentTask?.elementId !== taskId;
+    process?.currentTask?.elementId !== taskId &&
+    !showServiceTaskPage;
 
   if (holdLoaderForPendingTransition) {
     return <WorkflowProcessing />;
@@ -200,16 +248,12 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
   //
-  // A deferring service task also bypasses it when the task supplies its own layout and the URL is
-  // on it: the process genuinely sits on the committed task, and the app's page owns the waiting
-  // presentation - exactly as it does for a parked (idle) task. Park and defer are opposites in
-  // the engine but deliberately identical UX on layouted service tasks (see the durable-yield ADR).
-  // The replacement stays for transitions toward other tasks, default-view service tasks, and
-  // stale URLs until navigation converges.
-  const deferringOnLayoutedServiceTask =
-    processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
-
-  if (!isPdfMode && workflow?.status === 'processing' && !deferringOnLayoutedServiceTask) {
+  // A service task with a page also bypasses it (see useShowServiceTaskPage): running, deferring,
+  // retrying and parked are deliberately identical UX there, and the page owns the waiting
+  // presentation, without the loading view's "taking a long time" message (see the durable-yield
+  // ADR). The replacement stays for transitions toward other tasks, service tasks without a page,
+  // and stale URLs until navigation converges.
+  if (!isPdfMode && workflow?.status === 'processing' && !showServiceTaskPage) {
     return <WorkflowProcessing />;
   }
 
@@ -237,7 +281,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
-  if (isWrongTask) {
+  if (isWrongTask && !showServiceTaskPage) {
     return (
       <PresentationComponent showNavigation={false}>
         <NavigationError label='general.part_of_form_completed' />
@@ -349,10 +393,6 @@ function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
 
 function isRunningProcessNext(queryClient: QueryClient) {
   return queryClient.isMutating({ mutationKey: getProcessNextMutationKey() }) > 0;
-}
-
-function useIsProcessNextPending() {
-  return useIsMutating({ mutationKey: getProcessNextMutationKey(), status: 'pending' }) > 0;
 }
 
 function useIsRunningProcessNext() {

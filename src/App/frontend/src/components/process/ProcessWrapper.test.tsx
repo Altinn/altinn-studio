@@ -3,16 +3,61 @@ import type { createMemoryRouter } from 'react-router';
 
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { AxiosHeaders } from 'axios';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
+import { doProcessNext } from 'src/queries/queries';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
-import type { IProcessWorkflow } from 'src/types/shared';
+import type { IProcess, IProcessWorkflow } from 'src/types/shared';
 
 type RouterRef = { current: ReturnType<typeof createMemoryRouter> | undefined };
+type ProcessNextResponse = Awaited<ReturnType<typeof doProcessNext>>;
+
+function SubmitProbe() {
+  const processNext = useProcessNextOutsideFormProvider();
+  return (
+    <button
+      type='button'
+      onClick={() => processNext.mutate()}
+    >
+      submit-probe
+    </button>
+  );
+}
+
+const processTasksWithServiceTask: NonNullable<IProcess['processTasks']> = [
+  { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
+  { altinnTaskType: 'scenario', elementId: 'Task_Service', elementType: 'ServiceTask' },
+  { altinnTaskType: 'data', elementId: 'Task_2', elementType: 'Task' },
+];
+
+/** An instance whose process sits on the given task, with the service task process shape above. */
+function getInstanceOnTask(taskId: string, workflow?: IProcessWorkflow): IInstanceWithProcess {
+  const instance = getInstanceWithProcessMock();
+  const task = processTasksWithServiceTask.find((t) => t.elementId === taskId)!;
+  instance.process.processTasks = processTasksWithServiceTask;
+  instance.process.currentTask = {
+    ...instance.process.currentTask!,
+    elementId: taskId,
+    name: taskId,
+    altinnTaskType: task.altinnTaskType,
+    elementType: task.elementType,
+  };
+  instance.process.workflow = workflow;
+  return instance;
+}
+
+function setServiceTaskPages(order: string[]) {
+  window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+    ui.folders.Task_Service = getLayoutSettingsMock({ pages: { order } });
+    ui.folders.Task_2 = getLayoutSettingsMock({ defaultDataType: defaultDataTypeMock });
+  });
+}
 
 function getInstanceWithWorkflow(workflow?: IProcessWorkflow): IInstanceWithProcess {
   const instance = getInstanceWithProcessMock();
@@ -66,9 +111,9 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
-  it('processing on a layouted service task renders the layout while deferring', async () => {
-    // A deferring service task reports processing while the process sits on the committed task
-    // (targetTask === currentTask). With a custom layout, the app owns the waiting presentation.
+  it('processing on a service task with a page renders the page', async () => {
+    // A running or deferring service task reports processing while the process sits on the
+    // committed task (targetTask === currentTask). With a page, the app owns the waiting presentation.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask!.elementType = 'ServiceTask';
     instance.process.workflow = {
@@ -94,10 +139,9 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByText(/vi behandler forespørselen din/i)).not.toBeInTheDocument();
   });
 
-  it('processing FROM a layouted service task toward another task shows the loader', async () => {
-    // Once the deferring task resolves and auto-advances, the dependent transition targets the
-    // next task: the process is in flight AWAY from the service task, so its layout no longer
-    // owns the presentation and the loader takes over until the transition settles.
+  it('a service task with a page keeps it while the workflow continues to the next task', async () => {
+    // Once the task completes, the dependent transition targets the next task while the process
+    // still sits on the service task. The page stays up instead of the loading view returning.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask!.elementType = 'ServiceTask';
     instance.process.workflow = { status: 'processing', targetTask: 'Task_Somewhere_Else' };
@@ -108,7 +152,6 @@ describe('ProcessWrapper workflow state machine', () => {
           <div data-testid='task-content'>Task content</div>
         </ProcessWrapper>
       ),
-      waitUntilLoaded: false,
       apis: {
         instanceApi: {
           getInstance: async () => instance,
@@ -116,9 +159,96 @@ describe('ProcessWrapper workflow state machine', () => {
       },
     });
 
-    await expectWorkflowLoader();
+    expect(await screen.findByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+  });
+
+  it("a service task page never shows the loading view's still-working message", async () => {
+    // The page owns the waiting presentation; the eight-second message belongs to the loading view.
+    vi.useFakeTimers();
+    try {
+      const instance = getInstanceWithProcessMock();
+      instance.process.currentTask!.elementType = 'ServiceTask';
+      instance.process.workflow = { status: 'processing', targetTask: instance.process.currentTask!.elementId };
+
+      await renderWithInstanceAndLayout({
+        renderer: () => (
+          <ProcessWrapper>
+            <div data-testid='task-content'>Task content</div>
+          </ProcessWrapper>
+        ),
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => instance,
+          },
+        },
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(9_000);
+      });
+      expect(screen.getByTestId('task-content')).toBeInTheDocument();
+      expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('a failure after a service task with a page shows the error page, not the page', async () => {
+    // The transition onward from the service task failed before committing the next task: no task
+    // UI owns that failure, so the terminal error page wins over the service task's page.
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.workflow = { status: 'failed', targetTask: 'Task_2', failure: { kind: 'stepFailed' } };
+
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <div data-testid='task-content'>Task content</div>
+        </ProcessWrapper>
+      ),
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    expect(await screen.findByText(/vi klarte ikke å fullføre behandlingen av skjemaet/i)).toBeInTheDocument();
     expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
   });
+
+  it.each([
+    { workflow: { status: 'idle' } as const, reason: 'service-task-waiting' },
+    { workflow: { status: 'processing', targetTask: 'Task_Service' } as const, reason: 'workflow-processing' },
+  ])(
+    'a service task whose folder lists no page shows the $reason loading view, not its folder',
+    async ({ workflow, reason }) => {
+      // An empty pages.order means no page: rendering the folder would end in "Ukjent feil".
+      setServiceTaskPages([]);
+      await renderWithDefaultProviders({
+        renderer: () => (
+          <InstanceProvider>
+            <ProcessWrapper>
+              <div data-testid='task-content'>Task content</div>
+            </ProcessWrapper>
+          </InstanceProvider>
+        ),
+        router: ({ children }) => <InstanceRouter taskId='Task_Service'>{children}</InstanceRouter>,
+        waitUntilLoaded: false,
+        apis: {
+          instanceApi: {
+            getInstance: async () => getInstanceOnTask('Task_Service', workflow),
+          },
+        },
+      });
+
+      await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', reason));
+      expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    },
+  );
 
   it('processing on a service task without a layout shows the loader', async () => {
     // Without a custom layout, a deferring service task uses the standard loader.
@@ -621,5 +751,157 @@ describe('ProcessWrapper workflow state machine', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('ProcessWrapper on a service task with a page, from the submitting session', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows the page from the commit until the next task, while process/next is pending', async () => {
+    setServiceTaskPages(['page1']);
+    let resolveProcessNext: (response: ProcessNextResponse) => void = () => {};
+    let phase: 'form' | 'serviceTask' | 'continuing' | 'nextCommitted' = 'form';
+    vi.mocked(doProcessNext).mockImplementationOnce(() => {
+      phase = 'serviceTask';
+      return new Promise((resolve) => {
+        resolveProcessNext = resolve;
+      });
+    });
+
+    const routerRef: RouterRef = { current: undefined };
+    await renderWithDefaultProviders({
+      renderer: () => (
+        <InstanceProvider>
+          <ProcessWrapper>
+            <div data-testid='task-content'>
+              <SubmitProbe />
+            </div>
+          </ProcessWrapper>
+        </InstanceProvider>
+      ),
+      router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () => {
+            switch (phase) {
+              case 'form':
+                return getInstanceOnTask('Task_1', { status: 'idle' });
+              case 'serviceTask':
+                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+              case 'continuing':
+                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_2' });
+              case 'nextCommitted':
+                return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+            }
+          },
+        },
+      },
+    });
+
+    expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
+    act(() => screen.getByRole('button', { name: 'submit-probe' }).click());
+
+    // A poll shows the process committed to the service task: the URL follows and the page shows,
+    // although process/next has not answered.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+
+    // The task completes and the workflow continues to the next task: the page stays.
+    phase = 'continuing';
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+
+    // The next task is committed but the workflow has not settled: the page still stays, with no
+    // still-working message and no stale-task error.
+    phase = 'nextCommitted';
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+    expect(screen.queryByText(/du kan trygt lukke siden/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/denne delen av skjemaet er ikke tilgjengelig/i)).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveProcessNext({
+        data: getInstanceOnTask('Task_2', { status: 'idle' }),
+        status: 200,
+        statusText: 'OK',
+        headers: new AxiosHeaders(),
+        config: { headers: new AxiosHeaders() },
+      });
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
+  });
+
+  it('follows a feedback task when the process moves on', async () => {
+    let advanced = false;
+    const routerRef: RouterRef = { current: undefined };
+    await renderWithDefaultProviders({
+      renderer: () => (
+        <InstanceProvider>
+          <ProcessWrapper>
+            <div data-testid='task-content'>Task content</div>
+          </ProcessWrapper>
+        </InstanceProvider>
+      ),
+      router: ({ children }) => (
+        <InstanceRouter
+          routerRef={routerRef}
+          taskId='Task_Feedback'
+        >
+          {children}
+        </InstanceRouter>
+      ),
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () => {
+            const instance = getInstanceWithProcessMock();
+            instance.process.processTasks = [
+              { altinnTaskType: 'feedback', elementId: 'Task_Feedback', elementType: 'Task' },
+              { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
+            ];
+            instance.process.currentTask = advanced
+              ? instance.process.currentTask
+              : {
+                  ...instance.process.currentTask!,
+                  elementId: 'Task_Feedback',
+                  name: 'Task_Feedback',
+                  altinnTaskType: 'feedback',
+                  elementType: 'Task',
+                };
+            return instance;
+          },
+        },
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_Feedback');
+
+    advanced = true;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(13_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_1');
   });
 });
