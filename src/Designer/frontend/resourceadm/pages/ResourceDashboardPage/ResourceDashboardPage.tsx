@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton, StudioHeading, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioHeading, StudioSpinner, StudioSwitch } from '@studio/components';
 import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3ResourceModal';
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
@@ -43,6 +43,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const navigate = useNavigate();
 
   const [searchValue, setSearchValue] = useState('');
+  const [showInactiveResources, setShowInactiveResources] = useState(false);
   const [importData, setImportData] = useState<{
     resourceId: string;
     availableEnvs: EnvId[];
@@ -54,7 +55,11 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     isRefetching: refetchingList,
   } = useGetResourceListQuery(org);
 
-  const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
+  const filteredResourceList = filterTableData(
+    searchValue,
+    resourceListData ?? [],
+    showInactiveResources,
+  );
 
   const handleNavigateToResource = (id: string) => {
     navigate(getResourcePageURL(org, app, id, 'about'));
@@ -102,10 +107,16 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       return (
         <>
           <SearchBox onChange={(value: string) => setSearchValue(value)} />
-          <div>
+          <div className={classes.tableHeader}>
             <StudioHeading data-size='xs' level={2}>
-              {t('resourceadm.dashboard_num_resources', { num: resourceListData?.length ?? 0 })}
+              {t('resourceadm.dashboard_num_resources', { num: filteredResourceList.length })}
             </StudioHeading>
+            <StudioSwitch
+              data-size='sm'
+              checked={showInactiveResources}
+              onChange={(event) => setShowInactiveResources(event.target.checked)}
+              label={t('resourceadm.dashboard_show_inactive_resources')}
+            />
           </div>
           <ResourceTable
             list={filteredResourceList}

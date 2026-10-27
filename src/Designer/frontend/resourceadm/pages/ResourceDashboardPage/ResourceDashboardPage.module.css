@@ -32,3 +32,9 @@
   margin-block: var(--ds-size-5);
   padding-block: var(--ds-size-5);
 }
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
