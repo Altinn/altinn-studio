@@ -150,18 +150,24 @@ function useNavigateToCommittedServiceTaskPage(
 /**
  * Whether the URL's service task shows its page in place of the loading view. The page shows once
  * the process is committed to the task, and stays while the process moves on from it until the
- * next task is on screen, so the loading view never returns in between. A URL opened on the task
- * after the process left it gets no page.
+ * next task is on screen, so the loading view never returns in between. A service task without a
+ * page has the loading view as its screen, so the page gives way for good once the process is
+ * committed to one. A URL opened on the task after the process left it gets no page.
  */
-function useShowServiceTaskPage(taskId: string | undefined, pageTask: string | undefined, inFlight: boolean) {
+function useShowServiceTaskPage(
+  taskId: string | undefined,
+  pageTask: string | undefined,
+  inFlight: boolean,
+  givesWay: boolean,
+) {
   const [shownTask, setShownTask] = useState<string | undefined>(undefined);
   const committedHere = taskId !== undefined && pageTask === taskId;
 
   useEffect(() => {
-    setShownTask((shown) => (committedHere ? taskId : shown === taskId ? shown : undefined));
-  }, [committedHere, taskId]);
+    setShownTask((shown) => (committedHere ? taskId : shown === taskId && !givesWay ? shown : undefined));
+  }, [committedHere, taskId, givesWay]);
 
-  return committedHere || (inFlight && taskId !== undefined && shownTask === taskId);
+  return committedHere || (inFlight && !givesWay && taskId !== undefined && shownTask === taskId);
 }
 
 export function ProcessWrapper({ children }: PropsWithChildren) {
@@ -177,15 +183,14 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isPdfMode = usePdfModeActive();
   const { data: process } = useProcessQuery();
 
-  // The committed service task, when it has a page (getTaskTypeById classifies those as Data).
+  // The committed service task, and the same when it has a page (getTaskTypeById classifies those as Data).
   const currentTask = process?.currentTask;
-  const pageTask =
-    currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK &&
-    getTaskType(currentTask.elementId) === ProcessTaskType.Data
-      ? currentTask.elementId
-      : undefined;
+  const serviceTask = currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK ? currentTask.elementId : undefined;
+  const pageTask = serviceTask && getTaskType(serviceTask) === ProcessTaskType.Data ? serviceTask : undefined;
+  const committedToServiceTaskWithoutPage = serviceTask !== undefined && !pageTask;
   const isInFlight = workflow?.status === 'processing' || isProcessNextPending;
-  const showServiceTaskPage = useShowServiceTaskPage(taskId, pageTask, isInFlight) && !isPdfMode;
+  const showServiceTaskPage =
+    useShowServiceTaskPage(taskId, pageTask, isInFlight, committedToServiceTaskWithoutPage) && !isPdfMode;
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
   useNavigateToSettledTask(taskId, !isPdfMode, isProcessNextPending);
@@ -202,9 +207,12 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // Follow feedback here as well, so observing a new task cannot unmount the component owning navigation.
   useFollowProcess(!isPdfMode && (isParkedOnServiceTask || taskType === ProcessTaskType.Feedback));
 
-  // Mounting mid-mutation waits for the response, except on a service task with a page: the URL
-  // moves there while the call is pending, and no form on it is part of the call.
-  if (isRunningProcessNext === null || (isRunningProcessNext && !showServiceTaskPage) || isWrongTask === null) {
+  // Mounting mid-mutation waits for the response, except on a service task: the URL moves there
+  // while the call is pending, and no form on it is part of the call. Its page or loading view
+  // shows instead, as after a reload.
+  const urlTaskIsServiceTask =
+    process?.processTasks?.find((task) => task.elementId === taskId)?.elementType === ELEMENT_TYPE.SERVICE_TASK;
+  if (isRunningProcessNext === null || (isRunningProcessNext && !urlTaskIsServiceTask) || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
   }
 

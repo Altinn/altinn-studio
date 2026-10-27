@@ -63,6 +63,7 @@ function mirrorRouterUrl(routerRef: RouterRef) {
 const processTasksWithServiceTask: NonNullable<IProcess['processTasks']> = [
   { altinnTaskType: 'data', elementId: 'Task_1', elementType: 'Task' },
   { altinnTaskType: 'scenario', elementId: 'Task_Service', elementType: 'ServiceTask' },
+  { altinnTaskType: 'eFormidling', elementId: 'Task_ServiceNoPage', elementType: 'ServiceTask' },
   { altinnTaskType: 'data', elementId: 'Task_2', elementType: 'Task' },
 ];
 
@@ -1005,6 +1006,110 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       await vi.advanceTimersByTimeAsync(10_000);
     });
     expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
+  });
+
+  it.each([
+    { gap: false, description: 'straight away' },
+    { gap: true, description: 'after an idle gap between the workflows' },
+  ])('gives the page way to the loading view of a next service task without a page, $description', async ({ gap }) => {
+    // Rule 2: the page shows until the next task is on screen, and a service task without a page has
+    // the loading view as its screen, as after a reload (see the next test). The idle gap between
+    // chained workflows keeps the page, and the URL may follow the process from there.
+    setServiceTaskPages(['page1']);
+    let phase: 'form' | 'serviceTask' | 'gap' | 'noPage' | 'nextCommitted' = 'form';
+    vi.mocked(doProcessNext).mockImplementationOnce(() => {
+      phase = 'serviceTask';
+      return new Promise(() => {});
+    });
+
+    const routerRef: RouterRef = { current: undefined };
+    await renderWithDefaultProviders({
+      renderer: () => (
+        <InstanceProvider>
+          <RemountPerTask />
+        </InstanceProvider>
+      ),
+      router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () => {
+            switch (phase) {
+              case 'form':
+                return getInstanceOnTask('Task_1', { status: 'idle' });
+              case 'serviceTask':
+                return getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+              case 'gap':
+                return getInstanceOnTask('Task_Service', { status: 'idle' });
+              case 'noPage':
+                return getInstanceOnTask('Task_ServiceNoPage', {
+                  status: 'processing',
+                  targetTask: 'Task_ServiceNoPage',
+                });
+              case 'nextCommitted':
+                return getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+            }
+          },
+        },
+      },
+    });
+
+    expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();
+    act(() => screen.getByRole('button', { name: 'submit-probe' }).click());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+
+    if (gap) {
+      phase = 'gap';
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1_000);
+      });
+      expect(screen.getByTestId('task-content')).toBeInTheDocument();
+      expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+    }
+
+    phase = 'noPage';
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing');
+
+    // The page does not come back once the process has left the task without a page either.
+    phase = 'nextCommitted';
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing');
+  });
+
+  it('shows the loading view after a reload on the page while the next service task, without a page, runs', async () => {
+    setServiceTaskPages(['page1']);
+    await renderWithDefaultProviders({
+      renderer: () => (
+        <InstanceProvider>
+          <RemountPerTask />
+        </InstanceProvider>
+      ),
+      router: ({ children }) => <InstanceRouter taskId='Task_Service'>{children}</InstanceRouter>,
+      waitUntilLoaded: false,
+      apis: {
+        instanceApi: {
+          getInstance: async () =>
+            getInstanceOnTask('Task_ServiceNoPage', { status: 'processing', targetTask: 'Task_ServiceNoPage' }),
+        },
+      },
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(screen.queryByTestId('task-content')).not.toBeInTheDocument();
+    expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'workflow-processing');
   });
 
   it('follows a feedback task when the process moves on', async () => {
