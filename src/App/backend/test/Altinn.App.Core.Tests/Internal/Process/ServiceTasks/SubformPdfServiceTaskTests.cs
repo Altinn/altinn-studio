@@ -296,7 +296,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
@@ -354,7 +354,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert - no attempt is made to render what the frontend cannot render
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains(reason, failed.ErrorMessage);
         Assert.Contains("'taskId'", failed.ErrorMessage);
