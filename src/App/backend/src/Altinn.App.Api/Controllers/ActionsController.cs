@@ -4,6 +4,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
@@ -170,6 +171,7 @@ public class ActionsController : ControllerBase
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler is null)
         {
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             return new NotFoundObjectResult(
                 new UserActionResponse()
                 {
@@ -192,6 +194,7 @@ public class ActionsController : ControllerBase
 
         if (result.ResultType is ResultType.Failure)
         {
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             return StatusCode(
                 statusCode: result.ErrorType switch
                 {
@@ -252,6 +255,8 @@ public class ActionsController : ControllerBase
         var updatedDataModels = changes
             .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)
             .ToDictionary(c => c.DataElementIdentifier.Id, c => c.CurrentFormData);
+
+        SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
         return Ok(
             new UserActionResponse()
