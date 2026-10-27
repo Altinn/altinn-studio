@@ -27,6 +27,9 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
+- Build checks for PDF service tasks in `process.bpmn` ([#21361](https://github.com/Altinn/altinn-studio/issues/21361)):
+    - `ALTINNAPP1026` (error): `pdfLayoutName` names a layout the task's UI folder does not have. The task also fails at once instead of timing out
+    - `ALTINNAPP1025` (warning): `autoPdfTaskIds` lists the task itself or a blank entry, which add nothing to the PDF
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
 - Custom process tasks can split the work they do when a task starts, ends or is abandoned into stages with `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`, composed and run exactly like the stages of a service task: each stage is saved and retried on its own, and can defer or fail permanently. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
@@ -41,6 +44,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - When a step of a service task fails and is retried, a warning now shows at the top of the task's own page, as it does on the loading view: after two failed attempts in a row, or one the step has kept failing for 20 seconds. ([#21380](https://github.com/Altinn/altinn-studio/issues/21380))
 - A service task's own page is read-only, since the task owns the instance until the process moves on: fields cannot be edited, and buttons that save, submit or run a server action are disabled. Navigation still works. ([#21362](https://github.com/Altinn/altinn-studio/issues/21362))
 - A PDF service task whose UI folder has no `pdfLayoutName` now generates its PDF from `autoPdfTaskIds`, as if it had no UI folder; the pages in `order` are never part of the PDF. Build check `ALTINNAPP1001` is removed, and `ALTINNAPP1000` reports a task with neither setting. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
+- Breaking: a PDF service task prints the layout its UI folder's `pdfLayoutName` names, or else the tasks in `autoPdfTaskIds`, never the pages in `order`. With neither setting it no longer prints those pages: build check `ALTINNAPP1000`, which replaces `ALTINNAPP1001`, reports it, and the task fails. Set one of them. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
+- Breaking: the `PdfController` constructor takes an `IAppResources`. Pass one if your code creates or extends the controller. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
 - Grid shows all the text in its cells instead of cutting it off with an ellipsis after two lines. `textOverflow` on Grid cells is deprecated: it has no effect, and you can remove it from your layouts. ([#21379](https://github.com/Altinn/altinn-studio/pull/21379))
 - `GET .../pdf/preview` now allows 20 previews per minute across all instances by default; further requests return 429 with `Retry-After`. Configure `PdfGeneratorSettings:PreviewRateLimit` using `PermitLimit` (0 disables the limit), `Window` and `QueueLimit` (requests queued for the next window). ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: `IPdfService.GeneratePdf` now has one overload requiring a language, with optional `autoGeneratePdfForTaskIds`, `isPreview` and `authenticationMethod` parameters. Pass `isPreview` and cancellation tokens by name; custom `IPdfService` implementations must implement every method, including the new `GenerateSubformPdf`. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
@@ -79,6 +84,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- A PDF service task whose UI folder lists no page in `order` no longer times out while generating its PDF. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
 - Scheduled instantiation notifications are no longer sent for deleted instances. ([Altinn/app-lib-dotnet#1864](https://github.com/Altinn/app-lib-dotnet/issues/1864))
 - An app that exports telemetry directly to Application Insights sends every trace and all logs instead of a sample of 5 traces per second. ([Altinn/app-lib-dotnet#1889](https://github.com/Altinn/app-lib-dotnet/pull/1889))
 - Submitting no longer fails when a hidden Map component has drawn geometries and `RemoveHiddenData` is enabled. ([Altinn/app-lib-dotnet#1862](https://github.com/Altinn/app-lib-dotnet/issues/1862))
