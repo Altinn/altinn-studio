@@ -24,6 +24,12 @@ const TROUBLE_FAILED_ATTEMPTS = 2;
 const TROUBLE_AFTER_ONE_FAILURE_MS = 20_000;
 
 /**
+ * How long a new status region stays empty, so screen readers have registered it before its text
+ * arrives. Browsers update the accessibility tree asynchronously.
+ */
+const STATUS_REGION_SETTLE_MS = 100;
+
+/**
  * Uses the ordinary form loader while a workflow transition is running. After eight seconds
  * of processing, the user also sees the safe-to-leave message. While the workflow is having
  * trouble (see useIsWorkflowHavingTrouble), that message is replaced by a warning.
@@ -60,13 +66,22 @@ export function WorkflowProcessing() {
  * A warning at the top of a service task's own page while the workflow is having trouble (see
  * useIsWorkflowHavingTrouble). It stays in view while the page scrolls, cannot be dismissed, and
  * clears itself once a step succeeds again. Never shown in PDF mode. Screen readers hear it through
- * a visually hidden status region that exists before the trouble starts, since a live region
- * inserted with its text already in it is not reliably announced; the visible warning is hidden
- * from them so the text is announced once.
+ * a visually hidden status region that mounts empty and takes the text only once it has settled,
+ * also when the trouble is already active on mount, since a live region inserted with its text
+ * already in it is not reliably announced; the visible warning is hidden from them so the text is
+ * announced once.
  */
 export function WorkflowTroubleBanner() {
   const havingTrouble = useIsWorkflowHavingTrouble();
   const isPdf = useIsPdf();
+  const [regionSettled, setRegionSettled] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setRegionSettled(true), STATUS_REGION_SETTLE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
 
   if (isPdf) {
     return null;
@@ -78,7 +93,7 @@ export function WorkflowTroubleBanner() {
         role='status'
         className={utilClasses.visuallyHidden}
       >
-        {havingTrouble && <Lang id='process_workflow.having_trouble' />}
+        {havingTrouble && regionSettled && <Lang id='process_workflow.having_trouble' />}
       </div>
       {havingTrouble && (
         <Alert

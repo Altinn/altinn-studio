@@ -326,13 +326,25 @@ describe('useIsWorkflowHavingTrouble', () => {
 });
 
 describe('WorkflowTroubleBanner', () => {
-  beforeEach(() => vi.mocked(useIsPdf).mockReturnValue(false));
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.mocked(useIsPdf).mockReturnValue(false);
+  });
+  afterEach(() => vi.useRealTimers());
 
-  it('puts the warning into a status region that exists before the trouble starts', () => {
+  /** Gives a newly added status region time to register with screen readers. */
+  async function letRegionSettle() {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+  }
+
+  it('puts the warning into a status region that exists before the trouble starts', async () => {
     vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 1));
     const { container, rerender } = render(<WorkflowTroubleBanner />);
     // A live region inserted with its text already in it is not reliably announced.
     const region = screen.getByRole('status');
+    await letRegionSettle();
     expect(region).toBeEmptyDOMElement();
 
     vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(4_000, 2));
@@ -348,6 +360,19 @@ describe('WorkflowTroubleBanner', () => {
     expect(container.querySelector('[aria-live]')).toBeNull();
   });
 
+  it('mounts its status region empty when the trouble is already active, and fills it after', async () => {
+    // After a reload or on entering the page, the trouble can be active before the region exists.
+    vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 2));
+    const { container } = render(<WorkflowTroubleBanner />);
+    const region = screen.getByRole('status');
+    expect(region).toBeEmptyDOMElement();
+    expect(container.querySelector('[aria-hidden="true"]')).toHaveTextContent('process_workflow.having_trouble');
+
+    await letRegionSettle();
+    expect(screen.getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent('process_workflow.having_trouble');
+  });
+
   it('is never shown in PDF mode', () => {
     vi.mocked(useIsPdf).mockReturnValue(true);
     vi.mocked(useProcessWorkflow).mockReturnValue(processingFor(3_000, 2));
@@ -360,9 +385,10 @@ describe('WorkflowTroubleBanner', () => {
     ['processing without failures', processingFor(3_000)],
     ['a long but healthy run', processingFor(10 * 60_000)],
     ['a single quick failure', processingFor(3_000, 1)],
-  ])('is not shown when %s', (_, workflow) => {
+  ])('is not shown when %s', async (_, workflow) => {
     vi.mocked(useProcessWorkflow).mockReturnValue(workflow);
     const { container } = render(<WorkflowTroubleBanner />);
+    await letRegionSettle();
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
     expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
   });
