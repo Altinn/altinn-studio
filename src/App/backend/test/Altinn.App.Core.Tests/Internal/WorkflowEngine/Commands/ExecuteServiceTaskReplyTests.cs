@@ -74,7 +74,7 @@ public class ExecuteServiceTaskReplyTests
 
         public StageContext? Stage { get; private set; }
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
@@ -126,7 +126,7 @@ public class ExecuteServiceTaskReplyTests
 
         public StageContext? Conclusion { get; private set; }
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -165,7 +165,7 @@ public class ExecuteServiceTaskReplyTests
 
         public List<string> Answered { get; } = [];
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -206,7 +206,7 @@ public class ExecuteServiceTaskReplyTests
 
         public StageContext? Conclusion { get; private set; }
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Finally(context =>

@@ -44,7 +44,7 @@ internal sealed record StepRequest
     /// <summary>
     /// The options the pipeline item this step runs declared — a lifecycle stage, or a service task stage, reply
     /// handler or conclusion — put on the step where it is planned, with the pipeline at hand. They win field-wise
-    /// over the task's own options and the command's defaults. Internal and never serialized. A mailbox mint
+    /// over the command's defaults. Internal and never serialized. A mailbox mint
     /// carries none, so it does not inherit the options of the stage it precedes.
     /// </summary>
     internal ProcessStepOptions? StageOptions { get; init; }

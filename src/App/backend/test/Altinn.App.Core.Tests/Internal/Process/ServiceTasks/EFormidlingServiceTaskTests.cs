@@ -110,12 +110,11 @@ public class EFormidlingServiceTaskTests
         Assert.Equal(2, pipeline.Items.Count);
         Assert.IsType<PipelineStage.Plain>(pipeline.Items[0]);
         PipelineConclusion conclusion = Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
-        // The wait budget belongs to the conclusion, not the task — the send stage must not be
-        // handed a budget it can never use. Deliberately longer than the two-hour lifetime the
-        // shipment carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the
-        // instance before our wait gives up.
+        // The wait budget belongs to the conclusion alone — the send stage must not be handed a
+        // budget it can never use. Deliberately longer than the two-hour lifetime the shipment
+        // carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the instance
+        // before our wait gives up.
         Assert.Equal(TimeSpan.FromHours(2.5), conclusion.StepOptions?.WaitBudget);
-        Assert.Null(((IServiceTask)_serviceTask).StepOptions);
         Assert.Null(pipeline.Items[0].StepOptions);
     }
 

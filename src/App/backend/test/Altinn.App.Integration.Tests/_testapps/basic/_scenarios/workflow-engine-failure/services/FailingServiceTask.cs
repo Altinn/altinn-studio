@@ -11,7 +11,7 @@ public sealed class FailingServiceTask : IServiceTask
 {
     public string Type => "failing-service";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
     public Task<ServiceTaskResult> Execute(StageContext context)
     {

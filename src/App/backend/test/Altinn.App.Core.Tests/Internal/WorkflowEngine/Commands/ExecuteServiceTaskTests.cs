@@ -34,7 +34,7 @@ public class ExecuteServiceTaskTests
 
         public string Type => "myServiceTask";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -511,7 +511,7 @@ public class ExecuteServiceTaskTests
     {
         public string Type => type;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) => execute(context);
     }

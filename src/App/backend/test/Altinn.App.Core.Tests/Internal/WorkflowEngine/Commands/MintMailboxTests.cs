@@ -151,7 +151,7 @@ public class MintMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .Stage(Plain)
@@ -163,7 +163,7 @@ public class MintMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Stage(Plain).Finally(Conclude);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Stage(Plain).Finally(Conclude);
     }
 
     /// <summary>Drift: nothing composes at this index at all.</summary>
@@ -171,7 +171,7 @@ public class MintMailboxTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline.Stage(Send, _threeDays, out MailboxHandle archive).ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 

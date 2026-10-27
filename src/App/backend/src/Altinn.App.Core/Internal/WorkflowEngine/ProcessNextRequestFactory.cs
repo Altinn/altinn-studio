@@ -460,7 +460,7 @@ internal sealed class ProcessNextRequestFactory
                 {
                     taskEndSteps.AddRange(
                         workflowCommands
-                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
@@ -468,24 +468,16 @@ internal sealed class ProcessNextRequestFactory
                 {
                     taskStartSteps.AddRange(
                         workflowCommands
-                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
 
                 primaryPostCommitSteps.AddRange(
-                    workflowCommands.PrimaryPostCommitCommands.ApplyStepOptions(
-                        _stepOptionsResolver,
-                        eventTaskId,
-                        serviceTaskType
-                    )
+                    workflowCommands.PrimaryPostCommitCommands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
                 );
                 auxiliarySteps.AddRange(
-                    workflowCommands.AuxiliaryCommands.ApplyStepOptions(
-                        _stepOptionsResolver,
-                        eventTaskId,
-                        serviceTaskType
-                    )
+                    workflowCommands.AuxiliaryCommands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
                 );
             }
         }
@@ -666,7 +658,7 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = MutateProcessState.Key, Payload = serializedPayload }
             ),
         };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
     }
 
     private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange)
@@ -681,7 +673,7 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = CommitProcessState.Key, Payload = serializedPayload }
             ),
         };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
     }
 
     private StepRequest CreateEnqueueAuxiliaryWorkflowsCommand(WorkflowEnqueueRequest auxiliaryEnqueueRequest)
@@ -696,7 +688,7 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = EnqueueAuxiliaryWorkflows.Key, Payload = serializedPayload }
             ),
         };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
     }
 
     private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null)
@@ -709,6 +701,6 @@ internal sealed class ProcessNextRequestFactory
                 new AppCommandData { CommandKey = commandKey, Payload = CommandPayloadSerializer.Serialize(payload) }
             ),
         };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
+        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
     }
 }

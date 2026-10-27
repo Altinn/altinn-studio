@@ -58,7 +58,7 @@ internal sealed class SubformPdfServiceTask(
         return [];
     }
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
     public async Task<ServiceTaskResult> Execute(StageContext context)
     {

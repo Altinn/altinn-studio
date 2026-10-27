@@ -4,8 +4,8 @@ namespace Altinn.App.Core.Features.Process;
 /// Composes a pipeline, the one way for every kind of task: zero or more
 /// <see cref="Stage(Func{StageContext, Task{StageResult}}, ProcessStepOptions?)"/> calls and
 /// <see cref="HandleReplies"/> handlers, in any order, ended by exactly one terminal. A service task composes
-/// inside <see cref="IServiceTask.Define"/> and ends with a conclusion, <see cref="Finally"/> or
-/// <see cref="ConcludeOnReplies"/>, the only sources of the <see cref="ServiceTaskPipeline"/> that <c>Define</c>
+/// inside <see cref="IServiceTask.DefineExecute"/> and ends with a conclusion, <see cref="Finally"/> or
+/// <see cref="ConcludeOnReplies"/>, the only sources of the <see cref="ServiceTaskPipeline"/> that <c>DefineExecute</c>
 /// must return. A process task composes the work it does when a task starts, ends or is abandoned inside
 /// <see cref="Internal.Process.ProcessTasks.IProcessTask.DefineStart"/>, <c>DefineEnd</c> or <c>DefineAbandon</c>
 /// and ends with <see cref="Build"/>: those stages run inside the transition and never advance the process, so
@@ -18,12 +18,12 @@ public sealed class PipelineBuilder
 
     /// <summary>
     /// The mailboxes this builder has issued handles for, each carrying what answers it. A fresh builder per
-    /// <c>Define</c> call, so this is one pipeline's whole set.
+    /// <c>DefineExecute</c> call, so this is one pipeline's whole set.
     /// </summary>
     private readonly List<IssuedMailbox> _mailboxes = [];
 
     /// <summary>
-    /// Not constructible by apps: a <c>Define</c> spreading its composition over two builders could lose a
+    /// Not constructible by apps: a <c>DefineExecute</c> spreading its composition over two builders could lose a
     /// mailbox declaration made on the one it did not return from.
     /// </summary>
     internal PipelineBuilder() { }
@@ -37,8 +37,8 @@ public sealed class PipelineBuilder
     /// <see cref="StageContext.StepId"/> as the idempotency key for calls the stage must not repeat.
     /// </param>
     /// <param name="options">
-    /// Optional per-stage execution options, winning field-wise over the task's own
-    /// <see cref="IProcessStepConfigurable.StepOptions"/>.
+    /// Optional execution options for the step this stage runs as: its timeout, retry strategy and wait budget.
+    /// A field left unset falls back to the command's default and then the engine's.
     /// </param>
     public PipelineBuilder Stage(Func<StageContext, Task<StageResult>> work, ProcessStepOptions? options = null)
     {
@@ -149,8 +149,8 @@ public sealed class PipelineBuilder
     /// apply here too.
     /// </param>
     /// <param name="options">
-    /// Optional execution options for the concluding step alone. Declare a polling pipeline's
-    /// <see cref="ProcessStepOptions.WaitBudget"/> here rather than on the task.
+    /// Optional execution options for the concluding step alone. A polling pipeline declares its
+    /// <see cref="ProcessStepOptions.WaitBudget"/> here, on the step that waits.
     /// </param>
     /// <exception cref="InvalidOperationException">
     /// A mailbox this pipeline opens is left unanswered.
@@ -261,7 +261,7 @@ public sealed class PipelineBuilder
             unanswered.Answer is MailboxAnswer.Terminal
                 ? $"The mailbox opened at index {openingIndex} is answered by an earlier {nameof(ConcludeOnReplies)}, but "
                     + $"that answer is the conclusion of the pipeline that call returned — and this {terminal} "
-                    + "returns a different pipeline, in which nothing answers it. A Define composes one terminal "
+                    + "returns a different pipeline, in which nothing answers it. A DefineExecute composes one terminal "
                     + "and returns it; two terminals on one builder are two pipelines, and the one left behind "
                     + "takes its exchange's answer with it."
                 : $"A mailbox is opened at index {openingIndex}, but nothing answers it, and this pipeline ends "

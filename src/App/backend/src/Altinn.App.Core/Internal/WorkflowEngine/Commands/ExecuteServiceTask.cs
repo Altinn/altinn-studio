@@ -32,8 +32,7 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>
     /// Service tasks routinely call slow external systems, so they get a far more generous default timeout
-    /// than the engine's. Override per task via <see cref="IProcessStepConfigurable.StepOptions"/> or per
-    /// stage on the builder.
+    /// than the engine's. A task overrides it per step, where its pipeline composes the step.
     /// </summary>
     internal static readonly TimeSpan DefaultServiceTaskTimeout = TimeSpan.FromMinutes(10);
 

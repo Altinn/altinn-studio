@@ -192,7 +192,7 @@ internal sealed record MailboxHandover
     /// <summary>
     /// The plan as the deciding hop made it, authoritative: the enqueue hop applies step options to these
     /// steps and enqueues them, and never plans again — so nothing rides on the two hops resolving
-    /// <c>Define</c> to the same shape.
+    /// <c>DefineExecute</c> to the same shape.
     /// </summary>
     public ServiceTaskSegmentPlan Plan { get; }
 

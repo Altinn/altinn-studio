@@ -66,7 +66,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
         {
             pipeline.Stage(
                 (context, mailbox) =>

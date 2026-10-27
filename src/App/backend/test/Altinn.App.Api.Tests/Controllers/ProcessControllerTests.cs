@@ -1485,8 +1485,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             },
         ]);
         var action = CreateStrictCompleteActionMock(serviceType);
-        // A real class, not a mock: resolving the task's pipeline goes through the forwarding
-        // Define default, which mocks bypass.
+        // A real class, not a mock: an unstubbed mock returns null from DefineExecute.
         var serviceTask = new RecordingServiceTask(serviceType);
         OverrideServicesForThisTest = services =>
         {
@@ -1761,7 +1760,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         public string Type => type;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {

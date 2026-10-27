@@ -45,7 +45,7 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// <inheritdoc />
     public string Type => "pdf";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
     /// <inheritdoc/>
     public async Task<ServiceTaskResult> Execute(StageContext context)

@@ -32,13 +32,13 @@ public class ServiceTaskPipelineMailboxTests
     private static PipelineBuilder ComposeStages(PipelineBuilder builder, out MailboxHandle handle) =>
         builder.Stage(Send, _threeDays, out handle).Stage(_ => Task.FromResult(StageResult.Completed()));
 
-    /// <summary>A pipeline task whose <c>Define</c> the test scripts, so composition mistakes can be
+    /// <summary>A pipeline task whose <c>DefineExecute</c> the test scripts, so composition mistakes can be
     /// pushed through the runtime's own resolution path.</summary>
     private sealed class ScriptedTask(Func<PipelineBuilder, ServiceTaskPipeline> define) : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => define(pipeline);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => define(pipeline);
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void HandleFromAnotherPipeline_Throws()
     {
-        // Not a hypothetical: a task that caches a handle from a previous Define call lands here.
+        // Not a hypothetical: a task that caches a handle from a previous DefineExecute call lands here.
         new PipelineBuilder().Stage(Send, _threeDays, out MailboxHandle foreign);
         var builder = new PipelineBuilder();
         builder.Stage(Send, _threeDays, out MailboxHandle _);
@@ -389,7 +389,7 @@ public class ServiceTaskPipelineMailboxTests
     [Fact]
     public void ResolvePipeline_DefineCachesThePipeline_StillResolves()
     {
-        // Caching violates Define's contract but must not become a hard error: the pipeline is immutable, and
+        // Caching violates DefineExecute's contract but must not become a hard error: the pipeline is immutable, and
         // this call's builder issued no handle of its own.
         ServiceTaskPipeline cached = ComposeStages(new PipelineBuilder(), out MailboxHandle handle)
             .ConcludeOnReplies(handle, Handle, Closed);

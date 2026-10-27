@@ -83,7 +83,7 @@ public sealed class WorkflowHookServiceTask : IServiceTask
 {
     public string Type => "write";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
     public Task<ServiceTaskResult> Execute(StageContext context)
     {

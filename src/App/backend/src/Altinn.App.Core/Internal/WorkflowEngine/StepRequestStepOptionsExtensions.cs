@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
 /// Maps per-step execution options (timeout + retry strategy) onto outgoing <see cref="StepRequest"/> wire
-/// requests. Split into a resolving pass (<see cref="ApplyStepOptions(StepRequest, ProcessStepOptionsResolver, string?, string?)"/>,
+/// requests. Split into a resolving pass (<see cref="ApplyStepOptions(StepRequest, ProcessStepOptionsResolver, string?)"/>,
 /// which needs the <see cref="ProcessStepOptionsResolver"/>) and a pure mapping pass
 /// (<see cref="WithStepOptions"/>, which needs nothing) so both read as a fluent transform at the call site.
 /// </summary>
@@ -18,12 +18,11 @@ internal static class StepRequestStepOptionsExtensions
     public static IEnumerable<StepRequest> ApplyStepOptions(
         this IEnumerable<StepRequest> steps,
         ProcessStepOptionsResolver resolver,
-        string? taskId,
-        string? serviceTaskType
+        string? taskId
     )
     {
         foreach (StepRequest step in steps)
-            yield return step.ApplyStepOptions(resolver, taskId, serviceTaskType);
+            yield return step.ApplyStepOptions(resolver, taskId);
     }
 
     /// <summary>
@@ -38,12 +37,8 @@ internal static class StepRequestStepOptionsExtensions
     public static StepRequest ApplyStepOptions(
         this StepRequest step,
         ProcessStepOptionsResolver resolver,
-        string? taskId,
-        string? serviceTaskType
-    ) =>
-        step.WithStepOptions(
-            resolver.Resolve(step.CommandKey ?? step.OperationId, taskId, serviceTaskType, step.StageOptions)
-        );
+        string? taskId
+    ) => step.WithStepOptions(resolver.Resolve(step.CommandKey ?? step.OperationId, taskId, step.StageOptions));
 
     /// <summary>
     /// Maps already-resolved options onto the wire request. A null <paramref name="options"/> leaves the

@@ -8,7 +8,7 @@ namespace Altinn.App.Models.logic;
 
 /// <summary>
 /// The stage work and reply handlers every task below composes, so each task is nothing but its
-/// <c>Define</c> — the shape ALTINNAPP0702 and ALTINNAPP0703 are about.
+/// <c>DefineExecute</c> — the shape ALTINNAPP0702 and ALTINNAPP0703 are about.
 /// </summary>
 internal static class MailboxHandlers
 {
@@ -38,7 +38,7 @@ internal sealed class TwoHandlersInOneChainTask : IServiceTask
 {
     public string Type => "twoHandlersInOneChain";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle archive)
             .HandleReplies(archive, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
@@ -52,7 +52,7 @@ internal sealed class HandledThenConcludedTask : IServiceTask
 {
     public string Type => "handledThenConcluded";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out var journal)
             .HandleReplies(journal, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
@@ -64,7 +64,7 @@ internal sealed class TwoHandlersInSequenceTask : IServiceTask
 {
     public string Type => "twoHandlersInSequence";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -81,7 +81,7 @@ internal sealed class ForgottenMailboxTask : IServiceTask
 {
     public string Type => "forgottenMailbox";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle forgotten)
             .Finally(MailboxHandlers.Conclude);
@@ -92,7 +92,7 @@ internal sealed class TwoExchangesTask : IServiceTask
 {
     public string Type => "twoExchanges";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out MailboxHandle first)
             .HandleReplies(first, MailboxHandlers.OnMessage, MailboxHandlers.OnClosed)
@@ -106,7 +106,7 @@ internal sealed class HelperAnsweredTask : IServiceTask
 {
     public string Type => "helperAnswered";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -128,7 +128,7 @@ internal sealed class FieldAnsweredTask : IServiceTask
 
     public string Type => "fieldAnswered";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -148,7 +148,7 @@ internal sealed class BranchedAnswerTask : IServiceTask
 
     public bool EndOnTheExchange { get; set; }
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -177,7 +177,7 @@ internal sealed class ReusedLocalTask : IServiceTask
 {
     public string Type => "reusedLocal";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -196,7 +196,7 @@ internal sealed class LambdaAnsweredTask : IServiceTask
 {
     public string Type => "lambdaAnswered";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -216,7 +216,7 @@ internal sealed class DiscardedHandleTask : IServiceTask
 {
     public string Type => "discardedHandle";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline.Stage(MailboxHandlers.Send, MailboxHandlers.Options(), out _).Finally(MailboxHandlers.Conclude);
 }
 
@@ -228,7 +228,7 @@ internal sealed class UnreachedBranchTask : IServiceTask
 
     public bool AnswerTwice { get; set; }
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -253,7 +253,7 @@ internal sealed class UnreachedLoopTask : IServiceTask
 
     public IEnumerable<int> Repeats { get; set; } = Array.Empty<int>();
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -277,7 +277,7 @@ internal sealed class RefAliasedTask : IServiceTask
 {
     public string Type => "refAliased";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -297,7 +297,7 @@ internal sealed class DeconstructedTask : IServiceTask
 {
     public string Type => "deconstructed";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -319,7 +319,7 @@ internal sealed class AfterBranchMergeTask : IServiceTask
 
     public bool Urgent { get; set; }
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         MailboxOptions options;
         if (Urgent)
@@ -339,14 +339,14 @@ internal sealed class AfterBranchMergeTask : IServiceTask
     }
 }
 
-// Violates ALTINNAPP0702: the same, after an earlier `??` - the shape a real Define is likeliest to have.
+// Violates ALTINNAPP0702: the same, after an earlier `??` - the shape a real DefineExecute is likeliest to have.
 internal sealed class AfterNullCoalesceTask : IServiceTask
 {
     public string Type => "afterNullCoalesce";
 
     public ProcessStepOptions Overrides { get; set; }
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         ProcessStepOptions steps = Overrides ?? new ProcessStepOptions();
         return pipeline
@@ -363,7 +363,7 @@ internal sealed class InsideUsingTask : IServiceTask
 {
     public string Type => "insideUsing";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         using var scope = new StringReader("");
         return pipeline
@@ -382,7 +382,7 @@ internal sealed class SwallowedThrowTask : IServiceTask
 {
     public string Type => "swallowedThrow";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -413,7 +413,7 @@ internal sealed class HandlerReturnsTask : IServiceTask
 
     public string Raw { get; set; } = "not a number";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -446,7 +446,7 @@ internal sealed class FilteredHandlerTask : IServiceTask
 
     public bool Recover { get; set; }
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,
@@ -475,7 +475,7 @@ internal sealed class RethrowingCatchTask : IServiceTask
 {
     public string Type => "rethrowingCatch";
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
     {
         PipelineBuilder builder = pipeline.Stage(
             MailboxHandlers.Send,

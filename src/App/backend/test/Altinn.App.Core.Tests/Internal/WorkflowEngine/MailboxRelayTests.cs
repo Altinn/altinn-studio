@@ -235,7 +235,7 @@ public class MailboxRelayTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
@@ -258,9 +258,7 @@ public class MailboxRelayTests
     {
         public string Type => ServiceTaskType;
 
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
-
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -279,7 +277,7 @@ public class MailboxRelayTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -295,7 +293,7 @@ public class MailboxRelayTests
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
@@ -1649,7 +1647,7 @@ public class MailboxRelayTests
 
     /// <summary>
     /// The continuation's steps resolve their options the way the factory resolves the primary workflow's: each step's
-    /// own, found by the identity it carries, over the task's.
+    /// own, found by the identity it carries.
     /// </summary>
     [Fact]
     public async Task Continuation_ResolvesEachStepsOwnOptions()
@@ -1664,10 +1662,11 @@ public class MailboxRelayTests
         StepRequest record = continuation.Steps.Single(s => s.OperationId == $"{ExecuteServiceTask.Key}: 2");
         Assert.Equal(TimeSpan.FromMinutes(7), record.Command.MaxExecutionTime);
 
+        // A stage that declares nothing takes the command's and the engine's defaults, never another stage's.
         StepRequest send = continuation.Steps.Single(s => s.OperationId == $"{ExecuteServiceTask.Key}: {JournalIndex}");
-        Assert.Equal(TimeSpan.FromMinutes(30), send.Command.MaxExecutionTime);
+        Assert.Null(send.Command.MaxExecutionTime);
 
-        // One HTTP call: the mint takes the engine's defaults, never the declaring stage's or the task's.
+        // One HTTP call: the mint takes the engine's defaults, never the declaring stage's.
         StepRequest mint = continuation.Steps.Single(s => s.OperationId == $"{MintMailbox.Key}: {JournalIndex}");
         Assert.Null(mint.Command.MaxExecutionTime);
     }

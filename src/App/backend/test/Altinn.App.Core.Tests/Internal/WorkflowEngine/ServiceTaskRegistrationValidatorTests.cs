@@ -40,7 +40,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "simple";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) => NoopFinally(context);
     }
@@ -49,7 +49,8 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "good";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Stage(NoopStage).Finally(NoopFinally);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
+            pipeline.Stage(NoopStage).Finally(NoopFinally);
     }
 
     [Fact]
@@ -82,7 +83,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "invalidOptions";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(NoopStage, new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromSeconds(-5) })
                 .Finally(NoopFinally);
@@ -101,7 +102,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "throwingDefine";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             throw new InvalidOperationException("no pipeline for you");
     }
 
@@ -118,7 +119,7 @@ public class ServiceTaskRegistrationValidatorTests
     {
         public string Type => "nullDefine";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => null!;
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => null!;
     }
 
     [Fact]
@@ -127,7 +128,7 @@ public class ServiceTaskRegistrationValidatorTests
         var exception = await Validate(s => s.AddSingleton<IServiceTask, NullDefineTask>());
 
         Assert.NotNull(exception);
-        Assert.Contains("Define returned null", exception.Message);
+        Assert.Contains("DefineExecute returned null", exception.Message);
     }
 
     // ── Mailbox composition ──────────────────────────────────────────────────────────────────
@@ -138,7 +139,7 @@ public class ServiceTaskRegistrationValidatorTests
 
         // The violation: a stage opens a mailbox and the pipeline ends with Finally, so nothing answers the
         // messages that come back.
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
                 .Finally(NoopFinally);
@@ -173,8 +174,8 @@ public class ServiceTaskRegistrationValidatorTests
             return handle;
         }
 
-        // The violation: a handle cached from an earlier Define call belongs to that call's builder.
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        // The violation: a handle cached from an earlier DefineExecute call belongs to that call's builder.
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(NoopSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle _)
                 .ConcludeOnReplies(_cached, NoopMessage, NoopClosed);

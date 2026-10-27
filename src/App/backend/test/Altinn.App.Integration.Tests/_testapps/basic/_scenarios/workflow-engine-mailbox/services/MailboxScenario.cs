@@ -53,7 +53,7 @@ public sealed class ArchivingServiceTask : IServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(PrepareDocuments)
             .Stage(

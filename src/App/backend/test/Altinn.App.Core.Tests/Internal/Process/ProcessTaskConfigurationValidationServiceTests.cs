@@ -256,7 +256,7 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => validate(context);
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
@@ -975,7 +975,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
@@ -988,7 +988,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");

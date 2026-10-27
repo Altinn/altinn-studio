@@ -95,13 +95,13 @@ internal sealed class EFormidlingServiceTask : IServiceTask
     /// The pipeline's shape is fixed at enqueue time — a workflow enqueued against it dispatches by item
     /// index, so stages must not be inserted, reordered or removed while workflows are in flight.
     /// <para>
-    /// The wait budget sits on the conclusion, not the task, because only the poll waits and
-    /// task-level options reach every stage. It outlasts the shipment's own two-hour lifetime plus the
+    /// The wait budget sits on the conclusion, because only the poll waits. It outlasts the shipment's own
+    /// two-hour lifetime plus the
     /// integrasjonspunkt's 30-second expiry sweep and one poll interval, so a shipment that dies of old
     /// age fails with its verdict rather than ours.
     /// </para>
     /// </remarks>
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendShipment)
             .Finally(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });

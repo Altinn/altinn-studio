@@ -63,7 +63,7 @@ internal sealed class FiksArkivServiceTask : IServiceTask
     /// address. The archive answers more than once — an acknowledgement, then a receipt — so the exchange is a
     /// multi-message one.
     /// </remarks>
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendToArchive, new MailboxOptions { Timeout = ArchiveReplyTimeout }, out MailboxHandle archive)
             .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);

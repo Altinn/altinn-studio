@@ -4,7 +4,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// A service task: the work the workflow engine runs durably when the process enters a BPMN service task,
-/// composed as a pipeline in <see cref="Define"/>. A task that does one thing is a pipeline of just the
+/// composed as a pipeline in <see cref="DefineExecute"/>. A task that does one thing is a pipeline of just the
 /// conclusion — <c>pipeline.Finally(Execute)</c>. A task with several consecutive units of work — dispatch
 /// then await, or a series of API calls — gives each unit its own durable stage ahead of the conclusion. The
 /// conclusion is a final step for work that finishes by itself or by polling, or a reply terminal for work
@@ -16,12 +16,13 @@ namespace Altinn.App.Core.Features.Process;
 /// Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
 /// </remarks>
 [ImplementableByApps]
-public interface IServiceTask : IProcessTask, IProcessStepConfigurable
+public interface IServiceTask : IProcessTask
 {
     /// <summary>
-    /// Defines the task's pipeline: zero or more <c>Stage</c> calls, ended by exactly one terminal —
-    /// <c>Finally</c>, or <c>ConcludeOnReplies</c> when a stage opened a mailbox. Called at enqueue, on
-    /// every callback, and at app startup, so it must be cheap, deterministic and side-effect free.
+    /// Defines the pipeline the task runs between its start and its end: zero or more <c>Stage</c> calls, ended
+    /// by exactly one terminal — <c>Finally</c>, or <c>ConcludeOnReplies</c> when a stage opened a mailbox. Each
+    /// call takes the step's options, such as its timeout and retry strategy. Called at enqueue, on every
+    /// callback, and at app startup, so it must be cheap, deterministic and side-effect free.
     /// </summary>
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline);
 }

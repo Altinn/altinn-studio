@@ -25,18 +25,18 @@ internal static class ServiceTaskLookupExtensions
         where T : class, IProcessTask => tasks.LastOrDefault(task => task.Type == altinnTaskType);
 
     /// <summary>
-    /// The task's composed pipeline. Throws when <c>Define</c> returns null, which no honest implementation
+    /// The task's composed pipeline. Throws when <c>DefineExecute</c> returns null, which no honest implementation
     /// does (the builder is the only source of a pipeline) but an unstubbed mock does.
     /// </summary>
     public static ServiceTaskPipeline ResolvePipeline(this IServiceTask task)
     {
-        // Fresh per call, so the mailbox handle it issues cannot be answered from another task's Define.
+        // Fresh per call, so the mailbox handle it issues cannot be answered from another task's DefineExecute.
         var builder = new PipelineBuilder();
 
         ServiceTaskPipeline pipeline =
-            task.Define(builder)
+            task.DefineExecute(builder)
             ?? throw new InvalidOperationException(
-                $"{task.GetType().Name}.{nameof(IServiceTask.Define)} returned null — a service task must "
+                $"{task.GetType().Name}.{nameof(IServiceTask.DefineExecute)} returned null — a service task must "
                     + "return the pipeline composed from the supplied builder."
             );
 

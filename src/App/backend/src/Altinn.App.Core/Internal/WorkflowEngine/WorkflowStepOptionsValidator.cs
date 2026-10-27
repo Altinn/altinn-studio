@@ -7,7 +7,8 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
 /// Validates the per-step execution options (<see cref="IProcessStepConfigurable.StepOptions"/>) declared
-/// by the app's service tasks and task/process lifecycle hooks, once at startup. A misconfigured handler
+/// by the app's task and process lifecycle hooks, once at startup. A service task's options are declared on
+/// its pipeline's steps, which the builder validates as the pipeline is composed. A misconfigured handler
 /// (e.g. a negative timeout or a zero-delay unbounded retry strategy) otherwise only surfaces the first
 /// time a citizen advances the affected task — as a failed transition, in production. Validating at boot
 /// turns that into a fast, unmissable startup failure.
@@ -37,7 +38,6 @@ internal sealed class WorkflowStepOptionsValidator : IHostedService
         IServiceProvider sp = scope.ServiceProvider;
 
         var errors = new List<string>();
-        ValidateHandlers<IServiceTask>(sp, errors);
         ValidateHandlers<IOnTaskStartingHandler>(sp, errors);
         ValidateHandlers<IOnTaskEndingHandler>(sp, errors);
         ValidateHandlers<IOnTaskAbandoningHandler>(sp, errors);

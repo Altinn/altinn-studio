@@ -31,6 +31,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Changed
 
+- Breaking: `IServiceTask.Define` is `DefineExecute`, named like `DefineStart`, `DefineEnd` and `DefineAbandon` for the phase it composes. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+- Breaking: `IServiceTask` no longer has `StepOptions`. Declare a step's timeout, retry strategy and wait budget where the step is composed, on `Stage`, `HandleReplies`, `Finally` or `ConcludeOnReplies`; nothing falls back to a task-wide value. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 - `IPipelineServiceTask` is gone. `IServiceTask` is the one service task interface, and every service task composes its pipeline in `Define`. A task that did one thing keeps its `Execute` and defines `pipeline.Finally(Execute)`. Analyzer rule `ALTINNAPP0700`, which guarded the forwarding default, is removed with it. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 - Grid shows all the text in its cells instead of cutting it off with an ellipsis after two lines. `textOverflow` on Grid cells is deprecated: it has no effect, and you can remove it from your layouts. ([#21379](https://github.com/Altinn/altinn-studio/pull/21379))
 - `GET .../pdf/preview` now allows 20 previews per minute across all instances by default; further requests return 429 with `Retry-After`. Configure `PdfGeneratorSettings:PreviewRateLimit` using `PermitLimit` (0 disables the limit), `Window` and `QueueLimit` (requests queued for the next window). ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))

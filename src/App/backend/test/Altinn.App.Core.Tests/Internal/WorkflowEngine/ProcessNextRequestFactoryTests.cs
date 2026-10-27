@@ -1204,39 +1204,40 @@ public class ProcessNextRequestFactoryTests
 
     /// <summary>
     /// A simple IServiceTask with configurable type and options — a real class, not a mock,
-    /// because Moq bypasses the forwarding Define default the factory relies on.
+    /// because an unstubbed mock returns null from DefineExecute, which the factory needs.
     /// </summary>
     private sealed class FakeServiceTask(string type, ProcessStepOptions? options = null) : IServiceTask
     {
         public string Type => type;
 
-        public ProcessStepOptions? StepOptions => options;
-
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute, options);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 
     /// <summary>
-    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally. The task-wide
-    /// options carry the 30 min timeout and the poll's 48 h wait budget; the stage overrides the timeout for
-    /// itself.
+    /// A send→poll pipeline used by the expansion tests: one stage plus the concluding Finally, each with its own
+    /// timeout, and the poll's 48 h wait budget on the Finally alone.
     /// </summary>
     private sealed class SigningTask : IServiceTask
     {
         public string Type => "signing";
 
-        public ProcessStepOptions? StepOptions =>
-            new() { MaxExecutionTime = TimeSpan.FromMinutes(30), WaitBudget = TimeSpan.FromHours(48) };
-
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     _ => Task.FromResult(StageResult.Completed()),
                     new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(10) }
                 )
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+                .Finally(
+                    _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()),
+                    new ProcessStepOptions
+                    {
+                        MaxExecutionTime = TimeSpan.FromMinutes(30),
+                        WaitBudget = TimeSpan.FromHours(48),
+                    }
+                );
     }
 
     private static List<(
@@ -1306,16 +1307,15 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // Assert — the concluding step carries the task's own options unchanged; the stage's own
-        // timeout wins field-wise over the task's, and the unset WaitBudget field is inherited
-        // from the task (deliberate: shared options are the default, and a budget is inert on a
-        // stage that never defers).
+        // Assert — each step carries exactly the options its own item declared: the stage's timeout, and the
+        // conclusion's timeout and wait budget. Nothing is shared between them, so the stage, which never
+        // defers, is not handed a budget it could never use.
         var serviceTaskSteps = ExtractServiceTaskSteps(bundle);
         var dispatch = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 0).Step;
         var conclusion = serviceTaskSteps.Single(s => s.Payload.ItemIndex == 1).Step;
 
         Assert.Equal(TimeSpan.FromMinutes(10), dispatch.Command.MaxExecutionTime);
-        Assert.Equal(TimeSpan.FromHours(48), dispatch.Command.WaitBudget);
+        Assert.Null(dispatch.Command.WaitBudget);
         Assert.Equal(TimeSpan.FromMinutes(30), conclusion.Command.MaxExecutionTime);
         Assert.Equal(TimeSpan.FromHours(48), conclusion.Command.WaitBudget);
     }
@@ -1347,9 +1347,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "archiving";
 
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
-
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(
@@ -1369,7 +1367,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(PlainStage)
                 .Stage(
@@ -1392,9 +1390,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "archiving";
 
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromMinutes(30) };
-
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -2246,7 +2242,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ImplementationTimeout_OverridesCommandDefault()
+    public async Task StepOptions_ServiceTask_ConclusionTimeout_OverridesCommandDefault()
     {
         // Arrange - tier 3: a greedy service task asks for two hours
         var factory = CreateFactory(
@@ -2273,7 +2269,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ImplementationBothFields_HonorsBoth()
+    public async Task StepOptions_ServiceTask_ConclusionBothFields_HonorsBoth()
     {
         // Arrange - tier 3 sets BOTH timeout and retry; both must land on the wire, resolved per-field
         var factory = CreateFactory(
@@ -2306,7 +2302,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task StepOptions_ServiceTask_ImplementationRetryOnly_FallsBackToCommandTimeout()
+    public async Task StepOptions_ServiceTask_ConclusionRetryOnly_FallsBackToCommandTimeout()
     {
         // Arrange - tier 3 sets only the retry strategy; timeout must fall back to the tier-2 default
         var factory = CreateFactory(

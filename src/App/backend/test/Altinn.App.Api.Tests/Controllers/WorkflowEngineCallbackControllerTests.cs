@@ -1376,7 +1376,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public async Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -1393,7 +1393,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public StageContext? ReceivedContext { get; private set; }
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -1418,7 +1418,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -1438,7 +1438,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedRetryable("Expected failure"));

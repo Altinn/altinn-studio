@@ -2177,9 +2177,9 @@ namespace Altinn.App.Core.Features.Process
     {
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    public interface IServiceTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
-        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
+        Altinn.App.Core.Features.Process.ServiceTaskPipeline DefineExecute(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
     }
     public interface IServiceTaskReplyForwarder
     {

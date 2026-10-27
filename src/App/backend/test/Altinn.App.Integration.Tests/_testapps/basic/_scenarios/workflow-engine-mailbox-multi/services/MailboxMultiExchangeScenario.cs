@@ -56,7 +56,7 @@ public sealed class SequentialExchangesServiceTask : IServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendToArchive, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle archive)
             .HandleReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed)
@@ -215,7 +215,7 @@ public sealed class UpfrontExchangesServiceTask : IServiceTask
 
     public string Type => ServiceTaskType;
 
-    public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendAlpha, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle alpha)
             .Stage(SendBeta, new MailboxOptions { Timeout = ExchangeTimeout }, out MailboxHandle beta)

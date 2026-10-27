@@ -32,7 +32,7 @@ public class ExecuteServiceTaskStageTests
         public Func<StageContext, Task<ServiceTaskResult>> OnAwait { get; init; } =
             _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline.Stage(ctx => OnSend(ctx)).Finally(ctx => OnAwait(ctx));
     }
 
@@ -264,7 +264,7 @@ public class ExecuteServiceTaskStageTests
 
         public string Type => "shipping";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
         public Task<ServiceTaskResult> Execute(StageContext context)
         {
@@ -293,7 +293,7 @@ public class ExecuteServiceTaskStageTests
     [Fact]
     public async Task MockedTaskWhoseDefineReturnsNull_FailsRetryably_WithALegibleMessage()
     {
-        // An unstubbed mock returns null from Define. The dispatch must fail legibly rather than
+        // An unstubbed mock returns null from DefineExecute. The dispatch must fail legibly rather than
         // NullReference — the same guard covers a broken real implementation.
         var mock = new Mock<IServiceTask>();
         mock.Setup(x => x.Type).Returns("shipping");
@@ -303,7 +303,7 @@ public class ExecuteServiceTaskStageTests
 
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
-        Assert.Contains("Define returned null", failed.ErrorMessage);
+        Assert.Contains("DefineExecute returned null", failed.ErrorMessage);
     }
 
     [Fact]
@@ -350,7 +350,7 @@ public class ExecuteServiceTaskStageTests
     {
         public string Type => "shipping";
 
-        public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),

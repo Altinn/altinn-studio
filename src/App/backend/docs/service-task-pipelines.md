@@ -7,11 +7,11 @@ this file is the reference the API docs point to.
 
 ## The shape of a pipeline
 
-Every service task is a pipeline, composed in `IServiceTask.Define`. A task that does one thing is a
+Every service task is a pipeline, composed in `IServiceTask.DefineExecute`. A task that does one thing is a
 pipeline of just the conclusion:
 
 ```csharp
-public ServiceTaskPipeline Define(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
 private async Task<ServiceTaskResult> Execute(StageContext context) { ... }
 ```
@@ -19,7 +19,7 @@ private async Task<ServiceTaskResult> Execute(StageContext context) { ... }
 A task with more than one durable step gives each its own stage ahead of the conclusion:
 
 ```csharp
-public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
+public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
     pipeline
         .Stage(SendToArchive, new MailboxOptions { Timeout = TimeSpan.FromDays(14) }, out MailboxHandle archive)
         .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
@@ -28,9 +28,9 @@ public ServiceTaskPipeline Define(PipelineBuilder pipeline) =>
 A composition is zero or more `Stage(...)` calls and `HandleReplies(...)` handlers, in any order, ended by
 exactly one terminal — `Finally(...)` for work that finishes by itself or by polling, or
 `ConcludeOnReplies(...)` for work answered by a message. The terminal is the only way to obtain the
-`ServiceTaskPipeline` that `Define` must return, so a pipeline cannot be left unfinished.
+`ServiceTaskPipeline` that `DefineExecute` must return, so a pipeline cannot be left unfinished.
 
-`Define` runs when a transition is enqueued (fixing the pipeline's shape for that workflow's lifetime), on
+`DefineExecute` runs when a transition is enqueued (fixing the pipeline's shape for that workflow's lifetime), on
 every callback (to dispatch), and at app startup (to validate). It must be cheap, deterministic and
 side-effect free — the work happens inside the stages when the engine runs them.
 
@@ -115,8 +115,7 @@ process on this step — no worker held, no error recorded, retry counter reset 
   rejected as a contract violation. Work that produces something durable belongs before the wait, in its
   own stage.
 - The total wait is bounded by `ProcessStepOptions.WaitBudget` (or the engine default); expiry fails the
-  step. Declare a polling pipeline's wait budget on `Finally`, not on the task — task-level options are
-  inherited by every stage, including stages that never wait.
+  step. Declare a polling pipeline's wait budget on `Finally`, the step that waits.
 - Read `StageContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
   to pace the wait, and give up on `IsFinalCheck` with a message that names what never arrived.
   `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that owns the
@@ -128,10 +127,11 @@ process on this step — no worker held, no error recorded, retry counter reset 
 
 ### Step options
 
-A step's own options — a stage's from `Stage`, a reply handler's from its own `HandleReplies`, the
-conclusion's from the terminal — win field-wise over the task's `StepOptions`, which are the fallback for
-every step. The three sources are alternatives, never a chain: what one step leaves unset falls back to
-the task's options, never to another step's.
+A step's options — its timeout, retry strategy and wait budget — are declared where the step is composed: a
+stage's on `Stage`, a reply handler's on its `HandleReplies`, the conclusion's on the terminal. Each step
+carries exactly what its own call declared; a field left unset falls back to the command's default and then
+the engine's, never to another step's. A task that wants the same options on several steps passes the same
+object to each call.
 
 ## Mailboxes: work answered by a message
 
