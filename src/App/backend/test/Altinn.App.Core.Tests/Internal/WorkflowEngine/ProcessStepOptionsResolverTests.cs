@@ -290,43 +290,23 @@ public class ProcessStepOptionsResolverTests
         Assert.Null(result);
     }
 
-    // ── Pipeline service tasks: per-stage options (tier 3, two levels) ───────────────────────
+    // ── Service task items: the item's own options over the task's (tier 3, two levels) ──────
 
-    /// <summary>
-    /// Task-level options (1 h timeout) with the stage at index 0 overriding the timeout (2 h), the stage at
-    /// index 1 declaring only a wait budget, and the conclusion — item index 2 — declaring one of its own.
-    /// </summary>
-    private sealed class PipelineTask : IPipelineServiceTask
-    {
-        public string Type => "pipeline";
-
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage(
-                    _ => Task.FromResult(StageResult.Completed()),
-                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
-                )
-                .Stage(
-                    _ => Task.FromResult(StageResult.Completed()),
-                    new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(48) }
-                )
-                .Finally(
-                    _ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()),
-                    new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(3) }
-                );
-    }
-
+    /// <summary>A task with task-level options (a 1 h timeout). What an item declares rides its step.</summary>
     private static ProcessStepOptionsResolver CreateResolverWithPipelineTask() =>
-        CreateResolver(services => services.AddSingleton<IPipelineServiceTask, PipelineTask>());
+        CreateResolver(ServiceTask("pipeline", new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(1) }));
 
     [Fact]
     public void Resolve_Stage_StageFieldWinsOverTaskField()
     {
         var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 0);
+        var result = resolver.Resolve(
+            ExecuteServiceTask.Key,
+            taskId: null,
+            serviceTaskType: "pipeline",
+            stageOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+        );
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime);
@@ -338,7 +318,12 @@ public class ProcessStepOptionsResolverTests
     {
         var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 1);
+        var result = resolver.Resolve(
+            ExecuteServiceTask.Key,
+            taskId: null,
+            serviceTaskType: "pipeline",
+            stageOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(48) }
+        );
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // task level
@@ -346,11 +331,11 @@ public class ProcessStepOptionsResolverTests
     }
 
     [Fact]
-    public void Resolve_Stage_IndexPastTheLastItem_FallsBackToTaskOptions()
+    public void Resolve_ServiceTaskStep_WithoutItemOptions_UsesTheTasksOptions()
     {
         var resolver = CreateResolverWithPipelineTask();
 
-        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 9);
+        var result = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline");
 
         Assert.NotNull(result);
         Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime);
@@ -362,7 +347,12 @@ public class ProcessStepOptionsResolverTests
     {
         var resolver = CreateResolverWithPipelineTask();
 
-        var conclusion = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 2);
+        var conclusion = resolver.Resolve(
+            ExecuteServiceTask.Key,
+            taskId: null,
+            serviceTaskType: "pipeline",
+            stageOptions: new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(3) }
+        );
 
         Assert.NotNull(conclusion);
         Assert.Equal(TimeSpan.FromHours(3), conclusion.WaitBudget); // Finally's own
@@ -370,7 +360,12 @@ public class ProcessStepOptionsResolverTests
 
         // The reason for declaring a wait budget on Finally rather than on the task: a stage that
         // never waits is not handed a budget it could never use.
-        var entryStage = resolver.Resolve(ExecuteServiceTask.Key, taskId: null, serviceTaskType: "pipeline", 0);
+        var entryStage = resolver.Resolve(
+            ExecuteServiceTask.Key,
+            taskId: null,
+            serviceTaskType: "pipeline",
+            stageOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+        );
 
         Assert.NotNull(entryStage);
         Assert.Null(entryStage.WaitBudget);
@@ -400,154 +395,37 @@ public class ProcessStepOptionsResolverTests
             Assert.NotNull(property.GetValue(everyField));
         }
 
-        // Declared on the conclusion — item index 1, right after the one stage — with nothing at task level.
-        // The resolver builds a copy rather than passing the instance through, so every field has to survive
-        // that copy.
-        var declaredPerStep = CreateResolver(services =>
-            services.AddSingleton<IPipelineServiceTask>(new PerStepOptionsTask(everyField))
+        // Declared on an item, with nothing at task level. The resolver builds a copy rather than passing the
+        // instance through, so every field has to survive that copy.
+        var declaredPerStep = CreateResolver(ServiceTask("per-step-options"));
+        Assert.Equal(
+            everyField,
+            declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", everyField)
         );
-        Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", 1));
-
-        // Declared on a stage, which merges over the task's own.
-        Assert.Equal(everyField, declaredPerStep.Resolve(ExecuteServiceTask.Key, taskId: null, "per-step-options", 0));
-
-        // Declared at task level, reaching a simple task's conclusion — its whole pipeline, at index 0 — as
-        // the fallback.
+        // Declared at task level, reaching a step that declares nothing of its own, as the fallback.
         var declaredOnTask = CreateResolver(ServiceTask("task-options", everyField));
-        Assert.Equal(everyField, declaredOnTask.Resolve(ExecuteServiceTask.Key, taskId: null, "task-options", 0));
-    }
-
-    // ── Receive steps: the answering handler's options (tier 3) ─────────────────────────────────
-
-    /// <summary>
-    /// Task-level options (1 h timeout) with two exchanges answered two ways: the first's mid-pipeline,
-    /// overriding the timeout (2 h), and the second's by the terminal, declaring only a wait budget. Item
-    /// indexes: the first opening stage at 0, its handler at 1, the second opening stage at 2, and the
-    /// terminal — the second exchange's handler — at 3.
-    /// </summary>
-    private sealed class TwoExchangeTask : IPipelineServiceTask
-    {
-        public string Type => "exchanges";
-
-        public ProcessStepOptions? StepOptions => new() { MaxExecutionTime = TimeSpan.FromHours(1) };
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage(Send, _threeDays, out MailboxHandle archive)
-                .HandleReplies(
-                    archive,
-                    OnSegmentMessage,
-                    OnSegmentClosed,
-                    new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
-                )
-                .Stage(Send, _threeDays, out MailboxHandle journal)
-                .ConcludeOnReplies(
-                    journal,
-                    OnMessage,
-                    OnClosed,
-                    new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(3) }
-                );
-
-        private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
-
-        private static Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
-            Task.FromResult(ServiceTaskOpeningStageResult.Completed());
-
-        private static Task<StageExchangeResult> OnSegmentMessage(StageContext context, ServiceTaskReply reply) =>
-            Task.FromResult<StageExchangeResult>(StageResult.Completed());
-
-        private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
-            Task.FromResult(StageResult.Completed());
-
-        private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
-            Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
-
-        private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
-            Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
-    }
-
-    private static ProcessStepOptionsResolver CreateResolverWithTwoExchanges() =>
-        CreateResolver(services => services.AddSingleton<IPipelineServiceTask, TwoExchangeTask>());
-
-    /// <summary>
-    /// The promise <c>HandleReplies</c>' <c>options</c> parameter makes: they configure the step each
-    /// execution of <em>those</em> handlers runs as.
-    /// </summary>
-    [Fact]
-    public void Resolve_ReceiveStep_AnsweredMidPipeline_UsesThatHandlersOwnOptions()
-    {
-        var resolver = CreateResolverWithTwoExchanges();
-
-        var result = resolver.Resolve(
-            ExecuteServiceTask.Key,
-            taskId: null,
-            serviceTaskType: "exchanges",
-            serviceTaskItemIndex: 1
-        );
-
-        Assert.NotNull(result);
-        Assert.Equal(TimeSpan.FromHours(2), result.MaxExecutionTime); // the handler's own
-        // Whatever the handler leaves unset falls back to the task's options — never to the terminal's, which
-        // belong to a different exchange.
-        Assert.Null(result.WaitBudget);
-    }
-
-    [Fact]
-    public void Resolve_ReceiveStep_AnsweredByTheTerminal_UsesTheConclusionsOptions()
-    {
-        var resolver = CreateResolverWithTwoExchanges();
-
-        var result = resolver.Resolve(
-            ExecuteServiceTask.Key,
-            taskId: null,
-            serviceTaskType: "exchanges",
-            serviceTaskItemIndex: 3
-        );
-
-        Assert.NotNull(result);
-        Assert.Equal(TimeSpan.FromHours(3), result.WaitBudget); // the terminal's own
-        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // falls back to the task's
-    }
-
-    [Theory]
-    [InlineData(9)]
-    [InlineData(null)]
-    public void Resolve_ServiceTaskStep_NamingNoItem_FallsBackToTheTasksOptions(int? itemIndex)
-    {
-        var resolver = CreateResolverWithTwoExchanges();
-
-        var result = resolver.Resolve(ExecuteServiceTask.Key, null, "exchanges", itemIndex);
-
-        Assert.NotNull(result);
-        Assert.Equal(TimeSpan.FromHours(1), result.MaxExecutionTime); // the task's own
-        Assert.Null(result.WaitBudget); // never borrowed from the terminal
+        Assert.Equal(everyField, declaredOnTask.Resolve(ExecuteServiceTask.Key, taskId: null, "task-options"));
     }
 
     /// <summary>
-    /// The identity rides the step, so every hop that enqueues a receiver passes it through by construction:
-    /// the planner's receive workflows and the relay's successor receivers build the step the same way.
+    /// The handler's own options ride the step, so every hop that enqueues a receiver resolves them the same way
+    /// by construction: the planner's receive workflows and the relay's successor receivers build the step alike.
     /// </summary>
     [Fact]
     public void ApplyStepOptions_ReceiveStep_ResolvesTheAnsweringHandlersOptions()
     {
-        ProcessStepOptionsResolver resolver = CreateResolverWithTwoExchanges();
+        ProcessStepOptionsResolver resolver = CreateResolverWithPipelineTask();
 
         StepRequest resolved = WorkflowCommandSet
-            .CreateItemStep("exchanges", itemIndex: 1)
-            .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "exchanges");
+            .CreateItemStep(
+                "pipeline",
+                itemIndex: 1,
+                new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
+            )
+            .ApplyStepOptions(resolver, taskId: null, serviceTaskType: "pipeline");
 
-        Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime);
-        Assert.Null(resolved.Command.WaitBudget);
-    }
-
-    private sealed class PerStepOptionsTask(ProcessStepOptions options) : IPipelineServiceTask
-    {
-        public string Type => "per-step-options";
-
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
-            pipeline
-                .Stage(_ => Task.FromResult(StageResult.Completed()), options)
-                .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()), options);
+        Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime); // the handler's own
+        Assert.Null(resolved.Command.WaitBudget); // the task's, never another item's
     }
 
     // ── The key resolution keys off ─────────────────────────────────────────────────────────────
@@ -573,7 +451,6 @@ public class ProcessStepOptionsResolverTests
                 new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
             ),
             CommandKey = ExecuteServiceTask.Key,
-            ServiceTaskItemIndex = serviceTaskItemIndex,
         }.ApplyStepOptions(resolver, taskId: null, serviceTaskType: null);
 
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);

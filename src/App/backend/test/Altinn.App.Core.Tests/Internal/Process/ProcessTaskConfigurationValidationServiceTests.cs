@@ -189,6 +189,31 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
     }
 
+    [Fact]
+    public async Task StartAsync_ReportsALifecyclePipelineThatCannotBeComposed()
+    {
+        // The pipeline is composed on every transition, so one that cannot be composed would fail every transition
+        // into the task. It is reported at startup instead, with the rest of the task's configuration errors.
+        var exception = await Validate(
+            services => services.AddSingleton<IProcessTask>(new UncomposableTask("archive")),
+            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "Task 'Task_Custom': composing its start pipeline failed: no stages for you",
+            exception.Message
+        );
+    }
+
+    private sealed class UncomposableTask(string type) : IProcessTask
+    {
+        public string Type => type;
+
+        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+            throw new InvalidOperationException("no stages for you");
+    }
+
     [Theory]
     [InlineData("bpmn")]
     [InlineData("metadata")]

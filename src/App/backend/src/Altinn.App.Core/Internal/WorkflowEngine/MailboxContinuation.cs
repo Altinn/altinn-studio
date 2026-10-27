@@ -1,4 +1,5 @@
 using System.Globalization;
+using Altinn.App.Core.Features.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -21,12 +22,19 @@ internal abstract record MailboxContinuation
     /// <summary>Enqueue the receiver for the next message; nothing is closed or started.</summary>
     internal sealed record AwaitNextMessage : MailboxContinuation
     {
-        public AwaitNextMessage(Guid mailboxId, string serviceTaskType, int handlerItemIndex, long position)
+        public AwaitNextMessage(
+            Guid mailboxId,
+            string serviceTaskType,
+            int handlerItemIndex,
+            long position,
+            ProcessStepOptions? handlerStepOptions = null
+        )
         {
             MailboxId = mailboxId;
             ServiceTaskType = serviceTaskType;
             HandlerItemIndex = handlerItemIndex;
             Position = position;
+            HandlerStepOptions = handlerStepOptions;
         }
 
         /// <summary>The mailbox the exchange runs on, read from the rendezvous.</summary>
@@ -44,6 +52,12 @@ internal abstract record MailboxContinuation
 
         /// <summary>The position the handler just answered — names the successor for operators.</summary>
         public long Position { get; }
+
+        /// <summary>
+        /// The handler's own options, which its successor's step carries just as the planner's steps carry
+        /// theirs; read off the pipeline by the hop that decided the continuation.
+        /// </summary>
+        public ProcessStepOptions? HandlerStepOptions { get; }
     }
 
     /// <summary>

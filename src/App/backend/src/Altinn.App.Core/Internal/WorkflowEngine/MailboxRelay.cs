@@ -241,7 +241,8 @@ internal sealed class MailboxRelay
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
         int handlerItemIndex,
-        int openingStageIndex
+        int openingStageIndex,
+        ProcessStepOptions? handlerStepOptions = null
     )
     {
         switch (result)
@@ -258,7 +259,8 @@ internal sealed class MailboxRelay
                         mailbox.Id,
                         serviceTaskType,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        handlerStepOptions
                     ),
                 };
 
@@ -346,7 +348,8 @@ internal sealed class MailboxRelay
                         mailbox.Id,
                         serviceTaskType,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        pipeline.Items.ElementAtOrDefault(handlerItemIndex)?.StepOptions
                     ),
                 };
 
@@ -451,7 +454,13 @@ internal sealed class MailboxRelay
                 await EnqueueReceiver(
                     awaitNext.MailboxId,
                     awaitNext.ServiceTaskType,
-                    [WorkflowCommandSet.CreateItemStep(awaitNext.ServiceTaskType, awaitNext.HandlerItemIndex)],
+                    [
+                        WorkflowCommandSet.CreateItemStep(
+                            awaitNext.ServiceTaskType,
+                            awaitNext.HandlerItemIndex,
+                            awaitNext.HandlerStepOptions
+                        ),
+                    ],
                     operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
                     request,
                     cancellationToken

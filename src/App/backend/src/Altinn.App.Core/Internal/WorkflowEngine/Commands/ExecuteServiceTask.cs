@@ -294,7 +294,8 @@ internal sealed class ExecuteServiceTask(
                 receipt,
                 context.StateCarry,
                 handlerItemIndex,
-                exchange.OpeningIndex
+                exchange.OpeningIndex,
+                exchange.StepOptions
             );
     }
 

@@ -280,6 +280,29 @@ public class WorkflowCommandSetTests
     /// must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
     /// </summary>
     [Fact]
+    public void PlanSegment_PutsEachItemsOwnOptionsOnItsStep_AndNoneOnTheMint()
+    {
+        var stage = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(1) };
+        var send = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(2) };
+        var handler = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
+        var conclusion = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(4) };
+        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+            .Stage(PlainStage, stage)
+            .Stage(SendStage, _threeDays, out MailboxHandle archive, send)
+            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, handler)
+            .Finally(FinalWork, conclusion);
+
+        ServiceTaskSegmentPlan primary = WorkflowCommandSet.PlanSegment("archiving", pipeline);
+        ServiceTaskSegmentPlan receive = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan rest = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
+
+        // The mint between the plain stage and the send carries nothing, so it inherits neither's options.
+        Assert.Equal([stage, null, send], primary.Steps.Select(step => step.StageOptions));
+        Assert.Same(handler, Assert.Single(receive.Steps).StageOptions);
+        Assert.Same(conclusion, Assert.Single(rest.Steps).StageOptions);
+    }
+
+    [Fact]
     public void PlanSegment_SingleExchangePipeline_EndsMainOnTheSendAndAnswersItInAWorkflowOfItsOwn()
     {
         ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()

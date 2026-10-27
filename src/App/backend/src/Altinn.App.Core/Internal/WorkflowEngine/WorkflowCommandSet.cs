@@ -248,11 +248,11 @@ internal sealed class WorkflowCommandSet
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case IReplyHandlerItem handler:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, handler.OpeningIndex);
 
                 case PipelineConclusion.FinalStep:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case PipelineStage.MailboxOpening:
@@ -267,11 +267,11 @@ internal sealed class WorkflowCommandSet
                         )
                     );
 
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case PipelineStage:
-                    steps.Add(CreateItemStep(serviceTaskType, index));
+                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
                     break;
 
                 default:
@@ -299,24 +299,28 @@ internal sealed class WorkflowCommandSet
 
     /// <summary>
     /// One pipeline item's engine step — a stage's, a reply handler's or the conclusion's alike. The item's
-    /// index is the step's whole identity, and it travels three ways, deliberately: in the payload (dispatch
-    /// reads it), in <see cref="StepRequest.ServiceTaskItemIndex"/> (the enqueueing hop resolves options by
-    /// it), and in the OperationId (the engine's own record, distinct per item for its dashboards). Nothing
-    /// about what follows the item rides here — a step's payload says what it runs, never what runs after it.
+    /// index is the step's whole identity, and it travels two ways, deliberately: in the payload (dispatch
+    /// reads it) and in the OperationId (the engine's own record, distinct per item for its dashboards). The
+    /// item's own options ride the step as well, decided here where the pipeline is at hand, exactly as a
+    /// lifecycle stage's do. Nothing about what follows the item rides here — a step's payload says what it
+    /// runs, never what runs after it.
     /// </summary>
-    internal static StepRequest CreateItemStep(string serviceTaskType, int itemIndex) =>
+    internal static StepRequest CreateItemStep(
+        string serviceTaskType,
+        int itemIndex,
+        ProcessStepOptions? stageOptions
+    ) =>
         CreateCommand(
             ExecuteServiceTask.Key,
             new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            serviceTaskItemIndex: itemIndex
+            stageOptions: stageOptions
         );
 
     private static StepRequest CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        int? serviceTaskItemIndex = null,
         ProcessStepOptions? stageOptions = null
     )
     {
@@ -329,7 +333,6 @@ internal sealed class WorkflowCommandSet
                 new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
             ),
             CommandKey = commandKey,
-            ServiceTaskItemIndex = serviceTaskItemIndex,
             StageOptions = stageOptions,
         };
     }
