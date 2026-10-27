@@ -3,8 +3,10 @@ import React from 'react';
 import * as useDeviceWidths from '@app/form-component';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { JSONSchema7 } from 'json-schema';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ListComponent } from 'src/layout/List/ListComponent';
@@ -54,6 +56,21 @@ const countries = [
   },
 ];
 
+const countrySchema: JSONSchema7 = {
+  type: 'object',
+  properties: {
+    CountryName: {
+      type: 'string',
+    },
+    CountryPopulation: {
+      type: 'number',
+    },
+    CountryHighestMountain: {
+      type: 'number',
+    },
+  },
+};
+
 function RenderCounter({ baseComponentId }: { baseComponentId: string }) {
   const renderCount = React.useRef(0);
   const dataModelBindings = useDataModelBindingsFor(baseComponentId, 'List');
@@ -69,6 +86,7 @@ function RenderCounter({ baseComponentId }: { baseComponentId: string }) {
 
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'List'>> = {}) =>
   await renderGenericComponentTest({
+    ...rest,
     type: 'List',
     renderer: (props) => (
       <>
@@ -97,20 +115,7 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
     queries: {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
-          obj.dataModels[defaultDataTypeMock].schema = {
-            type: 'object',
-            properties: {
-              CountryName: {
-                type: 'string',
-              },
-              CountryPopulation: {
-                type: 'number',
-              },
-              CountryHighestMountain: {
-                type: 'number',
-              },
-            },
-          };
+          obj.dataModels[defaultDataTypeMock].schema = countrySchema;
         }),
       fetchDataList: async () => ({
         listItems: countries,
@@ -124,7 +129,6 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       }),
       ...rest.queries,
     },
-    ...rest,
   });
 
 describe('ListComponent', () => {
@@ -225,6 +229,55 @@ describe('ListComponent', () => {
         { reference: { field: 'CountryPopulation', dataType: defaultDataTypeMock }, newValue: 10 },
         { reference: { field: 'CountryHighestMountain', dataType: defaultDataTypeMock }, newValue: 1738 },
       ],
+    });
+  });
+
+  describe('while the instance is transitioning', () => {
+    const renderTransitioning = () =>
+      render({
+        apis: {
+          instanceApi: {
+            getInstance: async () =>
+              getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' })),
+          },
+        },
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema = countrySchema;
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                CountryName: 'Sweden',
+                CountryPopulation: 10,
+                CountryHighestMountain: 1738,
+              };
+            }),
+        },
+      });
+
+    it('should show the selection but not change it', async () => {
+      vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(false);
+      const user = userEvent.setup({ delay: null });
+      const { formDataMethods } = await renderTransitioning();
+
+      await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
+      screen.getAllByRole('radio').forEach((radio) => expect(radio).toHaveAttribute('readonly'));
+      expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(/sweden/i);
+
+      await user.click(screen.getByRole('radio', { name: /denmark/i }));
+      await user.click(screen.getByRole('row', { name: /denmark/i }));
+      expect(formDataMethods.setMultiLeafValues).not.toHaveBeenCalled();
+      expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(/sweden/i);
+    });
+
+    it('should not change the selection in mobile', async () => {
+      vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
+      const user = userEvent.setup({ delay: null });
+      const { formDataMethods } = await renderTransitioning();
+
+      await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
+      screen.getAllByRole('radio').forEach((radio) => expect(radio).toHaveAttribute('readonly'));
+      await user.click(screen.getByRole('radio', { name: /denmark/i }));
+      expect(formDataMethods.setMultiLeafValues).not.toHaveBeenCalled();
     });
   });
 
