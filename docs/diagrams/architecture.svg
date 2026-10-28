@@ -58,6 +58,10 @@ svg { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; }
 .tag-text { font-size: 11px; font-weight: 600; }
 .tag-text-green { fill: #1f7a52; }
 .tag-text-purple { fill: #5b3a9a; }
+.env-text { font-size: 10.5px; font-weight: 650; letter-spacing: 0.02em; }
+.env-blue { fill: #ffffff; stroke: #8db7e3; } .env-blue-text { fill: #0b4f8f; }
+.env-green { fill: #ffffff; stroke: #7fcaa4; } .env-green-text { fill: #1f7a52; }
+.env-purple { fill: #ffffff; stroke: #b9a3e3; } .env-purple-text { fill: #5b3a9a; }
 
 /* Edges */
 .edge-control { fill: none; stroke: #0062ba; stroke-width: 1.7; }
@@ -107,9 +111,17 @@ svg { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; }
 <text class="s" x="58" y="776">systems with Maskinporten</text>
 <text class="code-sm" x="58" y="800">&lt;org&gt;.apps.altinn.no</text>
 
-<!-- Core -->
+<!-- Core: a stack, one Studio cluster per environment -->
+<rect class="zone zone-core" x="302" y="162" width="820" height="290" rx="16"/>
+<rect class="zone zone-core" x="296" y="156" width="820" height="290" rx="16"/>
 <rect class="zone zone-core" x="290" y="150" width="820" height="290" rx="16"/>
-<text class="zone-label zone-core-label" x="312" y="175">CORE · STUDIO CLUSTERS: DEV, STAGING AND PROD</text>
+<text class="zone-label zone-core-label" x="312" y="175">CORE · ONE STUDIO CLUSTER PER ENVIRONMENT</text>
+<rect class="tag env-blue" x="948" y="162" width="36" height="18" rx="6"/>
+<text class="env-text env-blue-text" x="966" y="175" text-anchor="middle">dev</text>
+<rect class="tag env-blue" x="989" y="162" width="56" height="18" rx="6"/>
+<text class="env-text env-blue-text" x="1017" y="175" text-anchor="middle">staging</text>
+<rect class="tag env-blue" x="1050" y="162" width="40" height="18" rx="6"/>
+<text class="env-text env-blue-text" x="1070" y="175" text-anchor="middle">prod</text>
 
 <rect class="box box-core" x="315" y="212" width="250" height="90" rx="12"/>
 <text class="h" x="333" y="240">Gitea</text>
@@ -218,15 +230,41 @@ svg { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; }
 <text class="s" x="873" y="874">requests to pdf3</text>
 <text class="code-sm" x="873" y="892">src/Runtime/pdf3</text>
 
-<text class="s-sm" x="1085" y="950" text-anchor="end">A service owner has one cluster for each environment it uses, such as tt02 and prod. Only Studio prod deploys to prod.</text>
+<rect class="tag env-green" x="315" y="934" width="40" height="18" rx="6"/>
+<text class="env-text env-green-text" x="335" y="947" text-anchor="middle">at22</text>
+<rect class="tag env-green" x="360" y="934" width="40" height="18" rx="6"/>
+<text class="env-text env-green-text" x="380" y="947" text-anchor="middle">at23</text>
+<rect class="tag env-green" x="405" y="934" width="40" height="18" rx="6"/>
+<text class="env-text env-green-text" x="425" y="947" text-anchor="middle">at24</text>
+<rect class="tag env-green" x="450" y="934" width="40" height="18" rx="6"/>
+<text class="env-text env-green-text" x="470" y="947" text-anchor="middle">yt01</text>
+<rect class="tag env-green" x="495" y="934" width="40" height="18" rx="6"/>
+<text class="env-text env-green-text" x="515" y="947" text-anchor="middle">tt02</text>
+<rect class="tag env-green" x="540" y="934" width="40" height="18" rx="6"/>
+<text class="env-text env-green-text" x="560" y="947" text-anchor="middle">prod</text>
+<text class="s-sm" x="592" y="947">Most service owners use tt02 and prod. Only Studio prod deploys to prod.</text>
 
 <!-- Platform -->
+<rect class="zone zone-platform" x="1162" y="680" width="510" height="292" rx="16"/>
+<rect class="zone zone-platform" x="1156" y="674" width="510" height="292" rx="16"/>
 <rect class="zone zone-platform" x="1150" y="668" width="510" height="292" rx="16"/>
-<text class="zone-label zone-platform-label" x="1172" y="693">PLATFORM · RUN BY THE PLATFORM TEAM</text>
+<text class="zone-label zone-platform-label" x="1172" y="693">PLATFORM</text>
+<rect class="tag env-purple" x="1370" y="680" width="40" height="18" rx="6"/>
+<text class="env-text env-purple-text" x="1390" y="693" text-anchor="middle">at22</text>
+<rect class="tag env-purple" x="1415" y="680" width="40" height="18" rx="6"/>
+<text class="env-text env-purple-text" x="1435" y="693" text-anchor="middle">at23</text>
+<rect class="tag env-purple" x="1460" y="680" width="40" height="18" rx="6"/>
+<text class="env-text env-purple-text" x="1480" y="693" text-anchor="middle">at24</text>
+<rect class="tag env-purple" x="1505" y="680" width="40" height="18" rx="6"/>
+<text class="env-text env-purple-text" x="1525" y="693" text-anchor="middle">yt01</text>
+<rect class="tag env-purple" x="1550" y="680" width="40" height="18" rx="6"/>
+<text class="env-text env-purple-text" x="1570" y="693" text-anchor="middle">tt02</text>
+<rect class="tag env-purple" x="1595" y="680" width="40" height="18" rx="6"/>
+<text class="env-text env-purple-text" x="1615" y="693" text-anchor="middle">prod</text>
 
 <rect class="box box-platform" x="1175" y="710" width="460" height="168" rx="12"/>
 <text class="h" x="1193" y="737">Altinn Platform services</text>
-<text class="s" x="1193" y="757">One per environment, shared by all service owners, and</text>
+<text class="s" x="1193" y="757">Run by the platform team and shared by all service owners,</text>
 <text class="s" x="1193" y="773">moving from the old platform cluster to DIS Core.</text>
 <g>
   <rect class="tag tag-purple" x="1193" y="786" width="100" height="22" rx="7"/>
