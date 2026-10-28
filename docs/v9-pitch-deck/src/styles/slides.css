@@ -600,6 +600,20 @@
     color 0.3s;
 }
 
+/*
+ * These transitions only blend colours, which is not motion, so they keep
+ * their duration when the viewer prefers reduced motion (global.css cuts
+ * every other transition to nothing).
+ */
+@media (prefers-reduced-motion: reduce) {
+  .s-dag__box,
+  .s-layer__event,
+  .s-layer__status,
+  .s-layer__chip {
+    transition-duration: 0.3s !important;
+  }
+}
+
 .s-layer__drop--app {
   stroke: var(--line-strong);
 }
