@@ -9,6 +9,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /build
 
 COPY common/dotnet/Altinn.Studio.Common/ common/dotnet/Altinn.Studio.Common/
+COPY common/dotnet/Altinn.Studio.Common.Telemetry/ common/dotnet/Altinn.Studio.Common.Telemetry/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/
 
 # Prune host build artifacts, including literal backslash dirs such as `bin\Debug`.

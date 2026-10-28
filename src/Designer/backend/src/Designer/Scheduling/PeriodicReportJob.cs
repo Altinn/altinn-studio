@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Models.ContactPoints;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Interfaces;
