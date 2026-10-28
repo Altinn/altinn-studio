@@ -896,15 +896,6 @@
         }
       },
       {
-        endpoint: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/completeProcess,
-        metadata: {
-          errorMessageTextResourceKeyUser: null,
-          errorMessageTextResourceKeyServiceOwner: null,
-          requiredScopesUsers: null,
-          requiredScopesServiceOwners: null
-        }
-      },
-      {
         endpoint: PUT {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process/next,
         metadata: {
           errorMessageTextResourceKeyUser: null,

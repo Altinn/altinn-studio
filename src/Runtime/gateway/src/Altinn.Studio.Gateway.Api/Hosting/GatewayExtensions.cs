@@ -8,6 +8,7 @@ using Altinn.Studio.Gateway.Api.Endpoints.Internal;
 using Altinn.Studio.Gateway.Api.Endpoints.Local;
 using Altinn.Studio.Gateway.Api.Endpoints.Public;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
@@ -29,6 +30,7 @@ internal static class GatewayExtensions
         });
 
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<GatewayMetrics>();
         if (!builder.Environment.IsDevelopment())
         {
             builder.Configuration.AddJsonFile(

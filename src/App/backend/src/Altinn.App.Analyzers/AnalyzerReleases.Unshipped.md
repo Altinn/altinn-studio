@@ -11,7 +11,6 @@ ALTINNAPP9999 | General | Warning | Unknown error
 ALTINNAPP0500 | CodeSmells | Warning | CodeSmells
 ALTINNAPP0600 | Deprecation | Error | enablePdfCreation is not supported
 ALTINNAPP0601 | Deprecation | Error | Legacy eFormidling config is not supported
-ALTINNAPP0700 | Contracts | Error | Sealed default implementation replaced
 ALTINNAPP0701 | Contracts | Error | Incomplete registration discarded
 ALTINNAPP0702 | Contracts | Error | Mailbox handle answered twice
 ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered

@@ -139,8 +139,7 @@ public sealed record WorkflowStatusResponse
     /// Whether the process waits on this workflow, derived from <see cref="IsHead"/>:
     /// <see cref="WorkflowRole.Auxiliary"/> when the directive is <c>false</c>, otherwise
     /// <see cref="WorkflowRole.Primary"/>. This is the field clients should read. Nullable so the wire
-    /// contract stays additive: an engine older than the field sends none, and a client falls back to
-    /// <see cref="IsHead"/> for it. This engine always populates it.
+    /// contract stays additive for consumers that do not model it yet; the engine always populates it.
     /// </summary>
     [JsonPropertyName("role")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

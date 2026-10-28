@@ -3,6 +3,9 @@
   <PropertyGroup>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Altinn.Studio.Designer</AssemblyName>
+    <!-- The telemetry's service.version: dev locally, and the image build's DESIGNER_VERSION otherwise. -->
+    <InformationalVersion>dev</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Company>Altinn</Company>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
@@ -150,6 +153,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
+    <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj" />
     <ProjectReference Include="../../../../cli/common/dotnet/Altinn.Studio.AppDist/Altinn.Studio.AppDist.csproj" />
     <ProjectReference Include="..\..\PolicyAdmin\PolicyAdmin.csproj" />
     <ProjectReference Include="..\DataModeling\DataModeling.csproj" />

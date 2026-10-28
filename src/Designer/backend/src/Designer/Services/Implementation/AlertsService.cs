@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Hubs.AlertsUpdate;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;

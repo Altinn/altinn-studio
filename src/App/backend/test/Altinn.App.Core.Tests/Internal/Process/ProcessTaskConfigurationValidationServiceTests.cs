@@ -189,6 +189,55 @@ public class ProcessTaskConfigurationValidationServiceTests
         );
     }
 
+    [Fact]
+    public async Task StartAsync_ReportsALifecyclePipelineThatCannotBeComposed()
+    {
+        // The pipeline is composed on every transition, so one that cannot be composed would fail every transition
+        // into the task. It is reported at startup instead, with the rest of the task's configuration errors.
+        var exception = await Validate(
+            services => services.AddSingleton<IProcessTask>(new UncomposableTask("archive")),
+            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "Task 'Task_Custom': composing its start pipeline failed: no stages for you",
+            exception.Message
+        );
+    }
+
+    private sealed class UncomposableTask(string type) : IProcessTask
+    {
+        public string Type => type;
+
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            throw new InvalidOperationException("no stages for you");
+    }
+
+    [Fact]
+    public async Task StartAsync_ReportsALifecyclePipelineComposedAsNull()
+    {
+        // The interface promises a pipeline, but a null slips through at run time as a failed step on every
+        // transition out of the task; at startup it is a finding like any other composition failure.
+        var exception = await Validate(
+            services => services.AddSingleton<IProcessTask>(new NullPipelineTask("archive")),
+            ProcessTestUtils.SetupProcessReader("plain-task-custom-type.bpmn")
+        );
+
+        Assert.NotNull(exception);
+        Assert.Contains(
+            "Task 'Task_Custom': composing its end pipeline failed: NullPipelineTask.DefineEnd returned null",
+            exception.Message
+        );
+    }
+
+    private sealed class NullPipelineTask(string type) : IProcessTask
+    {
+        public string Type => type;
+
+        public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => null!;
+    }
+
     [Theory]
     [InlineData("bpmn")]
     [InlineData("metadata")]
@@ -231,7 +280,9 @@ public class ProcessTaskConfigurationValidationServiceTests
 
         public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context) => validate(context);
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 
@@ -422,7 +473,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             {
                 s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
                 s.AddSingleton<IServiceTask>(new SimpleTask("archive"));
-                s.AddSingleton<IPipelineServiceTask>(new SimpleTask("notify"));
+                s.AddSingleton<IServiceTask>(new SimpleTask("notify"));
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
             logger
@@ -470,7 +521,7 @@ public class ProcessTaskConfigurationValidationServiceTests
             s =>
             {
                 s.AddSingleton<IServiceTask>(Uninitialized<PdfServiceTask>());
-                s.AddSingleton<IPipelineServiceTask>(Uninitialized<EFormidlingServiceTask>());
+                s.AddSingleton<IServiceTask>(Uninitialized<EFormidlingServiceTask>());
                 s.AddSingleton<IServiceTask>(Uninitialized<SubformPdfServiceTask>());
             },
             ProcessTestUtils.SetupProcessReader("simple-linear.bpmn"),
@@ -948,7 +999,9 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 
@@ -959,7 +1012,9 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             throw new InvalidOperationException("Validation must not execute the task.");
     }
 

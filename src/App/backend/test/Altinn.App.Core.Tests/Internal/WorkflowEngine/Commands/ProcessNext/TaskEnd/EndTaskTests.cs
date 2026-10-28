@@ -1,3 +1,4 @@
+#pragma warning disable CS0618 // The default pipeline runs the deprecated Start, End and Abandon until they are removed.
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
@@ -33,6 +34,7 @@ public class EndTaskTests
                 WorkflowId = Guid.Empty,
                 StepId = Guid.NewGuid(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+                Payload = CommandPayloadSerializer.Serialize(new ProcessTaskStagePayload(StageIndex: 0)),
             },
         };
     }
@@ -50,7 +52,7 @@ public class EndTaskTests
         };
     }
 
-    private static EndTask CreateCommand(IProcessTask processTask)
+    private static IWorkflowEngineCommand CreateCommand(IProcessTask processTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -64,7 +66,7 @@ public class EndTaskTests
     public async Task Execute_ResolvesProcessTaskAndCallsEnd_ReturnsSuccess()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask.Setup(x => x.End(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
         var command = CreateCommand(processTask.Object);
@@ -91,7 +93,7 @@ public class EndTaskTests
     public async Task Execute_WhenEndThrows_ReturnsFailedResult()
     {
         // Arrange
-        var processTask = new Mock<IProcessTask>();
+        var processTask = new Mock<IProcessTask> { CallBase = true };
         processTask.Setup(x => x.Type).Returns("data");
         processTask
             .Setup(x => x.End(It.IsAny<ProcessTaskContext>()))

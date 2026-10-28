@@ -4,6 +4,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Authentication;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
@@ -426,6 +427,7 @@ internal sealed class ProcessNextRequestFactory
             WorkflowCommandSet? workflowCommands = GetWorkflowStepsForInstanceEvent(
                 instanceEvent,
                 instanceEventType,
+                altinnTaskType,
                 serviceTaskType,
                 isInitialTaskStart,
                 isInstantiation,
@@ -457,7 +459,7 @@ internal sealed class ProcessNextRequestFactory
                 {
                     taskEndSteps.AddRange(
                         workflowCommands
-                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
@@ -465,24 +467,16 @@ internal sealed class ProcessNextRequestFactory
                 {
                     taskStartSteps.AddRange(
                         workflowCommands
-                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId, serviceTaskType)
+                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
 
                 primaryPostCommitSteps.AddRange(
-                    workflowCommands.PrimaryPostCommitCommands.ApplyStepOptions(
-                        _stepOptionsResolver,
-                        eventTaskId,
-                        serviceTaskType
-                    )
+                    workflowCommands.PrimaryPostCommitCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                 );
                 auxiliarySteps.AddRange(
-                    workflowCommands.AuxiliaryCommands.ApplyStepOptions(
-                        _stepOptionsResolver,
-                        eventTaskId,
-                        serviceTaskType
-                    )
+                    workflowCommands.AuxiliaryCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                 );
             }
         }
@@ -513,6 +507,7 @@ internal sealed class ProcessNextRequestFactory
     private WorkflowCommandSet? GetWorkflowStepsForInstanceEvent(
         InstanceEvent instanceEvent,
         InstanceEventType eventType,
+        string? altinnTaskType,
         string? serviceTaskType,
         bool isInitialTaskStart,
         bool isInstantiation,
@@ -530,6 +525,7 @@ internal sealed class ProcessNextRequestFactory
                     new TaskStartContext
                     {
                         TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
+                        StartPipeline = ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Start),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
@@ -540,9 +536,14 @@ internal sealed class ProcessNextRequestFactory
                 );
             }
             case InstanceEventType.process_EndTask:
-                return WorkflowCommandSet.GetTaskEndSteps(GetRequiredEventTaskId(instanceEvent, eventType));
+                return WorkflowCommandSet.GetTaskEndSteps(
+                    GetRequiredEventTaskId(instanceEvent, eventType),
+                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End)
+                );
             case InstanceEventType.process_AbandonTask:
-                return WorkflowCommandSet.GetTaskAbandonSteps();
+                return WorkflowCommandSet.GetTaskAbandonSteps(
+                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Abandon)
+                );
             case InstanceEventType.process_EndEvent:
                 return WorkflowCommandSet.GetProcessEndSteps(
                     new ProcessEndContext { RegisterEvents = _appSettings.RegisterEventsWithEventsComponent }
@@ -571,6 +572,21 @@ internal sealed class ProcessNextRequestFactory
         && _appImplementationFactory.FindServiceTask(serviceTaskType)?.ResolvePipeline() is { } pipeline
             ? new ResolvedServiceTask(serviceTaskType, pipeline)
             : null;
+
+    /// <summary>
+    /// The lifecycle pipeline the task type composes for <paramref name="phase"/>, resolved the same way the
+    /// step resolves it when it runs. Read at enqueue time to plan one step per stage. A type with no registered
+    /// implementation (startup validation rejects that) gets a single step, which reports the missing
+    /// implementation when it runs.
+    /// </summary>
+    private ProcessTaskPipeline ResolveProcessTaskPipeline(string? altinnTaskType, LifecyclePhase phase) =>
+        new ProcessTaskResolver(_appImplementationFactory).FindProcessTaskInstance(altinnTaskType) is { } task
+            ? task.ResolvePipeline(phase)
+            : _unresolvedTaskPipeline;
+
+    private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new PipelineBuilder()
+        .Stage(_ => Task.FromResult(StageResult.Completed()))
+        .Build();
 
     private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId
@@ -623,61 +639,24 @@ internal sealed class ProcessNextRequestFactory
         };
     }
 
-    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
-    {
-        var payload = new ProcessStateChangePayload(processStateChange);
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        var step = new StepRequest
-        {
-            OperationId = MutateProcessState.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = MutateProcessState.Key, Payload = serializedPayload }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
-    }
+    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange) =>
+        CreateCommand(MutateProcessState.Key, new ProcessStateChangePayload(processStateChange));
 
-    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange)
-    {
-        var payload = new ProcessStateChangePayload(processStateChange);
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        var step = new StepRequest
-        {
-            OperationId = CommitProcessState.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = CommitProcessState.Key, Payload = serializedPayload }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
-    }
+    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange) =>
+        CreateCommand(CommitProcessState.Key, new ProcessStateChangePayload(processStateChange));
 
-    private StepRequest CreateEnqueueAuxiliaryWorkflowsCommand(WorkflowEnqueueRequest auxiliaryEnqueueRequest)
-    {
-        var payload = new EnqueueAuxiliaryWorkflowsPayload(auxiliaryEnqueueRequest);
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        var step = new StepRequest
-        {
-            OperationId = EnqueueAuxiliaryWorkflows.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = EnqueueAuxiliaryWorkflows.Key, Payload = serializedPayload }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
-    }
+    private StepRequest CreateEnqueueAuxiliaryWorkflowsCommand(WorkflowEnqueueRequest auxiliaryEnqueueRequest) =>
+        CreateCommand(EnqueueAuxiliaryWorkflows.Key, new EnqueueAuxiliaryWorkflowsPayload(auxiliaryEnqueueRequest));
 
-    private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null)
-    {
-        var step = new StepRequest
+    /// <summary>
+    /// A step of the transition's own, which runs for no task and declares no options, so it gets the command's
+    /// default options and otherwise the engine's.
+    /// </summary>
+    private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null) =>
+        new PlannedStep
         {
+            CommandKey = commandKey,
             OperationId = commandKey,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = commandKey, Payload = CommandPayloadSerializer.Serialize(payload) }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null, serviceTaskType: null);
-    }
+            Payload = payload,
+        }.ToStepRequest(_stepOptionsResolver, taskId: null);
 }

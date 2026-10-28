@@ -58,7 +58,9 @@ internal sealed class SubformPdfServiceTask(
         return [];
     }
 
-    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+    public async Task<ServiceTaskResult> Execute(StageContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
         string taskId = dataMutator.Instance.Process.CurrentTask.ElementId;
