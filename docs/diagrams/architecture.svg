@@ -58,6 +58,8 @@ svg { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; }
 .tag-text { font-size: 11px; font-weight: 600; }
 .tag-text-green { fill: #1f7a52; }
 .tag-text-purple { fill: #5b3a9a; }
+.tag-purple-strong { fill: #6a4bb0; stroke: #6a4bb0; }
+.tag-text-white { fill: #ffffff; }
 .env-text { font-size: 10.5px; font-weight: 650; letter-spacing: 0.02em; }
 .env-blue { fill: #ffffff; stroke: #8db7e3; } .env-blue-text { fill: #0b4f8f; }
 .env-green { fill: #ffffff; stroke: #7fcaa4; } .env-green-text { fill: #1f7a52; }
@@ -264,31 +266,31 @@ svg { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; }
 
 <rect class="box box-platform" x="1175" y="710" width="460" height="168" rx="12"/>
 <text class="h" x="1193" y="737">Altinn Platform services</text>
-<text class="s" x="1193" y="757">Run by the platform team and shared by all service owners,</text>
-<text class="s" x="1193" y="773">moving from the old platform cluster to DIS Core.</text>
+<text class="s" x="1193" y="757">Each team runs its own services on DIS, the platform team's</text>
+<text class="s" x="1193" y="773">container runtime. Studio owns the filled ones.</text>
 <g>
-  <rect class="tag tag-purple" x="1193" y="786" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1243" y="801" text-anchor="middle">Storage</text>
-  <rect class="tag tag-purple" x="1301" y="786" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1351" y="801" text-anchor="middle">Authentication</text>
-  <rect class="tag tag-purple" x="1409" y="786" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1459" y="801" text-anchor="middle">Authorization</text>
-  <rect class="tag tag-purple" x="1517" y="786" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1567" y="801" text-anchor="middle">Register</text>
+  <rect class="tag tag-purple-strong" x="1193" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-white" x="1243" y="801" text-anchor="middle">Storage</text>
+  <rect class="tag tag-purple-strong" x="1301" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-white" x="1351" y="801" text-anchor="middle">Receipt</text>
+  <rect class="tag tag-purple-strong" x="1409" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-white" x="1459" y="801" text-anchor="middle">File scan</text>
+  <rect class="tag tag-purple-strong" x="1517" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-white" x="1567" y="801" text-anchor="middle">pdf3</text>
   <rect class="tag tag-purple" x="1193" y="814" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1243" y="829" text-anchor="middle">Profile</text>
+  <text class="tag-text tag-text-purple" x="1243" y="829" text-anchor="middle">Authentication</text>
   <rect class="tag tag-purple" x="1301" y="814" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1351" y="829" text-anchor="middle">Notifications</text>
+  <text class="tag-text tag-text-purple" x="1351" y="829" text-anchor="middle">Authorization</text>
   <rect class="tag tag-purple" x="1409" y="814" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1459" y="829" text-anchor="middle">Events</text>
+  <text class="tag-text tag-text-purple" x="1459" y="829" text-anchor="middle">Register</text>
   <rect class="tag tag-purple" x="1517" y="814" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1567" y="829" text-anchor="middle">Correspondence</text>
+  <text class="tag-text tag-text-purple" x="1567" y="829" text-anchor="middle">Profile</text>
   <rect class="tag tag-purple" x="1193" y="842" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1243" y="857" text-anchor="middle">Receipt</text>
+  <text class="tag-text tag-text-purple" x="1243" y="857" text-anchor="middle">Notifications</text>
   <rect class="tag tag-purple" x="1301" y="842" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1351" y="857" text-anchor="middle">File scan</text>
+  <text class="tag-text tag-text-purple" x="1351" y="857" text-anchor="middle">Events</text>
   <rect class="tag tag-purple" x="1409" y="842" width="100" height="22" rx="7"/>
-  <text class="tag-text tag-text-purple" x="1459" y="857" text-anchor="middle">pdf3</text>
+  <text class="tag-text tag-text-purple" x="1459" y="857" text-anchor="middle">Correspondence</text>
 </g>
 
 <rect class="box box-platform" x="1175" y="893" width="460" height="52" rx="12"/>
