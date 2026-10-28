@@ -9,6 +9,11 @@ export const useCreateReleaseMutation = (owner, app) => {
   return useMutation({
     mutationFn: (payload: CreateReleasePayload) => createRelease(owner, app, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [QueryKey.AppReleases, owner, app] }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppReleases, owner, app] }),
+        // Setting the app status may add a commit to master
+        queryClient.invalidateQueries({ queryKey: [QueryKey.BranchStatus, owner, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, owner, app] }),
+      ]),
   });
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import classes from './CreateRelease.module.css';
 import type { ChangeEvent } from 'react';
 import { versionNameValid } from './utils';
@@ -14,13 +14,22 @@ import {
   StudioDialog,
   StudioHeading,
   StudioParagraph,
+  StudioRadio,
+  StudioRadioGroup,
+  StudioSpinner,
   StudioTextarea,
   StudioTextfield,
 } from '@studio/components';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 import { appHasCriticalValidationErrors } from 'app-shared/utils/appValidationUtils';
-import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import { useAppMetadataQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
+import {
+  buildAppStatuses,
+  isBuildAppStatus,
+  type AppStatus,
+  type BuildAppStatus,
+} from 'app-shared/types/AppStatus';
 import { hasDefaultMaskinportenScopes } from 'app-development/utils/maskinportenScopes';
 import { isVersionAtLeast } from 'app-development/utils/versionUtils';
 import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
@@ -28,11 +37,23 @@ import { isServiceOwnerOrg } from 'app-development/utils/serviceOwnerOrgUtils';
 export type CreateReleaseProps = {
   branchName: string;
 };
+const appStatusTextKeys: Record<BuildAppStatus, string> = {
+  UnderDevelopment: 'app_create_release.app_status_under_development',
+  Completed: 'app_create_release.app_status_completed',
+};
+
+const getDefaultAppStatus = (committedAppStatus: AppStatus | undefined): BuildAppStatus =>
+  isBuildAppStatus(committedAppStatus) ? committedAppStatus : 'UnderDevelopment';
 
 export function CreateRelease({ branchName }: CreateReleaseProps) {
   const { org, app } = useStudioEnvironmentParams();
   const [tagName, setTagName] = useState<string>('');
   const [body, setBody] = useState<string>('');
+  const [selectedAppStatus, setSelectedAppStatus] = useState<BuildAppStatus | undefined>();
+  const [isStartingBuild, setIsStartingBuild] = useState<boolean>(false);
+  const appStatusRadioGroupName = useId();
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const appStatus = selectedAppStatus ?? getDefaultAppStatus(appMetadata?.status);
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: appVersion } = useAppVersionQuery(org, app);
   const { data: orgs = {} } = useOrgListQuery();
@@ -48,22 +69,36 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
   const handleBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.currentTarget.value);
 
   const mutation = useCreateReleaseMutation(org, app);
+  const resetForm = (): void => {
+    setTagName('');
+    setBody('');
+    setSelectedAppStatus(undefined);
+  };
+
   const handleBuildVersionClick = async () => {
-    if (versionNameValid(releases, tagName) && tagName !== '') {
-      const { data: newBranchStatus, isError } = await getBranchStatus();
-      if (isError || !newBranchStatus) {
-        return;
-      }
-      mutation.mutate({
+    if (!versionNameValid(releases, tagName) || tagName === '') return;
+
+    // Keep the form hidden until the server answers, so it does not show stale values while the build starts
+    setIsStartingBuild(true);
+    const { data: newBranchStatus, isError } = await getBranchStatus();
+    if (isError || !newBranchStatus) {
+      setIsStartingBuild(false);
+      return;
+    }
+    mutation.mutate(
+      {
         tagName,
         name: tagName,
         body,
         targetCommitish: newBranchStatus.commit.id,
         branch: branchName,
-      });
-      setTagName('');
-      setBody('');
-    }
+        appStatus,
+      },
+      {
+        onSuccess: resetForm,
+        onSettled: () => setIsStartingBuild(false),
+      },
+    );
   };
 
   const appHasCriticalErrors = appHasCriticalValidationErrors(
@@ -77,6 +112,10 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
     selectedMaskinportenScopes !== undefined &&
     isVersionAtLeast(appVersion.backendVersion, 9, 0, 0) &&
     !hasDefaultMaskinportenScopes(selectedMaskinportenScopes);
+
+  if (isStartingBuild) {
+    return <StudioSpinner aria-hidden spinnerTitle={t('app_create_release.starting_build')} />;
+  }
 
   return (
     <div className={classes.createReleaseForm}>
@@ -147,6 +186,21 @@ export function CreateRelease({ branchName }: CreateReleaseProps) {
           />
         )}
       />
+      <StudioRadioGroup
+        legend={t('app_create_release.app_status_legend')}
+        description={t('app_create_release.app_status_description')}
+      >
+        {buildAppStatuses.map((status) => (
+          <StudioRadio
+            key={status}
+            name={appStatusRadioGroupName}
+            value={status}
+            label={t(appStatusTextKeys[status])}
+            checked={appStatus === status}
+            onChange={() => setSelectedAppStatus(status)}
+          />
+        ))}
+      </StudioRadioGroup>
       <div>
         <StudioButton onClick={handleBuildVersionClick} disabled={!canBuild}>
           {t('app_create_release.build_version')}
