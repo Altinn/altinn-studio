@@ -10,6 +10,7 @@ import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
+import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { doProcessNext } from 'src/queries/queries';
 import Page from 'src/routes/page/page.route';
@@ -574,7 +575,8 @@ describe('ProcessWrapper workflow state machine', () => {
     // Previewing a later PDF service task: the URL task (Task_Pdf) differs from process.currentTask
     // (Task_1, the data task the app developer is currently editing). PDF mode must render the PDF
     // service task's snapshot instead of the "part of form completed" wrong-task error, and must not
-    // fall back to the default ServiceTaskWaiting view either - PdfWrapper renders the PDF component.
+    // fall back to the default ServiceTaskWaiting view either. The task route wraps ProcessWrapper in
+    // PdfWrapper, which renders the PDF in its place.
     const instance = getInstanceWithProcessMock();
     instance.process.processTasks = [
       { elementId: 'Task_1', elementType: 'Task', altinnTaskType: 'data' },
@@ -583,9 +585,11 @@ describe('ProcessWrapper workflow state machine', () => {
 
     await renderWithInstanceAndLayout({
       renderer: () => (
-        <ProcessWrapper>
-          <div data-testid='task-content'>Task content</div>
-        </ProcessWrapper>
+        <PdfWrapper>
+          <ProcessWrapper>
+            <div data-testid='task-content'>Task content</div>
+          </ProcessWrapper>
+        </PdfWrapper>
       ),
       taskId: 'Task_Pdf',
       query: 'pdf=1&task=Task_1',

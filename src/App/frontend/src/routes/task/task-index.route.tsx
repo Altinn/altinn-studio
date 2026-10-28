@@ -6,8 +6,6 @@ import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
-import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
-import { isPdfRequest } from 'src/hooks/useIsPdf';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { ProcessTaskType } from 'src/types';
@@ -28,7 +26,7 @@ export async function clientLoader({ context, params, request }: LoaderFunctionA
   });
   const processData = instance?.process;
   const uiFolders = getUiConfig().folders;
-  const taskType = getTaskTypeById(processData, taskId, false, uiFolders, isPdfRequest(request));
+  const taskType = getTaskTypeById(processData, taskId, false, uiFolders);
   const firstPage = getRawFirstPage(taskId);
   const queryKeys = new URL(request.url).search;
 
@@ -49,12 +47,6 @@ export async function clientLoader({ context, params, request }: LoaderFunctionA
   return redirect(startUrl);
 }
 
-// A task without a first page still has a PDF: a PDF task's folder can list no page and only hold its pdfLayoutName
-// page, and the automatic PDF needs no page of its own. PDF mode draws it here instead.
 export default function TaskIndex() {
-  return (
-    <PdfWrapper>
-      <UnknownError error={new Error('Failed to redirect from the task index page')} />
-    </PdfWrapper>
-  );
+  return <UnknownError error={new Error('Failed to redirect from the task index page')} />;
 }

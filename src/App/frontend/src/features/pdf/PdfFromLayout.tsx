@@ -27,6 +27,7 @@ import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { InstanceInformation } from 'src/layout/InstanceInformation/InstanceInformationComponent';
+import { SubformEntryForm } from 'src/layout/Subform/SubformWrapper';
 import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
@@ -91,6 +92,43 @@ export function PdfForServiceTask() {
   }
 
   return <AutoGeneratePdfFromTasks taskIds={taskIds} />;
+}
+
+/**
+ * The PDF of one subform entry, named in the search params, rendered from the subform's UI folder with the entry as
+ * its data. A subform PDF service task renders each entry this way, whether or not the task has a UI folder of its own.
+ */
+export function PdfForSubform() {
+  const [params] = useSearchParams();
+  const uiFolder = params.get(SearchParams.PdfSubformUiFolder);
+  const dataElementId = params.get(SearchParams.PdfSubformDataElementId);
+  if (!uiFolder || !dataElementId) {
+    throw new Error(
+      `A subform PDF requires both ${SearchParams.PdfSubformUiFolder} and ${SearchParams.PdfSubformDataElementId} ` +
+        `as search params`,
+    );
+  }
+
+  const settings = getUiFolderSettings(uiFolder);
+  if (!settings) {
+    throw new Error(`Cannot render the subform PDF: the app has no UI folder '${uiFolder}'`);
+  }
+  if (!settings.defaultDataType) {
+    throw new Error(
+      `Cannot render the subform PDF: the subform UI folder '${uiFolder}' has no defaultDataType, which names the ` +
+        `data type of its entries`,
+    );
+  }
+
+  return (
+    <SubformEntryForm
+      uiFolder={uiFolder}
+      dataElementId={dataElementId}
+      readOnly={true}
+    >
+      <PdfFromLayout />
+    </SubformEntryForm>
+  );
 }
 
 function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {

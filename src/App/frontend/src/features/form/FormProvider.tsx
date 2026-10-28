@@ -40,7 +40,6 @@ import { FormDataWriteEffects } from 'src/features/formData/FormDataWrite';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteSlice } from 'src/features/formData/FormDataWriteStateMachine';
 import {
-  useInstanceDataQuery,
   useOptimisticallyUpdateCachedInstance,
   useSelectFromInstanceData,
 } from 'src/features/instance/InstanceContext';
@@ -197,21 +196,6 @@ function useIsPdfOfOtherTask(): boolean {
   return isPdf && taskId !== undefined && currentTaskId !== undefined && taskId !== currentTaskId;
 }
 
-/**
- * A subform PDF service task renders its subform through its own UI folder, which uses the subform data type. There
- * is one such data element per subform, so loading that folder needs the id of the subform being rendered.
- */
-function usePdfSubformDataElementId(uiFolder: string | undefined): string | undefined {
-  const isPdf = useIsPdf();
-  const dataElementId = useNavigationParam('dataElementId');
-  const dataType = useInstanceDataQuery({
-    select: (instance) => instance.data.find((element) => element.id === dataElementId)?.dataType,
-  }).data;
-
-  const isSubformOfFolder = dataType !== undefined && dataType === getUiFolderSettings(uiFolder)?.defaultDataType;
-  return isPdf && isSubformOfFolder ? dataElementId : undefined;
-}
-
 function useHasProcess() {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -224,8 +208,7 @@ function useBootstrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProv
   const isStateless = useIsStateless();
 
   const uiFolder = uiFolderOverride ?? folderNameFromUrl ?? undefined;
-  const pdfSubformDataElementId = usePdfSubformDataElementId(uiFolder);
-  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? pdfSubformDataElementId;
+  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId;
 
   const prefillRef = useRef<string | undefined>(
     isStateless && uiFolder ? getPrefillFromSessionStorage(uiFolder) : undefined,

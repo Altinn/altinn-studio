@@ -25,7 +25,7 @@ import {
 } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
@@ -270,16 +270,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
-  // A service task without a failure and without a custom layout is an implicit waiting step:
-  // the process is parked here pending an outcome, and the poll above carries the user forward
-  // when it advances. The PdfWrapper stays because PDF mode renders the PDF service task's
-  // snapshot through it; outside PDF mode it just passes the waiting view through.
+  // A service task without a failure and without a page is an implicit waiting step: the process
+  // is parked here pending an outcome, and the poll above carries the user forward when it advances.
   if (taskType === ProcessTaskType.Service) {
-    return (
-      <PdfWrapper>
-        <Loader reason='service-task-waiting' />
-      </PdfWrapper>
-    );
+    return <Loader reason='service-task-waiting' />;
   }
 
   if (taskType === ProcessTaskType.Data) {

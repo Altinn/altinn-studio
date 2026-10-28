@@ -5,7 +5,6 @@ import { useIsStateless } from 'src/features/applicationMetadata';
 import { processLayoutSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
-import { useIsPdf } from 'src/hooks/useIsPdf';
 import { TaskKeys } from 'src/routesBuilder';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
@@ -77,7 +76,7 @@ export function findProcessTask(process: IProcess | undefined, taskId: string | 
  *
  * A task that renders through its UI folder classifies as a data task. A service task does so only
  * when the folder lists a page, so a folder without one gets the built-in loading view. PDF mode
- * renders any folder, because designed and subform PDFs draw from it whether or not it lists a page.
+ * does not ask: PdfWrapper renders the PDF before any task view (see getPdfSource).
  *
  * Stateless apps only have data tasks. As soon as they start creating an instance
  * from that stateless step, applicationMetadata.isStatelessApp will return false
@@ -88,7 +87,6 @@ export function getTaskTypeById(
   taskId: string | undefined,
   isStateless: boolean,
   uiFolders: Record<string, ILayoutSettings>,
-  isPdf: boolean,
 ): ProcessTaskType {
   const task = findProcessTask(processData, taskId);
   const elementType = task?.elementType;
@@ -96,7 +94,7 @@ export function getTaskTypeById(
   const rendersUiFolder =
     taskId !== undefined &&
     taskId in uiFolders &&
-    (isPdf || elementType !== ELEMENT_TYPE.SERVICE_TASK || processLayoutSettings(uiFolders[taskId]).order.length > 0);
+    (elementType !== ELEMENT_TYPE.SERVICE_TASK || processLayoutSettings(uiFolders[taskId]).order.length > 0);
 
   if (isStateless || taskId === TaskKeys.CustomReceipt || rendersUiFolder) {
     return ProcessTaskType.Data;
@@ -125,9 +123,8 @@ export function useGetTaskTypeById() {
   const { data: processData } = useProcessQuery();
   const isStateless = useIsStateless();
   const uiFolders = getUiConfig().folders;
-  const isPdf = useIsPdf();
 
-  return (taskId: string | undefined) => getTaskTypeById(processData, taskId, isStateless, uiFolders, isPdf);
+  return (taskId: string | undefined) => getTaskTypeById(processData, taskId, isStateless, uiFolders);
 }
 
 /**
