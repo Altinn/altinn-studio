@@ -66,7 +66,7 @@ const ENGINE_UNAVAILABLE_STATUS_CODES: readonly number[] = [502, 503, 504];
 
 /**
  * Derives the traffic light from the engine's per-collection rollup, with the same precedence as
- * the instance page (see `deriveInstanceHealth`): a blocked process, then a primary workflow
+ * `deriveInstanceHealth` over loaded workflows: a blocked process, then a primary workflow
  * retrying, then a failed auxiliary workflow, then a primary workflow waiting on an outcome or a
  * message, then any work in flight. Absent counts mean no data — never green.
  */

@@ -38,9 +38,8 @@ import {
 } from 'admin/features/apps/hooks/queries/useProcessMetadataQuery';
 import { LabelValue } from 'admin/features/apps/components/LabelValue/LabelValue';
 import { useInstanceDeletionMutation } from 'admin/features/apps/hooks/mutations/useInstanceDeletionMutation';
-import { useInstanceWorkflowsQuery } from 'admin/features/apps/hooks/queries/useInstanceWorkflowsQuery';
+import { useInstancesWorkflowHealthQuery } from 'admin/features/apps/hooks/queries/useInstancesWorkflowHealthQuery';
 import { WorkflowHealthCell } from 'admin/features/apps/pages/instances/components/WorkflowHealthColumn';
-import { deriveInstanceHealth } from 'admin/features/apps/utils/workflowTriage';
 import { extractInstanceGuid } from 'admin/features/apps/utils/workflowHealth';
 
 /**
@@ -221,8 +220,9 @@ type InstanceWorkflowHealthProps = {
 
 /**
  * The instance's traffic light, beside the flags Storage keeps on it: those say whether the
- * instance is read or archived, not whether its processing needs attention. The verdict is the
- * same one the instance list gives, drawn from the workflows the card further down shows.
+ * instance is read or archived, not whether its processing needs attention. It is the instance
+ * list's verdict, from the engine's rollup over all of the instance's workflows. The card further
+ * down loads workflows a page at a time, so a failure older than its first page would not count.
  */
 const InstanceWorkflowHealth = ({
   org,
@@ -230,15 +230,20 @@ const InstanceWorkflowHealth = ({
   app,
   instanceId,
 }: InstanceWorkflowHealthProps) => {
-  const { data: workflows, isPending } = useInstanceWorkflowsQuery(
+  const instanceGuid = extractInstanceGuid(instanceId);
+  const { healthByKey, pendingKeys } = useInstancesWorkflowHealthQuery(
     org,
     environment,
     app,
-    extractInstanceGuid(instanceId),
+    instanceGuid ? [[instanceGuid]] : [],
   );
-  const health = workflows ? deriveInstanceHealth(workflows) : undefined;
 
-  return <WorkflowHealthCell health={health} isPending={isPending} />;
+  return (
+    <WorkflowHealthCell
+      health={instanceGuid ? healthByKey[instanceGuid] : undefined}
+      isPending={instanceGuid ? pendingKeys.has(instanceGuid) : false}
+    />
+  );
 };
 
 const DataElementGroups = ({

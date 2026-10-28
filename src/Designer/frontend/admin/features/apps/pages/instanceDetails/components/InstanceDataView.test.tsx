@@ -14,6 +14,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import type { WorkflowStatus } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 
 vi.mock('axios', async () => {
   const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
@@ -116,6 +119,36 @@ describe('InstanceDataView', () => {
     expect(screen.getByText(textMock('admin.workflows.health'))).toBeInTheDocument();
   });
 
+  it("rests the instance's health on the engine's rollup, not on the workflows loaded so far", async () => {
+    // The newest page of workflows is all completed, and an older auxiliary workflow failed.
+    const rollup: WorkflowCollectionListResponse = {
+      data: [
+        {
+          key: instanceId,
+          namespace: `${org}/${app}`,
+          createdAt: '2026-10-01T10:00:00Z',
+          workflowCounts: workflowCounts({ total: 26, auxiliary: { failed: 1 } }),
+        },
+      ],
+      pageSize: 1,
+      totalCount: 1,
+      unmatchedKeys: [],
+    };
+    const newestWorkflows = { data: [completedWorkflow], pageSize: 25, totalCount: 26 };
+    (axios.get as Mock).mockImplementation((url: string) =>
+      Promise.resolve({
+        status: 200,
+        data: url.includes('/collections') ? rollup : newestWorkflows,
+      }),
+    );
+
+    renderInstanceDataView({ showWorkflowHealth: true });
+
+    expect(
+      await screen.findByText(textMock('admin.workflows.health.auxiliary_workflow_failed')),
+    ).toBeInTheDocument();
+  });
+
   it('leaves the workflow engine out of the info card, and unasked, by default', () => {
     renderInstanceDataView();
 
@@ -133,6 +166,18 @@ describe('InstanceDataView', () => {
     expect(axios.delete).not.toHaveBeenCalled();
   });
 });
+
+const completedWorkflow: WorkflowStatus = {
+  databaseId: 'newest',
+  collectionKey: instanceId,
+  operationId: 'Process next',
+  idempotencyKey: 'newest',
+  namespace: `${org}/${app}`,
+  createdAt: '2026-10-02T10:00:00Z',
+  overallStatus: 'Completed',
+  role: 'Primary',
+  steps: [],
+};
 
 const getDeleteButton = () => screen.getByRole('button', { name: textMock('general.delete') });
 
