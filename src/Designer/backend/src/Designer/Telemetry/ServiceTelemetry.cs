@@ -8,16 +8,16 @@ namespace Altinn.Studio.Designer.Telemetry;
 
 internal static partial class ServiceTelemetry
 {
-    private const string AlwaysSample = "always";
     private const string AppRepoType = "app";
     private const string ProductionEnvironment = "production";
     private const string RuntimeProductionEnvironment = "prod";
 
-    public static readonly ActivitySource Source = new("studio-designer");
+    /// <summary>
+    /// The name of Designer's own activity source and meter.
+    /// </summary>
+    public const string MeterName = "studio-designer";
 
-    // Tail sampling is configured per collector pipeline, not globally.
-    // We explicitly mark spans that must be retained.
-    public static void SetAlwaysSample(this Activity? activity) => activity?.SetTag(Attributes.Sampling, AlwaysSample);
+    public static readonly ActivitySource Source = new(MeterName);
 
     public static void SetServiceOwner(this Activity? activity, string serviceOwner) =>
         activity?.SetTag(Attributes.ServiceOwner, serviceOwner.ToLowerInvariant());
