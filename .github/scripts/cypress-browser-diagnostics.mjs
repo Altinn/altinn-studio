@@ -1,6 +1,5 @@
 import { appendFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { gzipSync } from 'node:zlib';
 
 // A separate CDP client keeps working when Cypress's renderer/event loop stops.
 // Scheduler history must be recorded before the hang; post-hang stacks alone
@@ -8,8 +7,6 @@ import { gzipSync } from 'node:zlib';
 export class BrowserDiagnostics {
   pending = new Map();
   nextId = 1;
-  traceEvents = 0;
-  traceBytes = 0;
   compressedBytes = 0;
 
   constructor(directory) {
@@ -34,26 +31,9 @@ export class BrowserDiagnostics {
         clearTimeout(pending.timer);
         if (message.error) pending.reject(new Error(message.error.message));
         else pending.resolve(message.result);
-      } else if (message.method === 'Tracing.dataCollected' && this.traceFile) {
-        const chunk = message.params.value.map((event) => JSON.stringify(event)).join('\n') + '\n';
-        // Concatenated gzip members preserve complete JSONL batches, with bounded
-        // memory and much smaller artifacts than scheduler-state JSON. Compress
-        // only after detecting a stall, outside the browser and Cypress.
-        try {
-          const compressed = gzipSync(chunk, { level: 1 });
-          if (this.compressedBytes + compressed.length <= 32 * 1024 * 1024) {
-            appendFileSync(this.traceFile, compressed);
-            this.compressedBytes += compressed.length;
-            this.traceBytes += Buffer.byteLength(chunk);
-            this.traceEvents += message.params.value.length;
-          } else this.traceTruncated = true;
-        } catch (error) {
-          this.traceError = error.message;
-        }
       } else if (message.method === 'Tracing.tracingComplete') {
-        this.traceFinished = true;
-        this.resolveTrace(true);
-        this.writeTraceStatus();
+        this.traceDataLoss = message.params.dataLossOccurred;
+        this.resolveTrace(message.params.stream);
       }
     });
     this.socket.addEventListener('error', () => {});
@@ -88,11 +68,17 @@ export class BrowserDiagnostics {
         {
           traceConfig: {
             recordMode: 'recordContinuously',
-            traceBufferSizeInKb: 32768,
-            includedCategories: ['cc', 'disabled-by-default-cc.debug.scheduler'],
+            // Retain task flows until the two-minute inactivity probe confirms
+            // a stall, including compositor activity while the main thread waits.
+            traceBufferSizeInKb: 256 * 1024,
+            // TaskGraph schedule/run flows distinguish an unfinished raster task
+            // from a lost activation callback. JSON export drops these flow IDs.
+            includedCategories: ['cc', 'disabled-by-default-cc.debug.scheduler', 'toplevel'],
             excludedCategories: ['*'],
           },
-          transferMode: 'ReportEvents',
+          transferMode: 'ReturnAsStream',
+          streamFormat: 'proto',
+          streamCompression: 'gzip',
         },
         undefined,
         10000,
@@ -163,21 +149,40 @@ export class BrowserDiagnostics {
   async saveTrace() {
     this.traceFile ||= path.join(
       this.directory,
-      `chrome-scheduler-${this.tracingStartedAt || Date.now()}.jsonl.gz`,
+      `chrome-scheduler-${this.tracingStartedAt || Date.now()}.pftrace.gz`,
     );
     if (this.tracing) {
       writeFileSync(this.traceFile, '');
+      let stream;
+      let timer;
       try {
         await this.send('Tracing.end', {}, undefined, 10000);
-        this.traceFinished = await Promise.race([
+        stream = await Promise.race([
           this.traceComplete,
           new Promise((resolve) => {
-            const timer = setTimeout(() => resolve(false), 10000);
-            timer.unref();
+            // Keep the bound alive if Chrome exits before tracingComplete.
+            timer = setTimeout(() => resolve(undefined), 30000);
           }),
         ]);
+        if (!stream) throw new Error('Chrome trace stream unavailable');
+        const deadline = Date.now() + 15000;
+        while (!this.traceFinished) {
+          if (Date.now() >= deadline) throw new Error('Chrome trace download timed out');
+          const chunk = await this.send('IO.read', { handle: stream, size: 1024 * 1024 });
+          const data = Buffer.from(chunk.data, chunk.base64Encoded ? 'base64' : 'utf8');
+          if (this.compressedBytes + data.length > 32 * 1024 * 1024) {
+            this.traceTruncated = true;
+            break;
+          }
+          appendFileSync(this.traceFile, data);
+          this.compressedBytes += data.length;
+          this.traceFinished = chunk.eof;
+        }
       } catch (error) {
         this.traceError = error.message;
+      } finally {
+        clearTimeout(timer);
+        if (stream) await this.send('IO.close', { handle: stream }).catch(() => {});
       }
       this.tracing = false;
     }
@@ -187,14 +192,13 @@ export class BrowserDiagnostics {
   writeTraceStatus() {
     if (!this.traceFile) return;
     writeFileSync(
-      this.traceFile.replace('.jsonl.gz', '.status.json'),
+      this.traceFile.replace('.pftrace.gz', '.status.json'),
       JSON.stringify(
         {
           version: this.version,
           startedAt: this.tracingStartedAt,
-          events: this.traceEvents,
-          bytes: this.traceBytes,
           compressedBytes: this.compressedBytes,
+          dataLossOccurred: this.traceDataLoss,
           complete: Boolean(this.traceFinished),
           truncated: Boolean(this.traceTruncated),
           error: this.traceError,
