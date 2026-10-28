@@ -459,7 +459,7 @@ public class TaskConfigurationUtilsTests
     [InlineData("myTask", "subformComponentId")]
     public void The_Settings_The_Ui_Folder_Replaced_Are_Reported_As_No_Longer_Supported(string taskType, string setting)
     {
-        // Instead of as ignored elements, and instead of the missing subformUiFolder they stand in for
+        // Reported once, instead of an ignored element and a missing subformUiFolder
         var config = $"<altinn:subformPdfConfig><altinn:{setting}>Subform</altinn:{setting}></altinn:subformPdfConfig>";
         var process = Process(Task("Task_SubformPdf", taskType, config, element: "bpmn:serviceTask"));
 

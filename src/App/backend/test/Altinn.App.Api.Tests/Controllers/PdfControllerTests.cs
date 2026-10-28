@@ -292,7 +292,7 @@ public class PdfControllerTests
             dataElementId: new Guid(SubformDataElementId)
         );
 
-        // The entry is rendered from the subform's UI folder, which the subform PDF task does not need one of
+        // The entry renders from the subform's UI folder; the subform PDF task needs no UI folder of its own
         result.Should().BeOfType<FileContentResult>();
         RenderedUrl(requestBody)
             .Should()

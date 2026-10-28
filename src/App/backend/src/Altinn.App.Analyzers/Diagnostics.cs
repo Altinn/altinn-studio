@@ -376,9 +376,8 @@ public static class Diagnostics
             "Task '{0}' has {1} on {2}, {3}. {4}."
         );
 
-        // The frontend renders each subform entry from the folder with its defaultDataType, and the app checks both
-        // at startup (SubformPdfServiceTask.ValidateConfiguration). '{2}' says what is wrong with the folder, '{3}'
-        // how to fix it.
+        // The app runs the same check at startup (SubformPdfServiceTask.ValidateConfiguration). '{2}' is what is
+        // wrong with the folder, '{3}' how to fix it.
         public static readonly DiagnosticDescriptor SubformPdfUiFolderCannotRender = Error(
             "ALTINNAPP1024",
             Category.Process,
@@ -416,8 +415,8 @@ public static class Diagnostics
             "The 'eFormidling' configuration block in applicationmetadata.json is no longer supported. Configure eFormidling on a BPMN eFormidling service task instead."
         );
 
-        // The app ignores these elements, so a subform PDF task that still has them has no subformUiFolder either,
-        // which ALTINNAPP1020 would report as well; this says what to change instead. '{1}' is the element.
+        // Reported instead of an ignored element and a missing subformUiFolder (ALTINNAPP1020), so the app developer
+        // learns what to change. '{1}' is the old setting.
         public static readonly DiagnosticDescriptor SubformPdfComponentSettings = Error(
             "ALTINNAPP0602",
             Category.Deprecation,
