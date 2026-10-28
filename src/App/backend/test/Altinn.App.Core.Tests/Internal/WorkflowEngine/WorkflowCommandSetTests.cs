@@ -256,7 +256,7 @@ public class WorkflowCommandSetTests
             WorkflowCommandSet.PlanSegment("archiving", pipeline).Steps.Select(StepName)
         );
         Assert.Equal(
-            "On segment message",
+            "On segment message / On segment closed",
             StepName(Assert.Single(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).Steps))
         );
         Assert.Equal(

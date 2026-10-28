@@ -122,7 +122,7 @@ public sealed class PipelineBuilder
         _items.Add(
             new ReplySegment(handle.OpeningIndex, onMessage, onClosed, options)
             {
-                DisplayName = PipelineStepNames.FromMethod(onMessage),
+                DisplayName = PipelineStepNames.FromMethods(onMessage, onClosed),
             }
         );
         return this;
@@ -221,7 +221,7 @@ public sealed class PipelineBuilder
             _items,
             new PipelineConclusion.ReplyExchange(handle.OpeningIndex, onMessage, onClosed, options)
             {
-                DisplayName = PipelineStepNames.FromMethod(onMessage),
+                DisplayName = PipelineStepNames.FromMethods(onMessage, onClosed),
             }
         );
     }

@@ -33,6 +33,24 @@ internal static partial class PipelineStepNames
     }
 
     /// <summary>
+    /// The name of a reply handler, which runs one of two methods depending on what arrives, a message or the
+    /// mailbox's close: both names, as "On decision / On closed", so the step never shows a method that did not
+    /// run; the one of them that has a name; or null when neither has.
+    /// </summary>
+    internal static string? FromMethods(Delegate onMessage, Delegate onClosed)
+    {
+        string? first = FromMethod(onMessage);
+        string? second = FromMethod(onClosed);
+        return (first, second) switch
+        {
+            (null, null) => null,
+            (null, _) => second,
+            (_, null) => first,
+            _ => $"{first} / {second}",
+        };
+    }
+
+    /// <summary>
     /// A PascalCase or camelCase identifier as a phrase: the first word as written, the rest in lower case,
     /// except an acronym, which keeps its capitals (<c>GeneratePDFReceipt</c> reads "Generate PDF receipt").
     /// </summary>

@@ -79,6 +79,31 @@ public class PipelineStepNamesTests
         Assert.Equal(["Generate PDF receipt", "Confirm order"], execute.Items.Select(item => item.DisplayName));
     }
 
+    private static Task<ServiceTaskOpeningStageResult> RequestApproval(
+        StageContext context,
+        ServiceTaskMailbox mailbox
+    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+
+    private static Task<ServiceTaskExchangeResult> OnDecision(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
+
+    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
+        Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
+
+    /// <summary>
+    /// Which of a reply handler's two methods runs is known only when the message or the close arrives, so the step
+    /// is named after both, and never after one that did not run.
+    /// </summary>
+    [Fact]
+    public void Builder_NamesAReplyHandlerAfterBothItsMethods()
+    {
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
+            .Stage(RequestApproval, new MailboxOptions { Timeout = TimeSpan.FromDays(1) }, out MailboxHandle approval)
+            .ConcludeOnReplies(approval, OnDecision, OnClosed);
+
+        Assert.Equal(["Request approval", "On decision / On closed"], pipeline.Items.Select(item => item.DisplayName));
+    }
+
     [Fact]
     public void Builder_SimpleServiceTask_ConcludesWithoutAName()
     {

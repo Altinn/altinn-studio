@@ -138,7 +138,8 @@ object to each call.
 
 Where people follow a task's progress, such as Studio's admin panel, a step goes by the name of the method you
 passed as its work, written out as words: `SendToArchive` reads "Send to archive", `GeneratePDFReceipt` reads
-"Generate PDF receipt". A lambda leaves the step unnamed, and so does a one-step task's own `Execute`, which says
+"Generate PDF receipt". A reply handler runs one of two methods depending on what arrives, so it goes by both,
+`OnDecision / OnClosed`. A lambda leaves the step unnamed, and so does a one-step task's own `Execute`, which says
 nothing the task type does not. The name travels as the step label `stepName`, on lifecycle stages and service task
 steps alike; the step that mints a mailbox carries none. Names are display only: renaming a method changes nothing
 about how the step runs, in-flight workflows included, because a step's identity is its index.
