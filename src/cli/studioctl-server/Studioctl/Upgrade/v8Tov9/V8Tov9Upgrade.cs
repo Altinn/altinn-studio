@@ -11,6 +11,7 @@ using Altinn.Studio.Cli.Upgrade.v8Tov9.NavigationButtonsMigration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingRules;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.DataProcessingRules;
+using NuGet.Versioning;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 
@@ -56,6 +57,11 @@ internal static class V8Tov9Upgrade
     // Keep the release floor aligned with the app template. This release carries the .NET 11
     // arithmetic fixes and compatible OpenAPI dependencies; earlier v9 packages cannot be retargeted alone.
     private const string MinimumPackageVersion = "9.0.0-preview.8";
+
+    // The first release that puts the actor who started a transition on the contexts of hooks, service tasks and
+    // DataCreation (#21487). A placeholder until a preview with it is published, so that every preview gets the to-do
+    // that the caller's identity is missing in hooks.
+    internal const string FirstVersionWithCallbackActor = "9.0.0";
 
     /// <summary>
     /// The eFormidling client moved out of the Altinn.Common.EFormidlingClient package and into
@@ -154,7 +160,12 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(
             returnCode,
-            MigrateProcessHooks(scanner, Path.GetDirectoryName(projectFile) ?? projectFolder, options.CancellationToken)
+            MigrateProcessHooks(
+                scanner,
+                projectFile,
+                Path.GetDirectoryName(projectFile) ?? projectFolder,
+                options.CancellationToken
+            )
         );
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1160,6 +1171,7 @@ internal static class V8Tov9Upgrade
     /// </summary>
     static int MigrateProcessHooks(
         CSharpSourceScanner scanner,
+        string projectFile,
         string projectFolder,
         CancellationToken cancellationToken
     )
@@ -1173,9 +1185,11 @@ internal static class V8Tov9Upgrade
 
         try
         {
-            var result = new ProcessHookPortMigration(scanner, ProcessHookPortContext.Read(projectFolder)).Migrate(
-                cancellationToken
-            );
+            var context = ProcessHookPortContext.Read(projectFolder) with
+            {
+                CallbackActorIsKnown = CallbackActorIsKnown(projectFile),
+            };
+            var result = new ProcessHookPortMigration(scanner, context).Migrate(cancellationToken);
             return ReportMigrationResult(
                 result,
                 cleanText: "No v8 process hooks or Storage calls to port",
@@ -1190,6 +1204,19 @@ internal static class V8Tov9Upgrade
         {
             return Fail("Error porting the process hooks", ex);
         }
+    }
+
+    /// <summary>
+    /// Whether the Altinn.App version the project now references is <see cref="FirstVersionWithCallbackActor"/> or
+    /// later. With project references the app builds against a checkout of the libraries' sources, which is taken to
+    /// have it.
+    /// </summary>
+    internal static bool CallbackActorIsKnown(string projectFile)
+    {
+        var checks = new ProjectChecks.ProjectChecks(projectFile);
+        return checks.HasAltinnProjectReferences()
+            || PinnedPackageVersion.Parse(checks.AppPackageVersion()) is { } version
+                && version >= NuGetVersion.Parse(FirstVersionWithCallbackActor);
     }
 
     /// <summary>

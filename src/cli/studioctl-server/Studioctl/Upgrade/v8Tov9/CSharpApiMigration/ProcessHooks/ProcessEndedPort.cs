@@ -10,7 +10,6 @@ internal static class ProcessEndedPort
 {
     public static IEnumerable<HookCandidate> Find(
         IReadOnlyList<ScannedCSharpFile> files,
-        StorageCallReach reach,
         IReadOnlyDictionary<IMethodSymbol, string> calls
     ) =>
         HookImplementation
@@ -18,6 +17,6 @@ internal static class ProcessEndedPort
             .Select(hook =>
                 HookCandidate.BlockingReason(hook, calls) is { } reason
                     ? HookCandidate.Blocked(hook, reason)
-                    : new HookCandidate(hook, null, reach.Reaches(hook.Method), TaskIds.Every)
+                    : new HookCandidate(hook, null, TaskIds.Every)
             );
 }

@@ -274,6 +274,9 @@ public sealed class HandlerMergeTests : IDisposable
                 "App: 2 handlers run at Task_1 (ProcessTaskEnd, Hook); v9 starts only with one per task. "
                     + "Dibk.Ftpb.Common.AltinnApps 1.7.0 registers ProcessTaskEnd; a v9 version of the package is "
                     + "needed, then combine its check with Hook.",
+                "Program.cs:11: App: Dibk.Ftpb.Common.AltinnApps 1.7.0 registers ProcessTaskEnd through "
+                    + "AddDibkCommonAltinnAppServices, and ProcessTaskEnd implements IProcessTaskEnd, which v9 removed or "
+                    + "moved. The app needs a v9 version of the package.",
             ],
             result.Todos
         );
@@ -281,32 +284,36 @@ public sealed class HandlerMergeTests : IDisposable
     }
 
     [Fact]
-    public void HandlersOfATaskWhereOneCallsStorage_AreAllLeftAsTheyAre()
+    public void HandlersOfATaskWhereOneIsBlocked_AreAllLeftAsTheyAre()
     {
         WriteHook("Hook", "Task_1");
-        var storage = InApp(
+        var blocked = InApp(
             """
-            public class Storage(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient) : IProcessTaskEnd
+            public partial class Blocked : IProcessTaskEnd
             {
-                public async Task End(string taskId, Instance instance)
-                {
-                    if (taskId != "Task_1") return;
-                    await instanceClient.UpdateDataValues(instance, new() { ["Fagsystem"] = "hego" });
-                }
+                public Task End(string taskId, Instance instance) => Task.CompletedTask;
             }
             """
         );
-        _app.Write("logic/Storage.cs", storage);
+        _app.Write("logic/Blocked.cs", blocked);
         var hook = _app.Read("logic/Hook.cs");
         var program = Program(
             "services.AddTransient<IProcessTaskEnd, Hook>();",
-            "services.AddTransient<IProcessTaskEnd, Storage>();"
+            "services.AddTransient<IProcessTaskEnd, Blocked>();"
         );
         _app.Write("Program.cs", program);
 
         var result = Port(AppFolder);
 
-        Assert.Empty(result.Messages);
+        Assert.Single(
+            result.Todos,
+            todo =>
+                todo.StartsWith(
+                    $"logic/Blocked.cs:{LineOf(blocked, "public partial class Blocked")}: Blocked implements "
+                        + "IProcessTaskEnd, which v9 removed, and was not ported: the class is partial.",
+                    StringComparison.Ordinal
+                )
+        );
         Assert.Equal(hook, _app.Read("logic/Hook.cs"));
         Assert.Equal(program, _app.Read("Program.cs"));
     }

@@ -5,7 +5,8 @@ namespace Studioctl.Tests.Upgrade.v8Tov9.ProcessHooks;
 /// <summary>
 /// v9 runs what a custom process task does as it starts, ends or is abandoned as the stages its <c>DefineStart</c>,
 /// <c>DefineEnd</c> and <c>DefineAbandon</c> compose, so the v8 methods would compile and never run: each becomes the
-/// stage of its <c>Define</c> member, is deleted when it did nothing, and is reported when it calls Storage.
+/// stage of its <c>Define</c> member, is deleted when it did nothing, and has its Storage calls moved to the context's
+/// mutator.
 /// </summary>
 public sealed class ProcessTaskPortTests : IDisposable
 {
@@ -26,7 +27,7 @@ public sealed class ProcessTaskPortTests : IDisposable
             );
 
     [Fact]
-    public void MethodsThatDoNothing_AreDeleted_AndOneThatCallsStorage_IsATodo()
+    public void MethodsThatDoNothing_AreDeleted_AndOneThatCallsStorage_ReadsThroughTheContextsMutator()
     {
         // brg/virksomhetsregistrering App/Features/Signing/ParallelSigningTask.cs:8.
         var source = WithProcessTasks(
@@ -75,19 +76,20 @@ public sealed class ProcessTaskPortTests : IDisposable
 
         Assert.Equal(
             WithProcessTasks(
-                """
+                $$"""
                 public interface ISigningService
                 {
-                    Task AbandonSigningAsync(Instance instance);
+                    Task AbandonSigningAsync({{IInstanceDataMutator}} dataMutator);
                 }
 
-                public class SigningService(Altinn.App.Core.Internal.Data.IDataClient dataClient) : ISigningService
+                public class SigningService : ISigningService
                 {
-                    public async Task AbandonSigningAsync(Instance instance)
+                    public async Task AbandonSigningAsync({{IInstanceDataMutator}} dataMutator)
                     {
+                        Instance instance = dataMutator.Instance;
                         foreach (var element in instance.Data)
                         {
-                            await dataClient.GetFormData(instance, element);
+                            await dataMutator.GetFormData(element);
                         }
                     }
                 }
@@ -97,9 +99,13 @@ public sealed class ProcessTaskPortTests : IDisposable
                     public const string TaskId = "parallel_signing";
                     public string Type { get; } = TaskId;
 
-                    public async Task Abandon(string taskId, Instance instance)
+                    public {{ProcessTaskPipeline}} DefineAbandon({{PipelineBuilder}} pipeline) => pipeline.Stage(Abandon).Build();
+
+                    public async Task<{{StageResult}}> Abandon({{StageContext}} context)
                     {
-                        await signingService.AbandonSigningAsync(instance);
+                        {{IInstanceDataMutator}} dataMutator = context.InstanceDataMutator;
+                        await signingService.AbandonSigningAsync(dataMutator);
+                        return {{StageResult}}.Completed();
                     }
                 }
                 """
@@ -109,6 +115,14 @@ public sealed class ProcessTaskPortTests : IDisposable
         Assert.Equal(
             [
                 Warning(
+                    $"{TaskPath}:{LineOf(source, "public class SigningService")}: removed the IDataClient that "
+                        + "SigningService no longer uses."
+                ),
+                Warning(
+                    $"{TaskPath}:{LineOf(source, "await dataClient.GetFormData")}: IDataClient.GetFormData now reads "
+                        + "the form with dataMutator.GetFormData."
+                ),
+                Warning(
                     $"{TaskPath}:{LineOf(source, "public Task Start")}: removed ParallelSigningTask.Start, which did "
                         + "nothing; v9 never calls it, and DefineStart composes no stages by default."
                 ),
@@ -116,12 +130,11 @@ public sealed class ProcessTaskPortTests : IDisposable
                     $"{TaskPath}:{LineOf(source, "public Task End")}: removed ParallelSigningTask.End, which did "
                         + "nothing; v9 never calls it, and DefineEnd composes no stages by default."
                 ),
-                Todo(
-                    $"{TaskPath}:{LineOf(source, "public async Task Abandon(")}: ParallelSigningTask.Abandon(string taskId, "
-                        + "Instance instance) is never called in v9 and was not moved: it calls Storage directly, which "
-                        + "v9 refuses while the process is transitioning. Move it to a stage of "
-                        + "DefineAbandon(PipelineBuilder pipeline), with instance data from the StageContext's "
-                        + "InstanceDataMutator."
+                Warning(
+                    $"{TaskPath}:{LineOf(source, "public async Task Abandon(")}: ParallelSigningTask.Abandon now takes "
+                        + "the StageContext v9 calls it with, as the stage of DefineAbandon. v9 runs it inside the "
+                        + "process transition and runs it again when a step fails, so calls it makes to other systems, "
+                        + "such as e-mail, case numbers or external APIs, can repeat."
                 ),
             ],
             result.Messages
