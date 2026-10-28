@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
@@ -12,7 +12,7 @@ import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/Repe
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 
 type NodeId = 'input1' | 'input2' | 'input3' | 'repeating-group';
 
@@ -22,6 +22,7 @@ interface LayoutOptions {
   editButton?: boolean;
   withRowsBefore?: boolean;
   withRowsAfter?: boolean;
+  withCustomButton?: boolean;
   tableHeaders?: string[];
 }
 
@@ -30,12 +31,20 @@ describe('RepeatingGroupTableSummary', () => {
     vi.restoreAllMocks();
   });
 
+  const customButton: CompExternal<'CustomButton'> = {
+    id: 'custom-button',
+    type: 'CustomButton',
+    actions: [{ type: 'ServerAction', id: 'someAction' }],
+    textResourceBindings: { title: 'Action' },
+  };
+
   const createLayout = ({
     hidden = [],
     readOnly = {},
     editButton,
     withRowsBefore,
     withRowsAfter,
+    withCustomButton,
     tableHeaders = ['input3'],
   }: LayoutOptions = {}): ILayoutCollection => ({
     FormPage1: {
@@ -48,7 +57,7 @@ describe('RepeatingGroupTableSummary', () => {
               group: { dataType: defaultDataTypeMock, field: 'group' },
             },
             tableHeaders,
-            children: ['input1', 'input2', 'input3'],
+            children: ['input1', 'input2', 'input3', ...(withCustomButton ? ['custom-button'] : [])],
             maxCount: 3,
             hidden: hidden.includes('repeating-group'),
             ...(withRowsBefore && {
@@ -114,6 +123,7 @@ describe('RepeatingGroupTableSummary', () => {
             hidden: hidden.includes('input3'),
             ...(readOnly['input3'] !== undefined && { readOnly: readOnly['input3'] }),
           },
+          ...(withCustomButton ? [customButton] : []),
         ],
       },
     },
@@ -260,6 +270,21 @@ describe('RepeatingGroupTableSummary', () => {
   test('should render rowsBefore in summary table', async () => {
     await render({ layout: createLayout({ editButton: true, withRowsBefore: true }) });
     expect(screen.getByText('summary.before')).toBeInTheDocument();
+  });
+
+  test('omits a table column for a component without a Summary2 renderer', async () => {
+    await render({
+      layout: createLayout({ withCustomButton: true, tableHeaders: ['input1', 'custom-button', 'input2'] }),
+    });
+
+    const [headingRow, dataRow] = screen.getAllByRole('row');
+    expect(within(headingRow).getAllByRole('columnheader')).toHaveLength(3);
+    expect(within(dataRow).getAllByRole('cell')).toHaveLength(3);
+    expect(headingRow).toHaveTextContent('Input 1');
+    expect(headingRow).toHaveTextContent('Input 2');
+    expect(dataRow).toHaveTextContent('field1-row0');
+    expect(dataRow).toHaveTextContent('field2-row0');
+    expect(screen.queryByText('Action')).not.toBeInTheDocument();
   });
 
   test('should handle nested child component inside group when editing', async () => {
