@@ -60,7 +60,7 @@ public class BuiltInTaskTypesTests
                 (
                     // The built-in classes return a literal from Type, so it can be read without their dependencies.
                     ((IProcessTask)RuntimeHelpers.GetUninitializedObject(type)).Type,
-                    typeof(IPipelineServiceTask).IsAssignableFrom(type)
+                    typeof(IServiceTask).IsAssignableFrom(type)
                 )
             )
             .ToList();

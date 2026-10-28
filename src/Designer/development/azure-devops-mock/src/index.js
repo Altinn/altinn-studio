@@ -20,6 +20,21 @@ import { environmentsRoute } from './routes/environments.js';
 import { appMetadataRoute, appProcessRoute } from './routes/apps.js';
 import { notificationRoute } from './routes/notifications.js';
 import { accessibleForAllScopesRoute, accessScopesRoute } from './routes/maskinporten.js';
+import {
+  instancesFromLocaltest,
+  localtestAppMetadataRoute,
+  localtestAppProcessRoute,
+  localtestInstanceDeleteRoute,
+  localtestInstanceDetailsRoute,
+  localtestInstancesRoute,
+  workflowCollectionRoute,
+  workflowCollectionsRoute,
+  workflowFailRoute,
+  workflowNudgeRoute,
+  workflowResumeRoute,
+  workflowRoute,
+  workflowsRoute,
+} from './routes/localtest.js';
 import { reportMetricsRoute } from './routes/reports.js';
 
 const app = express();
@@ -42,14 +57,49 @@ app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',
   runtimeGatewayDeploymentDetailsRoute,
 );
+// The admin app's metrics come from the cluster's monitoring, which a local stack has none of: every
+// series is empty rather than an error the page has to show.
+const emptyMetricsRoute = (req, res) => res.json([]);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/errors', emptyMetricsRoute);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app', emptyMetricsRoute);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app/errors', emptyMetricsRoute);
+app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/app/health', emptyMetricsRoute);
 app.get('/apps/:org/:env/runtime/gateway/api/v1/metrics/report', reportMetricsRoute);
-app.get('/apps/:org/:env/:org/:app/api/v1/applicationmetadata', appMetadataRoute);
-app.get('/apps/:org/:env/:org/:app/api/v1/meta/process', appProcessRoute);
 app.get('/storage/api/v1/applications/:org/:app', storageApplicationMetadataRoute);
 app.get('/storage/api/v1/applications/:org/:app/texts/:lang', storageTextsRoute);
-app.get('/storage/api/v1/studio/instances/:org/:app', storageInstancesRoute);
-app.get('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDetailsRoute);
-app.delete('/storage/api/v1/studio/instances/:org/:app/:instanceId', storageInstanceDeleteRoute);
+// The admin app's app and instance views: canned and random data by default, or what the studioctl
+// environment on the host actually holds (INSTANCES_FROM_LOCALTEST=true) — the running app's own
+// metadata included, so the admin app sees the app libraries' version each app really runs on.
+const useLocaltest = instancesFromLocaltest();
+app.get(
+  '/apps/:org/:env/:org/:app/api/v1/applicationmetadata',
+  useLocaltest ? localtestAppMetadataRoute(appMetadataRoute) : appMetadataRoute,
+);
+app.get(
+  '/apps/:org/:env/:org/:app/api/v1/meta/process',
+  useLocaltest ? localtestAppProcessRoute(appProcessRoute) : appProcessRoute,
+);
+app.get(
+  '/storage/api/v1/studio/instances/:org/:app',
+  useLocaltest ? localtestInstancesRoute : storageInstancesRoute,
+);
+app.get(
+  '/storage/api/v1/studio/instances/:org/:app/:instanceId',
+  useLocaltest ? localtestInstanceDetailsRoute : storageInstanceDetailsRoute,
+);
+app.delete(
+  '/storage/api/v1/studio/instances/:org/:app/:instanceId',
+  useLocaltest ? localtestInstanceDeleteRoute : storageInstanceDeleteRoute,
+);
+// The runtime gateway's workflow pass-through, served by the studioctl environment's engine.
+const workflowsBase = '/apps/:org/:env/runtime/gateway/api/v1/workflows/apps/:app';
+app.get(`${workflowsBase}/collections`, workflowCollectionsRoute);
+app.get(`${workflowsBase}/collections/:key`, workflowCollectionRoute);
+app.get(`${workflowsBase}/workflows`, workflowsRoute);
+app.get(`${workflowsBase}/workflows/:workflowId`, workflowRoute);
+app.post(`${workflowsBase}/workflows/:workflowId/resume`, workflowResumeRoute);
+app.post(`${workflowsBase}/workflows/:workflowId/nudge`, workflowNudgeRoute);
+app.post(`${workflowsBase}/workflows/:workflowId/fail`, workflowFailRoute);
 app.get('/api/v1/scopes/all', accessibleForAllScopesRoute);
 app.get('/api/v1/scopes/access/all', accessScopesRoute);
 app.post('/_apis/build/builds/', buildsRoute);
@@ -59,5 +109,5 @@ app.all('/{*splat}', function (req, res) {
   console.log(req.method + ' ' + req.originalUrl);
   res.send('Ok, you are at the foxy mockzy');
 });
-const port = 6161;
+const port = process.env.PORT ?? 6161;
 app.listen(port, () => console.log(`Azure Devops API Mock listening on port ${port}`));

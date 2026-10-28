@@ -6,7 +6,7 @@ namespace Altinn.App.Core.Features.Process;
 /// </summary>
 /// <remarks>
 /// The payload originated outside the platform: validate defensively. Delivery is at-least-once, so key
-/// durable side effects on <see cref="IdempotencyKey"/> or <see cref="ServiceTaskContext.StepId"/>.
+/// durable side effects on <see cref="IdempotencyKey"/> or <see cref="StageContext.StepId"/>.
 /// </remarks>
 public sealed record ServiceTaskReply
 {

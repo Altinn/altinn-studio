@@ -83,7 +83,9 @@ public sealed class WorkflowHookServiceTask : IServiceTask
 {
     public string Type => "write";
 
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+    public Task<ServiceTaskResult> Execute(StageContext context)
     {
         SnapshotLogger.LogInfo("WorkflowEngineHooks.IServiceTask.Execute.Success");
         return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());

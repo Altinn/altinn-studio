@@ -2,13 +2,13 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// The result of a pipeline stage that <strong>opens a mailbox</strong> — the work delegate of
-/// <see cref="ServiceTaskPipelineBuilder.Stage(Func{ServiceTaskContext, ServiceTaskMailbox, Task{ServiceTaskOpeningStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>:
+/// <see cref="PipelineBuilder.Stage(Func{StageContext, ServiceTaskMailbox, Task{ServiceTaskOpeningStageResult}}, MailboxOptions, out MailboxHandle, ProcessStepOptions?)"/>:
 /// the whole stage vocabulary, plus <see cref="Conclude"/> for the send that discovers the task's outcome
 /// on its own — an answer that can never arrive needs no exchange to say so.
 /// </summary>
 /// <remarks>
-/// Deliberately its own root rather than a subtype of <see cref="ServiceTaskStageResult"/>: that type sits
-/// below <see cref="ServiceTaskStageExchangeResult"/>, and rooting this vocabulary anywhere in that chain
+/// Deliberately its own root rather than a subtype of <see cref="StageResult"/>: that type sits
+/// below <see cref="StageExchangeResult"/>, and rooting this vocabulary anywhere in that chain
 /// would put either <c>AwaitNextReply</c> within a stage's reach or <see cref="Conclude"/> within a reply
 /// handler's. The duplicated members are the price of both roots staying closed — do not merge them behind
 /// a shared base, an interface or a generic.
@@ -24,7 +24,7 @@ public abstract record ServiceTaskOpeningStageResult
     /// <summary>
     /// The stage is complete: the pipeline advances. Recorded durably by the engine — a completed
     /// stage never runs again. Data changes made through
-    /// <see cref="ServiceTaskContext.InstanceDataMutator"/> are saved, so the stages after this
+    /// <see cref="StageContext.InstanceDataMutator"/> are saved, so the stages after this
     /// one see them. Completing a mailbox-opening stage is also the hand-over to whatever comes next: this
     /// exchange's receive leg when its reply handler is composed right after the stage, and otherwise the
     /// items composed after it.

@@ -90,8 +90,8 @@ internal static class ServiceCollectionExtensions
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();
 
-        // Fail fast at startup on invalid service-task pipelines (throwing/null Define, replaced
-        // forwarding default).
+        // Fail fast at startup on invalid service-task pipelines (a DefineExecute that throws or returns null, a
+        // mailbox left unanswered).
         services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }

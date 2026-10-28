@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Hosting;
 using Altinn.Studio.Designer.Models.ContactPoints;
@@ -45,7 +46,8 @@ public class OpenTelemetryTests
     : DesignerEndpointsTestsBase<OpenTelemetryTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private const string ServiceVersion = "0123456789";
+    // The project's InformationalVersion, which the image build replaces with DESIGNER_VERSION.
+    private const string ServiceVersion = "dev";
 
     private readonly ExportedItems<Activity> _spans = new();
     private readonly ExportedItems<Metric> _metrics = new();
@@ -59,7 +61,6 @@ public class OpenTelemetryTests
     public OpenTelemetryTests(WebApplicationFactory<Program> factory)
         : base(factory)
     {
-        JsonConfigOverrides.Add($$"""{ "DESIGNER_VERSION": "{{ServiceVersion}}" }""");
         ConfigureTestServicesForSpecificTest = services =>
         {
             services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddInMemoryExporter(_spans));
@@ -103,7 +104,7 @@ public class OpenTelemetryTests
 
         Assert.Contains(
             resource.Attributes,
-            attribute => attribute is { Key: "service.version", Value: ServiceVersion }
+            attribute => attribute.Key == "service.version" && Equals(attribute.Value, ServiceVersion)
         );
     }
 
@@ -121,12 +122,10 @@ public class OpenTelemetryTests
         {
             Assert.Contains(
                 resource.Attributes,
-                attribute =>
-                    attribute is { Key: "service.instance.id" }
-                    && Equals(attribute.Value, InstanceTelemetry.ServiceInstanceId)
+                attribute => attribute is { Key: "service.instance.id" } && Equals(attribute.Value, Workload.InstanceId)
             );
         }
-        Assert.True(Guid.TryParse(InstanceTelemetry.ServiceInstanceId, out _));
+        Assert.True(Guid.TryParse(Workload.InstanceId, out _));
     }
 
     [Fact]
@@ -145,7 +144,7 @@ public class OpenTelemetryTests
         );
         Assert.Contains(
             resource.Attributes,
-            attribute => attribute is { Key: "service.version", Value: ServiceVersion }
+            attribute => attribute.Key == "service.version" && Equals(attribute.Value, ServiceVersion)
         );
     }
 

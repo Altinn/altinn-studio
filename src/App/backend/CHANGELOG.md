@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- Pipeline steps are named after the method they run, for Studio's admin panel: a lifecycle stage or service task step composed from `StoreReceipt` shows as "Store receipt". A lambda leaves the step unnamed. Names are display only and change nothing about how a step runs. ([#21580](https://github.com/Altinn/altinn-studio/pull/21580))
 - PDF preview in the app developer tools can now show a PDF or subform PDF service task before the instance reaches it, including individual subforms. `GET .../pdf/preview` accepts optional `taskId` and `language`; subform PDF service tasks require `dataElementId`. ([Altinn/app-lib-dotnet#1659](https://github.com/Altinn/app-lib-dotnet/issues/1659))
 - `GET .../pdf/preview` now appears in the app's OpenAPI documentation for integrations that use the API directly. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Build checks compare the data types `process.bpmn` uses with `applicationmetadata.json` ([#21024](https://github.com/Altinn/altinn-studio/pull/21024)):
@@ -27,9 +28,15 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
+- Custom process tasks can split the work they do when a task starts, ends or is abandoned into stages with `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`, composed and run exactly like the stages of a service task: each stage is saved and retried on its own, and can defer or fail permanently. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
 ### Changed
 
+- The signing task ends in two stages: it revokes the signees' delegated rights, then stores the signing PDF, so the PDF is never readable on rights the task gave, and a retried PDF stage does not revoke again. ([#21568](https://github.com/Altinn/altinn-studio/pull/21568))
+- Breaking: `IServiceTask.Define` is `DefineExecute`, named like `DefineStart`, `DefineEnd` and `DefineAbandon` for the phase it composes. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+- Breaking: `IServiceTask` no longer has `StepOptions`. Declare a step's timeout, retry strategy and wait budget where the step is composed, on `Stage`, `HandleReplies`, `Finally` or `ConcludeOnReplies`; nothing falls back to a task-wide value. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+- The payment task composes its start, end and abandon work as stages. Its ending stage keeps a receipt it already stored, so an ending step run again after it committed no longer stores a second receipt. ([#21560](https://github.com/Altinn/altinn-studio/pull/21560))
+- `IPipelineServiceTask` is gone. `IServiceTask` is the one service task interface, and every service task composes its pipeline in `Define`. A task that did one thing keeps its `Execute` and defines `pipeline.Finally(Execute)`. Analyzer rule `ALTINNAPP0700`, which guarded the forwarding default, is removed with it. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 - Grid shows all the text in its cells instead of cutting it off with an ellipsis after two lines. `textOverflow` on Grid cells is deprecated: it has no effect, and you can remove it from your layouts. ([#21379](https://github.com/Altinn/altinn-studio/pull/21379))
 - `GET .../pdf/preview` now allows 20 previews per minute across all instances by default; further requests return 429 with `Retry-After`. Configure `PdfGeneratorSettings:PreviewRateLimit` using `PermitLimit` (0 disables the limit), `Window` and `QueueLimit` (requests queued for the next window). ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: `IPdfService.GeneratePdf` now has one overload requiring a language, with optional `autoGeneratePdfForTaskIds`, `isPreview` and `authenticationMethod` parameters. Pass `isPreview` and cancellation tokens by name; custom `IPdfService` implementations must implement every method, including the new `GenerateSubformPdf`. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
@@ -63,6 +70,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - `HookResult` is `HandlerResult`, with `SuccessfulHandlerResult` and `FailedHandlerResult`
     - `IOnTaskAbandonHandler` is `IOnTaskAbandoningHandler`, with `OnTaskAbandoningContext`
     - `ServiceTaskSuccessResult`, `ServiceTaskFailedResult` and `ServiceTaskDeferredResult` are `SuccessfulServiceTaskResult`, `FailedServiceTaskResult` and `DeferredServiceTaskResult`
+- Breaking: the types a pipeline stage uses are named for stages, since process task lifecycle stages use them too: `ServiceTaskContext` is `StageContext`, `ServiceTaskStageResult` is `StageResult`, `ServiceTaskStageExchangeResult` is `StageExchangeResult`, `ServiceTaskStageAwaitNextReplyResult` is `StageAwaitNextReplyResult`, and `ServiceTaskAttempt` and `ServiceTaskWait` are `StageAttempt` and `StageWait`. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+- Breaking: `ServiceTaskPipelineBuilder` is `PipelineBuilder`, the one builder every pipeline is composed with. A service task's `Define` still ends it with `Finally` or `ConcludeOnReplies`; a task's `DefineStart`, `DefineEnd` and `DefineAbandon` end it with `Build()`, which refuses a pipeline that opened a mailbox. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
 ### Fixed
 
@@ -80,9 +89,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
 - Apps owned by `ttd` now act as `ttd`, not `digdir`, when they call Altinn as the service owner, so the `[org]` rules in `policy.xml` apply to them. A separate rule for `digdir` is no longer needed. ([#21474](https://github.com/Altinn/altinn-studio/pull/21474))
 - The app's OpenAPI documentation for `PUT .../process/next` now describes the response it returns, including `processTasks`, `workflow` and the actions on `currentTask`, instead of a top-level `actions` that never appears. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
+- Delegated signing retries the step that failed when Access Management, Correspondence or Register is briefly unavailable, instead of leaving signees without signing rights or a notification. A retry does not notify anyone twice. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182))
 
 ### Removed
 
+- Breaking: `IProcessTask.Start`, `End` and `Abandon` and `ProcessTaskContext`. Compose the work as stages with `DefineStart`, `DefineEnd` and `DefineAbandon`; a stage takes a `StageContext` and returns a `StageResult`. A task with nothing to do at a phase keeps the default, which plans no step. ([#21582](https://github.com/Altinn/altinn-studio/pull/21582))
 - Breaking: `IPdfService.GenerateAndStorePdf` is removed. Call `GeneratePdf` with the instance and data mutator's language, then store the returned bytes with your chosen filename using `IInstanceDataMutator.AddBinaryDataElement`. Use `ref-data-as-pdf` and `generatedFromTask` to preserve cleanup when the task restarts. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: the `PdfService.GenerateAndStorePdf` trace span is removed. Update queries, dashboards and alerts to use `PdfService.GeneratePdf` for PDF service tasks. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandoningHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
@@ -90,6 +101,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `WorkflowFailureKind.AcquireConflict` and the `acquireConflict` workflow failure kind in process responses. A `PUT .../process/next` that another change got to first answers `processNextState: "instanceChanged"` instead.
 - Breaking: `Altinn.App.Api.Models.AppProcessState` is removed. Use `Altinn.App.Core.Internal.Process.Elements.AppProcessState`, which the process endpoints return. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 - Breaking: `PUT .../process/completeProcess` is removed. Call `PUT .../process/next` instead, for example to end a feedback task once your system has processed the submission. ([#21562](https://github.com/Altinn/altinn-studio/pull/21562))
+
+### Deprecated
+
+- `IProcessTask.Start`, `End` and `Abandon` are deprecated and removed before v9 ships. Compose the work as stages with `DefineStart`, `DefineEnd` and `DefineAbandon` instead. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
 ## [9.0.0-preview.8] - 2026-10-14
 

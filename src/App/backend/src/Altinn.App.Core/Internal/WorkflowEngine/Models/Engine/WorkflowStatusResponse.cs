@@ -115,13 +115,13 @@ internal sealed record WorkflowStatusResponse
     public string? InitialState { get; init; }
 
     /// <summary>
-    /// The <c>isHead</c> directive the workflow was enqueued with. <c>false</c> marks an auxiliary
-    /// workflow, which runs beside the process and never blocks or moves it; <c>true</c> or
-    /// <c>null</c> (natural leaf detection applied at enqueue) marks a primary workflow.
+    /// Whether the process waits on this workflow. The engine derives it from the <c>isHead</c>
+    /// directive the workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>), which is the
+    /// encoding; this is the field the app reads.
     /// </summary>
-    [JsonPropertyName("isHead")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public bool? IsHead { get; init; }
+    [JsonPropertyName("role")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public required WorkflowRole Role { get; init; }
 
     /// <summary>
     /// Details about each step in the workflow.

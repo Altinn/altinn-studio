@@ -69,7 +69,7 @@ namespace Altinn.App.Clients.Fiks.FiksArkiv
     }
     public interface IFiksArkivMessageHandler
     {
-        System.Threading.Tasks.Task HandleMessage(Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessage message, Altinn.App.Core.Features.Process.ServiceTaskContext context);
+        System.Threading.Tasks.Task HandleMessage(Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessage message, Altinn.App.Core.Features.Process.StageContext context);
     }
     public interface IFiksArkivPayloadGenerator
     {

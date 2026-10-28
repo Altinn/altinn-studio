@@ -213,13 +213,13 @@ internal sealed class MailboxRelay
             // Reached by the route Decide's last arm documents; answered the same way.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' concluded from its mailbox-opening stage with a result "
-                        + $"of type '{result.GetType().Name}', which this version of the app-lib cannot act "
+                    $"Service task '{serviceTaskType}' concluded from its mailbox-opening stage with "
+                        + $"{StageExecution.DescribeResult(result)}, which this version of the app-lib cannot act "
                         + "on. A conclusion must carry one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
                         + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                         + $"{nameof(ServiceTaskResult.FailedPermanent)} or "
-                        + $"{nameof(ServiceTaskResult.Defer)} — never a type of its own.",
+                        + $"{nameof(ServiceTaskResult.Defer)} — never a type of its own, and never null.",
                     "ServiceTaskResultUnknown"
                 );
         }
@@ -241,7 +241,9 @@ internal sealed class MailboxRelay
         AppCallbackMailbox mailbox,
         WorkflowCallbackStateCarry carry,
         int handlerItemIndex,
-        int openingStageIndex
+        int openingStageIndex,
+        ProcessStepOptions? handlerStepOptions = null,
+        string? handlerStepName = null
     )
     {
         switch (result)
@@ -258,7 +260,9 @@ internal sealed class MailboxRelay
                         mailbox.Id,
                         serviceTaskType,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        handlerStepOptions,
+                        handlerStepName
                     ),
                 };
 
@@ -300,13 +304,13 @@ internal sealed class MailboxRelay
             // most destructive of the readings it could have meant.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' answered a message with a result of type "
-                        + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
+                    $"Service task '{serviceTaskType}' answered a message with "
+                        + $"{StageExecution.DescribeResult(result)}, which this version of the app-lib cannot act on. A reply "
                         + "handler must return one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
                         + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                         + $"{nameof(ServiceTaskResult.FailedPermanent)}, {nameof(ServiceTaskResult.Defer)} or "
-                        + $"{nameof(ServiceTaskExchangeResult.AwaitNextReply)} — never a type of its own.",
+                        + $"{nameof(ServiceTaskExchangeResult.AwaitNextReply)} — never a type of its own, and never null.",
                     "ServiceTaskResultUnknown"
                 );
         }
@@ -322,7 +326,7 @@ internal sealed class MailboxRelay
     /// — for the reasons on <see cref="TryPlanHandover"/>.
     /// </summary>
     internal static ProcessEngineCommandResult DecideSegment(
-        ServiceTaskStageExchangeResult result,
+        StageExchangeResult result,
         string serviceTaskType,
         Guid stepId,
         AppCallbackMailbox mailbox,
@@ -334,7 +338,7 @@ internal sealed class MailboxRelay
     {
         switch (result)
         {
-            case ServiceTaskStageAwaitNextReplyResult:
+            case StageAwaitNextReplyResult:
                 if (StepIdMissing(stepId, serviceTaskType, "enqueue the exchange's next receiver") is { } noKey)
                 {
                     return noKey;
@@ -346,15 +350,17 @@ internal sealed class MailboxRelay
                         mailbox.Id,
                         serviceTaskType,
                         handlerItemIndex,
-                        mailbox.Seq
+                        mailbox.Seq,
+                        pipeline.Items.ElementAtOrDefault(handlerItemIndex)?.StepOptions,
+                        pipeline.Items.ElementAtOrDefault(handlerItemIndex)?.DisplayName
                     ),
                 };
 
-            case CompletedServiceTaskStageResult
+            case CompletedStageResult
                 when StepIdMissing(stepId, serviceTaskType, "start the pipeline's next segment") is { } noContinueKey:
                 return noContinueKey;
 
-            case CompletedServiceTaskStageResult:
+            case CompletedStageResult:
                 if (
                     !TryPlanHandover(
                         serviceTaskType,
@@ -383,7 +389,7 @@ internal sealed class MailboxRelay
                     ),
                 };
 
-            case FailedServiceTaskStageResult { Kind: FailureKind.Permanent } failed:
+            case FailedStageResult { Kind: FailureKind.Permanent } failed:
                 // Later mailboxes already open are left alone: closing them would sabotage a resume, which
                 // replays this handler and may then carry the chain on.
                 return FailedProcessEngineCommandResult.Permanent(
@@ -392,27 +398,27 @@ internal sealed class MailboxRelay
                     new MailboxContinuation.Conclude([mailbox.Id])
                 );
 
-            case FailedServiceTaskStageResult failed:
+            case FailedStageResult failed:
                 // The saga has not started; the next attempt gets the same message.
                 return FailedProcessEngineCommandResult.Retryable(
                     ExecuteServiceTask.FailedMessage(serviceTaskType, failed.ErrorMessage),
                     ExecuteServiceTask.FailedReasonCode
                 );
 
-            case DeferredServiceTaskStageResult deferred:
+            case DeferredStageResult deferred:
                 return new DeferredProcessEngineCommandResult { Delay = deferred.Delay, Reason = deferred.Reason };
 
             // Reached by the route Decide's last arm documents; answered the same way.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' answered a message with a result of type "
-                        + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
+                    $"Service task '{serviceTaskType}' answered a message with "
+                        + $"{StageExecution.DescribeResult(result)}, which this version of the app-lib cannot act on. A reply "
                         + "handler that continues the pipeline must return one of the results the factory "
-                        + $"methods produce — {nameof(ServiceTaskStageResult.Completed)}, "
-                        + $"{nameof(ServiceTaskStageResult.FailedRetryable)}, "
-                        + $"{nameof(ServiceTaskStageResult.FailedPermanent)}, "
-                        + $"{nameof(ServiceTaskStageResult.Defer)} or "
-                        + $"{nameof(ServiceTaskStageExchangeResult.AwaitNextReply)} — never a type of its own.",
+                        + $"methods produce — {nameof(StageResult.Completed)}, "
+                        + $"{nameof(StageResult.FailedRetryable)}, "
+                        + $"{nameof(StageResult.FailedPermanent)}, "
+                        + $"{nameof(StageResult.Defer)} or "
+                        + $"{nameof(StageExchangeResult.AwaitNextReply)} — never a type of its own, and never null.",
                     "ServiceTaskResultUnknown"
                 );
         }
@@ -451,7 +457,14 @@ internal sealed class MailboxRelay
                 await EnqueueReceiver(
                     awaitNext.MailboxId,
                     awaitNext.ServiceTaskType,
-                    [WorkflowCommandSet.CreateItemStep(awaitNext.ServiceTaskType, awaitNext.HandlerItemIndex)],
+                    [
+                        WorkflowCommandSet.CreateItemStep(
+                            awaitNext.ServiceTaskType,
+                            awaitNext.HandlerItemIndex,
+                            awaitNext.HandlerStepOptions,
+                            awaitNext.HandlerStepName
+                        ),
+                    ],
                     operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
                     request,
                     cancellationToken
@@ -528,7 +541,7 @@ internal sealed class MailboxRelay
     private async Task EnqueueReceiver(
         Guid mailboxId,
         string serviceTaskType,
-        IReadOnlyList<StepRequest> steps,
+        IReadOnlyList<PlannedStep> steps,
         string operationIdSuffix,
         MailboxRelayRequest request,
         CancellationToken cancellationToken
@@ -536,7 +549,7 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> receiveSteps = [.. steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType)];
+        List<StepRequest> receiveSteps = [.. steps.ToStepRequests(_stepOptionsResolver, taskId)];
 
         var receiveWorkflow = new WorkflowRequest
         {
@@ -596,10 +609,7 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> steps =
-        [
-            .. handover.Plan.Steps.ApplyStepOptions(_stepOptionsResolver, taskId, serviceTaskType),
-        ];
+        List<StepRequest> steps = [.. handover.Plan.Steps.ToStepRequests(_stepOptionsResolver, taskId)];
 
         var continuationWorkflow = new WorkflowRequest
         {
