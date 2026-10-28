@@ -1018,6 +1018,21 @@
   line-height: 1;
 }
 
+.s-bli-med__note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  margin: 0 auto;
+  gap: 16px;
+  padding: 16px 28px;
+  border-radius: var(--r-md);
+  background: var(--warning-soft);
+  color: var(--warning-dim);
+  font-size: 26px;
+  font-weight: var(--fw-semibold);
+}
+
 .s-cta {
   display: flex;
   align-items: center;

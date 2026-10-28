@@ -249,7 +249,7 @@ kom i gang — in norsk bokmål. Speaker notes live in the `notes` field of each
 | 12 | `dashbord`                 | Vi kan se hva som skjer — the engine dashboard               | 3     |
 | 13 | `seksjon-kom-i-gang`       | Del 3 — Kom i gang                                           | 0     |
 | 14 | `oppgradering`             | Slik oppgraderer du til v9 — from Studio or studioctl        | 1     |
-| 15 | `bli-med`                  | Kom i gang med v9 — open beta, self-serve                    | 0     |
+| 15 | `bli-med`                  | Kom i gang med v9 — open beta, test locally for now          | 0     |
 
 Slides 9 and 10 render the scenarios from `src/sims` under the standard slide header. Each one is
 clicked through: every press lands the next line on both sides — v8 left, v9 right — and a last

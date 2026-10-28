@@ -12,8 +12,8 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
   },
   {
     icon: 'server',
-    title: 'Test som vanlig',
-    body: 'Rull ut til testmiljøet og prøv appen slik dere alltid gjør.',
+    title: 'Test lokalt',
+    body: 'Kjør appen på din egen maskin med studioctl, og prøv den der.',
   },
   {
     icon: 'bell',
@@ -22,7 +22,11 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
   },
 ];
 
-/** The call to action: open beta, self-serve upgrade from Studio or studioctl. */
+/**
+ * The call to action: open beta, self-serve upgrade from Studio or studioctl.
+ * v9 apps can only be tested locally for now, because the test and production
+ * environments do not take v9 deploys yet.
+ */
 export default function BliMedSlide(_: SlideProps) {
   return (
     <Slide
@@ -57,6 +61,14 @@ export default function BliMedSlide(_: SlideProps) {
         </div>
 
         <Enter index={STEPS.length * 2 - 1}>
+          <p className="s-bli-med__note">
+            <Icon name="alert" size={28} />
+            Foreløpig kan v9-apper bare testes lokalt. Test- og produksjonsmiljøene er ikke klare
+            for utrulling ennå.
+          </p>
+        </Enter>
+
+        <Enter index={STEPS.length * 2}>
           <p className="s-cta">
             <Icon name="flag" size={34} />
             Trenger dere hjelp? Ta kontakt.
