@@ -408,6 +408,7 @@ internal sealed class ProcessNextRequestFactory
         var primaryPostCommitSteps = new List<StepRequest>();
         var auxiliarySteps = new List<StepRequest>();
         bool endsProcess = false;
+        bool leavesTask = false;
         bool serviceTaskFollowsCommit = false;
 
         bool isInitialTaskStart = processStateChange.OldProcessState?.CurrentTask is null;
@@ -458,6 +459,7 @@ internal sealed class ProcessNextRequestFactory
                 // MutateProcessState is inserted between the two groups to transition in-memory state.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
+                    leavesTask = true;
                     taskEndSteps.AddRange(
                         workflowCommands
                             .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
@@ -488,7 +490,9 @@ internal sealed class ProcessNextRequestFactory
             commands.Add(CreateCommand(ProcessingStatusAcquirer.Key));
         }
         commands.AddRange(taskEndSteps);
-        if (taskEndSteps.Count > 0)
+        // Keyed on the leave rather than on its steps: an abandon whose pipeline has no stages and no hook plans
+        // none, and the task-start steps must still read the target task.
+        if (leavesTask)
         {
             commands.Add(CreateMutateProcessStateCommand(processStateChange));
         }
@@ -522,12 +526,17 @@ internal sealed class ProcessNextRequestFactory
                 return null;
             case InstanceEventType.process_StartTask:
             {
+                string taskId = GetRequiredEventTaskId(instanceEvent, eventType);
                 return WorkflowCommandSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
-                        TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
+                        TaskId = taskId,
                         StartPipeline = ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Start),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
+                        HasStartingHook = HasTaskHook<IOnTaskStartingHandler>(
+                            taskId,
+                            (hook, id) => hook.ShouldRunForTask(id)
+                        ),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -537,17 +546,29 @@ internal sealed class ProcessNextRequestFactory
                 );
             }
             case InstanceEventType.process_EndTask:
+            {
+                string taskId = GetRequiredEventTaskId(instanceEvent, eventType);
                 return WorkflowCommandSet.GetTaskEndSteps(
-                    GetRequiredEventTaskId(instanceEvent, eventType),
-                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End)
+                    taskId,
+                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End),
+                    HasTaskHook<IOnTaskEndingHandler>(taskId, (hook, id) => hook.ShouldRunForTask(id))
                 );
+            }
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps(
-                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Abandon)
+                    ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Abandon),
+                    HasTaskHook<IOnTaskAbandoningHandler>(
+                        GetRequiredEventTaskId(instanceEvent, eventType),
+                        (hook, id) => hook.ShouldRunForTask(id)
+                    )
                 );
             case InstanceEventType.process_EndEvent:
                 return WorkflowCommandSet.GetProcessEndSteps(
-                    new ProcessEndContext { RegisterEvents = _appSettings.RegisterEventsWithEventsComponent }
+                    new ProcessEndContext
+                    {
+                        HasProcessEndedHook = HasProcessEndedHook(),
+                        RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
+                    }
                 );
             default:
                 return null;
@@ -588,6 +609,43 @@ internal sealed class ProcessNextRequestFactory
     private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new PipelineBuilder()
         .Stage(_ => Task.FromResult(StageResult.Completed()))
         .Build();
+
+    /// <summary>
+    /// Whether a <typeparamref name="THandler"/> runs for the task, which plans the task's hook step. The step runs
+    /// against the same task id, so it finds the handler this finds. More than one is a configuration error. Startup
+    /// validation reports it, but skips a handler it cannot create without a request, so the transition is refused
+    /// here rather than run one of them.
+    /// </summary>
+    private bool HasTaskHook<THandler>(string taskId, Func<THandler, string, bool> runsForTask)
+        where THandler : class
+    {
+        int running = _appImplementationFactory.GetAll<THandler>().Count(handler => runsForTask(handler, taskId));
+        if (running > 1)
+        {
+            throw new InvalidOperationException(
+                $"Multiple {typeof(THandler).Name} hooks are registered for task '{taskId}'. Only one hook per task is allowed."
+            );
+        }
+
+        return running == 1;
+    }
+
+    /// <summary>
+    /// Whether the app registers an <see cref="IOnProcessEndedHandler"/>, which plans the process end's hook step.
+    /// More than one is a configuration error, and the transition is refused rather than run one of them.
+    /// </summary>
+    private bool HasProcessEndedHook()
+    {
+        int registered = _appImplementationFactory.GetAll<IOnProcessEndedHandler>().Count();
+        if (registered > 1)
+        {
+            throw new InvalidOperationException(
+                $"Multiple {nameof(IOnProcessEndedHandler)} hooks are registered. Only one is allowed."
+            );
+        }
+
+        return registered == 1;
+    }
 
     private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId

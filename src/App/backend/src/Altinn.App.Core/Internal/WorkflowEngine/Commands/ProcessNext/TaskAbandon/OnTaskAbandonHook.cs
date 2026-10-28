@@ -22,18 +22,11 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
         IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
         string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
 
-        IEnumerable<IOnTaskAbandoningHandler> hooks = _appImplementationFactory.GetAll<IOnTaskAbandoningHandler>();
-        List<IOnTaskAbandoningHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
-
-        if (applicableHooks.Count > 1)
-        {
-            return FailedProcessEngineCommandResult.Permanent(
-                $"Multiple {nameof(IOnTaskAbandoningHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
-                nameof(InvalidOperationException)
-            );
-        }
-
-        IOnTaskAbandoningHandler? hook = applicableHooks.FirstOrDefault();
+        // The planner plans this step only for a task one handler runs for. A step an earlier version planned for
+        // every task, or whose handler a redeploy removed, finds none and has nothing to run.
+        IOnTaskAbandoningHandler? hook = _appImplementationFactory
+            .GetAll<IOnTaskAbandoningHandler>()
+            .FirstOrDefault(h => h.ShouldRunForTask(taskId));
         if (hook == null)
         {
             return new SuccessfulProcessEngineCommandResult();

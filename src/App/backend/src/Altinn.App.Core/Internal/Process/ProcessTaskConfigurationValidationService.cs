@@ -20,8 +20,8 @@ namespace Altinn.App.Core.Internal.Process;
 /// Creates a dependency injection scope so task and gateway implementations can use scoped services.
 /// Stops startup if configuration cannot be read. Each task hook registration is created on its own: one that
 /// cannot be created at startup, for example because it needs request state, is skipped with a warning while the
-/// others are still checked, and the hook step checks for duplicates when it runs. Process-ended hooks are counted
-/// by registration, without creating them.
+/// others are still checked, and the planner checks for duplicates when it plans a transition into or out of the
+/// task. Process-ended hooks are counted by registration, without creating them.
 /// </remarks>
 internal sealed class ProcessTaskConfigurationValidationService(
     IServiceScopeFactory scopeFactory,

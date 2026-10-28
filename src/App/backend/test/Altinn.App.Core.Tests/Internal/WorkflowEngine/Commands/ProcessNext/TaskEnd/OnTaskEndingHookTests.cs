@@ -102,29 +102,6 @@ public class OnTaskEndingHookTests
     }
 
     [Fact]
-    public async Task Execute_WithMultipleMatchingHandlers_ReturnsNonRetryableFailedResult()
-    {
-        // Arrange
-        var handler1 = new Mock<IOnTaskEndingHandler>();
-        handler1.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        var handler2 = new Mock<IOnTaskEndingHandler>();
-        handler2.Setup(x => x.ShouldRunForTask("Task_1")).Returns(true);
-        var command = CreateCommand(handler1.Object, handler2.Object);
-        var context = CreateContext(CreateInstance());
-
-        // Act
-        var result = await command.Execute(context);
-
-        // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
-        Assert.True(failed.NonRetryable);
-        Assert.Equal("InvalidOperationException", failed.ExceptionType);
-        Assert.Contains("Multiple", failed.ErrorMessage);
-        Assert.Contains("IOnTaskEndingHandler", failed.ErrorMessage);
-        Assert.Contains("Task_1", failed.ErrorMessage);
-    }
-
-    [Fact]
     public async Task Execute_WhenHandlerReturnsPermanentFailure_ReturnsNonRetryableFailedResult()
     {
         // Arrange

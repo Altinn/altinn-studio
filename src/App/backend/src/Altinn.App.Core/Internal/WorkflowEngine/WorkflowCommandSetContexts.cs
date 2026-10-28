@@ -33,6 +33,11 @@ internal sealed record TaskStartContext
     public required ResolvedServiceTask? ServiceTask { get; init; }
 
     /// <summary>
+    /// Whether an <see cref="IOnTaskStartingHandler"/> runs for the task, which plans its hook step.
+    /// </summary>
+    public required bool HasStartingHook { get; init; }
+
+    /// <summary>
     /// True if this is the first task start (process is starting), false for subsequent task transitions.
     /// </summary>
     public required bool IsInitialTaskStart { get; init; }
@@ -65,6 +70,11 @@ internal sealed record TaskStartContext
 /// </summary>
 internal sealed record ProcessEndContext
 {
+    /// <summary>
+    /// Whether the app registers an <see cref="IOnProcessEndedHandler"/>, which plans its hook step.
+    /// </summary>
+    public required bool HasProcessEndedHook { get; init; }
+
     /// <summary>
     /// Whether to register events with the events component.
     /// </summary>

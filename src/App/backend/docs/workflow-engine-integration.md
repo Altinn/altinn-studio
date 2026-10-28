@@ -23,6 +23,9 @@ these rules:
   steps already read the target task.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
+- A process hook gets a step only when one of the app's handlers runs for the task, or for the process end, so a
+  transition carries no steps that have nothing to run. The planner refuses a transition that more than one handler
+  runs for.
 - `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
   (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
   stage retries without the ones before it. The default pipeline is one stage that calls `Start`, `End` or `Abandon`.
@@ -230,6 +233,8 @@ app does not guard against it. Names would not help either, since a redeploy can
   runs under the step's id and each later stage under an id derived from it and the stage's position, the same on
   every attempt, so calls keyed on the step id stay apart. Only the first stage can defer, since the step cannot save
   between stages; a later stage that defers fails the step permanently with `ProcessTaskStageDeferredAfterOthers`.
+- A hook step runs the handler that matches when it runs. If a redeploy removed it, the step does nothing. If a
+  redeploy added a handler, a transition that was enqueued before it has no step for it, so it does not run.
 - To recover, resume the workflow on the code that enqueued it, or abandon it. An open mailbox stays open until its
   deadline or until someone closes it.
 - A reply handler finds its opening stage from the pipeline at each hop. After a reshape, concluding the exchange can

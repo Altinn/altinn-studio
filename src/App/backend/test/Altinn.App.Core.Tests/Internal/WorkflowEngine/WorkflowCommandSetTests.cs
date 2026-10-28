@@ -41,6 +41,7 @@ public class WorkflowCommandSetTests
                 TaskId = "Task_1",
                 StartPipeline = SingleStagePipeline(),
                 ServiceTask = new ResolvedServiceTask("pdf", ConclusionOnlyPipeline()),
+                HasStartingHook = true,
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
                 Notification = new InstantiationNotification(),
@@ -78,6 +79,7 @@ public class WorkflowCommandSetTests
                 TaskId = "Task_1",
                 StartPipeline = SingleStagePipeline(),
                 ServiceTask = null,
+                HasStartingHook = false,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
             }
@@ -90,7 +92,9 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetProcessEndSteps_RunsTheEndedHookAndTheDataCleanupAfterTheCommit()
     {
-        var commandSet = WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true });
+        var commandSet = WorkflowCommandSet.GetProcessEndSteps(
+            new ProcessEndContext { HasProcessEndedHook = true, RegisterEvents = true }
+        );
 
         Assert.Empty(commandSet.Commands);
         Assert.Equal([OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key], Keys(commandSet.PrimaryPostCommitCommands));
@@ -100,7 +104,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1", SingleStagePipeline());
+        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1", SingleStagePipeline(), hasEndingHook: true);
 
         Assert.Equal(
             [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
@@ -113,11 +117,47 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskAbandonSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps(SingleStagePipeline());
+        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps(SingleStagePipeline(), hasAbandonHook: true);
 
         Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.PrimaryPostCommitCommands);
         Assert.Empty(commandSet.AuxiliaryCommands);
+    }
+
+    [Fact]
+    public void HookSteps_WithoutAHandler_AreNotPlanned()
+    {
+        var start = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                StartPipeline = SingleStagePipeline(),
+                ServiceTask = null,
+                HasStartingHook = false,
+                IsInitialTaskStart = false,
+            }
+        );
+        Assert.Equal(
+            [UnlockTaskData.Key, CleanupGeneratedFromTask.Key, CommonTaskInitialization.Key, StartTask.Key],
+            Keys(start.Commands)
+        );
+
+        Assert.Equal(
+            [EndTask.Key, CommonTaskFinalization.Key, LockTaskData.Key],
+            Keys(WorkflowCommandSet.GetTaskEndSteps("Task_1", SingleStagePipeline(), hasEndingHook: false).Commands)
+        );
+        Assert.Equal(
+            [AbandonTask.Key],
+            Keys(WorkflowCommandSet.GetTaskAbandonSteps(SingleStagePipeline(), hasAbandonHook: false).Commands)
+        );
+        Assert.Equal(
+            [DeleteDataOnProcessEnd.Key],
+            Keys(
+                WorkflowCommandSet
+                    .GetProcessEndSteps(new ProcessEndContext { HasProcessEndedHook = false })
+                    .PrimaryPostCommitCommands
+            )
+        );
     }
 
     [Fact]
@@ -132,6 +172,7 @@ public class WorkflowCommandSetTests
                     .Stage(_ => Task.FromResult(StageResult.Completed()), options)
                     .Build(),
                 ServiceTask = null,
+                HasStartingHook = false,
                 IsInitialTaskStart = false,
             }
         );
@@ -152,6 +193,7 @@ public class WorkflowCommandSetTests
                 TaskId = "Task_1",
                 StartPipeline = ThreeStagePipeline(middleOptions),
                 ServiceTask = null,
+                HasStartingHook = true,
                 IsInitialTaskStart = false,
             }
         );
@@ -183,11 +225,11 @@ public class WorkflowCommandSetTests
     {
         Assert.Equal(
             [EndTask.Key, EndTask.Key, EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
-            Keys(WorkflowCommandSet.GetTaskEndSteps("Task_1", ThreeStagePipeline()).Commands)
+            Keys(WorkflowCommandSet.GetTaskEndSteps("Task_1", ThreeStagePipeline(), hasEndingHook: true).Commands)
         );
         Assert.Equal(
             [AbandonTask.Key, AbandonTask.Key, AbandonTask.Key, OnTaskAbandonHook.Key],
-            Keys(WorkflowCommandSet.GetTaskAbandonSteps(ThreeStagePipeline()).Commands)
+            Keys(WorkflowCommandSet.GetTaskAbandonSteps(ThreeStagePipeline(), hasAbandonHook: true).Commands)
         );
     }
 
@@ -200,6 +242,7 @@ public class WorkflowCommandSetTests
                 TaskId = "Task_1",
                 StartPipeline = new PipelineBuilder().Build(),
                 ServiceTask = null,
+                HasStartingHook = false,
                 IsInitialTaskStart = false,
             }
         );

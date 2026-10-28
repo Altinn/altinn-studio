@@ -43,6 +43,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
+                    HasStartingHook = true,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -56,6 +57,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
+                    HasStartingHook = true,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     RegisterEvents = true,
@@ -70,6 +72,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
+                    HasStartingHook = true,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     Notification = new InstantiationNotification(),
@@ -85,6 +88,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("simple", CreatePipeline()),
+                    HasStartingHook = true,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -99,16 +103,25 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("mailbox", CreateMailboxPipeline()),
+                    HasStartingHook = true,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline()), keys);
-        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(CreateLifecyclePipeline()), keys);
         CollectCommandKeys(
-            WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }),
+            WorkflowCommandSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline(), hasEndingHook: true),
+            keys
+        );
+        CollectCommandKeys(
+            WorkflowCommandSet.GetTaskAbandonSteps(CreateLifecyclePipeline(), hasAbandonHook: true),
+            keys
+        );
+        CollectCommandKeys(
+            WorkflowCommandSet.GetProcessEndSteps(
+                new ProcessEndContext { HasProcessEndedHook = true, RegisterEvents = true }
+            ),
             keys
         );
 
