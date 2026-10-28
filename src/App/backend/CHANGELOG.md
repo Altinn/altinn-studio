@@ -113,10 +113,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `Altinn.App.Api.Models.AppProcessState` is removed. Use `Altinn.App.Core.Internal.Process.Elements.AppProcessState`, which the process endpoints return. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 - Breaking: `PUT .../process/completeProcess` is removed. Call `PUT .../process/next` instead, for example to end a feedback task once your system has processed the submission. ([#21562](https://github.com/Altinn/altinn-studio/pull/21562))
 
-### Deprecated
-
-- `IProcessTask.Start`, `End` and `Abandon` are deprecated and removed before v9 ships. Compose the work as stages with `DefineStart`, `DefineEnd` and `DefineAbandon` instead. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
-
 ## [9.0.0-preview.8] - 2026-10-14
 
 ### Changed
