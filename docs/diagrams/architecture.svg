@@ -1,0 +1,320 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1190" width="1700" height="1190">
+<style>
+/* Colors follow the Digdir palette. Arial and its metric twins (Helvetica, Liberation Sans) render text at the same width everywhere. */
+svg { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; }
+.canvas { fill: #ffffff; }
+.code, .code-sm { font-family: Menlo, Consolas, "Liberation Mono", monospace; }
+
+/* Text */
+.title { font-size: 26px; font-weight: 700; fill: #1e2b3c; letter-spacing: -0.02em; }
+.subtitle { font-size: 14px; fill: #5b6b7f; }
+.kicker { font-size: 11.5px; font-weight: 650; letter-spacing: 0.14em; fill: #0062ba; }
+.zone-label { font-size: 11.5px; font-weight: 650; letter-spacing: 0.12em; }
+.h { font-size: 15px; font-weight: 650; fill: #1e2b3c; }
+.h-sm { font-size: 13px; font-weight: 650; fill: #1e2b3c; }
+.s { font-size: 12.5px; fill: #5b6b7f; }
+.s-sm { font-size: 11.5px; fill: #5b6b7f; }
+.code { font-size: 11.5px; font-weight: 500; fill: #0b4f8f; }
+.code-sm { font-size: 10.5px; font-weight: 500; fill: #0b4f8f; }
+.label { font-size: 11.5px; font-weight: 550; fill: #3b4b5f; }
+.label-bg { fill: #ffffff; }
+.legend { font-size: 12px; fill: #3b4b5f; }
+
+/* Planes: bands across the whole diagram */
+.band-control { fill: #f5f8fc; }
+.band-data { fill: #f4faf6; }
+.band-label { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; }
+.band-label-control { fill: #0062ba; }
+.band-label-data { fill: #1f7a52; }
+.band-sub { font-size: 12px; fill: #5b6b7f; }
+.plane-divider { fill: none; stroke: #5b6b7f; stroke-width: 1.5; stroke-dasharray: 8 6; }
+
+/* Zones: where things run */
+.zone { stroke-width: 1.5; }
+.zone-core { fill: #eaf3fc; stroke: #0062ba; }
+.zone-core-label { fill: #0062ba; }
+.zone-runtime { fill: #ffffff; fill-opacity: 0.55; stroke: #2e9467; }
+.zone-runtime-back { fill: #f0f9f4; stroke: #2e9467; }
+.zone-runtime-label { fill: #1f7a52; }
+.zone-platform { fill: #f4effc; stroke: #8a6cc9; }
+.zone-platform-label { fill: #5b3a9a; }
+.zone-ext { fill: #eef1f5; stroke: #93a4b8; }
+.zone-ext-label { fill: #5b6b7f; }
+.zone-local { fill: #ffffff; stroke: #93a4b8; stroke-dasharray: 7 5; }
+
+/* Boxes */
+.box { fill: #ffffff; stroke: #c9d3df; stroke-width: 1; filter: url(#shadow); }
+.box-core { stroke: #8db7e3; }
+.box-runtime { stroke: #7fcaa4; }
+.box-platform { stroke: #b9a3e3; }
+.box-accent { fill: #0062ba; stroke: #0062ba; }
+.box-accent-text { fill: #ffffff; }
+.box-accent-sub { fill: #cfe3f7; }
+
+/* Small rounded tags */
+.tag { stroke-width: 1; }
+.tag-green { fill: #dcf3e7; stroke: #96d6b6; }
+.tag-purple { fill: #eee7fa; stroke: #c9b8ec; }
+.tag-text { font-size: 11px; font-weight: 600; }
+.tag-text-green { fill: #1f7a52; }
+.tag-text-purple { fill: #5b3a9a; }
+
+/* Edges */
+.edge-control { fill: none; stroke: #0062ba; stroke-width: 1.7; }
+.edge-data { fill: none; stroke: #2e9467; stroke-width: 1.7; }
+.edge-local { fill: none; stroke: #4a5b70; stroke-width: 1.6; }
+</style>
+<defs>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%">
+    <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#1e2b3c" flood-opacity="0.10"/>
+  </filter>
+  <marker id="arrow-control" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0.8 L9.2,5 L0,9.2 Z" fill="#0062ba"/>
+  </marker>
+  <marker id="arrow-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0.8 L9.2,5 L0,9.2 Z" fill="#2e9467"/>
+  </marker>
+  <marker id="arrow-local" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0.8 L9.2,5 L0,9.2 Z" fill="#4a5b70"/>
+  </marker>
+</defs>
+<rect class="canvas" width="1700" height="1190"/>
+
+<text class="kicker" x="40" y="48">ALTINN STUDIO · ARCHITECTURE</text>
+<text class="title" x="40" y="82">How Altinn Studio fits together</text>
+<text class="subtitle" x="40" y="106">The control plane builds, deploys and manages apps. The data plane serves users and systems: the apps, and the services they call.</text>
+
+<!-- Planes -->
+<rect class="band-control" x="20" y="125" width="1660" height="523" rx="18"/>
+<rect class="band-data" x="20" y="648" width="1660" height="337" rx="18"/>
+<rect class="band-control" x="20" y="630" width="1660" height="18"/>
+<rect class="band-data" x="20" y="648" width="1660" height="18"/>
+<text class="band-label band-label-control" x="40" y="155">CONTROL PLANE</text>
+<text class="band-sub" x="40" y="173">Build, deploy and manage</text>
+<text class="band-label band-label-data" x="40" y="677">DATA PLANE</text>
+<text class="band-sub" x="40" y="695">Requests from users and systems</text>
+
+<!-- People -->
+<rect class="box" x="40" y="190" width="210" height="105" rx="12"/>
+<text class="h" x="58" y="218">App developers</text>
+<text class="s" x="58" y="240">Service owners' staff and</text>
+<text class="s" x="58" y="256">suppliers, who build apps</text>
+<text class="s" x="58" y="272">in Designer or locally</text>
+
+<rect class="box" x="40" y="710" width="210" height="105" rx="12"/>
+<text class="h" x="58" y="738">Users and systems</text>
+<text class="s" x="58" y="760">People log in with ID-porten,</text>
+<text class="s" x="58" y="776">systems with Maskinporten</text>
+<text class="code-sm" x="58" y="800">&lt;org&gt;.apps.altinn.no</text>
+
+<!-- Core -->
+<rect class="zone zone-core" x="290" y="150" width="820" height="290" rx="16"/>
+<text class="zone-label zone-core-label" x="312" y="175">CORE · STUDIO CLUSTERS: DEV, STAGING AND PROD</text>
+
+<rect class="box box-core" x="315" y="212" width="250" height="90" rx="12"/>
+<text class="h" x="333" y="240">Gitea</text>
+<text class="s" x="333" y="260">App repositories, and each</text>
+<text class="s" x="333" y="276">service owner's gitops repository</text>
+<text class="code" x="333" y="293">src/gitea</text>
+
+<rect class="box box-core" x="605" y="212" width="210" height="90" rx="12"/>
+<text class="h" x="623" y="240">gitea-proxy</text>
+<text class="s" x="623" y="260">The way into Gitea for</text>
+<text class="s" x="623" y="276">Designer and Assistant</text>
+<text class="code" x="623" y="293">src/gitea-proxy</text>
+
+<rect class="box box-accent" x="855" y="212" width="230" height="90" rx="12"/>
+<text class="h box-accent-text" x="873" y="240">Designer</text>
+<text class="s box-accent-sub" x="873" y="260">Build, configure and</text>
+<text class="s box-accent-sub" x="873" y="276">deploy apps</text>
+<text class="code box-accent-sub" x="873" y="293">src/Designer</text>
+
+<rect class="box box-core" x="315" y="322" width="250" height="95" rx="12"/>
+<text class="h-sm" x="333" y="347">Also in Core</text>
+<text class="code-sm" x="333" y="367">load-balancer</text>
+<text class="code-sm" x="333" y="383">observability-proxy</text>
+<text class="code-sm" x="333" y="399">CI runners · lhci-server</text>
+
+<rect class="box box-core" x="605" y="322" width="210" height="95" rx="12"/>
+<text class="h" x="623" y="350">Studio Assistant</text>
+<text class="s" x="623" y="370">Changes apps from</text>
+<text class="s" x="623" y="386">natural language</text>
+<text class="code" x="623" y="405">src/AI/assistant</text>
+
+<!-- Delivery -->
+<rect class="zone zone-ext" x="1150" y="150" width="510" height="290" rx="16"/>
+<text class="zone-label zone-ext-label" x="1172" y="175">DELIVERY</text>
+
+<rect class="box" x="1175" y="212" width="220" height="90" rx="12"/>
+<text class="h" x="1193" y="240">Azure DevOps</text>
+<text class="s" x="1193" y="260">Pipelines that build and</text>
+<text class="s" x="1193" y="276">deploy an app</text>
+<text class="code" x="1193" y="293">src/App/azure-pipelines</text>
+
+<rect class="box" x="1430" y="212" width="205" height="90" rx="12"/>
+<text class="h" x="1448" y="240">Container registry</text>
+<text class="s" x="1448" y="260">One per service owner,</text>
+<text class="s" x="1448" y="276">with images and releases</text>
+<text class="code" x="1448" y="293">&lt;org&gt;altinnregistry01</text>
+
+<text class="s-sm" x="1175" y="340">The build pipeline pushes the app's image.</text>
+<text class="s-sm" x="1175" y="358">The deploy pipeline renders the app's release,</text>
+<text class="s-sm" x="1175" y="376">and publishes the gitops repository in Gitea</text>
+<text class="s-sm" x="1175" y="394">as the apps syncroot that Flux follows.</text>
+
+<!-- Runtime: a stack, since each service owner has one cluster per environment -->
+<rect class="zone zone-runtime-back" x="302" y="492" width="820" height="480" rx="16"/>
+<rect class="zone zone-runtime-back" x="296" y="486" width="820" height="480" rx="16"/>
+<rect class="zone zone-runtime-back" x="290" y="480" width="820" height="480" rx="16"/>
+<text class="zone-label zone-runtime-label" x="312" y="505">RUNTIME · PER SERVICE OWNER AND ENVIRONMENT</text>
+
+<rect class="box box-runtime" x="315" y="525" width="176" height="100" rx="12"/>
+<text class="h" x="331" y="552">Operator</text>
+<text class="s" x="331" y="572">Maskinporten clients,</text>
+<text class="s" x="331" y="587">secrets, alert routing</text>
+<text class="s" x="331" y="602">and databases</text>
+<text class="code-sm" x="331" y="617">src/Runtime/operator</text>
+
+<rect class="box box-runtime" x="513" y="525" width="176" height="100" rx="12"/>
+<text class="h" x="529" y="552">Kubernetes Wrapper</text>
+<text class="s" x="529" y="572">Reports the cluster's</text>
+<text class="s" x="529" y="587">deployments, which</text>
+<text class="s" x="529" y="602">Designer reads</text>
+
+<rect class="box box-runtime" x="711" y="525" width="176" height="100" rx="12"/>
+<text class="h" x="727" y="552">Gateway</text>
+<text class="s" x="727" y="572">Connects Designer</text>
+<text class="s" x="727" y="587">to the cluster</text>
+<text class="code-sm" x="727" y="617">src/Runtime/gateway</text>
+
+<rect class="box box-runtime" x="909" y="525" width="176" height="100" rx="12"/>
+<text class="h" x="925" y="552">Flux</text>
+<text class="s" x="925" y="572">Installs the releases</text>
+<text class="s" x="925" y="587">in the apps syncroot</text>
+
+<rect class="box box-runtime" x="315" y="670" width="770" height="110" rx="12"/>
+<text class="h" x="333" y="698">Apps</text>
+<text class="code" x="376" y="698">&lt;org&gt;/&lt;app&gt;</text>
+<text class="s" x="333" y="720">One .NET project per app, in its own repository, built on the App backend and serving the App frontend.</text>
+<rect class="tag tag-green" x="333" y="738" width="200" height="26" rx="8"/>
+<text class="tag-text tag-text-green" x="345" y="755">App backend</text>
+<text class="code-sm" x="433" y="755">src/App/backend</text>
+<rect class="tag tag-green" x="543" y="738" width="210" height="26" rx="8"/>
+<text class="tag-text tag-text-green" x="555" y="755">App frontend</text>
+<text class="code-sm" x="645" y="755">src/App/frontend</text>
+<rect class="tag tag-green" x="763" y="738" width="214" height="26" rx="8"/>
+<text class="tag-text tag-text-green" x="775" y="755">App template</text>
+<text class="code-sm" x="865" y="755">src/App/template</text>
+
+<rect class="box box-runtime" x="315" y="810" width="250" height="92" rx="12"/>
+<text class="h" x="333" y="838">Workflow Engine App</text>
+<text class="s" x="333" y="858">Runs app process steps by</text>
+<text class="s" x="333" y="874">calling back into the app</text>
+<text class="code-sm" x="333" y="892">src/Runtime/workflow-engine-app</text>
+
+<rect class="box box-runtime" x="855" y="810" width="230" height="92" rx="12"/>
+<text class="h" x="873" y="838">pdf3 relay</text>
+<text class="s" x="873" y="858">Forwards the apps' PDF</text>
+<text class="s" x="873" y="874">requests to pdf3</text>
+<text class="code-sm" x="873" y="892">src/Runtime/pdf3</text>
+
+<text class="s-sm" x="1085" y="950" text-anchor="end">A service owner has one cluster for each environment it uses, such as tt02 and prod. Only Studio prod deploys to prod.</text>
+
+<!-- Platform -->
+<rect class="zone zone-platform" x="1150" y="668" width="510" height="292" rx="16"/>
+<text class="zone-label zone-platform-label" x="1172" y="693">PLATFORM · RUN BY THE PLATFORM TEAM</text>
+
+<rect class="box box-platform" x="1175" y="710" width="460" height="168" rx="12"/>
+<text class="h" x="1193" y="737">Altinn Platform services</text>
+<text class="s" x="1193" y="757">One per environment, shared by all service owners, and</text>
+<text class="s" x="1193" y="773">moving from the old platform cluster to DIS Core.</text>
+<g>
+  <rect class="tag tag-purple" x="1193" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1243" y="801" text-anchor="middle">Storage</text>
+  <rect class="tag tag-purple" x="1301" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1351" y="801" text-anchor="middle">Authentication</text>
+  <rect class="tag tag-purple" x="1409" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1459" y="801" text-anchor="middle">Authorization</text>
+  <rect class="tag tag-purple" x="1517" y="786" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1567" y="801" text-anchor="middle">Register</text>
+  <rect class="tag tag-purple" x="1193" y="814" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1243" y="829" text-anchor="middle">Profile</text>
+  <rect class="tag tag-purple" x="1301" y="814" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1351" y="829" text-anchor="middle">Notifications</text>
+  <rect class="tag tag-purple" x="1409" y="814" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1459" y="829" text-anchor="middle">Events</text>
+  <rect class="tag tag-purple" x="1517" y="814" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1567" y="829" text-anchor="middle">Correspondence</text>
+  <rect class="tag tag-purple" x="1193" y="842" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1243" y="857" text-anchor="middle">Receipt</text>
+  <rect class="tag tag-purple" x="1301" y="842" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1351" y="857" text-anchor="middle">File scan</text>
+  <rect class="tag tag-purple" x="1409" y="842" width="100" height="22" rx="7"/>
+  <text class="tag-text tag-text-purple" x="1459" y="857" text-anchor="middle">pdf3</text>
+</g>
+
+<rect class="box box-platform" x="1175" y="893" width="460" height="52" rx="12"/>
+<text class="h-sm" x="1193" y="915">Adminservices</text>
+<text class="s" x="1193" y="934">The workflow engine's PostgreSQL server</text>
+
+<!-- The line between the planes, drawn over the Runtime cluster it splits -->
+<path class="plane-divider" d="M20,648 H1680"/>
+
+<!-- Local -->
+<rect class="zone zone-local" x="290" y="1005" width="820" height="125" rx="16"/>
+<text class="zone-label zone-ext-label" x="312" y="1030">AN APP DEVELOPER'S MACHINE</text>
+
+<rect class="box" x="315" y="1047" width="250" height="68" rx="12"/>
+<text class="h" x="333" y="1071">studioctl</text>
+<text class="code" x="408" y="1071">src/cli</text>
+<text class="s" x="333" y="1090">Clones an app from Studio,</text>
+<text class="s" x="333" y="1106">starts localtest and runs the app</text>
+
+<rect class="box" x="605" y="1047" width="480" height="68" rx="12"/>
+<text class="h" x="623" y="1071">localtest</text>
+<text class="code" x="700" y="1071">src/Runtime/localtest</text>
+<text class="s" x="623" y="1090">Stands in for Runtime and Platform, with the workflow engine</text>
+<text class="s" x="623" y="1106">and pdf3 builds that tt02 runs</text>
+
+<!-- Edges: control plane -->
+<path class="edge-control" d="M250,200 H970 V210" marker-end="url(#arrow-control)"/>
+<rect class="label-bg" x="694" y="192" width="54" height="16"/>
+<text class="label" x="721" y="204" text-anchor="middle">browser</text>
+<path class="edge-control" d="M855,257 H817" marker-end="url(#arrow-control)"/>
+<path class="edge-control" d="M605,257 H567" marker-end="url(#arrow-control)"/>
+<path class="edge-control" d="M855,287 H835 V370 H817" marker-end="url(#arrow-control)"/>
+<path class="edge-control" d="M710,322 V304" marker-end="url(#arrow-control)"/>
+<path class="edge-control" d="M1085,257 H1173" marker-end="url(#arrow-control)"/>
+<rect class="label-bg" x="1105" y="233" width="50" height="16"/>
+<text class="label" x="1130" y="245" text-anchor="middle">starts</text>
+<path class="edge-control" d="M1395,257 H1428" marker-end="url(#arrow-control)"/>
+<path class="edge-control" d="M1532,302 V462 H997 V523" marker-end="url(#arrow-control)"/>
+<rect class="label-bg" x="1265" y="454" width="70" height="16"/>
+<text class="label" x="1300" y="466" text-anchor="middle">Flux pulls</text>
+<path class="edge-control" d="M880,304 V462 H800 V523" marker-start="url(#arrow-control)" marker-end="url(#arrow-control)"/>
+<rect class="label-bg" x="886" y="392" width="152" height="16"/>
+<text class="label" x="890" y="404">deploys · results · alerts</text>
+<path class="edge-control" d="M997,625 V668" marker-end="url(#arrow-control)"/>
+
+<!-- Edges: data plane -->
+<path class="edge-data" d="M250,762 H313" marker-end="url(#arrow-data)"/>
+<path class="edge-data" d="M1085,725 H1173" marker-end="url(#arrow-data)"/>
+<rect class="label-bg" x="1100" y="701" width="60" height="16"/>
+<text class="label" x="1130" y="713" text-anchor="middle">API calls</text>
+<path class="edge-data" d="M440,782 V808" marker-start="url(#arrow-data)" marker-end="url(#arrow-data)"/>
+<path class="edge-data" d="M970,780 V808" marker-end="url(#arrow-data)"/>
+<path class="edge-data" d="M1085,853 H1173" marker-end="url(#arrow-data)"/>
+<path class="edge-data" d="M440,902 V922 H1173" marker-end="url(#arrow-data)"/>
+
+<!-- Edges: local -->
+<path class="edge-local" d="M565,1081 H603" marker-end="url(#arrow-local)"/>
+
+<!-- Legend -->
+<path class="edge-control" d="M40,1162 H76" marker-end="url(#arrow-control)"/>
+<text class="legend" x="86" y="1166">control plane: build, deploy and manage apps</text>
+<path class="edge-data" d="M400,1162 H436" marker-end="url(#arrow-data)"/>
+<text class="legend" x="446" y="1166">data plane: requests from users and systems</text>
+<rect class="zone zone-runtime-back" x="760" y="1153" width="26" height="18" rx="4"/>
+<rect class="zone zone-runtime-back" x="756" y="1149" width="26" height="18" rx="4"/>
+<text class="legend" x="796" y="1166">one per environment</text>
+</svg>
