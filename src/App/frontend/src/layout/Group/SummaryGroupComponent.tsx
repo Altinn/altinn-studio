@@ -98,24 +98,24 @@ export function SummaryGroupComponent({
     <>
       <div
         data-testid='summary-group-component'
-        style={{ width: '100%' }}
+        className={classes.container}
       >
-        <div className={classes.container}>
-          <span className={classes.label}>
-            <Lang id={summaryTitle ?? title} />
-          </span>
+        <span className={classes.label}>
+          <Lang id={summaryTitle ?? title} />
+        </span>
 
-          {!display?.hideChangeButton && (
+        <div className={classes.values}>
+          <div className={classes.border}>{childSummaryComponents}</div>
+        </div>
+        {!display?.hideChangeButton && (
+          <span className={classes.editBtn}>
             <EditButton
               onClick={onChangeClick}
               editText={changeText}
               label={ariaLabel}
             />
-          )}
-        </div>
-        <div style={{ width: '100%' }}>
-          <div className={classes.border}>{childSummaryComponents}</div>
-        </div>
+          </span>
+        )}
       </div>
 
       {groupHasErrors && !display?.hideValidationMessages && (

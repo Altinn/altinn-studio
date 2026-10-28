@@ -1,31 +1,17 @@
 # Kubernetes Wrapper
 
-Application exposing information about deployments in kubernetes in a rest API
+The Kubernetes Wrapper reports the deployments and daemon sets in the cluster it runs in, through a REST API. It
+runs in each service owner's [runtime cluster](../../../docs/infrastructure/environments.md#runtime-clusters) and in
+each Studio cluster. [`deploy-runtime-kubernetes-wrapper.yaml`](../../../.github/workflows/deploy-runtime-kubernetes-wrapper.yaml)
+publishes it for both.
 
-## Testing
+Designer reads an app's deployments from it through its
+[client](../../Designer/backend/src/Designer/TypedHttpClients/KubernetesWrapper/KubernetesWrapperClient.cs), and
+tools in [`src/tools`](../../tools) read it to list the apps deployed to an environment. Keep the responses
+compatible with them.
 
-### Linux and macOS
+## Development
 
-To test kuberneteswrapper in a kubernetes cluster (kind) lokally run the following command
-
-```shell
-make test
-make test-e2e
-```
-
-This will do the following
-
-1. create a kind kubernetescluster
-2. build kuberneteswrapper docker image
-3. load the image into kind
-4. deploy kuberneteswrapper and test services
-5. add portfowrward to the kuberneteswrapper service in kind
-6. test that kuberneteswrapper produces the expected responses
-
-After the test command is executed a portforward on port 8080 is left intact if you want to execute api calls to kuberneteswrapper
-
-To clean up after you are done testing run:
-
-```shell
-make clean
-```
+The [Makefile](Makefile) defines the build and test commands. `make test-e2e` requires Docker or Podman and Kind. It
+deploys the wrapper to a Kind cluster, checks its responses and deletes the cluster. To call the API yourself, run
+`make build port-forward` instead, which leaves the API on port 8080, and `make clean` when you are done.

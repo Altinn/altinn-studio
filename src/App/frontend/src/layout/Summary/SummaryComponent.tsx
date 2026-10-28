@@ -148,7 +148,7 @@ const SummaryComponentInner = React.forwardRef(function (
       return;
     }
 
-    setReturnToView?.(currentPageId);
+    setReturnToView?.(currentPageId ? { pageId: currentPageId } : undefined);
     setNodeOfOrigin?.(originNodeId);
     await navigateToComponent(indexedId, targetBaseComponentId, {
       pageNavOptions: {

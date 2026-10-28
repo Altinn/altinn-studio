@@ -11,6 +11,8 @@ import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { parseInstanceId, useActiveInstances } from 'src/core/queries/instance';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { InstantiationClosedText } from 'src/features/instantiate/containers/InstantiationClosedError';
+import { useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import classes from 'src/features/instantiate/selection/InstanceSelection.module.css';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { Lang } from 'src/features/language/Lang';
@@ -55,6 +57,7 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
   const mobileView = useIsMobileOrTablet();
   const rowsPerPageOptions = instanceSelectionOptions?.rowsPerPageOptions ?? [10, 25, 50];
   const instantiation = useInstantiation();
+  const instantiationClosedReason = useInstantiationClosedReason();
   const selectedParty = useSelectedParty();
   const performProcess = useProcessingMutation('instantiation');
   const isLoading = useIsThisProcessing('instantiation');
@@ -244,32 +247,38 @@ function InstanceSelection({ instances: _instances }: { instances: ISimpleInstan
         {mobileView && renderMobileTable()}
         {!mobileView && renderTable()}
         <div className={classes.startNewButtonContainer}>
-          <ErrorReport
-            show={instantiation.error !== undefined}
-            errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
-          >
-            <Button
-              disabled={isAnyProcessing}
-              isLoading={isLoading}
-              loadingLabel={langAsString('general.loading')}
-              size='md'
-              onClick={() =>
-                performProcess(async () => {
-                  if (selectedParty) {
-                    const data = await instantiation.instantiate(selectedParty.partyId, { force: true });
-                    if (data) {
-                      const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
-                      const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
-                      await navigate(url);
-                    }
-                  }
-                })
-              }
-              id='new-instance-button'
+          {instantiationClosedReason ? (
+            <Paragraph id='instantiation-closed-message'>
+              <InstantiationClosedText reason={instantiationClosedReason} />
+            </Paragraph>
+          ) : (
+            <ErrorReport
+              show={instantiation.error !== undefined}
+              errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
             >
-              <Lang id='instance_selection.new_instance' />
-            </Button>
-          </ErrorReport>
+              <Button
+                disabled={isAnyProcessing}
+                isLoading={isLoading}
+                loadingLabel={langAsString('general.loading')}
+                size='md'
+                onClick={() =>
+                  performProcess(async () => {
+                    if (selectedParty) {
+                      const data = await instantiation.instantiate(selectedParty.partyId, { force: true });
+                      if (data) {
+                        const { instanceOwnerPartyId, instanceGuid } = parseInstanceId(data.id);
+                        const url = buildInstanceUrl(instanceOwnerPartyId, instanceGuid);
+                        await navigate(url);
+                      }
+                    }
+                  })
+                }
+                id='new-instance-button'
+              >
+                <Lang id='instance_selection.new_instance' />
+              </Button>
+            </ErrorReport>
+          )}
         </div>
       </div>
       <ReadyForPrint type='load' />
