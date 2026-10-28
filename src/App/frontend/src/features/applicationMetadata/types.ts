@@ -21,6 +21,9 @@ export interface ApplicationMetadata {
   altinnNugetVersion?: string;
   logo?: ILogoOptions;
   messageBoxConfig?: MessageBoxConfig;
+  validFrom?: string | null;
+  validTo?: string | null;
+  disallowUserInstantiation?: boolean;
 }
 
 type HideAlwaysSettings = {

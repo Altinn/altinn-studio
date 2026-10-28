@@ -10,9 +10,13 @@ import {
   TRBSummarizable,
 } from '@app/layout-contract/generated/common.generated';
 
+export interface AddressSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type AddressSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'Address' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & AddressSummaryOverrides)
+  | ({ componentType: 'Address' } & AddressSummaryOverrides);
 
 export interface CompAddressExternal
   extends ComponentBase, FormComponentProps, LabeledComponentProps {
@@ -67,8 +71,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompAddressExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: AddressSummaryOverrides;
   summaryOverridesWithRef: AddressSummaryOverridesWithRef;
 };
 
-// Source hash: b010eca11081d136ea18f9465fcb7d88b9f837804afa3b6cb0cd16786b0efd08
+// Source hash: 25cae86bdb9c484887d56da8470e9c6f3aae9716a7588b6f550ff1c77717e3d6

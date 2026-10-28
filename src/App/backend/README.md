@@ -1,30 +1,37 @@
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Altinn/app-lib-dotnet/dotnet-test.yml?branch=main)](https://github.com/Altinn/app-lib-dotnet/actions)
-[![GitHub](https://img.shields.io/github/license/Altinn/app-lib-dotnet?style=flat-square)](https://github.com/Altinn/app-lib-dotnet/blob/main/LICENSE)<br/>
-
-[![NuGet / Altinn.App.Core](https://img.shields.io/nuget/v/Altinn.App.Core?label=Altinn.App.Core)](https://www.nuget.org/packages/Altinn.App.Core)
-[![NuGet / Altinn.App.Api](https://img.shields.io/nuget/v/Altinn.App.Api?label=Altinn.App.Api)](https://www.nuget.org/packages/Altinn.App.Api)
-
 # Altinn.App .NET libraries
 
-Altinn.App .NET libraries for apps running on Altinn 3, part of the [Altinn Studio product](https://docs.altinn.studio/altinn-studio/about/).
+<!-- This README is also the readme of the NuGet packages, so its links are absolute. -->
 
-These libraries support the runtime of Altinn apps by
+The Altinn.App libraries are what the backend of an Altinn 3 app is built on. An app references `Altinn.App.Api` and
+`Altinn.App.Core`. The libraries serve the API that the app frontend and service owners' systems call, run the app's
+process, and call the Altinn platform services on the app's behalf. Apps add their own logic by implementing the
+interfaces in `Altinn.App.Core`.
 
-- Exposing APIs used by service owners and the [frontend (app-frontend-react)](https://github.com/Altinn/app-frontend-react) of an Altinn app
-- Exposing abstractions to interact with features of Altinn Studio and Altinn 3 Platform services
+[docs.altinn.studio](https://docs.altinn.studio) documents how to develop apps. The
+[changelog](https://github.com/Altinn/altinn-studio/blob/main/src/App/backend/CHANGELOG.md) lists the changes in each
+release.
 
-## Contributing
+## How it fits
 
-See [/CONTRIBUTING.md](/CONTRIBUTING.md).
+These are the libraries for v9 apps. v8 apps use [app-lib-dotnet](https://github.com/Altinn/app-lib-dotnet).
+[Altinn Apps](https://github.com/Altinn/altinn-studio/blob/main/src/App/README.md#how-the-parts-fit) describes how the
+libraries fit with the app frontend, the workflow engine and the other app packages.
 
-## Documentation
+## Development
 
-Documentation on how to develop Altinn apps can be found [here](https://docs.altinn.studio/).
+`make build` and `make test` cover the main projects. `make build-all` and `make test-all` cover
+`solutions/All.slnx`, which CI builds, and add the analyzer and integration tests. `make ti filter=<filter>` runs the
+integration tests, which need studioctl and a container runtime, as
+[their README](https://github.com/Altinn/altinn-studio/blob/main/src/App/backend/test/Altinn.App.Integration.Tests/README.md)
+describes. Packing `Altinn.App.Api` needs a `yarn build` in `src/App/frontend` first.
 
-## Architecture
+Outside CI, a test run accepts a changed Verify snapshot and passes, so review the `*.verified.*` files a run rewrote.
+Set `TF_BUILD=true` to make a mismatch fail as in CI. The snapshots cover each package's public API, the OpenAPI
+document and the telemetry output. A failed integration test run writes its failure output into the snapshots, so
+restore them before the next run.
 
-This template is built using .NET
+To try a change in an app, replace the app's package references to `Altinn.App.Api` and `Altinn.App.Core` with
+project references to this folder's `src`, and run the app against localtest.
 
-The below diagram shows the different layers.
-
-![Template](./apptemplate.drawio.svg)
+The [docs](https://github.com/Altinn/altinn-studio/blob/main/src/App/backend/docs/README.md) hold the coding
+standards and how the libraries use the workflow engine.

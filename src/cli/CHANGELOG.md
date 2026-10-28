@@ -30,6 +30,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `studioctl doctor --json` names the studioctl server checks `server_binary` and `server_state` instead of `appmgr_binary` and `appmgr_state`. Update scripts that look for the old names. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - `studioctl doctor` shows the _Disk_ checks by name, such as _Home_ and _Server state_, without their paths. `studioctl doctor --json` still has the paths, and `studioctl -v doctor` shows those of failing checks. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - studioctl keeps 30 days of logs, so they no longer grow without limit on disk: the studioctl server deletes its older log files when it starts and once a day, and `studioctl run` deletes app logs not written to for 30 days, for all your apps. ([#21435](https://github.com/Altinn/altinn-studio/pull/21435), [#21438](https://github.com/Altinn/altinn-studio/pull/21438))
+- `studioctl app upgrade v9` names `HandlerResult` instead of `HookResult` in its to-dos for v8 process hooks, to match the renamed type. ([#21554](https://github.com/Altinn/altinn-studio/pull/21554))
 
 ### Fixed
 
@@ -40,6 +41,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Running `studioctl app upgrade v9` again no longer adds a PDF service task, such as `PdfTask_Task_1`, for a data type that had `enablePdfCreation: false`. If 0.1.0-preview.28 or 0.1.0-preview.29 added one, remove it. ([#21518](https://github.com/Altinn/altinn-studio/pull/21518))
 - Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 - Payment, signing and PDF tasks no longer fail to store the file they generate, such as the receipt after the user has paid, in apps upgraded with `studioctl app upgrade v9`. Run it again to fix an upgraded app. ([#21119](https://github.com/Altinn/altinn-studio/pull/21119))
+- After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. ([#21207](https://github.com/Altinn/altinn-studio/pull/21207))
 
 ## [0.1.0-preview.29] - 2026-10-14
 

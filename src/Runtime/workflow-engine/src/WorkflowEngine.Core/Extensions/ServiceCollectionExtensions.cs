@@ -346,6 +346,10 @@ public static class OptionsBuilderExtensions
                     config.Throttling.MaxWindow = Defaults.EngineSettings.Throttling.MaxWindow;
 
                 // A compose file passes an unset variable as an empty string.
+                config.Dashboard.TraceUrlTemplate = string.IsNullOrWhiteSpace(config.Dashboard.TraceUrlTemplate)
+                    ? null
+                    : config.Dashboard.TraceUrlTemplate.Trim();
+
                 if (string.IsNullOrWhiteSpace(config.Dashboard.GrafanaUrl))
                     config.Dashboard.GrafanaUrl = null;
 
@@ -471,6 +475,11 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.Throttling.InitialWindow <= config.Throttling.MaxWindow,
                 $"{ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.InitialWindow)} must be less than or equal to {ns}.{nameof(EngineSettings.Throttling)}.{nameof(ThrottlingSettings.MaxWindow)}."
+            );
+
+            builder.Validate(
+                config => config.Dashboard.TraceUrlTemplate is not { } template || TraceUrlTemplate.IsValid(template),
+                $"{ns}.{nameof(EngineSettings.Dashboard)}.{nameof(DashboardSettings.TraceUrlTemplate)} must be an absolute http or https URL containing {DashboardSettings.TraceIdPlaceholder}."
             );
 
             return builder;
