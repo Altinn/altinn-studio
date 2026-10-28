@@ -14,7 +14,9 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// For a PDF task, Altinn Studio Designer lists a page, <c>ServiceTask</c>, in the folder's <c>pages.order</c>: a
 /// "something went wrong" message with retry and back buttons, which users would see on every PDF run. A page that
 /// is exactly what Altinn Studio generated, ignoring property order and formatting, leaves <c>pages.order</c> and
-/// its layout file is deleted, in any service task's folder; <c>pdfLayoutName</c> stays.
+/// its layout file is deleted, in any service task's folder; <c>pdfLayoutName</c> stays. So does a page with no
+/// components, which would show users an empty page, such as one that held only the Subform component copy the
+/// subform PDF task step removes.
 ///
 /// In v8 the process stopped on a service task only when the task failed, so the pages a subform PDF task lists, and
 /// those a PDF task with a <c>pdfLayoutName</c> lists besides it, showed only then: neither task rendered them into
@@ -189,18 +191,24 @@ internal static class ServiceTaskPageMigration
             .ToList();
         var order = (pages?["order"] as JsonArray)?.Select(StringValue).OfType<string>().ToList() ?? [];
         var pdfLayoutName = StringValue(pages?["pdfLayoutName"]);
-        var generated = order
+        var removable = order
             .Distinct(StringComparer.Ordinal)
-            .Where(page => page != pdfLayoutName && IsGenerated(Path.Combine(folder, "layouts", $"{page}.json")))
+            .Where(page => page != pdfLayoutName)
+            .Select(page => (Page: page, Components: ReadPage(Path.Combine(folder, "layouts", $"{page}.json"))))
+            .Where(page =>
+                page.Components is { } components
+                && (components.Count == 0 || JsonNode.DeepEquals(components, _generatedPage))
+            )
             .ToList();
+        var removed = removable.Select(page => page.Page).ToList();
         var failurePages =
             taskType == SubformPdfTaskType || (taskType == PdfTaskType && pdfLayoutName is not null)
                 ? order
                     .Distinct(StringComparer.Ordinal)
-                    .Where(page => page != pdfLayoutName && !generated.Contains(page, StringComparer.Ordinal))
+                    .Where(page => page != pdfLayoutName && !removed.Contains(page, StringComparer.Ordinal))
                     .ToList()
                 : [];
-        var leaving = generated.Concat(failurePages).ToList();
+        var leaving = removed.Concat(failurePages).ToList();
         var listed = order
             .Where(page => !leaving.Contains(page, StringComparer.Ordinal))
             .Concat(groupPages ?? [])
@@ -213,14 +221,17 @@ internal static class ServiceTaskPageMigration
             {
                 // Settings first: should the run stop in between, a layout file no order lists is harmless.
                 await Utf8TextFile.Write(settingsFile, updated, hadBom);
-                foreach (var page in generated)
+                foreach (var (page, components) in removable)
                 {
                     File.Delete(Path.Combine(folder, "layouts", $"{page}.json"));
+                    var description = components is { Count: 0 }
+                        ? $"the empty page '{page}'"
+                        : $"the page '{page}' Altinn Studio generated";
                     messages.Warn(
-                        $"Removed the page '{page}' Altinn Studio generated in ui/{taskId}, from pages.order and "
-                            + $"layouts/{page}.json. In v9 a service task shows the pages in its pages.order while it "
-                            + $"runs, so {TaskName(taskId, taskType)} would have shown it every time it runs. The app "
-                            + "shows its own waiting view instead"
+                        $"Removed {description} in ui/{taskId}, from pages.order and layouts/{page}.json. In v9 a "
+                            + "service task shows the pages in its pages.order while it runs, so "
+                            + $"{TaskName(taskId, taskType)} would have shown it every time it runs. The app shows its "
+                            + "own waiting view instead"
                             + (taskType == PdfTaskType ? ", and the PDF is unchanged." : ".")
                     );
                 }
@@ -278,25 +289,27 @@ internal static class ServiceTaskPageMigration
             .All(file => Path.GetRelativePath(folder, file) == "Settings.json");
 
     /// <summary>
-    /// Whether the layout file holds exactly the page Altinn Studio generated: its components, in order, and
-    /// nothing besides them and a <c>$schema</c>.
+    /// The components of a page whose layout file holds nothing besides them and a <c>$schema</c>, or null when
+    /// the file holds more, is missing or cannot be read.
     /// </summary>
-    private static bool IsGenerated(string layoutFile)
+    private static JsonArray? ReadPage(string layoutFile)
     {
         if (!File.Exists(layoutFile))
-            return false;
+            return null;
         try
         {
             var (text, _) = Utf8TextFile.Decode(File.ReadAllBytes(layoutFile));
-            return JsonNode.Parse(text, documentOptions: _documentOptions) is JsonObject root
+            return
+                JsonNode.Parse(text, documentOptions: _documentOptions) is JsonObject root
                 && root.All(property => property.Key is "$schema" or "data")
                 && root["data"] is JsonObject { Count: 1 } data
                 && data["layout"] is JsonArray layout
-                && JsonNode.DeepEquals(layout, _generatedPage);
+                ? layout
+                : null;
         }
         catch (Exception ex) when (ex is JsonException or DecoderFallbackException)
         {
-            return false;
+            return null;
         }
     }
 
