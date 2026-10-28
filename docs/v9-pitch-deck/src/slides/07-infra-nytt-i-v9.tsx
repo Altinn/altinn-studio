@@ -12,7 +12,7 @@ const FEATURES: Feature[] = [
     icon: 'server',
     eyebrow: 'Prosessmotor',
     title: 'Prosesser som tåler feil',
-    body: 'Hvert steg i prosessen lagres og gjøres ferdig, også når noe feiler underveis.',
+    body: 'Hvert steg lagres og prøves på nytt når noe feiler. Ingenting blir liggende halvferdig i det stille.',
   },
   {
     icon: 'shield',
