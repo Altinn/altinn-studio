@@ -251,7 +251,7 @@ public class CommonTaskFinalizationTests
         // Act
         var result = await command.Execute(context);
 
-        // Assert: one evaluation removes the hidden data from both data models
+        // Assert: both data models are cleaned, with one evaluation of the layouts
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Exactly(2));
         appResourcesMock.Verify(x => x.GetLayoutModelForFolder("Task_1"), Times.Once);
