@@ -8,7 +8,6 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
@@ -27,7 +26,10 @@ import {
 } from 'src/features/form/FormContext';
 import { getPrefillFromSessionStorage } from 'src/features/form/getPrefillFromSessionStorage';
 import { useLayoutOverrides } from 'src/features/form/layout/layoutOverrides';
-import { createPageNavigationSlice } from 'src/features/form/layout/PageNavigationContext';
+import {
+  ClearHiddenSummaryReturnState,
+  createPageNavigationSlice,
+} from 'src/features/form/layout/PageNavigationContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { TaskTransitionBoundary } from 'src/features/form/TaskTransitionBoundary';
 import { getUiFolderSettings } from 'src/features/form/ui';
@@ -134,6 +136,7 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
       <LayoutRevisionBoundary>
         <LayoutPropertiesValidation>
           <TaskTransitionBoundary>
+            <ClearHiddenSummaryReturnState />
             <RunOptionsEffects />
             {window.Cypress && <UpdateAttachmentsForCypress />}
             <AttachmentEffects />
@@ -295,7 +298,6 @@ export function useFormDataSliceProps(
   const selectFromInstance = useSelectFromInstanceData();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
-  const getCachedInitialValidations = useGetCachedInitialValidations();
   const calculationDataSources = useAsRef(useExpressionDataSourcesBaseForStoreSelector());
 
   if (!bootstrap) {
@@ -309,7 +311,6 @@ export function useFormDataSliceProps(
     proxies,
     changeInstance,
     selectFromInstance,
-    getCachedInitialValidations,
     getCalculationDataSources: () => calculationDataSources.current,
   };
 }

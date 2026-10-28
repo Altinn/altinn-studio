@@ -5,6 +5,7 @@ import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
 import { useOptionsFor } from 'src/features/options/useOptionsFor';
+import { validateOptionsDataModelBindings } from 'src/features/options/validation';
 import { validateEmptyFieldOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
@@ -76,7 +77,10 @@ export class LikertItem extends LikertItemDef {
       'simpleBinding',
       ['string', 'number', 'boolean'],
     );
-    const errors: string[] = [...(answerErr ?? [])];
+    const errors: string[] = [
+      ...(answerErr ?? []),
+      ...validateOptionsDataModelBindings(baseComponentId, bindings, lookupBinding, layoutLookups, 'single'),
+    ];
 
     const parentRef = layoutLookups.componentToParent[baseComponentId];
     const parent = parentRef && parentRef.type === 'node' ? layoutLookups.allComponents[parentRef.id] : undefined;

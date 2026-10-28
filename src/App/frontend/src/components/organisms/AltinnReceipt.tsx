@@ -18,7 +18,6 @@ export interface IReceiptComponentProps {
   instanceMetaDataObject: SummaryDataObject;
   pdf: IDisplayAttachment[];
   subtitle?: string | JSX.Element | JSX.Element[] | null;
-  subtitleurl?: string;
   title: React.ReactNode;
   titleSubmitted: React.ReactNode;
 }
@@ -28,7 +27,6 @@ export function ReceiptComponent({
   attachments,
   instanceMetaDataObject,
   subtitle,
-  subtitleurl,
   body,
   pdf,
   titleSubmitted,
@@ -47,16 +45,7 @@ export function ReceiptComponent({
         {title}
       </Heading>
       <AltinnSummaryTable summaryDataObject={instanceMetaDataObject} />
-      {subtitle && (
-        <div className={classes.paddingTop24}>
-          <a
-            className='altinnLink'
-            href={subtitleurl}
-          >
-            {subtitle}
-          </a>
-        </div>
-      )}
+      {subtitle && <div className={classes.paddingTop24}>{subtitle}</div>}
 
       <div
         id='body-text'

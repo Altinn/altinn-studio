@@ -83,12 +83,12 @@ public class ProcessStepOptionsResolverTests
         return mock;
     }
 
-    private static Mock<IOnTaskAbandonHandler> AbandonHook(
+    private static Mock<IOnTaskAbandoningHandler> AbandonHook(
         Func<string, bool> shouldRun,
         ProcessStepOptions? stepOptions
     )
     {
-        var mock = new Mock<IOnTaskAbandonHandler>();
+        var mock = new Mock<IOnTaskAbandoningHandler>();
         mock.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns<string>(t => shouldRun(t));
         if (stepOptions is not null)
             mock.Setup(h => h.StepOptions).Returns(stepOptions);
@@ -218,7 +218,7 @@ public class ProcessStepOptionsResolverTests
             _ when commandKey == OnTaskEndingHook.Key => s =>
                 s.AddSingleton<IOnTaskEndingHandler>(EndingTaskHook(shouldRun, stepOptions).Object),
             _ when commandKey == OnTaskAbandonHook.Key => s =>
-                s.AddSingleton<IOnTaskAbandonHandler>(AbandonHook(shouldRun, stepOptions).Object),
+                s.AddSingleton<IOnTaskAbandoningHandler>(AbandonHook(shouldRun, stepOptions).Object),
             _ => throw new ArgumentOutOfRangeException(nameof(commandKey), commandKey, "Not a task hook key"),
         };
 

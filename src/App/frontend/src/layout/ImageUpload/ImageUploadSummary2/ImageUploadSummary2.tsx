@@ -3,6 +3,8 @@ import React from 'react';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
 import { Lang } from 'src/features/language/Lang';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
+import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';
 import classes from 'src/layout/ImageUpload/ImageUploadSummary2/ImageUploadSummary2.module.css';
@@ -29,6 +31,7 @@ export function ImageUploadSummary2({ targetBaseComponentId }: Summary2Props) {
   const isCompact = useSummaryProp('isCompact');
   const { storedImage } = useImageFile(targetBaseComponentId);
   const isEmpty = attachment.length === 0;
+  const errors = validationsOfSeverity(useUnifiedValidationsForNode(targetBaseComponentId), 'error');
   const title = summaryTitle || resolvedTitle;
   const emptyValueText = required ? SummaryContains.EmptyValueRequired : SummaryContains.EmptyValueNotRequired;
   const contentLogic = isEmpty ? emptyValueText : SummaryContains.SomeUserContent;
@@ -43,6 +46,7 @@ export function ImageUploadSummary2({ targetBaseComponentId }: Summary2Props) {
         title={<Lang id={title} />}
         targetBaseComponentId={targetBaseComponentId}
         displayData={imageElement && <ImageToDisplay targetBaseComponentId={targetBaseComponentId} />}
+        errors={errors}
         hideEditButton={false}
         isCompact={isCompact}
         emptyFieldText='image_upload_component.summary_empty'

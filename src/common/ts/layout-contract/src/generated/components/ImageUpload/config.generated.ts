@@ -35,9 +35,13 @@ export interface CropConfigRect {
   height?: number;
 }
 
+export interface ImageUploadSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type ImageUploadSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'ImageUpload' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & ImageUploadSummaryOverrides)
+  | ({ componentType: 'ImageUpload' } & ImageUploadSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -63,8 +67,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompImageUploadExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: ImageUploadSummaryOverrides;
   summaryOverridesWithRef: ImageUploadSummaryOverridesWithRef;
 };
 
-// Source hash: d4adbcf0a6c24a304ab6c6e701c900d219ad9fa82edd27d8e0a89926817a5f92
+// Source hash: 93afc210d59051eac1324bd063734e8d8187c0e55b1a54b556485931f6a6b926

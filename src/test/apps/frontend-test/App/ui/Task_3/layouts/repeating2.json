@@ -26,14 +26,14 @@
       {
         "id": "mainGroup2",
         "type": "RepeatingGroup",
-        "children": ["currentValue2", "newValue2", "source2"],
+        "children": ["currentValue2", "newValue2", "source2", "subGroupNavigationLinks"],
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
         },
         "textResourceBindings": {
           "title": "Group title"
         },
-        "tableHeaders": ["source2", "currentValue2", "newValue2"],
+        "tableHeaders": ["source2", "currentValue2", "newValue2", "subGroupNavigationLinks"],
         "tableColumns": {
           "currentValue2": {
             "alignText": "left",
@@ -44,6 +44,10 @@
             "alignText": "left",
             "editInTable": true,
             "showInExpandedEdit": true
+          },
+          "subGroupNavigationLinks": {
+            "editInTable": true,
+            "hidden": ["notEquals", ["dataModel", "useBothRepGroups"], true]
           }
         },
         "hiddenRow": [
@@ -116,6 +120,18 @@
             "allowNegative": false
           },
           "align": "right"
+        }
+      },
+      {
+        "id": "subGroupNavigationLinks",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": [
+            "concat",
+            ["linkToComponent", "Før tabellen", "subGroupStaticBefore"],
+            " ",
+            ["linkToComponent", "Etter tabellen", "subGroupStaticAfter"]
+          ]
         }
       },
       {

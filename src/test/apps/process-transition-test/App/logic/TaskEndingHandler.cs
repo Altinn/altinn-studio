@@ -25,13 +25,13 @@ public sealed class TaskEndingHandler : IOnTaskEndingHandler
 {
     public bool ShouldRunForTask(string taskId) => taskId == "Task_1";
 
-    public async Task<HookResult> Execute(OnTaskEndingContext context)
+    public async Task<HandlerResult> Execute(OnTaskEndingContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         DataElement? dataElement = instance.Data.Find(x => x.DataType == "TransitionControl");
         if (dataElement is null)
         {
-            return HookResult.Success();
+            return HandlerResult.Success();
         }
 
         var levers = (TransitionControl)
@@ -39,7 +39,7 @@ public sealed class TaskEndingHandler : IOnTaskEndingHandler
 
         if (levers.path != "preCommit")
         {
-            return HookResult.Success();
+            return HandlerResult.Success();
         }
 
         int delayMs = levers.delayMs ?? 0;
@@ -55,7 +55,7 @@ public sealed class TaskEndingHandler : IOnTaskEndingHandler
         if (attempt < attempts)
         {
             // Not the last attempt yet: fail retryably so the engine re-invokes this hook.
-            return HookResult.FailedRetryable(
+            return HandlerResult.FailedRetryable(
                 $"TransitionControl forced a transient preCommit failure (attempt {attempt} of {attempts})."
             );
         }
@@ -65,7 +65,7 @@ public sealed class TaskEndingHandler : IOnTaskEndingHandler
         // and falls through to the success below.
         if (levers.endState == "failureThenSuccess" && attempt == attempts)
         {
-            return HookResult.FailedPermanent(
+            return HandlerResult.FailedPermanent(
                 $"TransitionControl forced a terminal preCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")} (recoverable: the next replay succeeds)."
             );
         }
@@ -74,9 +74,9 @@ public sealed class TaskEndingHandler : IOnTaskEndingHandler
         // again from attempt 1. "failure" resets too — every replay fails the same way.
         AttemptTracker.Reset(instanceGuid, "preCommit");
         return levers.endState == "failure"
-            ? HookResult.FailedPermanent(
+            ? HandlerResult.FailedPermanent(
                 $"TransitionControl forced a terminal preCommit failure after {attempts} attempt{(attempts == 1 ? "" : "s")}."
             )
-            : HookResult.Success();
+            : HandlerResult.Success();
     }
 }
