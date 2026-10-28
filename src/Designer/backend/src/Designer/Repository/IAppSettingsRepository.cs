@@ -13,6 +13,6 @@ public interface IAppSettingsRepository
         string? environment = null,
         CancellationToken cancellationToken = default
     );
-    Task<IReadOnlyList<AppSettingsEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<AppSettingsEntity>> GetAllForOrgAsync(string org, CancellationToken cancellationToken = default);
     Task<AppSettingsEntity> UpsertAsync(AppSettingsEntity entity, CancellationToken cancellationToken = default);
 }

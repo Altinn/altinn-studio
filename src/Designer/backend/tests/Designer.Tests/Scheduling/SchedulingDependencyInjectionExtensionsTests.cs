@@ -132,6 +132,82 @@ public class SchedulingDependencyInjectionExtensionsTests
         );
     }
 
+    [Fact]
+    public void ValidateSchedulingSettings_InactivityUndeployAcceptsZeroCapAndRejectsNegativeCap()
+    {
+        var settings = new SchedulingSettings();
+        settings.InactivityUndeploy.MaxUndeploysPerDay = 0;
+        SchedulingDependencyInjectionExtensions.ValidateSchedulingSettings(settings);
+
+        settings.InactivityUndeploy.MaxUndeploysPerDay = -1;
+        Assert.Throws<InvalidOperationException>(() =>
+            SchedulingDependencyInjectionExtensions.ValidateSchedulingSettings(settings)
+        );
+    }
+
+    [Fact]
+    public void AddQuartzJobScheduling_WithoutInactivityUndeployConfiguration_UsesDryRunDefaults()
+    {
+        var settings = ResolveSchedulingSettings(new Dictionary<string, string>());
+
+        Assert.Equal(InactivityUndeployMode.DryRun, settings.InactivityUndeploy.Mode);
+        Assert.Empty(settings.InactivityUndeploy.EnforcedOrgs);
+        Assert.Equal(50, settings.InactivityUndeploy.MaxUndeploysPerDay);
+        Assert.False(settings.InactivityUndeploy.IsEnforced("ttd"));
+    }
+
+    [Fact]
+    public void AddQuartzJobScheduling_BindsInactivityUndeployFromLayeredConfiguration()
+    {
+        const string Section = $"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.InactivityUndeploy)}";
+        // As appsettings.json and the chart's environment variables both set the enforced orgs.
+        var settings = ResolveSchedulingSettings(
+            new Dictionary<string, string>
+            {
+                [$"{Section}:Mode"] = "DryRun",
+                [$"{Section}:EnforcedOrgs:0"] = "ttd",
+                [$"{Section}:MaxUndeploysPerDay"] = "50",
+            },
+            new Dictionary<string, string>
+            {
+                [$"{Section}:EnforcedOrgs:0"] = "ttd",
+                [$"{Section}:MaxUndeploysPerDay"] = "10",
+            }
+        );
+
+        Assert.Equal(["ttd"], settings.InactivityUndeploy.EnforcedOrgs);
+        Assert.Equal(10, settings.InactivityUndeploy.MaxUndeploysPerDay);
+        Assert.True(settings.InactivityUndeploy.IsEnforced("ttd"));
+        Assert.False(settings.InactivityUndeploy.IsEnforced("skd"));
+    }
+
+    [Fact]
+    public void InactivityUndeployEnforcementSettings_InEnforceModeEnforcesEveryOrg()
+    {
+        var settings = new InactivityUndeployEnforcementSettings { Mode = InactivityUndeployMode.Enforce };
+
+        Assert.True(settings.IsEnforced("skd"));
+    }
+
+    private static SchedulingSettings ResolveSchedulingSettings(params Dictionary<string, string>[] layers)
+    {
+        var builder = new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string>
+            {
+                [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.UsePersistentScheduling)}"] = "false",
+                [$"{nameof(SchedulingSettings)}:{nameof(SchedulingSettings.AddHostedService)}"] = "false",
+            }
+        );
+        foreach (var layer in layers)
+        {
+            builder.AddInMemoryCollection(layer);
+        }
+        var services = new ServiceCollection();
+        services.AddQuartzJobScheduling(builder.Build());
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+        return serviceProvider.GetRequiredService<SchedulingSettings>();
+    }
+
     private static void SetFirstUnsupportedValue(SchedulingSettings settings, string settingName)
     {
         switch (settingName)

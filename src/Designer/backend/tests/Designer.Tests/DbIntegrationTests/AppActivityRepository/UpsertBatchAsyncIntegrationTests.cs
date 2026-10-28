@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models.AppActivity;
@@ -182,6 +183,31 @@ public class UpsertBatchAsyncIntegrationTests : DbIntegrationTestsBase
         Assert.Equal(s_secondCollection, await repository.GetLatestCollectedAtAsync(_org, Environment));
         Assert.False(await repository.HasDeployedAppsAsync(_org, Environment));
         Assert.Null(await repository.GetLatestCollectedAtAsync(_org, "at22"));
+    }
+
+    [Fact]
+    public async Task GetForEnvironmentAsync_ShouldReturnTheEnvironmentsRows()
+    {
+        var repository = CreateRepository();
+        var lastWrite = s_firstCollection.AddDays(-3);
+        await repository.UpsertBatchAsync(
+            CreateBatch(
+                s_firstCollection,
+                29,
+                Observation("idle-app", deployed: true),
+                Observation("busy-app", deployed: true, lastWriteAt: lastWrite)
+            )
+        );
+
+        var rows = await repository.GetForEnvironmentAsync(_org, Environment);
+
+        Assert.Equal(["busy-app", "idle-app"], rows.Select(r => r.App).Order());
+        var busy = rows.Single(r => r.App == "busy-app");
+        Assert.Equal(lastWrite, busy.LastWriteAt);
+        Assert.Equal(s_firstCollection.AddDays(-29), busy.ObservedSince);
+        Assert.Equal(s_firstCollection, busy.LastCollectedAt);
+        Assert.Null(rows.Single(r => r.App == "idle-app").LastWriteAt);
+        Assert.Empty(await repository.GetForEnvironmentAsync(_org, "at22"));
     }
 
     private AppActivityRepositoryImplementation CreateRepository()

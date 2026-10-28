@@ -13,7 +13,8 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [Authorize]
 [Route("designer/api/v1/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-settings")]
-public class AppSettingsController(IAppSettingsService appSettingsService) : ControllerBase
+public class AppSettingsController(IAppSettingsService appSettingsService, IOrgSettingsService orgSettingsService)
+    : ControllerBase
 {
     [HttpGet]
     [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
@@ -24,8 +25,17 @@ public class AppSettingsController(IAppSettingsService appSettingsService) : Con
             environment: null,
             cancellationToken
         );
+        var orgSettings = await orgSettingsService.GetInactivityUndeploySettingsAsync(org, cancellationToken);
 
-        return Ok(new AppSettingsResponse { UndeployOnInactivity = setting?.UndeployOnInactivity ?? false });
+        return Ok(
+            new AppSettingsResponse
+            {
+                UndeployOnInactivity = setting?.UndeployOnInactivity,
+                InactivityPeriodDays = setting?.InactivityPeriodDays,
+                OrgUndeployOnInactivity = orgSettings.UndeployOnInactivity,
+                OrgInactivityPeriodDays = orgSettings.InactivityPeriodDays,
+            }
+        );
     }
 
     [HttpPut]
@@ -41,6 +51,7 @@ public class AppSettingsController(IAppSettingsService appSettingsService) : Con
         await appSettingsService.UpsertAsync(
             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
             request.UndeployOnInactivity,
+            request.InactivityPeriodDays,
             environment: null,
             cancellationToken
         );

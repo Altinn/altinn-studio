@@ -60,12 +60,6 @@ public interface IRuntimeGatewayClient
         string app,
         CancellationToken cancellationToken
     );
-    Task<AppActivityMetricsResponse> GetAppActivityMetricsAsync(
-        string org,
-        AltinnEnvironment environment,
-        int windowDays,
-        CancellationToken cancellationToken
-    );
     Task<AppActivitySignalsResponse> GetAppActivitySignalsAsync(
         string org,
         AltinnEnvironment environment,

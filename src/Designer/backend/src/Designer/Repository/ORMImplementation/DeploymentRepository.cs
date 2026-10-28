@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -108,16 +109,17 @@ public class DeploymentRepository : IDeploymentRepository
         return DeploymentMapper.MapToModels(dbObjects);
     }
 
-    public async Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(
+    public async Task<IReadOnlyDictionary<string, DateTimeOffset>> GetLatestDeployTimes(
         string org,
         string environment,
-        DateTimeOffset sinceUtc
+        DateTimeOffset sinceUtc,
+        CancellationToken cancellationToken = default
     )
     {
         Guard.AssertArgumentNotNullOrWhiteSpace(environment, nameof(environment));
         Guard.AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
 
-        return await _dbContext
+        var latestDeploys = await _dbContext
             .Deployments.AsNoTracking()
             .Where(d =>
                 d.Org == org
@@ -125,9 +127,34 @@ public class DeploymentRepository : IDeploymentRepository
                 && d.DeploymentType == Models.DeploymentType.Deploy
                 && d.Created >= sinceUtc.UtcDateTime
             )
-            .Select(d => d.App)
-            .Distinct()
-            .ToArrayAsync();
+            .GroupBy(d => d.App)
+            .Select(g => new { App = g.Key, Created = g.Max(d => d.Created) })
+            .ToListAsync(cancellationToken);
+
+        return latestDeploys.ToDictionary(
+            d => d.App,
+            d => new DateTimeOffset(DateTime.SpecifyKind(d.Created, DateTimeKind.Utc)),
+            StringComparer.Ordinal
+        );
+    }
+
+    public async Task<int> CountDecommissionsCreatedBySince(
+        string createdBy,
+        DateTimeOffset sinceUtc,
+        CancellationToken cancellationToken = default
+    )
+    {
+        Guard.AssertArgumentNotNullOrWhiteSpace(createdBy, nameof(createdBy));
+
+        return await _dbContext
+            .Deployments.AsNoTracking()
+            .CountAsync(
+                d =>
+                    d.DeploymentType == Models.DeploymentType.Decommission
+                    && d.CreatedBy == createdBy
+                    && d.Created >= sinceUtc.UtcDateTime,
+                cancellationToken
+            );
     }
 
     public async Task Update(DeploymentEntity deploymentEntity)

@@ -30,15 +30,19 @@ public class AppSettingsService : IAppSettingsService
         return _repository.GetAsync(context, environment, cancellationToken);
     }
 
-    public Task<IReadOnlyList<AppSettingsEntity>> GetAllAsync(CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<AppSettingsEntity>> GetAllForOrgAsync(
+        string org,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return _repository.GetAllAsync(cancellationToken);
+        return _repository.GetAllForOrgAsync(org, cancellationToken);
     }
 
     public async Task<AppSettingsEntity> UpsertAsync(
         AltinnRepoEditingContext editingContext,
-        bool undeployOnInactivity,
+        bool? undeployOnInactivity,
+        int? inactivityPeriodDays,
         string? environment = null,
         CancellationToken cancellationToken = default
     )
@@ -49,6 +53,7 @@ public class AppSettingsService : IAppSettingsService
         if (existing is not null)
         {
             existing.UndeployOnInactivity = undeployOnInactivity;
+            existing.InactivityPeriodDays = inactivityPeriodDays;
             existing.LastModifiedBy = editingContext.Developer;
             return await _repository.UpsertAsync(existing, cancellationToken);
         }
@@ -59,6 +64,7 @@ public class AppSettingsService : IAppSettingsService
             App = editingContext.Repo,
             Environment = environment,
             UndeployOnInactivity = undeployOnInactivity,
+            InactivityPeriodDays = inactivityPeriodDays,
             Created = _timeProvider.GetUtcNow(),
             CreatedBy = editingContext.Developer,
             LastModifiedBy = editingContext.Developer,
