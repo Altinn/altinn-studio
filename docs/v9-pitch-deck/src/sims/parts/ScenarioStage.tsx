@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Icon, type IconName } from '../../components';
 import { phaseAt, screenAt, type Beat, type RowStatus, type Scenario, type Screen, type ScreenTone } from './scenario';
 import { SIDE_TITLE, type Side, type SimTone } from './types';
@@ -80,13 +80,12 @@ function Phone({ frame, screen }: { frame: string; screen: Screen }) {
   );
 }
 
-function RunColumn({ scenario, side, cursor }: { scenario: Scenario; side: Side; cursor: number }) {
+/** One side's phone and the lines landed so far. */
+function RunBody({ scenario, side, cursor }: { scenario: Scenario; side: Side; cursor: number }) {
   const run = scenario[side];
   const shown = run.beats.slice(0, cursor);
 
   return (
-    <section className={`scn__col pane--${side} scn__col--${side}`}>
-      <h3 className="scn__col-title">{SIDE_TITLE[side]}</h3>
       <div className="scn__col-body">
         <Phone frame={scenario.frame} screen={screenAt(run, cursor)} />
 
@@ -121,41 +120,34 @@ function RunColumn({ scenario, side, cursor }: { scenario: Scenario; side: Side;
           })}
         </ol>
       </div>
-    </section>
   );
 }
 
 /** The scenario's one-line lesson, in a grey band with a check in a white circle. */
-function Takeaway({ text, placeholder = false }: { text: string; placeholder?: boolean }) {
+function Takeaway({ text, show }: { text: string; show: boolean }) {
   return (
-    <div className={`scn__takeaway${placeholder ? ' is-placeholder' : ''}`} aria-hidden={placeholder || undefined}>
+    <motion.div
+      className="scn__takeaway"
+      initial={false}
+      animate={{ opacity: show ? 1 : 0 }}
+      transition={{ duration: 0.35, delay: show ? 0.2 : 0, ease: EASE }}
+      aria-hidden={!show}
+    >
       <span className="scn__takeaway-icon" aria-hidden>
         <Icon name="check" size={30} strokeWidth={2.6} />
       </span>
       <p className="scn__takeaway-text">{text}</p>
-    </div>
+    </motion.div>
   );
 }
 
-function SummaryView({ scenario }: { scenario: Scenario }) {
-  const sides: Side[] = ['v8', 'v9'];
-
+/** One side's end screen and outcome, for the last press. */
+function SummaryBody({ scenario, side }: { scenario: Scenario; side: Side }) {
+  const run = scenario[side];
   return (
-    <div className="scn__summary">
-      <div className="scn__cmp">
-        {sides.map((side) => {
-          const run = scenario[side];
-          return (
-            <section key={side} className={`scn__card pane--${side} scn__card--${side}`}>
-              <h3 className="scn__card-title">{SIDE_TITLE[side]}</h3>
-              <Phone frame={scenario.frame} screen={screenAt(run, run.beats.length)} />
-              <p className="scn__card-outcome">{run.outcome}</p>
-            </section>
-          );
-        })}
-      </div>
-
-      <Takeaway text={scenario.takeaway} />
+    <div className="scn__card-body">
+      <Phone frame={scenario.frame} screen={screenAt(run, run.beats.length)} />
+      <p className="scn__card-outcome">{run.outcome}</p>
     </div>
   );
 }
@@ -176,29 +168,50 @@ export function ScenarioStage({ scenario, step, v8Lead = 0 }: ScenarioStageProps
   const phase = phaseAt(scenario, step);
   const phaseKey = phase.kind === 'run' ? 'run' : 'summary';
 
+  const sides: Side[] = ['v8', 'v9'];
+
   return (
     <div className="sim" data-sim={scenario.name} data-phase={phaseKey}>
       <motion.div
-        key={phaseKey}
         className="scn__body"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35, ease: EASE }}
       >
-        {phase.kind === 'run' ? (
-          // Same frame as the comparison: the two columns fill the same box, and an
-          // invisible takeaway holds its line, so the last press swaps the
-          // contents without moving or resizing either box.
-          <div className="scn__summary">
-            <div className="scn__pair">
-              <RunColumn scenario={scenario} side="v8" cursor={Math.max(phase.cursor, v8Lead)} />
-              <RunColumn scenario={scenario} side="v9" cursor={phase.cursor} />
-            </div>
-            <Takeaway text={scenario.takeaway} placeholder />
+        {/*
+          The two boxes, their titles and the takeaway's band stay mounted from
+          the first press to the last; only what is inside the boxes is swapped,
+          and the takeaway fades in, so the comparison continues the run.
+        */}
+        <div className="scn__summary">
+          <div className="scn__pair">
+            {sides.map((side) => (
+              <section key={side} className={`scn__col pane--${side} scn__col--${side}`}>
+                <h3 className="scn__col-title">{SIDE_TITLE[side]}</h3>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={phaseKey}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2, ease: EASE }}
+                  >
+                    {phase.kind === 'run' ? (
+                      <RunBody
+                        scenario={scenario}
+                        side={side}
+                        cursor={side === 'v8' ? Math.max(phase.cursor, v8Lead) : phase.cursor}
+                      />
+                    ) : (
+                      <SummaryBody scenario={scenario} side={side} />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </section>
+            ))}
           </div>
-        ) : (
-          <SummaryView scenario={scenario} />
-        )}
+          <Takeaway text={scenario.takeaway} show={phase.kind === 'summary'} />
+        </div>
       </motion.div>
     </div>
   );
@@ -228,7 +241,10 @@ export function ScenarioTeaser({ scenario, beats, step, promise }: ScenarioTease
       <div className="scn__body">
         <div className="scn__summary">
           <div className="scn__pair">
-            <RunColumn scenario={shortened} side="v8" cursor={step} />
+            <section className="scn__col pane--v8 scn__col--v8">
+              <h3 className="scn__col-title">{SIDE_TITLE.v8}</h3>
+              <RunBody scenario={shortened} side="v8" cursor={step} />
+            </section>
             <section className="scn__col pane--v9 scn__col--v9 scn__col--later">
               <h3 className="scn__col-title">{SIDE_TITLE.v9}</h3>
               <motion.p
@@ -241,10 +257,7 @@ export function ScenarioTeaser({ scenario, beats, step, promise }: ScenarioTease
               </motion.p>
             </section>
           </div>
-          <p className="scn__takeaway is-placeholder" aria-hidden>
-            <span className="scn__takeaway-rule" />
-            {scenario.takeaway}
-          </p>
+          <Takeaway text={scenario.takeaway} show={false} />
         </div>
       </div>
     </div>

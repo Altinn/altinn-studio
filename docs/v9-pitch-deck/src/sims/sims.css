@@ -142,30 +142,30 @@
 
 /* The phone and the rows are smaller than the one-column stage: two of each
    share the width now. */
-.scn__col .scr {
+.scn__col-body .scr {
   width: 250px;
   height: 400px;
 }
 
-.scn__col .scr__body {
+.scn__col-body .scr__body {
   gap: 12px;
   padding: 18px 20px;
 }
 
-.scn__col .scr__glyph {
+.scn__col-body .scr__glyph {
   width: 50px;
   height: 50px;
 }
 
-.scn__col .scr__head {
+.scn__col-body .scr__head {
   font-size: 26px;
 }
 
-.scn__col .scr__sub {
+.scn__col-body .scr__sub {
   font-size: 20px;
 }
 
-.scn__col .scr__btn {
+.scn__col-body .scr__btn {
   font-size: 21px;
   padding: 6px 20px;
 }
@@ -382,59 +382,27 @@
   height: 100%;
 }
 
-.scn__cmp {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-}
-
-.scn__card {
+.scn__card-body {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-content: start;
   column-gap: 36px;
-  row-gap: 18px;
-  padding: 26px 30px;
-  border-radius: var(--r-md);
-  border: 3px solid var(--t-line);
-  background: color-mix(in srgb, var(--t) 6%, transparent);
-}
-
-.scn__card--v8 {
-  --t: color-mix(in srgb, var(--warning) 76%, var(--ink));
-  --t-line: color-mix(in srgb, var(--warning) 52%, transparent);
-}
-
-.scn__card--v9 {
-  --t: color-mix(in srgb, var(--blue-500) 74%, var(--ink));
-  --t-line: color-mix(in srgb, var(--blue-500) 48%, transparent);
-}
-
-.scn__card-title {
-  grid-column: 1 / -1;
-  font-size: 34px;
-  font-weight: var(--fw-bold);
-  color: var(--t);
 }
 
 /* The phone again, smaller: the room has already seen it full size. */
-.scn__card .scr {
+.scn__card-body .scr {
   width: 300px;
   height: 380px;
 }
 
-.scn__card .scr__head {
+.scn__card-body .scr__head {
   font-size: 28px;
 }
 
-.scn__card .scr__sub {
+.scn__card-body .scr__sub {
   font-size: 21px;
 }
 
-.scn__card .scr__btn {
+.scn__card-body .scr__btn {
   font-size: 22px;
   padding: 6px 22px;
 }
@@ -456,10 +424,6 @@
   padding: 24px 36px;
   border-radius: var(--r-md);
   background: var(--surface-2);
-}
-
-.scn__takeaway.is-placeholder {
-  visibility: hidden;
 }
 
 .scn__takeaway-icon {
