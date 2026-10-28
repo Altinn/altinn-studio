@@ -85,7 +85,7 @@ export const FEIL: Scenario = {
       { id: 'fail', text: 'En tjeneste er nede', status: 'fail' },
       { id: 'seen', text: 'Kari får vite at vi prøver igjen', status: 'running', screen: V9_TROUBLE },
       { id: 'retry', text: 'Plattformen prøver igjen selv', status: 'running' },
-      { id: 'only', text: 'Bare den som feilet, kjøres igjen', status: 'ok' },
+      { id: 'only', text: 'Kun steget som feilet, kjøres igjen', status: 'ok' },
       { id: 'end', text: 'Kvitteringen er klar', status: 'ok', screen: RECEIPT },
     ],
     outcome: 'Kari trengte ikke å gjøre noe.',
