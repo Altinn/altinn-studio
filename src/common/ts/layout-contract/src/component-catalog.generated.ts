@@ -470,6 +470,43 @@ const IAudio = {
   description: { en: 'Configures the audio sources.', nb: 'Konfigurerer lydkildene.' },
 } as const;
 
+const TRBLabel = {
+  type: 'object',
+  properties: {
+    title: {
+      type: 'string',
+      expression: true,
+      title: { en: 'Title', nb: 'Ledetekst' },
+      description: {
+        en: 'Label text/title shown above the component',
+        nb: 'Ledeteksten eller tittelen som vises over komponenten.',
+      },
+      required: false,
+    },
+    description: {
+      type: 'string',
+      expression: true,
+      title: { en: 'Description', nb: 'Beskrivelse' },
+      description: {
+        en: 'Label description shown above the component, below the title',
+        nb: 'Beskrivelsen som vises mellom ledeteksten og komponenten.',
+      },
+      required: false,
+    },
+    help: {
+      type: 'string',
+      expression: true,
+      title: { en: 'Help text', nb: 'Hjelpetekst' },
+      description: {
+        en: 'Help text shown in a tooltip when clicking the help button',
+        nb: 'Hjelpeteksten som vises når brukeren åpner hjelpeknappen.',
+      },
+      required: false,
+    },
+  },
+  additionalProperties: false,
+} as const;
+
 const ButtonSize = {
   type: 'string',
   allowedValues: ['sm', 'md', 'lg'],
@@ -535,43 +572,6 @@ const IButtonProps = {
       allowedValues: ButtonPosition['allowedValues'],
       title: ButtonPosition['title'],
       description: ButtonPosition['description'],
-      required: false,
-    },
-  },
-  additionalProperties: false,
-} as const;
-
-const TRBLabel = {
-  type: 'object',
-  properties: {
-    title: {
-      type: 'string',
-      expression: true,
-      title: { en: 'Title', nb: 'Ledetekst' },
-      description: {
-        en: 'Label text/title shown above the component',
-        nb: 'Ledeteksten eller tittelen som vises over komponenten.',
-      },
-      required: false,
-    },
-    description: {
-      type: 'string',
-      expression: true,
-      title: { en: 'Description', nb: 'Beskrivelse' },
-      description: {
-        en: 'Label description shown above the component, below the title',
-        nb: 'Beskrivelsen som vises mellom ledeteksten og komponenten.',
-      },
-      required: false,
-    },
-    help: {
-      type: 'string',
-      expression: true,
-      title: { en: 'Help text', nb: 'Hjelpetekst' },
-      description: {
-        en: 'Help text shown in a tooltip when clicking the help button',
-        nb: 'Hjelpeteksten som vises når brukeren åpner hjelpeknappen.',
-      },
       required: false,
     },
   },
@@ -3232,6 +3232,46 @@ const AudioSummaryOverridesWithRef = {
   ],
 } as const;
 
+const BrokerFileTransferSummaryOverridesWithRef = {
+  type: 'union',
+  variants: [
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentId: { type: 'string', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for BrokerFileTransfer',
+        nb: 'Overstyringer av oppsummering for BrokerFileTransfer',
+      },
+      description: {
+        en: 'Properties for how to display the summary of this BrokerFileTransfer component',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av denne BrokerFileTransfer-komponenten vises.',
+      },
+    },
+    {
+      type: 'object',
+      properties: {
+        hidden: ISummaryOverridesCommon['properties']['hidden'],
+        emptyFieldText: ISummaryOverridesCommon['properties']['emptyFieldText'],
+        componentType: { type: 'constant', value: 'BrokerFileTransfer', required: true },
+      },
+      additionalProperties: false,
+      title: {
+        en: 'Summary overrides for all BrokerFileTransfer',
+        nb: 'Overstyringer av oppsummering for alle BrokerFileTransfer-komponenter',
+      },
+      description: {
+        en: 'Properties for how to display the summary of all BrokerFileTransfer components',
+        nb: 'Egenskaper som styrer hvordan oppsummeringen av alle BrokerFileTransfer-komponenter vises.',
+      },
+    },
+  ],
+} as const;
+
 const CheckboxesSummaryOverrides = {
   type: 'object',
   properties: {
@@ -4660,6 +4700,7 @@ const AnySummaryOverride = {
     AlertSummaryOverridesWithRef,
     AttachmentListSummaryOverridesWithRef,
     AudioSummaryOverridesWithRef,
+    BrokerFileTransferSummaryOverridesWithRef,
     CheckboxesSummaryOverridesWithRef,
     DateSummaryOverridesWithRef,
     DatepickerSummaryOverridesWithRef,
@@ -5644,6 +5685,272 @@ const generatedContract = {
           additionalProperties: false,
           title: IAudio['title'],
           description: IAudio['description'],
+          required: false,
+        },
+      },
+    },
+    BrokerFileTransfer: {
+      kind: 'component',
+      category: 'Form',
+      capabilities: {
+        renderInTable: false,
+        renderInButtonGroup: false,
+        renderInAccordion: true,
+        renderInAccordionGroup: false,
+        renderInCards: true,
+        renderInCardsMedia: false,
+        renderInTabs: true,
+      },
+      behaviors: {
+        isSummarizable: true,
+        canHaveLabel: false,
+        canHaveOptions: false,
+        canHaveAttachments: false,
+      },
+      metadata: {
+        name: { nb: 'Formidling', en: 'Broker file transfer' },
+        description: {
+          en: 'Sends a file to other organizations with Altinn Broker, straight from the form.',
+          nb: 'Sender en fil til andre virksomheter med Altinn Formidling, rett fra skjemaet.',
+        },
+        lifecycle: { status: 'beta' },
+      },
+      properties: {
+        id: ComponentBase['properties']['id'],
+        hidden: ComponentBase['properties']['hidden'],
+        grid: ComponentBase['properties']['grid'],
+        pageBreak: ComponentBase['properties']['pageBreak'],
+        showValidations: FormComponentProps['properties']['showValidations'],
+        labelSettings: LabeledComponentProps['properties']['labelSettings'],
+        type: {
+          type: 'constant',
+          value: 'BrokerFileTransfer',
+          title: { en: 'Component type', nb: 'Komponenttype' },
+          description: {
+            en: 'Identifies which component type this configuration represents.',
+            nb: 'Angir hvilken komponenttype konfigurasjonen gjelder.',
+          },
+          required: true,
+        },
+        textResourceBindings: {
+          type: 'object',
+          properties: {
+            tableTitle: TRBFormComp['properties']['tableTitle'],
+            shortName: TRBFormComp['properties']['shortName'],
+            requiredValidation: TRBFormComp['properties']['requiredValidation'],
+            summaryTitle: TRBSummarizable['properties']['summaryTitle'],
+            summaryAccessibleTitle: TRBSummarizable['properties']['summaryAccessibleTitle'],
+            title: TRBLabel['properties']['title'],
+            description: TRBLabel['properties']['description'],
+            help: TRBLabel['properties']['help'],
+          },
+          additionalProperties: false,
+          title: { en: 'Text resources', nb: 'Tekstressurser' },
+          description: {
+            en: 'Connects component texts to text resources or expressions.',
+            nb: 'Kobler tekstene i komponenten til tekstressurser eller uttrykk.',
+          },
+          required: false,
+        },
+        renderAsSummary: {
+          type: 'boolean',
+          title: { en: 'Render as summary', nb: 'Vis som oppsummering' },
+          description: {
+            en: 'Boolean value indicating if the component should be rendered as a summary. Defaults to false.',
+            nb: 'Angir om komponenten skal vises som en oppsummering.',
+          },
+          default: false,
+          required: false,
+        },
+        forceShowInSummary: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Force show in summary', nb: 'Tving visning i oppsummering' },
+          description: {
+            en: 'Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.',
+            nb: 'Tvinger komponenten til å vises i en oppsummering selv om hideEmptyFields er true i oppsummeringskomponenten.',
+          },
+          default: false,
+          required: false,
+        },
+        required: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Required?', nb: 'Påkrevd' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be required. Defaults to false.',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være påkrevd.',
+          },
+          default: false,
+          required: false,
+        },
+        readOnly: {
+          type: 'boolean',
+          expression: true,
+          title: { en: 'Read only/disabled?', nb: 'Skrivebeskyttet/deaktivert' },
+          description: {
+            en: 'Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>',
+            nb: 'Boolsk verdi eller uttrykk som angir om komponenten skal være skrivebeskyttet eller deaktivert. Selv skrivebeskyttede felt kan foreløpig endres ved å manipulere API-kallet.',
+          },
+          default: false,
+          required: false,
+        },
+        removeWhenHidden: {
+          type: 'boolean',
+          expression: true,
+          title: {
+            en: 'Remove fields from component dataModelBindings when hidden expression is true',
+            nb: 'Behold datamodellfelter når komponenten skjules',
+          },
+          description: {
+            en: 'Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.',
+            nb: 'Overstyrer oppryddingen av data for skjulte komponenter ved slutten av oppgaven.',
+          },
+          default: true,
+          required: false,
+        },
+        dataModelBindings: {
+          type: 'object',
+          properties: {
+            fileTransferId: {
+              type: 'object',
+              properties: IDataModelReference['properties'],
+              additionalProperties: false,
+              title: {
+                en: 'Data model binding for the file transfer ID',
+                nb: 'Datamodellbinding for formidlings-ID',
+              },
+              description: {
+                en: 'Where in the data model the component stores the ID Altinn Broker gave the file transfer, as soon as the transfer is created.',
+                nb: 'Angir hvor i datamodellen komponenten lagrer ID-en Altinn Formidling ga formidlingen, så snart formidlingen er opprettet.',
+              },
+              semanticType: 'dataModelBinding',
+              required: true,
+            },
+            fileTransferStatus: {
+              type: 'object',
+              properties: IDataModelReference['properties'],
+              additionalProperties: false,
+              title: {
+                en: 'Data model binding for the file transfer status',
+                nb: 'Datamodellbinding for formidlingsstatus',
+              },
+              description: {
+                en: "Where in the data model the component stores the file transfer's status in Altinn Broker: Initialized when the transfer is created, and UploadProcessing or a later status once Broker has the whole file. The form cannot be submitted before then.",
+                nb: 'Angir hvor i datamodellen komponenten lagrer statusen til formidlingen i Altinn Formidling: Initialized når formidlingen er opprettet, og UploadProcessing eller en senere status når Formidling har mottatt hele filen. Skjemaet kan ikke sendes inn før det.',
+              },
+              semanticType: 'dataModelBinding',
+              required: true,
+            },
+            fileName: {
+              type: 'object',
+              properties: IDataModelReference['properties'],
+              additionalProperties: false,
+              title: {
+                en: 'Data model binding for the file name',
+                nb: 'Datamodellbinding for filnavn',
+              },
+              description: {
+                en: 'Where in the data model the component stores the name of the file it sends.',
+                nb: 'Angir hvor i datamodellen komponenten lagrer navnet på filen den sender.',
+              },
+              semanticType: 'dataModelBinding',
+              required: false,
+            },
+          },
+          additionalProperties: false,
+          title: { en: 'Data model bindings', nb: 'Datamodellbindinger' },
+          description: {
+            en: 'Connects component values to fields in the data model.',
+            nb: 'Kobler verdiene i komponenten til felter i datamodellen.',
+          },
+          required: true,
+        },
+        resourceId: {
+          type: 'string',
+          title: { en: 'Resource ID', nb: 'Ressurs-ID' },
+          description: {
+            en: 'The Altinn Broker service the file is sent on: the ID of its resource in the Altinn Resource Registry.',
+            nb: 'Formidlingstjenesten filen sendes på: ID-en til ressursen i Altinn ressursregister.',
+          },
+          required: true,
+        },
+        hasCustomRecipients: {
+          type: 'boolean',
+          title: { en: 'Specify recipients', nb: 'Spesifiser mottakere' },
+          description: {
+            en: 'Whether the file is sent to the organizations in recipients. When false, it is sent to the party the Broker resource requires (requiredParty).',
+            nb: 'Angir om filen sendes til virksomhetene i recipients. Ellers sendes den til parten ressursen i Altinn Formidling krever (requiredParty).',
+          },
+          default: false,
+          required: false,
+        },
+        recipients: {
+          type: 'string',
+          expression: true,
+          title: { en: 'Recipients', nb: 'Mottakere' },
+          description: {
+            en: 'Comma-separated organization numbers of the organizations that receive the file. Only used when hasCustomRecipients is set.',
+            nb: 'Kommaseparerte organisasjonsnumre til virksomhetene som mottar filen. Brukes bare når hasCustomRecipients er satt.',
+          },
+          default: '',
+          examples: ['991825827, 912345678'],
+          required: false,
+        },
+        metadata: {
+          type: 'object',
+          properties: {},
+          additionalProperties: { type: 'string', expression: true },
+          title: { en: 'Metadata', nb: 'Metadata' },
+          description: {
+            en: 'Metadata sent with the file transfer, as Altinn Broker\'s property list: at most 10 entries, each key at most 50 characters. A value is fixed text or an expression, such as ["dataModel", "path.to.field"] for something the user filled in. Entries without a value when the file is sent are left out.',
+            nb: 'Metadata som sendes med formidlingen, som egenskapslisten i Altinn Formidling: høyst 10 oppføringer, og hver nøkkel høyst 50 tegn. En verdi er fast tekst eller et uttrykk, for eksempel ["dataModel", "sti.til.felt"] for noe brukeren har fylt ut. Oppføringer uten verdi når filen sendes, utelates.',
+          },
+          examples: [{ caseNumber: ['dataModel', 'case.number'], category: 'invoice' }],
+          required: false,
+        },
+        disableVirusScan: {
+          type: 'boolean',
+          title: { en: 'Disable virus scan', nb: 'Slå av virusskanning' },
+          description: {
+            en: 'Sends the file without scanning it for viruses, so the size limit that scanning sets does not apply. Only allowed when the Broker resource is approved for it; otherwise the component shows a configuration error.',
+            nb: 'Sender filen uten å skanne den for virus, slik at grensen for filstørrelse som skanningen setter, ikke gjelder. Bare tillatt når ressursen i Altinn Formidling er godkjent for det. Ellers viser komponenten en konfigurasjonsfeil.',
+          },
+          default: false,
+          required: false,
+        },
+        maxFileTransferSizeInMB: {
+          type: 'integer',
+          minimum: 1,
+          title: { en: 'Max file size (MB)', nb: 'Maksimal filstørrelse (MB)' },
+          description: {
+            en: "Limits the file size further than the Broker resource does; the resource's limit still applies if it is lower. A file transfer with virus scan enabled does not support files larger than 50 GB.",
+            nb: 'Begrenser filstørrelsen mer enn ressursen i Altinn Formidling gjør. Grensen på ressursen gjelder fortsatt hvis den er lavere. En formidling med virusskanning støtter ikke filer større enn 50 GB.',
+          },
+          required: false,
+        },
+        hasCustomFileEndings: {
+          type: 'boolean',
+          title: { en: 'Has custom file endings', nb: 'Har egendefinerte filendelser' },
+          description: {
+            en: 'Boolean value indicating if the component has valid file endings',
+            nb: 'Angir om komponenten har gyldige filendelser.',
+          },
+          default: false,
+          required: false,
+        },
+        validFileEndings: {
+          type: 'union',
+          variants: [
+            { type: 'string' },
+            { type: 'array', items: { type: 'string' }, minItems: undefined, maxItems: undefined },
+          ],
+          title: { en: 'Valid file endings', nb: 'Tillatte filendelser' },
+          description: {
+            en: 'A separated string of valid file endings to upload. If not set all endings are accepted.',
+            nb: 'En kommaseparert liste over tillatte filendelser. Alle filendelser godtas hvis egenskapen ikke er satt.',
+          },
+          examples: ['.csv', '.doc', '.docx', '.gif', '.jpeg', '.pdf', '.txt'],
           required: false,
         },
       },

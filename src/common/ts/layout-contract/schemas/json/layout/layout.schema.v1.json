@@ -18,6 +18,7 @@
             "Alert",
             "AttachmentList",
             "Audio",
+            "BrokerFileTransfer",
             "Button",
             "ButtonGroup",
             "Cards",
@@ -167,6 +168,18 @@
           },
           "then": {
             "$ref": "#/definitions/CompAudio"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "BrokerFileTransfer"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/CompBrokerFileTransfer"
           }
         },
         {
@@ -807,6 +820,9 @@
     "CompAudio": {
       "$ref": "#/definitions/CompAudioExternal"
     },
+    "CompBrokerFileTransfer": {
+      "$ref": "#/definitions/CompBrokerFileTransferExternal"
+    },
     "CompButton": {
       "$ref": "#/definitions/CompButtonExternal"
     },
@@ -1149,6 +1165,9 @@
           "$ref": "#/definitions/AudioSummaryOverridesWithRef"
         },
         {
+          "$ref": "#/definitions/BrokerFileTransferSummaryOverridesWithRef"
+        },
+        {
           "$ref": "#/definitions/CheckboxesSummaryOverridesWithRef"
         },
         {
@@ -1398,6 +1417,75 @@
               "properties": {
                 "componentType": {
                   "const": "Audio"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "BrokerFileTransferSummaryOverridesWithRef": {
+      "title": "BrokerFileTransferSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for BrokerFileTransfer",
+              "description": "Properties for how to display the summary of this BrokerFileTransfer component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ISummaryOverridesCommon"
+            },
+            {
+              "title": "Summary overrides for all BrokerFileTransfer",
+              "description": "Properties for how to display the summary of all BrokerFileTransfer components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "BrokerFileTransfer"
                 }
               },
               "required": [
@@ -2429,6 +2517,227 @@
           "required": [
             "id",
             "type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CompBrokerFileTransferExternal": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ComponentBase"
+        },
+        {
+          "$ref": "#/definitions/FormComponentProps"
+        },
+        {
+          "$ref": "#/definitions/LabeledComponentProps"
+        },
+        {
+          "title": "CompBrokerFileTransferExternal",
+          "type": "object",
+          "properties": {
+            "type": {
+              "title": "Component type",
+              "description": "Identifies which component type this configuration represents.",
+              "const": "BrokerFileTransfer"
+            },
+            "textResourceBindings": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/TRBFormComp"
+                },
+                {
+                  "$ref": "#/definitions/TRBSummarizable"
+                },
+                {
+                  "$ref": "#/definitions/TRBLabel"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "tableTitle": true,
+                    "shortName": true,
+                    "requiredValidation": true,
+                    "summaryTitle": true,
+                    "summaryAccessibleTitle": true,
+                    "title": true,
+                    "description": true,
+                    "help": true
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "renderAsSummary": {
+              "title": "Render as summary",
+              "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+              "default": false,
+              "type": "boolean"
+            },
+            "forceShowInSummary": {
+              "title": "Force show in summary",
+              "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "required": {
+              "title": "Required?",
+              "description": "Boolean value or expression indicating if the component should be required. Defaults to false.",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "readOnly": {
+              "title": "Read only/disabled?",
+              "description": "Boolean value or expression indicating if the component should be read only/disabled. Defaults to false. <br /> <i>Please note that even with read-only fields in components, it may currently be possible to update the field by modifying the request sent to the API or through a direct API call.<i/>",
+              "default": false,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "removeWhenHidden": {
+              "title": "Remove fields from component dataModelBindings when hidden expression is true",
+              "description": "Override the logic cleaning data for hidden components at task end, if you want to keep data referenced in hidden components. Currently only has effect if AppSettings.RemoveHiddenData is enabled.",
+              "default": true,
+              "$ref": "expression.schema.v1.json#/definitions/boolean"
+            },
+            "dataModelBindings": {
+              "title": "Data model bindings",
+              "description": "Connects component values to fields in the data model.",
+              "type": "object",
+              "properties": {
+                "fileTransferId": {
+                  "$ref": "#/definitions/IRawDataModelBinding"
+                },
+                "fileTransferStatus": {
+                  "$ref": "#/definitions/IRawDataModelBinding"
+                },
+                "fileName": {
+                  "$ref": "#/definitions/IRawDataModelBinding"
+                }
+              },
+              "required": [
+                "fileTransferId",
+                "fileTransferStatus"
+              ],
+              "additionalProperties": false
+            },
+            "resourceId": {
+              "title": "Resource ID",
+              "description": "The Altinn Broker service the file is sent on: the ID of its resource in the Altinn Resource Registry.",
+              "type": "string"
+            },
+            "hasCustomRecipients": {
+              "title": "Specify recipients",
+              "description": "Whether the file is sent to the organizations in recipients. When false, it is sent to the party the Broker resource requires (requiredParty).",
+              "default": false,
+              "type": "boolean"
+            },
+            "recipients": {
+              "title": "Recipients",
+              "description": "Comma-separated organization numbers of the organizations that receive the file. Only used when hasCustomRecipients is set.",
+              "examples": [
+                "991825827, 912345678"
+              ],
+              "default": "",
+              "$ref": "expression.schema.v1.json#/definitions/string"
+            },
+            "metadata": {
+              "title": "Metadata",
+              "description": "Metadata sent with the file transfer, as Altinn Broker's property list: at most 10 entries, each key at most 50 characters. A value is fixed text or an expression, such as [\"dataModel\", \"path.to.field\"] for something the user filled in. Entries without a value when the file is sent are left out.",
+              "examples": [
+                {
+                  "caseNumber": [
+                    "dataModel",
+                    "case.number"
+                  ],
+                  "category": "invoice"
+                }
+              ],
+              "type": "object",
+              "properties": {},
+              "additionalProperties": {
+                "$ref": "expression.schema.v1.json#/definitions/string"
+              }
+            },
+            "disableVirusScan": {
+              "title": "Disable virus scan",
+              "description": "Sends the file without scanning it for viruses, so the size limit that scanning sets does not apply. Only allowed when the Broker resource is approved for it; otherwise the component shows a configuration error.",
+              "default": false,
+              "type": "boolean"
+            },
+            "maxFileTransferSizeInMB": {
+              "title": "Max file size (MB)",
+              "description": "Limits the file size further than the Broker resource does; the resource's limit still applies if it is lower. A file transfer with virus scan enabled does not support files larger than 50 GB.",
+              "type": "integer",
+              "minimum": 1
+            },
+            "hasCustomFileEndings": {
+              "title": "Has custom file endings",
+              "description": "Boolean value indicating if the component has valid file endings",
+              "default": false,
+              "type": "boolean"
+            },
+            "validFileEndings": {
+              "title": "Valid file endings",
+              "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
+              "examples": [
+                ".csv",
+                ".doc",
+                ".docx",
+                ".gif",
+                ".jpeg",
+                ".pdf",
+                ".txt"
+              ],
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "dataModelBindings",
+            "resourceId"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": true,
+            "hidden": true,
+            "grid": true,
+            "pageBreak": true,
+            "showValidations": true,
+            "labelSettings": true,
+            "type": true,
+            "textResourceBindings": true,
+            "renderAsSummary": true,
+            "forceShowInSummary": true,
+            "required": true,
+            "readOnly": true,
+            "removeWhenHidden": true,
+            "dataModelBindings": true,
+            "resourceId": true,
+            "hasCustomRecipients": true,
+            "recipients": true,
+            "metadata": true,
+            "disableVirusScan": true,
+            "maxFileTransferSizeInMB": true,
+            "hasCustomFileEndings": true,
+            "validFileEndings": true
+          },
+          "required": [
+            "id",
+            "type",
+            "dataModelBindings",
+            "resourceId"
           ],
           "additionalProperties": false
         }

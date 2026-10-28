@@ -152,7 +152,7 @@ The component also supports the [common component properties](../common-properti
     <span class="component-property-name" title="overrides">overrides</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Optional</span>
-      <span class="component-property-type" title="(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]">Type: <span class="component-property-value">(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]</span></span>
+      <span class="component-property-type" title="(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]">Type: <span class="component-property-value">(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]</span></span>
     </span>
   </summary>
   <div class="component-property-group-content">
@@ -393,6 +393,66 @@ The component also supports the [common component properties](../common-properti
           <span class="component-property-summary-meta">
             <span class="component-property-required is-required">Required</span>
             <span class="component-property-type" title="&quot;Audio&quot;">Type: <span class="component-property-value">&quot;Audio&quot;</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].hidden">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].hidden">overrides[].hidden</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required is-required">Required</span>
+            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].hidden">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].hidden">overrides[].hidden</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Optional</span>
+            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].componentType">overrides[].componentType</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required is-required">Required</span>
+            <span class="component-property-type" title="&quot;BrokerFileTransfer&quot;">Type: <span class="component-property-value">&quot;BrokerFileTransfer&quot;</span></span>
           </span>
         </div>
       </div>

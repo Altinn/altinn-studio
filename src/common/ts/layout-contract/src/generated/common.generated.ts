@@ -26,6 +26,8 @@ export type AnySummaryOverride =
   | ({ componentType: 'AttachmentList' } & ISummaryOverridesCommon)
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Audio' } & ISummaryOverridesCommon)
+  | ({ componentId: string } & ISummaryOverridesCommon)
+  | ({ componentType: 'BrokerFileTransfer' } & ISummaryOverridesCommon)
   | CheckboxesSummaryOverridesWithRef
   | ({ componentId: string } & ISummaryOverridesCommon)
   | ({ componentType: 'Date' } & ISummaryOverridesCommon)
@@ -656,4 +658,4 @@ export interface TRBSummarizable {
   summaryAccessibleTitle?: ExprValToActualOrExpr<ExprVal.String>;
 }
 
-// Source hash: 11d787113e78ee8f761e8924db5702b89c932d510ed052f1e6038f920d34e59d
+// Source hash: 92febfe909451f7deade099e30f82f567ce87cc4c6508117e9e77a0cc34cbb7a

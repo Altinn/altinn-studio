@@ -344,6 +344,108 @@ export const Expressions = {
       } satisfies ExpressionDescriptor<ExprVal.String>,
     },
   },
+  BrokerFileTransfer: {
+    hidden: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for BrokerFileTransfer, property hidden',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    pageBreak: {
+      breakBefore: {
+        returnType: ExprVal.String,
+        defaultValue: 'auto',
+        errorIntroText: 'Invalid expression for BrokerFileTransfer, property pageBreak.breakBefore',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      breakAfter: {
+        returnType: ExprVal.String,
+        defaultValue: 'auto',
+        errorIntroText: 'Invalid expression for BrokerFileTransfer, property pageBreak.breakAfter',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+    },
+    textResourceBindings: {
+      tableTitle: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.tableTitle',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      shortName: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.shortName',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      requiredValidation: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.requiredValidation',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      summaryTitle: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.summaryTitle',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      summaryAccessibleTitle: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.summaryAccessibleTitle',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      title: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.title',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      description: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.description',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+      help: {
+        returnType: ExprVal.String,
+        defaultValue: undefined,
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property textResourceBindings.help',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+    },
+    forceShowInSummary: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for BrokerFileTransfer, property forceShowInSummary',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    required: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for BrokerFileTransfer, property required',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    readOnly: {
+      returnType: ExprVal.Boolean,
+      defaultValue: false,
+      errorIntroText: 'Invalid expression for BrokerFileTransfer, property readOnly',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    removeWhenHidden: {
+      returnType: ExprVal.Boolean,
+      defaultValue: true,
+      errorIntroText: 'Invalid expression for BrokerFileTransfer, property removeWhenHidden',
+    } satisfies ExpressionDescriptor<ExprVal.Boolean>,
+    recipients: {
+      returnType: ExprVal.String,
+      defaultValue: '',
+      errorIntroText: 'Invalid expression for BrokerFileTransfer, property recipients',
+    } satisfies ExpressionDescriptor<ExprVal.String>,
+    metadata: {
+      additionalProperties: {
+        returnType: ExprVal.String,
+        defaultValue: '',
+        errorIntroText:
+          'Invalid expression for BrokerFileTransfer, property metadata.additionalProperties',
+      } satisfies ExpressionDescriptor<ExprVal.String>,
+    },
+  },
   Button: {
     hidden: {
       returnType: ExprVal.Boolean,
@@ -4462,4 +4564,4 @@ export const CommonExpressions = {
   } satisfies ExpressionDescriptor<ExprVal.Boolean>,
 } as const;
 
-// Source hash: d47050cd3671c35684839f45842341f629c7731f30ec2f8ad2793ee1773b4397
+// Source hash: a464d415f8d4c32f3ee67792c644c51c4348f783eff047ed75de6ab2a817edc2
