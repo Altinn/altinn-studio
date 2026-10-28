@@ -488,6 +488,74 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         );
     }
 
+    [Theory]
+    [InlineData(false, false, HttpStatusCode.OK)]
+    [InlineData(false, true, HttpStatusCode.Accepted)]
+    [InlineData(true, false, HttpStatusCode.OK)]
+    [InlineData(true, true, HttpStatusCode.Accepted)]
+    public async Task RunProcessNext_AnswersAcceptedWhileTheWorkflowChainIsParked(
+        bool returnInstance,
+        bool parked,
+        HttpStatusCode expected
+    )
+    {
+        // A parked chain goes on without the request: the body is the same process state either way.
+        var committed = (await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid)).Process;
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(p => p.Next(It.IsAny<ProcessNextRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new ProcessStateChange { NewProcessState = committed },
+                    WorkflowParked = parked,
+                }
+            );
+        OverrideServicesForThisTest = services => services.AddSingleton(processEngine.Object);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using var response = await client.PutAsync(
+            $"{Org}/{App}/instances/{_instanceId}/process/next?returnInstance={returnInstance.ToString().ToLowerInvariant()}",
+            null
+        );
+
+        response.Should().HaveStatusCode(expected);
+        using JsonDocument body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        JsonElement process = returnInstance ? body.RootElement.GetProperty("process") : body.RootElement;
+        Assert.Equal(
+            committed.CurrentTask.ElementId,
+            process.GetProperty("currentTask").GetProperty("elementId").GetString()
+        );
+    }
+
+    [Theory]
+    [InlineData(false, HttpStatusCode.OK)]
+    [InlineData(true, HttpStatusCode.Accepted)]
+    public async Task ResumeCurrentTask_AnswersAcceptedWhileTheWorkflowChainIsParked(
+        bool parked,
+        HttpStatusCode expected
+    )
+    {
+        var processEngine = new Mock<IProcessEngine>(MockBehavior.Strict);
+        processEngine
+            .Setup(p => p.ResumeCurrentTask(It.IsAny<ProcessNextRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new ProcessChangeResult
+                {
+                    Success = true,
+                    ProcessStateChange = new ProcessStateChange(),
+                    WorkflowParked = parked,
+                }
+            );
+        OverrideServicesForThisTest = services => services.AddSingleton(processEngine.Object);
+        using var client = GetRootedUserClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        using var response = await client.PostAsync($"{Org}/{App}/instances/{_instanceId}/process/resume", null);
+
+        response.Should().HaveStatusCode(expected);
+    }
+
     [Fact]
     public async Task RunProcessNext_FailingValidator_ReturnsValidationErrors()
     {

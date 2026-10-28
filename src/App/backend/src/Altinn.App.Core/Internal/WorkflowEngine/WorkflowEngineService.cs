@@ -426,8 +426,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// Polls the workflow collection until the anchored chain settles, then refetches the instance and
     /// classifies the outcome. Two early exits shortcut the full wait: a <em>parked</em> chain — every
     /// active workflow in it is <c>Waiting</c> because a service task deferred, or <c>Held</c> because
-    /// a mailbox receive workflow is waiting for its message — is released as a committed success on the
-    /// first poll that sees it, and a chain that is neither settled nor parked when
+    /// a mailbox receive workflow is waiting for its message — is released as a committed, parked success on
+    /// the first poll that sees it, and a chain that is neither settled nor parked when
     /// <see cref="WorkflowPollingTimeoutMs"/> runs out is reported as a <see cref="WorkflowFailureKind.Timeout"/>.
     /// </summary>
     private async Task<ProcessNextWorkflowResult> WaitForWorkflowCollectionAndRefetchInstance(
@@ -515,7 +515,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                             freshInstance.Instance,
                             freshInstance.Metadata,
                             WorkflowFailure: null,
-                            ProcessStateCommitted: true
+                            ProcessStateCommitted: true,
+                            Parked: true
                         );
                     }
                 }

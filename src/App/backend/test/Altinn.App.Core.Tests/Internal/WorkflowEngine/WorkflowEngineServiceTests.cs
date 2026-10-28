@@ -131,6 +131,7 @@ public class WorkflowEngineServiceTests
             )
             .WaitAsync(TimeSpan.FromSeconds(10));
         Assert.True(result.ProcessStateCommitted);
+        Assert.Equal(continuationStatus == PersistentItemStatus.Waiting, result.Parked);
         Assert.True(polls >= 2);
         switch (continuationStatus)
         {
@@ -881,6 +882,7 @@ public class WorkflowEngineServiceTests
 
         Assert.Null(result.WorkflowFailure);
         Assert.True(result.ProcessStateCommitted);
+        Assert.True(result.Parked);
         client.Verify(
             c =>
                 c.ListWorkflows(
@@ -965,6 +967,7 @@ public class WorkflowEngineServiceTests
         Assert.NotNull(result.WorkflowFailure);
         Assert.Equal(WorkflowFailureKind.Timeout, result.WorkflowFailure.Kind);
         Assert.False(result.ProcessStateCommitted);
+        Assert.False(result.Parked);
     }
 
     [Fact]
@@ -1596,6 +1599,7 @@ public class WorkflowEngineServiceTests
 
         Assert.Null(result.WorkflowFailure);
         Assert.True(result.ProcessStateCommitted);
+        Assert.True(result.Parked);
     }
 
     [Fact]

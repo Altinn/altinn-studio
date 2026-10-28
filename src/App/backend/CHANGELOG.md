@@ -57,7 +57,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
     - the obsolete `POST .../data?dataType=` returns a list of validation issues
     - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
-- Breaking: for clients calling the API directly, `PUT .../process/next`, `POST .../process/resume` and instantiation return as soon as a service task defers or waits for a message. The task runs on, so calling `process/next` again at once answers `409 Conflict` until it finishes. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
+- `PUT .../process/next` and `POST .../process/resume` answer `202 Accepted` instead of `200` as soon as a service task defers or waits for a message, with the same body. The task runs on: poll `GET .../process` until it is done, since calling `process/next` again meanwhile answers `409 Conflict`. Instantiation still answers `201`. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
 - `PUT .../process/next` with concurrent changes to the instance: ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
     - answers `409 Conflict` and does nothing if the instance changed after the call read it (`processNextState: "instanceChanged"`) or another call chose differently on the same version (`"concurrentTransition"`); try again
     - waits for an earlier call that has not started yet, or that made the same choice on the same version
