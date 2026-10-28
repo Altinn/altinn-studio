@@ -103,8 +103,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
     /// <summary>
     /// Remove the attachments and the form data that only hidden components refer to. One evaluation of the layout
-    /// covers all the data models and attachments in the task, so each component's hidden expression is evaluated
-    /// once.
+    /// covers all the data models and attachments in the task, so no hidden expression is evaluated twice.
     /// </summary>
     private async Task RemoveHiddenDataOnTaskComplete(IInstanceDataMutator dataMutator, string taskId)
     {
@@ -132,9 +131,10 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
     }
 
     /// <summary>
-    /// Whether the data type lets the user delete its attachments in the form. Types that only the app, or only users
-    /// with a given action, may read or change are kept. <see cref="IDataElementAccessChecker.CanDelete"/> can't tell
-    /// here, as it refuses every change while the instance is processing.
+    /// Whether attachments of the data type may be deleted for the user. Types with <c>allowedContributors</c>, a
+    /// required action to read or write, or <c>disallowUserDelete</c> are kept, as not every user may delete them.
+    /// <see cref="IDataElementAccessChecker.CanDelete"/> can't tell here, as it refuses every change while the
+    /// instance is processing.
     /// </summary>
     private static bool UserCanDelete(DataType dataType)
     {
