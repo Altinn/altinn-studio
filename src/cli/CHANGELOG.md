@@ -34,13 +34,17 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl doctor` shows the _Disk_ checks by name, such as _Home_ and _Server state_, without their paths. `studioctl doctor --json` still has the paths, and `studioctl -v doctor` shows those of failing checks. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - studioctl keeps 30 days of logs, so they no longer grow without limit on disk: the studioctl server deletes its older log files when it starts and once a day, and `studioctl run` deletes app logs not written to for 30 days, for all your apps. ([#21435](https://github.com/Altinn/altinn-studio/pull/21435), [#21438](https://github.com/Altinn/altinn-studio/pull/21438))
 - `studioctl app upgrade v9` names `HandlerResult` instead of `HookResult` in its to-dos for v8 process hooks, to match the renamed type. ([#21554](https://github.com/Altinn/altinn-studio/pull/21554))
-- `studioctl app upgrade v9` takes pages out of service task UI folders, which v9 shows while the task runs: the "Noe gikk galt" page Altinn Studio generated, and the pages of subform PDF tasks and of PDF tasks with a `pdfLayoutName`, which v8 showed only when the task failed. Other pages get a to-do. ([#21563](https://github.com/Altinn/altinn-studio/pull/21563))
-- `studioctl app upgrade v9` removes a service task UI folder left with nothing the app reads, and gives the PDF tasks it adds no page. ([#21563](https://github.com/Altinn/altinn-studio/pull/21563))
+- `studioctl app upgrade v9` cleans up service task UI folders, which v9 shows while the task runs: ([#21563](https://github.com/Altinn/altinn-studio/pull/21563))
+    - removes the "Noe gikk galt" page Altinn Studio generated, and the pages of subform PDF tasks and of PDF tasks with a `pdfLayoutName`, which v8 showed only when the task failed
+    - adds a to-do for any other page
+    - removes a folder left with nothing the app reads
+    - gives the PDF tasks it adds no page
 
 ### Fixed
 
-- `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
-- `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+- `studioctl app upgrade v9` handles the eFormidling APIs that v9 changed: ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+    - moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`, so the app builds without changing them by hand
+    - reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed
 - `studioctl app upgrade v9` lists `using Altinn.App.Core.Internal.Maskinporten` directives among the removed Maskinporten APIs to replace. ([#19188](https://github.com/Altinn/altinn-studio/issues/19188))
 - `studioctl app upgrade v9` quotes the `dotnet restore` error when restore fails, instead of a line of dashes or the "Failed to restore" summary. ([#21404](https://github.com/Altinn/altinn-studio/pull/21404))
 - Running `studioctl app upgrade v9` again no longer adds a PDF service task, such as `PdfTask_Task_1`, for a data type that had `enablePdfCreation: false`. If 0.1.0-preview.28 or 0.1.0-preview.29 added one, remove it. ([#21518](https://github.com/Altinn/altinn-studio/pull/21518))
