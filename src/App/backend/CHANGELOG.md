@@ -85,6 +85,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Apps whose `presentationFields` or `dataFields` in `applicationmetadata.json` point at empty form fields no longer save the instance to Storage on every process step when nothing changed. `DataHelper.GetUpdatedDataValues` no longer returns empty values for keys the instance does not have. ([#21285](https://github.com/Altinn/altinn-studio/pull/21285))
 - Apps owned by `ttd` now act as `ttd`, not `digdir`, when they call Altinn as the service owner, so the `[org]` rules in `policy.xml` apply to them. A separate rule for `digdir` is no longer needed. ([#21474](https://github.com/Altinn/altinn-studio/pull/21474))
 - The app's OpenAPI documentation for `PUT .../process/next` now describes the response it returns, including `processTasks`, `workflow` and the actions on `currentTask`, instead of a top-level `actions` that never appears. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
+- Delegated signing retries the step that failed when Access Management, Correspondence or Register is briefly unavailable, instead of leaving signees without signing rights or a notification. A retry does not notify anyone twice. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182))
 
 ### Removed
 

@@ -239,8 +239,12 @@ app does not guard against it. Names would not help either, since a redeploy can
 ## Known gaps
 
 - A retried step that reads a binary data element again, after the lost attempt updated it, gets a 409, and so does a
-  resume. No built-in command does this, but an app's service task can. A fix would send an empty mutation with the
-  same idempotency key, and treat a replay as proof that the step had committed.
+  resume. Signing's delegate and notify stages do this with the signee-state element, so the callback state carries
+  the bytes of signee-state elements the unit of work already holds (`WorkflowCallbackState.BinaryData`), and
+  `RestoreState` preloads them while the blob version still matches; the retried stage then reads its input from the
+  state and its save reaches replay. No other built-in command does this, but an app's service task can. A general
+  fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
+  committed.
 - An ended process reports `idle` without asking the engine. A failure after the commit of the final transition
   therefore shows only in the failure alert.
 - The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox
