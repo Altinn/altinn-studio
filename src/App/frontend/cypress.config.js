@@ -7,6 +7,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { cypressDiagnostics } from './scripts/cypress-diagnostics.js';
 import { configureCypressShard } from './scripts/cypress-shard.js';
 
 const env = dotenv.config();
@@ -19,6 +20,7 @@ export default defineConfig({
   allowCypressEnv: false,
   e2e: {
     setupNodeEvents(on, config) {
+      const diagnostics = cypressDiagnostics(on);
       const snapshotsPath = path.resolve('snapshots.json');
       installLogsPrinter(on, { printLogsToConsole: 'always' });
       on(
@@ -30,6 +32,7 @@ export default defineConfig({
       );
 
       on('before:browser:launch', (browser, launchOptions) => {
+        diagnostics.browserLaunch(browser, launchOptions);
         if (browser.name === 'electron') {
           launchOptions.preferences.width = CYPRESS_WINDOW_WIDTH;
           launchOptions.preferences.height = CYPRESS_WINDOW_HEIGHT;
@@ -51,6 +54,7 @@ export default defineConfig({
       });
 
       on('after:spec', async (_spec, results) => {
+        diagnostics.afterSpec(_spec, results);
         if (results && results.video) {
           // Do we have failures for any retry attempts?
           const failures = results.tests.some((test) => test.attempts.some((attempt) => attempt.state === 'failed'));
@@ -146,6 +150,8 @@ Valid environments are:
   viewportHeight: 768,
   viewportWidth: 1536,
   requestTimeout: 20000,
+  // Assertions retry until this timeout, so `should('not.exist')` passes as soon as the page moves on. To check that
+  // something is not shown at a given moment, first wait for a state the server reports, then use `{ timeout: 0 }`.
   defaultCommandTimeout: 20000,
   reporter: 'junit',
   reporterOptions: {

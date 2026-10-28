@@ -136,6 +136,10 @@ export class ComponentConfig {
     return this.isFormLike() && prop !== undefined && !(prop.type instanceof GenerateRaw);
   }
 
+  private supportsSummaryEditNavigation(): boolean {
+    return this.config.category === CompCategory.Form || this.hasDataModelBindings();
+  }
+
   /**
    * Adding multiple data model bindings to the component makes it a union
    */
@@ -231,12 +235,17 @@ export class ComponentConfig {
         );
       }
 
-      const overrides = extender
-        ? new CG.obj().extends(CG.common('ISummaryOverridesCommon')).exportAs(`${this.type}SummaryOverrides`)
-        : CG.common('ISummaryOverridesCommon');
+      const showNextButton = this.supportsSummaryEditNavigation();
+      const overrides =
+        extender || showNextButton
+          ? new CG.obj().extends(CG.common('ISummaryOverridesCommon')).exportAs(`${this.type}SummaryOverrides`)
+          : CG.common('ISummaryOverridesCommon');
 
-      if (extender && overrides instanceof GenerateObject) {
-        extender(overrides);
+      if (overrides instanceof GenerateObject) {
+        if (showNextButton) {
+          overrides.addProperty(CG.common('summaryShowNextButton'));
+        }
+        extender?.(overrides);
       }
 
       return this.makeSummaryOverridesUnion(overrides).exportAs(`${this.type}SummaryOverridesWithRef`);
@@ -281,7 +290,8 @@ export class ComponentConfig {
       return undefined;
     }
 
-    if (variant === 'plain' && !this.hasSummaryOverridesExtender) {
+    const hasSpecificOverrides = this.hasSummaryOverridesExtender || this.supportsSummaryEditNavigation();
+    if (variant === 'plain' && !hasSpecificOverrides) {
       return CG.common('ISummaryOverridesCommon');
     }
     if (variant === 'plain') {
@@ -290,7 +300,7 @@ export class ComponentConfig {
       });
     }
 
-    if (!this.hasSummaryOverridesExtender) {
+    if (!hasSpecificOverrides) {
       return this.makeSummaryOverridesUnion(CG.common('ISummaryOverridesCommon'));
     }
 

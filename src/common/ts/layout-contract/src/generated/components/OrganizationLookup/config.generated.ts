@@ -25,9 +25,13 @@ export interface CompOrganizationLookupExternal
   dataModelBindings: { orgnr: IDataModelReference; name?: IDataModelReference };
 }
 
+export interface OrganizationLookupSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type OrganizationLookupSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'OrganizationLookup' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & OrganizationLookupSummaryOverrides)
+  | ({ componentType: 'OrganizationLookup' } & OrganizationLookupSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -53,8 +57,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompOrganizationLookupExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: OrganizationLookupSummaryOverrides;
   summaryOverridesWithRef: OrganizationLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 255523dfd25b2a710e0645b6f66b8553ff4c1b1f4d354eb77ec7ddcf6a6e8708
+// Source hash: aaf544f2a62d5d5980c9b95d9474d913ae828d9471b115fa01a958b87131789b

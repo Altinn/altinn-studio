@@ -980,7 +980,7 @@ describe('Validation', () => {
     cy.intercept('PATCH', '**/data**', (req) => {
       req.on('response', (res) => {
         const body = res.body as IDataModelMultiPatchResponse;
-        body.validationIssues[0].issues.push({ ...validationIssue, dataElementId });
+        body.validationIssues.push({ source: validationIssue.source, issues: [{ ...validationIssue, dataElementId }] });
         res.send(body);
       });
     });

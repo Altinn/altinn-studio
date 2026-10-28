@@ -16,7 +16,12 @@ describe('Group summary test', () => {
     cy.get('div[data-testid="summary-group-component"]')
       .first()
       .within(() => {
-        cy.contains('span', groupInputValue).should('exist');
+        cy.contains('span', groupInputValue).should(($value) => {
+          const edit = $value.closest('[data-testid="summary-group-component"]').find('button')[0];
+          expect($value[0].compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).to.equal(
+            Node.DOCUMENT_POSITION_FOLLOWING,
+          );
+        });
       });
   });
 

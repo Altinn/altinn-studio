@@ -124,7 +124,7 @@ internal sealed class SubformPdfServiceTask(
 
         logger.LogDebug("Successfully called PdfService for Subform PDF Service Task {TaskId}.", taskId);
 
-        return new ServiceTaskSuccessResult();
+        return new SuccessfulServiceTaskResult();
     }
 
     private ValidAltinnSubformPdfConfiguration GetValidAltinnSubformPdfConfiguration(string taskId)

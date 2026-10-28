@@ -900,11 +900,6 @@ namespace Altinn.App.Api.Mappers
 }
 namespace Altinn.App.Api.Models
 {
-    public class AppProcessState : Altinn.Platform.Storage.Interface.Models.ProcessState
-    {
-        public AppProcessState() { }
-        public System.Collections.Generic.Dictionary<string, bool>? Actions { get; set; }
-    }
     public class AuthorizedOrganizationDetails : System.IEquatable<Altinn.App.Api.Models.AuthorizedOrganizationDetails>
     {
         public AuthorizedOrganizationDetails() { }

@@ -68,6 +68,23 @@ describe('published schemas', () => {
     expect(() => ajv.compile(schema)).not.toThrow();
   });
 
+  it.each([
+    ['editable field', { componentType: 'Input', showNextButton: true }, true],
+    ['file upload', { componentType: 'FileUpload', showNextButton: true }, true],
+    ['presentation', { componentType: 'Paragraph', showNextButton: true }, false],
+    ['computed value', { componentType: 'Text', showNextButton: true }, false],
+    ['option', { componentType: 'Option', showNextButton: true }, false],
+    ['container', { componentType: 'Group', showNextButton: true }, false],
+    ['grid', { componentType: 'Grid', showNextButton: true }, false],
+    ['likert', { componentType: 'Likert', showNextButton: true }, true],
+    ['subform', { componentType: 'Subform', showNextButton: true }, true],
+    ['image', { componentType: 'ImageUpload', showNextButton: true }, true],
+    ['repeating group', { componentType: 'RepeatingGroup', showNextButton: true }, true],
+  ])('validates the Next-button override for %s', (_name, override, valid) => {
+    const schemaId = 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json';
+    expect(ajv.validate(`${schemaId}#/definitions/AnySummaryOverride`, override)).toBe(valid);
+  });
+
   it('default values are valid according to their own schemas', () => {
     const invalidDefaults = schemas.flatMap(({ schema }) =>
       findDefaults(schema)

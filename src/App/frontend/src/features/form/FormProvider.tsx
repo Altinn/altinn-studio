@@ -8,7 +8,6 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
@@ -299,7 +298,6 @@ export function useFormDataSliceProps(
   const selectFromInstance = useSelectFromInstanceData();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
-  const getCachedInitialValidations = useGetCachedInitialValidations();
   const calculationDataSources = useAsRef(useExpressionDataSourcesBaseForStoreSelector());
 
   if (!bootstrap) {
@@ -313,7 +311,6 @@ export function useFormDataSliceProps(
     proxies,
     changeInstance,
     selectFromInstance,
-    getCachedInitialValidations,
     getCalculationDataSources: () => calculationDataSources.current,
   };
 }

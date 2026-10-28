@@ -645,7 +645,7 @@ public class EFormidlingServiceTaskTests
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
         // Nothing was sent, so there is nothing to wait for.
-        Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.IsType<SuccessfulServiceTaskResult>(result);
         _eFormidlingServiceMock.Verify(
             x =>
                 x.GetEFormidlingShipmentStatus(
@@ -668,7 +668,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
-        var deferred = Assert.IsType<ServiceTaskDeferredResult>(result);
+        var deferred = Assert.IsType<DeferredServiceTaskResult>(result);
         Assert.Equal(TimeSpan.FromSeconds(15), deferred.Delay);
         Assert.Contains("sendt", deferred.Reason);
 
@@ -701,7 +701,7 @@ public class EFormidlingServiceTaskTests
         );
         var result = await AwaitDelivery(_serviceTask, context);
 
-        var deferred = Assert.IsType<ServiceTaskDeferredResult>(result);
+        var deferred = Assert.IsType<DeferredServiceTaskResult>(result);
         Assert.Equal(TimeSpan.FromSeconds(expectedDelaySeconds), deferred.Delay);
     }
 
@@ -721,7 +721,7 @@ public class EFormidlingServiceTaskTests
 
         // The task succeeds once delivery is confirmed, not when the
         // shipment was handed over.
-        Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.IsType<SuccessfulServiceTaskResult>(result);
         Assert.Equal(
             reportedStatus,
             unitOfWork.StagedInstanceDataValues[EformidlingConstants.ShipmentStatusDataValueKey]
@@ -743,7 +743,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("feil", failed.ErrorMessage);
         Assert.Contains("Mottaker er ikke registrert", failed.ErrorMessage);
@@ -776,7 +776,7 @@ public class EFormidlingServiceTaskTests
         );
         var result = await AwaitDelivery(_serviceTask, context);
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("did not confirm delivery", failed.ErrorMessage);
         Assert.Contains("sendt", failed.ErrorMessage);
@@ -801,7 +801,7 @@ public class EFormidlingServiceTaskTests
 
         var result = await AwaitDelivery(_serviceTask, CreateContext(unitOfWork));
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("403 Forbidden", failed.ErrorMessage);
         Assert.Contains("read eFormidling message status", failed.ErrorMessage);
