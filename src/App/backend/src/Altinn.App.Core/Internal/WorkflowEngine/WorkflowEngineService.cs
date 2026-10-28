@@ -253,7 +253,8 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
                 ResumedAt: activeHead.ResumedAt,
                 WaitingReason: activeHead.WaitingReason,
                 CurrentTime: collection.CurrentTime,
-                FailedAttempts: activeHead.FailedAttempts ?? 0
+                FailedAttempts: activeHead.FailedAttempts ?? 0,
+                FirstFailedAt: activeHead.FirstFailedAt
             );
         }
 
