@@ -1150,7 +1150,7 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    private IPipelineServiceTask? CheckIfServiceTask(string? altinnTaskType)
+    private IServiceTask? CheckIfServiceTask(string? altinnTaskType)
     {
         if (altinnTaskType is null)
             return null;

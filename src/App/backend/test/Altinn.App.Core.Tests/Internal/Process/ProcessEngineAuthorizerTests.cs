@@ -48,7 +48,7 @@ public class ProcessEngineAuthorizerTests
 
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
-        foreach (IPipelineServiceTask serviceTask in BuiltInServiceTasks())
+        foreach (IServiceTask serviceTask in BuiltInServiceTasks())
         {
             services.AddSingleton(serviceTask);
         }
@@ -304,7 +304,7 @@ public class ProcessEngineAuthorizerTests
         get
         {
             var data = new TheoryData<string>();
-            foreach (IPipelineServiceTask serviceTask in BuiltInServiceTasks())
+            foreach (IServiceTask serviceTask in BuiltInServiceTasks())
             {
                 data.Add(serviceTask.Type);
             }
@@ -328,11 +328,11 @@ public class ProcessEngineAuthorizerTests
     /// Every concrete service task in Altinn.App.Core, created without running its constructor: only
     /// <c>Type</c> is read.
     /// </summary>
-    private static IEnumerable<IPipelineServiceTask> BuiltInServiceTasks() =>
-        typeof(IPipelineServiceTask)
+    private static IEnumerable<IServiceTask> BuiltInServiceTasks() =>
+        typeof(IServiceTask)
             .Assembly.GetTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IPipelineServiceTask).IsAssignableFrom(t))
-            .Select(t => (IPipelineServiceTask)RuntimeHelpers.GetUninitializedObject(t));
+            .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(IServiceTask).IsAssignableFrom(t))
+            .Select(t => (IServiceTask)RuntimeHelpers.GetUninitializedObject(t));
 
     /// <summary>
     /// The actions a process next without an action asks about, in order, when none of them is granted.
@@ -371,7 +371,9 @@ public class ProcessEngineAuthorizerTests
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
     }
 

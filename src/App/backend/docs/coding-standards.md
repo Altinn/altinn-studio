@@ -31,7 +31,7 @@ plan a major version about once a year and avoid breaking changes between them.
 ## Tests
 
 - Prefer xUnit asserts over FluentAssertions.
-- A Moq mock does not run default interface members. `Mock<IServiceTask>().Define(...)` returns `null`, so code that
+- A Moq mock does not run default interface members. `Mock<IServiceTask>().DefineExecute(...)` returns `null`, so code that
   calls a default member needs a real fake.
 - A Moq setup that leaves out an optional `CancellationToken` matches only `default`. In `Altinn.App.Api.Tests` the
   token comes from the request, so use `It.IsAny<CancellationToken>()`.

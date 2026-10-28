@@ -19,24 +19,24 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose
-/// pipeline is the forwarding default <c>Finally(Execute)</c> — every test here exercises that
-/// default end to end (a real class, not a mock: mocks bypass interface defaults, see
-/// <see cref="ExecuteServiceTaskStageTests"/> for that guard). The multi-stage dispatch is
-/// covered by <see cref="ExecuteServiceTaskStageTests"/>.
+/// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose pipeline
+/// is just its conclusion, <c>Finally(Execute)</c> — every test here runs that pipeline end to end. The
+/// multi-stage dispatch is covered by <see cref="ExecuteServiceTaskStageTests"/>.
 /// </summary>
 public class ExecuteServiceTaskTests
 {
     /// <summary>An <see cref="IServiceTask"/> scripted per test, recording what it observed.</summary>
-    private sealed class FakeServiceTask(Func<ServiceTaskContext, Task<ServiceTaskResult>> onExecute) : IServiceTask
+    private sealed class FakeServiceTask(Func<StageContext, Task<ServiceTaskResult>> onExecute) : IServiceTask
     {
         public int ExecuteCount { get; private set; }
 
-        public ServiceTaskContext? Observed { get; private set; }
+        public StageContext? Observed { get; private set; }
 
         public string Type => "myServiceTask";
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ExecuteCount++;
             Observed = context;
@@ -251,6 +251,21 @@ public class ExecuteServiceTaskTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueResult), failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Execute_WhenServiceTaskReturnsNull_FailsPermanentlyWithoutThrowing()
+    {
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult<ServiceTaskResult>(null!));
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -506,11 +521,13 @@ public class ExecuteServiceTaskTests
         );
     }
 
-    private sealed class DelegateServiceTask(string type, Func<ServiceTaskContext, Task<ServiceTaskResult>> execute)
+    private sealed class DelegateServiceTask(string type, Func<StageContext, Task<ServiceTaskResult>> execute)
         : IServiceTask
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => execute(context);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) => execute(context);
     }
 }

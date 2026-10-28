@@ -4,7 +4,7 @@ using Altinn.App.Core.Models.Notifications.Future;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// A service task the transition enters, together with the pipeline its <c>Define</c> composed — read at
+/// A service task the transition enters, together with the pipeline its <c>DefineExecute</c> composed — read at
 /// enqueue time, which is the moment the pipeline's shape is fixed for the workflow's lifetime.
 /// </summary>
 /// <param name="Type">The service task type identifier, as the BPMN task declares it.</param>
@@ -21,6 +21,11 @@ internal sealed record TaskStartContext
     /// The task that is starting.
     /// </summary>
     public required string TaskId { get; init; }
+
+    /// <summary>
+    /// The start pipeline the entering task's type composed. Each stage becomes a step, unless there is only one.
+    /// </summary>
+    public required ProcessTaskPipeline StartPipeline { get; init; }
 
     /// <summary>
     /// If this is a service task, the task and its pipeline. Otherwise null.

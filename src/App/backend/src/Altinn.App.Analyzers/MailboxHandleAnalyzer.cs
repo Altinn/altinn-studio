@@ -7,7 +7,7 @@ namespace Altinn.App.Analyzers;
 /// Reports the two mistakes about a mailbox handle that an analyzer can <em>prove</em>: the same handle answered
 /// by two handlers (<c>ALTINNAPP0702</c>), and a mailbox opened whose handle is never passed anywhere at all
 /// (<c>ALTINNAPP0703</c>). Both are refused by
-/// <c>ServiceTaskPipelineBuilder</c> when the pipeline composes, which fails app startup; this analyzer is the
+/// <c>PipelineBuilder</c> when the pipeline composes, which fails app startup; this analyzer is the
 /// earlier, narrower signal for the shapes it can be certain about, and the builder stays authoritative.
 /// </summary>
 /// <remarks>
@@ -39,7 +39,7 @@ namespace Altinn.App.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MailboxHandleAnalyzer : DiagnosticAnalyzer
 {
-    private const string BuilderFullName = "Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder";
+    private const string BuilderFullName = "Altinn.App.Core.Features.Process.PipelineBuilder";
     private const string HandleFullName = "Altinn.App.Core.Features.Process.MailboxHandle";
 
     private const string StageMethodName = "Stage";

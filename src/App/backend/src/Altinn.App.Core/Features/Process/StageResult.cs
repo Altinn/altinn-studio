@@ -1,28 +1,28 @@
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// The result of one pipeline stage of an <see cref="IPipelineServiceTask"/>. Deliberately missing compared
+/// The result of one pipeline stage of an <see cref="IServiceTask"/>. Deliberately missing compared
 /// to <see cref="ServiceTaskResult"/>: a plain stage cannot conclude the task or advance the process — that
 /// is reserved for the pipeline's conclusion and for a mailbox-opening stage's
 /// <see cref="ServiceTaskOpeningStageResult.Conclude"/>. A subtype of
-/// <see cref="ServiceTaskStageExchangeResult"/>, so every one of these answers is also a valid answer from a
+/// <see cref="StageExchangeResult"/>, so every one of these answers is also a valid answer from a
 /// reply handler that leaves the task unconcluded — the reverse does not hold.
 /// </summary>
-public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
+public abstract record StageResult : StageExchangeResult
 {
     /// <summary>
     /// Declares no constructor an app can call, for the reason <see cref="ServiceTaskExchangeResult"/>'s own
     /// constructor gives — read that constructor's remarks before changing this one's accessibility.
     /// </summary>
-    private protected ServiceTaskStageResult() { }
+    private protected StageResult() { }
 
     /// <summary>
     /// The stage is complete: the pipeline advances. Recorded durably by the engine — a completed
     /// stage never runs again. Data changes made through
-    /// <see cref="ServiceTaskContext.InstanceDataMutator"/> are saved, so the stages after this
+    /// <see cref="StageContext.InstanceDataMutator"/> are saved, so the stages after this
     /// one see them.
     /// </summary>
-    public static ServiceTaskStageResult Completed() => CompletedServiceTaskStageResult.Instance;
+    public static StageResult Completed() => CompletedStageResult.Instance;
 
     /// <summary>
     /// The stage ran without error, but the outcome it awaits has not arrived yet: run this stage
@@ -35,10 +35,10 @@ public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
     /// Optional description of what is being waited for, surfaced on status reads — phrase it for a
     /// reader, not a log parser.
     /// </param>
-    public static ServiceTaskStageResult Defer(TimeSpan delay, string? reason = null)
+    public static StageResult Defer(TimeSpan delay, string? reason = null)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(delay, TimeSpan.Zero);
-        return new DeferredServiceTaskStageResult(delay, reason);
+        return new DeferredStageResult(delay, reason);
     }
 
     /// <summary>
@@ -47,10 +47,10 @@ public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
     /// A failed attempt saves nothing: the retry starts from exactly the state this attempt received.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceTaskStageResult FailedRetryable(string errorMessage)
+    public static StageResult FailedRetryable(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedServiceTaskStageResult(errorMessage, FailureKind.Retryable);
+        return new FailedStageResult(errorMessage, FailureKind.Retryable);
     }
 
     /// <summary>
@@ -60,18 +60,18 @@ public abstract record ServiceTaskStageResult : ServiceTaskStageExchangeResult
     /// resume re-runs this stage from exactly the state this attempt received.
     /// </summary>
     /// <param name="errorMessage">Human-readable error message describing the failure.</param>
-    public static ServiceTaskStageResult FailedPermanent(string errorMessage)
+    public static StageResult FailedPermanent(string errorMessage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(errorMessage);
-        return new FailedServiceTaskStageResult(errorMessage, FailureKind.Permanent);
+        return new FailedStageResult(errorMessage, FailureKind.Permanent);
     }
 }
 
-internal sealed record CompletedServiceTaskStageResult : ServiceTaskStageResult
+internal sealed record CompletedStageResult : StageResult
 {
-    public static readonly CompletedServiceTaskStageResult Instance = new();
+    public static readonly CompletedStageResult Instance = new();
 }
 
-internal sealed record DeferredServiceTaskStageResult(TimeSpan Delay, string? Reason) : ServiceTaskStageResult;
+internal sealed record DeferredStageResult(TimeSpan Delay, string? Reason) : StageResult;
 
-internal sealed record FailedServiceTaskStageResult(string ErrorMessage, FailureKind Kind) : ServiceTaskStageResult;
+internal sealed record FailedStageResult(string ErrorMessage, FailureKind Kind) : StageResult;

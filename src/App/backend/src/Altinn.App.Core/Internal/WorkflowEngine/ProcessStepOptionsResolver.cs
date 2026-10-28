@@ -10,9 +10,9 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
 /// Resolves the effective per-step execution options (timeout + retry strategy) for a workflow step by
-/// walking the resolution chain: a per-implementation override declared by the app handler (tier 3) wins
-/// over the command's own default (tier 2); when both leave a field unset the engine's global default
-/// (tier 1) applies, so that field is left off the wire request entirely.
+/// walking the resolution chain: the options declared for the step — by the hook handler that backs it, or by
+/// the pipeline item it runs (tier 3) — win over the command's own default (tier 2); when both leave a field
+/// unset the engine's global default (tier 1) applies, so that field is left off the wire request entirely.
 /// </summary>
 /// <remarks>
 /// The tier-2 command defaults are static per command type and built once. The tier-3 lookup goes through
@@ -42,26 +42,15 @@ internal sealed class ProcessStepOptionsResolver
     /// </summary>
     /// <param name="commandKey">The step's command key, used to select the tier-2 default and the tier-3 handler.</param>
     /// <param name="taskId">The task the step runs against, used to select the matching lifecycle hook (tier 3).</param>
-    /// <param name="serviceTaskType">The service task type, used to select the matching service task (tier 3).</param>
-    /// <param name="serviceTaskItemIndex">
-    /// For a service-task pipeline step: the index of the item the step runs — a stage, a reply handler or the
-    /// conclusion. Tier 3 is then that one item's own options over the task's, field-wise. Null on every other
-    /// step, including the mailbox mint, which must not inherit the declaring stage's options.
+    /// <param name="stageOptions">
+    /// The options the step's pipeline item declared — a lifecycle stage, or a service task stage, reply handler
+    /// or conclusion — put on the step by the planner; they are tier 3 for that step. Null on every other step,
+    /// including the mailbox mint, which must not inherit the declaring stage's options.
     /// </param>
-    public ProcessStepOptions? Resolve(
-        string commandKey,
-        string? taskId,
-        string? serviceTaskType,
-        int? serviceTaskItemIndex = null
-    )
+    public ProcessStepOptions? Resolve(string commandKey, string? taskId, ProcessStepOptions? stageOptions = null)
     {
         ProcessStepOptions? commandDefault = _commandDefaults.GetValueOrDefault(commandKey);
-        ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(
-            commandKey,
-            taskId,
-            serviceTaskType,
-            serviceTaskItemIndex
-        );
+        ProcessStepOptions? implementationOverride = ResolveImplementationStepOptions(commandKey, taskId, stageOptions);
 
         TimeSpan? maxExecutionTime = implementationOverride?.MaxExecutionTime ?? commandDefault?.MaxExecutionTime;
         ProcessStepRetryStrategy? retryStrategy =
@@ -89,47 +78,16 @@ internal sealed class ProcessStepOptionsResolver
     }
 
     /// <summary>
-    /// Resolves the app-provided handler backing a command and returns its per-implementation step
-    /// options (tier 3), or null when the command has no app-facing handler or none matches. Mirrors the
-    /// handler selection each command performs at execute time so build-time and run-time agree.
+    /// The step's tier-3 options: for a hook step, the options of the app-provided handler backing the command, or
+    /// null when none matches, mirroring the handler selection the command performs at execute time so build-time
+    /// and run-time agree; for every other step, the options its pipeline item declared.
     /// </summary>
     private ProcessStepOptions? ResolveImplementationStepOptions(
         string commandKey,
         string? taskId,
-        string? serviceTaskType,
-        int? serviceTaskItemIndex
+        ProcessStepOptions? stageOptions
     )
     {
-        if (commandKey == ExecuteServiceTask.Key && serviceTaskType is not null)
-        {
-            IPipelineServiceTask? serviceTask = _appImplementationFactory.FindServiceTask(serviceTaskType);
-            if (serviceTask is null)
-            {
-                return null;
-            }
-
-            // Options declared for one step win field-wise over the task's own, mirroring how the merged
-            // result then wins over the command default in Resolve.
-            ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
-            ProcessStepOptions? stepOptions = serviceTaskItemIndex is { } itemIndex
-                ? pipeline.Items.ElementAtOrDefault(itemIndex)?.StepOptions
-                : null;
-            ProcessStepOptions? taskOptions = serviceTask.StepOptions;
-            if (stepOptions is null && taskOptions is null)
-            {
-                return null;
-            }
-
-            // Every field is listed deliberately: the merge is the only thing standing between a new
-            // ProcessStepOptions field and being silently dropped for service tasks.
-            return new ProcessStepOptions
-            {
-                MaxExecutionTime = stepOptions?.MaxExecutionTime ?? taskOptions?.MaxExecutionTime,
-                RetryStrategy = stepOptions?.RetryStrategy ?? taskOptions?.RetryStrategy,
-                WaitBudget = stepOptions?.WaitBudget ?? taskOptions?.WaitBudget,
-            };
-        }
-
         if (commandKey == OnTaskStartingHook.Key && taskId is not null)
         {
             return _appImplementationFactory
@@ -159,6 +117,6 @@ internal sealed class ProcessStepOptionsResolver
             return _appImplementationFactory.GetAll<IOnProcessEndedHandler>().FirstOrDefault()?.StepOptions;
         }
 
-        return null;
+        return stageOptions;
     }
 }
