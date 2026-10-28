@@ -152,7 +152,7 @@ internal sealed class EFormidlingHookSignatureMigration
             cancellationToken.ThrowIfCancellationRequested();
             var file = fileRewrites.Key;
             var byMethod = fileRewrites.ToDictionary(static rewrite => rewrite.Method);
-            var lineEnding = LineEnding(file.Root);
+            var lineEnding = SyntaxEditing.LineEnding(file.Root);
             foreach (var rewrite in fileRewrites)
             {
                 messages.Warn(RewriteMessage(rewrite));
@@ -222,7 +222,7 @@ internal sealed class EFormidlingHookSignatureMigration
         foreach (var (implementation, interfaceName) in implementations)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (Locate(implementation, filesByTree) is not { } located)
+            if (SyntaxEditing.Locate(implementation, filesByTree) is not { } located)
             {
                 // Inherited from a library type. The Altinn one (DefaultEFormidlingReceivers) is internal in v9 and
                 // reported by the internalized type detector; anything else is out of this upgrade's reach.
@@ -548,26 +548,6 @@ internal sealed class EFormidlingHookSignatureMigration
             ? $"{type.Identifier.Text}.{method.Identifier.Text}"
             : method.Identifier.Text;
 
-    /// <summary>The declaration of <paramref name="method"/> in the scanned files, or <c>null</c> when it has none there.</summary>
-    private static (ScannedCSharpFile File, MethodDeclarationSyntax Method)? Locate(
-        IMethodSymbol method,
-        IReadOnlyDictionary<SyntaxTree, ScannedCSharpFile> filesByTree
-    )
-    {
-        foreach (var reference in method.DeclaringSyntaxReferences)
-        {
-            if (
-                filesByTree.TryGetValue(reference.SyntaxTree, out var file)
-                && file.Root.FindNode(reference.Span) is MethodDeclarationSyntax declaration
-            )
-            {
-                return (file, declaration);
-            }
-        }
-
-        return null;
-    }
-
     /// <summary>
     /// The method with its first parameter replaced by the data accessor, the receiver parameter appended where
     /// the v8 overload lacked it, and the instance read into a local under the old parameter's name wherever the
@@ -582,9 +562,17 @@ internal sealed class EFormidlingHookSignatureMigration
     {
         var oldParameter = method.ParameterList.Parameters[0];
         var oldName = oldParameter.Identifier.ValueText;
-        if (oldName != "_" && BodyUses(method, oldName))
+        if (oldName != "_" && SyntaxEditing.BodyUses(method, oldName))
         {
-            method = WithInstanceLocal(method, oldParameter.Identifier.Text, lineEnding);
+            method = SyntaxEditing.WithStatementsFirst(
+                method,
+                [
+                    SyntaxFactory.ParseStatement(
+                        $"var {oldParameter.Identifier.Text} = {AccessorParameterName}.Instance;"
+                    ),
+                ],
+                lineEnding
+            );
         }
 
         var accessorType = GeneratedTypeReferenceFinalizer.Reference(AccessorTypeName);
@@ -613,114 +601,6 @@ internal sealed class EFormidlingHookSignatureMigration
 
         return method.WithParameterList(parameterList);
     }
-
-    private static bool BodyUses(MethodDeclarationSyntax method, string identifier) =>
-        ((SyntaxNode?)method.Body ?? method.ExpressionBody) is { } body
-        && body.DescendantTokens()
-            .Any(token => token.IsKind(SyntaxKind.IdentifierToken) && token.ValueText == identifier);
-
-    /// <summary>
-    /// The method with <c>var {name} = dataAccessor.Instance;</c> as its first statement. An expression body becomes
-    /// a block that declares the local and then returns (or throws) the expression.
-    /// </summary>
-    private static MethodDeclarationSyntax WithInstanceLocal(
-        MethodDeclarationSyntax method,
-        string name,
-        string lineEnding
-    )
-    {
-        var local = SyntaxFactory.ParseStatement($"var {name} = {AccessorParameterName}.Instance;");
-        if (method.Body is { } body)
-        {
-            var first = body.Statements[0];
-            var indentation = first.GetLeadingTrivia().LastOrDefault(static t => t.IsKind(SyntaxKind.WhitespaceTrivia));
-            var onItsOwnLine =
-                body.OpenBraceToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia)
-                || first.GetLeadingTrivia().Any(SyntaxKind.EndOfLineTrivia);
-            local = local
-                .WithLeadingTrivia(
-                    indentation == default ? SyntaxFactory.TriviaList() : SyntaxFactory.TriviaList(indentation)
-                )
-                .WithTrailingTrivia(
-                    onItsOwnLine
-                        ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(lineEnding))
-                        : SyntaxFactory.TriviaList()
-                );
-            return method.WithBody(body.WithStatements(body.Statements.Insert(0, local)));
-        }
-
-        if (method.ExpressionBody is not { } arrow)
-        {
-            return method;
-        }
-
-        var methodIndentation = Indentation(method);
-        var bodyIndentation = methodIndentation + (methodIndentation.Contains('\t') ? "\t" : "    ");
-        var semicolon = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
-        StatementSyntax result = arrow.Expression is ThrowExpressionSyntax thrown
-            ? SyntaxFactory.ThrowStatement(
-                SyntaxFactory.Token(SyntaxKind.ThrowKeyword).WithTrailingTrivia(SyntaxFactory.Space),
-                thrown.Expression.WithoutLeadingTrivia(),
-                semicolon
-            )
-            : SyntaxFactory.ReturnStatement(
-                SyntaxFactory.Token(SyntaxKind.ReturnKeyword).WithTrailingTrivia(SyntaxFactory.Space),
-                arrow.Expression.WithoutLeadingTrivia(),
-                semicolon
-            );
-        var statements = new[] { local, result }.Select(statement =>
-            statement
-                .WithLeadingTrivia(SyntaxFactory.Whitespace(bodyIndentation))
-                .WithTrailingTrivia(SyntaxFactory.EndOfLine(lineEnding))
-        );
-        var block = SyntaxFactory.Block(
-            SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(
-                    SyntaxFactory.EndOfLine(lineEnding),
-                    SyntaxFactory.Whitespace(methodIndentation)
-                ),
-                SyntaxKind.OpenBraceToken,
-                SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(lineEnding))
-            ),
-            SyntaxFactory.List(statements),
-            SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(methodIndentation)),
-                SyntaxKind.CloseBraceToken,
-                method.SemicolonToken.TrailingTrivia
-            )
-        );
-
-        // Whatever separated the signature from the arrow goes; the block starts on a line of its own.
-        var beforeArrow = arrow.ArrowToken.GetPreviousToken();
-        var trimmed = method.ReplaceToken(
-            beforeArrow,
-            beforeArrow.WithTrailingTrivia(
-                beforeArrow
-                    .TrailingTrivia.Reverse()
-                    .SkipWhile(static t =>
-                        t.IsKind(SyntaxKind.WhitespaceTrivia) || t.IsKind(SyntaxKind.EndOfLineTrivia)
-                    )
-                    .Reverse()
-            )
-        );
-        return trimmed.WithExpressionBody(null).WithSemicolonToken(default).WithBody(block);
-    }
-
-    /// <summary>The whitespace that starts the line the method's first token is on.</summary>
-    private static string Indentation(MethodDeclarationSyntax method) =>
-        method
-            .GetLeadingTrivia()
-            .Reverse()
-            .TakeWhile(static t => !t.IsKind(SyntaxKind.EndOfLineTrivia))
-            .LastOrDefault(static t => t.IsKind(SyntaxKind.WhitespaceTrivia))
-            .ToString();
-
-    /// <summary>The file's line ending, so inserted lines match the lines around them.</summary>
-    private static string LineEnding(CompilationUnitSyntax root) =>
-        root.DescendantTrivia().FirstOrDefault(static t => t.IsKind(SyntaxKind.EndOfLineTrivia)).ToString()
-            is { Length: > 0 } ending
-            ? ending
-            : "\n";
 
     /// <summary>Whether the identifier occurs anywhere in the method: a parameter, local, lambda parameter, or a use of an outer member.</summary>
     private static bool UsesIdentifier(MethodDeclarationSyntax method, string identifier) =>

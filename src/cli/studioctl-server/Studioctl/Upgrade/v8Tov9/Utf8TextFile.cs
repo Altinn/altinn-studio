@@ -29,9 +29,32 @@ internal static class Utf8TextFile
     }
 
     /// <summary>Writes <paramref name="text"/> as UTF-8, with a BOM iff <paramref name="withBom"/>.</summary>
-    public static async Task Write(string path, string text, bool withBom)
+    public static async Task Write(string path, string text, bool withBom) =>
+        await File.WriteAllBytesAsync(path, Encode(text, withBom));
+
+    /// <summary>
+    /// Replaces the text of the file at <paramref name="path"/>, keeping the UTF-8 BOM it starts with, if any. A file
+    /// that does not exist yet is written without one.
+    /// </summary>
+    public static void Overwrite(string path, string text) =>
+        File.WriteAllBytes(path, Encode(text, StartsWithBom(path)));
+
+    private static bool StartsWithBom(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        Span<byte> start = stackalloc byte[3];
+        using var stream = File.OpenRead(path);
+        return stream.ReadAtLeast(start, start.Length, throwOnEndOfStream: false) == start.Length
+            && start is [0xEF, 0xBB, 0xBF];
+    }
+
+    private static byte[] Encode(string text, bool withBom)
     {
         var bytes = Encoding.UTF8.GetBytes(text);
-        await File.WriteAllBytesAsync(path, withBom ? [0xEF, 0xBB, 0xBF, .. bytes] : bytes);
+        return withBom ? [0xEF, 0xBB, 0xBF, .. bytes] : bytes;
     }
 }
