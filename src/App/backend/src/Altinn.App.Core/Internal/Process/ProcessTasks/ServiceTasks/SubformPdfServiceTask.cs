@@ -47,9 +47,9 @@ internal sealed class SubformPdfServiceTask(
             return [e.Message];
         }
 
-        // The frontend could not render the entries, which surfaces only as a PDF generator timeout that the engine
-        // retries, so the app does not start instead. The analyzer reports the same at build time (ALTINNAPP1024).
-        if (GetUnrenderableConfigurationReason(context.TaskId, validConfig) is { } reason)
+        // Checked at startup, since at run time entries that cannot render only show up as PDF generator timeouts
+        string? reason = GetUnrenderableConfigurationReason(context.TaskId, validConfig);
+        if (reason is not null)
         {
             return [reason];
         }
