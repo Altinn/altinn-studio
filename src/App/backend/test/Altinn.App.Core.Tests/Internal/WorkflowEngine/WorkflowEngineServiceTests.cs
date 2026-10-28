@@ -1847,30 +1847,6 @@ public class WorkflowEngineServiceTests
         client.VerifyNoOtherCalls(); // crucially, ListWorkflows was NOT called for the settled case
     }
 
-    [Theory]
-    [InlineData("Auxiliary", null, true)]
-    [InlineData("Primary", null, false)]
-    // The role wins over the directive when the engine sends both.
-    [InlineData("Primary", false, false)]
-    // An engine older than the role sends only the directive.
-    [InlineData(null, false, true)]
-    [InlineData(null, true, false)]
-    [InlineData(null, null, false)]
-    public void IsAuxiliaryWorkflow_ReadsTheRole_AndTheIsHeadDirectiveWhenThereIsNone(
-        string? role,
-        bool? isHead,
-        bool expected
-    )
-    {
-        var workflow = CreateWorkflowStatus(DateTimeOffset.UtcNow) with
-        {
-            Role = role is null ? null : Enum.Parse<WorkflowRole>(role),
-            IsHead = isHead,
-        };
-
-        Assert.Equal(expected, WorkflowEngineService.IsAuxiliaryWorkflow(workflow));
-    }
-
     private static Instance CreateInstanceOnTask(string elementId, Guid? instanceGuid = null) =>
         new()
         {

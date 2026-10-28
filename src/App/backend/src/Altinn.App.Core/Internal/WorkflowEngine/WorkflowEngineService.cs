@@ -610,14 +610,12 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     /// <summary>
     /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary command) by the
     /// <see cref="WorkflowStatusResponse.Role"/> the engine reports. An auxiliary workflow runs beside the
-    /// process: it never blocks or moves it. An engine older than <c>role</c> reports only the
-    /// <c>isHead</c> directive, and the role is read from that the way the engine derives it, so the app
-    /// does not depend on which of the two is deployed first. The
+    /// process: it never blocks or moves it. The
     /// <see cref="ProcessNextRequestFactory.AuxiliaryOperationIdPrefix"/> OperationId marker is purely a
     /// human-readable naming convention for ops queries and logs, not load-bearing for identification.
     /// </summary>
     internal static bool IsAuxiliaryWorkflow(WorkflowStatusResponse workflow) =>
-        workflow.Role is { } role ? role == WorkflowRole.Auxiliary : workflow.IsHead == false;
+        workflow.Role == WorkflowRole.Auxiliary;
 
     private string GetNamespace() => $"{_appIdentifier.Org}/{_appIdentifier.App}";
 
