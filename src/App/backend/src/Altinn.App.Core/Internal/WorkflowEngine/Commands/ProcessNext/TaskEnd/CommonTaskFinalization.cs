@@ -71,11 +71,11 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
                 }
             }
 
-            // Remove hidden data before validation, ignore hidden rows.
+            // Only for a task with form data the user can read.
             // Without layouts for the task there are no components, so nothing is hidden.
             if (
                 formDataElements.Count > 0
-                && _appSettings.Value?.RemoveHiddenData == true
+                && _appSettings.Value.RemoveHiddenData
                 && _appResources.GetLayoutSettingsForFolder(taskId) is not null
             )
             {
