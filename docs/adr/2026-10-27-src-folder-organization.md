@@ -49,7 +49,7 @@ altinn-studio/
     │   ├── load-balancer/             ← src/load-balancer
     │   ├── observability-proxy/       ← src/observability-proxy
     │   ├── operator/                  + new project
-    │   ├── workflow-engine-operator/  + new project
+    │   ├── operator-workflows/        + new project
     │   └── ci/
     │       ├── github-runner/         ← src/ci/github-runner
     │       ├── sandbox-node/          ← src/ci/sandbox-node
@@ -140,7 +140,7 @@ altinn-studio/
     │   ├── operator/                       ← src/Runtime/operator
     │   ├── workflow-engine/                ← src/Runtime/workflow-engine
     │   ├── workflow-engine-app/            ← src/Runtime/workflow-engine-app
-    │   └── workflow-engine-core-operator/  + new project
+    │   └── operator-workflows/             + new project
     │
     ├── platform/                           + new folder
     │   ├── storage/                        ← Altinn/altinn-storage
