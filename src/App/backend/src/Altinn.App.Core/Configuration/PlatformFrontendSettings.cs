@@ -84,4 +84,9 @@ internal class PlatformFrontendSettings
     /// URL of the arbeidsflate profile settings for parties. Null hides the link to it.
     /// </summary>
     public string? ArbeidsflatePartiesUrl { get; set; }
+
+    /// <summary>
+    /// Base URL of the Altinn Broker API, used by the BrokerFileTransfer component. Null where apps can't reach Broker.
+    /// </summary>
+    public string? BrokerApiBaseUrl { get; set; }
 }

@@ -393,6 +393,8 @@ export interface IPlatformFrontendSettings {
   accessManagementUrl?: string;
   rolesAndRightsHelpUrl?: string;
   arbeidsflatePartiesUrl?: string;
+  /** Undefined in environments where apps can't reach Altinn Broker. */
+  brokerApiBaseUrl?: string;
 }
 
 export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';
