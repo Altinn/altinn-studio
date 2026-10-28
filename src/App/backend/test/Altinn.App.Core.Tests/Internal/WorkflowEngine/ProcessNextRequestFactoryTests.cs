@@ -1274,28 +1274,29 @@ public class ProcessNextRequestFactoryTests
 
     [Theory]
     [MemberData(nameof(HookHandlerTypes))]
-    public async Task Create_TwoHandlersOfAKindRunForTheTask_RefusesTheTransition(Type handlerType)
+    public async Task Create_TwoHandlersOfAKindRunForTheTask_PlansTheHookStepToRefuseThem(Type handlerType)
     {
         var factory = CreateFactory(configureServices: services =>
         {
             AddHookHandler(services, handlerType);
             AddHookHandler(services, handlerType);
         });
-        ProcessStateChange stateChange =
-            handlerType == typeof(IOnTaskAbandoningHandler) ? CreateTaskAbandonToNextTask()
-            : handlerType == typeof(IOnProcessEndedHandler) ? CreateTaskToEndTransition()
-            : CreateTaskToTaskTransition();
+        (ProcessStateChange stateChange, string hookKey) =
+            handlerType == typeof(IOnTaskStartingHandler) ? (CreateTaskToTaskTransition(), OnTaskStartingHook.Key)
+            : handlerType == typeof(IOnTaskEndingHandler) ? (CreateTaskToTaskTransition(), OnTaskEndingHook.Key)
+            : handlerType == typeof(IOnTaskAbandoningHandler) ? (CreateTaskAbandonToNextTask(), OnTaskAbandonHook.Key)
+            : (CreateTaskToEndTransition(), OnProcessEndedHook.Key);
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            factory.CreateChainInitiating(
-                TestInstance,
-                stateChange,
-                "test-process-next-idempotency-key",
-                SignedTestState
-            )
+        // Planning succeeds: the step fails permanently when it runs, where refusing here would fail the callback
+        // that plans the transition, which the engine retries.
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
         );
 
-        Assert.Contains(handlerType.Name, exception.Message);
+        Assert.Single(ExtractCommandKeys(bundle), key => key == hookKey);
     }
 
     private sealed class NoAbandonWorkTask : IProcessTask

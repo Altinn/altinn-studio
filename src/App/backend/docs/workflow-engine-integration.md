@@ -24,8 +24,9 @@ these rules:
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
 - A process hook gets a step only when one of the app's handlers runs for the task, or for the process end, so a
-  transition carries no steps that have nothing to run. The planner refuses a transition that more than one handler
-  runs for.
+  transition carries no steps that have nothing to run. When more than one runs for it, the step fails permanently.
+  Startup validation catches that first for every handler it can create, and a planner that refused the transition
+  would fail a callback that the engine retries.
 - `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
   (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
   stage retries without the ones before it. The default pipeline is one stage that calls `Start`, `End` or `Abandon`.

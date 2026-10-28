@@ -101,6 +101,25 @@ public class OnProcessEndedHookTests
     }
 
     [Fact]
+    public async Task Execute_WithMultipleHandlers_ReturnsNonRetryableFailedResult()
+    {
+        // Arrange
+        var handler1 = new Mock<IOnProcessEndedHandler>();
+        var handler2 = new Mock<IOnProcessEndedHandler>();
+        var command = CreateCommand(handler1.Object, handler2.Object);
+        var context = CreateContext(CreateInstance());
+
+        // Act
+        var result = await command.Execute(context);
+
+        // Assert
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("InvalidOperationException", failed.ExceptionType);
+        Assert.Contains("Multiple", failed.ErrorMessage);
+    }
+
+    [Fact]
     public async Task Execute_WhenHandlerReturnsPermanentFailure_ReturnsNonRetryableFailedResult()
     {
         // Arrange

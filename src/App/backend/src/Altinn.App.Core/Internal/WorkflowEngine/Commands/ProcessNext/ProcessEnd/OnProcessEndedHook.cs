@@ -19,9 +19,21 @@ internal sealed class OnProcessEndedHook : IWorkflowEngineCommand
 
     public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
     {
-        // The planner plans this step only when the app registers one handler. A step an earlier version planned
-        // for every process end, or whose handler a redeploy removed, finds none and has nothing to run.
-        IOnProcessEndedHandler? hook = _appImplementationFactory.GetAll<IOnProcessEndedHandler>().FirstOrDefault();
+        List<IOnProcessEndedHandler> onProcessEndedHandlers = _appImplementationFactory
+            .GetAll<IOnProcessEndedHandler>()
+            .ToList();
+
+        if (onProcessEndedHandlers.Count > 1)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                $"Multiple {nameof(IOnProcessEndedHandler)} hooks are registered. Only one is allowed.",
+                nameof(InvalidOperationException)
+            );
+        }
+
+        IOnProcessEndedHandler? hook = onProcessEndedHandlers.FirstOrDefault();
+        // The planner plans this step only when the app registers a handler. A step an earlier version planned
+        // regardless, or whose handler a redeploy removed, finds none and has nothing to run.
         if (hook == null)
         {
             return new SuccessfulProcessEngineCommandResult();

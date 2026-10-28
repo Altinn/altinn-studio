@@ -22,11 +22,20 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
         IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
         string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
 
-        // The planner plans this step only for a task one handler runs for. A step an earlier version planned for
-        // every task, or whose handler a redeploy removed, finds none and has nothing to run.
-        IOnTaskStartingHandler? hook = _appImplementationFactory
-            .GetAll<IOnTaskStartingHandler>()
-            .FirstOrDefault(h => h.ShouldRunForTask(taskId));
+        IEnumerable<IOnTaskStartingHandler> hooks = _appImplementationFactory.GetAll<IOnTaskStartingHandler>();
+        List<IOnTaskStartingHandler> applicableHooks = hooks.Where(h => h.ShouldRunForTask(taskId)).ToList();
+
+        if (applicableHooks.Count > 1)
+        {
+            return FailedProcessEngineCommandResult.Permanent(
+                $"Multiple {nameof(IOnTaskStartingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
+                nameof(InvalidOperationException)
+            );
+        }
+
+        IOnTaskStartingHandler? hook = applicableHooks.FirstOrDefault();
+        // The planner plans this step only when a handler runs for the task. A step an earlier version planned
+        // regardless, or whose handler a redeploy removed, finds none and has nothing to run.
         if (hook == null)
         {
             return new SuccessfulProcessEngineCommandResult();

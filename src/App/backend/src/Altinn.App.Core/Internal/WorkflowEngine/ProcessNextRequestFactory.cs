@@ -612,40 +612,18 @@ internal sealed class ProcessNextRequestFactory
 
     /// <summary>
     /// Whether a <typeparamref name="THandler"/> runs for the task, which plans the task's hook step. The step runs
-    /// against the same task id, so it finds the handler this finds. More than one is a configuration error. Startup
-    /// validation reports it, but skips a handler it cannot create without a request, so the transition is refused
-    /// here rather than run one of them.
+    /// against the same task id, so it finds the handlers this finds. More than one still plans the step, which then
+    /// fails permanently. Refusing here would fail the callback that plans the transition, and the engine retries a
+    /// failed callback for up to a day.
     /// </summary>
     private bool HasTaskHook<THandler>(string taskId, Func<THandler, string, bool> runsForTask)
-        where THandler : class
-    {
-        int running = _appImplementationFactory.GetAll<THandler>().Count(handler => runsForTask(handler, taskId));
-        if (running > 1)
-        {
-            throw new InvalidOperationException(
-                $"Multiple {typeof(THandler).Name} hooks are registered for task '{taskId}'. Only one hook per task is allowed."
-            );
-        }
-
-        return running == 1;
-    }
+        where THandler : class =>
+        _appImplementationFactory.GetAll<THandler>().Any(handler => runsForTask(handler, taskId));
 
     /// <summary>
     /// Whether the app registers an <see cref="IOnProcessEndedHandler"/>, which plans the process end's hook step.
-    /// More than one is a configuration error, and the transition is refused rather than run one of them.
     /// </summary>
-    private bool HasProcessEndedHook()
-    {
-        int registered = _appImplementationFactory.GetAll<IOnProcessEndedHandler>().Count();
-        if (registered > 1)
-        {
-            throw new InvalidOperationException(
-                $"Multiple {nameof(IOnProcessEndedHandler)} hooks are registered. Only one is allowed."
-            );
-        }
-
-        return registered == 1;
-    }
+    private bool HasProcessEndedHook() => _appImplementationFactory.GetAll<IOnProcessEndedHandler>().Any();
 
     private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId
