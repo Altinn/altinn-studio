@@ -24,6 +24,7 @@ public class AdminAuditLogConfiguration : IEntityTypeConfiguration<AdminAuditLog
             .HasColumnName("instance_id")
             .IsRequired();
 
+        builder.Property(e => e.WorkflowId).HasColumnType("uuid").HasColumnName("workflow_id");
         builder.Property(e => e.Action).HasColumnType("character varying").HasColumnName("action").IsRequired();
 
         builder.Property(e => e.Status).HasColumnType("character varying").HasColumnName("status").IsRequired();
