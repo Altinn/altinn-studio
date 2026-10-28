@@ -22,6 +22,7 @@ import {
 import cn from 'classnames';
 import type { IDataModelBindingsForList } from '@app/layout-contract/generated/components/List/config.generated';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
@@ -73,6 +74,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     config.textResourceBindings?.description,
     Expressions.List.textResourceBindings.description,
   );
+  const help = useEvalOptionalText(config.textResourceBindings?.help, Expressions.List.textResourceBindings.help);
 
   const labelSettings = 'labelSettings' in config ? config.labelSettings : undefined;
 
@@ -118,6 +120,20 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     return JSON.stringify(selectedRow) === JSON.stringify(row);
   }
   const title = summaryTitle || resolvedTitle;
+  const tableHeading = title ? (
+    <Heading
+      level={2}
+      data-size='sm'
+    >
+      <Lang id={title} />
+      <RequiredIndicator required={required} />
+      <OptionalIndicator
+        required={required}
+        readOnly={readOnly}
+        showOptionalMarking={labelSettings?.optionalIndicator !== false}
+      />
+    </Heading>
+  ) : undefined;
   const handleRowClick = (row: Row) => {
     if (readOnly) {
       return;
@@ -269,20 +285,19 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
       isSummary={isSummary}
     >
       <Table className={classes.listTable}>
-        {title && (
+        {isSummary ? (
+          (title || description || help) && (
+            <Caption
+              id={getLabelId(componentId)}
+              title={tableHeading}
+              description={description && <Lang id={description} />}
+              helpText={help ? { text: <Lang id={help} />, accessibleTitle: langAsString(title) } : undefined}
+              labelSettings={{ optionalIndicator: false }}
+            />
+          )
+        ) : title ? (
           <caption id={getLabelId(componentId)}>
-            <Heading
-              level={2}
-              data-size='sm'
-            >
-              <Lang id={title} />
-              <RequiredIndicator required={required} />
-              <OptionalIndicator
-                required={required}
-                readOnly={readOnly}
-                showOptionalMarking={labelSettings?.optionalIndicator !== false}
-              />
-            </Heading>
+            {tableHeading}
             {description && (
               <Description
                 description={<Lang id={description} />}
@@ -290,7 +305,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
               />
             )}
           </caption>
-        )}
+        ) : null}
         <Table.Head>
           <Table.Row>
             {!readOnly && (

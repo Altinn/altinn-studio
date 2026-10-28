@@ -28,7 +28,9 @@
         "required": false,
         "type": "Input",
         "textResourceBindings": {
-          "title": "InputPage.Input.title"
+          "title": "InputPage.Input.title",
+          "description": "Beskrivelse av kort svar i oppsummeringen",
+          "help": "Hjelp til kort svar"
         },
         "dataModelBindings": {
           "simpleBinding": "shortAnswerInput"
@@ -121,6 +123,7 @@
       {
         "id": "InputPage-Summary2",
         "type": "Summary2",
+        "isCompact": true,
         "target": {
           "type": "component",
           "id": "InputPage-Input"

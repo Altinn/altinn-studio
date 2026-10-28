@@ -65,9 +65,10 @@ const PaymentInfoTable = ({ titleId, rows }: PaymentInfoTableProps) => (
 type PaymentReceiptDetailsProps = {
   title?: string;
   description?: string;
+  help?: string;
 };
 
-export const PaymentReceiptDetails = ({ title, description }: PaymentReceiptDetailsProps) => {
+export const PaymentReceiptDetails = ({ title, description, help }: PaymentReceiptDetailsProps) => {
   const selectedLanguage = useCurrentLanguage();
   const paymentInfo = usePaymentInformation();
   const instanceId = useLaxInstanceId();
@@ -193,6 +194,7 @@ export const PaymentReceiptDetails = ({ title, description }: PaymentReceiptDeta
         orderDetails={paymentInfo?.orderDetails}
         tableTitle={title}
         description={description}
+        help={help}
       />
     </div>
   );
