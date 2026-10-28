@@ -92,6 +92,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Removed
 
+- Breaking: `IProcessTask.Start`, `End` and `Abandon` and `ProcessTaskContext`. Compose the work as stages with `DefineStart`, `DefineEnd` and `DefineAbandon`; a stage takes a `StageContext` and returns a `StageResult`. A task with nothing to do at a phase keeps the default, which plans no step. ([#21582](https://github.com/Altinn/altinn-studio/pull/21582))
 - Breaking: `IPdfService.GenerateAndStorePdf` is removed. Call `GeneratePdf` with the instance and data mutator's language, then store the returned bytes with your chosen filename using `IInstanceDataMutator.AddBinaryDataElement`. Use `ref-data-as-pdf` and `generatedFromTask` to preserve cleanup when the task restarts. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: the `PdfService.GenerateAndStorePdf` trace span is removed. Update queries, dashboards and alerts to use `PdfService.GeneratePdf` for PDF service tasks. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Breaking: remove `IOnProcessEndingHandler`. Move its logic to `IOnProcessEndedHandler`, which runs after the end is saved, however the process ended. Logic that must stop the process from ending belongs in the last task's `IOnTaskEndingHandler`, or its `IOnTaskAbandoningHandler` when a rejection ends the process. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
