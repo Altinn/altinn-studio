@@ -19,7 +19,7 @@ const FEATURES: Feature[] = [
     icon: 'clock',
     eyebrow: 'Venting',
     title: 'Vent på svar utenfra',
-    body: 'La en oppgave vente i timer eller dager på svar fra et annet system, uten egne køer.',
+    body: 'La en oppgave vente på svar fra et annet system, uten at dere må bygge egne køer.',
   },
   {
     icon: 'user',

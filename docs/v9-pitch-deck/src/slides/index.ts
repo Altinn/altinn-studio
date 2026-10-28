@@ -100,7 +100,7 @@ export const slides: SlideDef[] = [
     id: 'for-utviklere',
     component: ForUtviklere,
     notes:
-      'For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente i timer eller dager på svar fra et annet system. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.',
+      'For dere som bygger apper: tjenesteoppgaver kan deles i steg som hver lagres når de er ferdige. En oppgave kan vente på svar fra et annet system, uten at dere bygger egne køer. Oppgaven er sitt eget ventesteg, så et eget «feedback»-steg trengs ikke lenger. Og dere kan selv velge hvor lenge et steg skal prøves igjen.',
   },
   {
     id: 'dashbord',
