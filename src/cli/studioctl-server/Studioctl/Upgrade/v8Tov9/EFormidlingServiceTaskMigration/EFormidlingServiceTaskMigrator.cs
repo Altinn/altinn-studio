@@ -93,7 +93,7 @@ internal sealed class EFormidlingServiceTaskMigrator
         var processRewriter = new EFormidlingProcessRewriter(processFile);
         var result = processRewriter.InsertEFormidlingServiceTask(
             config.SendAfterTaskId,
-            metadataRewriter.GetFormDataTypeForTask(config.SendAfterTaskId),
+            GatewayDataTypeFor(config.SendAfterTaskId, messages),
             config,
             gate
         );
@@ -166,6 +166,14 @@ internal sealed class EFormidlingServiceTaskMigrator
             ? FollowUp(messages)
             : new MigrationResult(messages);
     }
+
+    /// <summary>
+    /// The data model to pin on the gateways after <paramref name="taskId"/>. v8 evaluated them against the
+    /// <c>dataType</c> of the task's layout set, which the task's UI settings hold, and against none when the set
+    /// names none.
+    /// </summary>
+    private string? GatewayDataTypeFor(string taskId, List<UpgradeMessage> messages) =>
+        new TaskUiSettings(_projectFolder).FindDataTypeForTask(taskId, messages.Warn);
 
     /// <summary>
     /// Ends the migration with the shared follow-up to-do, after the warning that says what stopped it.

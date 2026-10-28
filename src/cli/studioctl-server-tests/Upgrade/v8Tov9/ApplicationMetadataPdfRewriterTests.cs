@@ -187,4 +187,28 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
         (string TaskId, string? DataTypeId)[] expected = requiresPdf ? [("Task_1", "model")] : [];
         Assert.Equal(expected, tasks);
     }
+
+    [Fact]
+    public void FormDataType_RequiresPdfInEveryTaskItsTaskIdsLists()
+    {
+        var file = _app.Write(
+            "config/applicationmetadata.json",
+            """
+            {
+              "dataTypes": [
+                {
+                  "id": "model",
+                  "taskIds": ["Task_1", "Task_2"],
+                  "enablePdfCreation": true,
+                  "appLogic": { "classRef": "Altinn.App.Models.model" }
+                }
+              ]
+            }
+            """
+        );
+
+        var tasks = new ApplicationMetadataPdfRewriter(file).GetTasksRequiringPdf();
+
+        Assert.Equal([("Task_1", "model"), ("Task_2", "model")], tasks);
+    }
 }
