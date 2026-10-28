@@ -142,14 +142,19 @@ describe('ProcessWrapper workflow state machine', () => {
     expect(screen.queryByRole('button', { name: /send inn/i })).not.toBeInTheDocument();
   });
 
-  it('processing on a service task with a page renders the page', async () => {
-    // A running or deferring service task reports processing while the process sits on the
-    // committed task (targetTask === currentTask). With a page, the app owns the waiting presentation.
+  it.each([
+    ['runs', {}],
+    ['defers', { waitingReason: 'Waiting for eFormidling to confirm delivery' }],
+    ['retries a failed step', { retrying: true, failedAttempts: 2 }],
+  ])('a service task with a page renders the page while it %s', async (_, workflow) => {
+    // The task reports processing while the process sits on the committed task (targetTask ===
+    // currentTask), whether it runs, waits or retries. With a page, the app owns the waiting presentation.
     const instance = getInstanceWithProcessMock();
     instance.process.currentTask!.elementType = 'ServiceTask';
     instance.process.workflow = {
       status: 'processing',
       targetTask: instance.process.currentTask!.elementId,
+      ...workflow,
     };
 
     await renderWithInstanceAndLayout({
