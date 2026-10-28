@@ -66,7 +66,7 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
         // the synchronous resume wait before the transition commits, so the settled state is polled.
         await PostScenarioEndpoint(fixture, $"/test/{Scenario}/allow-stage-b");
         using var resumeResponse = await fixture.Instances.ResumeCurrentTask(token, instanceAfterFailure);
-        using var resumedProcessState = await resumeResponse.Read<AppProcessState>();
+        using var resumedProcessState = await resumeResponse.Read<CoreProcessState>();
         Assert.Equal(HttpStatusCode.OK, resumedProcessState.Response.StatusCode);
         await WaitForCurrentTask(fixture, token, instance, "Task_2");
 
