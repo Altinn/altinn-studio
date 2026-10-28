@@ -4,12 +4,12 @@ import { AccordionItem, Flex } from '@app/form-component';
 import { Alert, Heading } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/process/ProcessWrapper.module.css';
+import { useIsServiceTaskPage } from 'src/components/process/serviceTaskPage';
 import { Loader } from 'src/core/loading/Loader';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useIsPdf } from 'src/hooks/useIsPdf';
 import utilClasses from 'src/styles/utils.module.css';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IProcessWorkflowFailure } from 'src/types/shared';
@@ -20,7 +20,7 @@ const STILL_WORKING_MS = 8_000;
 /** Failed attempts after which the user is told processing is having trouble, however recent. */
 const TROUBLE_FAILED_ATTEMPTS = 2;
 
-/** How long polls must keep reporting a single failed attempt before the user is told. */
+/** How long the current step must keep failing, from its first failed attempt, before the user is told. */
 const TROUBLE_AFTER_ONE_FAILURE_MS = 20_000;
 
 /**
@@ -65,15 +65,19 @@ export function WorkflowProcessing() {
 /**
  * A warning at the top of a service task's own page while the workflow is having trouble (see
  * useIsWorkflowHavingTrouble). It stays in view while the page scrolls, cannot be dismissed, and
- * clears itself once a step succeeds again. Never shown in PDF mode. Screen readers hear it through
- * a visually hidden status region that mounts empty and takes the text only once it has settled,
- * also when the trouble is already active on mount, since a live region inserted with its text
- * already in it is not reliably announced; the visible warning is hidden from them so the text is
- * announced once.
+ * clears itself once a step succeeds again. Any other page renders nothing here.
  */
 export function WorkflowTroubleBanner() {
+  return useIsServiceTaskPage() ? <TroubleBanner /> : null;
+}
+
+/**
+ * Screen readers hear the warning through a visually hidden status region that mounts empty and takes the text only
+ * once it has settled, also when the trouble is already active on mount, since a live region inserted with its text
+ * already in it is not reliably announced. The visible warning is hidden from them, so the text is announced once.
+ */
+function TroubleBanner() {
   const havingTrouble = useIsWorkflowHavingTrouble();
-  const isPdf = useIsPdf();
   const [regionSettled, setRegionSettled] = useState(false);
 
   useEffect(() => {
@@ -82,10 +86,6 @@ export function WorkflowTroubleBanner() {
       clearTimeout(timer);
     };
   }, []);
-
-  if (isPdf) {
-    return null;
-  }
 
   return (
     <>
@@ -109,42 +109,25 @@ export function WorkflowTroubleBanner() {
 }
 
 /**
- * Whether the processing workflow is having trouble: its current step has failed twice in a row,
- * or a poll still reports a failed attempt twenty seconds after this page first saw one, so a
- * single quick blip passes unnoticed. How long the run has lasted does not count, so one failed
- * re-check after hours of deferring is a blip too. The twenty seconds are measured between the
- * polls' engine clock readings, without a timer, so the answer changes only when a poll arrives and
- * never reports a step that recovered before the next poll could say so. It clears when the step
- * succeeds or defers (the engine resets failedAttempts) and starts over with a new run or a resume.
- * A reload starts the twenty seconds over.
+ * Whether the processing workflow is having trouble: its current step has failed twice in a row, or has kept failing
+ * for twenty seconds since its first failed attempt, so a single quick blip passes unnoticed. How long the run has
+ * lasted does not count, so one failed re-check after hours of deferring is a blip too. Both come from the engine's
+ * latest status, without a timer, so every session gives the same answer, also after a reload, and it never reports a
+ * step that recovered before the next poll could say so. It clears when the step succeeds or defers (the engine
+ * resets failedAttempts). Without firstFailedAt, as from an older engine, only the second failure counts.
  */
 export function useIsWorkflowHavingTrouble() {
-  const { runStartedAt, sampledAt, failedAttempts } = useWorkflowRun();
-  const failing = failedAttempts > 0;
-  const [firstFailure, setFirstFailure] = useState<{ run: string | undefined; seenAt: number } | undefined>();
-
-  useEffect(() => {
-    setFirstFailure((seen) => {
-      if (!failing) {
-        return undefined;
-      }
-      if (seen !== undefined && seen.run === runStartedAt) {
-        return seen;
-      }
-      // Every engine that reports failedAttempts also reports currentTime.
-      return Number.isFinite(sampledAt) ? { run: runStartedAt, seenAt: sampledAt } : undefined;
-    });
-  }, [failing, runStartedAt, sampledAt]);
-
-  const failingForMs =
-    failing && firstFailure !== undefined && firstFailure.run === runStartedAt ? sampledAt - firstFailure.seenAt : 0;
-  return failedAttempts >= TROUBLE_FAILED_ATTEMPTS || failingForMs >= TROUBLE_AFTER_ONE_FAILURE_MS;
+  const { sampledAt, failedAttempts, firstFailedAt } = useWorkflowRun();
+  const failingForMs = sampledAt - Date.parse(firstFailedAt ?? '');
+  return (
+    failedAttempts >= TROUBLE_FAILED_ATTEMPTS || (failedAttempts > 0 && failingForMs >= TROUBLE_AFTER_ONE_FAILURE_MS)
+  );
 }
 
 /**
  * The processing workflow's current run: when it started, when the engine sampled its status,
  * how long it has run on the engine clock, and how many attempts in a row of its current step have
- * failed. Zero or unknown (NaN, undefined) when no transition is processing.
+ * failed, from when. Zero or unknown (NaN, undefined) when no transition is processing.
  */
 function useWorkflowRun() {
   const workflow = useProcessWorkflow();
@@ -153,10 +136,11 @@ function useWorkflowRun() {
   const runStartedAt = isProcessing ? (workflow.resumedAt ?? workflow.startedAt) : undefined;
   const sampledAt = Date.parse((isProcessing ? workflow.currentTime : undefined) ?? '');
   const failedAttempts = isProcessing ? (workflow.failedAttempts ?? 0) : 0;
+  const firstFailedAt = isProcessing ? workflow.firstFailedAt : undefined;
   const engineElapsed = sampledAt - Date.parse(runStartedAt ?? '');
   // Older engines and invalid timestamps fall back to measuring from when this screen appeared.
   const elapsedMs = Number.isFinite(engineElapsed) ? Math.max(0, engineElapsed) : 0;
-  return { isProcessing, runStartedAt, sampledAt, elapsedMs, failedAttempts };
+  return { isProcessing, runStartedAt, sampledAt, elapsedMs, failedAttempts, firstFailedAt };
 }
 
 /**

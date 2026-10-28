@@ -9,7 +9,6 @@ export default function Page() {
   return (
     <PdfWrapper>
       <PresentationComponent>
-        {/* A page shows while a workflow is processing only when it is a service task's own page. */}
         <WorkflowTroubleBanner />
         <Form />
       </PresentationComponent>
