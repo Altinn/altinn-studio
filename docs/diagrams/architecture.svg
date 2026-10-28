@@ -153,9 +153,9 @@ svg { font-family: Arial, Helvetica, "Liberation Sans", sans-serif; }
 <text class="s" x="623" y="386">natural language</text>
 <text class="code" x="623" y="405">src/AI/assistant</text>
 
-<!-- Delivery -->
+<!-- App deployment -->
 <rect class="zone zone-ext" x="1150" y="150" width="510" height="290" rx="16"/>
-<text class="zone-label zone-ext-label" x="1172" y="175">DELIVERY</text>
+<text class="zone-label zone-ext-label" x="1172" y="175">APP DEPLOYMENT</text>
 
 <rect class="box" x="1175" y="212" width="220" height="90" rx="12"/>
 <text class="h" x="1193" y="240">Azure DevOps</text>
