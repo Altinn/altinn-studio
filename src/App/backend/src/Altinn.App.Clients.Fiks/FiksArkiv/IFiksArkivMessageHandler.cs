@@ -30,5 +30,5 @@ public interface IFiksArkivMessageHandler
     /// The executing service task's context — <c>InstanceDataMutator</c> is the durable unit of work,
     /// and <c>CancellationToken</c> bounds this attempt.
     /// </param>
-    Task HandleMessage(FiksArkivReceivedMessage message, ServiceTaskContext context);
+    Task HandleMessage(FiksArkivReceivedMessage message, StageContext context);
 }

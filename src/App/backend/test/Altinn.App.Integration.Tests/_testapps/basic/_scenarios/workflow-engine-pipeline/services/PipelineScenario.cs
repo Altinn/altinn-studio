@@ -16,11 +16,11 @@ namespace Altinn.App.Integration.Tests.Scenarios.WorkflowEnginePipeline;
 /// run logs its run number via <see cref="SnapshotLogger"/>; the test asserts the exact sequence
 /// and, crucially, the absence of a second run of parts 1 and 3.
 /// </summary>
-public sealed class ThreePartPipelineTask : IPipelineServiceTask
+public sealed class ThreePartPipelineTask : IServiceTask
 {
     public string Type => "pipeline";
 
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(ReserveResources)
             .Stage(
@@ -34,33 +34,33 @@ public sealed class ThreePartPipelineTask : IPipelineServiceTask
             )
             .Finally(ConfirmOrder);
 
-    private Task<ServiceTaskStageResult> ReserveResources(ServiceTaskContext context)
+    private Task<StageResult> ReserveResources(StageContext context)
     {
         int run = PipelineRunCounter.NextRun("ReserveResources");
         SnapshotLogger.LogInfo($"Pipeline.ReserveResources.Run{run}.Completed");
-        return Task.FromResult(ServiceTaskStageResult.Completed());
+        return Task.FromResult(StageResult.Completed());
     }
 
-    private Task<ServiceTaskStageResult> DispatchOrder(ServiceTaskContext context)
+    private Task<StageResult> DispatchOrder(StageContext context)
     {
         int run = PipelineRunCounter.NextRun("DispatchOrder");
         switch (run)
         {
             case 1:
                 SnapshotLogger.LogInfo($"Pipeline.DispatchOrder.Run{run}.FailedRetryable");
-                return Task.FromResult(ServiceTaskStageResult.FailedRetryable("Scenario dispatch failed transiently."));
+                return Task.FromResult(StageResult.FailedRetryable("Scenario dispatch failed transiently."));
             case 2:
                 SnapshotLogger.LogInfo($"Pipeline.DispatchOrder.Run{run}.Defer");
                 return Task.FromResult(
-                    ServiceTaskStageResult.Defer(TimeSpan.FromSeconds(1), "scenario dispatch awaiting a queue slot")
+                    StageResult.Defer(TimeSpan.FromSeconds(1), "scenario dispatch awaiting a queue slot")
                 );
             default:
                 SnapshotLogger.LogInfo($"Pipeline.DispatchOrder.Run{run}.Completed");
-                return Task.FromResult(ServiceTaskStageResult.Completed());
+                return Task.FromResult(StageResult.Completed());
         }
     }
 
-    private Task<ServiceTaskResult> ConfirmOrder(ServiceTaskContext context)
+    private Task<ServiceTaskResult> ConfirmOrder(StageContext context)
     {
         int run = PipelineRunCounter.NextRun("ConfirmOrder");
         SnapshotLogger.LogInfo($"Pipeline.ConfirmOrder.Run{run}.Success");
@@ -115,7 +115,7 @@ public static class ServiceRegistration
 {
     public static void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IPipelineServiceTask, ThreePartPipelineTask>();
+        services.AddTransient<IServiceTask, ThreePartPipelineTask>();
         services.AddSingleton<IEndpointConfigurator, WorkflowEnginePipelineEndpoints>();
     }
 }

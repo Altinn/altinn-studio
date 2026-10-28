@@ -6,9 +6,8 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 
 public sealed class ProcessEngineConvertTaskTypeToActionTests
 {
-    // The action process/completeProcess performs for every built-in task type. payment and subformPdf
-    // pass through as their own names: the result reaches user action handlers, gateways, the workflow
-    // engine and telemetry, so changing an entry changes recorded behaviour.
+    // The action process/next implies for every built-in task type when the request names none. payment
+    // and subformPdf pass through as their own names.
     private static readonly Dictionary<string, string> _expectedActions = new()
     {
         [AltinnTaskTypes.Data] = "write",

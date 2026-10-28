@@ -2,7 +2,7 @@ namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
 /// A service task's composed pipeline: the ordered durable items, ending with the one conclusion. Built via
-/// <see cref="ServiceTaskPipelineBuilder"/> and returned from <see cref="IPipelineServiceTask.Define"/>; the
+/// <see cref="PipelineBuilder"/> and returned from <see cref="IServiceTask.DefineExecute"/>; the
 /// runtime reads it to expand, dispatch and validate the task — apps only compose and return it.
 /// </summary>
 public sealed class ServiceTaskPipeline
@@ -33,8 +33,8 @@ internal abstract class PipelineItem
     }
 
     /// <summary>
-    /// Options for the engine step this item becomes and for nothing else, winning field-wise over the
-    /// task's own.
+    /// Options for the engine step this item becomes and for nothing else. A field left unset falls back to the
+    /// command's default and then the engine's.
     /// </summary>
     internal ProcessStepOptions? StepOptions { get; }
 }
@@ -78,32 +78,32 @@ internal interface IReplyHandlerItem
 /// it actually needs and no execution reads a nullable declaration to rediscover which kind of stage it is
 /// running.
 /// </summary>
-internal abstract class ServiceTaskStage : PipelineItem
+internal abstract class PipelineStage : PipelineItem
 {
-    private ServiceTaskStage(ProcessStepOptions? stepOptions)
+    private PipelineStage(ProcessStepOptions? stepOptions)
         : base(stepOptions) { }
 
     /// <summary>A stage with no part in any exchange: work in, stage result out.</summary>
-    internal sealed class Plain : ServiceTaskStage
+    internal sealed class Plain : PipelineStage
     {
-        public Plain(Func<ServiceTaskContext, Task<ServiceTaskStageResult>> work, ProcessStepOptions? stepOptions)
+        public Plain(Func<StageContext, Task<StageResult>> work, ProcessStepOptions? stepOptions)
             : base(stepOptions)
         {
             Work = work;
         }
 
         /// <summary>The stage's work, exactly as the app supplied it.</summary>
-        public Func<ServiceTaskContext, Task<ServiceTaskStageResult>> Work { get; }
+        public Func<StageContext, Task<StageResult>> Work { get; }
     }
 
     /// <summary>
     /// The stage that opens the exchange's mailbox and sends its address. Its work is handed the mailbox as a
     /// non-nullable argument, and answers the widened <see cref="ServiceTaskOpeningStageResult"/> vocabulary.
     /// </summary>
-    internal sealed class MailboxOpening : ServiceTaskStage
+    internal sealed class MailboxOpening : PipelineStage
     {
         public MailboxOpening(
-            Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
+            Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> work,
             MailboxOptions declaration,
             ProcessStepOptions? stepOptions
         )
@@ -114,7 +114,7 @@ internal abstract class ServiceTaskStage : PipelineItem
         }
 
         /// <summary>The stage's work, handed the mailbox it opened.</summary>
-        public Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> Work { get; }
+        public Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> Work { get; }
 
         /// <summary>
         /// The mailbox declaration. The mint step reads its <see cref="MailboxOptions.Timeout"/>
@@ -135,8 +135,8 @@ internal sealed class ReplySegment : PipelineItem, IReplyHandlerItem
 {
     internal ReplySegment(
         int openingIndex,
-        Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> onMessage,
-        Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> onClosed,
+        Func<StageContext, ServiceTaskReply, Task<StageExchangeResult>> onMessage,
+        Func<StageContext, MailboxClosedReason, Task<StageResult>> onClosed,
         ProcessStepOptions? stepOptions
     )
         : base(stepOptions)
@@ -150,17 +150,17 @@ internal sealed class ReplySegment : PipelineItem, IReplyHandlerItem
     public int OpeningIndex { get; }
 
     /// <summary>Answers one delivered message, with no way to conclude the task.</summary>
-    internal Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskStageExchangeResult>> OnMessage { get; }
+    internal Func<StageContext, ServiceTaskReply, Task<StageExchangeResult>> OnMessage { get; }
 
     /// <summary>Answers the mailbox closing with no message left to handle.</summary>
-    internal Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskStageResult>> OnClosed { get; }
+    internal Func<StageContext, MailboxClosedReason, Task<StageResult>> OnClosed { get; }
 }
 
 /// <summary>
 /// How a pipeline concludes — a closed set of exactly two shapes, so no execution has to interrogate nullable
 /// fields to discover whether a conclusion is secretly also a reply handler. A conclusion's
-/// <see cref="PipelineItem.StepOptions"/> are null for a simple <see cref="IServiceTask"/>, whose conclusion
-/// is configured by the task-level options alone.
+/// <see cref="PipelineItem.StepOptions"/> are null when the task gave its conclusion none, so it takes the
+/// command's and the engine's defaults.
 /// </summary>
 internal abstract class PipelineConclusion : PipelineItem
 {
@@ -168,18 +168,18 @@ internal abstract class PipelineConclusion : PipelineItem
         : base(stepOptions) { }
 
     /// <summary>
-    /// The pipeline ends with one more step — for an <see cref="IServiceTask"/>, its <c>Execute</c>.
+    /// The pipeline ends with one more step — for a task that does one thing, its whole work.
     /// </summary>
     internal sealed class FinalStep : PipelineConclusion
     {
-        public FinalStep(Func<ServiceTaskContext, Task<ServiceTaskResult>> work, ProcessStepOptions? stepOptions)
+        public FinalStep(Func<StageContext, Task<ServiceTaskResult>> work, ProcessStepOptions? stepOptions)
             : base(stepOptions)
         {
             Work = work;
         }
 
         /// <summary>The concluding work.</summary>
-        public Func<ServiceTaskContext, Task<ServiceTaskResult>> Work { get; }
+        public Func<StageContext, Task<ServiceTaskResult>> Work { get; }
     }
 
     /// <summary>
@@ -191,8 +191,8 @@ internal abstract class PipelineConclusion : PipelineItem
     {
         public ReplyExchange(
             int openingIndex,
-            Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
-            Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
+            Func<StageContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> onMessage,
+            Func<StageContext, MailboxClosedReason, Task<ServiceTaskResult>> onClosed,
             ProcessStepOptions? stepOptions
         )
             : base(stepOptions)
@@ -206,9 +206,9 @@ internal abstract class PipelineConclusion : PipelineItem
         public int OpeningIndex { get; }
 
         /// <summary>Answers one delivered message.</summary>
-        public Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> OnMessage { get; }
+        public Func<StageContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> OnMessage { get; }
 
         /// <summary>Answers the mailbox closing with no message left to handle.</summary>
-        public Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskResult>> OnClosed { get; }
+        public Func<StageContext, MailboxClosedReason, Task<ServiceTaskResult>> OnClosed { get; }
     }
 }

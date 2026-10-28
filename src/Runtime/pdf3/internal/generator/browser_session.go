@@ -17,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
+	commontelemetry "altinn.studio/common/telemetry"
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
@@ -302,7 +303,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 			err := fmt.Errorf("%w: %v", errRecoveredPanic, r)
 			w.logger.ErrorContext(ctx, "Recovered from panic", attr.Error, err)
 			pdfErr := types.NewPDFError(types.ErrGenerationFail, "", err)
-			telemetry.SetError(span, pdfErr.ErrorType(), err)
+			commontelemetry.SetError(span, pdfErr.ErrorType(), err)
 			req.tryRespondError(pdfErr)
 		}
 
@@ -324,7 +325,7 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 	err := w.generatePdf(req)
 	if err != nil {
 		pdfErr := mapCustomError(err)
-		telemetry.SetError(span, pdfErr.ErrorType(), err)
+		commontelemetry.SetError(span, pdfErr.ErrorType(), err)
 		req.tryRespondError(pdfErr)
 	}
 }
@@ -545,7 +546,7 @@ func (w *browserSession) openPage(req *workerRequest) (cdp.Commander, bool) {
 	}()
 	if err != nil {
 		pdfErr := types.NewPDFError(types.ErrGenerationFail, "open page", err)
-		telemetry.SetError(openSpan, pdfErr.ErrorType(), err)
+		commontelemetry.SetError(openSpan, pdfErr.ErrorType(), err)
 		req.tryRespondError(pdfErr)
 		return nil, false
 	}
@@ -627,7 +628,7 @@ func (w *browserSession) cleanupAfterRequest(req *workerRequest) {
 	err := w.cleanupBrowser(context.WithoutCancel(cleanupCtx), req)
 	setCleanupSkipped(cleanupSpan, false)
 	if err != nil {
-		telemetry.SetError(cleanupSpan, "cleanup_failed", err)
+		commontelemetry.SetError(cleanupSpan, "cleanup_failed", err)
 	}
 	// Disposing a context either succeeds or leaves the browser in a state we can't trust,
 	// a retry would only fail with "context not found". Crash and let the pod restart instead.
@@ -798,7 +799,7 @@ func (w *browserSession) setCookies(req *workerRequest) error {
 		return nil
 	}
 	pdfErr := contextErrorToPDFError(err, types.ErrSetCookieFail, "")
-	telemetry.SetError(cookiesSpan, pdfErr.ErrorType(), err)
+	commontelemetry.SetError(cookiesSpan, pdfErr.ErrorType(), err)
 	req.tryRespondError(pdfErr)
 	return nil
 }
@@ -857,7 +858,7 @@ func (w *browserSession) navigateToPage(req *workerRequest, page cdp.Commander) 
 		return nil
 	}
 	pdfErr := contextErrorToPDFError(err, types.ErrGenerationFail, "")
-	telemetry.SetError(navigateSpan, pdfErr.ErrorType(), err)
+	commontelemetry.SetError(navigateSpan, pdfErr.ErrorType(), err)
 	req.tryRespondError(pdfErr)
 	return nil
 }
@@ -901,7 +902,11 @@ func (w *browserSession) runWait(req *workerRequest, wait func() error) error {
 	if waitErr == nil {
 		return nil
 	}
-	telemetry.SetError(waitSpan, contextErrorToPDFError(waitErr, types.ErrElementNotReady, "").ErrorType(), waitErr)
+	commontelemetry.SetError(
+		waitSpan,
+		contextErrorToPDFError(waitErr, types.ErrElementNotReady, "").ErrorType(),
+		waitErr,
+	)
 	return nil
 }
 
@@ -914,7 +919,7 @@ func (w *browserSession) waitForTimeout(req *workerRequest, timeout int32) error
 		return nil
 	case <-req.ctx.Done():
 		pdfErr := stoppedError(req)
-		telemetry.SetError(waitSpan, pdfErr.ErrorType(), context.Cause(req.ctx))
+		commontelemetry.SetError(waitSpan, pdfErr.ErrorType(), context.Cause(req.ctx))
 		req.tryRespondError(pdfErr)
 		return nil
 	}
@@ -934,7 +939,7 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, page cdp.Commander,
 		// INFO: the failed request logs its one error with what this answers it with.
 		w.logger.InfoContext(req.ctx, "Failed to wait for page load event", attr.Error, waitErr)
 		pdfErr := contextErrorToPDFError(waitErr, types.ErrGenerationFail, "page load")
-		telemetry.SetError(waitSpan, pdfErr.ErrorType(), waitErr)
+		commontelemetry.SetError(waitSpan, pdfErr.ErrorType(), waitErr)
 		req.tryRespondError(pdfErr)
 		return nil
 	}
@@ -943,7 +948,7 @@ func (w *browserSession) waitForPageLoad(req *workerRequest, page cdp.Commander,
 		// processWaitResult has answered that the element is not ready. Like runWait, return nil:
 		// the request has its answer, which pdf.session.process would otherwise record as an
 		// unhandled browser error.
-		telemetry.SetError(waitSpan, types.NewPDFError(types.ErrElementNotReady, "", nil).ErrorType(), waitErr)
+		commontelemetry.SetError(waitSpan, types.NewPDFError(types.ErrElementNotReady, "", nil).ErrorType(), waitErr)
 		return nil
 	}
 
@@ -958,7 +963,7 @@ func (w *browserSession) printPDF(req *workerRequest, page cdp.Commander) error 
 	resp, err := page.SendCommand(req.ctx, "Page.printToPDF", buildPrintToPDFParams(req.ctx, w.logger, req.request))
 	if err != nil {
 		pdfErr := contextErrorToPDFError(err, types.ErrGenerationFail, "")
-		telemetry.SetError(printSpan, pdfErr.ErrorType(), err)
+		commontelemetry.SetError(printSpan, pdfErr.ErrorType(), err)
 		req.tryRespondError(pdfErr)
 		return nil
 	}
@@ -966,7 +971,7 @@ func (w *browserSession) printPDF(req *workerRequest, page cdp.Commander) error 
 	pdfBytes, err := readPDFStream(req.ctx, page, resp, maxPDFSize)
 	if err != nil {
 		pdfErr := contextErrorToPDFError(err, types.ErrGenerationFail, "")
-		telemetry.SetError(printSpan, pdfErr.ErrorType(), err)
+		commontelemetry.SetError(printSpan, pdfErr.ErrorType(), err)
 		req.tryRespondError(pdfErr)
 		return nil
 	}

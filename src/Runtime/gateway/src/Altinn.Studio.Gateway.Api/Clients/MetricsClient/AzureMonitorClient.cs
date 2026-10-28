@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -15,6 +17,7 @@ namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 internal sealed class AzureMonitorClient(
     IOptionsMonitor<GatewayContext> _gatewayContext,
     LogsQueryClient _logsQueryClient,
+    GatewayMetrics _metrics,
     ILogger<AzureMonitorClient> _logger
 ) : IMetricsClient
 {
@@ -78,6 +81,45 @@ internal sealed class AzureMonitorClient(
             .Select(bucket => (bucket.Key, bucket.Sum(row => row.GetDouble("Count") ?? 0)))
             .ToArray();
 
+    /// <summary>
+    /// Runs a query in its own span, and records its duration and outcome.
+    /// </summary>
+    private async Task<Response<LogsQueryResult>> Query(
+        string queryKind,
+        ResourceIdentifier workspaceId,
+        string query,
+        LogsQueryTimeRange timeRange,
+        CancellationToken cancellationToken
+    )
+    {
+        Activity? caller = Activity.Current;
+        using Activity? span = ServiceTelemetry.Source.StartActivity("AzureMonitorClient.Query");
+        span?.SetTag(ServiceTelemetry.Attributes.AzureMonitorQuery, queryKind);
+        long start = Stopwatch.GetTimestamp();
+        string? errorType = null;
+        try
+        {
+            return await _logsQueryClient.QueryResourceAsync(
+                workspaceId,
+                query,
+                timeRange,
+                cancellationToken: cancellationToken
+            );
+        }
+        catch (Exception ex)
+        {
+            errorType = ServiceTelemetry.ErrorTypeOf(ex);
+            span.SetError(errorType);
+            // Most callers answer with an unavailable result instead of failing, so the entry span would look successful.
+            ServiceTelemetry.EntrySpanOf(caller).SetError(errorType);
+            throw;
+        }
+        finally
+        {
+            _metrics.RecordAzureMonitorQuery(queryKind, Stopwatch.GetElapsedTime(start), errorType);
+        }
+    }
+
     private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
     {
         var gatewayContext = _gatewayContext.CurrentValue;
@@ -104,11 +146,12 @@ internal sealed class AzureMonitorClient(
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName;";
 
-        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await Query(
+            "failed_requests",
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
-            cancellationToken: cancellationToken
+            cancellationToken
         );
 
         return response
@@ -148,11 +191,12 @@ internal sealed class AzureMonitorClient(
                 | where Name != 'GET /health'
                 | summarize Count = count() by AppRoleName";
 
-            Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            Response<LogsQueryResult> response = await Query(
+                "active_apps",
                 logAnalyticsWorkspaceId,
                 query,
                 new LogsQueryTimeRange(TimeSpan.FromDays(windowDays)),
-                cancellationToken: cancellationToken
+                cancellationToken
             );
 
             var activeAppRows = response
@@ -227,11 +271,12 @@ internal sealed class AzureMonitorClient(
         try
         {
             var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
-            Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            Response<LogsQueryResult> response = await Query(
+                "activity_signals",
                 logAnalyticsWorkspaceId,
                 AppActivitySignalQueries.BuildQuery(windowDays),
                 new LogsQueryTimeRange(TimeSpan.FromDays(windowDays)),
-                cancellationToken: cancellationToken
+                cancellationToken
             );
 
             var signals = response
@@ -301,11 +346,12 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
-        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await Query(
+            "app_failed_requests",
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
-            cancellationToken: cancellationToken
+            cancellationToken
         );
 
         var metrics = response
@@ -353,11 +399,12 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = sum(Sum) by Name, AppRoleName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
-        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await Query(
+            "metrics",
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(from, to),
-            cancellationToken: cancellationToken
+            cancellationToken
         );
 
         return response
@@ -395,11 +442,12 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = count() by AppRoleName, OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
-        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await Query(
+            "all_apps_failed_requests",
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(from, to),
-            cancellationToken: cancellationToken
+            cancellationToken
         );
 
         return response
@@ -453,11 +501,12 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc";
 
-        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await Query(
+            "app_metrics",
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
-            cancellationToken: cancellationToken
+            cancellationToken
         );
 
         var metrics = response

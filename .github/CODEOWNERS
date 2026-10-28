@@ -38,6 +38,7 @@ src/AI/augmenter-agent/**/dockerfile*                                     @Erlin
 
 # Squad Kjøring
 .github/workflows/cli-build-test.yaml                                     @altinn/team-altinn-studio-kjoring
+.github/workflows/common-go-build.yaml                                    @altinn/team-altinn-studio-kjoring
 .github/workflows/construct-environments-script-test.yaml                 @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-gitea-runners.yaml                               @altinn/team-altinn-studio-kjoring
 .github/workflows/deploy-github-runners.yaml                              @altinn/team-altinn-studio-kjoring
@@ -91,6 +92,8 @@ src/cli/**/go.mod                                                         @altin
 src/cli/**/go.sum                                                         @altinn/team-altinn-studio-kjoring
 src/common/dotnet/**/*.csproj                                             @altinn/team-altinn-studio-kjoring
 src/common/dotnet/**/global.json                                          @altinn/team-altinn-studio-kjoring
+src/common/go/**/go.mod                                                   @altinn/team-altinn-studio-kjoring
+src/common/go/**/go.sum                                                   @altinn/team-altinn-studio-kjoring
 src/Designer/development/fake-ansattporten/**/Dockerfile*                 @altinn/team-altinn-studio-kjoring
 src/Designer/development/fake-ansattporten/**/go.mod                      @altinn/team-altinn-studio-kjoring
 src/gitea-proxy/**/docker-compose.*.yml                                   @altinn/team-altinn-studio-kjoring

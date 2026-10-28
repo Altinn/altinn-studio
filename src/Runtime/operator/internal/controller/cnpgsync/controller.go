@@ -11,12 +11,13 @@ import (
 	"strings"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
@@ -224,12 +225,13 @@ func (r *CnpgSyncReconciler) Start(ctx context.Context) error {
 	}
 }
 
+const controllerName = "cnpgsync"
+
 // SyncAll synchronizes CNPG resources if current context matches any target.
 // Returns needsRetry=true when HelmRelease is not ready yet.
 func (r *CnpgSyncReconciler) SyncAll(ctx context.Context) (needsRetry bool, err error) {
-	tracer := r.runtime.Tracer()
-	ctx, span := tracer.Start(ctx, "cnpgsync.SyncAll",
-		trace.WithAttributes(attribute.Int("targets", len(r.targets))),
+	ctx, span := telemetry.StartRun(ctx, controllerName, "cnpgsync.SyncAll",
+		attribute.Int("altinn.operator.cnpgsync.targets", len(r.targets)),
 	)
 	defer span.End()
 
@@ -240,8 +242,7 @@ func (r *CnpgSyncReconciler) SyncAll(ctx context.Context) (needsRetry bool, err 
 			"environment", opCtx.Environment,
 		)
 		if err := r.deleteNamespaceIfExists(ctx); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "failed to delete namespace")
+			commontelemetry.SetError(span, "delete_namespace", err)
 			return false, fmt.Errorf("delete namespace: %w", err)
 		}
 		return false, nil
@@ -253,33 +254,28 @@ func (r *CnpgSyncReconciler) SyncAll(ctx context.Context) (needsRetry bool, err 
 	)
 
 	if err := r.ensureNamespace(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure namespace")
+		commontelemetry.SetError(span, "ensure_namespace", err)
 		return false, fmt.Errorf("ensure namespace: %w", err)
 	}
 
 	if err := r.ensureStorageClass(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure StorageClass")
+		commontelemetry.SetError(span, "ensure_storage_class", err)
 		return false, fmt.Errorf("ensure StorageClass: %w", err)
 	}
 
 	if err := r.ensureHelmRepository(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure HelmRepository")
+		commontelemetry.SetError(span, "ensure_helm_repository", err)
 		return false, fmt.Errorf("ensure HelmRepository: %w", err)
 	}
 
 	if err := r.ensureHelmRelease(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure HelmRelease")
+		commontelemetry.SetError(span, "ensure_helm_release", err)
 		return false, fmt.Errorf("ensure HelmRelease: %w", err)
 	}
 
 	ready, err := r.isHelmReleaseReady(ctx)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to check HelmRelease readiness")
+		commontelemetry.SetError(span, "check_helm_release", err)
 		return false, fmt.Errorf("check HelmRelease readiness: %w", err)
 	}
 	if !ready {
@@ -289,14 +285,12 @@ func (r *CnpgSyncReconciler) SyncAll(ctx context.Context) (needsRetry bool, err 
 
 	needsRetry, err = r.syncProvisionedDatabases(ctx)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to sync provisioned databases")
+		commontelemetry.SetError(span, "sync_databases", err)
 		return false, err
 	}
 
 	if err := r.ensureBackupResources(ctx); err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to ensure backup resources")
+		commontelemetry.SetError(span, "ensure_backup_resources", err)
 		return false, fmt.Errorf("ensure backup resources: %w", err)
 	}
 
