@@ -18,9 +18,11 @@ import {
   usePdfExclusions,
   usePdfLayoutName,
 } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -54,8 +56,8 @@ function AutoGeneratePdfFromLayout() {
     throw new Error(
       `Unexpected search param ${SearchParams.PdfForTask} provided. This mode does not support passing ` +
         `${SearchParams.PdfForTask} as a search param, but will auto-generate a PDF from the ` +
-        `current layout-set instead. To use the multi-task mode, you cannot have a layout-set ` +
-        `set up for the current task.`,
+        `current UI folder instead. Only a PDF service task without a pdfLayoutName renders the tasks ` +
+        `passed as ${SearchParams.PdfForTask}.`,
     );
   }
 
@@ -92,6 +94,11 @@ export function PdfForServiceTask() {
 }
 
 function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
+  // Only a task with a UI folder of its own has pages to render. Any other entry, a blank one or the PDF task itself
+  // included, would render the pages of the PDF task's own folder, which are its waiting page.
+  const pdfTaskId = useNavigationParam('taskId');
+  const tasksToRender = taskIds.filter((taskId) => taskId !== pdfTaskId && getUiFolderSettings(taskId));
+
   return (
     <DummyPresentation>
       <PdfWrapping>
@@ -105,7 +112,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             }}
           />
         </div>
-        {taskIds.map((taskId, idx) => (
+        {tasksToRender.map((taskId, idx) => (
           <TaskSummaryWrapper
             key={taskId}
             taskId={taskId}

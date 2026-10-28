@@ -7,10 +7,9 @@ namespace Altinn.App.Analyzers.Process;
 /// <summary>
 /// Checks that every <c>pdf</c> service task in <c>config/process/process.bpmn</c> has something the app
 /// frontend can render. The frontend renders a PDF service task from exactly one of two sources: the layout that
-/// the <c>pdfLayoutName</c> of its own UI folder (<c>ui/{taskId}</c>) names, or - when the task has no UI folder -
-/// the tasks the backend passes as <c>task</c> query parameters, taken from <c>autoPdfTaskIds</c>. See
-/// <c>PdfWrapper</c> and <c>PdfFromLayout</c> in the app frontend; the runtime backstop is <c>PdfServiceTask</c>
-/// in Altinn.App.Core.
+/// the <c>pdfLayoutName</c> of its own UI folder (<c>ui/{taskId}</c>) names, or - when that is not set - the tasks
+/// the backend passes as <c>task</c> query parameters, taken from <c>autoPdfTaskIds</c>. See <c>PdfWrapper</c> and
+/// <c>PdfFromLayout</c> in the app frontend; the runtime backstop is <c>PdfServiceTask</c> in Altinn.App.Core.
 /// </summary>
 internal static class PdfServiceTaskUtils
 {
@@ -19,8 +18,9 @@ internal static class PdfServiceTaskUtils
     private const string PdfTaskType = "pdf";
 
     /// <summary>
-    /// Appends a diagnostic for every <c>pdf</c> service task that does not say what to render as its PDF, and for
-    /// every <c>autoPdfTaskIds</c> entry that would contribute nothing to its PDF.
+    /// Appends a diagnostic for every <c>pdf</c> service task that does not say what to render as its PDF or names a
+    /// layout its UI folder does not have, and for every <c>autoPdfTaskIds</c> entry that would contribute nothing to
+    /// its PDF.
     /// </summary>
     internal static void CollectDiagnostics(
         ImmutableArray<AdditionalText> additionalFiles,
@@ -38,23 +38,35 @@ internal static class PdfServiceTaskUtils
 
         // The package props that expose config/** to the analysis expose ui/**/*.json as well, so no UI folders
         // here means the app has none.
-        var uiFolders = FindUiFolders(additionalFiles, AppRoot(processFile));
+        var appRoot = AppRoot(processFile);
+        var uiFolders = FindUiFolders(additionalFiles, appRoot);
 
         foreach (var pdfTask in FindPdfServiceTasks(document))
         {
             var location = FileLocationHelper.GetXmlElementLocation(processFile, content, pdfTask.Element);
-            var hasOwnUiFolder = uiFolders.TryGetValue(pdfTask.Id, out var ownSettings);
 
-            if (hasOwnUiFolder)
+            // pdfLayoutName names the layout to render, and the frontend then ignores autoPdfTaskIds. The pages
+            // in the folder's order are what people see while the process is at the task, never the PDF. A
+            // Settings.json that cannot be read is left alone.
+            var pdfLayoutName = uiFolders.TryGetValue(pdfTask.Id, out var ownSettings)
+                ? ReadPdfLayoutName(ownSettings, token)
+                : "";
+            if (pdfLayoutName is null)
             {
-                // The folder's pages are what people see while the process is at the task, so only
-                // pdfLayoutName says which layout is the PDF. The frontend then renders that layout and ignores
-                // autoPdfTaskIds. Without one it renders the folder's pages instead, or rejects the task
-                // parameters outright when autoPdfTaskIds lists any.
-                if (HasPdfLayoutName(ownSettings, token) is false)
+                continue;
+            }
+
+            if (pdfLayoutName.Length > 0)
+            {
+                if (!HasLayout(additionalFiles, appRoot, pdfTask.Id, pdfLayoutName))
                 {
                     diagnostics.Add(
-                        Diagnostic.Create(Diagnostics.Process.PdfServiceTaskMissingPdfLayoutName, location, pdfTask.Id)
+                        Diagnostic.Create(
+                            Diagnostics.Process.PdfServiceTaskPdfLayoutNotFound,
+                            location,
+                            pdfTask.Id,
+                            pdfLayoutName
+                        )
                     );
                 }
 
@@ -69,18 +81,34 @@ internal static class PdfServiceTaskUtils
                 continue;
             }
 
+            void ReportEntryThatAddsNothing(string entry, string reason) =>
+                diagnostics.Add(
+                    Diagnostic.Create(
+                        Diagnostics.Process.PdfServiceTaskIncludesEntryThatAddsNothing,
+                        location,
+                        pdfTask.Id,
+                        entry,
+                        reason
+                    )
+                );
+
+            if (pdfTask.HasBlankAutoPdfTaskId)
+            {
+                ReportEntryThatAddsNothing("a blank task id", "it names no task");
+            }
+
             foreach (var taskId in pdfTask.AutoPdfTaskIds)
             {
-                if (!uiFolders.ContainsKey(taskId))
+                if (taskId == pdfTask.Id)
                 {
-                    diagnostics.Add(
-                        Diagnostic.Create(
-                            Diagnostics.Process.PdfServiceTaskIncludesTaskWithoutUi,
-                            location,
-                            pdfTask.Id,
-                            taskId
-                        )
+                    ReportEntryThatAddsNothing(
+                        "itself",
+                        "its own UI folder holds what people see while the process is at the task"
                     );
+                }
+                else if (!uiFolders.ContainsKey(taskId))
+                {
+                    ReportEntryThatAddsNothing($"'{taskId}'", $"there is no UI folder 'ui/{taskId}'");
                 }
             }
         }
@@ -148,25 +176,42 @@ internal static class PdfServiceTaskUtils
 
             // The runtime binds autoPdfTaskIds under the task extension that declares the task type. Blank
             // entries render nothing, so they do not count as listing a task.
-            var autoPdfTaskIds =
+            var entries =
                 taskType
                     .Parent?.Element(ProcessFile.Altinn + "pdfConfig")
                     ?.Element(ProcessFile.Altinn + "autoPdfTaskIds")
                     ?.Elements(ProcessFile.Altinn + "taskId")
                     .Select(e => e.Value)
-                    .Where(v => !string.IsNullOrWhiteSpace(v))
                     .ToList()
                 ?? [];
+            var autoPdfTaskIds = entries.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
 
-            yield return new PdfServiceTask(id, task, autoPdfTaskIds);
+            yield return new PdfServiceTask(id, task, autoPdfTaskIds, autoPdfTaskIds.Count < entries.Count);
         }
     }
 
     /// <summary>
-    /// Whether the UI folder's settings set <c>pages.pdfLayoutName</c>, or null when the file cannot be read -
-    /// so a malformed file never produces a diagnostic about its content.
+    /// Whether the UI folder has the layout <c>ui/{folder}/layouts/{page}.json</c>. The frontend looks the page up
+    /// by its exact name.
     /// </summary>
-    private static bool? HasPdfLayoutName(AdditionalText? settingsFile, CancellationToken token)
+    private static bool HasLayout(
+        ImmutableArray<AdditionalText> additionalFiles,
+        string appRoot,
+        string folder,
+        string page
+    )
+    {
+        var layoutPath = $"{appRoot}{UiFolder}{folder}/layouts/{page}.json";
+        return additionalFiles.Any(file =>
+            string.Equals(ProcessFile.NormalizedPath(file), layoutPath, StringComparison.Ordinal)
+        );
+    }
+
+    /// <summary>
+    /// The UI folder's <c>pages.pdfLayoutName</c>, an empty string when it sets none, or null when the file cannot
+    /// be read - so a malformed file never produces a diagnostic about its content.
+    /// </summary>
+    private static string? ReadPdfLayoutName(AdditionalText? settingsFile, CancellationToken token)
     {
         var content = settingsFile?.GetText(token)?.ToString();
         if (content is null)
@@ -185,7 +230,9 @@ internal static class PdfServiceTaskUtils
             // The app backend reads Settings.json ignoring property case and hands the result to the frontend.
             var pages = settings.GetPropertyIgnoreCase("pages");
             var pdfLayoutName = pages?.Type == JsonType.Object ? pages.GetPropertyIgnoreCase("pdfLayoutName") : null;
-            return pdfLayoutName?.Type == JsonType.String && !string.IsNullOrWhiteSpace(pdfLayoutName.GetString());
+            return pdfLayoutName?.Type == JsonType.String && !string.IsNullOrWhiteSpace(pdfLayoutName.GetString())
+                ? pdfLayoutName.GetString()
+                : "";
         }
         catch (NanoJsonException)
         {
@@ -198,5 +245,11 @@ internal static class PdfServiceTaskUtils
     /// The <c>bpmn:serviceTask</c> or <c>bpmn:task</c> element, which anchors the diagnostics.
     /// </param>
     /// <param name="AutoPdfTaskIds">The non-blank <c>autoPdfTaskIds</c> entries.</param>
-    private sealed record PdfServiceTask(string Id, XElement Element, List<string> AutoPdfTaskIds);
+    /// <param name="HasBlankAutoPdfTaskId">Whether <c>autoPdfTaskIds</c> has a blank entry as well.</param>
+    private sealed record PdfServiceTask(
+        string Id,
+        XElement Element,
+        List<string> AutoPdfTaskIds,
+        bool HasBlankAutoPdfTaskId
+    );
 }

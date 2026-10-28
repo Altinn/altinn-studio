@@ -127,37 +127,37 @@ public static class Diagnostics
     internal static class Process
     {
         // Worded like the runtime backstop in PdfServiceTask, so an author who meets one of them after the
-        // other reads one explanation rather than two. Without these, a PDF service task that cannot be
-        // rendered fails only when an instance reaches it, and the cause shows up only in the PDF generator's
-        // browser log.
+        // other reads one explanation rather than two. Without it, a PDF service task that cannot be rendered
+        // fails only when an instance reaches it.
         public static readonly DiagnosticDescriptor PdfServiceTaskHasNothingToRender = Error(
             "ALTINNAPP1000",
             Category.Process,
             "PDF service task has nothing to render",
             "PDF service task '{0}' has nothing to render, so generating its PDF will fail. List the tasks to "
-                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or add a UI folder 'ui/{0}' with a "
-                + "Settings.json to design the PDF yourself."
+                + "include in <altinn:pdfConfig><altinn:autoPdfTaskIds>, or set pdfLayoutName in "
+                + "'ui/{0}/Settings.json' to design the PDF yourself."
         );
 
-        // Stricter than the runtime backstop, which fails only when autoPdfTaskIds lists tasks too. Without
-        // them the frontend renders the folder's pages, which in the folder Altinn Studio creates is the
-        // waiting page, so the PDF is never what the author designed.
-        public static readonly DiagnosticDescriptor PdfServiceTaskMissingPdfLayoutName = Error(
-            "ALTINNAPP1001",
-            Category.Process,
-            "PDF service task has a UI folder without pdfLayoutName",
-            "PDF service task '{0}' has its own UI folder 'ui/{0}' without a pdfLayoutName. The folder's pages are "
-                + "what people see while the process is at the task, and pdfLayoutName names the layout to render "
-                + "as the PDF. Set pdfLayoutName in 'ui/{0}/Settings.json', or remove the UI folder and list the "
-                + "tasks to include in <altinn:pdfConfig><altinn:autoPdfTaskIds>."
-        );
-
-        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesTaskWithoutUi = Warning(
+        // The automatic PDF renders each listed task from that task's own UI folder, and the frontend leaves out every
+        // other entry: a blank one, the PDF task itself, whose folder holds what people see while the process is at
+        // the task, and a task without a UI folder. '{1}' names the entry and '{2}' says why it adds nothing.
+        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesEntryThatAddsNothing = Warning(
             "ALTINNAPP1002",
             Category.Process,
-            "PDF service task includes a task without a UI folder",
-            "PDF service task '{0}' lists '{1}' in <altinn:autoPdfTaskIds>, but there is no UI folder "
-                + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
+            "PDF service task lists an entry that adds nothing to its PDF",
+            "PDF service task '{0}' lists {1} in <altinn:autoPdfTaskIds>, which adds nothing to the PDF: {2}. Remove "
+                + "the entry, or correct the task id."
+        );
+
+        // Worded like the runtime backstop in PdfServiceTask. Without it the frontend finds no layout to render,
+        // and the PDF generator times out on every attempt.
+        public static readonly DiagnosticDescriptor PdfServiceTaskPdfLayoutNotFound = Error(
+            "ALTINNAPP1026",
+            Category.Process,
+            "PDF service task's pdfLayoutName names a layout that does not exist",
+            "PDF service task '{0}' sets pdfLayoutName '{1}' in 'ui/{0}/Settings.json', but there is no layout "
+                + "'ui/{0}/layouts/{1}.json', so generating its PDF will fail. Correct pdfLayoutName, or add the "
+                + "layout."
         );
 
         // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which also covers the

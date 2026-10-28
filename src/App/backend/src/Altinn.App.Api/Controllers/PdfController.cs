@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
+using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -93,6 +94,12 @@ public class PdfController : ControllerBase
             ? await _authenticationContext.Current.GetLanguage()
             : language;
 
+        // An instance at a PDF service task previews that task the way the service task renders it
+        if (taskId is null && IsPdfServiceTask(_processReader.GetFlowElement(currentTaskId)))
+        {
+            taskId = currentTaskId;
+        }
+
         if (taskId is null)
         {
             byte[] pdfContent = await _pdfService.GeneratePdf(
@@ -156,4 +163,7 @@ public class PdfController : ControllerBase
         );
         return File(subformPreview, "application/pdf");
     }
+
+    private static bool IsPdfServiceTask(ProcessElement? element) =>
+        element is ProcessTask { ExtensionElements.TaskExtension.TaskType: "pdf" };
 }

@@ -8,11 +8,15 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
+import { getPdfSource, PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { ELEMENT_TYPE } from 'src/types/shared';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
+import type { IProcess } from 'src/types/shared';
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const exampleInstanceId = `512345/${exampleGuid}`;
@@ -22,7 +26,17 @@ enum RenderAs {
   ServiceOwner,
 }
 
-const render = async (renderAs: RenderAs) => {
+interface RenderOptions {
+  taskId?: string;
+  query?: string;
+  mutateProcess?: (process: IProcess) => void;
+  layouts?: FormBootstrapResponse['layouts'];
+}
+
+const render = async (
+  renderAs: RenderAs,
+  { taskId = 'Task_1', query = 'pdf=1', mutateProcess, layouts = {} }: RenderOptions = {},
+) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((m) => {
     m.org = 'brg';
     m.partyTypesAllowed.person = true;
@@ -38,7 +52,7 @@ const render = async (renderAs: RenderAs) => {
         instanceOwnerParty.orgNumber,
         instanceOwnerParty,
       ),
-      process: getProcessDataMock(),
+      process: getProcessDataMock(mutateProcess),
     };
   });
 
@@ -57,9 +71,9 @@ const render = async (renderAs: RenderAs) => {
     router: ({ children }) => (
       <InstanceRouter
         instanceId={exampleInstanceId}
-        taskId='Task_1'
+        taskId={taskId}
         initialPage=''
-        query='pdf=1'
+        query={query}
       >
         {children}
       </InstanceRouter>
@@ -67,7 +81,7 @@ const render = async (renderAs: RenderAs) => {
     queries: {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
-          obj.layouts = {};
+          obj.layouts = layouts;
         }),
     },
     apis: {
@@ -124,5 +138,136 @@ describe('PDFWrapper', () => {
 
       expect(screen.queryByRole('heading', { name: 'Test App' })).toBeNull();
     });
+  });
+
+  describe('PDF service task', () => {
+    const pdfTaskId = 'Task_PDF';
+    const designedLayouts: FormBootstrapResponse['layouts'] = {
+      PdfLayout: {
+        data: {
+          layout: [{ id: 'designed-pdf', type: 'Paragraph', textResourceBindings: { title: 'Designed PDF' } }],
+        },
+      },
+    };
+
+    function asPdfTask(process: IProcess) {
+      const pdfTask = { elementId: pdfTaskId, elementType: ELEMENT_TYPE.SERVICE_TASK, altinnTaskType: 'pdf' };
+      process.currentTask = { ...getProcessDataMock().currentTask, ...pdfTask, flow: 2, started: '', name: pdfTaskId };
+      process.processTasks = [...(process.processTasks ?? []), pdfTask];
+    }
+
+    function setPdfTaskFolder(pdfLayoutName?: string) {
+      window.altinnAppGlobalData.ui.folders[pdfTaskId] = getLayoutSettingsMock({
+        defaultDataType: defaultDataTypeMock,
+        pages: { order: ['WaitingPage'], pdfLayoutName },
+      });
+    }
+
+    it('draws the automatic PDF of autoPdfTaskIds when its UI folder has no pdfLayoutName', async () => {
+      setPdfTaskFolder(undefined);
+
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query: 'pdf=1&task=Task_1',
+        mutateProcess: asPdfTask,
+        layouts: designedLayouts,
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.queryByText('Avsender:')).not.toBeNull();
+      expect(screen.queryByText('Designed PDF')).toBeNull();
+    });
+
+    it('draws the automatic PDF of autoPdfTaskIds when it has no UI folder', async () => {
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query: 'pdf=1&task=Task_1',
+        mutateProcess: asPdfTask,
+        layouts: designedLayouts,
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.queryByText('Avsender:')).not.toBeNull();
+      expect(screen.queryByText('Designed PDF')).toBeNull();
+    });
+
+    it('draws nothing for autoPdfTaskIds entries without a UI folder of their own', async () => {
+      setPdfTaskFolder(undefined);
+
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query: `pdf=1&task=&task=Task_Typo&task=${pdfTaskId}&task=Task_1`,
+        mutateProcess: asPdfTask,
+        layouts: {
+          WaitingPage: {
+            data: { layout: [{ id: 'waiting', type: 'Paragraph', textResourceBindings: { title: 'Waiting' } }] },
+          },
+          page1: {
+            data: { layout: [{ id: 'task-1', type: 'Paragraph', textResourceBindings: { title: 'Task 1' } }] },
+          },
+        },
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.getByText('Task 1')).toBeInTheDocument();
+      expect(screen.queryByText('Waiting')).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['with', 'pdf=1&task=Task_1'],
+      ['without', 'pdf=1'],
+    ])('draws the pdfLayoutName page %s task search params', async (_, query) => {
+      setPdfTaskFolder('PdfLayout');
+
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query,
+        mutateProcess: asPdfTask,
+        layouts: designedLayouts,
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.queryByText('Designed PDF')).not.toBeNull();
+      expect(screen.queryByText('Avsender:')).toBeNull();
+    });
+  });
+});
+
+describe('getPdfSource', () => {
+  const pdfTask = getProcessDataMock((process) => {
+    process.processTasks = [
+      { elementId: 'Task_1', altinnTaskType: 'data', elementType: ELEMENT_TYPE.TASK },
+      { elementId: 'Task_PDF', altinnTaskType: 'pdf', elementType: ELEMENT_TYPE.SERVICE_TASK },
+      { elementId: 'Task_Subform', altinnTaskType: 'subformPdf', elementType: ELEMENT_TYPE.SERVICE_TASK },
+    ];
+  });
+
+  function setFolder(taskId: string, pdfLayoutName?: string) {
+    window.altinnAppGlobalData.ui.folders[taskId] = getLayoutSettingsMock({
+      pages: { order: ['Page1'], pdfLayoutName },
+    });
+  }
+
+  it("decides a PDF service task by its folder's pdfLayoutName", () => {
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
+
+    setFolder('Task_PDF');
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
+
+    setFolder('Task_PDF', ' ');
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
+
+    setFolder('Task_PDF', 'PdfLayout');
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('layout');
+  });
+
+  it('gives other service tasks the automatic PDF only without a UI folder', () => {
+    expect(getPdfSource(pdfTask, 'Task_Subform')).toBe('automatic');
+    setFolder('Task_Subform');
+    expect(getPdfSource(pdfTask, 'Task_Subform')).toBe('layout');
+  });
+
+  it('draws any other task from its UI folder', () => {
+    expect(getPdfSource(pdfTask, 'Task_1')).toBe('layout');
   });
 });
