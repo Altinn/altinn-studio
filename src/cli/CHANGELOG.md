@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl app upgrade v9` gives app implementations of `IProcessTask` a `DefineStart`, `DefineEnd` or `DefineAbandon` that runs their removed `Start`, `End` or `Abandon` as one stage, so the task compiles and behaves as before, and says what is worth splitting into stages by hand. ([#21595](https://github.com/Altinn/altinn-studio/pull/21595))
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 - Localtest has a _Messages_ page that shows the messages apps have sent, with their attachments, and the emails and SMS messages that would have gone out. A button clears them without resetting the rest of your data. ([#21224](https://github.com/Altinn/altinn-studio/pull/21224))
