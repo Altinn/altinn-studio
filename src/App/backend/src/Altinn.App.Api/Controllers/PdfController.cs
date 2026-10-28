@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -148,19 +149,7 @@ public class PdfController : ControllerBase
                 "The subformPdfConfig node is missing in the subform pdf process task configuration."
             )
         ).Validate();
-        if (
-            !SubformPdfServiceTask.TryGetSubformDataType(
-                _processReader,
-                _appResources,
-                taskId,
-                subformConfig,
-                out string? subformDataType,
-                out string? subformFolderReason
-            )
-        )
-        {
-            return BadRequest(subformFolderReason);
-        }
+        string subformDataType = SubformPdfServiceTask.GetSubformDataType(_appResources, subformConfig);
 
         string? subformId = dataElementId?.ToString();
         DataElement? subform = instance.Data.Find(element => element.Id == subformId);

@@ -327,52 +327,6 @@ public class SubformPdfServiceTaskTests
         );
     }
 
-    [Theory]
-    [InlineData(false, null, "the app has no UI folder 'ui/Subform' with a Settings.json")]
-    [InlineData(true, null, "'ui/Subform/Settings.json' has no defaultDataType")]
-    [InlineData(true, " ", "'ui/Subform/Settings.json' has no defaultDataType")]
-    public async Task Execute_With_A_Subform_Folder_It_Cannot_Render_Should_Fail_Permanently(
-        bool folderExists,
-        string? defaultDataType,
-        string reason
-    )
-    {
-        // Arrange
-        if (folderExists)
-        {
-            SetupSubformFolder(defaultDataType);
-        }
-        else
-        {
-            _appResourcesMock.Setup(x => x.GetLayoutSettingsForFolder(SubformUiFolder)).Returns((LayoutSettings?)null);
-        }
-        SetupProcessReader();
-        var instance = CreateInstanceWithSubformData();
-        var context = CreateServiceTaskContext(instance);
-
-        // Act
-        var result = await _serviceTask.Execute(context);
-
-        // Assert - no attempt is made to render what the frontend cannot render
-        var failed = Assert.IsType<FailedServiceTaskResult>(result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
-        Assert.Contains(reason, failed.ErrorMessage);
-        Assert.Contains("'taskId'", failed.ErrorMessage);
-        _pdfServiceMock.Verify(
-            x =>
-                x.GenerateSubformPdf(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<SubformPdfContext>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
-    }
-
     [Fact]
     public async Task Execute_WithWhitespaceFilename_Should_NormalizeToNull()
     {

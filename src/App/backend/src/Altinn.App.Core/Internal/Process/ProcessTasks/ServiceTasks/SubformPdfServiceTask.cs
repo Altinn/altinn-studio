@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
@@ -48,22 +47,16 @@ internal sealed class SubformPdfServiceTask(
             return [e.Message];
         }
 
-        if (
-            !TryGetSubformDataType(
-                processReader,
-                appResources,
-                context.TaskId,
-                validConfig,
-                out string? dataType,
-                out string? reason
-            )
-        )
+        // The frontend could not render the entries, which surfaces only as a PDF generator timeout that the engine
+        // retries, so the app does not start instead. The analyzer reports the same at build time (ALTINNAPP1024).
+        if (GetUnrenderableConfigurationReason(context.TaskId, validConfig) is { } reason)
         {
             return [reason];
         }
 
         // Execute generates a PDF for each data element of this type, and Storage only holds data elements
         // whose type is declared in applicationmetadata.json, so an undeclared type silently generates nothing.
+        string dataType = GetSubformDataType(appResources, validConfig);
         if (!context.ApplicationMetadata.DataTypes.Exists(declared => declared.Id == dataType))
         {
             return
@@ -79,56 +72,48 @@ internal sealed class SubformPdfServiceTask(
     public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
     /// <summary>
-    /// Gets the data type of the subform's entries: the <c>defaultDataType</c> of the subform's UI folder, which the
-    /// frontend renders each entry with. Gives the reason instead when the folder or its data type is missing, so
-    /// the frontend cannot render the entries, or when the folder is a task's.
+    /// The data type of the subform's entries: the <c>defaultDataType</c> of the subform's UI folder, which the
+    /// frontend renders each entry with. <see cref="ValidateConfiguration"/> makes sure the folder has one before the
+    /// app starts.
     /// </summary>
-    internal static bool TryGetSubformDataType(
-        IProcessReader processReader,
-        IAppResources appResources,
-        string taskId,
-        ValidAltinnSubformPdfConfiguration config,
-        [NotNullWhen(true)] out string? dataType,
-        [NotNullWhen(false)] out string? reason
-    )
+    internal static string GetSubformDataType(IAppResources appResources, ValidAltinnSubformPdfConfiguration config) =>
+        appResources.GetLayoutSettingsForFolder(config.SubformUiFolder)?.DefaultDataType
+        ?? throw new ApplicationConfigException(
+            $"The subform UI folder '{config.SubformUiFolder}' has no defaultDataType in its Settings.json."
+        );
+
+    /// <summary>
+    /// Why the frontend cannot render the subform's entries, or null when it can: the subform UI folder must be a UI
+    /// folder of its own, not a task's, with a <c>defaultDataType</c>.
+    /// </summary>
+    private string? GetUnrenderableConfigurationReason(string taskId, ValidAltinnSubformPdfConfiguration config)
     {
         string uiFolder = config.SubformUiFolder;
 
         // A task's folder renders the task's own form, so its "entries" would be the main form
         if (processReader.IsProcessTask(uiFolder))
         {
-            dataType = null;
-            reason =
-                $"Subform PDF service task '{taskId}' renders the subform UI folder '{uiFolder}' named in "
+            return $"Subform PDF service task '{taskId}' renders the subform UI folder '{uiFolder}' named in "
                 + $"<altinn:subformPdfConfig><altinn:subformUiFolder>, but 'ui/{uiFolder}' is the UI folder of the "
                 + $"task '{uiFolder}', not of a subform. Name the UI folder that holds the subform's pages.";
-            return false;
         }
 
         LayoutSettings? settings = appResources.GetLayoutSettingsForFolder(uiFolder);
         if (settings is null)
         {
-            dataType = null;
-            reason =
-                $"Subform PDF service task '{taskId}' renders the subform UI folder '{uiFolder}' named in "
+            return $"Subform PDF service task '{taskId}' renders the subform UI folder '{uiFolder}' named in "
                 + "<altinn:subformPdfConfig><altinn:subformUiFolder>, but the app has no UI folder "
                 + $"'ui/{uiFolder}' with a Settings.json.";
-            return false;
         }
 
         if (string.IsNullOrWhiteSpace(settings.DefaultDataType))
         {
-            dataType = null;
-            reason =
-                $"Subform PDF service task '{taskId}' renders the subform UI folder '{uiFolder}', but "
+            return $"Subform PDF service task '{taskId}' renders the subform UI folder '{uiFolder}', but "
                 + $"'ui/{uiFolder}/Settings.json' has no defaultDataType. Set it to the data type the subform "
                 + "stores its entries in.";
-            return false;
         }
 
-        dataType = settings.DefaultDataType;
-        reason = null;
-        return true;
+        return null;
     }
 
     public async Task<ServiceTaskResult> Execute(StageContext context)
@@ -141,23 +126,7 @@ internal sealed class SubformPdfServiceTask(
 
         ValidAltinnSubformPdfConfiguration config = GetValidAltinnSubformPdfConfiguration(taskId);
 
-        // The frontend cannot render the entries without the folder and its data type, which surfaces only as a
-        // PDF generator timeout that the engine retries. Fail at once with the actual reason instead. The startup
-        // check and the analyzer report the same.
-        if (
-            !TryGetSubformDataType(
-                processReader,
-                appResources,
-                taskId,
-                config,
-                out string? subformDataType,
-                out string? reason
-            )
-        )
-        {
-            return ServiceTaskResult.FailedPermanent(reason);
-        }
-
+        string subformDataType = GetSubformDataType(appResources, config);
         string? filenameTextResourceKey = config.FilenameTextResourceKey;
         string subformUiFolder = config.SubformUiFolder;
 

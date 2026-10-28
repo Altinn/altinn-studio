@@ -129,7 +129,8 @@ public class PdfControllerTests
             _instanceClient.Object,
             pdfService,
             _processReader.Object,
-            _authenticationContext.Object
+            _authenticationContext.Object,
+            _appResources.Object
         );
     }
 
@@ -299,27 +300,6 @@ public class PdfControllerTests
                 "http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80/Task_SubformPdf"
                     + $"?pdf=1&lang=nb&subformUiFolder=Subform&subformDataElementId={SubformDataElementId}"
             );
-    }
-
-    [Fact]
-    public async Task Request_For_Subform_Pdf_Service_Task_With_A_Folder_It_Cannot_Render_Should_Return_BadRequest()
-    {
-        // Like a PDF service task the frontend cannot render, the preview says why instead of timing out
-        SetupSubformPdfTask(subformDataType: null);
-
-        (ActionResult result, string? requestBody) = await GetPdfPreview(
-            taskId: "Task_SubformPdf",
-            dataElementId: new Guid(SubformDataElementId)
-        );
-
-        result
-            .Should()
-            .BeOfType<BadRequestObjectResult>()
-            .Which.Value.Should()
-            .BeOfType<string>()
-            .Which.Should()
-            .Contain("'ui/Subform/Settings.json' has no defaultDataType");
-        requestBody.Should().BeNull();
     }
 
     [Fact]
