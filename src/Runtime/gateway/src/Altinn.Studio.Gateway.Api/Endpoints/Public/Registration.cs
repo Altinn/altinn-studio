@@ -13,6 +13,7 @@ internal static class Registration
         publicApiV1.MapDeployEndpoints();
         publicApiV1.MapAlertsEndpoints();
         publicApiV1.MapMetricsEndpoints();
+        publicApiV1.MapWorkflowsEndpoints();
         return app;
     }
 }
