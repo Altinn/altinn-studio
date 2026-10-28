@@ -10,6 +10,14 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel"
+
+	"go.opentelemetry.io/otel/metric"
+
+	commontelemetry "altinn.studio/common/telemetry"
+	sharedattr "altinn.studio/common/telemetry/attr"
+	"altinn.studio/operator/internal/telemetry"
+
 	goruntime "runtime"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -77,16 +85,21 @@ func NewReconciler(
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;update
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;patch
 
+const (
+	controllerName                = "maskinporten"
+	rotationRolloutControllerName = "maskinporten_rotation_rollout"
+)
+
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.0/pkg/reconcile
 func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.Request) (ctrl.Result, error) {
-	ctx, span := r.runtime.Tracer().Start(
-		ctx,
-		"Reconcile",
-		trace.WithAttributes(attribute.String("namespace", kreq.Namespace), attribute.String("name", kreq.Name)),
+	ctx, span := telemetry.StartRun(ctx, controllerName, "maskinporten.Reconcile",
+		telemetry.AttrObjectKind.String("MaskinportenClient"),
+		telemetry.AttrObjectNamespace.String(kreq.Namespace),
+		telemetry.AttrObjectName.String(kreq.Name),
 	)
 	defer span.End()
 
@@ -106,19 +119,17 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 
 	req, err := r.mapRequest(ctx, kreq)
 	if err != nil {
-		span.SetStatus(codes.Error, "mapRequest failed")
-		span.RecordError(err)
+		commontelemetry.SetError(span, "map_request", err)
 		return ctrl.Result{}, err
 	}
 
-	span.SetAttributes(attribute.String("app_id", req.AppId))
+	span.SetAttributes(attribute.String(sharedattr.App, req.AppId))
 
 	err = r.loadInstance(ctx, req)
 	if err != nil {
 		notFoundIgnored := client.IgnoreNotFound(err)
 		if notFoundIgnored != nil {
-			span.SetStatus(codes.Error, "getInstance failed")
-			span.RecordError(err)
+			commontelemetry.SetError(span, "get_instance", err)
 			logger.Error(err, "Reconciling MaskinportenClient errored")
 			return ctrl.Result{}, fmt.Errorf("ignore not found instance error: %w", notFoundIgnored)
 		}
@@ -128,8 +139,8 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	instance := req.Instance
 	logger.Info("Loaded info", "request_kind", req.Kind.String(), "generation", instance.GetGeneration())
 	span.SetAttributes(
-		attribute.String("request_kind", req.Kind.String()),
-		attribute.Int64("generation", instance.GetGeneration()),
+		attribute.String("altinn.operator.maskinporten.request_kind", req.Kind.String()),
+		attribute.Int64("altinn.operator.object.generation", instance.GetGeneration()),
 	)
 
 	currentState, err := r.fetchCurrentState(ctx, req)
@@ -149,19 +160,18 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 			// Requeue with a delay without logging as error
 			return ctrl.Result{RequeueAfter: requeueAfter}, nil
 		}
-		r.updateStatusWithError(ctx, err, "fetchCurrentState failed", instance, nil)
+		r.updateStatusWithError(ctx, err, "fetch_current_state", "fetchCurrentState failed", instance, nil)
 		return ctrl.Result{}, err
 	}
 
 	executedCommands, err := r.reconcile(ctx, configValue, currentState)
 	if err != nil {
-		r.updateStatusWithError(ctx, err, "reconcile failed", instance, executedCommands)
+		r.updateStatusWithError(ctx, err, "reconcile", "reconcile failed", instance, executedCommands)
 		return ctrl.Result{}, err
 	}
 
 	if len(executedCommands) == 0 {
 		logger.Info("No actions taken")
-		span.SetStatus(codes.Ok, "reconciled successfully")
 		reason := "NoActionsNeeded"
 		message := "No actions needed"
 		if req.Kind == RequestDeleteKind {
@@ -169,11 +179,12 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		}
 		err = r.updateStatus(ctx, instance, reason, message, executedCommands)
 		if err != nil {
-			span.SetStatus(codes.Error, "updateStatus failed")
-			span.RecordError(err)
+			commontelemetry.SetError(span, "update_status", err)
 			logger.Error(err, "Failed to update MaskinportenClient status")
 			return ctrl.Result{}, err
 		}
+		// Only now: the SDK ignores an error status set after Ok.
+		span.SetStatus(codes.Ok, "reconciled successfully")
 		return ctrl.Result{}, nil
 	}
 
@@ -188,8 +199,7 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 	message := fmt.Sprintf("Reconciled %d resources", len(executedCommands))
 	err = r.updateStatus(ctx, instance, reason, message, executedCommands)
 	if err != nil {
-		span.SetStatus(codes.Error, "updateStatus failed")
-		span.RecordError(err)
+		commontelemetry.SetError(span, "update_status", err)
 		logger.Error(err, "Failed to update MaskinportenClient status")
 		return ctrl.Result{}, err
 	}
@@ -313,7 +323,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 	readyMessage string,
 	results maskinporten.CommandResultList,
 ) error {
-	ctx, span := r.runtime.Tracer().Start(ctx, "Reconcile.updateStatus")
+	ctx, span := r.runtime.Tracer().Start(ctx, "maskinporten.updateStatus")
 	defer span.End()
 
 	logger := log.FromContext(ctx)
@@ -422,8 +432,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 	err := r.Status().Update(ctx, instance)
 
 	if err != nil {
-		span.SetStatus(codes.Error, "failed to update status")
-		span.RecordError(err)
+		commontelemetry.SetError(span, "update_status", err)
 		logger.Error(err, "Failed to update MaskinportenClient status")
 	}
 
@@ -456,6 +465,7 @@ func markRotationRestartPending(
 func (r *MaskinportenClientReconciler) updateStatusWithError(
 	ctx context.Context,
 	origError error,
+	errorType string,
 	msg string,
 	instance *resourcesv1alpha1.MaskinportenClient,
 	results maskinporten.CommandResultList,
@@ -464,8 +474,7 @@ func (r *MaskinportenClientReconciler) updateStatusWithError(
 	logger := log.FromContext(ctx)
 	logger.Error(origError, "Reconciliation of MaskinportenClient failed", "failure", msg)
 
-	origSpan.SetStatus(codes.Error, msg)
-	origSpan.RecordError(origError)
+	commontelemetry.SetError(origSpan, errorType, origError)
 
 	timestamp := metav1.Now()
 	instance.Status.LastSynced = &timestamp
@@ -607,7 +616,7 @@ func (r *MaskinportenClientReconciler) loadInstance(
 	ctx context.Context,
 	req *maskinportenClientRequest,
 ) error {
-	ctx, span := r.runtime.Tracer().Start(ctx, "Reconcile.getInstance")
+	ctx, span := r.runtime.Tracer().Start(ctx, "maskinporten.getInstance")
 	defer span.End()
 
 	instance := &resourcesv1alpha1.MaskinportenClient{}
@@ -634,7 +643,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 	ctx context.Context,
 	req *maskinportenClientRequest,
 ) (*maskinporten.ClientState, error) {
-	ctx, span := r.runtime.Tracer().Start(ctx, "Reconcile.fetchCurrentState")
+	ctx, span := r.runtime.Tracer().Start(ctx, "maskinporten.fetchCurrentState")
 	defer span.End()
 
 	logger := log.FromContext(ctx)
@@ -762,7 +771,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 	configValue *config.Config,
 	currentState *maskinporten.ClientState,
 ) (maskinporten.CommandResultList, error) {
-	ctx, span := r.runtime.Tracer().Start(ctx, "Reconcile.reconcile")
+	ctx, span := r.runtime.Tracer().Start(ctx, "maskinporten.reconcile")
 	defer span.End()
 
 	operatorCtx := r.runtime.GetOperatorContext()
@@ -992,7 +1001,57 @@ func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	if err := mgr.Add(newRotationRolloutProcessor(r)); err != nil {
 		return fmt.Errorf("add Maskinporten rotation rollout processor: %w", err)
 	}
+	return r.registerClientsMetric()
+}
+
+// ClientsMetric is the gauge of MaskinportenClients in the cluster by their Ready condition:
+// ready, not_ready or unknown (no condition yet). Apps with a client that isn't ready can't get
+// Maskinporten tokens.
+const ClientsMetric = "altinn.operator.maskinporten.clients"
+
+func (r *MaskinportenClientReconciler) registerClientsMetric() error {
+	_, err := r.runtime.Meter().Int64ObservableGauge(
+		ClientsMetric,
+		metric.WithDescription("MaskinportenClients in the cluster by their Ready condition."),
+		metric.WithInt64Callback(func(ctx context.Context, observer metric.Int64Observer) error {
+			if !telemetry.IsLeader() {
+				return nil
+			}
+			list := &resourcesv1alpha1.MaskinportenClientList{}
+			if err := r.List(ctx, list); err != nil {
+				// Not returned: a callback's error makes the reader drop the whole collection,
+				// every other metric of the interval included.
+				otel.Handle(fmt.Errorf("observe %s: list MaskinportenClients: %w", ClientsMetric, err))
+				return nil
+			}
+			counts := map[string]int64{"ready": 0, "not_ready": 0, "unknown": 0}
+			for i := range list.Items {
+				counts[clientReadiness(&list.Items[i])]++
+			}
+			for state, count := range counts {
+				observer.Observe(count, metric.WithAttributes(
+					attribute.String("altinn.operator.maskinporten.client.state", state),
+				))
+			}
+			return nil
+		}),
+	)
+	if err != nil {
+		return fmt.Errorf("register %s: %w", ClientsMetric, err)
+	}
 	return nil
+}
+
+func clientReadiness(instance *resourcesv1alpha1.MaskinportenClient) string {
+	ready := apimeta.FindStatusCondition(instance.Status.Conditions, maskinporten.ConditionTypeReady)
+	switch {
+	case ready == nil || ready.Status == metav1.ConditionUnknown:
+		return "unknown"
+	case ready.Status == metav1.ConditionTrue:
+		return "ready"
+	default:
+		return "not_ready"
+	}
 }
 
 // rotateAnnotationPredicate triggers reconciliation when the rotate-jwk annotation is added.

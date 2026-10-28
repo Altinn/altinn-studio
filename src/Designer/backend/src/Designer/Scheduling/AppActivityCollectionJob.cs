@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models.AppActivity;

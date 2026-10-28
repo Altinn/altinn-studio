@@ -60,6 +60,13 @@
 
 :root[data-font='inter'] {
   --font-family: 'Inter', sans-serif;
+  /* Lowercase l with a tail, so it is not confused with uppercase I or the digit 1, as Designsystemet recommends */
+  font-feature-settings: 'cv05' 1;
+}
+
+/* Browser defaults reset the font on form controls, so they do not inherit font-feature-settings by themselves */
+:root[data-font='inter'] :is(input, textarea, select, button) {
+  font-feature-settings: inherit;
 }
 
 /* Workaround to avoid (PDF) postfix from Altinn designsystem */

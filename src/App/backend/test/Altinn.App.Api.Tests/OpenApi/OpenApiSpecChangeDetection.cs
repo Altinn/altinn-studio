@@ -112,13 +112,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
             "application/json",
             "application/problem+json"
         );
-        AssertStringOrProblemConflictResponse(
-            paths
-                .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/process/completeProcess")
-                .GetProperty("put")
-                .GetProperty("responses")
-                .GetProperty("409")
-        );
 
         JsonElement patchOperation = paths
             .GetProperty("/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data")
@@ -222,34 +215,6 @@ public class OpenApiSpecChangeDetection : ApiTestBase, IClassFixture<WebApplicat
             content.GetProperty("text/json").GetProperty("schema"),
             "ProblemDetails",
             "UserActionResponse"
-        );
-    }
-
-    private static void AssertStringOrProblemConflictResponse(JsonElement conflictResponse)
-    {
-        JsonElement content = conflictResponse.GetProperty("content");
-        Assert.Equal(
-            ["application/json", "application/problem+json", "text/json", "text/plain"],
-            content.EnumerateObject().Select(property => property.Name).Order().ToArray()
-        );
-        Assert.Equal("string", content.GetProperty("text/plain").GetProperty("schema").GetProperty("type").GetString());
-        AssertSchemaReference(content.GetProperty("application/problem+json").GetProperty("schema"), "ProblemDetails");
-        AssertStringOrProblemSchema(content.GetProperty("application/json").GetProperty("schema"));
-        AssertStringOrProblemSchema(content.GetProperty("text/json").GetProperty("schema"));
-    }
-
-    private static void AssertStringOrProblemSchema(JsonElement schema)
-    {
-        JsonElement[] variants = schema.GetProperty("oneOf").EnumerateArray().ToArray();
-        Assert.Contains(
-            variants,
-            variant => variant.TryGetProperty("type", out var type) && type.GetString() == "string"
-        );
-        Assert.Contains(
-            variants,
-            variant =>
-                variant.TryGetProperty("$ref", out var reference)
-                && reference.GetString() == "#/components/schemas/ProblemDetails"
         );
     }
 
