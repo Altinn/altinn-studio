@@ -149,11 +149,21 @@ const CAMERA = {
 };
 const EASE = [0.22, 1, 0.36, 1] as const;
 const CAMERA_MOVE = { duration: 0.6, ease: EASE };
+/** Growing out of the intro: slower and eased at both ends, so the box is seen to grow. */
+const GROW = { duration: 0.8, ease: [0.65, 0, 0.35, 1] as const, delay: 0.15 };
 
 /** Where the app box sits in the intro, in the body's coordinates. */
 const APP_BOX = { left: 0, top: 160, width: 360, height: 240 };
 /** The band the app box becomes, around the process row, in the camera's coordinates. */
 const BAND = { x0: START_CX - EVENT_R - 50, x1: END_CX + EVENT_R + 50, y0: -14, y1: ROW_H + 14 };
+
+/**
+ * The box's colours, the app's grey in the intro and a paler grey as the band
+ * (`--surface-2`/`--line-strong`, then `--surface-1`/`--line-soft`), as
+ * literals so framer can blend them while the box grows.
+ */
+const APP_LOOK = { backgroundColor: '#eef1f5', borderColor: '#97a5b6' };
+const BAND_LOOK = { backgroundColor: '#f7f9fb', borderColor: '#e3e8ef' };
 
 /** The band's rectangle in the body's coordinates, under a camera position. */
 function bandRect(camera: { scale: number; y: number }) {
@@ -176,11 +186,12 @@ function bandRect(camera: { scale: number; y: number }) {
 function AppBand({ view, wide }: { view: number; wide: boolean }) {
   const band = view > 0;
   const rect = !band ? APP_BOX : bandRect(wide ? CAMERA.wide : CAMERA.close);
+  const look = band ? BAND_LOOK : APP_LOOK;
   return (
     <motion.div
-      className={`s-unit s-unit--app s-engine__app${band ? ' is-band' : ''}`}
-      initial={{ opacity: 0, y: 16, ...rect }}
-      animate={{ opacity: 1, y: 0, ...rect }}
+      className='s-unit s-unit--app s-engine__app'
+      initial={{ opacity: 0, y: 16, ...rect, ...look }}
+      animate={{ opacity: 1, y: 0, ...rect, ...look }}
       transition={{
         // The rectangle moves exactly like the camera, so the band stays locked to the process row.
         // Growing out of the intro waits for the other tiles to clear; shrinking back waits for
@@ -188,7 +199,7 @@ function AppBand({ view, wide }: { view: number; wide: boolean }) {
         default: !band
           ? { ...CAMERA_MOVE, delay: 0.3 }
           : view === 1
-            ? { ...CAMERA_MOVE, delay: 0.15 }
+            ? GROW
             : CAMERA_MOVE,
         opacity: { duration: 0.4, delay: 0.12 },
         y: { duration: 0.4, delay: 0.12, ease: EASE },
@@ -202,7 +213,8 @@ function AppBand({ view, wide }: { view: number; wide: boolean }) {
             ? { opacity: 0, transitionEnd: { visibility: 'hidden' } }
             : { opacity: 1, visibility: 'visible' }
         }
-        transition={{ duration: band ? 0.12 : 0.3, delay: band ? 0 : 0.75 }}
+        // The label rides the box as it grows and fades on the way, so the band reads as the app.
+        transition={{ duration: band ? 0.4 : 0.3, delay: band ? 0.15 : 0.75 }}
       >
         <Icon name='user' size={44} />
         <span className='s-unit__title'>Altinn-app</span>
@@ -363,7 +375,7 @@ export default function ProsessmotorSlide({ step }: SlideProps) {
           className='s-dag s-layer'
           initial={false}
           animate={{ opacity: intro ? 0 : 1 }}
-          transition={{ duration: 0.35, delay: intro ? 0 : 0.55 }}
+          transition={{ duration: 0.35, delay: intro ? 0 : GROW.delay + GROW.duration - 0.1 }}
           aria-hidden={intro}
         >
           <motion.div

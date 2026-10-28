@@ -496,17 +496,9 @@
   margin: 0 auto;
 }
 
-/* The intro's app box, which grows into the band behind the process row (moved by framer). */
+/* The intro's app box, which grows into the band behind the process row (moved and coloured by framer). */
 .s-engine__app {
   z-index: 0;
-  transition:
-    background-color 0.4s,
-    border-color 0.4s;
-}
-
-.s-engine__app.is-band {
-  border-color: var(--line-soft);
-  background: var(--surface-1);
 }
 
 .s-engine__app-body {
