@@ -135,8 +135,13 @@ export class BrowserDiagnostics {
             targetId: target.targetId,
             flatten: true,
           }));
-          await this.send('Runtime.evaluate', { expression: '1', returnByValue: true }, sessionId);
+          const { result } = await this.send(
+            'Runtime.evaluate',
+            { expression: 'globalThis.__cypressDiagnosticsProgressAt || 0', returnByValue: true },
+            sessionId,
+          );
           sample.responsive = true;
+          if (Number.isFinite(result.value)) sample.progressAt = result.value;
         } catch (error) {
           sample.error = error.message;
         } finally {
