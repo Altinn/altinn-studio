@@ -65,49 +65,51 @@ public class StartTaskTests
         return new StartTask(resolver);
     }
 
-    [Fact]
-    public async Task Execute_ResolvesProcessTaskAndCallsStart_ReturnsSuccess()
+    private sealed class RecordingTask(List<StageContext> seen) : IProcessTask
     {
-        // Arrange
-        var processTask = new Mock<IProcessTask> { CallBase = true };
-        processTask.Setup(x => x.Type).Returns("data");
-        processTask.Setup(x => x.Start(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
-        var command = CreateCommand(processTask.Object);
-        var context = CreateContext(CreateInstance());
+        public string Type => "data";
 
-        // Act
-        var result = await command.Execute(context);
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(context =>
+                {
+                    seen.Add(context);
+                    return Task.FromResult(StageResult.Completed());
+                })
+                .Build();
+    }
 
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        processTask.Verify(
-            x =>
-                x.Start(
-                    It.Is<ProcessTaskContext>(c =>
-                        c.InstanceDataMutator == context.InstanceDataMutator
-                        && c.CancellationToken.Equals(context.CancellationToken)
-                    )
-                ),
-            Times.Once
-        );
+    private sealed class ThrowingTask(Exception exception) : IProcessTask
+    {
+        public string Type => "data";
+
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline.Stage(_ => throw exception).Build();
     }
 
     [Fact]
-    public async Task Execute_WhenStartThrows_ReturnsFailedResult()
+    public async Task Execute_RunsTheTasksStageWithTheStepsContext_ReturnsSuccess()
     {
-        // Arrange
-        var processTask = new Mock<IProcessTask> { CallBase = true };
-        processTask.Setup(x => x.Type).Returns("data");
-        processTask
-            .Setup(x => x.Start(It.IsAny<ProcessTaskContext>()))
-            .ThrowsAsync(new InvalidOperationException("Start failed"));
-        var command = CreateCommand(processTask.Object);
+        var seen = new List<StageContext>();
+        var command = CreateCommand(new RecordingTask(seen));
         var context = CreateContext(CreateInstance());
 
-        // Act
         var result = await command.Execute(context);
 
-        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        StageContext stage = Assert.Single(seen);
+        Assert.Same(context.InstanceDataMutator, stage.InstanceDataMutator);
+        Assert.Equal(context.CancellationToken, stage.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Execute_WhenTheStageThrows_ReturnsFailedResult()
+    {
+        var command = CreateCommand(new ThrowingTask(new InvalidOperationException("Start failed")));
+        var context = CreateContext(CreateInstance());
+
+        var result = await command.Execute(context);
+
         var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
         Assert.Equal("Start failed", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);

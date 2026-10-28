@@ -25,9 +25,8 @@ these rules:
   task generated.
 - `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
   (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
-  stage retries without the ones before it. The default pipeline is one stage that calls `Start`, `End` or `Abandon`.
-  A task type with nothing to do at a phase, as the built-in `data` task at every phase, composes no stages for it and
-  gets no step. Each stage step carries its method's name as the `stepName` label, for the people following the
+  stage retries without the ones before it. The default composes no stages, so a task type with nothing to do at a
+  phase, as the built-in `data` task at every phase, gets no step. Each stage step carries its method's name as the `stepName` label, for the people following the
   task in Studio's admin panel; see [Step names](service-task-pipelines.md#step-names).
   A stage is named by position, like a service task item, so [in-flight workflows](#in-flight-workflows) applies.
 - A service task runs its steps after the commit. When it concludes, its last step enqueues the next transition as a

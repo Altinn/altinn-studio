@@ -875,7 +875,7 @@ public class ProcessNextRequestFactoryTests
         // commit, around work the pre-commit bracket already named.
         List<(string CommandKey, string? Element)> pairs = ExtractCommandElements(bundle.Request.Workflows[0]);
         Assert.Equal((ExecuteServiceTask.Key, null), pairs[^1]);
-        Assert.Equal("Task_2", pairs.Single(p => p.CommandKey == StartTask.Key).Element);
+        Assert.Equal("Task_2", pairs.Single(p => p.CommandKey == OnTaskStartingHook.Key).Element);
     }
 
     [Fact]
@@ -971,9 +971,9 @@ public class ProcessNextRequestFactoryTests
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
+        // A service task composes no lifecycle stages by default, so no EndTask or StartTask step is planned.
         var expected = new List<string>
         {
-            EndTask.Key,
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
@@ -982,7 +982,6 @@ public class ProcessNextRequestFactoryTests
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            StartTask.Key,
             CommitProcessState.Key,
             EnqueueAuxiliaryWorkflows.Key,
             ExecuteServiceTask.Key,
