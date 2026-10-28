@@ -9,6 +9,7 @@ import { backendValidationApi } from 'src/core/api-client/backendValidation.api'
 import { instanceApi } from 'src/core/api-client/instance.api';
 import { partyApi } from 'src/core/api-client/party.api';
 import { textResourcesApi } from 'src/core/api-client/textResources.api';
+import { instanceDataQuery } from 'src/core/queries/instance';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { clientLoader as instanceIndexLoader } from 'src/routes/instance/instance-index.route';
@@ -58,5 +59,27 @@ describe('instance-index clientLoader', () => {
 
     await taskIndexLoader(createLoaderArgs({ instanceOwnerPartyId, instanceGuid, taskId: 'Task_Service' }));
     expect(redirect).toHaveBeenLastCalledWith(`/instance/${instanceOwnerPartyId}/${instanceGuid}/Task_Service/page1`);
+  });
+
+  it("redirects when a refetch cancels the read it joined, as the instance poll's next tick does", async () => {
+    window.altinnAppGlobalData.ui = getUiConfigMock();
+    const instance = getInstanceWithProcessMock();
+    vi.mocked(instanceApi.getInstance).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(instance), 10)),
+    );
+    const args = createLoaderArgs({ instanceOwnerPartyId, instanceGuid, taskId: 'Task_1' });
+    const queryClient = args.context.get(queryClientContext);
+    const { queryKey } = instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi });
+    queryClient.setQueryData(queryKey, instance);
+
+    // A poll's read is in flight when the loader starts, so the loader joins it
+    const firstPoll = queryClient.refetchQueries({ queryKey });
+    const loading = taskIndexLoader(args);
+    // The next poll cancels that read for a newer one
+    const nextPoll = queryClient.refetchQueries({ queryKey });
+
+    await loading;
+    await Promise.all([firstPoll, nextPoll]);
+    expect(redirect).toHaveBeenLastCalledWith(`/instance/${instanceOwnerPartyId}/${instanceGuid}/Task_1/page1`);
   });
 });
