@@ -1,5 +1,6 @@
 #nullable disable
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
@@ -16,8 +17,12 @@ public interface IReleaseService
     /// Creates a document in document db
     /// </summary>
     /// <param name="release">Release containing data from client</param>
+    /// <param name="appStatus">
+    /// App status to commit to applicationmetadata.json before building. The release is then built from that commit.
+    /// When null, the status already in the repository is kept.
+    /// </param>
     /// <returns>The created document in db</returns>
-    Task<ReleaseEntity> CreateAsync(ReleaseEntity release);
+    Task<ReleaseEntity> CreateAsync(ReleaseEntity release, AppStatus? appStatus = null);
 
     /// <summary>
     /// Gets releases based on a query

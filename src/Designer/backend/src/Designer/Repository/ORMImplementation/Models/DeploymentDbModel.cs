@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System;
 using System.Collections.Generic;
+using Altinn.Platform.Storage.Interface.Enums;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -29,6 +30,8 @@ public partial class DeploymentDbModel
     public long? InternalBuildId { get; set; }
 
     public DeploymentType DeploymentType { get; set; } = DeploymentType.Deploy;
+
+    public string AppStatus { get; set; }
 
     public BuildDbModel Build { get; set; }
 

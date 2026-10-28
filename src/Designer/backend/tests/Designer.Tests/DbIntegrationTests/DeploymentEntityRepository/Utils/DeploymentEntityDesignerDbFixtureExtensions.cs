@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.Fixtures;
@@ -66,6 +67,7 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
             Build = MapBuildToDbModel(entity.Build),
             DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
                 (int)entity.DeploymentType,
+            AppStatus = entity.AppStatus?.ToString(),
         };
 
     private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel MapBuildToDbModel(

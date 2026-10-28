@@ -3,20 +3,25 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Rest.TransientFaultHandling;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -28,6 +33,14 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class ApplicationMetadataService : IApplicationMetadataService
 {
     private const string EnableFileScanPropertyName = "enableFileScan";
+    private const string ApplicationMetadataFilePath = "App/config/applicationmetadata.json";
+
+    // Matches how Designer writes applicationmetadata.json, so committing a status keeps the file's formatting
+    private static readonly System.Text.Json.JsonSerializerOptions s_repositoryJsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     private readonly ILogger<ApplicationMetadataService> _logger;
     private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
@@ -281,12 +294,13 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string app,
         string shortCommitId,
         string envName,
+        AppStatus appStatus,
         CancellationToken cancellationToken
     )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string appMetadataJson = await GetApplicationMetadataJsonFromSpecificReference(org, app, shortCommitId);
-        await UpdateApplicationMetadataInStorage(org, app, appMetadataJson, envName, shortCommitId);
+        await UpdateApplicationMetadataInStorage(org, app, appMetadataJson, envName, shortCommitId, appStatus);
     }
 
     public async Task<ApplicationMetadata> GetApplicationMetadataFromRepository(string org, string app)
@@ -314,12 +328,93 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string referenceId
     )
     {
-        var file = await _giteaClient.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
-        if (string.IsNullOrEmpty(file.Content))
+        FileSystemObject file = await GetApplicationMetadataFileFromSpecificReference(org, app, referenceId);
+        return await DecodeFileContent(file);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> CommitAppStatusAsync(
+        string org,
+        string app,
+        string baseCommitId,
+        AppStatus appStatus,
+        CancellationToken cancellationToken = default
+    )
+    {
+        FileSystemObject file = await GetApplicationMetadataFileFromSpecificReference(
+            org,
+            app,
+            baseCommitId,
+            cancellationToken
+        );
+        string appMetadataJson = await DecodeFileContent(file);
+        if (ApplicationMetadataJsonHelper.GetStatus(appMetadataJson) == appStatus)
+        {
+            return baseCommitId;
+        }
+
+        string latestCommitId = await _giteaClient.GetLatestCommitOnBranch(
+            org,
+            app,
+            General.DefaultBranch,
+            cancellationToken
+        );
+        if (!string.Equals(latestCommitId, baseCommitId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new HttpRequestWithStatusException(
+                $"The app status can only be set on the latest commit on {General.DefaultBranch}."
+            )
+            {
+                StatusCode = HttpStatusCode.Conflict,
+            };
+        }
+
+        string updatedAppMetadataJson = ApplicationMetadataJsonHelper.SetStatus(
+            appMetadataJson,
+            appStatus,
+            s_repositoryJsonOptions
+        );
+        if (appMetadataJson.EndsWith('\n'))
+        {
+            updatedAppMetadataJson += "\n";
+        }
+
+        return await _giteaClient.UpdateFileAsync(
+            org,
+            app,
+            ApplicationMetadataFilePath,
+            updatedAppMetadataJson,
+            file.Sha,
+            General.DefaultBranch,
+            $"Set app status to {appStatus}",
+            cancellationToken
+        );
+    }
+
+    private async Task<FileSystemObject> GetApplicationMetadataFileFromSpecificReference(
+        string org,
+        string app,
+        string referenceId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        FileSystemObject file = await _giteaClient.GetFileAsync(
+            org,
+            app,
+            ApplicationMetadataFilePath,
+            referenceId,
+            cancellationToken
+        );
+        if (string.IsNullOrEmpty(file?.Content))
         {
             throw new NotFoundHttpRequestException("There is no ApplicationMetadata file in repo.");
         }
 
+        return file;
+    }
+
+    private static async Task<string> DecodeFileContent(FileSystemObject file)
+    {
         // Passing the file content through a MemoryStream to deal with potential BOM issues
         using var fileStream = new MemoryStream(Convert.FromBase64String(file.Content));
         using StreamReader utf8Reader = new(fileStream, Encoding.UTF8);
@@ -342,7 +437,8 @@ public class ApplicationMetadataService : IApplicationMetadataService
         string app,
         string applicationMetadataJson,
         string envName,
-        string shortCommitId
+        string shortCommitId,
+        AppStatus appStatus
     )
     {
         applicationMetadataJson = ApplicationMetadataJsonHelper.SetId(applicationMetadataJson, id: $"{org}/{app}");
@@ -350,6 +446,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
             applicationMetadataJson,
             versionId: shortCommitId
         );
+        applicationMetadataJson = ApplicationMetadataJsonHelper.SetStatus(applicationMetadataJson, appStatus);
 
         await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationMetadataJson, envName);
     }
