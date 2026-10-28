@@ -233,6 +233,9 @@ internal static class V8Tov9Upgrade
         returnCode = CombineExitCodes(returnCode, await RemoveJsonObjectInDataResponseFlag(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await RemoveEnforceDataTypeTaskIdSetting(projectFile));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await CheckAppFileNameCase(projectFile));
 
         options.CancellationToken.ThrowIfCancellationRequested();
@@ -1313,6 +1316,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error removing the JsonObjectInDataResponse feature flag from the appsettings files", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes AppSettings:EnforceDataTypeTaskId from the appsettings files: v9 always refuses changes through the app
+    /// APIs to a data type's data outside the tasks it is bound to.
+    /// </summary>
+    static async Task<int> RemoveEnforceDataTypeTaskIdSetting(string projectFile)
+    {
+        UpgradeConsole.BeginStep("EnforceDataTypeTaskId setting");
+        try
+        {
+            var appFolder = Path.GetDirectoryName(projectFile) ?? projectFile;
+            var result = await EnforceDataTypeTaskIdMigration.Migrate(appFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No AppSettings:EnforceDataTypeTaskId in the appsettings files",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error removing AppSettings:EnforceDataTypeTaskId from the appsettings files", ex);
         }
     }
 
