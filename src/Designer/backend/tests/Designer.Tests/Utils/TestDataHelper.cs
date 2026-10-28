@@ -165,6 +165,19 @@ public static class TestDataHelper
         return targetDirectory;
     }
 
+    /// <summary>
+    /// Replaces the app's App.csproj with one that references the given version of Altinn.App.Api.
+    /// </summary>
+    public static void WriteAppLibVersion(string repositoryPath, string version) =>
+        File.WriteAllText(
+            Path.Combine(repositoryPath, "App", "App.csproj"),
+            $"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <ItemGroup><PackageReference Include="Altinn.App.Api" Version="{version}" /></ItemGroup>
+            </Project>
+            """
+        );
+
     public static async Task<string> CopyRemoteRepositoryForTest(string org, string repository, string targetRepository)
     {
         var sourceRemoteRepository = GetTestDataRemoteRepository(org, repository);

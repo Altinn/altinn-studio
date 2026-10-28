@@ -32,6 +32,7 @@ public class UiFoldersService : IUiFoldersService
     private readonly IProcessModelingService _processModelingService;
     private readonly IPublisher _publisher;
     private readonly ILogger<UiFoldersService> _logger;
+    private readonly IAppVersionService _appVersionService;
     private const string LayoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
     private const string SubformComponentType = "Subform";
     private const string SubformPdfTaskType = "subformPdf";
@@ -40,13 +41,15 @@ public class UiFoldersService : IUiFoldersService
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IProcessModelingService processModelingService,
         IPublisher publisher,
-        ILogger<UiFoldersService> logger
+        ILogger<UiFoldersService> logger,
+        IAppVersionService appVersionService
     )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _processModelingService = processModelingService;
         _publisher = publisher;
         _logger = logger;
+        _appVersionService = appVersionService;
     }
 
     private AltinnAppGitRepository GetRepository(
@@ -295,7 +298,12 @@ public class UiFoldersService : IUiFoldersService
         )?.DefaultDataType;
         if (!string.IsNullOrEmpty(dataType))
         {
-            await DeleteTaskRefInApplicationMetadata(altinnAppGitRepository, dataType, layoutSetToDeleteId);
+            await DeleteTaskRefInApplicationMetadata(
+                altinnAppGitRepository,
+                dataType,
+                layoutSetToDeleteId,
+                _appVersionService.UsesDataTypeTaskIds(editingContext)
+            );
         }
 
         altinnAppGitRepository.DeleteLayoutSetFolder(layoutSetToDeleteId, cancellationToken);
@@ -338,18 +346,17 @@ public class UiFoldersService : IUiFoldersService
     private static async Task DeleteTaskRefInApplicationMetadata(
         AltinnAppGitRepository altinnAppGitRepository,
         string dataTypeId,
-        string connectedTaskId
+        string connectedTaskId,
+        bool usesTaskIds
     )
     {
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         DataType? dataType = applicationMetadata.DataTypes.Find(type => type.Id == dataTypeId);
-        // dataType.taskId != connectedTaskId means that the data type is used by another task, so we should not delete it.
-        if (dataType == null || dataType.TaskId != connectedTaskId)
+        if (dataType == null || !dataType.UnbindFromTask(connectedTaskId, usesTaskIds))
         {
             return;
         }
 
-        dataType.TaskId = null;
         await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
     }
 

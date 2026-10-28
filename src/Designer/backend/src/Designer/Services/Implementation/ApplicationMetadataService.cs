@@ -10,14 +10,15 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -34,6 +35,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IGiteaClient _giteaClient;
+    private readonly IAppVersionService _appVersionService;
 
     /// <summary>
     /// Constructor
@@ -43,12 +45,14 @@ public class ApplicationMetadataService : IApplicationMetadataService
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="httpContextAccessor">The http context accessor</param>
     /// <param name="giteaClient">The gitea client</param>
+    /// <param name="appVersionService">The app version service</param>
     public ApplicationMetadataService(
         ILogger<ApplicationMetadataService> logger,
         IAltinnStorageAppMetadataClient storageAppMetadataClient,
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IHttpContextAccessor httpContextAccessor,
-        IGiteaClient giteaClient
+        IGiteaClient giteaClient,
+        IAppVersionService appVersionService
     )
     {
         _logger = logger;
@@ -56,6 +60,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _httpContextAccessor = httpContextAccessor;
         _giteaClient = giteaClient;
+        _appVersionService = appVersionService;
     }
 
     /// <inheritdoc/>
@@ -132,7 +137,25 @@ public class ApplicationMetadataService : IApplicationMetadataService
     public async Task CreateApplicationMetadata(string org, string app, string appTitle)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
         string id = ApplicationHelper.GetFormattedApplicationId(org, app);
+        DataType modelDataType = new()
+        {
+            Id = "model",
+            AllowedContentTypes = new List<string>() { "application/xml" },
+            AppLogic = new ApplicationLogic()
+            {
+                AutoCreate = true,
+                ClassRef = "Altinn.App.Models.model.model",
+                AllowAnonymousOnStateless = false,
+                AutoDeleteOnProcessEnd = false,
+            },
+            MaxCount = 1,
+            MinCount = 1,
+            EnableFileScan = false,
+            ValidationErrorOnPendingFileScan = false,
+        };
+        modelDataType.BindToTask("Task_1", _appVersionService.UsesDataTypeTaskIds(editingContext));
         ApplicationMetadata appMetadata = new(id)
         {
             Id = id,
@@ -150,23 +173,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = new List<string>() { "application/pdf" },
                 },
-                new()
-                {
-                    Id = "model",
-                    AllowedContentTypes = new List<string>() { "application/xml" },
-                    AppLogic = new ApplicationLogic()
-                    {
-                        AutoCreate = true,
-                        ClassRef = "Altinn.App.Models.model.model",
-                        AllowAnonymousOnStateless = false,
-                        AutoDeleteOnProcessEnd = false,
-                    },
-                    TaskId = "Task_1",
-                    MaxCount = 1,
-                    MinCount = 1,
-                    EnableFileScan = false,
-                    ValidationErrorOnPendingFileScan = false,
-                },
+                modelDataType,
             },
             PartyTypesAllowed = new PartyTypesAllowed(),
         };
@@ -197,8 +204,20 @@ public class ApplicationMetadataService : IApplicationMetadataService
     public async Task AddMetadataForAttachment(string org, string app, string applicationMetadata)
     {
         DataType attachmentDataType = DeserializeNewAttachmentDataType(applicationMetadata);
+        string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+        AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+        if (_appVersionService.UsesDataTypeTaskIds(editingContext))
+        {
+            MoveTaskIdToTaskIds(attachmentDataType);
+        }
+
+        await AddDataTypeToApplicationMetadata(org, app, attachmentDataType);
+    }
+
+    private async Task AddDataTypeToApplicationMetadata(string org, string app, DataType dataType)
+    {
         ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
-        existingApplicationMetadata.DataTypes.Add(attachmentDataType);
+        existingApplicationMetadata.DataTypes.Add(dataType);
 
         await UpdateApplicationMetaDataLocally(org, app, existingApplicationMetadata);
     }
@@ -209,6 +228,18 @@ public class ApplicationMetadataService : IApplicationMetadataService
 
         attachmentMetadata[EnableFileScanPropertyName] = GetEnableFileScanOrDefault(attachmentMetadata);
         return attachmentMetadata.ToObject<DataType>();
+    }
+
+    private static void MoveTaskIdToTaskIds(DataType dataType)
+    {
+#pragma warning disable CS0618 // The FileUpload and ImageUpload flows in ux-editor send the current task as taskId
+        if (dataType.TaskIds is null && !string.IsNullOrEmpty(dataType.TaskId))
+        {
+            dataType.TaskIds = [dataType.TaskId];
+        }
+
+        dataType.TaskId = null;
+#pragma warning restore CS0618
     }
 
     /// <inheritdoc/>
@@ -244,8 +275,7 @@ public class ApplicationMetadataService : IApplicationMetadataService
         applicationForm.MaxSize = attachmentMetadata.GetValue("maxSize")?.Value<int?>();
 
         await DeleteMetadataForAttachment(org, app, attachmentId);
-        string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
-        await AddMetadataForAttachment(org, app, metadataAsJson);
+        await AddDataTypeToApplicationMetadata(org, app, applicationForm);
     }
 
     private static bool GetEnableFileScanOrDefault(JObject attachmentMetadata) =>
