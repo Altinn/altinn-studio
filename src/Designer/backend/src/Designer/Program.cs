@@ -201,7 +201,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     CreateDirectory(configuration);
 
-    services.ConfigureDataProtection(configuration, logger);
+    services.ConfigureDataProtection(configuration, env, logger);
     services.ConfigureMvc();
     services.AddProblemDetails();
     services.AddExceptionHandler<GlobalExceptionHandler>();
