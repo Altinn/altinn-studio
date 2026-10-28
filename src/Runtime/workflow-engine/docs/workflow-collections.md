@@ -325,7 +325,7 @@ read will show it.
 
 ## Query Endpoints
 
-**`GET /api/v1/{namespace}/collections`** — the *health* view.
+**`GET /api/v1/{namespace}/collections`** — the _health_ view.
 Cursor-paginated list — a stable, collation-defined key order; treat the cursor as opaque — where
 every entry carries a `workflowCounts` rollup across
 **all** of the collection's workflows, split by role:
@@ -354,11 +354,11 @@ successful, abandoned, and any future status appear as the remainder of `total` 
 
 Three mutually exclusive modes:
 
-| Mode     | Parameters                              | Use                                                        |
-| -------- | --------------------------------------- | ---------------------------------------------------------- |
-| list     | `cursor`, `pageSize`                    | enumerate the namespace's collections                      |
-| annotate | `key` (repeatable)                      | health for a set of keys the caller already holds          |
-| discover | `failures=Any\|Primary\|Auxiliary`, `cursor` | the errors view                                       |
+| Mode     | Parameters                                   | Use                                               |
+| -------- | -------------------------------------------- | ------------------------------------------------- |
+| list     | `cursor`, `pageSize`                         | enumerate the namespace's collections             |
+| annotate | `key` (repeatable)                           | health for a set of keys the caller already holds |
+| discover | `failures=Any\|Primary\|Auxiliary`, `cursor` | the errors view                                   |
 
 `key` × `cursor` → 400. `key` × `failures` → 400. More distinct keys than `pagination.maxAnnotateKeys` → 400 — the
 request is **rejected, never truncated**, because silently dropping keys from a health read is the
@@ -368,7 +368,7 @@ exact failure class this endpoint exists to fix. Annotate mode additionally retu
 return 204 No Content when nothing matches; annotate mode always returns 200 so `unmatchedKeys`
 stays explicit.
 
-**`GET /api/v1/{namespace}/collections/{key}`** — the *frontier* view.
+**`GET /api/v1/{namespace}/collections/{key}`** — the _frontier_ view.
 Detail for one collection: key, heads (with workflow ID + current status), and timestamps. Returns
 404 if not found. This endpoint is a frontier view **by contract**: it reports only the current head
 workflows, so auxiliary workflows never appear in it, and it carries no
