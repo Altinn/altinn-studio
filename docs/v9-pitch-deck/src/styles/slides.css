@@ -1152,38 +1152,53 @@
   color: var(--text-300);
 }
 
-.s-banner {
+.s-split-band {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.s-split-band__zone {
   display: flex;
   align-items: center;
-  gap: 26px;
-  margin-top: 40px;
-  padding: 28px 36px;
+  gap: 20px;
+  padding: 22px 30px;
   border-radius: var(--r-md);
+}
+
+/* Grey for the app, as on the engine slide; blue for the platform. */
+.s-split-band__zone--app {
   background: var(--surface-2);
 }
 
-.s-banner__icon {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #fff;
-  color: var(--success);
+.s-split-band__zone--platform {
+  background: var(--tint-blue);
 }
 
-.s-banner__label {
+.s-split-band__label {
   flex: 0 0 auto;
+  margin-right: 10px;
   font-size: 28px;
   font-weight: var(--fw-bold);
   color: var(--text-100);
 }
 
-.s-banner__text {
-  font-size: 30px;
-  line-height: 1.3;
-  color: var(--text-300);
+.s-split-band__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text-200);
+  font-size: 26px;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.s-split-band__zone--platform .s-split-band__chip .icon {
+  color: var(--blue-500);
 }
 
 /* =========================================================
