@@ -255,10 +255,11 @@ public sealed class SigningProcessTaskTests : IDisposable
     }
 
     [Fact]
-    public async Task DefineEnd_StoresThePdfAndRevokesRightsInSeparateStages()
+    public async Task DefineEnd_RevokesRightsThenStoresThePdfInSeparateStages()
     {
-        // The PDF is saved by its own step before the revocation's platform calls begin, so a retry of the
-        // revocation, which makes one call per signee and gets more time, does not render the PDF again.
+        // The revocation, which makes one call per signee and gets more time, runs first and as its own step, so
+        // the PDF is persisted only once the signees' rights are gone, and a retry of the PDF stage does not revoke
+        // again.
         Instance instance = CreateInstance();
         var dataMutator = CreateDataMutator(instance);
         var configuration = new AltinnSignatureConfiguration
@@ -279,10 +280,10 @@ public sealed class SigningProcessTaskTests : IDisposable
         IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineEnd(new PipelineBuilder()).Stages;
 
         Assert.Equal(2, stages.Count);
-        Assert.Null(stages[0].StepOptions);
-        Assert.Equal(TimeSpan.FromMinutes(5), stages[1].StepOptions?.MaxExecutionTime);
-        // The revocation stage on its own: the strict PDF service mock throws if the PDF is rendered again.
-        await stages[1].Work(CreateStageContext(dataMutator.Object));
+        Assert.Equal(TimeSpan.FromMinutes(5), stages[0].StepOptions?.MaxExecutionTime);
+        Assert.Null(stages[1].StepOptions);
+        // The revocation stage on its own: the strict PDF service mock throws if the PDF is rendered here.
+        await stages[0].Work(CreateStageContext(dataMutator.Object));
         _signingServiceMock.VerifyAll();
         _pdfServiceMock.VerifyNoOtherCalls();
     }

@@ -197,12 +197,13 @@ internal sealed class SigningProcessTask : IProcessTask
     }
 
     /// <summary>
-    /// Ending the task stores the signing PDF, when the configuration names a data type for it, and then revokes the
-    /// rights runtime delegated signing gave the signees, so they do not outlive the task. Two stages, so the PDF is
-    /// saved before the revocation's platform calls begin and a retry of those does not render it again.
+    /// Ending the task revokes the rights runtime delegated signing gave the signees, so they do not outlive the
+    /// task, and then stores the signing PDF, when the configuration names a data type for it. Two stages, in that
+    /// order: the PDF is persisted only once the revocation has run, so a signee cannot read it on the rights the
+    /// task gave them, and a retry of the PDF stage does not repeat the revocation's per-signee platform calls.
     /// </summary>
     public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
-        pipeline.Stage(StoreSigningPdf).Stage(RevokeSigneeRights, _perSigneeCallsStepOptions).Build();
+        pipeline.Stage(RevokeSigneeRights, _perSigneeCallsStepOptions).Stage(StoreSigningPdf).Build();
 
     /// <summary>
     /// Abandoning the task revokes the rights runtime delegated signing gave the signees and removes the signee state
