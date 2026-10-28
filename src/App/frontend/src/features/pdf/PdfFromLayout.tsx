@@ -94,10 +94,10 @@ export function PdfForServiceTask() {
 }
 
 function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
-  // Only a task with a UI folder of its own has pages to print. Any other entry, a blank one or the PDF task itself
-  // included, would print the pages of the PDF task's own folder, which are its waiting page.
+  // Only a task with a UI folder of its own has pages to render. Any other entry, a blank one or the PDF task itself
+  // included, would render the pages of the PDF task's own folder, which are its waiting page.
   const pdfTaskId = useNavigationParam('taskId');
-  const tasksToPrint = taskIds.filter((taskId) => taskId !== pdfTaskId && getUiFolderSettings(taskId));
+  const tasksToRender = taskIds.filter((taskId) => taskId !== pdfTaskId && getUiFolderSettings(taskId));
 
   return (
     <DummyPresentation>
@@ -112,7 +112,7 @@ function AutoGeneratePdfFromTasks({ taskIds }: { taskIds: string[] }) {
             }}
           />
         </div>
-        {tasksToPrint.map((taskId, idx) => (
+        {tasksToRender.map((taskId, idx) => (
           <TaskSummaryWrapper
             key={taskId}
             taskId={taskId}

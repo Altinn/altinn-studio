@@ -138,7 +138,7 @@ public static class Diagnostics
                 + "'ui/{0}/Settings.json' to design the PDF yourself."
         );
 
-        // The automatic PDF prints each listed task from that task's own UI folder, and the frontend leaves out every
+        // The automatic PDF renders each listed task from that task's own UI folder, and the frontend leaves out every
         // other entry: a blank one, the PDF task itself, whose folder holds what people see while the process is at
         // the task, and a task without a UI folder. '{1}' names the entry and '{2}' says why it adds nothing.
         public static readonly DiagnosticDescriptor PdfServiceTaskIncludesEntryThatAddsNothing = Warning(
