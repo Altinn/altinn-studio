@@ -125,6 +125,18 @@ function RunColumn({ scenario, side, cursor }: { scenario: Scenario; side: Side;
   );
 }
 
+/** The scenario's one-line lesson, in a grey band with a check in a white circle. */
+function Takeaway({ text, placeholder = false }: { text: string; placeholder?: boolean }) {
+  return (
+    <div className={`scn__takeaway${placeholder ? ' is-placeholder' : ''}`} aria-hidden={placeholder || undefined}>
+      <span className="scn__takeaway-icon" aria-hidden>
+        <Icon name="check" size={30} strokeWidth={2.6} />
+      </span>
+      <p className="scn__takeaway-text">{text}</p>
+    </div>
+  );
+}
+
 function SummaryView({ scenario }: { scenario: Scenario }) {
   const sides: Side[] = ['v8', 'v9'];
 
@@ -143,10 +155,7 @@ function SummaryView({ scenario }: { scenario: Scenario }) {
         })}
       </div>
 
-      <p className="scn__takeaway">
-        <span className="scn__takeaway-rule" aria-hidden />
-        {scenario.takeaway}
-      </p>
+      <Takeaway text={scenario.takeaway} />
     </div>
   );
 }
@@ -185,10 +194,7 @@ export function ScenarioStage({ scenario, step, v8Lead = 0 }: ScenarioStageProps
               <RunColumn scenario={scenario} side="v8" cursor={Math.max(phase.cursor, v8Lead)} />
               <RunColumn scenario={scenario} side="v9" cursor={phase.cursor} />
             </div>
-            <p className="scn__takeaway is-placeholder" aria-hidden>
-              <span className="scn__takeaway-rule" />
-              {scenario.takeaway}
-            </p>
+            <Takeaway text={scenario.takeaway} placeholder />
           </div>
         ) : (
           <SummaryView scenario={scenario} />
