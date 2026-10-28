@@ -6,6 +6,7 @@ Code that several product areas share, grouped by stack. Code that only one area
 - [dotnet/Altinn.Studio.Common](dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj) has .NET hosting and
   assertion helpers. Designer, the gateway, the workflow engine and kubernetes-wrapper reference the project. The App
   backend compiles single source files from it into its own assembly.
+- [go](go/README.md) has the OpenTelemetry setup that Go services share.
 - [expression-tests](expression-tests/README.md) has the expression tests that both the App frontend and the App
   backend run.
 - [ts](ts/README.md) has the TypeScript and React libraries for app forms.

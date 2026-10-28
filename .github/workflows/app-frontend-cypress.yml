@@ -14,6 +14,7 @@ on:
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
+      - 'src/common/go/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'

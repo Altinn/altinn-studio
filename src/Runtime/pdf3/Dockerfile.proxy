@@ -2,23 +2,28 @@ FROM --platform=$BUILDPLATFORM golang:1.27.3-trixie@sha256:fbb7ae40b62ff8afe3166
 ARG TARGETOS
 ARG TARGETARCH
 
-WORKDIR /app
+# The build context is src/: pdf3 builds against the shared Go module in common/go, which its
+# go.mod replaces with that directory. Dockerfile.{proxy,worker}.dockerignore keep the context to
+# the two modules.
+WORKDIR /src/Runtime/pdf3
 
-COPY go.mod go.sum ./
+COPY common/go/go.mod common/go/go.sum /src/common/go/
+COPY Runtime/pdf3/go.mod Runtime/pdf3/go.sum ./
 
 RUN go mod download
 
-COPY . .
+COPY common/go/ /src/common/go/
+COPY Runtime/pdf3/ ./
 
 # The commit the image is built from, reported as service.version. "dev" in local builds.
 ARG SERVICE_VERSION=dev
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=${SERVICE_VERSION}" \
-    -o main ./cmd/proxy
+    -o /app/main ./cmd/proxy
 # The relay ships in the proxy image; its Deployment runs ./relay
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags "-X altinn.studio/pdf3/internal/telemetry.serviceVersion=${SERVICE_VERSION}" \
-    -o relay ./cmd/relay
+    -o /app/relay ./cmd/relay
 
 FROM scratch
 
