@@ -212,6 +212,69 @@ public class WorkflowCommandSetTests
     // each segment ended by its own hand-over.
     // ---------------------------------------------------------------------------------------------
 
+    // ---------------------------------------------------------------------------------------------
+    // Step names: a display label for the people following the task, never part of a step's identity.
+    // ---------------------------------------------------------------------------------------------
+
+    private static string? StepName(PlannedStep step) => step.StepName;
+
+    private static Task<StageResult> StoreReceipt(StageContext context) => Task.FromResult(StageResult.Completed());
+
+    private static Task<StageResult> RevokeSigneeRights(StageContext context) =>
+        Task.FromResult(StageResult.Completed());
+
+    [Fact]
+    public void GetTaskEndSteps_StagesComposedFromNamedMethods_LabelEachStepWithTheMethodName()
+    {
+        ProcessTaskPipeline pipeline = new PipelineBuilder()
+            .Stage(StoreReceipt)
+            .Stage(RevokeSigneeRights)
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
+            .Build();
+
+        List<PlannedStep> stageSteps = WorkflowCommandSet
+            .GetTaskEndSteps("Task_1", pipeline)
+            .Commands.Where(step => step.CommandKey == EndTask.Key)
+            .ToList();
+
+        Assert.Equal(["Store receipt", "Revoke signee rights", null], stageSteps.Select(StepName));
+        // The step's identity is untouched: the index, in the OperationId and the payload.
+        Assert.Equal(["EndTask: 0", "EndTask: 1", "EndTask: 2"], stageSteps.Select(step => step.OperationId));
+    }
+
+    [Fact]
+    public void PlanSegment_ItemsComposedFromNamedMethods_GoByTheMethodNames()
+    {
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
+            .Stage(SendStage, _threeDays, out MailboxHandle archive)
+            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
+            .Finally(FinalWork);
+
+        // The step that mints the mailbox stays unnamed; the stage that sends from it goes by its method.
+        Assert.Equal(
+            [null, "Send stage"],
+            WorkflowCommandSet.PlanSegment("archiving", pipeline).Steps.Select(StepName)
+        );
+        Assert.Equal(
+            "On segment message",
+            StepName(Assert.Single(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 0).Steps))
+        );
+        Assert.Equal(
+            "Final work",
+            StepName(Assert.Single(WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 1).Steps))
+        );
+    }
+
+    [Fact]
+    public void PlanSegment_UnnamedLambdas_CarryNoLabels()
+    {
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
+            .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+        Assert.All(WorkflowCommandSet.PlanSegment("signing", pipeline).Steps, step => Assert.Null(step.StepName));
+    }
+
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
     private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());

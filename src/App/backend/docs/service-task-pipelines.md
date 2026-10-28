@@ -134,6 +134,15 @@ carries exactly what its own call declared; a field left unset falls back to the
 the engine's, never to another step's. A task that wants the same options on several steps passes the same
 object to each call.
 
+### Step names
+
+Where people follow a task's progress, such as Studio's admin panel, a step goes by the name of the method you
+passed as its work, written out as words: `SendToArchive` reads "Send to archive", `GeneratePDFReceipt` reads
+"Generate PDF receipt". A lambda leaves the step unnamed, and so does a one-step task's own `Execute`, which says
+nothing the task type does not. The name travels as the step label `stepName`, on lifecycle stages and service task
+steps alike; the step that mints a mailbox carries none. Names are display only: renaming a method changes nothing
+about how the step runs, in-flight workflows included, because a step's identity is its index.
+
 ## Mailboxes: work answered by a message
 
 A pipeline answered by a message rather than by polling opens a **mailbox** from the stage that sends:

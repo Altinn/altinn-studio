@@ -37,6 +37,13 @@ internal abstract class PipelineItem
     /// command's default and then the engine's.
     /// </summary>
     internal ProcessStepOptions? StepOptions { get; }
+
+    /// <summary>
+    /// What the item is called where people follow the task's progress, such as Studio's admin panel: the name
+    /// of the method it runs, written out as words, or null when the work is a lambda or says nothing. Display
+    /// only: an item's identity is its index, and its name changes nothing about how it runs.
+    /// </summary>
+    internal string? DisplayName { get; init; }
 }
 
 /// <summary>
