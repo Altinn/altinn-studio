@@ -13,9 +13,9 @@ for developing Altinn Studio itself. [CONTRIBUTING.md](CONTRIBUTING.md) says how
 
 ## How it fits together
 
-Altinn Studio has three parts:
+Altinn Studio spans Core, Runtime and Platform:
 
-- **Core** is the control plane, which reaches out to the other two parts. Service owners build, configure and
+- **Core** is the control plane, which reaches out to Runtime and Platform. Service owners build, configure and
   deploy their apps in [Designer](src/Designer), with help from the [Studio Assistant](src/AI), and the apps'
   repositories are in [Gitea](src/gitea).
 - **Runtime** is a service owner's own runtime, where its [apps](src/App) run. It is mostly data plane, such as the
@@ -24,8 +24,8 @@ Altinn Studio has three parts:
 - **Platform** is the shared data plane that apps call, such as Storage, Authorization, Receipt and
   [pdf3](src/Runtime/pdf3). Most of it lives in [other repositories](docs/repositories.md#platform).
 
-The [architecture diagram](docs/diagrams/architecture.svg) shows what runs in each part, and how a deployment and a
-user's request travel between them.
+The [architecture diagram](docs/diagrams/architecture.svg) shows what runs in Core, Runtime and Platform, and how a
+deployment and a user's request travel between them.
 
 App developers run apps on their own machines with [studioctl](src/cli), which runs
 [localtest](src/Runtime/localtest) in place of Runtime and Platform. The code is in [src/](src), the cluster
