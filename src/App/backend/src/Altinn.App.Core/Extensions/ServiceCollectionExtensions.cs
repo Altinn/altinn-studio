@@ -243,6 +243,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ITaskValidator, DefaultTaskValidator>();
         services.AddTransient<IValidator, SigningTaskValidator>();
         services.AddTransient<IValidator, SignatureHashValidator>();
+        services.AddTransient<IValidator, PaymentTaskValidator>();
 
         var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
         if (appSettings?.RequiredValidation is true)

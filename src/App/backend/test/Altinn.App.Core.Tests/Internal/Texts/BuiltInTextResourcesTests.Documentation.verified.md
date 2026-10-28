@@ -125,6 +125,30 @@ An app changes one of these texts by adding a text resource with the same key.
 | `filename` | `customTextParameters` | Name of the file. Empty if the name is unknown. |
 | `dataType` | `customTextParameters` | Id of the data type. |
 
+## `validation_errors.payment_not_completed`
+
+| Language | Default text |
+|---|---|
+| nb | Betalingen er ikke fullført. |
+| nn | Betalinga er ikkje fullført. |
+| en | The payment has not been completed. |
+
+| Variable | Source | Description |
+|---|---|---|
+| `dataType` | `customTextParameters` | Id of the data type. |
+
+## `validation_errors.payment_already_completed`
+
+| Language | Default text |
+|---|---|
+| nb | Betalingen er allerede gjennomført, så du kan ikke gå tilbake. |
+| nn | Betalinga er allereie gjennomført, så du kan ikkje gå tilbake. |
+| en | The payment has already gone through, so you cannot go back. |
+
+| Variable | Source | Description |
+|---|---|---|
+| `dataType` | `customTextParameters` | Id of the data type. |
+
 ## `validation_errors.required`
 
 | Language | Default text |

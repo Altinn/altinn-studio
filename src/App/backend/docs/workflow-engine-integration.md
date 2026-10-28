@@ -126,6 +126,23 @@ and the enqueue. Its own workflow's outcome answers it. Each answer below is a 4
 An enqueue that gets no answer from the engine fails without knowing whether the workflow exists. A retry from the
 same version reuses the key and joins the workflow if it exists.
 
+## Transitions the app starts
+
+The app can move the process on without a request, through `IProcessEngine.EnqueueNextForApp`. The Nets payment
+webhook uses it once Nets has reported the payment as paid.
+
+- It runs what `process/next` runs before the transition, but with no policy check and no action handler, since no
+  caller asked for it. It reads data as the service owner, and the workflows run as the actor it is given, in that
+  actor's language. A caller must not pass it anything a request controls.
+- It enqueues under `process/next`'s idempotency key. On the same version as a user's request it joins that request's
+  workflow, or throws for a different transition.
+- It waits for the acquire workflow only, not for the transition, and as long as `process/next` waits. Only a
+  completed acquire workflow says whether the instance changed: a superseded one answers `instanceChanged` with the
+  instance as it is now. A failed acquire workflow, or one still running when the wait ends, answers a workflow
+  failure.
+- The webhook starts over once after `instanceChanged`. When it cannot tell that the process moves on, it answers with
+  an error, so Nets calls again.
+
 ## Callback state and authentication
 
 The engine stores the callback state and passes it to each callback, so a callback never reads the process from

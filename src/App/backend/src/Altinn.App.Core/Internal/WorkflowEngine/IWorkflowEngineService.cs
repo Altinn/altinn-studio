@@ -38,6 +38,24 @@ internal interface IWorkflowEngineService
     );
 
     /// <summary>
+    /// Enqueues the acquire workflow for a transition the app itself starts, run as <paramref name="actor"/>, and waits
+    /// for that workflow to end, as long as process/next waits, but not for the transition it starts.
+    /// </summary>
+    /// <remarks>
+    /// The idempotency key is the one process/next uses for <paramref name="instanceVersions"/>, so a call on the same
+    /// snapshot as a user's process/next joins its workflow when it prepares the same transition, and is rejected with
+    /// 409 when it does not. A superseded acquire completes too, so the caller tells the two apart from the instance.
+    /// </remarks>
+    Task<AcquireWorkflowResult> EnqueueAndWaitForAcquire(
+        Instance instance,
+        StorageVersionMetadata instanceVersions,
+        string state,
+        ProcessStateChange processStateChange,
+        Actor actor,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Returns the current task's transition status, destination, and failure for reads and process/resume.
     /// </summary>
     Task<WorkflowTaskStatus> ResolveWorkflowTaskStatus(

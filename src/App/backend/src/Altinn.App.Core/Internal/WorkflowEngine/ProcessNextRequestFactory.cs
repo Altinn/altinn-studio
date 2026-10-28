@@ -157,7 +157,7 @@ internal sealed class ProcessNextRequestFactory
         );
 
     /// <summary>
-    /// Creates the acquire-only workflow for process/next.
+    /// Creates the acquire-only workflow for process/next, run as the caller.
     /// </summary>
     public async Task<WorkflowEnqueueEnvelope> CreateAcquire(
         Instance instance,
@@ -165,11 +165,21 @@ internal sealed class ProcessNextRequestFactory
         string state,
         string idempotencyKey,
         string? language
+    ) => CreateAcquire(instance, processStateChange, state, idempotencyKey, await ExtractActor(language));
+
+    /// <summary>
+    /// Creates the acquire-only workflow for process/next, run as <paramref name="actor"/>.
+    /// </summary>
+    public WorkflowEnqueueEnvelope CreateAcquire(
+        Instance instance,
+        ProcessStateChange processStateChange,
+        string state,
+        string idempotencyKey,
+        Actor actor
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         InstanceIdentifier instanceId = new(instance);
-        Actor actor = await ExtractActor(language);
         List<WorkflowRequest> workflows =
         [
             new WorkflowRequest
