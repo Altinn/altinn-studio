@@ -172,7 +172,8 @@ describe('AddressLayout', () => {
     });
     expect(screen.getByTestId('addr-val')).toBeInTheDocument();
     const zipValidation = screen.getByTestId('zip-val');
-    // The zip code message is read right after the zip code input, before the post place field
+    // On wide screens the grid shows the zip code error below both the zip code and post place fields, but screen
+    // readers follow the DOM order, so we test that the zip code error is placed between zip code and post place
     expect(screen.getByRole('textbox', { name: 'Postnr' })).toAppearBefore(zipValidation);
     expect(zipValidation).toAppearBefore(screen.getByRole('textbox', { name: 'Poststed' }));
   });
