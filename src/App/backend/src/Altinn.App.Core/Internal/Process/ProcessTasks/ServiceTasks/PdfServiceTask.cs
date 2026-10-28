@@ -47,6 +47,16 @@ internal sealed class PdfServiceTask : IPdfServiceTask
 
     public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
 
+    /// <inheritdoc />
+    public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
+    {
+        // A PDF the frontend cannot render surfaces only as a PDF generator timeout, which the engine retries until
+        // the workflow gives up, so the app does not start instead. The analyzer reports the same at build time
+        // (ALTINNAPP1000 and ALTINNAPP1026).
+        ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(context.TaskId);
+        return GetUnrenderableConfigurationReason(context.TaskId, config.AutoPdfTaskIds) is { } reason ? [reason] : [];
+    }
+
     /// <inheritdoc/>
     public async Task<ServiceTaskResult> Execute(StageContext context)
     {
@@ -56,14 +66,6 @@ internal sealed class PdfServiceTask : IPdfServiceTask
         _logger.LogDebug("Calling PdfService for PDF Service Task {TaskId}.", LogSanitizer.Sanitize(taskId));
 
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(taskId);
-
-        // A render the frontend rejects surfaces only as a PDF generator timeout, which the engine retries
-        // until the workflow gives up. Fail at once with the actual reason instead. The analyzer reports the
-        // same at build time (ALTINNAPP1000).
-        if (GetUnrenderableConfigurationReason(_appResources, taskId, config.AutoPdfTaskIds) is { } reason)
-        {
-            return ServiceTaskResult.FailedPermanent(reason);
-        }
 
         // The actor's language, the one the user chose for the transition, or nb if it has none
         byte[] pdf = await _pdfService.GeneratePdf(
@@ -116,17 +118,12 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// the layout that <c>pdfLayoutName</c> in the task's own UI folder names, and otherwise the tasks passed as
     /// <c>task</c> query parameters, which come from <c>autoPdfTaskIds</c>.
     /// </summary>
-    internal static string? GetUnrenderableConfigurationReason(
-        IAppResources appResources,
-        string taskId,
-        List<string>? autoPdfTaskIds
-    )
+    private string? GetUnrenderableConfigurationReason(string taskId, List<string>? autoPdfTaskIds)
     {
-        string? pdfLayoutName = appResources.GetLayoutSettingsForFolder(taskId)?.Pages?.PdfLayoutName;
+        string? pdfLayoutName = _appResources.GetLayoutSettingsForFolder(taskId)?.Pages?.PdfLayoutName;
         if (!string.IsNullOrWhiteSpace(pdfLayoutName))
         {
-            // The analyzer reports the same at build time (ALTINNAPP1026)
-            return HasLayout(appResources, taskId, pdfLayoutName)
+            return HasLayout(_appResources, taskId, pdfLayoutName)
                 ? null
                 : $"PDF service task '{taskId}' sets pdfLayoutName '{pdfLayoutName}' in 'ui/{taskId}/Settings.json', "
                     + $"but there is no layout 'ui/{taskId}/layouts/{pdfLayoutName}.json'. Correct pdfLayoutName, or "

@@ -12,8 +12,7 @@ public class PdfServiceTaskUtilsTests
     private const string ProcessPath = AppRoot + "config/process/process.bpmn";
 
     private const string NothingToRender = "ALTINNAPP1000";
-    private const string TaskWithoutUi = "ALTINNAPP1002";
-    private const string EntryAddsNothing = "ALTINNAPP1025";
+    private const string EntryAddsNothing = "ALTINNAPP1002";
     private const string PdfLayoutNotFound = "ALTINNAPP1026";
 
     [Fact]
@@ -147,7 +146,7 @@ public class PdfServiceTaskUtilsTests
         );
 
         var diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(TaskWithoutUi, diagnostic.Id);
+        Assert.Equal(EntryAddsNothing, diagnostic.Id);
         Assert.Contains("'Task_9'", diagnostic.GetMessage());
     }
 
@@ -206,7 +205,7 @@ public class PdfServiceTaskUtilsTests
         var diagnostics = Collect(Process(PdfTask("PdfTask", "Task_1", "Task_2")), UiFolder("Task_1"));
 
         var diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(TaskWithoutUi, diagnostic.Id);
+        Assert.Equal(EntryAddsNothing, diagnostic.Id);
         Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
         Assert.Contains("'Task_2'", diagnostic.GetMessage());
     }
@@ -223,7 +222,7 @@ public class PdfServiceTaskUtilsTests
             new InMemoryAdditionalText(AppRoot + "ui/Task_1/layouts/Settings.json", Settings(null))
         );
 
-        Assert.Equal(TaskWithoutUi, Assert.Single(diagnostics).Id);
+        Assert.Equal(EntryAddsNothing, Assert.Single(diagnostics).Id);
     }
 
     [Fact]
@@ -235,7 +234,7 @@ public class PdfServiceTaskUtilsTests
             new InMemoryAdditionalText("/other/App/ui/Task_1/Settings.json", Settings(null))
         );
 
-        Assert.Equal(TaskWithoutUi, Assert.Single(diagnostics).Id);
+        Assert.Equal(EntryAddsNothing, Assert.Single(diagnostics).Id);
     }
 
     [Fact]
@@ -318,7 +317,7 @@ public class PdfServiceTaskUtilsTests
         PdfServiceTaskUtils.CollectDiagnostics(files, CancellationToken.None, diagnostics);
 
         var diagnostic = Assert.Single(diagnostics);
-        Assert.Equal(TaskWithoutUi, diagnostic.Id);
+        Assert.Equal(EntryAddsNothing, diagnostic.Id);
         Assert.Contains("'Task_2'", diagnostic.GetMessage());
     }
 

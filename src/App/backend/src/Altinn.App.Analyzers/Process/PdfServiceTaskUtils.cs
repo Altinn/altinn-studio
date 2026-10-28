@@ -81,41 +81,34 @@ internal static class PdfServiceTaskUtils
                 continue;
             }
 
-            if (pdfTask.HasBlankAutoPdfTaskId)
-            {
+            void ReportEntryThatAddsNothing(string entry, string reason) =>
                 diagnostics.Add(
                     Diagnostic.Create(
                         Diagnostics.Process.PdfServiceTaskIncludesEntryThatAddsNothing,
                         location,
                         pdfTask.Id,
-                        "a blank task id"
+                        entry,
+                        reason
                     )
                 );
+
+            if (pdfTask.HasBlankAutoPdfTaskId)
+            {
+                ReportEntryThatAddsNothing("a blank task id", "it names no task");
             }
 
             foreach (var taskId in pdfTask.AutoPdfTaskIds)
             {
                 if (taskId == pdfTask.Id)
                 {
-                    diagnostics.Add(
-                        Diagnostic.Create(
-                            Diagnostics.Process.PdfServiceTaskIncludesEntryThatAddsNothing,
-                            location,
-                            pdfTask.Id,
-                            "itself"
-                        )
+                    ReportEntryThatAddsNothing(
+                        "itself",
+                        "its own UI folder holds what people see while the process is at the task"
                     );
                 }
                 else if (!uiFolders.ContainsKey(taskId))
                 {
-                    diagnostics.Add(
-                        Diagnostic.Create(
-                            Diagnostics.Process.PdfServiceTaskIncludesTaskWithoutUi,
-                            location,
-                            pdfTask.Id,
-                            taskId
-                        )
-                    );
+                    ReportEntryThatAddsNothing($"'{taskId}'", $"there is no UI folder 'ui/{taskId}'");
                 }
             }
         }

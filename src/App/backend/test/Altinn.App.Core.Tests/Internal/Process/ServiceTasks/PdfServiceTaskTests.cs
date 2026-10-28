@@ -1,3 +1,4 @@
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
@@ -182,15 +183,11 @@ public class PdfServiceTaskTests
     }
 
     [Fact]
-    public async Task Execute_Fails_Permanently_When_AutoPdfTaskIds_Only_Has_Blank_Entries()
+    public void ValidateConfiguration_Rejects_AutoPdfTaskIds_With_Only_Blank_Entries()
     {
         SetupAutoPdfTaskIds("pdfTask", [" "]);
 
-        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
-
-        var failed = Assert.IsType<FailedServiceTaskResult>(result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
-        _pdfServiceMock.VerifyNoOtherCalls();
+        Assert.Contains("'pdfTask' has nothing to render", Assert.Single(Validate("pdfTask")));
     }
 
     public enum UiFolder
@@ -207,28 +204,12 @@ public class PdfServiceTaskTests
     // Without pdfLayoutName, the PDF is the automatic one from autoPdfTaskIds, folder or not
     [InlineData(UiFolder.WithoutPdfLayoutName, true)]
     [InlineData(UiFolder.None, true)]
-    public async Task Execute_Generates_The_Pdf_When_There_Is_Something_To_Render(UiFolder uiFolder, bool listsTasks)
+    public void ValidateConfiguration_Accepts_A_Task_With_Something_To_Render(UiFolder uiFolder, bool listsTasks)
     {
-        List<string> autoPdfTaskIds = listsTasks ? ["Task_1"] : [];
-        SetupAutoPdfTaskIds("pdfTask", autoPdfTaskIds);
+        SetupAutoPdfTaskIds("pdfTask", listsTasks ? ["Task_1"] : []);
         SetupUiFolder("pdfTask", uiFolder);
 
-        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
-
-        Assert.IsType<SuccessfulServiceTaskResult>(result);
-        _pdfServiceMock.Verify(
-            x =>
-                x.GeneratePdf(
-                    It.IsAny<Instance>(),
-                    "pdfTask",
-                    It.IsAny<string>(),
-                    autoPdfTaskIds,
-                    false,
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Once
-        );
+        Assert.Empty(Validate("pdfTask"));
     }
 
     [Theory]
@@ -236,40 +217,31 @@ public class PdfServiceTaskTests
     [InlineData(UiFolder.None)]
     // The folder's pages are what people see while the process is at the task, never the PDF.
     [InlineData(UiFolder.WithoutPdfLayoutName)]
-    public async Task Execute_Fails_Permanently_When_There_Is_Nothing_To_Render(UiFolder uiFolder)
+    public void ValidateConfiguration_Rejects_A_Task_With_Nothing_To_Render(UiFolder uiFolder)
     {
         SetupAutoPdfTaskIds("pdfTask", []);
         SetupUiFolder("pdfTask", uiFolder);
 
-        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
-
-        var failed = Assert.IsType<FailedServiceTaskResult>(result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
-        Assert.Contains("'pdfTask' has nothing to render", failed.ErrorMessage);
-        Assert.Contains("'ui/pdfTask/Settings.json'", failed.ErrorMessage);
-        _pdfServiceMock.VerifyNoOtherCalls();
+        string finding = Assert.Single(Validate("pdfTask"));
+        Assert.Contains("'pdfTask' has nothing to render", finding);
+        Assert.Contains("'ui/pdfTask/Settings.json'", finding);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Execute_Fails_Permanently_When_PdfLayoutName_Names_No_Layout_In_The_Folder(bool listsTasks)
+    public void ValidateConfiguration_Rejects_A_PdfLayoutName_That_Names_No_Layout_In_The_Folder(bool listsTasks)
     {
         // The frontend renders pdfLayoutName and ignores the listed tasks, so they cannot make up for it
         SetupAutoPdfTaskIds("pdfTask", listsTasks ? ["Task_1"] : []);
         SetupUiFolder("pdfTask", UiFolder.WithPdfLayoutName);
         _appResourcesMock.Setup(x => x.GetLayoutsInFolder("pdfTask")).Returns("""{ "WaitingPage": {} }""");
 
-        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
-
-        var failed = Assert.IsType<FailedServiceTaskResult>(result);
-        Assert.Equal(FailureKind.Permanent, failed.Kind);
-        Assert.Contains("no layout 'ui/pdfTask/layouts/PdfLayout.json'", failed.ErrorMessage);
-        _pdfServiceMock.VerifyNoOtherCalls();
+        Assert.Contains("no layout 'ui/pdfTask/layouts/PdfLayout.json'", Assert.Single(Validate("pdfTask")));
     }
 
     [Fact]
-    public async Task Execute_Generates_The_Pdf_When_The_Folder_Has_The_PdfLayoutName_Layout()
+    public void ValidateConfiguration_Accepts_A_Folder_With_The_PdfLayoutName_Layout()
     {
         SetupAutoPdfTaskIds("pdfTask", []);
         SetupUiFolder("pdfTask", UiFolder.WithPdfLayoutName);
@@ -277,26 +249,33 @@ public class PdfServiceTaskTests
             .Setup(x => x.GetLayoutsInFolder("pdfTask"))
             .Returns("""{ "WaitingPage": {}, "PdfLayout": {} }""");
 
-        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
-
-        Assert.IsType<SuccessfulServiceTaskResult>(result);
+        Assert.Empty(Validate("pdfTask"));
     }
 
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task Execute_Treats_A_Blank_PdfLayoutName_As_None(string pdfLayoutName)
+    public void ValidateConfiguration_Treats_A_Blank_PdfLayoutName_As_None(string pdfLayoutName)
     {
         SetupAutoPdfTaskIds("pdfTask", []);
         _appResourcesMock
             .Setup(x => x.GetLayoutSettingsForFolder("pdfTask"))
             .Returns(new LayoutSettings { Pages = new Pages { PdfLayoutName = pdfLayoutName } });
 
-        var result = await _serviceTask.Execute(CreateContext("pdfTask"));
-
-        Assert.Equal(FailureKind.Permanent, Assert.IsType<FailedServiceTaskResult>(result).Kind);
-        _pdfServiceMock.VerifyNoOtherCalls();
+        Assert.Contains("'pdfTask' has nothing to render", Assert.Single(Validate("pdfTask")));
     }
+
+    private List<string> Validate(string pdfTaskId) =>
+        [
+            .. _serviceTask.ValidateConfiguration(
+                new ProcessTaskValidationContext
+                {
+                    TaskId = pdfTaskId,
+                    Environment = HostingEnvironment.Production,
+                    ApplicationMetadata = new ApplicationMetadata("ttd/app"),
+                }
+            ),
+        ];
 
     private void SetupUiFolder(string pdfTaskId, UiFolder uiFolder) =>
         _appResourcesMock

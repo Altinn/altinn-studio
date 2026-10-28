@@ -138,23 +138,15 @@ public static class Diagnostics
                 + "'ui/{0}/Settings.json' to design the PDF yourself."
         );
 
-        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesTaskWithoutUi = Warning(
+        // The automatic PDF prints each listed task from that task's own UI folder, and the frontend leaves out every
+        // other entry: a blank one, the PDF task itself, whose folder holds what people see while the process is at
+        // the task, and a task without a UI folder. '{1}' names the entry and '{2}' says why it adds nothing.
+        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesEntryThatAddsNothing = Warning(
             "ALTINNAPP1002",
             Category.Process,
-            "PDF service task includes a task without a UI folder",
-            "PDF service task '{0}' lists '{1}' in <altinn:autoPdfTaskIds>, but there is no UI folder "
-                + "'ui/{1}', so the PDF will contain nothing from that task. Check that the task id is correct."
-        );
-
-        // The automatic PDF prints each listed task from that task's own UI folder. The PDF task's own folder holds
-        // what people see while the process is at the task, never PDF content. '{1}' names the entry: "itself" or
-        // "a blank task id".
-        public static readonly DiagnosticDescriptor PdfServiceTaskIncludesEntryThatAddsNothing = Warning(
-            "ALTINNAPP1025",
-            Category.Process,
             "PDF service task lists an entry that adds nothing to its PDF",
-            "PDF service task '{0}' lists {1} in <altinn:autoPdfTaskIds>, which adds nothing to the PDF. Remove "
-                + "the entry."
+            "PDF service task '{0}' lists {1} in <altinn:autoPdfTaskIds>, which adds nothing to the PDF: {2}. Remove "
+                + "the entry, or correct the task id."
         );
 
         // Worded like the runtime backstop in PdfServiceTask. Without it the frontend finds no layout to render,

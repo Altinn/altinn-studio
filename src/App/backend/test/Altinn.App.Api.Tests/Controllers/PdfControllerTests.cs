@@ -128,8 +128,7 @@ public class PdfControllerTests
             _instanceClient.Object,
             pdfService,
             _processReader.Object,
-            _authenticationContext.Object,
-            _appResources.Object
+            _authenticationContext.Object
         );
     }
 
@@ -389,9 +388,12 @@ public class PdfControllerTests
         None,
         WithoutPdfLayoutName,
         WithPdfLayoutName,
-        WithPdfLayoutNameOfNoLayout,
     }
 
+    /// <summary>
+    /// The setups a PDF service task can render. Any other stops the app from starting (see
+    /// PdfServiceTask.ValidateConfiguration), so no instance reaches the task and no preview is asked of it.
+    /// </summary>
     public static TheoryData<PdfTaskFolder, bool, bool> PdfServiceTaskSetups()
     {
         var data = new TheoryData<PdfTaskFolder, bool, bool>();
@@ -399,6 +401,11 @@ public class PdfControllerTests
         {
             foreach (bool listsTasks in new[] { false, true })
             {
+                if (folder != PdfTaskFolder.WithPdfLayoutName && !listsTasks)
+                {
+                    continue;
+                }
+
                 foreach (bool atTheTask in new[] { false, true })
                 {
                     data.Add(folder, listsTasks, atTheTask);
@@ -417,7 +424,7 @@ public class PdfControllerTests
         bool atTheTask
     )
     {
-        // The preview either renders what the service task renders, or fails for the same reason
+        // The preview renders what the service task renders
         List<string> autoPdfTaskIds = listsTasks ? ["Task_1", "Task_2"] : [];
         var taskExtension = new AltinnTaskExtension
         {
@@ -464,17 +471,6 @@ public class PdfControllerTests
 
         (ServiceTaskResult taskResult, List<List<string>?> renderedTasks) = await ExecutePdfServiceTask("Task_Pdf");
         (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: atTheTask ? null : "Task_Pdf");
-
-        bool renderable =
-            folder == PdfTaskFolder.WithPdfLayoutName
-            || (listsTasks && folder != PdfTaskFolder.WithPdfLayoutNameOfNoLayout);
-        if (!renderable)
-        {
-            var failed = Assert.IsType<FailedServiceTaskResult>(taskResult);
-            Assert.Equal(failed.ErrorMessage, Assert.IsType<BadRequestObjectResult>(result).Value);
-            Assert.Null(requestBody);
-            return;
-        }
 
         Assert.IsType<SuccessfulServiceTaskResult>(taskResult);
         Assert.IsType<FileContentResult>(result);
