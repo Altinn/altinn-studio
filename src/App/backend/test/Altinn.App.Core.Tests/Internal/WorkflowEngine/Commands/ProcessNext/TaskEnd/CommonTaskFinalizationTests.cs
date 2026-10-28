@@ -211,6 +211,53 @@ public class CommonTaskFinalizationTests
     }
 
     [Fact]
+    public async Task Execute_RemoveHiddenData_SeveralFormDataElements_EvaluatesLayoutsOnce()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        var dataElement1 = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "model" };
+        var dataElement2 = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "otherModel" };
+        instance.Data = [dataElement1, dataElement2];
+
+        var formDataWrapperMock = new Mock<IFormDataWrapper>();
+        formDataWrapperMock.Setup(x => x.BackingData<object>()).Returns(new object());
+
+        var dataType = new DataType
+        {
+            Id = "model",
+            TaskId = "Task_1",
+            AppLogic = new ApplicationLogic { ClassRef = "App.Models.TestModel" },
+        };
+        var otherDataType = new DataType
+        {
+            Id = "otherModel",
+            TaskId = "Task_1",
+            AppLogic = new ApplicationLogic { ClassRef = "App.Models.OtherModel" },
+        };
+        var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = [dataType, otherDataType] };
+
+        var appResourcesMock = new Mock<IAppResources>();
+        appResourcesMock.Setup(x => x.GetLayoutSettingsForFolder("Task_1")).Returns(new LayoutSettings());
+        appResourcesMock
+            .Setup(x => x.GetLayoutModelForFolder("Task_1"))
+            .Returns(new LayoutModel([new UiFolderComponent([], "Task_1", dataType)], null));
+
+        var command = CreateCommand(appMetadata, removeHiddenData: true, appResources: appResourcesMock.Object);
+        var (context, mutatorMock) = CreateContextWithMutator(instance);
+        mutatorMock
+            .Setup(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()))
+            .ReturnsAsync(formDataWrapperMock.Object);
+
+        // Act
+        var result = await command.Execute(context);
+
+        // Assert: one evaluation removes the hidden data from both data models
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        formDataWrapperMock.Verify(x => x.RemoveAltinnRowIds(), Times.Exactly(2));
+        appResourcesMock.Verify(x => x.GetLayoutModelForFolder("Task_1"), Times.Once);
+    }
+
+    [Fact]
     public async Task Execute_SkipsInaccessibleDataElements()
     {
         // Arrange
@@ -243,6 +290,48 @@ public class CommonTaskFinalizationTests
         // Assert
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         mutatorMock.Verify(x => x.GetFormDataWrapper(It.IsAny<DataElementIdentifier>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Execute_RemoveHiddenData_NoReadableFormData_SkipsHiddenDataRemoval()
+    {
+        // Arrange
+        var instance = CreateInstance("Task_1");
+        instance.Data = [new DataElement { Id = Guid.NewGuid().ToString(), DataType = "restricted" }];
+
+        var accessCheckerMock = new Mock<IDataElementAccessChecker>();
+        accessCheckerMock.Setup(x => x.CanRead(It.IsAny<Instance>(), It.IsAny<DataType>())).ReturnsAsync(false);
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "restricted",
+                    TaskId = "Task_1",
+                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Restricted" },
+                },
+            ],
+        };
+
+        var appResourcesMock = new Mock<IAppResources>();
+        appResourcesMock.Setup(x => x.GetLayoutSettingsForFolder("Task_1")).Returns(new LayoutSettings());
+
+        var command = CreateCommand(
+            appMetadata,
+            removeHiddenData: true,
+            accessCheckerMock: accessCheckerMock,
+            appResources: appResourcesMock.Object
+        );
+        var (context, _) = CreateContextWithMutator(instance);
+
+        // Act
+        var result = await command.Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        appResourcesMock.Verify(x => x.GetLayoutModelForFolder(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

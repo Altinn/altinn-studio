@@ -53,7 +53,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         {
             ApplicationMetadata applicationMetadata = _appMetadata.ApplicationMetadata;
 
-            List<Task> tasks = [];
+            List<(DataElement DataElement, DataType DataType)> formDataElements = [];
             foreach (
                 var dataType in applicationMetadata.DataTypes.Where(dt =>
                     dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
@@ -67,13 +67,31 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
                 foreach (var dataElement in instance.Data.Where(de => de.DataType == dataType.Id))
                 {
-                    tasks.Add(
-                        RemoveFieldsOnTaskComplete(dataMutator, taskId, applicationMetadata, dataElement, dataType)
-                    );
+                    formDataElements.Add((dataElement, dataType));
                 }
             }
 
-            await Task.WhenAll(tasks);
+            // Remove hidden data before validation, ignore hidden rows.
+            // Without layouts for the task there are no components, so nothing is hidden.
+            if (
+                formDataElements.Count > 0
+                && _appSettings.Value?.RemoveHiddenData == true
+                && _appResources.GetLayoutSettingsForFolder(taskId) is not null
+            )
+            {
+                await RemoveHiddenDataOnTaskComplete(dataMutator, taskId);
+            }
+
+            await Task.WhenAll(
+                formDataElements.Select(formData =>
+                    RemoveFieldsOnTaskComplete(
+                        dataMutator,
+                        applicationMetadata,
+                        formData.DataElement,
+                        formData.DataType
+                    )
+                )
+            );
 
             return new SuccessfulProcessEngineCommandResult();
         }
@@ -83,13 +101,57 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         }
     }
 
+    /// <summary>
+    /// Remove the attachments and the form data that only hidden components refer to. One evaluation of the layout
+    /// covers all the data models and attachments in the task, so each component's hidden expression is evaluated
+    /// once.
+    /// </summary>
+    private async Task RemoveHiddenDataOnTaskComplete(IInstanceDataMutator dataMutator, string taskId)
+    {
+        LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
+            dataMutator,
+            taskId,
+            gatewayAction: null,
+            language: null
+        );
+
+        // Before the form data, because removing a hidden row also removes the attachment ids in it
+        foreach (var attachment in await LayoutEvaluator.GetHiddenAttachmentsForRemoval(evaluationState, taskId))
+        {
+            if (UserCanDelete(dataMutator.GetDataType(attachment)))
+            {
+                dataMutator.RemoveDataElement(attachment);
+            }
+        }
+
+        await LayoutEvaluator.RemoveHiddenData(
+            evaluationState,
+            RowRemovalOption.DeleteRow,
+            evaluateRemoveWhenHidden: true
+        );
+    }
+
+    /// <summary>
+    /// Whether the data type lets the user delete its attachments in the form. Types that only the app, or only users
+    /// with a given action, may read or change are kept. <see cref="IDataElementAccessChecker.CanDelete"/> can't tell
+    /// here, as it refuses every change while the instance is processing.
+    /// </summary>
+    private static bool UserCanDelete(DataType dataType)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        return dataType.AppLogic?.DisallowUserDelete is not true
+            && string.IsNullOrWhiteSpace(dataType.ActionRequiredToRead)
+            && string.IsNullOrWhiteSpace(dataType.ActionRequiredToWrite)
+            && dataType.AllowedContributors is not { Count: > 0 }
+            && dataType.AllowedContributers is not { Count: > 0 };
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
     private async Task RemoveFieldsOnTaskComplete(
         IInstanceDataMutator dataMutator,
-        string taskId,
         ApplicationMetadata applicationMetadata,
         DataElement dataElement,
-        DataType dataType,
-        string? language = null
+        DataType dataType
     )
     {
         var formDataWrapper = await dataMutator.GetFormDataWrapper(dataElement);
@@ -98,29 +160,6 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         formDataWrapper.RemoveAltinnRowIds();
 
         var data = formDataWrapper.BackingData<object>();
-
-        // Remove hidden data before validation, ignore hidden rows.
-        // Without layouts for the task there are no components, so nothing is hidden.
-        if (
-            _appSettings.Value?.RemoveHiddenData == true
-            && _appResources.GetLayoutSettingsForFolder(taskId) is not null
-        )
-        {
-            // Backend removal of data is deprecated in favor of
-            // implementing frontend removal of hidden data, so
-            // this is not updated to remove from multiple data models at once.
-            LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
-                dataMutator,
-                taskId,
-                gatewayAction: null,
-                language
-            );
-            await LayoutEvaluator.RemoveHiddenData(
-                evaluationState,
-                RowRemovalOption.DeleteRow,
-                evaluateRemoveWhenHidden: true
-            );
-        }
 
         // Remove shadow fields
         // TODO: Use reflection or code generation instead of JsonSerializer
