@@ -50,11 +50,15 @@ internal sealed class PdfServiceTask : IPdfServiceTask
     /// <inheritdoc />
     public IEnumerable<string> ValidateConfiguration(ProcessTaskValidationContext context)
     {
-        // A PDF the frontend cannot render surfaces only as a PDF generator timeout, which the engine retries until
-        // the workflow gives up, so the app does not start instead. The analyzer reports the same at build time
-        // (ALTINNAPP1000 and ALTINNAPP1026).
+        // Checked at startup, since at run time a PDF that cannot render only shows up as PDF generator timeouts
         ValidAltinnPdfConfiguration config = GetValidAltinnPdfConfiguration(context.TaskId);
-        return GetUnrenderableConfigurationReason(context.TaskId, config.AutoPdfTaskIds) is { } reason ? [reason] : [];
+        string? reason = GetUnrenderableConfigurationReason(context.TaskId, config.AutoPdfTaskIds);
+        if (reason is null)
+        {
+            return [];
+        }
+
+        return [reason];
     }
 
     /// <inheritdoc/>
