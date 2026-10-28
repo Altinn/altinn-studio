@@ -42,6 +42,8 @@ runs:
     - name: Set studioctl paths
       run: |
         studioctl_home="${GITHUB_WORKSPACE}/src/cli/build/dev-home"
+        # The later sudo command initializes studioctl's directories; create logs as the runner first.
+        mkdir -p "$studioctl_home/logs"
         echo "STUDIOCTL_HOME=$studioctl_home" >> "$GITHUB_ENV"
         echo "STUDIOCTL_INTERNAL_DEV=true" >> "$GITHUB_ENV"
         echo "$studioctl_home/bin" >> "$GITHUB_PATH"
