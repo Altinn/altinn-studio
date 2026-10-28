@@ -31,10 +31,9 @@ export const useBpmnEditor = (): UseBpmnEditorResult => {
     try {
       await saveBpmn(xml, metadata);
     } catch {
-      // A rejected task id change or subform PDF upgrade would otherwise be sent again with the next edit,
-      // without the metadata that renames or removes the task's UI folder. Other failed changes are sent again
-      // with the next edit, as before.
-      if (metadata?.taskIdChange || metadata?.subformPdfConfigUpgrade) await reloadSavedProcess();
+      // A rejected task id change would otherwise be sent again with the next edit, without the metadata that
+      // renames the task's layout set. Other failed changes are sent again with the next edit, as before.
+      if (metadata?.taskIdChange) await reloadSavedProcess();
     }
   }, [saveBpmn, resetForm, metadataFormRef, getUpdatedXml, reloadSavedProcess]);
 

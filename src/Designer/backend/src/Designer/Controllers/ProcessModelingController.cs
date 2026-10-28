@@ -127,14 +127,6 @@ public class ProcessModelingController : ControllerBase
             );
         }
 
-        if (metadataObject?.SubformPdfConfigUpgrade is { } upgrade && _appVersionService.IsV9App(editingContext))
-        {
-            await _mediator.Publish(
-                new SubformPdfConfigUpgradedEvent { EditingContext = editingContext, Upgrade = upgrade },
-                cancellationToken
-            );
-        }
-
         return Accepted();
     }
 

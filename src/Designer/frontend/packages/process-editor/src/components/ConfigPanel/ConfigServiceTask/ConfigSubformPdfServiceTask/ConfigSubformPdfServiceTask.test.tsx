@@ -6,9 +6,6 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { renderWithProviders } from '../../../../../test/renderWithProviders';
 import { createBpmnTestModeler } from '../../../../../test/createBpmnTestModeler';
 import { ConfigSubformPdfServiceTask } from './ConfigSubformPdfServiceTask';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { app, org } from '@studio/testing/testids';
 
 const subformUiFolder = 'vehicleSubform';
 const otherSubformUiFolder = 'notesSubform';
@@ -88,67 +85,12 @@ describe('ConfigSubformPdfServiceTask', () => {
     await selectUiFolder(user, subformUiFolder);
     await act(async () => emitCommandStackChanged());
 
-    const [savedXml, metadata] = saveBpmn.mock.calls[0];
+    const [savedXml] = saveBpmn.mock.calls[0];
     expect(savedXml).toContain(
       `<altinn:subformUiFolder>${subformUiFolder}</altinn:subformUiFolder>`,
     );
     expect(savedXml).not.toContain('subformComponentId');
     expect(savedXml).not.toContain('subformDataTypeId');
-    // The backend then removes the task's UI folder if it holds only what Studio generated for the old settings.
-    expect(metadata).toEqual({
-      subformPdfConfigUpgrade: { taskId: 'SubformPdf', subformComponentId: 'vehicles' },
-    });
-  });
-
-  it('suggests the subform that the task opened through the component copy in its own UI folder', async () => {
-    const user = userEvent.setup();
-    const { saveBpmn, emitCommandStackChanged } = renderConfigSubformPdfServiceTask({
-      subformPdfConfig: { subformComponentId: 'vehicles', subformDataTypeId: 'vehicle' },
-      layoutSets: [...defaultLayoutSets, { id: 'SubformPdf', dataType: 'model' }],
-      taskUiFolderComponents: [
-        { id: 'vehicles', type: 'Subform', layoutSet: subformUiFolder, hidden: true },
-      ],
-    });
-
-    await user.click(
-      await screen.findByRole('button', { name: suggestionButton(subformUiFolder) }),
-    );
-    await act(async () => emitCommandStackChanged());
-
-    const [savedXml, metadata] = saveBpmn.mock.calls[0];
-    expect(savedXml).toContain(
-      `<altinn:subformUiFolder>${subformUiFolder}</altinn:subformUiFolder>`,
-    );
-    expect(metadata).toEqual({
-      subformPdfConfigUpgrade: { taskId: 'SubformPdf', subformComponentId: 'vehicles' },
-    });
-  });
-
-  it('suggests no UI folder when the component copy opens a folder that is not a subform', async () => {
-    const getFormLayouts = vi
-      .fn()
-      .mockResolvedValue(layoutsWith([{ id: 'vehicles', type: 'Subform', layoutSet: 'Task_1' }]));
-    renderConfigSubformPdfServiceTask({
-      subformPdfConfig: { subformComponentId: 'vehicles' },
-      layoutSets: [...defaultLayoutSets, { id: 'SubformPdf', dataType: 'model' }],
-      queries: { getFormLayouts },
-    });
-
-    await waitFor(() => expect(getFormLayouts).toHaveBeenCalledWith(org, app, 'SubformPdf'));
-    expect(
-      screen.queryByRole('button', { name: suggestionButton('Task_1') }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('reads no layouts for a task that names its UI folder', () => {
-    const getFormLayouts = vi.fn();
-    renderConfigSubformPdfServiceTask({
-      subformPdfConfig: { subformUiFolder },
-      layoutSets: [...defaultLayoutSets, { id: 'SubformPdf', dataType: 'model' }],
-      queries: { getFormLayouts },
-    });
-
-    expect(getFormLayouts).not.toHaveBeenCalled();
   });
 
   it('shows the saved UI folder', async () => {
@@ -196,34 +138,18 @@ async function selectUiFolder(
   await user.click(await screen.findByRole('option', { name: uiFolder, hidden: true }));
 }
 
-const defaultLayoutSets: LayoutSets = [
-  dataTaskUiFolder,
-  { id: subformUiFolder, dataType: 'vehicle', type: 'subform' },
-  { id: otherSubformUiFolder, dataType: 'note', type: 'subform' },
-];
-
-function suggestionButton(uiFolder: string): string {
-  return textMock('process_editor.configuration_panel_subform_pdf_ui_folder_suggestion_button', {
-    uiFolder,
-  });
-}
-
-function layoutsWith(components: object[]): FormLayoutsResponse {
-  return { ServiceTask: { $schema: '', data: { layout: components } } } as FormLayoutsResponse;
-}
-
 type RenderProps = {
   subformPdfConfig?: object;
   layoutSets?: LayoutSets | null;
-  taskUiFolderComponents?: object[];
-  queries?: Partial<ServicesContextProps>;
 };
 
 const renderConfigSubformPdfServiceTask = ({
   subformPdfConfig = {},
-  layoutSets = defaultLayoutSets,
-  taskUiFolderComponents = [],
-  queries = {},
+  layoutSets = [
+    dataTaskUiFolder,
+    { id: subformUiFolder, dataType: 'vehicle', type: 'subform' },
+    { id: otherSubformUiFolder, dataType: 'note', type: 'subform' },
+  ],
 }: RenderProps = {}) => {
   const saveBpmn = vi.fn().mockResolvedValue(undefined);
   const fixture = createBpmnTestModeler(
@@ -245,12 +171,6 @@ const renderConfigSubformPdfServiceTask = ({
     <Wrapper>
       <ConfigSubformPdfServiceTask />
     </Wrapper>,
-    {
-      queries: {
-        getFormLayouts: vi.fn().mockResolvedValue(layoutsWith(taskUiFolderComponents)),
-        ...queries,
-      },
-    },
   );
 
   return { ...fixture, saveBpmn };

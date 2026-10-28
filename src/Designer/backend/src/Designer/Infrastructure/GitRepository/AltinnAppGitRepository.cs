@@ -461,24 +461,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Returns the paths of all files in a layout set folder, relative to the folder and with forward slashes.
-    /// </summary>
-    public string[] GetLayoutSetFilePaths(string layoutSetName)
-    {
-        string relativePath = GetPathToLayoutSet(layoutSetName, true);
-        if (!DirectoryExistsByRelativePath(relativePath))
-        {
-            return [];
-        }
-        string absolutePath = GetAbsoluteFileOrDirectoryPathSanitized(relativePath);
-        return
-        [
-            .. GetFilesByRelativeDirectory(relativePath, "*", searchInSubdirectories: true)
-                .Select(file => Path.GetRelativePath(absolutePath, file).Replace('\\', '/')),
-        ];
-    }
-
-    /// <summary>
     /// Check if app uses layout sets or not based on whether
     /// the list of layout set names actually are layout set names
     /// or only the default folder for layouts

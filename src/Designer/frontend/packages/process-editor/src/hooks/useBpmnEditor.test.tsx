@@ -277,22 +277,6 @@ describe('useBpmnEditor', () => {
     expect(result.current.bpmnContext.bpmnDetails).toBeNull();
   });
 
-  it('Reloads the process as it is saved when a subform PDF upgrade fails to save', async () => {
-    const saveBpmn = vi.fn().mockRejectedValue(new Error('Server error'));
-    const getSavedBpmn = vi.fn().mockResolvedValue(savedXml);
-    const { result } = await setupWithBpmnContext({
-      bpmnApiContextProps: { saveBpmn, getSavedBpmn },
-    });
-    result.current.metadataFormRef.current = {
-      subformPdfConfigUpgrade: { taskId: 'SubformPdf', subformComponentId: 'vehicles' },
-    };
-
-    await act(async () => eventListeners.triggerEvent('commandStack.changed'));
-
-    await waitFor(() => expect(importXML).toHaveBeenCalledTimes(2));
-    expect(importXML).toHaveBeenLastCalledWith(savedXml);
-  });
-
   it('Does not reload the process when a save without a task id change fails', async () => {
     const saveBpmn = vi.fn().mockRejectedValue(new Error('Server error'));
     const getSavedBpmn = vi.fn().mockResolvedValue(savedXml);

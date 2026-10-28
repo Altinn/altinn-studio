@@ -34,7 +34,6 @@ public class UiFoldersService : IUiFoldersService
     private readonly ILogger<UiFoldersService> _logger;
     private const string LayoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
     private const string SubformComponentType = "Subform";
-    private const string SubformPdfTaskType = "subformPdf";
 
     public UiFoldersService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -307,126 +306,6 @@ public class UiFoldersService : IUiFoldersService
         );
 
         return await GetLayoutSets(editingContext, cancellationToken);
-    }
-
-    public async Task<bool> DeleteGeneratedSubformPdfTaskUiFolder(
-        AltinnRepoEditingContext editingContext,
-        string taskId,
-        string subformComponentId,
-        CancellationToken cancellationToken
-    )
-    {
-        ValidateLayoutSetNameIsSafe(taskId);
-        AltinnAppGitRepository altinnAppGitRepository = GetRepository(editingContext, cancellationToken);
-
-        if (
-            !altinnAppGitRepository.LayoutSetFolderExistsByExactName(taskId)
-            || altinnAppGitRepository.GetProcessDefinitions().Process.TaskTypeOf(taskId) != SubformPdfTaskType
-        )
-        {
-            return false;
-        }
-
-        foreach (string filePath in altinnAppGitRepository.GetLayoutSetFilePaths(taskId))
-        {
-            bool isGenerated =
-                filePath == "Settings.json"
-                || await IsGeneratedSubformPdfTaskLayout(
-                    altinnAppGitRepository,
-                    taskId,
-                    filePath,
-                    subformComponentId,
-                    cancellationToken
-                );
-            if (!isGenerated)
-            {
-                return false;
-            }
-        }
-
-        altinnAppGitRepository.DeleteLayoutSetFolder(taskId, cancellationToken);
-        return true;
-    }
-
-    /// <summary>
-    /// The waiting page components that Studio generated for a service task: the v9 page and the v8 page, which
-    /// has retry and back buttons. The same list as in studioctl's upgrade of subform PDF tasks.
-    /// </summary>
-    private static readonly JsonObject[] GeneratedWaitingPageComponents =
-    [
-        WaitingPageText("service-task-waiting-title", "Heading", "service_task.waiting_title", size: "L"),
-        WaitingPageText("service-task-waiting-body", "Paragraph", "service_task.waiting_body"),
-        WaitingPageText("service-task-title", "Heading", "service_task_custom_pdf_default.title", size: "L"),
-        WaitingPageText("service-task-body", "Paragraph", "service_task_custom_pdf_default.body"),
-        WaitingPageText("service-task-help-text", "Paragraph", "service_task_custom_pdf_default.help_text"),
-        new()
-        {
-            ["id"] = "service-task-button-group",
-            ["type"] = "ButtonGroup",
-            ["children"] = new JsonArray("service-task-retry-button", "service-task-back-button"),
-        },
-        WaitingPageText("service-task-retry-button", "Button", "service_task_custom_pdf_default.retry_button"),
-        new()
-        {
-            ["id"] = "service-task-back-button",
-            ["type"] = "ActionButton",
-            ["textResourceBindings"] = new JsonObject { ["title"] = "service_task_custom_pdf_default.back_button" },
-            ["action"] = "reject",
-            ["buttonStyle"] = "secondary",
-        },
-    ];
-
-    private static JsonObject WaitingPageText(string id, string type, string textKey, string? size = null)
-    {
-        JsonObject component = [];
-        if (size is not null)
-        {
-            component["size"] = size;
-        }
-        component["id"] = id;
-        component["type"] = type;
-        component["textResourceBindings"] = new JsonObject { ["title"] = textKey };
-        return component;
-    }
-
-    /// <summary>
-    /// Whether a file in a subform PDF task's UI folder is a layout that holds only generated waiting page
-    /// components and copies of the Subform component the task named.
-    /// </summary>
-    private static async Task<bool> IsGeneratedSubformPdfTaskLayout(
-        AltinnAppGitRepository altinnAppGitRepository,
-        string taskId,
-        string filePath,
-        string subformComponentId,
-        CancellationToken cancellationToken
-    )
-    {
-        if (filePath.Split('/') is not ["layouts", string fileName] || Path.GetExtension(fileName) != ".json")
-        {
-            return false;
-        }
-
-        JsonNode? layout;
-        try
-        {
-            layout = await altinnAppGitRepository.GetLayout(
-                taskId,
-                Path.GetFileNameWithoutExtension(fileName),
-                cancellationToken
-            );
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
-
-        return layout?["data"]?["layout"] is JsonArray components
-            && components
-                .OfType<JsonObject>()
-                .All(component =>
-                    (IsSubformComponent(component) && GetStringProperty(component, "id") == subformComponentId)
-                    || GeneratedWaitingPageComponents.Any(generated => JsonNode.DeepEquals(component, generated))
-                );
     }
 
     private async Task<LayoutSettings?> TryGetLayoutSettings(

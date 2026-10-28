@@ -58,7 +58,6 @@ export enum QueryKey {
   RuleHandler = 'RuleHandler',
   SearchRepos = 'SearchRepos',
   StarredRepos = 'StarredRepos',
-  SubformPdfTaskLayouts = 'SubformPdfTaskLayouts',
   TextLanguages = 'TextLanguages',
   TextResources = 'TextResources',
   Widgets = 'Widgets',
