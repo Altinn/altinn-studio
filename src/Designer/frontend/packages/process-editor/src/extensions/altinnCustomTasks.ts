@@ -246,8 +246,9 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'String',
         },
-        // The settings that subformUiFolder replaces. Known here only so that saving the process keeps
-        // them for the upgrade; choosing a UI folder removes them.
+        // The v8 settings that subformUiFolder replaces. An app whose packages are on v9 before
+        // `studioctl app upgrade v9` has run still has them, and the upgrade reads them to find the
+        // subform's UI folder. Known here so that saving the process does not drop them.
         {
           name: 'subformComponentId',
           isMany: false,

@@ -20,7 +20,7 @@ describe('useSubformPdfConfig', () => {
     expect(result.current.filenameTextResourceId).toBe('vehicle-pdf-name');
   });
 
-  it('removes the settings that the UI folder replaces', async () => {
+  it('writes only the UI folder, leaving the v8 settings for the upgrade', async () => {
     const { result, saveXml } = renderSubformConfig({
       subformComponentId: 'vehicles',
       subformDataTypeId: 'vehicle',
@@ -30,8 +30,8 @@ describe('useSubformPdfConfig', () => {
 
     const xml = await saveXml();
     expect(xml).toContain('<altinn:subformUiFolder>vehicleSubform</altinn:subformUiFolder>');
-    expect(xml).not.toContain('subformComponentId');
-    expect(xml).not.toContain('subformDataTypeId');
+    expect(xml).toContain('<altinn:subformComponentId>vehicles</altinn:subformComponentId>');
+    expect(xml).toContain('<altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>');
   });
 
   it('clears the UI folder without changing the filename', async () => {

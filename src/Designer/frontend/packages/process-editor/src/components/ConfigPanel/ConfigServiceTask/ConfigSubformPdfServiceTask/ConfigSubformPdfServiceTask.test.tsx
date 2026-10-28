@@ -75,24 +75,6 @@ describe('ConfigSubformPdfServiceTask', () => {
     expect(metadata).toBeNull();
   });
 
-  it('replaces the settings of a task configured before UI folders were chosen', async () => {
-    const user = userEvent.setup();
-    const { saveBpmn, emitCommandStackChanged } = renderConfigSubformPdfServiceTask({
-      subformPdfConfig: { subformComponentId: 'vehicles', subformDataTypeId: 'vehicle' },
-    });
-    expect(getUiFolderField()).toHaveValue('');
-
-    await selectUiFolder(user, subformUiFolder);
-    await act(async () => emitCommandStackChanged());
-
-    const [savedXml] = saveBpmn.mock.calls[0];
-    expect(savedXml).toContain(
-      `<altinn:subformUiFolder>${subformUiFolder}</altinn:subformUiFolder>`,
-    );
-    expect(savedXml).not.toContain('subformComponentId');
-    expect(savedXml).not.toContain('subformDataTypeId');
-  });
-
   it('shows the saved UI folder', async () => {
     renderConfigSubformPdfServiceTask({ subformPdfConfig: { subformUiFolder } });
 

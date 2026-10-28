@@ -40,14 +40,9 @@ export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
     }
   };
 
-  /** Also removes the settings that subformUiFolder replaces. */
   const setSubformUiFolder = (newSubformUiFolder: string): void => {
     if (newSubformUiFolder === subformUiFolder) return;
-    updateConfig({
-      subformUiFolder: newSubformUiFolder || undefined,
-      subformComponentId: undefined,
-      subformDataTypeId: undefined,
-    });
+    updateConfig({ subformUiFolder: newSubformUiFolder || undefined });
   };
 
   const setFilenameTextResourceId = (textResourceId: string): void => {
