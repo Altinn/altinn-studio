@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Integration.Tests.WorkflowEngine;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
