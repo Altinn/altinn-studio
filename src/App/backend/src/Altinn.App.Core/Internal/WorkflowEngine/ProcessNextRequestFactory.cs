@@ -460,7 +460,7 @@ internal sealed class ProcessNextRequestFactory
                 {
                     taskEndSteps.AddRange(
                         workflowCommands
-                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
+                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
@@ -468,16 +468,16 @@ internal sealed class ProcessNextRequestFactory
                 {
                     taskStartSteps.AddRange(
                         workflowCommands
-                            .Commands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
+                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
 
                 primaryPostCommitSteps.AddRange(
-                    workflowCommands.PrimaryPostCommitCommands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
+                    workflowCommands.PrimaryPostCommitCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                 );
                 auxiliarySteps.AddRange(
-                    workflowCommands.AuxiliaryCommands.ApplyStepOptions(_stepOptionsResolver, eventTaskId)
+                    workflowCommands.AuxiliaryCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
                 );
             }
         }
@@ -640,61 +640,24 @@ internal sealed class ProcessNextRequestFactory
         };
     }
 
-    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange)
-    {
-        var payload = new ProcessStateChangePayload(processStateChange);
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        var step = new StepRequest
-        {
-            OperationId = MutateProcessState.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = MutateProcessState.Key, Payload = serializedPayload }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
-    }
+    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange) =>
+        CreateCommand(MutateProcessState.Key, new ProcessStateChangePayload(processStateChange));
 
-    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange)
-    {
-        var payload = new ProcessStateChangePayload(processStateChange);
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        var step = new StepRequest
-        {
-            OperationId = CommitProcessState.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = CommitProcessState.Key, Payload = serializedPayload }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
-    }
+    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange) =>
+        CreateCommand(CommitProcessState.Key, new ProcessStateChangePayload(processStateChange));
 
-    private StepRequest CreateEnqueueAuxiliaryWorkflowsCommand(WorkflowEnqueueRequest auxiliaryEnqueueRequest)
-    {
-        var payload = new EnqueueAuxiliaryWorkflowsPayload(auxiliaryEnqueueRequest);
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        var step = new StepRequest
-        {
-            OperationId = EnqueueAuxiliaryWorkflows.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = EnqueueAuxiliaryWorkflows.Key, Payload = serializedPayload }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
-    }
+    private StepRequest CreateEnqueueAuxiliaryWorkflowsCommand(WorkflowEnqueueRequest auxiliaryEnqueueRequest) =>
+        CreateCommand(EnqueueAuxiliaryWorkflows.Key, new EnqueueAuxiliaryWorkflowsPayload(auxiliaryEnqueueRequest));
 
-    private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null)
-    {
-        var step = new StepRequest
+    /// <summary>
+    /// A step of the transition's own, which runs for no task and declares no options, so it gets the command's
+    /// default options and otherwise the engine's.
+    /// </summary>
+    private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null) =>
+        new PlannedStep
         {
+            CommandKey = commandKey,
             OperationId = commandKey,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = commandKey, Payload = CommandPayloadSerializer.Serialize(payload) }
-            ),
-        };
-        return step.ApplyStepOptions(_stepOptionsResolver, taskId: null);
-    }
+            Payload = payload,
+        }.ToStepRequest(_stepOptionsResolver, taskId: null);
 }

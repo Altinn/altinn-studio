@@ -15,8 +15,7 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 public class WorkflowCommandSetTests
 {
-    private static List<string> Keys(IReadOnlyList<StepRequest> steps) =>
-        steps.Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value)!.CommandKey).ToList();
+    private static List<string> Keys(IReadOnlyList<PlannedStep> steps) => steps.Select(s => s.CommandKey).ToList();
 
     /// <summary>The pipeline a simple service task forwards to: the conclusion and nothing else.</summary>
     private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
@@ -32,9 +31,6 @@ public class WorkflowCommandSetTests
             .Stage(_ => Task.FromResult(StageResult.Completed()), middleOptions)
             .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Build();
-
-    private static string? Payload(StepRequest step) =>
-        JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!.Payload;
 
     [Fact]
     public void GetTaskStartSteps_ServiceTaskInstantiation_RoutesCommandsToTheCorrectBuckets()
@@ -140,17 +136,10 @@ public class WorkflowCommandSetTests
             }
         );
 
-        StepRequest startStep = Assert.Single(commandSet.Commands, step => step.CommandKey == StartTask.Key);
+        PlannedStep startStep = Assert.Single(commandSet.Commands, step => step.CommandKey == StartTask.Key);
         Assert.Equal($"{StartTask.Key}: 0", startStep.OperationId);
-        Assert.Equal(
-            0,
-            Assert
-                .IsType<ProcessTaskStagePayload>(
-                    CommandPayloadSerializer.Deserialize<CommandRequestPayload>(Payload(startStep))
-                )
-                .StageIndex
-        );
-        Assert.Same(options, startStep.StageOptions);
+        Assert.Equal(0, Assert.IsType<ProcessTaskStagePayload>(startStep.Payload).StageIndex);
+        Assert.Same(options, startStep.DeclaredOptions);
     }
 
     [Fact]
@@ -180,19 +169,13 @@ public class WorkflowCommandSetTests
             Keys(commandSet.Commands)
         );
 
-        List<StepRequest> stageSteps = commandSet.Commands.Where(step => step.CommandKey == StartTask.Key).ToList();
+        List<PlannedStep> stageSteps = commandSet.Commands.Where(step => step.CommandKey == StartTask.Key).ToList();
         Assert.Equal(["StartTask: 0", "StartTask: 1", "StartTask: 2"], stageSteps.Select(step => step.OperationId));
         Assert.Equal(
             [0, 1, 2],
-            stageSteps.Select(step =>
-                Assert
-                    .IsType<ProcessTaskStagePayload>(
-                        CommandPayloadSerializer.Deserialize<CommandRequestPayload>(Payload(step))
-                    )
-                    .StageIndex
-            )
+            stageSteps.Select(step => Assert.IsType<ProcessTaskStagePayload>(step.Payload).StageIndex)
         );
-        Assert.Equal([null, middleOptions, null], stageSteps.Select(step => step.StageOptions));
+        Assert.Equal([null, middleOptions, null], stageSteps.Select(step => step.DeclaredOptions));
     }
 
     [Fact]
@@ -258,18 +241,14 @@ public class WorkflowCommandSetTests
     private static List<ExecuteServiceTaskPayload> StageStepPayloads(ServiceTaskSegmentPlan plan) =>
         plan
             .Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
-            .Select(step =>
-            {
-                var appData = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
-                return CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
-            })
+            .Select(step => Assert.IsType<ExecuteServiceTaskPayload>(step.Payload))
             .ToList();
 
     /// <summary>The raw JSON of the plan's <c>ExecuteServiceTask</c> step payloads, in order.</summary>
     private static List<string> StageStepPayloadJson(ServiceTaskSegmentPlan plan) =>
         plan
             .Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
-            .Select(step => JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!.Payload!)
+            .Select(step => CommandPayloadSerializer.Serialize(step.Payload)!)
             .ToList();
 
     /// <summary>
@@ -297,9 +276,9 @@ public class WorkflowCommandSetTests
         ServiceTaskSegmentPlan rest = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
 
         // The mint between the plain stage and the send carries nothing, so it inherits neither's options.
-        Assert.Equal([stage, null, send], primary.Steps.Select(step => step.StageOptions));
-        Assert.Same(handler, Assert.Single(receive.Steps).StageOptions);
-        Assert.Same(conclusion, Assert.Single(rest.Steps).StageOptions);
+        Assert.Equal([stage, null, send], primary.Steps.Select(step => step.DeclaredOptions));
+        Assert.Same(handler, Assert.Single(receive.Steps).DeclaredOptions);
+        Assert.Same(conclusion, Assert.Single(rest.Steps).DeclaredOptions);
     }
 
     [Fact]

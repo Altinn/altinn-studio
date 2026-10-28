@@ -145,19 +145,12 @@ public class WorkflowEngineCommandRegistrationTests
 
     private static void CollectCommandKeys(WorkflowCommandSet commandSet, HashSet<string> keys)
     {
-        IEnumerable<StepRequest> steps = commandSet
+        IEnumerable<PlannedStep> steps = commandSet
             .Commands.Concat(commandSet.PrimaryPostCommitCommands)
             .Concat(commandSet.AuxiliaryCommands);
-        foreach (StepRequest step in steps)
+        foreach (PlannedStep step in steps)
         {
-            if (step.Command.Type == "app" && step.Command.Data is { } data)
-            {
-                AppCommandData? appData = JsonSerializer.Deserialize<AppCommandData>(data);
-                if (appData is not null)
-                {
-                    keys.Add(appData.CommandKey);
-                }
-            }
+            keys.Add(step.CommandKey);
         }
     }
 

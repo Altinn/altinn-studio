@@ -688,7 +688,6 @@ public class MailboxRelayTests
             );
 
         StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
-        Assert.Same(handlerOptions, step.StageOptions);
         Assert.Equal(TimeSpan.FromMinutes(5), step.Command.MaxExecutionTime);
     }
 
@@ -812,7 +811,6 @@ public class MailboxRelayTests
 
         StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
         Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
-        Assert.Equal(TimeSpan.FromMinutes(3), step.StageOptions?.MaxExecutionTime); // the terminal's own, on the step
     }
 
     [Fact]
@@ -1348,7 +1346,7 @@ public class MailboxRelayTests
             new MailboxHandover(
                 handlerItemIndex - 1,
                 new ServiceTaskSegmentPlan(
-                    [WorkflowCommandSet.CreateItemStep(ServiceTaskType, handlerItemIndex, stageOptions: null)],
+                    [WorkflowCommandSet.CreateItemStep(ServiceTaskType, handlerItemIndex, declaredOptions: null)],
                     ReceiveOpeningIndex: openingStageIndex
                 ),
                 new MailboxTarget(mailboxId, openingStageIndex)
@@ -1392,7 +1390,7 @@ public class MailboxRelayTests
     public void MailboxHandover_WhosePlanAndTargetDisagree_IsRefusedAtConstruction(bool planReceives)
     {
         var plan = new ServiceTaskSegmentPlan(
-            [WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, stageOptions: null)],
+            [WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, declaredOptions: null)],
             planReceives ? OpeningStageIndex : null
         );
         MailboxTarget? target = planReceives ? null : new MailboxTarget(_mailboxId, OpeningStageIndex);
@@ -1407,8 +1405,8 @@ public class MailboxRelayTests
     {
         var plan = new ServiceTaskSegmentPlan(
             [
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, stageOptions: null),
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex + 1, stageOptions: null),
+                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, declaredOptions: null),
+                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex + 1, declaredOptions: null),
             ],
             OpeningStageIndex
         );

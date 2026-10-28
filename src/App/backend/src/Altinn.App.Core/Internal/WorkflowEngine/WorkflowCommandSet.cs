@@ -7,8 +7,6 @@ using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.ProcessEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskAbandon;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
-using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
-using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
@@ -26,35 +24,35 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// workflow. An index rather than a mailbox id: the id lives in the workflow state carry, and is resolved
 /// from it at the hop that decides to enqueue this plan.
 /// </param>
-internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<StepRequest> Steps, int? ReceiveOpeningIndex);
+internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<PlannedStep> Steps, int? ReceiveOpeningIndex);
 
 /// <summary>
 /// Defines a group of commands that should be executed for a process event.
 /// </summary>
 internal sealed class WorkflowCommandSet
 {
-    private readonly List<StepRequest> _commands = [];
-    private readonly List<StepRequest> _primaryPostCommitCommands = [];
-    private readonly List<StepRequest> _auxiliaryCommands = [];
+    private readonly List<PlannedStep> _commands = [];
+    private readonly List<PlannedStep> _primaryPostCommitCommands = [];
+    private readonly List<PlannedStep> _auxiliaryCommands = [];
 
     /// <summary>
     /// Gets the pre-commit commands for this event. CommitProcessState will be added after these.
     /// </summary>
-    public IReadOnlyList<StepRequest> Commands => _commands;
+    public IReadOnlyList<PlannedStep> Commands => _commands;
 
     /// <summary>
     /// Gets the post-commit commands that must complete before the transition is considered done
     /// (e.g., ExecuteServiceTask). These run in the transition's primary workflow and gate the next
     /// transition.
     /// </summary>
-    public IReadOnlyList<StepRequest> PrimaryPostCommitCommands => _primaryPostCommitCommands;
+    public IReadOnlyList<PlannedStep> PrimaryPostCommitCommands => _primaryPostCommitCommands;
 
     /// <summary>
     /// Gets the post-commit commands that run in auxiliary workflows (e.g., MovedToAltinnEvent), one
     /// workflow per command. An auxiliary workflow runs beside the process and never gates the next
     /// transition.
     /// </summary>
-    public IReadOnlyList<StepRequest> AuxiliaryCommands => _auxiliaryCommands;
+    public IReadOnlyList<PlannedStep> AuxiliaryCommands => _auxiliaryCommands;
 
     /// <summary>
     /// Whether this command set schedules a service-task command after CommitProcessState. The service task's
@@ -171,7 +169,7 @@ internal sealed class WorkflowCommandSet
                     commandKey,
                     new ProcessTaskStagePayload(index),
                     operationId: $"{commandKey}: {index.ToString(CultureInfo.InvariantCulture)}",
-                    stageOptions: stages[index].StepOptions
+                    declaredOptions: stages[index].StepOptions
                 )
             );
         }
@@ -190,7 +188,7 @@ internal sealed class WorkflowCommandSet
         return this;
     }
 
-    private WorkflowCommandSet AddPrimaryPostCommitSteps(IEnumerable<StepRequest> steps)
+    private WorkflowCommandSet AddPrimaryPostCommitSteps(IEnumerable<PlannedStep> steps)
     {
         _primaryPostCommitCommands.AddRange(steps);
         return this;
@@ -230,7 +228,7 @@ internal sealed class WorkflowCommandSet
         int? afterItemIndex = null
     )
     {
-        var steps = new List<StepRequest>();
+        var steps = new List<PlannedStep>();
         int firstItemIndex = afterItemIndex is { } item ? item + 1 : 0;
 
         for (int index = firstItemIndex; index < pipeline.Items.Count; index++)
@@ -305,35 +303,29 @@ internal sealed class WorkflowCommandSet
     /// lifecycle stage's do. Nothing about what follows the item rides here — a step's payload says what it
     /// runs, never what runs after it.
     /// </summary>
-    internal static StepRequest CreateItemStep(
+    internal static PlannedStep CreateItemStep(
         string serviceTaskType,
         int itemIndex,
-        ProcessStepOptions? stageOptions
+        ProcessStepOptions? declaredOptions
     ) =>
         CreateCommand(
             ExecuteServiceTask.Key,
             new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            stageOptions: stageOptions
+            declaredOptions: declaredOptions
         );
 
-    private static StepRequest CreateCommand(
+    private static PlannedStep CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        ProcessStepOptions? stageOptions = null
-    )
-    {
-        string? serializedPayload = CommandPayloadSerializer.Serialize(payload);
-        return new StepRequest
+        ProcessStepOptions? declaredOptions = null
+    ) =>
+        new()
         {
-            OperationId = operationId ?? commandKey,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = commandKey, Payload = serializedPayload }
-            ),
             CommandKey = commandKey,
-            StageOptions = stageOptions,
+            OperationId = operationId ?? commandKey,
+            Payload = payload,
+            DeclaredOptions = declaredOptions,
         };
-    }
 }

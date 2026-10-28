@@ -311,7 +311,7 @@ public class ProcessStepOptionsResolverTests
     /// by construction: the planner's receive workflows and the relay's successor receivers build the step alike.
     /// </summary>
     [Fact]
-    public void ApplyStepOptions_ReceiveStep_ResolvesTheAnsweringHandlersOptions()
+    public void ToStepRequest_ReceiveStep_ResolvesTheAnsweringHandlersOptions()
     {
         ProcessStepOptionsResolver resolver = CreateResolver();
 
@@ -321,7 +321,7 @@ public class ProcessStepOptionsResolverTests
                 itemIndex: 1,
                 new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromHours(2) }
             )
-            .ApplyStepOptions(resolver, taskId: null);
+            .ToStepRequest(resolver, taskId: null);
 
         Assert.Equal(TimeSpan.FromHours(2), resolved.Command.MaxExecutionTime); // the handler's own
         Assert.Null(resolved.Command.WaitBudget); // never another item's
@@ -336,40 +336,15 @@ public class ProcessStepOptionsResolverTests
     [Theory]
     [InlineData(0)]
     [InlineData(null)]
-    public void ApplyStepOptions_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? serviceTaskItemIndex)
+    public void ToStepRequest_StepWithADisplayOperationId_StillFindsTheCommandsOwnDefault(int? serviceTaskItemIndex)
     {
         ProcessStepOptionsResolver resolver = CreateResolver();
 
-        StepRequest resolved = new StepRequest
+        StepRequest resolved = new PlannedStep
         {
-            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskItemIndex?.ToString() ?? "Anything"}",
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
-            ),
             CommandKey = ExecuteServiceTask.Key,
-        }.ApplyStepOptions(resolver, taskId: null);
-
-        Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);
-    }
-
-    /// <summary>
-    /// The four steps the factory inserts carry no <see cref="StepRequest.CommandKey"/>, so the fallback to
-    /// OperationId — which is their command key — has to keep resolving them.
-    /// </summary>
-    [Fact]
-    public void ApplyStepOptions_StepWithoutACommandKey_FallsBackToTheOperationId()
-    {
-        ProcessStepOptionsResolver resolver = CreateResolver();
-
-        StepRequest resolved = new StepRequest
-        {
-            OperationId = ExecuteServiceTask.Key,
-            Command = CommandDefinition.Create(
-                "app",
-                new AppCommandData { CommandKey = ExecuteServiceTask.Key, Payload = null }
-            ),
-        }.ApplyStepOptions(resolver, taskId: null);
+            OperationId = $"{ExecuteServiceTask.Key}: {serviceTaskItemIndex?.ToString() ?? "Anything"}",
+        }.ToStepRequest(resolver, taskId: null);
 
         Assert.Equal(ExecuteServiceTask.DefaultServiceTaskTimeout, resolved.Command.MaxExecutionTime);
     }

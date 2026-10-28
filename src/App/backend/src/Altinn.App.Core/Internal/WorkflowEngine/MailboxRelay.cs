@@ -537,7 +537,7 @@ internal sealed class MailboxRelay
     private async Task EnqueueReceiver(
         Guid mailboxId,
         string serviceTaskType,
-        IReadOnlyList<StepRequest> steps,
+        IReadOnlyList<PlannedStep> steps,
         string operationIdSuffix,
         MailboxRelayRequest request,
         CancellationToken cancellationToken
@@ -545,7 +545,7 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> receiveSteps = [.. steps.ApplyStepOptions(_stepOptionsResolver, taskId)];
+        List<StepRequest> receiveSteps = [.. steps.ToStepRequests(_stepOptionsResolver, taskId)];
 
         var receiveWorkflow = new WorkflowRequest
         {
@@ -605,7 +605,7 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> steps = [.. handover.Plan.Steps.ApplyStepOptions(_stepOptionsResolver, taskId)];
+        List<StepRequest> steps = [.. handover.Plan.Steps.ToStepRequests(_stepOptionsResolver, taskId)];
 
         var continuationWorkflow = new WorkflowRequest
         {
