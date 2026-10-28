@@ -1,6 +1,8 @@
 using System.Globalization;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
@@ -12,6 +14,12 @@ namespace Altinn.App.Core.Internal.Expressions;
 /// </summary>
 public static class LayoutEvaluator
 {
+    // The component types that hold attachments in app-frontend, and the bindings that point at them
+    private const string FileUploadType = "FileUpload";
+    private const string ImageUploadType = "ImageUpload";
+    private const string SimpleBindingName = "simpleBinding";
+    private const string ListBindingName = "list";
+
     /// <summary>
     /// Get a list of fields that are only referenced in hidden components in <see cref="LayoutEvaluatorState" />
     /// </summary>
@@ -113,6 +121,120 @@ public static class LayoutEvaluator
         {
             await state.RemoveDataField(dataReference, rowRemovalOption);
         }
+    }
+
+    /// <summary>
+    /// Get the attachments that only belong to hidden FileUpload and ImageUpload components.
+    /// </summary>
+    /// <remarks>
+    /// An attachment belongs to a component the same way as in app-frontend: the data type id is the component id,
+    /// and the data type is not a form data type and belongs to the task or to no task. The attachments whose ids
+    /// are in the component's <c>simpleBinding</c> or <c>list</c> binding belong to it. A component without
+    /// either binding, outside a repeating group, has all attachments of its data type. Attachments that belong to
+    /// no component are kept. Call this before <see cref="RemoveHiddenData"/> with the same state, so the bindings
+    /// in hidden rows are still there and each component's hidden expression is evaluated once.
+    /// </remarks>
+    internal static async Task<List<DataElementIdentifier>> GetHiddenAttachmentsForRemoval(
+        LayoutEvaluatorState state,
+        string taskId
+    )
+    {
+        // Without layouts for the task there are no components, so nothing can be hidden
+        if (!state.HasComponentModel)
+        {
+            return [];
+        }
+
+        var hiddenAttachments = new HashSet<DataElementIdentifier>();
+        var nonHiddenAttachments = new HashSet<DataElementIdentifier>();
+
+        foreach (var pageContext in await state.GetComponentContexts())
+        {
+            foreach (var context in pageContext.Descendants)
+            {
+                var attachments = await GetAttachmentsToRemoveWhenHidden(state, context, taskId);
+                if (attachments.Count == 0)
+                {
+                    continue;
+                }
+
+                if (await context.IsHidden(evaluateRemoveWhenHidden: true))
+                {
+                    hiddenAttachments.UnionWith(attachments);
+                }
+                else
+                {
+                    nonHiddenAttachments.UnionWith(attachments);
+                }
+            }
+        }
+
+        hiddenAttachments.ExceptWith(nonHiddenAttachments);
+        return hiddenAttachments.ToList();
+    }
+
+    /// <summary>
+    /// Get the attachments that belong to the FileUpload or ImageUpload component in this context (one row of a
+    /// repeating group), or none for other component types. Like
+    /// <see cref="Models.Layout.Components.Base.BaseComponent.GetDataReferencesToRemoveWhenHidden"/>, it returns
+    /// the same attachments whether or not the context is hidden.
+    /// </summary>
+    private static async Task<List<DataElementIdentifier>> GetAttachmentsToRemoveWhenHidden(
+        LayoutEvaluatorState state,
+        ComponentContext context,
+        string taskId
+    )
+    {
+        var component = context.Component;
+        ArgumentNullException.ThrowIfNull(component);
+        if (
+            !component.Type.Equals(FileUploadType, StringComparison.OrdinalIgnoreCase)
+            && !component.Type.Equals(ImageUploadType, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            return [];
+        }
+
+        var dataType = state.DataAccessor.DataTypes.FirstOrDefault(dt =>
+            dt.Id.Equals(component.Id, StringComparison.Ordinal)
+        );
+        if (
+            dataType is null
+            || dataType.AppLogic?.ClassRef is not null
+            || dataType.Id == PdfService.PdfElementType
+            || (dataType.TaskId is not null && dataType.TaskId != taskId)
+        )
+        {
+            return [];
+        }
+
+        // Binding values are compared to the data element ids as strings, like app-frontend does
+        bool hasSimpleBinding = component.DataModelBindings.TryGetValue(SimpleBindingName, out var simpleBinding);
+        bool hasListBinding = component.DataModelBindings.TryGetValue(ListBindingName, out var listBinding);
+        string? simpleValue = hasSimpleBinding
+            ? (await state.GetModelData(simpleBinding, context.DataElementIdentifier, context.RowIndices)) as string
+            : null;
+        object? listValue = hasListBinding
+            ? await state.GetModelData(listBinding, context.DataElementIdentifier, context.RowIndices)
+            : null;
+        var listIds = listValue is System.Collections.IEnumerable list
+            ? list.OfType<string>().ToHashSet(StringComparer.Ordinal)
+            : [];
+
+        // Same rule as app-frontend: only a component without bindings, outside a repeating group (without row
+        // indices), has all attachments of its data type. An empty binding value gives it none.
+        bool includeAllOfDataType = !hasSimpleBinding && !hasListBinding && context.RowIndices is null;
+
+        var attachments = new List<DataElementIdentifier>();
+        foreach (var dataElement in state.Instance.Data.Where(d => d.DataType == dataType.Id))
+        {
+            if (includeAllOfDataType || dataElement.Id == simpleValue || listIds.Contains(dataElement.Id))
+            {
+                attachments.Add(dataElement);
+            }
+        }
+
+        return attachments;
     }
 
     /// <summary>
