@@ -33,6 +33,12 @@ internal sealed record PlannedStep
     public ProcessStepOptions? DeclaredOptions { get; init; }
 
     /// <summary>
+    /// What the step is called where people follow the task's progress: the display name of the item it runs, or
+    /// null for a step with no name to show. Sent as the <see cref="WorkflowCommandSet.StepNameLabel"/> label.
+    /// </summary>
+    public string? StepName { get; init; }
+
+    /// <summary>
     /// The engine's request for this step, its options resolved for <paramref name="taskId"/>: the declared
     /// options, or a hook handler's, win field-wise over the command's default, and a field no tier sets stays off
     /// the wire so the engine applies its own default.
@@ -50,6 +56,12 @@ internal sealed record PlannedStep
                 waitBudget: options?.WaitBudget
             ),
             RetryStrategy = options?.RetryStrategy?.ToRetryStrategy(),
+            Labels = StepName is null
+                ? null
+                : new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    [WorkflowCommandSet.StepNameLabel] = StepName,
+                },
         };
     }
 }

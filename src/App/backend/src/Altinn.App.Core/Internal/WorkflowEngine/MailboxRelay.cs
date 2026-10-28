@@ -242,7 +242,8 @@ internal sealed class MailboxRelay
         WorkflowCallbackStateCarry carry,
         int handlerItemIndex,
         int openingStageIndex,
-        ProcessStepOptions? handlerStepOptions = null
+        ProcessStepOptions? handlerStepOptions = null,
+        string? handlerStepName = null
     )
     {
         switch (result)
@@ -260,7 +261,8 @@ internal sealed class MailboxRelay
                         serviceTaskType,
                         handlerItemIndex,
                         mailbox.Seq,
-                        handlerStepOptions
+                        handlerStepOptions,
+                        handlerStepName
                     ),
                 };
 
@@ -349,7 +351,8 @@ internal sealed class MailboxRelay
                         serviceTaskType,
                         handlerItemIndex,
                         mailbox.Seq,
-                        pipeline.Items.ElementAtOrDefault(handlerItemIndex)?.StepOptions
+                        pipeline.Items.ElementAtOrDefault(handlerItemIndex)?.StepOptions,
+                        pipeline.Items.ElementAtOrDefault(handlerItemIndex)?.DisplayName
                     ),
                 };
 
@@ -458,7 +461,8 @@ internal sealed class MailboxRelay
                         WorkflowCommandSet.CreateItemStep(
                             awaitNext.ServiceTaskType,
                             awaitNext.HandlerItemIndex,
-                            awaitNext.HandlerStepOptions
+                            awaitNext.HandlerStepOptions,
+                            awaitNext.HandlerStepName
                         ),
                     ],
                     operationIdSuffix: "after message " + awaitNext.Position.ToString(CultureInfo.InvariantCulture),
