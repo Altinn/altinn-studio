@@ -9,6 +9,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [9.0.0-preview.9] - 2026-10-28
+
 ### Added
 
 - Pipeline steps are named after the method they run, for Studio's admin panel: a lifecycle stage or service task step composed from `StoreReceipt` shows as "Store receipt". A lambda leaves the step unnamed. Names are display only and change nothing about how a step runs. ([#21580](https://github.com/Altinn/altinn-studio/pull/21580))
@@ -22,11 +24,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
     - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
 - Build checks for `subformPdf` tasks: `ALTINNAPP1024` (error) reports a `subformUiFolder` that is a task's UI folder, or not a UI folder with a `defaultDataType` the app declares, and `ALTINNAPP0602` (error) reports the old `subformComponentId` and `subformDataTypeId`. ([#17467](https://github.com/Altinn/altinn-studio/issues/17467))
-
 - Build checks `ALTINNAPP1004`–`ALTINNAPP1012` and `ALTINNAPP1023` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element, a task with two outgoing flows or a condition on a gateway's default. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023), [#21105](https://github.com/Altinn/altinn-studio/pull/21105))
-
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
-
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Build checks for PDF service tasks in `process.bpmn` ([#21361](https://github.com/Altinn/altinn-studio/issues/21361)):
@@ -54,7 +53,6 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: a `subformPdf` task names the subform's UI folder in `<altinn:subformUiFolder>` instead of `subformComponentId` and `subformDataTypeId`, and needs no UI folder of its own. Its PDFs carry `subformUiFolder` metadata instead of `subformComponentId`. `studioctl app upgrade v9` makes the change. ([#17467](https://github.com/Altinn/altinn-studio/issues/17467))
 - Breaking: the `PdfController` constructor takes an `IAppResources`. Pass one if your code creates or extends the controller. ([#17467](https://github.com/Altinn/altinn-studio/issues/17467))
 - Breaking: `SubformPdfContext.ComponentId` is replaced by `UiFolder`. A custom `IPdfService` must render a subform entry at the task's URL with the `subformUiFolder` and `subformDataElementId` query parameters, instead of under the Subform component's path. ([#17467](https://github.com/Altinn/altinn-studio/issues/17467))
-
 - End users with `write` can now retry a failed service task that your app registers itself, such as your own `IServiceTask`. They previously needed an action named after the task type, which your policy no longer needs to grant. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - Build check `ALTINNAPP0800` no longer asks you to grant the app owner task-specific actions in `config/authorization/policy.xml`, such as `confirm`, `reject` or an action named after a custom task type. The app owner still needs `read` and `write`. ([#20943](https://github.com/Altinn/altinn-studio/issues/20943))
 - An app no longer starts when more than one `IOnTaskStartingHandler`, `IOnTaskEndingHandler` or `IOnTaskAbandoningHandler` runs for the same task, or more than one `IOnProcessEndedHandler` is registered. Combine them into one. ([#21069](https://github.com/Altinn/altinn-studio/pull/21069))
