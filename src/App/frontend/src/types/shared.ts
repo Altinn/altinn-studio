@@ -325,7 +325,7 @@ export const ELEMENT_TYPE = {
 
 type ElementType = (typeof ELEMENT_TYPE)[keyof typeof ELEMENT_TYPE];
 
-interface IProcessTask {
+export interface IProcessTask {
   altinnTaskType: string;
   elementId: string;
   elementType?: ElementType; // Appears in versions after https://github.com/Altinn/app-lib-dotnet/pull/745

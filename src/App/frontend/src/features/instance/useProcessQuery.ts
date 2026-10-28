@@ -10,7 +10,7 @@ import { TaskKeys } from 'src/routesBuilder';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { LooseAutocomplete } from 'src/types';
-import type { IActionType, IProcess, IProcessWorkflow } from 'src/types/shared';
+import type { IActionType, IProcess, IProcessTask, IProcessWorkflow } from 'src/types/shared';
 
 export function useProcessQuery() {
   const { data, refetch } = useInstanceDataQuery({ select: (instance) => instance.process });
@@ -54,11 +54,26 @@ export function useTaskTypeFromBackend() {
 }
 
 /**
- * Pure classifier: resolves the ProcessTaskType of a given taskId.
- *
- * The taskId is looked up in processTasks first, so a URL parked on one task keeps resolving that
- * task's type after the process has moved on to another. It falls back to currentTask when that is
- * the task asked for, and to currentTask's fields when the list entry lacks them.
+ * The task with this id. It is looked up in processTasks first, so a URL parked on one task keeps resolving that task
+ * after the process has moved on to another. It falls back to currentTask when that is the task asked for, and to
+ * currentTask's fields when the list entry lacks them.
+ */
+export function findProcessTask(process: IProcess | undefined, taskId: string | undefined): IProcessTask | undefined {
+  const fromList = process?.processTasks?.find((task) => task.elementId === taskId);
+  const fromCurrent = process?.currentTask?.elementId === taskId ? process?.currentTask : undefined;
+  if (!fromList || !fromCurrent) {
+    return fromList ?? fromCurrent;
+  }
+
+  return {
+    elementId: fromList.elementId,
+    altinnTaskType: fromList.altinnTaskType ?? fromCurrent.altinnTaskType,
+    elementType: fromList.elementType ?? fromCurrent.elementType,
+  };
+}
+
+/**
+ * Pure classifier: resolves the ProcessTaskType of a given taskId (see findProcessTask).
  *
  * A task that renders through its UI folder classifies as a data task. A service task does so only
  * when the folder lists a page, so a folder without one gets the built-in loading view. PDF mode
@@ -75,10 +90,8 @@ export function getTaskTypeById(
   uiFolders: Record<string, ILayoutSettings>,
   isPdf: boolean,
 ): ProcessTaskType {
-  const fromList = processData?.processTasks?.find((t) => t.elementId === taskId);
-  const fromCurrent = processData?.currentTask?.elementId === taskId ? processData?.currentTask : undefined;
-  const task = fromList ?? fromCurrent;
-  const elementType = task?.elementType ?? fromCurrent?.elementType;
+  const task = findProcessTask(processData, taskId);
+  const elementType = task?.elementType;
 
   const rendersUiFolder =
     taskId !== undefined &&
@@ -97,7 +110,7 @@ export function getTaskTypeById(
     return ProcessTaskType.Service;
   }
 
-  const altinnTaskType = task?.altinnTaskType ?? fromCurrent?.altinnTaskType;
+  const altinnTaskType = task?.altinnTaskType;
   if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
     return altinnTaskType;
   }

@@ -5,6 +5,7 @@ import { Button, Flex } from '@app/form-component';
 
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/process/ProcessWrapper.module.css';
+import { useIsServiceTaskPage, useServiceTaskPage } from 'src/components/process/serviceTaskPage';
 import {
   useIsWorkflowFailedOnCurrentServiceTask,
   WorkflowFailed,
@@ -16,7 +17,12 @@ import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getProcessNextMutationKey, useIsProcessNextPending } from 'src/features/instance/processNextMutationKey';
 import { getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
-import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
+import {
+  findProcessTask,
+  useGetTaskTypeById,
+  useProcessQuery,
+  useProcessWorkflow,
+} from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -127,74 +133,22 @@ function useNavigateToSettledTask(taskId: string | undefined, enabled: boolean, 
   }, [enabled, status, failedOnCurrentServiceTask, processNextPending, process, taskId, navigateToTask]);
 }
 
-/**
- * Moves the URL onto a service task with a page as soon as a poll shows the process committed to
- * it, while the task runs, defers or retries, including while this session's process/next call is
- * still pending: the page shows from the commit, not from when the call returns.
- */
-function useNavigateToCommittedServiceTaskPage(
-  taskId: string | undefined,
-  pageTask: string | undefined,
-  enabled: boolean,
-) {
-  const isProcessing = useProcessWorkflow()?.status === 'processing';
-  const navigateToTask = useNavigateToTask();
-
-  useEffect(() => {
-    if (enabled && isProcessing && pageTask && pageTask !== taskId) {
-      navigateToTask(pageTask);
-    }
-  }, [enabled, isProcessing, pageTask, taskId, navigateToTask]);
-}
-
-/**
- * Whether the URL's service task shows its page in place of the loading view. The page shows once
- * the process is committed to the task, and stays while the process moves on from it until the
- * next task is on screen, so the loading view never returns in between. A service task without a
- * page has the loading view as its screen, so the page gives way for good once the process is
- * committed to one. A URL opened on the task after the process left it gets no page.
- */
-function useShowServiceTaskPage(
-  taskId: string | undefined,
-  pageTask: string | undefined,
-  inFlight: boolean,
-  givesWay: boolean,
-) {
-  const [shownTask, setShownTask] = useState<string | undefined>(undefined);
-  const committedHere = taskId !== undefined && pageTask === taskId;
-
-  useEffect(() => {
-    setShownTask((shown) => (committedHere ? taskId : shown === taskId && !givesWay ? shown : undefined));
-  }, [committedHere, taskId, givesWay]);
-
-  return committedHere || (inFlight && !givesWay && taskId !== undefined && shownTask === taskId);
-}
-
 export function ProcessWrapper({ children }: PropsWithChildren) {
   const taskId = useNavigationParam('taskId');
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
-  const getTaskType = useGetTaskTypeById();
-  const taskType = getTaskType(taskId);
+  const taskType = useGetTaskTypeById()(taskId);
   const isRunningProcessNext = useIsRunningProcessNext();
   const isProcessNextPending = useIsProcessNextPending();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
   const { data: process } = useProcessQuery();
-
-  // The committed service task, and the same when it has a page (getTaskTypeById classifies those as Data).
-  const currentTask = process?.currentTask;
-  const serviceTask = currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK ? currentTask.elementId : undefined;
-  const pageTask = serviceTask && getTaskType(serviceTask) === ProcessTaskType.Data ? serviceTask : undefined;
-  const committedToServiceTaskWithoutPage = serviceTask !== undefined && !pageTask;
-  const isInFlight = workflow?.status === 'processing' || isProcessNextPending;
-  const showServiceTaskPage =
-    useShowServiceTaskPage(taskId, pageTask, isInFlight, committedToServiceTaskWithoutPage) && !isPdfMode;
+  const isServiceTaskPage = useIsServiceTaskPage();
+  const showServiceTaskPage = useServiceTaskPage(taskId);
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
   useNavigateToSettledTask(taskId, !isPdfMode, isProcessNextPending);
-  useNavigateToCommittedServiceTaskPage(taskId, pageTask, !isPdfMode);
 
   // A process parked on a service task advances out-of-band (the task is waiting for an external
   // outcome), so nothing in this session would otherwise observe the advance: the live workflow
@@ -207,26 +161,29 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // Follow feedback here as well, so observing a new task cannot unmount the component owning navigation.
   useFollowProcess(!isPdfMode && (isParkedOnServiceTask || taskType === ProcessTaskType.Feedback));
 
-  // Mounting mid-mutation waits for the response, except on a service task: the URL moves there
-  // while the call is pending, and no form on it is part of the call. Its page or loading view
-  // shows instead, as after a reload.
-  const urlTaskIsServiceTask =
-    process?.processTasks?.find((task) => task.elementId === taskId)?.elementType === ELEMENT_TYPE.SERVICE_TASK;
-  if (isRunningProcessNext === null || (isRunningProcessNext && !urlTaskIsServiceTask) || isWrongTask === null) {
+  // Mounting mid-mutation waits for the response, except on a service task's page: the URL moves
+  // there while the call is pending, and no form on it is part of the call.
+  if (isRunningProcessNext === null || (isRunningProcessNext && !isServiceTaskPage) || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
+  }
+
+  // A service task's page owns the screen from the commit until the next task is on screen, whether
+  // the task runs, defers, retries or waits, so none of the transition views below replace it. Only
+  // a failure does (see the failure views below).
+  if (showServiceTaskPage && workflow?.status !== 'failed') {
+    return children;
   }
 
   // A poll can observe a committed task before process/next responds, including the brief idle gap
   // between chained workflows. Keep the loading view stable until the response navigates or a
   // terminal failure takes over. This cannot interrupt client validation because it requires the
-  // server-reported task to have moved away from the URL. A service task's page stays up instead.
+  // server-reported task to have moved away from the URL.
   const holdLoaderForPendingTransition =
     !isPdfMode &&
     isProcessNextPending &&
     workflow?.status !== 'failed' &&
     taskId !== undefined &&
-    process?.currentTask?.elementId !== taskId &&
-    !showServiceTaskPage;
+    process?.currentTask?.elementId !== taskId;
 
   if (holdLoaderForPendingTransition) {
     return <WorkflowProcessing />;
@@ -258,12 +215,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
   //
-  // A service task with a page also bypasses it (see useShowServiceTaskPage): running, deferring,
-  // retrying and parked are deliberately identical UX there, and the page owns the waiting
-  // presentation, without the loading view's "taking a long time" message (see the durable-yield
-  // ADR). The replacement stays for transitions toward other tasks, service tasks without a page,
-  // and stale URLs until navigation converges.
-  if (!isPdfMode && workflow?.status === 'processing' && !showServiceTaskPage) {
+  // A service task's page is never replaced (see above): it owns the waiting presentation, without
+  // the loading view's "taking a long time" message. The replacement stays for transitions toward
+  // other tasks, service tasks without a page, and stale URLs until navigation converges.
+  if (!isPdfMode && workflow?.status === 'processing') {
     return <WorkflowProcessing />;
   }
 
@@ -291,7 +246,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
-  if (isWrongTask && !showServiceTaskPage) {
+  if (isWrongTask) {
     return (
       <PresentationComponent showNavigation={false}>
         <NavigationError label='general.part_of_form_completed' />
@@ -345,10 +300,9 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
  */
 function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
   const { data: process } = useProcessQuery();
-  const fromList = process?.processTasks?.find((t) => t.elementId === taskId);
-  const fromCurrent = process?.currentTask?.elementId === taskId ? process?.currentTask : undefined;
-  const altinnTaskType = fromList?.altinnTaskType ?? fromCurrent?.altinnTaskType ?? '';
-  const elementType = fromList?.elementType ?? fromCurrent?.elementType ?? '';
+  const task = findProcessTask(process, taskId);
+  const altinnTaskType = task?.altinnTaskType ?? '';
+  const elementType = task?.elementType ?? '';
 
   const appName = useAppName();
   const appOwner = useAppOwner();
