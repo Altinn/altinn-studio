@@ -10,8 +10,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Http;
@@ -38,7 +40,13 @@ public class WorkflowsControllerTests
 
     private const string EngineUnavailableProblemType = "urn:altinn:studio:gateway:workflow-engine-unavailable";
 
+    /// <summary>The instance guid the engine records as a workflow's collection key.</summary>
+    private const string InstanceGuid = "5d9e906b-1b2b-4d1d-a1a8-1b2a3c4d5e6f";
+
+    private const long AuditEntryId = 7;
+
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock = new();
+    private readonly Mock<IAdminAuditLogger> _adminAuditLoggerMock = new();
     private readonly Mock<IGiteaClient> _giteaClientMock = new();
     private readonly CapturingLoggerProvider _loggerProvider = new();
 
@@ -48,6 +56,20 @@ public class WorkflowsControllerTests
         _giteaClientMock
             .Setup(client => client.GetTeams())
             .ReturnsAsync([AdminTeam(Org, Env), AdminTeam(Org, "fake-env"), AdminTeam(Org, "bad env")]);
+
+        _adminAuditLoggerMock
+            .Setup(logger =>
+                logger.LogWorkflowActionRequestedAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(AuditEntryId);
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
@@ -57,6 +79,8 @@ public class WorkflowsControllerTests
         services.AddSingleton(_runtimeGatewayClientMock.Object);
         services.RemoveAll<IGiteaClient>();
         services.AddSingleton(_giteaClientMock.Object);
+        services.RemoveAll<IAdminAuditLogger>();
+        services.AddSingleton(_adminAuditLoggerMock.Object);
         services.AddSingleton<ILoggerProvider>(_loggerProvider);
     }
 
@@ -78,6 +102,26 @@ public class WorkflowsControllerTests
     {
         return new HttpResponseMessage(statusCode) { Content = new StringContent(body, Encoding.UTF8, contentType) };
     }
+
+    /// <summary>Every mutation reads its workflow first, to learn the instance for the audit log.</summary>
+    private void SetupWorkflowRead() =>
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.GetWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Returns(() => Task.FromResult(WorkflowRecord()));
+
+    private static HttpResponseMessage WorkflowRecord(string collectionKey = InstanceGuid) =>
+        JsonResponse(
+            HttpStatusCode.OK, /*lang=json,strict*/
+            $$"""{"collectionKey":"{{collectionKey}}","overallStatus":"Failed","steps":[]}"""
+        );
 
     private IReadOnlyList<string> AuditMessages() => AuditMessages(_loggerProvider);
 
@@ -277,6 +321,7 @@ public class WorkflowsControllerTests
         bool expectedCascade
     )
     {
+        SetupWorkflowRead();
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
@@ -313,6 +358,7 @@ public class WorkflowsControllerTests
     [Fact]
     public async Task NudgeWorkflow_PassesResponseThrough_AndAudits()
     {
+        SetupWorkflowRead();
         var workflowId = Guid.NewGuid();
         const string upstreamBody = /*lang=json,strict*/
             """{"nudgedAt":"2026-08-02T10:00:00Z"}""";
@@ -343,6 +389,7 @@ public class WorkflowsControllerTests
     [Fact]
     public async Task FailWorkflow_RecordsTheStudioUserAsTheReason_AndAudits()
     {
+        SetupWorkflowRead();
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
@@ -459,6 +506,7 @@ public class WorkflowsControllerTests
     [Fact]
     public async Task GatewayUnreachable_Returns502Problem_WithoutExceptionDetails_AndAuditsMutation()
     {
+        SetupWorkflowRead();
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
@@ -520,6 +568,7 @@ public class WorkflowsControllerTests
     [Fact]
     public async Task EnvironmentsRegistryUnavailable_Returns503Problem_NotBlamingTheGateway()
     {
+        SetupWorkflowRead();
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
@@ -553,6 +602,7 @@ public class WorkflowsControllerTests
     [Fact]
     public async Task ClientAbortSurfacingAsHttpRequestException_Returns499_AndAuditsCancellation()
     {
+        SetupWorkflowRead();
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
@@ -593,6 +643,7 @@ public class WorkflowsControllerTests
     [Fact]
     public async Task UnknownEnvironmentOnMutation_Returns404_AndAudits()
     {
+        SetupWorkflowRead();
         var workflowId = Guid.NewGuid();
         _runtimeGatewayClientMock
             .Setup(client =>
@@ -785,8 +836,8 @@ public class WorkflowsControllerTests
     [Fact]
     public async Task PassThrough_CopiesBodyBytesVerbatim()
     {
-        // A byte that is not valid UTF-8: a decode/re-encode round trip would replace it.
-        byte[] upstreamBody = [0x7B, 0x22, 0x61, 0x22, 0x3A, 0x22, 0xFF, 0x22, 0x7D];
+        // Spacing, an escape and a raw non-ASCII character: a parse and re-serialize would change all three.
+        byte[] upstreamBody = Encoding.UTF8.GetBytes("{ \"a\" : \"\\u00e6 ø\" }");
         SetupCollections(
             new HttpResponseMessage(HttpStatusCode.OK) { Content = ByteContent(upstreamBody, "application/json") }
         );
@@ -794,6 +845,207 @@ public class WorkflowsControllerTests
         using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
 
         Assert.Equal(upstreamBody, await response.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
+    public async Task PassThrough_DropsAJsonBodyThatCannotBeParsed_KeepingTheStatus()
+    {
+        // Cut off mid-body, with the app's state in what arrived: it cannot be checked, so none of it is served.
+        byte[] upstreamBody = Encoding.UTF8.GetBytes( /*lang=json*/
+            """{"data":[{"initialState":"{}","steps":["""
+        );
+        SetupCollections(
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = ByteContent(upstreamBody, "application/json") }
+        );
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/collections");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
+    public async Task GetWorkflows_RemovesTheAppState_WhenTheEngineSendsItAnyway()
+    {
+        // An engine older than includeState ignores includeState=false.
+        const string upstreamBody = /*lang=json,strict*/
+            """
+            {"data":[{"databaseId":"a","initialState":"{\"answer\":42}","steps":[
+            {"operationId":"s1","stateOut":"{\"answer\":42}","status":"Completed"}]}],"pageSize":25}
+            """;
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.GetWorkflowsAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<string>(),
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<IReadOnlyList<string>>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(JsonResponse(HttpStatusCode.OK, upstreamBody));
+
+        using var response = await HttpClient.GetAsync($"{BasePath()}/workflows");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        string body = await response.Content.ReadAsStringAsync();
+        Assert.Equal(
+            """{"data":[{"databaseId":"a","steps":[{"operationId":"s1","status":"Completed"}]}],"pageSize":25}""",
+            body
+        );
+        Assert.Equal(body.Length, response.Content.Headers.ContentLength);
+    }
+
+    [Fact]
+    public async Task Mutation_RecordsTheWorkflowsInstanceInTheAuditLog_BeforeSendingIt_AndMarksItCompleted()
+    {
+        SetupWorkflowRead();
+        var workflowId = Guid.NewGuid();
+        var calls = new List<string>();
+        _adminAuditLoggerMock
+            .Setup(logger =>
+                logger.LogWorkflowActionRequestedAsync(
+                    Org,
+                    Env,
+                    App,
+                    InstanceGuid,
+                    workflowId,
+                    AdminAuditActions.NudgeWorkflow,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(() => calls.Add("audit requested"))
+            .ReturnsAsync(AuditEntryId);
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.NudgeWorkflowAsync(
+                    Org,
+                    App,
+                    It.IsAny<AltinnEnvironment>(),
+                    workflowId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(() => calls.Add("nudge"))
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.Accepted));
+
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/nudge", content: null);
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Assert.Equal(["audit requested", "nudge"], calls);
+        _adminAuditLoggerMock.Verify(
+            logger => logger.LogWorkflowActionCompletedAsync(AuditEntryId, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _adminAuditLoggerMock.Verify(
+            logger => logger.LogWorkflowActionFailedAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Mutation_RefusedByTheEngine_MarksTheAuditEntryFailed()
+    {
+        SetupWorkflowRead();
+        var workflowId = Guid.NewGuid();
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.FailWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    workflowId,
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(JsonResponse(HttpStatusCode.Conflict, "{}", "application/problem+json"));
+
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/fail", content: null);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        _adminAuditLoggerMock.Verify(
+            logger => logger.LogWorkflowActionFailedAsync(AuditEntryId, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _adminAuditLoggerMock.Verify(
+            logger => logger.LogWorkflowActionCompletedAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Mutation_OnAWorkflowThatCannotBeRead_IsNotSent_AndNotAudited()
+    {
+        var workflowId = Guid.NewGuid();
+        _runtimeGatewayClientMock
+            .Setup(client =>
+                client.GetWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    workflowId,
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.NotFound));
+
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/resume", content: null);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        _runtimeGatewayClientMock.Verify(
+            client =>
+                client.ResumeWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+        _adminAuditLoggerMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Mutation_IsNotSent_WhenTheAuditEntryCannotBeWritten()
+    {
+        SetupWorkflowRead();
+        var workflowId = Guid.NewGuid();
+        _adminAuditLoggerMock
+            .Setup(logger =>
+                logger.LogWorkflowActionRequestedAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    workflowId,
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new InvalidOperationException("database unavailable"));
+
+        using var response = await HttpClient.PostAsync($"{BasePath()}/workflows/{workflowId}/nudge", content: null);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        _runtimeGatewayClientMock.Verify(
+            client =>
+                client.NudgeWorkflowAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -862,6 +1114,7 @@ public class WorkflowsControllerTests
         var loggerFactory = new LoggerFactory([loggerProvider]);
         var controller = new WorkflowsAdminController(
             _runtimeGatewayClientMock.Object,
+            _adminAuditLoggerMock.Object,
             loggerFactory.CreateLogger<WorkflowsAdminController>(),
             loggerFactory
         )
