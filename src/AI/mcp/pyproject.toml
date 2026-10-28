@@ -1,0 +1,7 @@
+# Temporary placeholder to make Dependabot overwrite a stale dependency-graph snapshot.
+# Will be removed in a follow-up PR.
+[project]
+name = "mcp-placeholder"
+version = "0.0.0"
+requires-python = ">=3.14"  # match src/AI/assistant/pyproject.toml
+dependencies = []
