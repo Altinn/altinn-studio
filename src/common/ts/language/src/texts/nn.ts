@@ -148,6 +148,7 @@ export function nn() {
     'form_filler.lastName': 'etternamn',
     'form_filler.orgnr': 'organisasjonsnummer',
     'form_filler.name': 'organisasjonsnamn',
+    'form_filler.fileTransferId': 'fil',
     'navigation.main': 'Overordna',
     'navigation.form': 'Skjemasider',
     'navigation.to_main_content': 'Hopp til hovudinnhaldet',
@@ -394,6 +395,78 @@ export function nn() {
     'person_lookup.validation_invalid_response_from_server':
       'Det oppstod ein feil. Ver venleg, prøv igjen seinare.',
     'person_lookup.unknown_error': 'Det oppstod ein feil. Ver venleg, prøv igjen seinare.',
+    'broker_file_transfer.unavailable':
+      'Det er ikkje mogleg å sende filer med Altinn Formidling her.',
+    'broker_file_transfer.sender_not_organization':
+      'Du kan berre sende denne fila på vegner av ei verksemd.',
+    'broker_file_transfer.resource_unavailable':
+      'Vi fekk ikkje henta innstillingane for å sende fila. Prøv å laste inn sida på nytt.',
+    'broker_file_transfer.none_sent': 'Inga fil er sendt.',
+    'broker_file_transfer.max_size': 'Maks filstorleik {0}',
+    'broker_file_transfer.send': 'Send fila',
+    'broker_file_transfer.remove_file': 'Fjern',
+    'broker_file_transfer.choose_file': 'Vel fil',
+    'broker_file_transfer.error_required': 'Du må sende ei fil.',
+    'broker_file_transfer.error_one_file': 'Du kan berre sende éi fil her.',
+    'broker_file_transfer.error_empty_file': 'Fila er tom.',
+    'broker_file_transfer.error_file_name_too_long': 'Filnamnet kan vere maks {0} teikn.',
+    'broker_file_transfer.error_file_too_large': 'Fila er {0}. Du kan sende filer på opptil {1}.',
+    'broker_file_transfer.error_file_type': 'Du kan berre sende desse filtypane: {0}.',
+    'broker_file_transfer.error_no_access':
+      'Du har ikkje tilgang til å sende filer i denne tenesta på vegner av verksemda.',
+    'broker_file_transfer.error_login':
+      'Altinn Formidling godtok ikkje innlogginga di. Last inn sida på nytt for å logge inn igjen.',
+    'broker_file_transfer.error_not_set_up':
+      'Denne tenesta er ikkje sett opp til å sende filer med Altinn Formidling.',
+    'broker_file_transfer.error_send_failed': 'Klarte ikkje å sende fila. Prøv igjen.',
+    'broker_file_transfer.error_upload_not_prepared':
+      'Formidlinga vart oppretta, men fila vart ikkje lasta opp. Prøv igjen.',
+    'broker_file_transfer.error_file_changed':
+      'Fila er endra eller flytta etter at du valde ho. Vel ho på nytt.',
+    'broker_file_transfer.error_file_changed_during_upload':
+      'Fila vart endra eller flytta under opplastinga, så opplastinga kan ikkje halde fram. Avbryt opplastinga og send fila på nytt.',
+    'broker_file_transfer.error_connection_lost':
+      'Sambandet til serveren vart brote. Hald fram når du er på nett igjen – det som er lasta opp, blir teke vare på.',
+    'broker_file_transfer.error_upload_stopped':
+      'Opplastinga stoppa. Hald fram for å laste opp resten av fila.',
+    'broker_file_transfer.error_upload_gone':
+      'Opplastinga er ikkje lenger tilgjengeleg på serveren. Send fila på nytt.',
+    'broker_file_transfer.error_not_sent':
+      'Fila er ikkje ferdig lasta opp. Hald fram med opplastinga, eller forkast ho.',
+    'broker_file_transfer.error_interrupted_unknown':
+      'Vi fekk ikkje sjekka kor langt den avbrotne opplastinga kom. Prøv å laste inn sida på nytt.',
+    'broker_file_transfer.progress_label': 'Framdrift for opplastinga',
+    'broker_file_transfer.progress_announcement': '{0} prosent er lasta opp',
+    'broker_file_transfer.status_initializing': 'Opprettar formidlinga',
+    'broker_file_transfer.status_uploading': 'Lastar opp – {0} % ({1} av {2})',
+    'broker_file_transfer.time_remaining': '{0} att',
+    'broker_file_transfer.less_than_a_minute_remaining': 'under eitt minutt att',
+    'broker_file_transfer.status_pausing': 'Set på pause – fullfører delane som er i gang',
+    'broker_file_transfer.status_paused': 'Sett på pause ved {0} % ({1} av {2})',
+    'broker_file_transfer.status_failed': 'Stoppa ved {0} % ({1} av {2})',
+    'broker_file_transfer.status_finishing': 'Set saman fila',
+    'broker_file_transfer.pause': 'Pause',
+    'broker_file_transfer.continue': 'Hald fram',
+    'broker_file_transfer.cancel': 'Avbryt opplastinga',
+    'broker_file_transfer.cancel_confirm':
+      'Det som er lasta opp, går tapt, og fila må sendast på nytt.',
+    'broker_file_transfer.cancel_confirm_yes': 'Ja, avbryt',
+    'broker_file_transfer.cancel_confirm_no': 'Nei, behald ho',
+    'broker_file_transfer.interrupted':
+      'Opplastinga av «{0}» vart avbroten. Vel den same fila for å halde fram der ho stoppa.',
+    'broker_file_transfer.interrupted_progress':
+      '{0} % er allereie lasta opp og blir ikkje sendt på nytt.',
+    'broker_file_transfer.wrong_file':
+      'Dette er ikkje fila som vart lasta opp. Vel «{0}», eller forkast den avbrotne opplastinga for å sende ei anna fil.',
+    'broker_file_transfer.continue_upload': 'Hald fram med opplastinga',
+    'broker_file_transfer.discard_upload': 'Forkast opplastinga',
+    'broker_file_transfer.discard_confirm_yes': 'Ja, forkast',
+    'broker_file_transfer.sent': 'Sendt',
+    'broker_file_transfer.sent_file': 'Fila er sendt',
+    'broker_file_transfer.not_fully_sent': 'Ikkje ferdig sendt',
+    'broker_file_transfer.not_sent': 'Ikkje sendt',
+    'broker_file_transfer.unsent_file': 'Fila som blir sendt',
+    'broker_file_transfer.sent_reference': 'Formidlings-ID: {0}',
     'helptext.button_title': 'Hjelp',
     'helptext.button_title_prefix': 'Hjelpetekst for',
     'receipt.attachments': 'Vedlegg',
@@ -473,6 +546,16 @@ export function nn() {
       'Når du har sett deletionStrategy til soft, må du også setje checked.',
     'config_error.hard_delete_with_checked':
       'Når du har sett deletionStrategy til hard, kan du ikkje setje checked.',
+    'config_error.broker_file_transfer_no_resource':
+      '{0} må vise til ressursen i Altinn Formidling som fila skal sendast på.',
+    'config_error.broker_file_transfer_no_recipients':
+      '{0} er sett, men {1} inneheld ingen organisasjonsnummer.',
+    'config_error.broker_file_transfer_invalid_recipients':
+      'Desse mottakarane i {0} er ikkje organisasjonsnummer: {1}',
+    'config_error.broker_file_transfer_too_much_metadata':
+      '{0} kan ha høgst {1} oppføringar, men har {2}.',
+    'config_error.broker_file_transfer_invalid_metadata_keys':
+      'Desse nøklane i {0} er tomme eller lengre enn {1} teikn: {2}',
     'version_error.version_mismatch': 'Versjonsfeil',
     'version_error.version_mismatch_message':
       'Denne versjonen av app frontend er ikkje kompatibel med den versjonen av backend-biblioteka du brukar. Oppdater til nyaste versjon av pakkane og prøv igjen.',

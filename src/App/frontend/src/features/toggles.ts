@@ -11,6 +11,11 @@ export const FeatureToggles = {
     description: '',
     links: ['https://github.com/Altinn/app-frontend-react/pull/2745'],
   },
+  brokerFileTransferEnabled: {
+    defaultValue: false,
+    title: 'Activate experimental component BrokerFileTransfer',
+    description: 'Sends a file with Altinn Broker straight from the form.',
+  },
   saveOnBlur: {
     defaultValue: true,
     title: 'Rush to save form data when leaving/unfocusing an input field',

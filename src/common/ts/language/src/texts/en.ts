@@ -147,6 +147,7 @@ export function en() {
     'form_filler.lastName': 'last name',
     'form_filler.orgnr': 'organisation number',
     'form_filler.name': 'organisation name',
+    'form_filler.fileTransferId': 'file',
     'navigation.main': 'Primary',
     'navigation.form': 'Form pages',
     'navigation.to_main_content': 'Go to main content',
@@ -394,6 +395,79 @@ export function en() {
     'person_lookup.validation_invalid_response_from_server':
       'An error occurred. Please try again later.',
     'person_lookup.unknown_error': 'An unknown error occurred. Please try again later.',
+    'broker_file_transfer.unavailable': 'Sending files with Altinn Broker is not available here.',
+    'broker_file_transfer.sender_not_organization':
+      'You can only send this file on behalf of an organisation.',
+    'broker_file_transfer.resource_unavailable':
+      'We could not get the settings for sending the file. Try reloading the page.',
+    'broker_file_transfer.none_sent': 'No file has been sent.',
+    'broker_file_transfer.max_size': 'Maximum file size {0}',
+    'broker_file_transfer.send': 'Send file',
+    'broker_file_transfer.remove_file': 'Remove',
+    'broker_file_transfer.choose_file': 'Choose file',
+    'broker_file_transfer.error_required': 'You must send a file.',
+    'broker_file_transfer.error_one_file': 'You can only send one file here.',
+    'broker_file_transfer.error_empty_file': 'The file is empty.',
+    'broker_file_transfer.error_file_name_too_long':
+      'The file name can be at most {0} characters long.',
+    'broker_file_transfer.error_file_too_large':
+      'The file is {0}. You can send files of up to {1}.',
+    'broker_file_transfer.error_file_type': 'You can only send these file types: {0}.',
+    'broker_file_transfer.error_no_access':
+      'You do not have access to send files on this service on behalf of the organisation.',
+    'broker_file_transfer.error_login':
+      'Altinn Broker did not accept your login. Reload the page to log in again.',
+    'broker_file_transfer.error_not_set_up':
+      'This service is not set up to send files with Altinn Broker.',
+    'broker_file_transfer.error_send_failed': 'The file could not be sent. Try again.',
+    'broker_file_transfer.error_upload_not_prepared':
+      'The file transfer was created, but the file was not uploaded. Try again.',
+    'broker_file_transfer.error_file_changed':
+      'The file was changed or moved after you chose it. Choose it again.',
+    'broker_file_transfer.error_file_changed_during_upload':
+      'The file was changed or moved during the upload, so the upload cannot continue. Cancel the upload and send the file again.',
+    'broker_file_transfer.error_connection_lost':
+      'The connection to the server was lost. Continue when you are back online – what has been uploaded is kept.',
+    'broker_file_transfer.error_upload_stopped':
+      'The upload stopped. Continue to upload the rest of the file.',
+    'broker_file_transfer.error_upload_gone':
+      'The upload is no longer available on the server. Send the file again.',
+    'broker_file_transfer.error_not_sent':
+      'The file has not finished uploading. Continue the upload, or discard it.',
+    'broker_file_transfer.error_interrupted_unknown':
+      'We could not check how far the interrupted upload got. Try reloading the page.',
+    'broker_file_transfer.progress_label': 'Upload progress',
+    'broker_file_transfer.progress_announcement': '{0} percent uploaded',
+    'broker_file_transfer.status_initializing': 'Creating the file transfer',
+    'broker_file_transfer.status_uploading': 'Uploading – {0}% ({1} of {2})',
+    'broker_file_transfer.time_remaining': '{0} left',
+    'broker_file_transfer.less_than_a_minute_remaining': 'less than a minute left',
+    'broker_file_transfer.status_pausing': 'Pausing – finishing the parts already under way',
+    'broker_file_transfer.status_paused': 'Paused at {0}% ({1} of {2})',
+    'broker_file_transfer.status_failed': 'Stopped at {0}% ({1} of {2})',
+    'broker_file_transfer.status_finishing': 'Putting the file together',
+    'broker_file_transfer.pause': 'Pause',
+    'broker_file_transfer.continue': 'Continue',
+    'broker_file_transfer.cancel': 'Cancel upload',
+    'broker_file_transfer.cancel_confirm':
+      'What has been uploaded will be lost, and the file must be sent again.',
+    'broker_file_transfer.cancel_confirm_yes': 'Yes, cancel',
+    'broker_file_transfer.cancel_confirm_no': 'No, keep it',
+    'broker_file_transfer.interrupted':
+      'The upload of “{0}” was interrupted. Choose the same file to continue where it stopped.',
+    'broker_file_transfer.interrupted_progress':
+      '{0}% has already been uploaded and will not be sent again.',
+    'broker_file_transfer.wrong_file':
+      'This is not the file that was being uploaded. Choose “{0}”, or discard the interrupted upload to send a different file.',
+    'broker_file_transfer.continue_upload': 'Continue upload',
+    'broker_file_transfer.discard_upload': 'Discard upload',
+    'broker_file_transfer.discard_confirm_yes': 'Yes, discard',
+    'broker_file_transfer.sent': 'Sent',
+    'broker_file_transfer.sent_file': 'File sent',
+    'broker_file_transfer.not_fully_sent': 'Not fully sent',
+    'broker_file_transfer.not_sent': 'Not sent',
+    'broker_file_transfer.unsent_file': 'File being sent',
+    'broker_file_transfer.sent_reference': 'File transfer ID: {0}',
     'helptext.button_title': 'Help',
     'helptext.button_title_prefix': 'Help text for',
     'receipt.attachments': 'Attachments',
@@ -473,6 +547,16 @@ export function en() {
       'When you have set deletionStrategy to soft, you must also set "checked".',
     'config_error.hard_delete_with_checked':
       'When you have set deletionStrategy to hard, you cannot set "checked".',
+    'config_error.broker_file_transfer_no_resource':
+      '{0} must name the Altinn Broker resource the file is sent on.',
+    'config_error.broker_file_transfer_no_recipients':
+      '{0} is set, but {1} contains no organisation numbers.',
+    'config_error.broker_file_transfer_invalid_recipients':
+      'These recipients in {0} are not organisation numbers: {1}',
+    'config_error.broker_file_transfer_too_much_metadata':
+      '{0} can have at most {1} entries, but has {2}.',
+    'config_error.broker_file_transfer_invalid_metadata_keys':
+      'These keys in {0} are empty or longer than {1} characters: {2}',
     'version_error.version_mismatch': 'Version mismatch',
     'version_error.version_mismatch_message':
       'This version of the app frontend is not compatible with the version of the backend libraries you are using. Update to the latest version of the packages and try again.',
