@@ -8,14 +8,14 @@ using Xunit;
 
 namespace Designer.Tests.Infrastructure.Authorization;
 
-public class BelongsToOrganizationHandlerTests
+public class MemberOfAnyOrganizationHandlerTests
 {
     [Fact]
     public async Task HandleRequirementAsync_ShouldFail_WhenUserNotAuthenticated()
     {
         var userOrganizationServiceMock = new Mock<IUserOrganizationService>();
-        var handler = new BelongsToOrganizationHandler(userOrganizationServiceMock.Object);
-        var requirement = new BelongsToOrganizationRequirement();
+        var handler = new MemberOfAnyOrganizationHandler(userOrganizationServiceMock.Object);
+        var requirement = new MemberOfAnyOrganizationRequirement();
 
         var user = new ClaimsPrincipal();
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
@@ -26,13 +26,13 @@ public class BelongsToOrganizationHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserIsMemberOfOrganization()
+    public async Task HandleRequirementAsync_ShouldSucceed_WhenUserIsMemberOfAnyOrganization()
     {
         var userOrganizationServiceMock = new Mock<IUserOrganizationService>();
         userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(true);
 
-        var handler = new BelongsToOrganizationHandler(userOrganizationServiceMock.Object);
-        var requirement = new BelongsToOrganizationRequirement();
+        var handler = new MemberOfAnyOrganizationHandler(userOrganizationServiceMock.Object);
+        var requirement = new MemberOfAnyOrganizationRequirement();
 
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestUserLogin"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
@@ -44,13 +44,13 @@ public class BelongsToOrganizationHandlerTests
     }
 
     [Fact]
-    public async Task HandleRequirementAsync_ShouldFail_WhenUserIsNotMemberOfOrganization()
+    public async Task HandleRequirementAsync_ShouldFail_WhenUserIsNotMemberOfAnyOrganization()
     {
         var userOrganizationServiceMock = new Mock<IUserOrganizationService>();
         userOrganizationServiceMock.Setup(s => s.UserIsMemberOfAnyOrganization()).ReturnsAsync(false);
 
-        var handler = new BelongsToOrganizationHandler(userOrganizationServiceMock.Object);
-        var requirement = new BelongsToOrganizationRequirement();
+        var handler = new MemberOfAnyOrganizationHandler(userOrganizationServiceMock.Object);
+        var requirement = new MemberOfAnyOrganizationRequirement();
 
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestUserLogin"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);

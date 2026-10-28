@@ -33,10 +33,11 @@ public static class AltinnPolicy
     public const string MustHaveGiteaResourceAccessListPermission = "MustHaveGiteaResourceAccessListPermission";
 
     /// <summary>
-    /// MustBelongToOrganization
-    /// User must be a member of an organization.
+    /// MustBeMemberOfAnyOrganization
+    /// User must be a member of at least one organization, not necessarily the one in the route.
+    /// Use <see cref="MustHaveOrganizationPermission"/> to require membership of the organization in the route.
     /// </summary>
-    public const string MustBelongToOrganization = "MustBelongToOrganization";
+    public const string MustBeMemberOfAnyOrganization = "MustBeMemberOfAnyOrganization";
 
     /// <summary>
     /// MustHaveOrganizationPermission
