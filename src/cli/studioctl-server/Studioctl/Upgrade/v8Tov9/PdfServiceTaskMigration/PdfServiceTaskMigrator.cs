@@ -142,7 +142,11 @@ internal sealed class PdfServiceTaskMigrator
             }
 
             processRewriter.InsertPdfServiceTasks(
-                [.. tasks.Where(t => !blockedTasks.Contains(t.TaskId))],
+                [
+                    .. tasks
+                        .Where(t => !blockedTasks.Contains(t.TaskId))
+                        .Select(t => (t.TaskId, GatewayDataTypeFor(t.TaskId, messages))),
+                ],
                 pdfTaskUis.Keys.ToHashSet(StringComparer.Ordinal)
             );
 
@@ -216,6 +220,14 @@ internal sealed class PdfServiceTaskMigrator
 
         return new MigrationResult(messages);
     }
+
+    /// <summary>
+    /// The data model to pin on the gateways after <paramref name="taskId"/>. v8 evaluated them against the
+    /// <c>dataType</c> of the task's layout set, which the task's UI settings hold, and against none when the set
+    /// names none.
+    /// </summary>
+    private string? GatewayDataTypeFor(string taskId, List<UpgradeMessage> messages) =>
+        new TaskUiSettings(_projectFolder).FindDataTypeForTask(taskId, messages.Warn);
 
     /// <summary>
     /// Plans the UI folder of the PDF service task for <paramref name="taskId"/>, or says why it cannot be

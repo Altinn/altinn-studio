@@ -47,6 +47,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Payment, signing and PDF tasks no longer fail to store the file they generate, such as the receipt after the user has paid, in apps upgraded with `studioctl app upgrade v9`. Run it again to fix an upgraded app. ([#21119](https://github.com/Altinn/altinn-studio/pull/21119))
 - After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. ([#21207](https://github.com/Altinn/altinn-studio/pull/21207))
 - `studioctl app upgrade v9` points the gateways after an eFormidling service task it adds at the data model of the task's layout set, as v8 evaluated them, instead of the task's first form in `applicationmetadata.json`. A gateway the PDF service task step already pinned keeps its value; without a layout-set data model it asks you to set it. ([#21475](https://github.com/Altinn/altinn-studio/pull/21475))
+- `studioctl app upgrade v9` points the gateways after a PDF service task it adds at the data model of the task's layout set, as v8 evaluated them, instead of the PDF's data type; without a layout-set data model it asks you to set it. ([#21572](https://github.com/Altinn/altinn-studio/pull/21572))
 
 ## [0.1.0-preview.29] - 2026-10-14
 
