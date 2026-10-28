@@ -154,6 +154,10 @@
       "value": "Selv med egendefinert layout følger frontenden med på prosessen og sender deg automatisk videre når behandlingen er ferdig."
     },
     {
+      "id": "ServiceLayout.serviceView.title",
+      "value": "Valgt venteside"
+    },
+    {
       "id": "sendinnTask1.title",
       "value": "Gå til Task 2"
     },

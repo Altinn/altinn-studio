@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+import { useIsServiceTaskPage } from 'src/components/process/serviceTaskPage';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
@@ -74,10 +75,12 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
   const isPdfOfOtherTask = useIsPdfOfOtherTask();
+  const isServiceTaskPage = useIsServiceTaskPage();
   const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
-  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask);
+  // A service task's page is always read-only: the task owns the instance until the process moves on
+  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask || isServiceTaskPage);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
 
   if (enabled && bootstrap && dataSliceProps && (!storeRef.current || previousBootstrap.current !== bootstrap)) {
@@ -86,7 +89,8 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     // layouts can change without all of this being reset, however.
     storeRef.current = createFormStore({
       parent,
-      readOnly: readOnly || isPdfOfOtherTask,
+      readOnly: readOnly || isPdfOfOtherTask || isServiceTaskPage,
+      instanceLocked: isServiceTaskPage,
       data: dataSliceProps,
       bootstrap,
     });
@@ -266,11 +270,13 @@ function createFormStore({
   parent,
   data,
   readOnly,
+  instanceLocked,
   bootstrap,
 }: {
   parent: FormStoreApi | undefined;
   data: FormDataSliceProps;
   readOnly: boolean;
+  instanceLocked: boolean;
   bootstrap: FormBootstrapBase;
 }): FormStoreApi {
   const store = createStore<FormStoreState>()(
@@ -278,6 +284,7 @@ function createFormStore({
       parent,
       nestedFormStatus: { unsaved: 0, unloadWarnings: 0 },
       readOnly,
+      instanceLocked,
       data: createFormDataWriteSlice(data, set),
       attachments: createAttachmentsSlice(set),
       validation: createValidationSlice(processBootstrap(bootstrap), set),

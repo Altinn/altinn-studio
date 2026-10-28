@@ -630,6 +630,27 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: 'Egendefinert venteside' }).should('not.exist');
   });
 
+  it("deferral with a custom layout: the page's fields are read-only while the task runs", () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', serviceView: 'layout' });
+    captureInstanceRoot().then((instanceRoot) => {
+      const [appRoot, instanceId] = instanceRoot.split('/instance/');
+      heldInstanceGateUrl = `${appRoot}/test/service-task-gates/${instanceId.split('/')[1]}`;
+      cy.request('PUT', heldInstanceGateUrl).its('status').should('eq', 204);
+    });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The instance is locked while the task runs, so the page's input shows the lever's value but can't change it
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 30000 }).should('be.visible');
+    cy.findByRole('textbox', { name: 'Valgt venteside' }).should('have.value', 'layout').and('have.attr', 'readonly');
+
+    cy.then(() => cy.request('DELETE', heldInstanceGateUrl!));
+    cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+  });
+
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     // attempts 2 + endState success => the first attempt fails transiently, then the engine
