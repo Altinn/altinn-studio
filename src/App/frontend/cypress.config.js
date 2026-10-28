@@ -134,6 +134,7 @@ Valid environments are:
   // Yarn hoists it to the repo root. Resolve it here in the Node process instead and hand it to
   // `cy.injectAxe` (see the command override in test/e2e/support/custom.ts).
   expose: {
+    cypressDiagnostics: Boolean(process.env.CYPRESS_DIAGNOSTICS_DIR),
     axeCorePath: fileURLToPath(import.meta.resolve('axe-core/axe.min.js')),
     // Percy uses this public local endpoint to communicate with its CLI. Exposing it prevents
     // @percy/cypress from falling back to the disabled Cypress.env() API when Percy is not running.

@@ -27,7 +27,8 @@
         "type": "RepeatingGroup",
         "textResourceBindings": {
           "title": "Repeterende Gruppe",
-          "description": "Beskrivelse av repeterende gruppe"
+          "description": "Beskrivelse av repeterende gruppe",
+          "help": "Hjelp til repeterende gruppe"
         },
         "dataModelBindings": {
           "group": "repeatingGroup"
@@ -43,7 +44,9 @@
         "id": "RepeatingGroup-Input-Name",
         "type": "Input",
         "textResourceBindings": {
-          "title": "RepeatingGroup.Name"
+          "title": "RepeatingGroup.Name",
+          "description": "Beskrivelse av navn",
+          "help": "Hjelp til navn"
         },
         "dataModelBindings": {
           "simpleBinding": "repeatingGroup.name"

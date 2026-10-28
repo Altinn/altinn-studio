@@ -8,10 +8,13 @@ import { Divider, Paragraph } from '@digdir/designsystemet-react';
 import { format } from 'date-fns';
 import { nb } from 'date-fns/locale/nb';
 
+import { LabelContent } from 'src/components/label/LabelContent';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { type SigneeState, useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListSummary.module.css';
+import { useSummaryLabelProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { toTimeZonedDate } from 'src/utils/dateUtils';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -134,6 +137,8 @@ interface SigneeListSummaryContentProps extends PropsWithChildren {
 }
 
 function SigneeListSummaryContainer({ baseComponentId, content, heading, children }: SigneeListSummaryContentProps) {
+  const labelProps = useSummaryLabelProps(baseComponentId);
+  const { elementAsString } = useLanguage();
   return (
     <SummaryFlex
       targetBaseId={baseComponentId}
@@ -141,9 +146,15 @@ function SigneeListSummaryContainer({ baseComponentId, content, heading, childre
     >
       <div>
         {heading && (
-          <Label
-            label={heading}
-            size='lg'
+          <LabelContent
+            {...labelProps}
+            label={
+              <Label
+                label={heading}
+                size='lg'
+              />
+            }
+            helpTitle={elementAsString(heading)}
           />
         )}
         {children}

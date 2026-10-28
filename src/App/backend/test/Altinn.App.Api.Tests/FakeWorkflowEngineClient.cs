@@ -849,7 +849,8 @@ internal sealed class FakeWorkflowEngineClient : IWorkflowEngineClient
             UpdatedAt = workflow.UpdatedAt,
             Labels = workflow.Labels is null ? null : new Dictionary<string, string>(workflow.Labels),
             OverallStatus = workflow.Status,
-            IsHead = workflow.IsHead,
+            // Mirrors the engine's derivation of the role from the stored IsHead directive.
+            Role = workflow.IsHead == false ? WorkflowRole.Auxiliary : WorkflowRole.Primary,
             Dependencies =
                 workflow.DependencyIds.Count == 0
                     ? null

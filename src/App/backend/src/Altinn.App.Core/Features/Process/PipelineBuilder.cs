@@ -44,7 +44,7 @@ public sealed class PipelineBuilder
     {
         ArgumentNullException.ThrowIfNull(work);
         options?.Validate();
-        _items.Add(new PipelineStage.Plain(work, options));
+        _items.Add(new PipelineStage.Plain(work, options) { DisplayName = PipelineStepNames.FromMethod(work) });
         return this;
     }
 
@@ -75,7 +75,12 @@ public sealed class PipelineBuilder
         mailbox.Validate();
         options?.Validate();
         int openingIndex = _items.Count;
-        _items.Add(new PipelineStage.MailboxOpening(work, mailbox, options));
+        _items.Add(
+            new PipelineStage.MailboxOpening(work, mailbox, options)
+            {
+                DisplayName = PipelineStepNames.FromMethod(work),
+            }
+        );
 
         handle = new MailboxHandle(this, openingIndex);
         _mailboxes.Add(new IssuedMailbox(handle));
@@ -114,7 +119,12 @@ public sealed class PipelineBuilder
         options?.Validate();
 
         ClaimMailbox(handle, MailboxAnswer.Segment);
-        _items.Add(new ReplySegment(handle.OpeningIndex, onMessage, onClosed, options));
+        _items.Add(
+            new ReplySegment(handle.OpeningIndex, onMessage, onClosed, options)
+            {
+                DisplayName = PipelineStepNames.FromMethods(onMessage, onClosed),
+            }
+        );
         return this;
     }
 
@@ -165,7 +175,10 @@ public sealed class PipelineBuilder
 
         RequireEveryMailboxAnswered(nameof(Finally), answeredHere: null);
 
-        return new ServiceTaskPipeline(_items, new PipelineConclusion.FinalStep(work, options));
+        return new ServiceTaskPipeline(
+            _items,
+            new PipelineConclusion.FinalStep(work, options) { DisplayName = PipelineStepNames.FromMethod(work) }
+        );
     }
 
     /// <summary>
@@ -207,6 +220,9 @@ public sealed class PipelineBuilder
         return new ServiceTaskPipeline(
             _items,
             new PipelineConclusion.ReplyExchange(handle.OpeningIndex, onMessage, onClosed, options)
+            {
+                DisplayName = PipelineStepNames.FromMethods(onMessage, onClosed),
+            }
         );
     }
 

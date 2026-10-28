@@ -713,6 +713,54 @@ public class MailboxRelayTests
     }
 
     [Fact]
+    public async Task SuccessorReceiver_CarriesTheHandlersStepName()
+    {
+        var recorder = new RelayRecorder();
+
+        await CreateRelay(recorder)
+            .Continue(
+                new MailboxContinuation.AwaitNextMessage(
+                    _mailboxId,
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    position: 4,
+                    handlerStepOptions: null,
+                    handlerStepName: "Read receipt"
+                ),
+                CreateRequest(Guid.NewGuid()),
+                CancellationToken.None
+            );
+
+        StepRequest step = Assert.Single(Assert.Single(Assert.Single(recorder.Enqueues).Request.Workflows).Steps);
+        Assert.Equal("Read receipt", Assert.Contains(WorkflowCommandSet.StepNameLabel, step.Labels!));
+    }
+
+    [Fact]
+    public void AwaitNextReply_CarriesTheHandlersStepNameToTheNextReceiver()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        ProcessEngineCommandResult result = MailboxRelay.Decide(
+            ServiceTaskExchangeResult.AwaitNextReply(),
+            ServiceTaskType,
+            _stepId,
+            Delivered(seq: 4),
+            carry,
+            ArchivingReplyIndex,
+            OpeningStageIndex,
+            handlerStepOptions: null,
+            handlerStepName: "Read receipt"
+        );
+
+        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        MailboxContinuation.AwaitNextMessage awaiting = Assert.IsType<MailboxContinuation.AwaitNextMessage>(
+            success.MailboxContinuation
+        );
+        Assert.Equal("Read receipt", awaiting.HandlerStepName);
+    }
+
+    [Fact]
     public async Task SuccessorReceiver_CarriesAFreshCallbackToken()
     {
         var recorder = new RelayRecorder();
@@ -1346,7 +1394,14 @@ public class MailboxRelayTests
             new MailboxHandover(
                 handlerItemIndex - 1,
                 new ServiceTaskSegmentPlan(
-                    [WorkflowCommandSet.CreateItemStep(ServiceTaskType, handlerItemIndex, declaredOptions: null)],
+                    [
+                        WorkflowCommandSet.CreateItemStep(
+                            ServiceTaskType,
+                            handlerItemIndex,
+                            declaredOptions: null,
+                            stepName: null
+                        ),
+                    ],
                     ReceiveOpeningIndex: openingStageIndex
                 ),
                 new MailboxTarget(mailboxId, openingStageIndex)
@@ -1390,7 +1445,14 @@ public class MailboxRelayTests
     public void MailboxHandover_WhosePlanAndTargetDisagree_IsRefusedAtConstruction(bool planReceives)
     {
         var plan = new ServiceTaskSegmentPlan(
-            [WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, declaredOptions: null)],
+            [
+                WorkflowCommandSet.CreateItemStep(
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    declaredOptions: null,
+                    stepName: null
+                ),
+            ],
             planReceives ? OpeningStageIndex : null
         );
         MailboxTarget? target = planReceives ? null : new MailboxTarget(_mailboxId, OpeningStageIndex);
@@ -1405,8 +1467,18 @@ public class MailboxRelayTests
     {
         var plan = new ServiceTaskSegmentPlan(
             [
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex, declaredOptions: null),
-                WorkflowCommandSet.CreateItemStep(ServiceTaskType, ArchivingReplyIndex + 1, declaredOptions: null),
+                WorkflowCommandSet.CreateItemStep(
+                    ServiceTaskType,
+                    ArchivingReplyIndex,
+                    declaredOptions: null,
+                    stepName: null
+                ),
+                WorkflowCommandSet.CreateItemStep(
+                    ServiceTaskType,
+                    ArchivingReplyIndex + 1,
+                    declaredOptions: null,
+                    stepName: null
+                ),
             ],
             OpeningStageIndex
         );

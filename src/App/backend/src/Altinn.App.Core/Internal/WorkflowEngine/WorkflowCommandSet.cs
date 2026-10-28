@@ -179,7 +179,8 @@ internal sealed class WorkflowCommandSet
                     commandKey,
                     new ProcessTaskStagePayload(index),
                     operationId: $"{commandKey}: {index.ToString(CultureInfo.InvariantCulture)}",
-                    declaredOptions: stages[index].StepOptions
+                    declaredOptions: stages[index].StepOptions,
+                    stepName: stages[index].DisplayName
                 )
             );
         }
@@ -256,11 +257,25 @@ internal sealed class WorkflowCommandSet
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case IReplyHandlerItem handler:
-                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
+                    steps.Add(
+                        CreateItemStep(
+                            serviceTaskType,
+                            index,
+                            pipeline.Items[index].StepOptions,
+                            pipeline.Items[index].DisplayName
+                        )
+                    );
                     return new ServiceTaskSegmentPlan(steps, handler.OpeningIndex);
 
                 case PipelineConclusion.FinalStep:
-                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
+                    steps.Add(
+                        CreateItemStep(
+                            serviceTaskType,
+                            index,
+                            pipeline.Items[index].StepOptions,
+                            pipeline.Items[index].DisplayName
+                        )
+                    );
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case PipelineStage.MailboxOpening:
@@ -275,11 +290,25 @@ internal sealed class WorkflowCommandSet
                         )
                     );
 
-                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
+                    steps.Add(
+                        CreateItemStep(
+                            serviceTaskType,
+                            index,
+                            pipeline.Items[index].StepOptions,
+                            pipeline.Items[index].DisplayName
+                        )
+                    );
                     return new ServiceTaskSegmentPlan(steps, ReceiveOpeningIndex: null);
 
                 case PipelineStage:
-                    steps.Add(CreateItemStep(serviceTaskType, index, pipeline.Items[index].StepOptions));
+                    steps.Add(
+                        CreateItemStep(
+                            serviceTaskType,
+                            index,
+                            pipeline.Items[index].StepOptions,
+                            pipeline.Items[index].DisplayName
+                        )
+                    );
                     break;
 
                 default:
@@ -316,20 +345,30 @@ internal sealed class WorkflowCommandSet
     internal static PlannedStep CreateItemStep(
         string serviceTaskType,
         int itemIndex,
-        ProcessStepOptions? declaredOptions
+        ProcessStepOptions? declaredOptions,
+        string? stepName
     ) =>
         CreateCommand(
             ExecuteServiceTask.Key,
             new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: itemIndex),
             operationId: $"{ExecuteServiceTask.Key}: {itemIndex.ToString(CultureInfo.InvariantCulture)}",
-            declaredOptions: declaredOptions
+            declaredOptions: declaredOptions,
+            stepName: stepName
         );
+
+    /// <summary>
+    /// The step label naming a pipeline step for the people following the task's progress, such as Studio's
+    /// admin panel: the <see cref="PipelineItem.DisplayName"/> of the item the step runs. Display only, and absent
+    /// when the item has no name: the step's identity stays its index, in the payload and the OperationId.
+    /// </summary>
+    internal const string StepNameLabel = "stepName";
 
     private static PlannedStep CreateCommand(
         string commandKey,
         CommandRequestPayload? payload = null,
         string? operationId = null,
-        ProcessStepOptions? declaredOptions = null
+        ProcessStepOptions? declaredOptions = null,
+        string? stepName = null
     ) =>
         new()
         {
@@ -337,5 +376,6 @@ internal sealed class WorkflowCommandSet
             OperationId = operationId ?? commandKey,
             Payload = payload,
             DeclaredOptions = declaredOptions,
+            StepName = stepName,
         };
 }
