@@ -23,6 +23,12 @@ KEDA `ScaledJob` per service owner.
 - When one service owner fails, the run goes on without it, and the next run tries again. The failure shows in the
   `runner_org_sync.org.reconcile_errors` metric, not in the CronJob's exit code. Alert on that metric when it stays
   above zero.
+- A failed reconciliation also exits zero so a single failed tick does not leave a failed CronJob. The run still
+  records `outcome=failure` in `runner_org_sync.reconcile.runs`, an error trace and an error log. The process ends
+  the trace and attempts to flush telemetry before exiting. Startup errors still exit non-zero.
+- Alert on repeated failure or partial outcomes, and on missing successful reconciliation telemetry. Kubernetes Job
+  completion and the CronJob's `lastSuccessfulTime` no longer prove that reconciliation succeeded. Configure these
+  alerts before rolling out this behavior. OTel collection alone does not provide alerting.
 - The KEDA Secret's name and key in [cronjob.yaml](infra/kustomize/base/cronjob.yaml) and
   [triggerauthentication-bearer.yaml](infra/kustomize/base/triggerauthentication-bearer.yaml), and the
   `TriggerAuthentication` name in the [chart's values](../../../charts/gitea-org-runner/values.yaml), must agree.
