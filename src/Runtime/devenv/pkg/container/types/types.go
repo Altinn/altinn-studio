@@ -227,6 +227,9 @@ type VolumeMountType string
 const (
 	VolumeMountTypeBind   VolumeMountType = "bind"
 	VolumeMountTypeVolume VolumeMountType = "volume"
+	// VolumeMountTypeTmpfs mounts a memory-backed file system at ContainerPath, gone with the container. HostPath is
+	// unused. Options holds the tmpfs options (size=1g).
+	VolumeMountTypeTmpfs VolumeMountType = "tmpfs"
 )
 
 // SELinuxRelabel controls SELinux relabeling for bind mounts on runtimes that support it.
@@ -239,13 +242,15 @@ const (
 	SELinuxRelabelPrivate SELinuxRelabel = "Z"
 )
 
-// VolumeMount defines a bind mount or named volume mount.
+// VolumeMount defines a bind mount, a named volume mount or a tmpfs mount.
 type VolumeMount struct {
 	HostPath       string
 	ContainerPath  string
 	Type           VolumeMountType
 	SELinuxRelabel SELinuxRelabel
-	ReadOnly       bool
+	// Options are a tmpfs mount's options, comma-separated (size=1g). Empty for the runtime's defaults.
+	Options  string `json:",omitempty"`
+	ReadOnly bool
 }
 
 // HealthCheck defines a container health check configuration.

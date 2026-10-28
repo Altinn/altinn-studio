@@ -292,7 +292,11 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 		return fmt.Errorf("%w: run from an app directory or use -p to specify path", ErrNoAppFound)
 	}
 
-	topology := envtopology.NewLocal(envtopology.DefaultIngressPortString())
+	v2, err := findLocaltestV2(ctx, c.server.cfg, containerruntime.Detect)
+	if err != nil {
+		return err
+	}
+	topology := v2.Topology()
 	spec, err := c.service.BuildDotnetRunSpec(
 		ctx,
 		result.AppRoot,

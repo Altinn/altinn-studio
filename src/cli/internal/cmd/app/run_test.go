@@ -1,19 +1,27 @@
 package app_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/container"
+	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
+	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
+	"altinn.studio/studioctl/internal/appcontainers"
 	"altinn.studio/studioctl/internal/appsecrets"
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/envtopology"
+	"altinn.studio/studioctl/internal/localtestv2"
 )
 
 func defaultTopology() envtopology.Local {
@@ -48,7 +56,7 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testRunService(t).BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -116,7 +124,7 @@ func TestBuildDockerRunSpec_DoesNotAddAppFrontendAssetBaseUrlByDefault(t *testin
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testRunService(t).BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -134,7 +142,7 @@ func TestBuildDockerRunSpec_UsesAppFrontendAssetBaseUrlOverride(t *testing.T) {
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	want := "http://app-frontend.local.altinn.cloud:8000"
 
-	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testRunService(t).BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{AppFrontendAssetBaseUrl: want})
@@ -155,7 +163,7 @@ func TestBuildDockerRunSpec_UsesImageTagOverride(t *testing.T) {
 	appPath := t.TempDir()
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 
-	spec, err := testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+	spec, err := testRunService(t).BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{ImageTag: want})
@@ -624,7 +632,7 @@ func TestBuildRunSpecs_FailWithoutSomewhereToPlaceTheSecretsDirectory(t *testing
 	if err == nil {
 		t.Fatal("BuildDotnetRunSpec() error = nil, want an error naming the secrets directory")
 	}
-	_, err = testService().BuildDockerRunSpec(repocontext.Detection{
+	_, err = testService().BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -651,7 +659,7 @@ func TestBuildRunSpecs_FailWithoutAnAppIDToNameTheSecretsDirectoryAfter(t *testi
 	if err == nil {
 		t.Fatal("BuildDotnetRunSpec() error = nil, want an error reading the app id")
 	}
-	_, err = testRunService(t).BuildDockerRunSpec(repocontext.Detection{
+	_, err = testRunService(t).BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -668,7 +676,7 @@ func TestBuildDockerRunSpec_MountsTheSecretsDirectoryWhereADeployedAppFindsIt(t 
 	home := t.TempDir()
 	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
 
-	spec, err := service.BuildDockerRunSpec(repocontext.Detection{
+	spec, err := service.BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -732,7 +740,7 @@ func TestPrepareDockerRun_RunsAsTheDeveloperAndAdaptsToTheRuntime(t *testing.T) 
 	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
 	home := t.TempDir()
 	service := appsvc.NewService(&config.Config{Home: home, Version: config.NewVersion("test-version")})
-	spec, err := service.BuildDockerRunSpec(repocontext.Detection{
+	spec, err := service.BuildDockerRunSpec(t.Context(), repocontext.Detection{
 		AppRoot:   appPath,
 		InAppRepo: true,
 	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
@@ -796,5 +804,178 @@ func assertAppCodesProvisioned(t *testing.T, secretsDir string) {
 	}
 	if !strings.Contains(string(data), `"WorkflowEngineCallback"`) {
 		t.Fatalf("app codes = %s, want a WorkflowEngineCallback code", data)
+	}
+}
+
+// With localtest-v2 up, the app listens on every interface, since the front door in the localtest container reaches it
+// through the runtime's host gateway. studioctl still reaches it on loopback.
+func TestBuildDotnetRunSpec_ListensOnEveryInterfaceForTheLocaltestV2FrontDoor(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir(), Version: config.NewVersion("test-version")}
+	if err := localtestv2.WriteState(
+		cfg,
+		localtestv2.State{CertificateDir: localtestv2.CertificateDir(cfg)},
+	); err != nil {
+		t.Fatal(err)
+	}
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	spec, err := appsvc.NewService(cfg, appsvc.WithContainerClient(localtestV2Containers(true))).BuildDotnetRunSpec(
+		t.Context(), appPath, nil, nil, defaultTopology(), appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+	assertEnvContainsAll(t, spec.Env, []string{"Kestrel__EndPoints__Http__Url=http://0.0.0.0:5005"})
+	if spec.BaseURL != "http://127.0.0.1:5005" {
+		t.Fatalf("BaseURL = %q, want the loopback URL", spec.BaseURL)
+	}
+}
+
+// A state file whose containers are gone (a reboot, a docker rm) is no localtest-v2: the app keeps to loopback and
+// gets no certificate.
+func TestBuildDotnetRunSpec_IgnoresAStateFileWithoutContainers(t *testing.T) {
+	t.Parallel()
+
+	service, appPath, _ := localtestV2Service(t, localtestv2.State{}, false)
+	writeAppProject(t, appPath)
+	spec, err := service.BuildDotnetRunSpec(
+		t.Context(), appPath, nil, nil, defaultTopology(), appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+	assertEnvContainsAll(t, spec.Env, []string{"Kestrel__EndPoints__Http__Url=http://127.0.0.1:5005"})
+	for _, entry := range spec.Env {
+		if strings.HasPrefix(entry, "AccessTokenSettings__") {
+			t.Fatalf("Env has %s, want no localtest-v2 certificate", entry)
+		}
+	}
+}
+
+// localtestV2Service is a service for an app ttd/test-app with a localtest-v2 state file, whose containers run or
+// not. It returns the app's path and the certificate directory.
+func localtestV2Service(t *testing.T, state localtestv2.State, running bool) (*appsvc.Service, string, string) {
+	t.Helper()
+	cfg := &config.Config{Home: t.TempDir(), DataDir: t.TempDir(), Version: config.NewVersion("test-version")}
+	state.CertificateDir = localtestv2.CertificateDir(cfg)
+	if err := localtestv2.WriteState(cfg, state); err != nil {
+		t.Fatal(err)
+	}
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	return appsvc.NewService(cfg, appsvc.WithContainerClient(localtestV2Containers(running))), appPath,
+		state.CertificateDir
+}
+
+// localtestV2Containers is a container runtime where a localtest-v2 container runs or none does.
+func localtestV2Containers(running bool) localtestv2.ContainerClientFunc {
+	return func(context.Context) (container.ContainerClient, error) {
+		client := mock.New()
+		client.ListContainersFunc = func(_ context.Context, filter types.ContainerListFilter) ([]types.ContainerInfo, error) {
+			if !running || filter.Labels[containerbackend.GraphIDLabel] != localtestv2.GraphID {
+				return nil, nil
+			}
+			return []types.ContainerInfo{
+				{Name: "localtest-v2-localtest", State: types.ContainerState{Running: true}},
+			}, nil
+		}
+		return client, nil
+	}
+}
+
+// Under localtest-v2 the app container joins the stack's network under its alias, which the front door reaches it at, with
+// the public host names on the host gateway, the certificate at /certs and the app listening on every interface. It
+// keeps its loopback port for studioctl-server's discovery.
+func TestBuildDockerRunSpec_JoinsTheLocaltestV2Network(t *testing.T) {
+	t.Parallel()
+
+	service, appPath, certDir := localtestV2Service(t, localtestv2.State{Groups: []string{"arbeidsflate"}}, true)
+	spec, err := service.BuildDockerRunSpec(t.Context(), repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+	cfg := spec.Config
+	assertEqualStrings(t, "Networks", cfg.Networks, []string{localtestv2.Network})
+	assertEqualStrings(t, "NetworkAliases", cfg.NetworkAliases, []string{"ttd-test-app"})
+	assertEqualStrings(t, "ExtraHosts", cfg.ExtraHosts, []string{
+		"local.altinn.cloud:host-gateway",
+		"pdf.local.altinn.cloud:host-gateway",
+		"workflow-engine.local.altinn.cloud:host-gateway",
+		"app-frontend.local.altinn.cloud:host-gateway",
+		"af.local.altinn.cloud:host-gateway",
+	})
+	if got := cfg.Labels[appcontainers.LabelFrontDoorURL]; got != "http://ttd-test-app:5005" {
+		t.Fatalf("front door label = %q, want http://ttd-test-app:5005", got)
+	}
+	if got := cfg.Labels[localtestv2.Label]; got != localtestv2.LabelAppContainer {
+		t.Fatalf("localtest-v2 label = %q, want %q", got, localtestv2.LabelAppContainer)
+	}
+	if len(cfg.Ports) != 1 || cfg.Ports[0].HostIP != "127.0.0.1" || cfg.Ports[0].ContainerPort != "5005" {
+		t.Fatalf("Ports = %+v, want the app's port on loopback", cfg.Ports)
+	}
+	var certs *types.VolumeMount
+	for i := range cfg.Volumes {
+		if cfg.Volumes[i].ContainerPath == "/certs" {
+			certs = &cfg.Volumes[i]
+		}
+	}
+	if certs == nil || !certs.ReadOnly || certs.HostPath != certDir {
+		t.Fatalf("Volumes = %+v, want the certificate directory read-only at /certs", cfg.Volumes)
+	}
+	assertEnvContainsAll(t, cfg.Env, []string{
+		"Kestrel__EndPoints__Http__Url=http://0.0.0.0:5005",
+		"AccessTokenSettings__AccessTokenSigningCertificateFullPath=/certs/localtest-accesstoken.pfx",
+		"AccessTokenSettings__AccessTokenSigningKeysFolder=/certs/",
+		"AccessTokenSettings__AccessTokenSigningCertificateFileName=localtest-accesstoken.pfx",
+		"PlatformFrontendSettings__ArbeidsflateInboxUrl=http://af.local.altinn.cloud:8000/",
+		"PlatformFrontendSettings__LogoutUrl=http://local.altinn.cloud:8000/authentication/api/v1/logout",
+		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
+	})
+}
+
+// A state file whose containers are gone (a reboot, a docker rm) is no localtest-v2: the app container stays off the
+// stack's network, which no longer exists, and is not refused for the recorded origin.
+func TestBuildDockerRunSpec_IgnoresAStateFileWithoutContainers(t *testing.T) {
+	t.Parallel()
+
+	service, appPath, _ := localtestV2Service(t, localtestv2.State{PublicPort: 18000}, false)
+	spec, err := service.BuildDockerRunSpec(t.Context(), repocontext.Detection{
+		AppRoot:   appPath,
+		InAppRepo: true,
+	}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+	if slices.Contains(spec.Config.Networks, localtestv2.Network) {
+		t.Fatalf("Networks = %v, want not the localtest-v2 network", spec.Config.Networks)
+	}
+	if _, labeled := spec.Config.Labels[localtestv2.Label]; labeled {
+		t.Fatalf("Labels = %v, want no localtest-v2 label", spec.Config.Labels)
+	}
+	assertEnvContainsAll(t, spec.Config.Env, []string{"Kestrel__EndPoints__Http__Url=http://*:5005"})
+}
+
+// Container mode supports the standard domains only: an environment at another host or port is refused up front.
+func TestBuildDockerRunSpec_RefusesALocaltestV2CustomOrigin(t *testing.T) {
+	t.Parallel()
+
+	for name, state := range map[string]localtestv2.State{
+		"host": {PublicHost: "origin.test"},
+		"port": {PublicPort: 18000},
+	} {
+		service, appPath, _ := localtestV2Service(t, state, true)
+		_, err := service.BuildDockerRunSpec(t.Context(), repocontext.Detection{
+			AppRoot:   appPath,
+			InAppRepo: true,
+		}, nil, defaultTopology(), appsvc.DockerRunOptions{})
+		if !errors.Is(err, appsvc.ErrContainerModeCustomOrigin) {
+			t.Fatalf("%s: BuildDockerRunSpec() error = %v, want ErrContainerModeCustomOrigin", name, err)
+		}
 	}
 }

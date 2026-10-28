@@ -21,9 +21,11 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/config"
 	"altinn.studio/studioctl/internal/envtopology"
 	"altinn.studio/studioctl/internal/httpclient"
+	"altinn.studio/studioctl/internal/localtestv2"
 	"altinn.studio/studioctl/internal/osutil"
 )
 
@@ -40,6 +42,9 @@ const (
 	studioctlServerHostBridgeURLEnv = "HostBridge__Url"
 	studioctlServerLocaltestURLEnv  = "Localtest__Url"
 	studioctlServerStudioctlEnv     = "Studioctl__Path"
+	// studioctlServerRegisterAppsEnv turns on the registration of the discovered apps with the localtest-v2 front
+	// door (PUT localtest/api/apps/{org}/{app} on Localtest__Url).
+	studioctlServerRegisterAppsEnv = "Localtest__RegisterApps"
 
 	studioctlServerRequestTimeout        = 2 * time.Second
 	studioctlServerStartTimeout          = 10 * time.Second
@@ -65,6 +70,9 @@ type startConfig struct {
 	StudioctlPath               string `json:"studioctlPath"`
 	BoundTopologyBaseConfigPath string `json:"boundTopologyBaseConfigPath,omitempty"`
 	BoundTopologyConfigPath     string `json:"boundTopologyConfigPath,omitempty"`
+	// RegisterApps is on while the localtest-v2 runtime is up: the server registers the apps it discovers with
+	// the front door in the localtest container.
+	RegisterApps bool `json:"registerApps,omitempty"`
 }
 
 type runtimeState struct {
@@ -83,7 +91,13 @@ type Status struct {
 	HostBridge                  HostBridgeStatus `json:"hostBridge"`
 	Apps                        []DiscoveredApp  `json:"apps"`
 	ProcessID                   int              `json:"processId"`
+	Localtest                   LocaltestStatus  `json:"localtest"`
 	InternalDev                 bool             `json:"internalDev"`
+}
+
+// LocaltestStatus says whether studioctl-server registers the apps it discovers with the localtest-v2 front door.
+type LocaltestStatus struct {
+	RegisterApps bool `json:"registerApps"`
 }
 
 // HostBridgeStatus describes the configured host bridge.
@@ -337,8 +351,9 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 			Name        string `json:"name"`
 			ContainerID string `json:"containerId"`
 		} `json:"apps"`
-		ProcessID   int  `json:"processId"`
-		InternalDev bool `json:"internalDev"`
+		ProcessID   int             `json:"processId"`
+		Localtest   LocaltestStatus `json:"localtest"`
+		InternalDev bool            `json:"internalDev"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
 		return nil, fmt.Errorf("decode status response: %w", err)
@@ -358,7 +373,8 @@ func (c *Client) Status(ctx context.Context) (*Status, error) {
 			Connected: status.HostBridge.Connected,
 			URL:       status.HostBridge.URL,
 		},
-		Apps: make([]DiscoveredApp, 0, len(status.Apps)),
+		Localtest: status.Localtest,
+		Apps:      make([]DiscoveredApp, 0, len(status.Apps)),
 	}
 	for _, app := range status.Apps {
 		result.Apps = append(result.Apps, DiscoveredApp{
@@ -552,7 +568,7 @@ func EnsureStartedWithStudioctlPath(
 		err = errors.Join(err, closeStudioctlServerLifecycleLock(lock))
 	}()
 
-	desired, err := buildStartConfig(cfg, loadBalancerPort, studioctlPath)
+	desired, err := buildStartConfig(ctx, cfg, loadBalancerPort, studioctlPath, container.Detect)
 	if err != nil {
 		return err
 	}
@@ -752,6 +768,9 @@ func studioctlServerEnvironment(startConfig startConfig) []string {
 	if startConfig.StudioctlPath != "" {
 		env = append(env, studioctlServerStudioctlEnv+"="+startConfig.StudioctlPath)
 	}
+	if startConfig.RegisterApps {
+		env = append(env, studioctlServerRegisterAppsEnv+"=true")
+	}
 	if startConfig.BoundTopologyBaseConfigPath != "" {
 		env = append(
 			env,
@@ -945,21 +964,72 @@ func managedProcessStopped(pid int) (bool, error) {
 	return !running, nil
 }
 
-func buildStartConfig(cfg *config.Config, loadBalancerPort, studioctlPath string) (startConfig, error) {
+// ReconcileIfRunning restarts studioctl-server when it runs with a configuration that no longer matches
+// (the localtest-v2 runtime went up or down), and does nothing when it is not running.
+func ReconcileIfRunning(ctx context.Context, cfg *config.Config, loadBalancerPort string) error {
+	_, err := NewClient(cfg).Status(ctx)
+	if errors.Is(err, ErrNotRunning) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("get studioctl-server status: %w", err)
+	}
+	return EnsureStarted(ctx, cfg, loadBalancerPort)
+}
+
+// Restart stops studioctl-server when it runs and starts it again, so that it discovers and registers every app
+// afresh.
+func Restart(ctx context.Context, cfg *config.Config, loadBalancerPort string) error {
+	done, err := Shutdown(ctx, cfg)
+	switch {
+	case errors.Is(err, ErrNotRunning):
+	case err != nil:
+		return err
+	default:
+		if err := <-done; err != nil {
+			return fmt.Errorf("stop studioctl-server: %w", err)
+		}
+	}
+	return EnsureStarted(ctx, cfg, loadBalancerPort)
+}
+
+// buildStartConfig describes how studioctl-server should run now. While the localtest-v2 runtime runs (its
+// containers, not only its state file: a reboot leaves the file behind), the server registers the apps it discovers
+// with the front door in the localtest container, and the host bridge is off: that container reaches the apps through
+// the runtime's host gateway and has no bridge endpoint. Every start and reconcile decides it afresh, so the next one
+// after the containers are gone runs the server as without localtest-v2.
+func buildStartConfig(
+	ctx context.Context,
+	cfg *config.Config,
+	loadBalancerPort, studioctlPath string,
+	containers localtestv2.ContainerClientFunc,
+) (startConfig, error) {
 	boundTopologyBaseConfigPath, boundTopologyConfigPath, err := boundTopologyConfigPathsIfBaseExists(cfg)
 	if err != nil {
 		return startConfig{}, err
 	}
+	v2, err := localtestv2.Current(ctx, cfg, containers)
+	if err != nil {
+		return startConfig{}, fmt.Errorf("find localtest-v2: %w", err)
+	}
 
+	hostBridgeURL := HostBridgeURL(loadBalancerPort)
+	if v2.Running {
+		hostBridgeURL = ""
+		// The front door is at the port the environment was started with (env up --port), whichever port the caller
+		// assumed.
+		loadBalancerPort = strconv.Itoa(v2.State.Origin().Port)
+	}
 	return startConfig{
 		BinaryPath:                  cfg.StudioctlServerBinaryPath(),
 		WorkingDir:                  cfg.Home,
 		UnixSocketPath:              cfg.StudioctlServerSocketPath(),
-		HostBridgeURL:               HostBridgeURL(loadBalancerPort),
+		HostBridgeURL:               hostBridgeURL,
 		LocaltestURL:                LocaltestURL(loadBalancerPort),
 		StudioctlPath:               studioctlPath,
 		BoundTopologyBaseConfigPath: boundTopologyBaseConfigPath,
 		BoundTopologyConfigPath:     boundTopologyConfigPath,
+		RegisterApps:                v2.Running,
 	}, nil
 }
 
@@ -973,6 +1043,7 @@ func liveConfig(cfg *config.Config, status *Status) startConfig {
 		StudioctlPath:               status.StudioctlPath,
 		BoundTopologyBaseConfigPath: status.BoundTopologyBaseConfigPath,
 		BoundTopologyConfigPath:     status.BoundTopologyConfigPath,
+		RegisterApps:                status.Localtest.RegisterApps,
 	}
 }
 
@@ -1211,6 +1282,7 @@ func zeroRuntimeState() runtimeState {
 			StudioctlPath:               "",
 			BoundTopologyBaseConfigPath: "",
 			BoundTopologyConfigPath:     "",
+			RegisterApps:                false,
 		},
 		PID: 0,
 	}

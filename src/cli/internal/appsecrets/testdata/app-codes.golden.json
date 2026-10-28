@@ -1,0 +1,12 @@
+{
+  "AppCodes": {
+    "WorkflowEngineCallback": [
+      {
+        "Code": "LOCAL-DEV-ONLY-workflow-engine-callback-secret",
+        "ExpiresAt": "2999-01-01T00:00:00Z",
+        "Id": "local-dev",
+        "IssuedAt": "2020-01-01T00:00:00Z"
+      }
+    ]
+  }
+}

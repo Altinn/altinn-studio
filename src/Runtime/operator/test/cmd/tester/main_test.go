@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/runtimes/kind"
@@ -18,7 +19,7 @@ func TestOperatorCABundleWorkloadsPatchPreKustomizeDeploymentName(t *testing.T) 
 		t.Fatalf("find project root: %v", err)
 	}
 
-	prepared, err := cabundle.PrepareKubernetesArtifact(
+	prepared, err := kubeartifact.PrepareKubernetesArtifact(
 		filepath.Join(projectRoot, "config"),
 		&cabundle.Bundle{
 			Data:   []byte("test-ca"),

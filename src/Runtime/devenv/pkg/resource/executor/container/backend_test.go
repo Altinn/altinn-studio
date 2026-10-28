@@ -206,6 +206,51 @@ func TestContainerSpecHash_ChangesOnVolumeMountTypeChange(t *testing.T) {
 	}
 }
 
+func TestContainerSpecHash_TmpfsOptions(t *testing.T) {
+	t.Parallel()
+
+	mount := types.VolumeMount{ContainerPath: "/data/blobs", Type: types.VolumeMountTypeTmpfs}
+	base := &Container{Name: "storage", Image: RefID("image:storage"), Volumes: []types.VolumeMount{mount}}
+	baseHash := containerSpecHash(base, "sha256:image-v1", []string{"bridge"})
+
+	volume := *base
+	volume.Volumes = []types.VolumeMount{{
+		HostPath:      "",
+		ContainerPath: "/data/blobs",
+		Type:          types.VolumeMountTypeVolume,
+	}}
+	if containerSpecHash(&volume, "sha256:image-v1", []string{"bridge"}) == baseHash {
+		t.Fatal("container spec hash did not change when a tmpfs became a volume")
+	}
+
+	sized := *base
+	mount.Options = "size=1g"
+	sized.Volumes = []types.VolumeMount{mount}
+	if containerSpecHash(&sized, "sha256:image-v1", []string{"bridge"}) == baseHash {
+		t.Fatal("container spec hash did not change when the tmpfs options changed")
+	}
+}
+
+// A mount without options hashes as it did before mounts had options, so no existing container is recreated.
+func TestContainerSpecHash_VolumeEntryWithoutOptionsIsUnchanged(t *testing.T) {
+	t.Parallel()
+
+	c := &Container{
+		Name:  "postgres",
+		Image: RefID("image:postgres"),
+		Volumes: []types.VolumeMount{{
+			HostPath:      "data",
+			ContainerPath: "/var/lib/postgresql",
+			Type:          types.VolumeMountTypeVolume,
+		}},
+	}
+	// The hash before VolumeMount had Options.
+	const want = "b779667bdbe847b4c5ef6d3a5b817671be320dcf569915c1ce8acfb8419968df"
+	if got := containerSpecHash(c, "sha256:image-v1", []string{"bridge"}); got != want {
+		t.Fatalf("containerSpecHash() = %s, want %s", got, want)
+	}
+}
+
 func TestContainerBackend_StopAndRemoveContainer_PropagatesStopError(t *testing.T) {
 	t.Parallel()
 
@@ -313,6 +358,34 @@ func TestContainerBackend_WaitForContainerReady_FailsOnUnhealthy(t *testing.T) {
 	err := New(client).waitForContainerReady(t.Context(), "localtest")
 	if !errors.Is(err, errContainerUnhealthy) {
 		t.Fatalf("waitForContainerReady() error = %v, want errContainerUnhealthy", err)
+	}
+}
+
+var errNotYet = errors.New("not yet")
+
+func TestContainerBackend_WaitForContainerReady_RunsTheReadinessProbeOnceReady(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ContainerInspectFunc = func(context.Context, string) (types.ContainerInfo, error) {
+		return types.ContainerInfo{State: types.ContainerState{Status: "running", Running: true}}, nil
+	}
+	probed := 0
+	ctr := &resource.Container{Name: "storage", Image: resource.RefID("image:unused")}
+	ctr.Lifecycle.WaitForReady = true
+	ctr.Lifecycle.ReadinessProbe = func(context.Context) error {
+		probed++
+		return errNotYet
+	}
+
+	err := New(client).waitForContainerReadyIfEnabled(t.Context(), ctr)
+	if !errors.Is(err, errNotYet) || probed != 1 {
+		t.Fatalf("waitForContainerReadyIfEnabled() error = %v after %d probes, want errNotYet after 1", err, probed)
+	}
+
+	ctr.Lifecycle.WaitForReady = false
+	if err := New(client).waitForContainerReadyIfEnabled(t.Context(), ctr); err != nil || probed != 1 {
+		t.Fatalf("without WaitForReady: error = %v, %d probes; want no probe", err, probed)
 	}
 }
 

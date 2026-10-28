@@ -116,7 +116,8 @@ studioctl run --detach --json
 studioctl app ps --json
 ```
 
-For investigating failures, use `studioctl app logs` and `studioctl env logs`.
+For investigating failures, use `studioctl app logs` and `studioctl env logs`. Under `env up -r localtest-v2 --minimal`,
+also read the telemetry files ("Telemetry files in minimal mode" below).
 `studioctl doctor` can be used if there are problems with `studioctl` (or there are missing capabilities).
 
 If local hostnames do not resolve, inspect `studioctl env hosts status`. `studioctl env hosts add` changes the system
@@ -136,9 +137,91 @@ Altinn Studio platform components.
 - `STUDIOCTL_INTERNAL_DEV=true studioctl env up` builds supported LocalTest/runtime service images from the current
   monorepo checkout.
 - `studioctl env up --dev-workflow-engine` routes the workflow-engine component to a host process, normally at
-  `http://localhost:9090`.
+  `http://localhost:9090`. Under `-r localtest-v2`, the same flag builds the workflow-engine container instead (below).
 - `studioctl run --dev-frontend` serves frontend assets from the current monorepo checkout while the app frontend
   development server is running.
+- `studioctl env up -r localtest-v2` runs the production platform services (Register, Profile, Authentication, the PDP,
+  Access Management, Storage, Events, Resource Registry, Notifications) instead of localtest's emulation. `studioctl run`
+  works the same against it.
+  - `--with dialogporten|receipt|correspondence|arbeidsflate|monitoring|everything` adds optional services with what
+    they depend on. `arbeidsflate` is the inbox on `http://af.local.altinn.cloud:8000`, which needs a hosts entry
+    (`studioctl env hosts add`). A path whose group is off answers `503` naming the `--with` that starts it.
+  - Only one runtime runs at a time, and the other `env` commands act on the one that is running.
+  - `--latest` runs the newest images, and `--dev-<container>[=<path>]` builds one from a Dockerfile or its directory,
+    by default the current directory.
+  - `studioctl run --mode container` (the app needs its `Dockerfile`) puts the app container on the stack's network,
+    where the localtest container reaches it. The app calls the platform on `http://local.altinn.cloud:8000` like a
+    process, and `env down` removes it.
+  - `studioctl run --dev-frontend` expects the frontend dev server on the host's port 8080 in either mode.
+- `studioctl env up -r localtest-v2 --minimal` starts only Postgres, Storage, the workflow engine and the localtest
+  container, which emulates the other services in memory and permits every request. There are no 403s and no role
+  checks, and every PDF is one static page. Nothing persists between starts. Use it for quick work and an app's own
+  tests, not to test authorization. It takes no `--with`.
+  It writes the stack's traces, logs and metrics to JSON Lines files for debugging a failed test:
+  `<studioctl home>/data/infra/localtest-v2/telemetry/<service>/{traces,logs,metrics}.jsonl` (home: `$STUDIOCTL_HOME`,
+  default `~/.config/altinn-studio` on Linux), emptied by `env up` and deleted by `env down`. The app sends to it when
+  run with `OTEL_EXPORTER_OTLP_ENDPOINT=http://local.altinn.cloud:8000/otlp`,
+  `OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf` and `AppSettings__UseOpenTelemetry=true` in the environment of
+  `studioctl run`. See "Telemetry files in minimal mode" below.
+- `studioctl env up -r localtest-v2 --host <name> --port <n>` runs the stack on `http://<name>:<n>` instead of
+  `http://local.altinn.cloud:8000`, and `--port 0` picks a free port. `env status` prints the `Origin:`, and `run`,
+  `app env` and the other `env` commands use it. `run --mode container` is refused there, since it works only at the
+  default origin. The name and its `pdf.`, `workflow-engine.`, `app-frontend.` and `af.` subdomains must be in
+  `/etc/hosts` (127.0.0.1), and `env up` prints the line to add when they are not.
+
+### Telemetry files in minimal mode
+
+In minimal mode the stack's OpenTelemetry collector (`otel-files`) writes JSON Lines files, one folder per
+`service.name` (`localtest` is the front door, then `storage`, `workflow-engine` and the app's name, such as
+`testapp`), each with `traces.jsonl`, `logs.jsonl` and `metrics.jsonl`, and rotated copies
+`<signal>-<time>-size.jsonl`: two are kept, rotated at 10 MB, metrics at 25 MB. A line is one OTLP/JSON export batch.
+IDs are hex, and times are Unix nanoseconds as strings. A request shows up within about 10 s. Metrics keep about the last hour. The
+app starts a trace of its own for each incoming request, so use the app's trace ID (from the errors listing or a log
+record's `traceId`), not the one a client sent.
+
+From that folder (the globs include the rotated files):
+
+```sh
+cd ~/.config/altinn-studio/data/infra/localtest-v2/telemetry
+
+# Everything about trace $TRACE: spans and log records of every service, in time order.
+jq -r --arg t "$TRACE" '
+  def svc: .resource.attributes[] | select(.key == "service.name").value.stringValue;
+  def at: tonumber / 1e6 | floor | (./1000 | floor | strflocaltime("%H:%M:%S")) + "." + ("00\(. % 1000)" | .[-3:]);
+  (.resourceSpans[]? | svc as $s | .scopeSpans[].spans[] | select(.traceId == $t)
+    | [.startTimeUnixNano, (.startTimeUnixNano | at), $s, "span",
+       "\((.endTimeUnixNano | tonumber) - (.startTimeUnixNano | tonumber) | ./1e6 | floor) ms", .name,
+       (if .status.code == 2 then "ERROR \(.status.message // "")" else "" end)]),
+  (.resourceLogs[]? | svc as $s | .scopeLogs[].logRecords[] | select(.traceId == $t)
+    | [.timeUnixNano, (.timeUnixNano | at), $s, "log", .severityText, .body.stringValue])
+  | @tsv' */traces*.jsonl */logs*.jsonl | sort | cut -f2-
+
+# Errors in the last $N minutes: spans with an error status and log records at Error or above, with their trace ID.
+jq -r --argjson since "$(( $(date +%s) - N * 60 ))" '
+  def svc: .resource.attributes[] | select(.key == "service.name").value.stringValue;
+  def at: tonumber / 1e6 | floor | (./1000 | floor | strflocaltime("%H:%M:%S")) + "." + ("00\(. % 1000)" | .[-3:]);
+  (.resourceSpans[]? | svc as $s | .scopeSpans[].spans[]
+    | select(.status.code == 2 and (.startTimeUnixNano | tonumber) / 1e9 >= $since)
+    | [.startTimeUnixNano, (.startTimeUnixNano | at), $s, "span", .name, .status.message // "", .traceId]),
+  (.resourceLogs[]? | svc as $s | .scopeLogs[].logRecords[]
+    | select((.severityNumber // 0) >= 17 and (.timeUnixNano | tonumber) / 1e9 >= $since)
+    | [.timeUnixNano, (.timeUnixNano | at), $s, "log", .severityText, .body.stringValue, .traceId // ""])
+  | @tsv' */traces*.jsonl */logs*.jsonl | sort | cut -f2-
+
+# The slowest spans of trace $TRACE, in milliseconds.
+jq -r --arg t "$TRACE" '
+  def svc: .resource.attributes[] | select(.key == "service.name").value.stringValue;
+  .resourceSpans[]? | svc as $s | .scopeSpans[].spans[] | select(.traceId == $t)
+  | [(((.endTimeUnixNano | tonumber) - (.startTimeUnixNano | tonumber)) / 1e6 | floor), $s, .name] | @tsv' \
+  */traces*.jsonl | sort -rn | head -15
+```
+
+The app's incoming requests with their trace IDs, newest last (without studioctl's polls of the app's metadata):
+
+```sh
+jq -r '.resourceSpans[]?.scopeSpans[].spans[] | select(.kind == 2 and (.name | endswith("applicationmetadata") | not))
+  | [.startTimeUnixNano, .traceId, .name] | @tsv' testapp/traces*.jsonl | sort | tail
+```
 
 ## Stop
 

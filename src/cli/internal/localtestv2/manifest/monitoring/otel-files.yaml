@@ -1,0 +1,66 @@
+# Minimal mode's collector (the otel-files container): the same receivers and processors as the monitoring group's
+# collector (otel-collector.yaml, processors shared through otel-processors.yaml), and instead of the Victoria stores
+# one OTLP JSON Lines file per service and signal, under /telemetry, where the runner mounts a folder on the host:
+# /telemetry/<service.name>/{traces,metrics,logs}.jsonl. Each line is one export batch (an OTLP/JSON
+# ExportTraceServiceRequest, ...). Agents read them with jq.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors: ${file:/etc/otelcol-contrib/processors.yaml}
+
+# With rotation set, every batch is written at once (flush_interval does not apply), so a line is on disk within the
+# batch processor's 5 s. A file is rotated at max_megabytes into <name>-<UTC timestamp>-size.jsonl beside it, and the
+# oldest backup beyond max_backups is deleted, so each service and signal is bounded by
+# max_megabytes * (1 + max_backups): 30 MB for traces and logs, which grow mostly with requests, 75 MB for metrics.
+# Records without service.name are dropped (every container gets one).
+exporters:
+  file/traces:
+    path: /telemetry/*/traces.jsonl
+    group_by:
+      enabled: true
+      resource_attribute: service.name
+    rotation:
+      max_megabytes: 10
+      max_backups: 2
+  file/logs:
+    path: /telemetry/*/logs.jsonl
+    group_by:
+      enabled: true
+      resource_attribute: service.name
+    rotation:
+      max_megabytes: 10
+      max_backups: 2
+  # Metrics keep about the last hour: every container sends all its series every 5 s (cumulative), so the files grow
+  # steadily, by 7 to 69 MB an hour per service as measured (the front door after a smoke test, with every route
+  # in its histograms, the most). Rotation keeps the newest 75 MB, an hour or more.
+  file/metrics:
+    path: /telemetry/*/metrics.jsonl
+    group_by:
+      enabled: true
+      resource_attribute: service.name
+    rotation:
+      max_megabytes: 25
+      max_backups: 2
+
+service:
+  telemetry:
+    logs:
+      level: error
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [file/traces]
+    metrics:
+      receivers: [otlp]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [file/metrics]
+    logs:
+      receivers: [otlp]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [file/logs]

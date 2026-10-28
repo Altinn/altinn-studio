@@ -14,7 +14,8 @@ App developers install and use it as
 `studioctl env up` runs the newest localtest build from `main`, and the pdf3 and workflow engine builds that tt02 runs.
 It checks for newer builds each time it starts the environment, and starts with the images already on the machine
 when it cannot reach the registry. [images.go](internal/config/images.go) pins the other images and names the
-variable that overrides each one, such as `STUDIOCTL_IMAGE_WORKFLOW_ENGINE`.
+variable that overrides each one, such as `STUDIOCTL_IMAGE_WORKFLOW_ENGINE`. That is the `localtest` runtime.
+[localtest-v2](docs/localtest-v2.md#images) runs the images its manifest pins instead.
 
 `studioctl env status` shows the build each container runs. Quote it in a bug report, since the tags that follow tt02
 move with each deployment.
@@ -22,6 +23,11 @@ move with each deployment.
 studioctl supplies the configuration of the containers it starts, so a change to that configuration must keep working
 with the previous studioctl release. [Runtime's README](../Runtime/README.md#images-the-local-environment-runs) has
 the rule.
+
+## localtest-v2
+
+`studioctl env up -r localtest-v2` runs the Altinn Platform's own services instead of localtest's emulation of them.
+[localtest-v2](docs/localtest-v2.md) says how to use it and how it is built.
 
 ## Development
 
@@ -36,6 +42,15 @@ runs that installation.
   because the socket path for `studioctl-server` is too long. Set `STUDIOCTL_SOCKET_DIR` to a short directory.
 - The top level of `internal/cmd` parses commands, orchestrates and renders output. The work lives in its subpackages
   and the rest of `internal`.
+- Each `env` runtime, such as localtest, is one package under `internal/cmd/env` that implements the `Runtime` and
+  `Env` interfaces in [types.go](internal/cmd/env/types.go), and is listed in the
+  [registry](internal/cmd/env/registry/registry.go). `env.go` names no runtime, so a new runtime is a package and a
+  line in the registry. `env hosts` is the exception, since every runtime shares localtest's hostnames.
+- What the runtimes do alike lives in [stack](internal/cmd/env/stack), such as applying the resources, status, logs,
+  the container user and the host's CA bundle. A runtime does not import another runtime's package, so each can change
+  without breaking the others.
+- `Env.Active` reads which runtime is up from its running containers, not from a file that studioctl writes, so it
+  stays right after a reboot, a failed `env up` or a container removed by hand.
 - Output states facts in a line: what is configured or wrong, and the command that changes it. It gives no advice
   prose, and no paths to files that studioctl manages.
 - The [app-development skill](../../agents/_skills/app-development/SKILL.md) ships with studioctl, for the app

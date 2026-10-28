@@ -1,4 +1,4 @@
-package localtest_test
+package stack_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/container/types"
 	containerbackend "altinn.studio/devenv/pkg/resource/executor/container"
-	"altinn.studio/studioctl/internal/cmd/env/localtest"
+	"altinn.studio/studioctl/internal/cmd/env/stack"
 )
 
 var errConnRefused = errors.New("connection refused")
@@ -59,6 +59,20 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 			},
 			wantErr:    true,
 			wantLegacy: true,
+		},
+		{
+			// Every studioctl runtime's graph ID starts with "studioctl-".
+			name: "container of another studioctl runtime",
+			setup: func(c *mock.Client) {
+				c.ContainerInspectFunc = func(_ context.Context, _ string) (types.ContainerInfo, error) {
+					return types.ContainerInfo{
+						State:  types.ContainerState{Running: true},
+						Labels: map[string]string{containerbackend.GraphIDLabel: "studioctl-localtest-v2"},
+					}, nil
+				}
+			},
+			wantErr:    false,
+			wantLegacy: false,
 		},
 		{
 			name: "containers exist with wrong label value",
@@ -124,7 +138,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 			client := mock.New()
 			tc.setup(client)
 
-			err := localtest.CheckForLegacyLocaltest(context.Background(), client)
+			err := stack.CheckForLegacyLocaltest(context.Background(), client)
 
 			if tc.wantErr && err == nil {
 				t.Error("CheckForLegacyLocaltest() error = nil, want error")
@@ -132,7 +146,7 @@ func TestCheckForLegacyLocaltest(t *testing.T) {
 			if !tc.wantErr && err != nil {
 				t.Errorf("CheckForLegacyLocaltest() error = %v, want nil", err)
 			}
-			if tc.wantLegacy && !errors.Is(err, localtest.ErrLegacyLocaltestRunning) {
+			if tc.wantLegacy && !errors.Is(err, stack.ErrLegacyLocaltestRunning) {
 				t.Errorf("CheckForLegacyLocaltest() error = %v, want ErrLegacyLocaltestRunning", err)
 			}
 		})

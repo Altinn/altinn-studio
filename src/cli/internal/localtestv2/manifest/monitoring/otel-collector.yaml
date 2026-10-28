@@ -1,0 +1,51 @@
+# Follows the router in Altinn's environments (infra/observability/base/router.yaml), so telemetry
+# has the same attributes locally as there. The processors keep the router's names and order. Left
+# out: resource_detection/aks and k8s_attributes, which need a cluster, and filter/logs.
+# Also left out are the gateway's metric allowlist and tail sampling: localtest keeps every metric,
+# log level and trace, so a developer sees all their app emits.
+receivers:
+  otlp:
+    protocols:
+      # The receiver listens on localhost by default, which the other containers (and the front door's /otlp
+      # route to the HTTP port) cannot reach.
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+# The processors are shared with minimal mode's collector (otel-files.yaml): otel-processors.yaml, mounted beside
+# this file.
+processors: ${file:/etc/otelcol-contrib/processors.yaml}
+
+# Every signal is exported as OTLP. VictoriaMetrics stores metrics under their OpenTelemetry
+# names and attributes ({"http.server.request.duration_count", "service.name"="..."}), as it does in prod.
+exporters:
+  otlphttp/victoria-logs:
+    logs_endpoint: http://victoria-logs:9428/insert/opentelemetry/v1/logs
+    # The stream fields the observability proxy sets in Altinn's environments
+    # (src/observability-proxy, ObservabilitySignals.Logs). Without the header, every resource
+    # attribute becomes a stream field. The k8s.* fields are absent locally, which leaves service.name.
+    headers:
+      VL-Stream-Fields: k8s.cluster.name,k8s.namespace.name,service.name,k8s.pod.name
+  otlphttp/victoria-metrics:
+    metrics_endpoint: http://victoria-metrics:8428/opentelemetry/v1/metrics
+  otlphttp/victoria-traces:
+    traces_endpoint: http://victoria-traces:10428/insert/opentelemetry/v1/traces
+
+service:
+  telemetry:
+    logs:
+      level: error
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [otlphttp/victoria-traces]
+    metrics:
+      receivers: [otlp]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [otlphttp/victoria-metrics]
+    logs:
+      receivers: [otlp]
+      processors: [resource/environment, transform/drop, batch]
+      exporters: [otlphttp/victoria-logs]

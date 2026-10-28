@@ -25,6 +25,40 @@ func NewLocal(ingressPort string) Local {
 	}
 }
 
+// NewLocalAt returns the local environment topology at another public host: every component host that is the default
+// public host (the app's) or a subdomain of it moves to host, so local.altinn.cloud becomes host and
+// pdf.local.altinn.cloud pdf.<host>. An empty host keeps the default.
+func NewLocalAt(host, ingressPort string) Local {
+	l := NewLocal(ingressPort)
+	base := l.def.Components.App.Host
+	if host == "" || host == base {
+		return l
+	}
+	for _, c := range []*componentDefinition{
+		&l.def.Components.App,
+		&l.def.Components.Platform,
+		&l.def.Components.OTel,
+		&l.def.Components.PDF,
+		&l.def.Components.Grafana,
+		&l.def.Components.PgAdmin,
+		&l.def.Components.WorkflowEngine,
+		&l.def.Components.FrontendDevServer,
+		&l.def.Components.Arbeidsflate,
+	} {
+		if c.Host == base {
+			c.Host = host
+		} else if sub, ok := strings.CutSuffix(c.Host, "."+base); ok {
+			c.Host = sub + "." + host
+		}
+	}
+	return l
+}
+
+// DefaultPublicHost returns the default public host: the app's.
+func DefaultPublicHost() string {
+	return defaultDefinition().Components.App.Host
+}
+
 // DefaultIngressPortString returns the default ingress port as a string.
 func DefaultIngressPortString() string {
 	return strconv.Itoa(defaultDefinition().Ingress.DefaultHostPort)
@@ -108,6 +142,11 @@ func (l Local) PublicRouteURL(id ComponentID) string {
 	return l.url(component.Host()) + component.PathPrefix()
 }
 
+// ArbeidsflateHostName returns the local Arbeidsflate (inbox) host name.
+func (l Local) ArbeidsflateHostName() string {
+	return l.MustComponent(ComponentArbeidsflate).Host()
+}
+
 // LocaltestIngressHosts returns the hostnames routed through localtest.
 func (l Local) LocaltestIngressHosts() []string {
 	return slicesClone([]string{
@@ -127,6 +166,7 @@ func (l Local) HostFileHostnames() []string {
 		ComponentWorkflowEngine,
 		ComponentPgAdmin,
 		ComponentFrontendDevServer,
+		ComponentArbeidsflate,
 		ComponentOTel,
 	)
 }

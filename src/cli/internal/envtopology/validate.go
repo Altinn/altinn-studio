@@ -47,6 +47,7 @@ func validateDefinition(def definition) error {
 		"components.pgadmin":           def.Components.PgAdmin,
 		"components.workflowEngine":    def.Components.WorkflowEngine,
 		"components.frontendDevServer": def.Components.FrontendDevServer,
+		"components.arbeidsflate":      def.Components.Arbeidsflate,
 	}
 	for field, component := range components {
 		if err := validateComponent(field, component); err != nil {

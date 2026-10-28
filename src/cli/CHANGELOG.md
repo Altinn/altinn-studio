@@ -11,6 +11,11 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- `studioctl env up -r localtest-v2` runs the platform's own services, such as Storage and Register, instead of localtest's emulation. Apps run against it unchanged. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
+    - `--with` adds optional services, such as `arbeidsflate`
+    - `--minimal` starts a small stack with its telemetry in JSON Lines files
+    - `--host` and `--port` serve it on another address
+    - `--dev-<container>` builds a container from a Dockerfile
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 - Localtest has a _Messages_ page that shows the messages apps have sent, with their attachments, and the emails and SMS messages that would have gone out. A button clears them without resetting the rest of your data. ([#21224](https://github.com/Altinn/altinn-studio/pull/21224))
@@ -34,6 +39,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
+- Behind a TLS-intercepting proxy, such as a corporate network, PDFs from `studioctl env up` no longer time out or render without fonts. Set `STUDIO_CA_BUNDLE` to a PEM bundle with your system's CAs and the proxy's CA, then run `studioctl env down` and `studioctl env up`. Certificates studioctl cannot read are left out, with a warning. ([#21483](https://github.com/Altinn/altinn-studio/pull/21483))
+- `studioctl env down`, `env reset` and `studioctl run --mode container` no longer leave an unnamed volume behind for each container they remove. Your named volumes are kept. ([#21394](https://github.com/Altinn/altinn-studio/pull/21394))
 - `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
 - `studioctl app upgrade v9` lists `using Altinn.App.Core.Internal.Maskinporten` directives among the removed Maskinporten APIs to replace. ([#19188](https://github.com/Altinn/altinn-studio/issues/19188))
