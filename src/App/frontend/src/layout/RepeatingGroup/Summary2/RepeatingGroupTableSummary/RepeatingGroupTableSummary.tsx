@@ -19,6 +19,7 @@ import { useDeepValidationsForNode } from 'src/features/validation/selectors/dee
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
+import { getComponentDef } from 'src/layout';
 import repeatingGroupClasses from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import tableClasses from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary.module.css';
@@ -63,6 +64,7 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const title = summaryTitle || resolvedTitle;
   const captionProps = useSummaryCaptionProps(baseComponentId, title);
   const tableIds = useTableComponentIds(baseComponentId);
+  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const hiddenColumns = useHiddenColumns(config.tableColumns);
   const pdfExclusions = usePdfExclusions();
   const columnSettings = Object.fromEntries(
@@ -73,6 +75,11 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   );
   if (pdfModeActive) {
     for (const id of pdfExclusions.components) {
+      columnSettings[id] = { ...columnSettings[id], hidden: true };
+    }
+  }
+  for (const id of tableIds) {
+    if (!getComponentDef(layoutLookups.getComponent(id).type).renderSummary2) {
       columnSettings[id] = { ...columnSettings[id], hidden: true };
     }
   }
