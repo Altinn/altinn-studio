@@ -37,11 +37,108 @@ public sealed record WorkflowCollectionResponse
     /// </summary>
     [JsonPropertyName("updatedAt")]
     public DateTimeOffset? UpdatedAt { get; init; }
+
+    /// <summary>
+    /// Gets the status rollup across every workflow in the collection, primary and auxiliary alike,
+    /// so a consumer can derive per-collection health without enumerating workflows. Nullable so the
+    /// wire contract stays additive: consumers must tolerate absence (an older engine), and the engine
+    /// always populates it. See <see cref="CollectionWorkflowCounts"/> for the bucket definitions.
+    /// </summary>
+    [JsonPropertyName("workflowCounts")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CollectionWorkflowCounts? WorkflowCounts { get; init; }
+}
+
+/// <summary>
+/// Per-collection workflow status rollup. Counts every workflow enqueued under the collection key,
+/// split by <see cref="WorkflowRole"/>, so failures of auxiliary workflows — which never reach the
+/// collection's heads — are visible here.
+/// </summary>
+/// <remarks>
+/// <see cref="PersistentItemStatus.Abandoned"/> is in no bucket of either role — it is the engine's
+/// adjudication marker for a written-off failure — but still counts toward <see cref="Total"/>.
+/// There is deliberately no named "settled" bucket: successful, abandoned, and any future status
+/// show up as the remainder of <see cref="Total"/> after both roles' active and failed counts, so a
+/// new status can never be silently misfiled.
+/// </remarks>
+public sealed record CollectionWorkflowCounts
+{
+    /// <summary>
+    /// Gets the total number of workflows in the collection, regardless of status or role.
+    /// </summary>
+    [JsonPropertyName("total")]
+    public required int Total { get; init; }
+
+    /// <summary>
+    /// Gets the counts for the collection's primary workflows: those the process waits on.
+    /// </summary>
+    [JsonPropertyName("primary")]
+    public required WorkflowRoleCounts Primary { get; init; }
+
+    /// <summary>
+    /// Gets the counts for the collection's auxiliary workflows: those that run beside the process.
+    /// </summary>
+    [JsonPropertyName("auxiliary")]
+    public required WorkflowRoleCounts Auxiliary { get; init; }
+}
+
+/// <summary>
+/// Status counts for the workflows of one <see cref="WorkflowRole"/> within a collection.
+/// <see cref="Requeued"/>, <see cref="Waiting"/> and <see cref="Held"/> are not buckets of their own
+/// but subsets of <see cref="Active"/>: the workflows parked for a reason a reader may want to name,
+/// rather than running or queued.
+/// </summary>
+public sealed record WorkflowRoleCounts
+{
+    /// <summary>
+    /// Gets the number of workflows in a non-terminal status — still in flight, whether running or
+    /// parked: <see cref="PersistentItemStatus.Enqueued"/>, <see cref="PersistentItemStatus.Processing"/>,
+    /// <see cref="PersistentItemStatus.Requeued"/>, <see cref="PersistentItemStatus.Waiting"/>, or
+    /// <see cref="PersistentItemStatus.Held"/>. A <see cref="PersistentItemStatus.Held"/> mailbox
+    /// receiver counts here: it is parked awaiting its delivery, but consumes admission budget and
+    /// still gates its dependents.
+    /// </summary>
+    [JsonPropertyName("active")]
+    public required int Active { get; init; }
+
+    /// <summary>
+    /// Gets the number of unsuccessfully terminal workflows (<see cref="PersistentItemStatus.Failed"/>,
+    /// <see cref="PersistentItemStatus.Canceled"/>, <see cref="PersistentItemStatus.DependencyFailed"/>).
+    /// </summary>
+    [JsonPropertyName("failed")]
+    public required int Failed { get; init; }
+
+    /// <summary>
+    /// Gets how many of the <see cref="Active"/> workflows are waiting to try again after a retryable
+    /// error (<see cref="PersistentItemStatus.Requeued"/>).
+    /// </summary>
+    [JsonPropertyName("requeued")]
+    public required int Requeued { get; init; }
+
+    /// <summary>
+    /// Gets how many of the <see cref="Active"/> workflows are parked by a deferral, waiting for an
+    /// outcome that is not available yet (<see cref="PersistentItemStatus.Waiting"/>).
+    /// </summary>
+    [JsonPropertyName("waiting")]
+    public required int Waiting { get; init; }
+
+    /// <summary>
+    /// Gets how many of the <see cref="Active"/> workflows are parked on a mailbox until their message
+    /// arrives or the mailbox closes (<see cref="PersistentItemStatus.Held"/>).
+    /// </summary>
+    [JsonPropertyName("held")]
+    public required int Held { get; init; }
 }
 
 /// <summary>
 /// Detailed view of a workflow collection including head workflow statuses.
 /// </summary>
+/// <remarks>
+/// This is a <em>frontier</em> view by contract: it reports only the current head workflows, so
+/// auxiliary workflows never appear here, and their failures do not affect this response. Use the
+/// collection list endpoint's <see cref="WorkflowCollectionResponse.WorkflowCounts"/> rollup, or the
+/// workflow list endpoint's <c>role</c> filter, to see them.
+/// </remarks>
 public sealed record WorkflowCollectionDetailResponse
 {
     /// <summary>

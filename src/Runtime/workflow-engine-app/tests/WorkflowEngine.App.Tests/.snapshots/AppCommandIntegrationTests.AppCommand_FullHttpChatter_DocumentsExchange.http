@@ -188,6 +188,7 @@ Content-Type: application/json; charset=utf-8
   "dependents": {},
   "links": {},
   "initialState": "initial-workflow-state",
+  "role": "Primary",
   "steps": [
     {
       "databaseId": "Guid_4",
