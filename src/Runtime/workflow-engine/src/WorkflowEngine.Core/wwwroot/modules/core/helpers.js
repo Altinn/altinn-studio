@@ -3,7 +3,11 @@
 /** @param {string} s */
 export const cssId = (s) => s.replace(/[^a-zA-Z0-9-_]/g, '_');
 
-/** @param {string} s */
+/**
+ * Escape for element content only: quotes stay intact. Use `escAttr()` in an attribute and
+ * `escJsArg()` in an inline handler's argument.
+ * @param {string} s
+ */
 export const esc = (s) => {
     if (!s) return '';
     const d = document.createElement('div');
@@ -72,57 +76,34 @@ export const abbrevGuids = (s) =>
               .replace(/[0-9a-f]{32}/gi, (m) => `${m.slice(0, 8)}…`);
 
 /**
- * The host's Grafana and its traces datasource, from `/dashboard/config`. Null while the host leaves
- * either unset, and then the dashboard draws no trace links.
- * @type {{ url: string, tracesDatasourceUid: string } | null}
+ * The host's trace link template from `/dashboard/config`: a URL with `{traceId}` where the trace ID
+ * goes, which the server resolves from `EngineSettings.Dashboard`. Null while the host names no
+ * trace viewer, and then the dashboard draws no trace links.
+ * @type {string | null}
  */
-let grafana = null;
+let traceUrlTemplate = null;
 
 /** Reads the host's dashboard settings. Call once at startup, before anything renders a card. */
 export const loadDashboardConfig = async () => {
     try {
         const res = await fetch('/dashboard/config');
         if (!res.ok) return;
-        /** @type {{ grafanaUrl?: string, grafanaTracesDatasourceUid?: string }} */
+        /** @type {{ traceUrlTemplate?: string }} */
         const config = await res.json();
-        if (config.grafanaUrl && config.grafanaTracesDatasourceUid) {
-            grafana = {
-                url: config.grafanaUrl.replace(/\/+$/, ''),
-                tracesDatasourceUid: config.grafanaTracesDatasourceUid,
-            };
-        }
+        traceUrlTemplate = config.traceUrlTemplate || null;
     } catch {
         /* non-critical: the dashboard runs without trace links */
     }
 };
 
 /**
- * Grafana Explore URL that opens one trace by its ID, or null when the host configures no Grafana.
+ * URL that opens one trace by its ID in the host's trace viewer, or null when the host names none.
  * Every trace link on the dashboard is built here.
  * @param {string} traceId
  * @returns {string | null}
  */
-export const grafanaTraceUrl = (traceId) => {
-    if (!grafana) return null;
-    // The query is TraceQL, which only a Tempo datasource takes.
-    const datasource = { type: 'tempo', uid: grafana.tracesDatasourceUid };
-    const panes = {
-        trace: {
-            datasource: datasource.uid,
-            queries: [
-                {
-                    refId: 'A',
-                    datasource,
-                    queryType: 'traceql',
-                    query: traceId,
-                },
-            ],
-            range: { from: 'now-24h', to: 'now' },
-        },
-    };
-    // No orgId: Grafana opens Explore in the viewer's current organization.
-    return `${grafana.url}/explore?schemaVersion=1&panes=${encodeURIComponent(JSON.stringify(panes))}`;
-};
+export const buildTraceUrl = (traceId) =>
+    traceUrlTemplate ? traceUrlTemplate.replaceAll('{traceId}', encodeURIComponent(traceId)) : null;
 
 /** @param {number} seconds */
 export const formatElapsed = (seconds) => {

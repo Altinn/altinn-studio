@@ -1,87 +1,21 @@
-# Cypress Tests
+# Cypress tests
 
-This project has the tests using [cypress](https://www.cypress.io/) for app frontend that is running locally.
+The Cypress tests in [e2e/integration](e2e/integration) drive the frontend in a real app. Each folder there tests one
+of the apps in [src/test/apps](../../../test/apps), which have the same names. The apps reference the backend in this
+checkout, so the tests cover the frontend and backend together.
+[app-frontend-cypress.yml](../../../../.github/workflows/app-frontend-cypress.yml) runs them in CI against localtest.
 
-## Getting Started
+## Run them locally
 
-These instructions will get you run the integration tests on altinn-app-frontend.
+Run these from `src/App/frontend`, after `yarn --immutable`. On Linux, Cypress needs the
+[system packages](https://docs.cypress.io/guides/getting-started/installing-cypress#Linux-Prerequisites) it lists.
 
-### Install dependencies / prerequisites
+1. Start localtest with `studioctl env up`, and run `studioctl env hosts add` once so that the frontend's host name
+   resolves.
+2. Start the frontend with `yarn start`.
+3. Start the app that the tests use, for example
+   `studioctl run --dev-frontend --detach --path ../../test/apps/frontend-test`.
+4. Run its tests with `yarn cy:run:localtest --spec 'test/e2e/integration/frontend-test/*.ts'`, or pick them in the
+   Cypress runner with `yarn cy:open:localtest`.
 
-This is only needed the first time, or when dependencies are updated:
-
-```cmd
-yarn --immutable
-```
-
-Please refer to [Linux Prerequisites](https://docs.cypress.io/guides/getting-started/installing-cypress#Linux-Prerequisites) to run Cypress on Linux/Wsl.
-
-### Running tests against a remote environment
-
-1. Start your local development server for `app-frontend-react`:
-
-```cmd
-yarn start
-```
-
-2. Run the tests against a remote environment:
-
-```cmd
-npx cypress run --env environment=tt02 -s 'test/e2e/integration/*/*.ts'
-```
-
-### Running tests locally
-
-1. Clone [app-localtest](https://github.com/Altinn/app-localtest) and follow the [instructions in the README](https://github.com/Altinn/app-localtest/blob/main/README.md) to start the local environment.
-
-1. Clone one or more of the apps we've made automatic tests for:
-
-- [ttd/anonymous-stateless-app](https://dev.altinn.studio/repos/ttd/anonymous-stateless-app)
-- [ttd/component-library](https://altinn.studio/repos/ttd/component-library.git)
-- [ttd/expression-validation-test](https://dev.altinn.studio/repos/ttd/expression-validation-test)
-- [ttd/frontend-test](https://dev.altinn.studio/repos/ttd/frontend-test)
-- [ttd/multiple-datamodels-test](https://dev.altinn.studio/repos/ttd/multiple-datamodels-test)
-- [ttd/navigation-test-subform](https://dev.altinn.studio/repos/ttd/navigation-test-subform)
-- [ttd/payment-test](https://dev.altinn.studio/repos/ttd/payment-test)
-- [ttd/service-task](https://altinn.studio/repos/ttd/service-task)
-- [ttd/signering-brukerstyrt](https://altinn.studio/repos/ttd/signering-brukerstyrt)
-- [ttd/signing-test](https://dev.altinn.studio/repos/ttd/signing-test)
-- [ttd/stateless-app](https://dev.altinn.studio/repos/ttd/stateless-app)
-- [ttd/subform-test](https://altinn.studio/repos/ttd/subform-test)
-
-3. Start the app you want to test:
-
-```cmd
-cd <app-folder>/App
-dotnet run
-```
-
-4. Start the tests for a given app:
-
-If you ran app-localtest locally:
-
-```cmd
-npx cypress run --env environment=localtest -s 'test/e2e/integration/frontend-test/*.ts'
-```
-
-5. Stop the running app (using `Ctrl+C` in the terminal where it's running) and
-   repeat step 3 and 4 for the next app you want to test.
-
-### Running a single test/opening the Cypress runner
-
-To run a single test case, open the Cypress runner using:
-
-```cmd
-npx cypress open --env environment=<environment>
-```
-
-Then click on the test you want to run.
-
-**Tip:** Most test files contain multiple test cases. You can run a single test case
-by adding `.only` to the `it` function in the test file. Be sure not to commit
-this change.
-
-```diff
-- it('should do something', () => {
-+ it.only('should do something', () => {
-```
+`yarn cy:run` and `yarn cy:open` run the tests against the apps deployed in tt02 instead.
