@@ -579,7 +579,6 @@
   "contact.github_issue.link_label": "Opprett sak i Github",
   "contact.serviceDesk.email": "<b>E-post:</b> <a>tjenesteeier@altinn.no</a>",
   "contact.serviceDesk.emergencyPhone": "<b>Vakttelefon:</b> <a>94 49 00 02</a> (tilgjengelig kl. 15:45–07:00)",
-  "contact.serviceDesk.phone": "<b>Telefon:</b> <a>75 00 62 99</a>",
   "contact.slack.content": "Hvis du har spørsmål om hvordan du bygger en app, kan du snakke direkte med utviklingsteamet i Altinn Studio på Slack. De hjelper deg med å",
   "contact.slack.content_list": "<0>bygge appene slik du ønsker</0><0>svare på spørsmål og veilede deg</0><0>ta imot innspill på ny funksjonalitet</0>",
   "contact.slack.heading": "Skriv melding til oss Slack",
