@@ -132,7 +132,7 @@ public static class LayoutEvaluator
     /// are in the component's <c>simpleBinding</c> or <c>list</c> binding belong to it. A component without
     /// either binding, outside a repeating group, has all attachments of its data type. Attachments that belong to
     /// no component are kept. Call this before <see cref="RemoveHiddenData"/> with the same state, so the bindings
-    /// in hidden rows are still there and each component's hidden expression is evaluated once.
+    /// in hidden rows are still there and no hidden expression is evaluated twice.
     /// </remarks>
     internal static async Task<List<DataElementIdentifier>> GetHiddenAttachmentsForRemoval(
         LayoutEvaluatorState state,
@@ -174,8 +174,8 @@ public static class LayoutEvaluator
     }
 
     /// <summary>
-    /// Get the attachments that belong to the FileUpload or ImageUpload component in this context (one row of a
-    /// repeating group), or none for other component types. Like
+    /// Get the attachments that belong to the FileUpload or ImageUpload component in this context (the component,
+    /// or one row of it in a repeating group), or none for other component types. Like
     /// <see cref="Models.Layout.Components.Base.BaseComponent.GetDataReferencesToRemoveWhenHidden"/>, it returns
     /// the same attachments whether or not the context is hidden.
     /// </summary>
