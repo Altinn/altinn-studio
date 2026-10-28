@@ -227,7 +227,7 @@ public sealed class SigningProcessTaskTests : IDisposable
             .Verifiable(Times.Once);
 
         // Act
-        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+        await RunEnd(dataMutator.Object);
 
         // Assert
         _signingServiceMock.VerifyAll();
@@ -248,10 +248,44 @@ public sealed class SigningProcessTaskTests : IDisposable
 
         // Act
         // The strict ISigningService mock has no setup for RevokeSigneeRightsOnTaskEnd, so this throws if it's called.
-        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+        await RunEnd(dataMutator.Object);
 
         // Assert
         _signingServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task DefineEnd_RevokesRightsThenStoresThePdfInSeparateStages()
+    {
+        // The revocation, which makes one call per signee and gets more time, runs first and as its own step, so
+        // the PDF is persisted only once the signees' rights are gone, and a retry of the PDF stage does not revoke
+        // again.
+        Instance instance = CreateInstance();
+        var dataMutator = CreateDataMutator(instance);
+        var configuration = new AltinnSignatureConfiguration
+        {
+            SignatureDataType = "SignatureDataType",
+            SigneeStatesDataTypeId = "SigneeStatesDataTypeId",
+            SigneeProviderId = "SigneeProviderId",
+            SigningPdfDataType = "signing-pdf",
+        };
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension("Task_1"))
+            .Returns(new AltinnTaskExtension { SignatureConfiguration = configuration });
+        _signingServiceMock
+            .Setup(x => x.RevokeSigneeRightsOnTaskEnd(dataMutator.Object, configuration, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineEnd(new PipelineBuilder()).Stages;
+
+        Assert.Equal(2, stages.Count);
+        Assert.Equal(TimeSpan.FromMinutes(5), stages[0].StepOptions?.MaxExecutionTime);
+        Assert.Null(stages[1].StepOptions);
+        // The revocation stage on its own: the strict PDF service mock throws if the PDF is rendered here.
+        await stages[0].Work(CreateStageContext(dataMutator.Object));
+        _signingServiceMock.VerifyAll();
+        _pdfServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -273,9 +307,11 @@ public sealed class SigningProcessTaskTests : IDisposable
             .Returns(Task.CompletedTask)
             .Verifiable(Times.Once);
 
-        await _signingProcessTask.Abandon(CreateProcessTaskContext(dataMutator.Object));
+        await RunAbandon(dataMutator.Object);
 
         _signingServiceMock.VerifyAll();
+        IReadOnlyList<PipelineStage.Plain> stages = _signingProcessTask.DefineAbandon(new PipelineBuilder()).Stages;
+        Assert.Equal(TimeSpan.FromMinutes(5), Assert.Single(stages).StepOptions?.MaxExecutionTime);
     }
 
     [Fact]
@@ -315,7 +351,7 @@ public sealed class SigningProcessTaskTests : IDisposable
                 )
             );
 
-        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+        await RunEnd(dataMutator.Object);
 
         _pdfServiceMock.VerifyAll();
         dataMutator.VerifyAll();
@@ -366,7 +402,7 @@ public sealed class SigningProcessTaskTests : IDisposable
                 )
             );
 
-        await _signingProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+        await RunEnd(dataMutator.Object);
 
         _pdfServiceMock.VerifyAll();
         dataMutator.VerifyAll();
@@ -393,8 +429,26 @@ public sealed class SigningProcessTaskTests : IDisposable
         return dataMutator;
     }
 
-    private static ProcessTaskContext CreateProcessTaskContext(IInstanceDataMutator dataMutator) =>
-        new() { InstanceDataMutator = dataMutator };
+    private Task<StageResult> RunEnd(IInstanceDataMutator dataMutator) =>
+        Run(_signingProcessTask.DefineEnd(new PipelineBuilder()), dataMutator);
+
+    private Task<StageResult> RunAbandon(IInstanceDataMutator dataMutator) =>
+        Run(_signingProcessTask.DefineAbandon(new PipelineBuilder()), dataMutator);
+
+    /// <summary>Runs the stages in order, as the engine would, stopping at the first that does not complete.</summary>
+    private static async Task<StageResult> Run(ProcessTaskPipeline pipeline, IInstanceDataMutator dataMutator)
+    {
+        StageContext context = CreateStageContext(dataMutator);
+        foreach (PipelineStage.Plain stage in pipeline.Stages)
+        {
+            StageResult result = await stage.Work(context);
+            if (result is not CompletedStageResult)
+            {
+                return result;
+            }
+        }
+        return StageResult.Completed();
+    }
 
     private static StageContext CreateStageContext(IInstanceDataMutator dataMutator, Guid? stepId = null) =>
         new()

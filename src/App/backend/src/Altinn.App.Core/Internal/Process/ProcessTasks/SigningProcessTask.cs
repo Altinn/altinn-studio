@@ -136,15 +136,15 @@ internal sealed class SigningProcessTask : IProcessTask
     /// </summary>
     public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
         pipeline
-            .Stage(ResolveSignees, _signeeInitializationStepOptions)
-            .Stage(DelegateSigneeRights, _signeeInitializationStepOptions)
-            .Stage(NotifySignees, _signeeInitializationStepOptions)
+            .Stage(ResolveSignees, _perSigneeCallsStepOptions)
+            .Stage(DelegateSigneeRights, _perSigneeCallsStepOptions)
+            .Stage(NotifySignees, _perSigneeCallsStepOptions)
             .Build();
 
     /// <summary>
-    /// Each step makes one platform call per signee, so it gets more time than the engine's default.
+    /// A stage that makes one platform call per signee gets more time than the engine's default.
     /// </summary>
-    private static readonly ProcessStepOptions _signeeInitializationStepOptions = new()
+    private static readonly ProcessStepOptions _perSigneeCallsStepOptions = new()
     {
         MaxExecutionTime = TimeSpan.FromMinutes(5),
     };
@@ -196,60 +196,73 @@ internal sealed class SigningProcessTask : IProcessTask
         return configuration is { SigneeProviderId: not null, SigneeStatesDataTypeId: not null } ? configuration : null;
     }
 
-    /// <inheritdoc/>
-    /// <remarks>
-    /// Generates a PDF if the signature configuration specifies a signature data type, and revokes any
-    /// signee access rights that were delegated for runtime delegated signing, so they don't outlive the task.
-    /// </remarks>
-    public async Task End(ProcessTaskContext context)
+    /// <summary>
+    /// Ending the task revokes the rights runtime delegated signing gave the signees, so they do not outlive the
+    /// task, and then stores the signing PDF, when the configuration names a data type for it. Two stages, in that
+    /// order: the PDF is persisted only once the revocation has run, so a signee cannot read it on the rights the
+    /// task gave them, and a retry of the PDF stage does not repeat the revocation's per-signee platform calls.
+    /// </summary>
+    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline.Stage(RevokeSigneeRights, _perSigneeCallsStepOptions).Stage(StoreSigningPdf).Build();
+
+    /// <summary>
+    /// Abandoning the task revokes the rights runtime delegated signing gave the signees and removes the signee state
+    /// and the signatures. One stage: the revocation reads the signee state the removal takes away, and a retry does
+    /// both again without harm.
+    /// </summary>
+    public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
+        pipeline.Stage(AbortRuntimeDelegatedSigning, _perSigneeCallsStepOptions).Build();
+
+    private async Task<StageResult> StoreSigningPdf(StageContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken cancellationToken = context.CancellationToken;
         string taskId = GetTaskId(dataMutator);
-        AltinnSignatureConfiguration? signatureConfiguration = _processReader
+        string? signingPdfDataType = _processReader
             .GetAltinnTaskExtension(taskId)
-            ?.SignatureConfiguration;
-
-        string? signingPdfDataType = signatureConfiguration?.SigningPdfDataType;
-
-        if (signingPdfDataType is not null)
+            ?.SignatureConfiguration?.SigningPdfDataType;
+        if (signingPdfDataType is null)
         {
-            // The actor's language, the one the user chose for the transition, or nb if it has none
-            byte[] pdf = await _pdfService.GeneratePdf(
-                dataMutator.Instance,
-                taskId,
-                language: dataMutator.Language ?? LanguageConst.Nb,
-                cancellationToken: cancellationToken
-            );
-
-            UpsertTaskGeneratedBinaryDataElement(
-                dataMutator,
-                signingPdfDataType,
-                PdfContentType,
-                signingPdfDataType + ".pdf",
-                pdf,
-                taskId
-            );
+            return StageResult.Completed();
         }
 
-        // Revoke delegated signing if configured
-        if (
-            signatureConfiguration?.SigneeProviderId is not null
-            && signatureConfiguration.SigneeStatesDataTypeId is not null
-        )
-        {
-            await _signingService.RevokeSigneeRightsOnTaskEnd(dataMutator, signatureConfiguration, cancellationToken);
-        }
+        // The actor's language, the one the user chose for the transition, or nb if it has none
+        byte[] pdf = await _pdfService.GeneratePdf(
+            dataMutator.Instance,
+            taskId,
+            language: dataMutator.Language ?? LanguageConst.Nb,
+            cancellationToken: context.CancellationToken
+        );
+        UpsertTaskGeneratedBinaryDataElement(
+            dataMutator,
+            signingPdfDataType,
+            PdfContentType,
+            signingPdfDataType + ".pdf",
+            pdf,
+            taskId
+        );
+        return StageResult.Completed();
     }
 
-    /// <inheritdoc/>
-    public async Task Abandon(ProcessTaskContext context)
+    private async Task<StageResult> RevokeSigneeRights(StageContext context)
+    {
+        if (GetRuntimeDelegatedSigningConfiguration(context) is { } configuration)
+        {
+            await _signingService.RevokeSigneeRightsOnTaskEnd(
+                context.InstanceDataMutator,
+                configuration,
+                context.CancellationToken
+            );
+        }
+
+        return StageResult.Completed();
+    }
+
+    private async Task<StageResult> AbortRuntimeDelegatedSigning(StageContext context)
     {
         IInstanceDataMutator dataMutator = context.InstanceDataMutator;
-        CancellationToken cancellationToken = context.CancellationToken;
-        string taskId = GetTaskId(dataMutator);
-        AltinnSignatureConfiguration signatureConfiguration = GetAltinnSignatureConfiguration(taskId);
-        await _signingService.AbortRuntimeDelegatedSigning(dataMutator, signatureConfiguration, cancellationToken);
+        AltinnSignatureConfiguration configuration = GetAltinnSignatureConfiguration(GetTaskId(dataMutator));
+        await _signingService.AbortRuntimeDelegatedSigning(dataMutator, configuration, context.CancellationToken);
+        return StageResult.Completed();
     }
 
     private AltinnSignatureConfiguration GetAltinnSignatureConfiguration(string taskId)
