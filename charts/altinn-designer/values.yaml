@@ -35,6 +35,8 @@ environmentVariables:
       value: Staging
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: kvSetting__SecretUri
+      value: https://altinn-studio-dev-kv.vault.azure.net
     - name: GeneralSettings__HostName
       value: dev.altinn.studio
     - name: GeneralSettings__TemplateLocation
@@ -131,6 +133,8 @@ environmentVariables:
       value: Staging
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: kvSetting__SecretUri
+      value: https://altinn-studio-staging-kv.vault.azure.net
     - name: GeneralSettings__HostName
       value: staging.altinn.studio
     - name: GeneralSettings__TemplateLocation
@@ -227,6 +231,8 @@ environmentVariables:
       value: Production
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: kvSetting__SecretUri
+      value: https://altinn-studio-prod-kv.vault.azure.net
     - name: GeneralSettings__HostName
       value: altinn.studio
     - name: GeneralSettings__TemplateLocation
