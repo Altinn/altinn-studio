@@ -1,8 +1,12 @@
+using System.Text;
+using System.Text.Json.Serialization;
+using System.Xml.Serialization;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Storage;
@@ -25,6 +29,7 @@ public class InstancesController_CopyInstanceTests
 {
     private static readonly StorageVersionMetadata SourceVersions = new(InstanceVersion: 12, ProcessStateVersion: 6);
     private static readonly StorageVersionMetadata TargetVersions = new(InstanceVersion: 3, ProcessStateVersion: 1);
+    private static readonly string CopiedFormClassRef = typeof(CopiedForm).FullName!;
 
     [Fact]
     public async Task CopyInstance_CopyInstanceNotDefined_ReturnsBadRequest()
@@ -784,19 +789,8 @@ public class InstancesController_CopyInstanceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new { test = "test" });
-        fixture
-            .Mock<IDataClient>()
-            .Setup(p =>
-                p.InsertFormData(
-                    It.IsAny<Instance>(),
-                    dataTypeId,
-                    It.IsAny<object>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new DataElement());
+            .ReturnsAsync(() => new CopiedForm());
+        SetupFormDataSave(fixture, targetInstance);
 
         // Act
         var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
@@ -954,19 +948,8 @@ public class InstancesController_CopyInstanceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new { test = "test" });
-        fixture
-            .Mock<IDataClient>()
-            .Setup(p =>
-                p.InsertFormData(
-                    It.Is<Instance>(i => i.Id == instance.Id),
-                    formDataTypeId,
-                    It.IsAny<object>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new DataElement());
+            .ReturnsAsync(() => new CopiedForm());
+        SetupFormDataSave(fixture, instance);
 
         fixture
             .Mock<IDataClient>()
@@ -1016,19 +999,10 @@ public class InstancesController_CopyInstanceTests
                     ),
                 Times.Once
             );
-        fixture
-            .Mock<IDataClient>()
-            .Verify(
-                p =>
-                    p.InsertFormData(
-                        It.IsAny<Instance>(),
-                        formDataTypeId,
-                        It.IsAny<object>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
+        StorageInstanceMutationCreateDataElement savedForm = Assert.Single(
+            GetSavedMutation(fixture).Request.CreateDataElements
+        );
+        Assert.Equal(formDataTypeId, savedForm.DataType);
 
         // Verify binary data was copied
         fixture
@@ -1176,19 +1150,8 @@ public class InstancesController_CopyInstanceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new { test = "test" });
-        fixture
-            .Mock<IDataClient>()
-            .Setup(p =>
-                p.InsertFormData(
-                    It.Is<Instance>(i => i.Id == instance.Id),
-                    formDataTypeId,
-                    It.IsAny<object>(),
-                    It.IsAny<StorageAuthenticationMethod?>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new DataElement());
+            .ReturnsAsync(() => new CopiedForm());
+        SetupFormDataSave(fixture, instance);
 
         // Binary data mocks (should NOT be called - type is excluded)
         fixture
@@ -1239,19 +1202,10 @@ public class InstancesController_CopyInstanceTests
                     ),
                 Times.Once
             );
-        fixture
-            .Mock<IDataClient>()
-            .Verify(
-                p =>
-                    p.InsertFormData(
-                        It.Is<Instance>(i => i.Id == instance.Id),
-                        formDataTypeId,
-                        It.IsAny<object>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Once
-            );
+        StorageInstanceMutationCreateDataElement savedForm = Assert.Single(
+            GetSavedMutation(fixture).Request.CreateDataElements
+        );
+        Assert.Equal(formDataTypeId, savedForm.DataType);
 
         // Verify binary data was NOT copied (excluded type)
         fixture
@@ -1494,19 +1448,6 @@ public class InstancesController_CopyInstanceTests
                     p.GetFormData(
                         It.IsAny<Instance>(),
                         It.IsAny<DataElement>(),
-                        It.IsAny<StorageAuthenticationMethod?>(),
-                        It.IsAny<CancellationToken>()
-                    ),
-                Times.Never
-            );
-        fixture
-            .Mock<IDataClient>()
-            .Verify(
-                p =>
-                    p.InsertFormData(
-                        It.IsAny<Instance>(),
-                        It.IsAny<string>(),
-                        It.IsAny<object>(),
                         It.IsAny<StorageAuthenticationMethod?>(),
                         It.IsAny<CancellationToken>()
                     ),
@@ -1892,6 +1833,181 @@ public class InstancesController_CopyInstanceTests
         );
     }
 
+    [Fact]
+    public async Task CopyInstance_ProcessorWithOnlyTheMutatorOverload_ChangesTheCopiedForm()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+        application.PresentationFields =
+        [
+            new DataField
+            {
+                Id = "name",
+                Path = "name",
+                DataTypeId = "data_type_1",
+            },
+        ];
+
+        const string name = "Set by DataCreation";
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        SetupSuccessfulCopy(fixture, instance, application);
+        fixture
+            .Mock<IInstantiationProcessor>()
+            .Setup(p => p.DataCreation(It.IsAny<IInstanceDataMutator>(), It.IsAny<object>(), null))
+            .Callback<IInstanceDataMutator, object, Dictionary<string, string>?>(
+                (_, data, _) => ((CopiedForm)data).Name = name
+            )
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        var (request, contentParts) = GetSavedMutation(fixture);
+        StorageInstanceMutationCreateDataElement savedForm = Assert.Single(request.CreateDataElements);
+        Assert.Contains(
+            $"<name>{name}</name>",
+            Encoding.UTF8.GetString(contentParts[savedForm.ContentPartName].Bytes.Span)
+        );
+        Assert.Equal(name, request.PresentationTexts["name"]);
+    }
+
+    [Fact]
+    public async Task CopyInstance_SeveralForms_SavesThemInOneMutation()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        instance.Data.Add(new DataElement { Id = Guid.NewGuid().ToString(), DataType = "data_type_1" });
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        SetupSuccessfulCopy(fixture, instance, application);
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        var (request, _) = GetSavedMutation(fixture);
+        Assert.Equal(2, request.CreateDataElements.Count);
+    }
+
+    [Fact]
+    public async Task CopyInstance_WithAttachments_DataCreationSeesTheCopiedAttachment()
+    {
+        // Arrange
+        const int instanceOwnerPartyId = 343234;
+        Instance instance = CreateArchivedInstance(instanceOwnerPartyId);
+        DataElement attachment = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "attachment",
+            ContentType = "application/pdf",
+            Filename = "test.pdf",
+        };
+        instance.Data.Add(attachment);
+        ApplicationMetadata application = CreateApplicationMetadata("ttd", "copy-instance", true);
+        application.CopyInstanceSettings.IncludeAttachments = true;
+
+        var auth = TestAuthentication.GetUserAuthentication(userPartyId: instanceOwnerPartyId);
+        using var fixture = InstancesControllerFixture.Create(auth);
+        SetupSuccessfulCopy(fixture, instance, application);
+        List<string> dataElementIdsSeen = [];
+        fixture
+            .Mock<IInstantiationProcessor>()
+            .Setup(p => p.DataCreation(It.IsAny<IInstanceDataMutator>(), It.IsAny<object>(), null))
+            .Callback<IInstanceDataMutator, object, Dictionary<string, string>?>(
+                (mutator, _, _) =>
+                    dataElementIdsSeen.AddRange(mutator.Instance.Data.Select(dataElement => dataElement.Id))
+            )
+            .Returns(Task.CompletedTask);
+
+        DataElement copiedAttachment = new() { Id = Guid.NewGuid().ToString(), DataType = "attachment" };
+        List<DataElement> copiedAttachments = [];
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.GetBinaryData(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    Guid.Parse(attachment.Id),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() => new MemoryStream(Encoding.UTF8.GetBytes("Binary content")));
+        fixture
+            .Mock<IDataClient>()
+            .Setup(p =>
+                p.InsertBinaryData(
+                    instance.Id,
+                    "attachment",
+                    "application/pdf",
+                    "test.pdf",
+                    It.IsAny<Stream>(),
+                    It.IsAny<string>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(() => copiedAttachments.Add(copiedAttachment))
+            .ReturnsAsync(copiedAttachment);
+        fixture
+            .Mock<IInstanceClientWithStorageMetadata>()
+            .Setup(i =>
+                i.GetInstanceWithStorageMetadata(
+                    It.IsAny<Instance>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(() =>
+                new InstanceWithStorageMetadata(
+                    new Instance
+                    {
+                        Id = instance.Id,
+                        AppId = instance.AppId,
+                        InstanceOwner = instance.InstanceOwner,
+                        Status = instance.Status,
+                        Process = instance.Process,
+                        Data = [.. copiedAttachments],
+                    },
+                    TargetVersions
+                )
+            );
+
+        // Act
+        var controller = fixture.ServiceProvider.GetRequiredService<InstancesController>();
+        ActionResult actual = await controller.CopyInstance(
+            "ttd",
+            "copy-instance",
+            instanceOwnerPartyId,
+            Guid.Parse(instance.Id.Split("/")[1])
+        );
+
+        // Assert
+        Assert.IsType<RedirectResult>(actual);
+        Assert.Contains(copiedAttachment.Id, dataElementIdsSeen);
+    }
+
     private static void VerifyNoSeparateDataValuesOrPresentationTextsUpdate(InstancesControllerFixture fixture)
     {
         fixture
@@ -2042,21 +2158,91 @@ public class InstancesController_CopyInstanceTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new { test = "test" });
+            .ReturnsAsync(() => new CopiedForm());
+        SetupFormDataSave(fixture, instance);
+
+        return () => instanceTemplate;
+    }
+
+    /// <summary>
+    /// Sets up Storage's response to the save of the copied form data on <paramref name="targetInstance"/>.
+    /// </summary>
+    private static void SetupFormDataSave(InstancesControllerFixture fixture, Instance targetInstance)
+    {
+        fixture.Mock<IAppModel>().Setup(m => m.GetModelType(CopiedFormClassRef)).Returns(typeof(CopiedForm));
+        fixture.Mock<IAppModel>().Setup(m => m.Create(CopiedFormClassRef)).Returns(() => new CopiedForm());
         fixture
-            .Mock<IDataClient>()
-            .Setup(p =>
-                p.InsertFormData(
-                    It.IsAny<Instance>(),
-                    It.IsAny<string>(),
-                    It.IsAny<object>(),
+            .Mock<IInstanceMutationClient>()
+            .Setup(c =>
+                c.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
                     It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new DataElement());
+            .ReturnsAsync(
+                (
+                    int _,
+                    Guid _,
+                    StorageInstanceMutationRequest request,
+                    IReadOnlyDictionary<string, StorageInstanceMutationContent> _,
+                    StorageAuthenticationMethod? _,
+                    StorageWritePreconditions? _,
+                    CancellationToken _
+                ) =>
+                {
+                    List<DataElement> created = request
+                        .CreateDataElements.Select(create => new DataElement
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            DataType = create.DataType,
+                            ContentType = create.ContentType,
+                        })
+                        .ToList();
+                    Instance saved = new()
+                    {
+                        Id = targetInstance.Id,
+                        AppId = targetInstance.AppId,
+                        Org = targetInstance.Org,
+                        InstanceOwner = targetInstance.InstanceOwner,
+                        Status = targetInstance.Status,
+                        Process = targetInstance.Process,
+                        Data = [.. targetInstance.Data, .. created],
+                    };
+                    return new InstanceMutationWithStorageMetadata(
+                        saved,
+                        TargetVersions,
+                        created.Select(dataElement => Guid.Parse(dataElement.Id)).ToList()
+                    );
+                }
+            );
+    }
 
-        return () => instanceTemplate;
+    private static (
+        StorageInstanceMutationRequest Request,
+        IReadOnlyDictionary<string, StorageInstanceMutationContent> ContentParts
+    ) GetSavedMutation(InstancesControllerFixture fixture)
+    {
+        IInvocation save = Assert.Single(
+            fixture.Mock<IInstanceMutationClient>().Invocations,
+            invocation =>
+                invocation.Method.Name == nameof(IInstanceMutationClient.CommitInstanceMutationWithStorageMetadata)
+        );
+        return (
+            (StorageInstanceMutationRequest)save.Arguments[2],
+            (IReadOnlyDictionary<string, StorageInstanceMutationContent>)save.Arguments[3]
+        );
+    }
+
+    public sealed class CopiedForm
+    {
+        [XmlElement("name")]
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
     }
 
     private static ApplicationMetadata CreateApplicationMetadata(string org, string app, bool enableCopyInstance)
@@ -2070,7 +2256,7 @@ public class InstancesController_CopyInstanceTests
                 new DataType
                 {
                     Id = "data_type_1",
-                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema" },
+                    AppLogic = new ApplicationLogic { ClassRef = CopiedFormClassRef },
                     TaskIds = ["First"],
                 },
                 // Binary data types (no AppLogic.ClassRef)

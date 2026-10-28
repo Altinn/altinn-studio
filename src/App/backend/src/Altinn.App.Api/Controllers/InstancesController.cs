@@ -899,7 +899,7 @@ public class InstancesController : ControllerBase
 
             if (source is not null)
             {
-                await CopyDataFromSourceInstance(application, instance, source);
+                await CopyDataFromSourceInstance(application, instance, source, language);
             }
 
             var fetchedInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
@@ -1138,7 +1138,7 @@ public class InstancesController : ControllerBase
                 CancellationToken.None
             );
 
-            await CopyDataFromSourceInstance(application, targetInstance, sourceInstance);
+            await CopyDataFromSourceInstance(application, targetInstance, sourceInstance, language);
 
             var fetchedTargetInstance = await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
                 targetInstance,
@@ -1543,7 +1543,8 @@ public class InstancesController : ControllerBase
     private async Task CopyDataFromSourceInstance(
         ApplicationMetadata application,
         Instance targetInstance,
-        Instance sourceInstance
+        Instance sourceInstance,
+        string? language
     )
     {
         int instanceOwnerPartyId = int.Parse(targetInstance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
@@ -1554,6 +1555,20 @@ public class InstancesController : ControllerBase
             targetInstance,
             sourceInstance,
             instanceOwnerPartyId
+        );
+
+        // Read after the attachment copy, so the unit of work's instance includes the copied attachments
+        InstanceWithStorageMetadata fetchedTargetInstance =
+            await _instanceClientWithStorageMetadata.GetInstanceWithStorageMetadata(
+                targetInstance,
+                authenticationMethod: null,
+                CancellationToken.None
+            );
+        var dataMutator = await _instanceDataUnitOfWorkInitializer.Init(
+            fetchedTargetInstance.Instance,
+            fetchedTargetInstance.Metadata,
+            taskId: null,
+            language
         );
 
         List<DataType> dts = application
@@ -1598,22 +1613,13 @@ public class InstancesController : ControllerBase
                 );
 
                 var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
-                await instantiationProcessor.DataCreation(targetInstance, data, null);
+                await instantiationProcessor.DataCreation(dataMutator, data, null);
 
-                ObjectUtils.InitializeAltinnRowId(data);
-
-                await _dataClient.InsertFormData(
-                    targetInstance,
-                    dt.Id,
-                    data,
-                    authenticationMethod: null,
-                    CancellationToken.None
-                );
-
-                await UpdatePresentationTextsOnInstance(application.PresentationFields, targetInstance, dt.Id, data);
-                await UpdateDataValuesOnInstance(application.DataFields, targetInstance, dt.Id, data);
+                dataMutator.AddFormDataElement(dt.Id, data);
             }
         }
+
+        await dataMutator.SaveChanges(dataMutator.GetDataElementChanges(initializeAltinnRowId: true));
     }
 
     /// <summary>
@@ -2213,60 +2219,6 @@ public class InstancesController : ControllerBase
         }
 
         return StatusCode(StatusCodes.Status403Forbidden);
-    }
-
-    private async Task UpdatePresentationTextsOnInstance(
-        List<DataField> presentationFields,
-        Instance instance,
-        string dataType,
-        object data
-    )
-    {
-        var updatedValues = DataHelper.GetUpdatedDataValues(
-            presentationFields,
-            instance.PresentationTexts,
-            dataType,
-            data,
-            metadataPropertyName: "presentationFields"
-        );
-
-        if (updatedValues.Count > 0)
-        {
-            await _instanceClient.UpdatePresentationTexts(
-                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(instance.Id.Split("/")[1]),
-                new PresentationTexts { Texts = updatedValues },
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-        }
-    }
-
-    private async Task UpdateDataValuesOnInstance(
-        List<DataField> dataFields,
-        Instance instance,
-        string dataType,
-        object data
-    )
-    {
-        var updatedValues = DataHelper.GetUpdatedDataValues(
-            dataFields,
-            instance.DataValues,
-            dataType,
-            data,
-            metadataPropertyName: "dataFields"
-        );
-
-        if (updatedValues.Count > 0)
-        {
-            await _instanceClient.UpdateDataValues(
-                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
-                Guid.Parse(instance.Id.Split("/")[1]),
-                new DataValues { Values = updatedValues },
-                authenticationMethod: null,
-                CancellationToken.None
-            );
-        }
     }
 
     /// <summary>

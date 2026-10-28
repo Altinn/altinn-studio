@@ -73,6 +73,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `ServiceTaskPipelineBuilder` is `PipelineBuilder`, the one builder every pipeline is composed with. A service task's `Define` still ends it with `Finally` or `ConcludeOnReplies`; a task's `DefineStart`, `DefineEnd` and `DefineAbandon` end it with `Build()`, which refuses a pipeline that opened a mailbox. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 - Breaking: a data type in `applicationmetadata.json` is bound to tasks with `taskIds`, so it can belong to several tasks; `taskId` is no longer read. `studioctl app upgrade v9` rewrites it, and build checks `ALTINNAPP0602` and `ALTINNAPP0603` report any that remain. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 - Breaking: Altinn Storage refuses writes to a data type in tasks its `taskIds` does not list, including those from process hooks, service tasks and `IDataClient` calls with the app's own token. Add those tasks to `taskIds`. Task-start hooks run after the new task is saved, so they write in that task. After process end, only `autoDeleteOnProcessEnd` deletions are allowed. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Copying an instance, for example from the inbox, calls the `IInstantiationProcessor.DataCreation` overload that gets `IInstanceDataMutator`, and saves what it changes with the copied form data. ([#21490](https://github.com/Altinn/altinn-studio/pull/21490))
 
 ### Fixed
 
