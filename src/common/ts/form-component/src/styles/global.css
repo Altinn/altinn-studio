@@ -1,12 +1,14 @@
-@import url('https://altinncdn.no/fonts/altinn-din/altinn-din.css');
-/*
- * Adds support for Inter in addition to Altinn-DIN. We might support both in v9 to enable a smooth transition.
- * Inter is used when <html> has data-font="inter", and its font files are only downloaded when Inter is actually used.
- */
 @import url('https://altinncdn.no/fonts/inter/v4.1/inter.css');
+/*
+ * Altinn-DIN, the font before Inter, is kept for comparing the two while we collect feedback on Inter.
+ * It is used when <html> has data-font="altinn-din", and its font files are only downloaded when it is actually used.
+ */
+@import url('https://altinncdn.no/fonts/altinn-din/altinn-din.css');
 
 :root {
-  --font-family: 'Altinn-DIN', sans-serif;
+  --font-family: 'Inter', sans-serif;
+  /* Lowercase l with a tail, so it is not confused with uppercase I or the digit 1, as Designsystemet recommends */
+  font-feature-settings: 'cv05' 1;
   font-family: var(--font-family);
   font-size: 1rem;
   font-weight: normal;
@@ -58,14 +60,13 @@
   --running-text-max-width: 70ch;
 }
 
-:root[data-font='inter'] {
-  --font-family: 'Inter', sans-serif;
-  /* Lowercase l with a tail, so it is not confused with uppercase I or the digit 1, as Designsystemet recommends */
-  font-feature-settings: 'cv05' 1;
+:root[data-font='altinn-din'] {
+  --font-family: 'Altinn-DIN', sans-serif;
+  font-feature-settings: normal;
 }
 
 /* Browser defaults reset the font on form controls, so they do not inherit font-feature-settings by themselves */
-:root[data-font='inter'] :is(input, textarea, select, button) {
+:is(input, textarea, select, button) {
   font-feature-settings: inherit;
 }
 
