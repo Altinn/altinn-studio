@@ -1,68 +1,58 @@
-# Contributing to Altinn
+# Contributing
 
-We love your input! We want to make contributing to this project as easy and transparent as possible.
-However we do recommend that you check our pages on
-[how to contribute to our development](https://docs.altinn.studio/community/contributing/) first.
+This is how we work on Altinn Studio itself. To build apps with Altinn Studio, read
+[docs.altinn.studio](https://docs.altinn.studio) instead.
 
-You can also contribute by:
+## Issues
 
-- Reporting a bug
-- Discussing the current state of the code
-- Proposing new features
-- Telling us what you want us to prioritize - by adding a :+1: to the issue.
+Report a bug, request a feature or ask a question by [opening an issue](https://github.com/Altinn/altinn-studio/issues/new/choose)
+with the template that fits. The team plans its work with the user story, chore, analysis and epic templates.
 
-## We develop with GitHub
+Labels say which part of Studio an issue is about (`area/*`) and which squad owns it (`squad/*`).
 
-We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
+## Development
 
-## How to Pull Request
+- Start with the README of the component you change. The [root README](README.md) says how the parts fit
+  together.
+- Follow the [coding standards](docs/coding-standards.md) and the [documentation rules](docs/documentation.md).
+  Workflows, builds and deployments follow the conventions in [.github/README.md](.github/README.md).
+- Before you push, run the checks of the component you changed with its Makefile or package scripts, which run the
+  same checks as CI. Also run `yarn spell:quick`, and `yarn docs:validate` when you changed docs.
+- Update the docs your change affects in the same pull request. When service owners or app developers will notice the
+  change, update [docs.altinn.studio](https://github.com/Altinn/altinn-studio-docs) too.
 
-Once you've finished developing something, Pull requests are the best way to propose changes to the codebase.
-We actively welcome your pull requests - even more so if you follow our [development guidelines](https://docs.altinn.studio/community/contributing/).
+## Pull requests
 
-1. Fork the repo and create your branch from `main`.
-2. If you've added code that should be tested, add tests.
-3. If you've changed APIs, update the documentation.
-4. Ensure the test suite passes.
-5. Make sure your code lints.
-6. Issue that pull request!
-7. Be part of the exclusive [external-contribution-❤️](https://github.com/Altinn/altinn-studio/pulls?q=is%3Apr+label%3Aexternal-contribution-%E2%9D%A4%EF%B8%8F+) list.
+- Branch from `main`, or from a fork if you are not on the team.
+- Keep each pull request focused on one change. Stack dependent pull requests when parts need their own review or
+  rollout.
+- Titles follow [Conventional Commits](https://www.conventionalcommits.org), usually with the area as scope, such as
+  `feat(designer): ...` or `fix(studioctl): ...`.
+- Write the description for the reviewer, as the [pull request template](.github/pull_request_template.md) asks.
+  When the pull request changes after review, rewrite the description to describe it as it is now, and say what
+  changed in a comment.
+- Pull requests are squash-merged, except [upstream syncs](src/App/docs/upstream-sync.md), which need a merge commit.
+- List commits that only reformat code in [.git-blame-ignore-revs](.git-blame-ignore-revs), and run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` so that `git blame` skips them.
 
-## Any contributions you make will be under the MIT License
+### Changelogs
 
-In short, when you submit code changes, your submissions are understood to be under the same liberal [MIT License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE) that covers the project. Feel free to contact the maintainers if that's a concern.
+The components with a `CHANGELOG.md`, such as [studioctl](src/cli/CHANGELOG.md) and the
+[app backend](src/App/backend/CHANGELOG.md), publish it as their release notes. A change their users will notice gets
+an entry under `## [Unreleased]`, written for those users as the [changelog skill](agents/_skills/changelog/SKILL.md)
+describes. CI requires an entry for changes to studioctl. Label a pull request `skip-changelog` when users will not
+notice it.
 
-## Report bugs using GitHub issues
+### Releases
 
-We use GitHub [issues](https://github.com/Altinn/altinn-studio/issues) to track public bugs.
-Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/issues/new) and use the `bug` template; it's that easy!
+A release promotes the `[Unreleased]` section of a component's changelog to a version.
+[Releasing](docs/releasing.md) says how.
 
-### Write bug reports with detail, background, and sample code
+### Stacked pull requests
 
-**Great Bug Reports** tend to have:
-
-- A quick summary and/or background
-- Steps to reproduce
-  - Be specific!
-  - Give sample code if you can (and if relevant).
-  - Provide screenshots (if relevant).
-- What you expected would happen
-- What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
-
-People _love_ thorough bug reports. I'm not even kidding.
-
-## Ignore reformatting commits with Git Blame
-
-Some commits only contain automatic reformatting. These should be listed in [the .git-blame-ignore-revs file](.git-blame-ignore-revs).
-They will then be ignored when using the blame feature on Github. This makes it easier to find the commits that actually changed the code.
-In order to make this work when running then `git blame` command, or when using corresponding features in the code editor,
-the file must be specified in the Git configuration. This can be done by running the following command:
-
-```bash
-git config blame.ignoreRevsFile .git-blame-ignore-revs
-```
+Stack dependent pull requests with GitHub's native stacks, through the [`gh stack`](https://github.com/github/gh-stack)
+extension. `gh stack sync` rebases each branch on its updated parent and pushes the stack.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project's [MIT License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE).
+Altinn Studio is licensed under the [MIT License](LICENSE), and so are the contributions you make to it.

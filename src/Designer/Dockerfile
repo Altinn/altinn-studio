@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:d32cdf619f63fe0471182d08996dd516c6275bb5fd31ae06e55a570bd9e1ad43 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -66,11 +66,13 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
+COPY src/common/dotnet/Altinn.Studio.Common.Telemetry ./src/common/dotnet/Altinn.Studio.Common.Telemetry
 COPY src/cli/.editorconfig src/cli/Directory.Build.props src/cli/Directory.Packages.props ./src/cli/
 COPY src/cli/common/dotnet/.editorconfig src/cli/common/dotnet/Directory.Build.props ./src/cli/common/dotnet/
 COPY src/cli/common/dotnet/Altinn.Studio.AppDist ./src/cli/common/dotnet/Altinn.Studio.AppDist
 COPY src/Designer/backend ./src/Designer/backend
-RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
+RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true \
+  "/p:InformationalVersion=${DESIGNER_VERSION:-dev}"
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version
@@ -80,7 +82,7 @@ RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 # The "<id>/src" shape mirrors src/App/template exactly, so a locally run Designer can point straight
 # at the repository folder without a second path convention. rsync will not create intermediate
 # directories, hence the mkdir.
-FROM alpine@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS app-template-release
+FROM alpine@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS app-template-release
 RUN apk add --no-cache rsync
 RUN mkdir -p /app-template-release/v8 /app-template-release/v9
 
@@ -96,10 +98,8 @@ RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-tem
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:ecf8dcbaab8ebc4bdfb2322d6fe4217bbb118894310ebb6d53c580874ab4b27d AS final
 EXPOSE 80
 WORKDIR /app
-ARG DESIGNER_VERSION=''
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-  DOTNET_RUNNING_IN_CONTAINER=true \
-  DESIGNER_VERSION=${DESIGNER_VERSION}
+  DOTNET_RUNNING_IN_CONTAINER=true
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
 
 COPY --from=generate-studio-backend /app_output .

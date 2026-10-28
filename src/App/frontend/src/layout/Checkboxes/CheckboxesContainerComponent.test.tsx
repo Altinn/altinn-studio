@@ -319,6 +319,33 @@ describe('CheckboxesContainerComponent', () => {
     expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut land');
   });
 
+  it('required validation should not show when values are selected and labels are stored in an array', async () => {
+    await render({
+      component: {
+        showValidations: ['Required'],
+        required: true,
+        dataModelBindings: {
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'value' },
+          label: { dataType: defaultDataTypeMock, field: 'label' },
+        },
+      },
+      options: [
+        { value: 'norway', label: 'Norway' },
+        { value: 'sweden', label: 'Sweden' },
+      ],
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { value: 'norway,sweden', label: ['Norway', 'Sweden'] };
+          }),
+      },
+    });
+
+    expect(getCheckbox({ name: 'Norway', isChecked: true })).toBeInTheDocument();
+    expect(getCheckbox({ name: 'Sweden', isChecked: true })).toBeInTheDocument();
+    expect(screen.queryByText('Du må fylle ut land')).not.toBeInTheDocument();
+  });
+
   it('required validation should show for group', async () => {
     await render({
       component: {

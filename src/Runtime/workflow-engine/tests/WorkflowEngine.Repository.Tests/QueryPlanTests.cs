@@ -578,6 +578,38 @@ public sealed class QueryPlanTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CollectionsDiscovery_IsServedByTheFailedCollectionKeyIndex()
+    {
+        // The collections health view's discovery mode (?failures=) is documented as running
+        // workflows → collections so the scan is proportional to the failures rather than to the
+        // namespace. Nothing verified that: without a partial index carrying collection_key, every
+        // failed row in the namespace is heap-fetched before the DISTINCT, on every page.
+        var ct = TestContext.Current.CancellationToken;
+        var interceptor = new SqlCapturingInterceptor();
+        var repo = fixture.CreateRepositoryWithInterceptor(interceptor, timeProvider: _timeProvider);
+
+        await repo.GetCollections(
+            "test-ns",
+            pageSize: 25,
+            failures: CollectionFailureFilter.Any,
+            cancellationToken: ct
+        );
+
+        // The discovery page query is the one carrying the failed-workflow semi-join.
+        var discoveryQuery = interceptor.Queries.FirstOrDefault(q =>
+            q.Sql.Contains("collection_key", StringComparison.Ordinal)
+            && q.Sql.Contains("workflow_collections", StringComparison.Ordinal)
+        );
+        Assert.NotNull(discoveryQuery);
+
+        await using var dataSource = NpgsqlDataSource.Create(fixture.ConnectionString);
+        var plan = await QueryPlanHelper.ExplainAsync(dataSource, discoveryQuery, ct);
+
+        QueryPlanHelper.AssertNoSeqScan(plan, "workflows");
+        QueryPlanHelper.AssertUsesIndex(plan, "workflows", "ix_workflows_namespace_collection_key_failed");
+    }
+
+    [Fact]
     public async Task ParkCandidates_TakesItsPageBoundaryFromTheRequeuedIndex()
     {
         // One keyset page of the park pass. The page boundary has to be part of the index

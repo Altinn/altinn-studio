@@ -1,3 +1,5 @@
+using Altinn.Studio.Common.Telemetry;
+
 namespace Altinn.Studio.Designer.Telemetry;
 
 internal static partial class ServiceTelemetry
@@ -9,26 +11,24 @@ internal static partial class ServiceTelemetry
     /// </summary>
     public static class Attributes
     {
-        public const string ServiceVersion = "service.version";
-        public const string ServiceInstanceId = "service.instance.id";
         public const string UrlFull = "url.full";
         public const string EndUserId = "enduser.id";
         public const string ErrorType = "error.type";
 
-        public const string ServiceOwner = "altinn.service_owner";
-        public const string App = "altinn.app";
-        public const string RepoType = "altinn.repo_type";
+        public const string ServiceOwner = AltinnAttributes.ServiceOwner;
+        public const string App = AltinnAttributes.App;
+        public const string RepoType = AltinnAttributes.RepoType;
 
         /// <summary>
         /// The runtime environment an operation targets, such as tt02 for a deploy. Never a Studio environment:
         /// where Designer itself runs is the resource's deployment.environment.name.
         /// </summary>
-        public const string Environment = "altinn.environment";
+        public const string Environment = AltinnAttributes.Environment;
 
         /// <summary>
         /// Marks a span whose trace the collectors' tail sampling always keeps.
         /// </summary>
-        public const string Sampling = "altinn.studio.sampling";
+        public const string Sampling = AltinnAttributes.Sampling;
 
         public static class AppActivity
         {
@@ -141,10 +141,19 @@ internal static partial class ServiceTelemetry
         {
             private const string Prefix = "altinn.designer.notification.";
 
+            /// <summary>
+            /// Who a delivery goes to: the service owner's contact points, or the Studio team's internal channel.
+            /// </summary>
+            public const string Audience = Prefix + "audience";
             public const string ContactMethodType = Prefix + "contact_method.type";
             public const string ContactPointId = Prefix + "contact_point.id";
             public const string DeliveryCount = Prefix + "delivery_count";
             public const string DeliveryFailedCount = Prefix + "delivery_failed_count";
+
+            /// <summary>
+            /// What a notification is about, such as an alert or a periodic report.
+            /// </summary>
+            public const string Kind = Prefix + "kind";
             public const string Title = Prefix + "title";
         }
 
@@ -226,7 +235,6 @@ internal static partial class ServiceTelemetry
         {
             private const string Prefix = "altinn.designer.undeploy.";
 
-            public const string BuildId = Prefix + "build.id";
             public const string PendingAgeSeconds = Prefix + "pending_age_seconds";
             public const string PendingSkipThresholdSeconds = Prefix + "pending_skip_threshold_seconds";
             public const string SkipReason = Prefix + "skip_reason";

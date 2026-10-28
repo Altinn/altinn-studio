@@ -15,11 +15,16 @@ import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/Ins
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { InstanceApi } from 'src/core/api-client/instance.api';
 
-const render = async (createWithPrefill: InstanceApi['createWithPrefill'], queryParameters?: IQueryParameters) => {
+const render = async (
+  createWithPrefill: InstanceApi['createWithPrefill'],
+  queryParameters?: IQueryParameters,
+  validity: { validFrom?: string; validTo?: string } = {},
+) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
     onEntry: {
       show: 'stateless',
     },
+    ...validity,
   });
   return await renderGenericComponentTest({
     type: 'InstantiationButton',
@@ -110,5 +115,37 @@ describe('InstantiationButton', () => {
     await waitFor(() => {
       expect(screen.getByText('You are now looking at the instance')).toBeInTheDocument();
     });
+  });
+
+  it('should explain that the service cannot be started, and disable the button, when validTo has passed', async () => {
+    const createWithPrefill = vi.fn();
+    await render(createWithPrefill, undefined, { validTo: '2020-01-01T00:00:00Z' });
+
+    expect(await screen.findByText(/det er ikke mulig å starte nye skjema i denne tjenesten/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Instantiate' })).toBeDisabled();
+    expect(createWithPrefill).not.toHaveBeenCalled();
+  });
+
+  it('should explain that the service cannot be started, and disable the button, after a 410 response', async () => {
+    vi.spyOn(window, 'logError').mockImplementation(() => {});
+    const createWithPrefill = vi
+      .fn()
+      .mockRejectedValue(Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }));
+    await render(createWithPrefill);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Instantiate' }));
+    await waitFor(() => expect(createWithPrefill).toHaveBeenCalledTimes(1));
+
+    expect(await screen.findByText(/det er ikke mulig å starte nye skjema i denne tjenesten/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Instantiate' })).toBeDisabled();
+  });
+
+  it('should say when the service opens, and disable the button, before validFrom', async () => {
+    const createWithPrefill = vi.fn();
+    await render(createWithPrefill, undefined, { validFrom: '2099-01-01T10:00:00Z' });
+
+    expect(await screen.findByText(/Tjenesten åpner 01\.01\.2099/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Instantiate' })).toBeDisabled();
+    expect(createWithPrefill).not.toHaveBeenCalled();
   });
 });

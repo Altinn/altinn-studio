@@ -234,6 +234,7 @@ public class WorkflowEngineServiceTests
             OperationId = "Process next: Task_1 -> Task_2",
             CreatedAt = DateTimeOffset.UtcNow,
             OverallStatus = PersistentItemStatus.Enqueued,
+            Role = WorkflowRole.Primary,
             Dependencies = new Dictionary<Guid, PersistentItemStatus> { [parentId] = PersistentItemStatus.Processing },
             Labels = ProcessNextRequestFactory.CreateProcessNextLabels(
                 new InstanceIdentifier(instance),
@@ -269,7 +270,7 @@ public class WorkflowEngineServiceTests
             {
                 Labels = new() { [ProcessNextRequestFactory.ProcessNextSourceTaskLabel] = "Task_1" },
             },
-            "auxiliary" => accepted with { IsHead = false },
+            "auxiliary" => accepted with { Role = WorkflowRole.Auxiliary },
             "abandoned" => accepted with { OverallStatus = PersistentItemStatus.Abandoned },
             _ => accepted,
         };
@@ -597,6 +598,7 @@ public class WorkflowEngineServiceTests
                     CollectionKey = collectionKey,
                     CreatedAt = DateTimeOffset.UtcNow,
                     OverallStatus = PersistentItemStatus.Completed,
+                    Role = WorkflowRole.Primary,
                     Steps = [],
                 },
             ]);
@@ -763,6 +765,7 @@ public class WorkflowEngineServiceTests
                     Namespace = Namespace,
                     CreatedAt = DateTimeOffset.UtcNow,
                     OverallStatus = PersistentItemStatus.Completed,
+                    Role = WorkflowRole.Primary,
                     Steps = [],
                 },
             ]);
@@ -1132,21 +1135,21 @@ public class WorkflowEngineServiceTests
         // Auxiliary workflows must never extend the wait or influence
         // failure classification. The same-batch one shares the anchor's timestamp, but a
         // dependent batch's auxiliary workflow is strictly newer than the
-        // anchor - only the IsHead=false directive excludes it.
+        // anchor - only the auxiliary role excludes it.
         var anchorCreatedAt = DateTimeOffset.UtcNow.AddSeconds(-2);
         var anchor = CreateWorkflowStatus(createdAt: anchorCreatedAt);
         var sameBatchAuxiliary = CreateWorkflowStatus(
             createdAt: anchorCreatedAt,
             operationId: "Process next auxiliary: Task_1 -> Task_2",
             status: PersistentItemStatus.Enqueued,
-            isHead: false
+            role: WorkflowRole.Auxiliary
         );
         var dependent = CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow);
         var dependentBatchAuxiliary = CreateWorkflowStatus(
             createdAt: DateTimeOffset.UtcNow,
             operationId: "Process next auxiliary: Task_2 -> Task_3",
             status: PersistentItemStatus.Enqueued,
-            isHead: false
+            role: WorkflowRole.Auxiliary
         );
         var workflows = new[] { anchor, sameBatchAuxiliary, dependent, dependentBatchAuxiliary };
 
@@ -1166,7 +1169,7 @@ public class WorkflowEngineServiceTests
             createdAt: DateTimeOffset.UtcNow,
             operationId: "Process next auxiliary: Task_1 -> Task_2",
             status: PersistentItemStatus.Failed,
-            isHead: false
+            role: WorkflowRole.Auxiliary
         );
 
         IReadOnlyList<WorkflowStatusResponse> scoped = WorkflowEngineService.ScopeToCurrentChain(
@@ -1177,37 +1180,28 @@ public class WorkflowEngineServiceTests
         Assert.Equal([primaryWorkflow.DatabaseId], scoped.Select(w => w.DatabaseId));
     }
 
-    [Fact]
-    public void IsAuxiliaryWorkflow_MatchesOnlyTheIsHeadFalseDirective()
+    [Theory]
+    [InlineData("op")]
+    [InlineData("Process next auxiliary: Task_1 -> Task_2")]
+    public void IsAuxiliaryWorkflow_MatchesOnlyTheAuxiliaryRole(string operationId)
     {
-        // Identification is by the engine-persisted IsHead directive, not the
-        // OperationId naming convention: an auxiliary OperationId without IsHead=false is not
-        // matched, and IsHead=false is matched regardless of naming.
+        // Identification is by the role the engine reports, not the OperationId naming convention.
         Assert.True(
             WorkflowEngineService.IsAuxiliaryWorkflow(
                 CreateWorkflowStatus(
                     createdAt: DateTimeOffset.UtcNow,
-                    operationId: "Process next auxiliary: Task_1 -> Task_2",
-                    isHead: false
+                    operationId: operationId,
+                    role: WorkflowRole.Auxiliary
                 )
-            )
-        );
-        Assert.True(
-            WorkflowEngineService.IsAuxiliaryWorkflow(
-                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: false)
             )
         );
         Assert.False(
             WorkflowEngineService.IsAuxiliaryWorkflow(
                 CreateWorkflowStatus(
                     createdAt: DateTimeOffset.UtcNow,
-                    operationId: "Process next auxiliary: Task_1 -> Task_2"
+                    operationId: operationId,
+                    role: WorkflowRole.Primary
                 )
-            )
-        );
-        Assert.False(
-            WorkflowEngineService.IsAuxiliaryWorkflow(
-                CreateWorkflowStatus(createdAt: DateTimeOffset.UtcNow, operationId: "op", isHead: true)
             )
         );
     }
@@ -1890,7 +1884,7 @@ public class WorkflowEngineServiceTests
         DateTimeOffset createdAt,
         PersistentItemStatus status = PersistentItemStatus.Completed,
         string operationId = "op",
-        bool? isHead = null,
+        WorkflowRole role = WorkflowRole.Primary,
         Guid? databaseId = null,
         string? collectionKey = null,
         Dictionary<string, string>? labels = null,
@@ -1905,7 +1899,7 @@ public class WorkflowEngineServiceTests
             CollectionKey = collectionKey,
             CreatedAt = createdAt,
             OverallStatus = status,
-            IsHead = isHead,
+            Role = role,
             Labels = labels,
             Steps = steps ?? [],
         };
@@ -1960,6 +1954,7 @@ public class WorkflowEngineServiceTests
             CollectionKey = Guid.NewGuid().ToString(),
             CreatedAt = DateTimeOffset.UtcNow,
             OverallStatus = PersistentItemStatus.Failed,
+            Role = WorkflowRole.Primary,
             Steps = steps,
         };
     }

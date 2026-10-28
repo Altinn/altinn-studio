@@ -187,7 +187,7 @@ public class PdfServiceTaskTests
         // Neither autoPdfTaskIds nor a UI folder for the PDF task - the setup from Altinn/altinn-studio#19425.
         var result = await _serviceTask.Execute(CreateContext("taskId"));
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("'taskId' has nothing to render", failed.ErrorMessage);
         _pdfServiceMock.VerifyNoOtherCalls();
@@ -200,7 +200,7 @@ public class PdfServiceTaskTests
 
         var result = await _serviceTask.Execute(CreateContext("pdfTask"));
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         _pdfServiceMock.VerifyNoOtherCalls();
     }
@@ -215,7 +215,7 @@ public class PdfServiceTaskTests
 
         var result = await _serviceTask.Execute(CreateContext("pdfTask"));
 
-        var failed = Assert.IsType<ServiceTaskFailedResult>(result);
+        var failed = Assert.IsType<FailedServiceTaskResult>(result);
         Assert.Equal(FailureKind.Permanent, failed.Kind);
         Assert.Contains("without a pdfLayoutName", failed.ErrorMessage);
         _pdfServiceMock.VerifyNoOtherCalls();
@@ -231,7 +231,7 @@ public class PdfServiceTaskTests
 
         var result = await _serviceTask.Execute(CreateContext("pdfTask"));
 
-        Assert.IsType<ServiceTaskSuccessResult>(result);
+        Assert.IsType<SuccessfulServiceTaskResult>(result);
         _pdfServiceMock.Verify(
             x =>
                 x.GeneratePdf(
@@ -258,7 +258,7 @@ public class PdfServiceTaskTests
                 }
             );
 
-    private static ServiceTaskContext CreateContext(string currentTaskId) =>
+    private static StageContext CreateContext(string currentTaskId) =>
         CreateServiceTaskContext(CreateInstanceMutatorMock(currentTaskId));
 
     private static Mock<IInstanceDataMutator> CreateInstanceMutatorMock(string currentTaskId)
@@ -274,9 +274,9 @@ public class PdfServiceTaskTests
         return instanceMutatorMock;
     }
 
-    private static ServiceTaskContext CreateServiceTaskContext(Mock<IInstanceDataMutator> instanceMutatorMock)
+    private static StageContext CreateServiceTaskContext(Mock<IInstanceDataMutator> instanceMutatorMock)
     {
-        return new ServiceTaskContext
+        return new StageContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),

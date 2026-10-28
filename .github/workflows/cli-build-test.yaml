@@ -6,6 +6,8 @@ on:
     paths:
       - "src/cli/**"
       - "src/Runtime/common/dotnet/**"
+      # studioctl imports Go packages from devenv through a go.mod replace directive.
+      - "src/Runtime/devenv/**"
       - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
       - "!**/AGENTS.md"
@@ -15,8 +17,8 @@ on:
       - "!**/CONTRIBUTING.md"
       - "!**/CHANGELOG.md"
       - "!**/docs/**"
-      # Shipped skills remain build inputs, including their Markdown files.
-      - "src/cli/resources/**"
+      # The shipped skill is a build input, including its Markdown files.
+      - "agents/_skills/app-development/**"
   workflow_dispatch:
 
 concurrency:

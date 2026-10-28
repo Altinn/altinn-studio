@@ -1,0 +1,7 @@
+/* A platform link whose URL the environment does not configure: still there, visibly not working. */
+.notConfigured {
+  cursor: not-allowed;
+  opacity: 0.6;
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+}

@@ -4,15 +4,18 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { Heading, Table } from '@digdir/designsystemet-react';
 import dot from 'dot-object';
 
+import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
+import { getSelectionMode, ListComponent } from 'src/layout/List/ListComponent';
 import classes from 'src/layout/List/ListComponent.module.css';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useSummaryCaptionProps } from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -21,7 +24,25 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 
 type Row = Record<string, string | number | boolean>;
 
-export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
+export const ListSummary = (props: Summary2Props) => {
+  const bindings = useDataModelBindingsFor(props.targetBaseComponentId, 'List');
+  if (getSelectionMode(bindings) === 'readonly') {
+    return (
+      <SummaryFlex
+        targetBaseId={props.targetBaseComponentId}
+        content={SummaryContains.Presentational}
+      >
+        <ListComponent
+          baseComponentId={props.targetBaseComponentId}
+          isSummary
+        />
+      </SummaryFlex>
+    );
+  }
+  return <SelectableListSummary {...props} />;
+};
+
+const SelectableListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   const emptyFieldText = useSummaryOverrides<'List'>(targetBaseComponentId)?.emptyFieldText;
   const isCompact = useSummaryProp('isCompact');
   const displayData = useDisplayData(targetBaseComponentId);
@@ -40,6 +61,7 @@ export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
   );
 
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(targetBaseComponentId, title);
   const { formData } = useDataModelBindings(dataModelBindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
   const relativeCheckedPath =
     dataModelBindings?.checked && dataModelBindings?.group
@@ -65,15 +87,21 @@ export const ListSummary = ({ targetBaseComponentId }: Summary2Props) => {
             />
           </div>
           <Table>
-            {title && (
-              <caption className={classes.tableCaption}>
-                <Heading
-                  data-size='xs'
-                  level={4}
-                >
-                  <Lang id={title} />
-                </Heading>
-              </caption>
+            {(title || captionProps.description || captionProps.helpText) && (
+              <Caption
+                {...captionProps}
+                className={classes.tableCaption}
+                title={
+                  title ? (
+                    <Heading
+                      data-size='xs'
+                      level={4}
+                    >
+                      <Lang id={title} />
+                    </Heading>
+                  ) : undefined
+                }
+              />
             )}
             <Table.Head>
               <Table.Row>

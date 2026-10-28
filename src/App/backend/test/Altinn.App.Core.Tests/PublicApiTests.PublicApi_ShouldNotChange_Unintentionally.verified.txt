@@ -2133,47 +2133,53 @@ namespace Altinn.App.Core.Features.Payment.Processors.Nets
 }
 namespace Altinn.App.Core.Features.Process
 {
-    public sealed class FailedHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHookResult>
+    public sealed class DeferredServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.DeferredServiceTaskResult>
+    {
+        public DeferredServiceTaskResult() { }
+        public required System.TimeSpan Delay { get; init; }
+        public string? Reason { get; init; }
+    }
+    public sealed class FailedHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedHandlerResult>
     {
         public required string ErrorMessage { get; init; }
     }
-    public abstract class HookResult : System.IEquatable<Altinn.App.Core.Features.Process.HookResult>
+    public sealed class FailedServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.FailedServiceTaskResult>
     {
-        protected HookResult() { }
-        public static Altinn.App.Core.Features.Process.FailedHookResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.FailedHookResult FailedRetryable(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.SuccessfulHookResult Success() { }
+        public required string ErrorMessage { get; init; }
+    }
+    public abstract class HandlerResult : System.IEquatable<Altinn.App.Core.Features.Process.HandlerResult>
+    {
+        protected HandlerResult() { }
+        public static Altinn.App.Core.Features.Process.FailedHandlerResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.FailedHandlerResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.SuccessfulHandlerResult Success() { }
     }
     public interface IOnProcessEndedHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndedContext context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndedContext context);
     }
-    public interface IOnTaskAbandonHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    public interface IOnTaskAbandoningHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskAbandonContext context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskAbandoningContext context);
         bool ShouldRunForTask(string taskId);
     }
     public interface IOnTaskEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskEndingContext context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskEndingContext context);
         bool ShouldRunForTask(string taskId);
     }
     public interface IOnTaskStartingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HookResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
+        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
         bool ShouldRunForTask(string taskId);
-    }
-    public interface IPipelineServiceTask : Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
-    {
-        Altinn.App.Core.Features.Process.ServiceTaskPipeline Define(Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder pipeline);
     }
     public interface IProcessStepConfigurable
     {
         Altinn.App.Core.Features.Process.ProcessStepOptions? StepOptions { get; }
     }
-    public interface IServiceTask : Altinn.App.Core.Features.Process.IPipelineServiceTask, Altinn.App.Core.Features.Process.IProcessStepConfigurable, Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
+    public interface IServiceTask : Altinn.App.Core.Internal.Process.ProcessTasks.IProcessTask
     {
-        System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult> Execute(Altinn.App.Core.Features.Process.ServiceTaskContext context);
+        Altinn.App.Core.Features.Process.ServiceTaskPipeline DefineExecute(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
     }
     public interface IServiceTaskReplyForwarder
     {
@@ -2196,9 +2202,9 @@ namespace Altinn.App.Core.Features.Process
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
-    public sealed class OnTaskAbandonContext
+    public sealed class OnTaskAbandoningContext
     {
-        public OnTaskAbandonContext() { }
+        public OnTaskAbandoningContext() { }
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
@@ -2216,6 +2222,15 @@ namespace Altinn.App.Core.Features.Process
         public System.Threading.CancellationToken CancellationToken { get; init; }
         public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
         public required string TaskId { get; init; }
+    }
+    public sealed class PipelineBuilder
+    {
+        public Altinn.App.Core.Features.Process.ProcessTaskPipeline Build() { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline ConcludeOnReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.StageContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.PipelineBuilder HandleReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.StageExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.StageResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.PipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.StageContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.StageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
+        public Altinn.App.Core.Features.Process.PipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.StageContext, Altinn.App.Core.Features.Process.ServiceTaskMailbox, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult>> work, Altinn.App.Core.Features.Process.MailboxOptions mailbox, out Altinn.App.Core.Features.Process.MailboxHandle handle, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
     }
     public enum ProcessStepBackoffType
     {
@@ -2243,6 +2258,7 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy Linear(System.TimeSpan baseInterval, int? maxRetries = default, System.TimeSpan? maxDelay = default, System.TimeSpan? maxDuration = default) { }
         public static Altinn.App.Core.Features.Process.ProcessStepRetryStrategy None() { }
     }
+    public sealed class ProcessTaskPipeline { }
     public sealed class ProcessTaskValidationContext : System.IEquatable<Altinn.App.Core.Features.Process.ProcessTaskValidationContext>
     {
         public ProcessTaskValidationContext() { }
@@ -2250,37 +2266,10 @@ namespace Altinn.App.Core.Features.Process
         public required Altinn.App.Core.Constants.HostingEnvironment Environment { get; init; }
         public required string TaskId { get; init; }
     }
-    public sealed class ServiceTaskAttempt : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAttempt>
-    {
-        public ServiceTaskAttempt() { }
-        public System.DateTimeOffset? Deadline { get; init; }
-        public int RetryCount { get; init; }
-    }
     public sealed class ServiceTaskAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult> { }
-    public sealed class ServiceTaskContext : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskContext>
-    {
-        public ServiceTaskContext() { }
-        public Altinn.App.Core.Features.Process.ServiceTaskAttempt Attempt { get; init; }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public System.DateTimeOffset ExecutionReferenceTime { get; }
-        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
-        public required System.Guid StepId { get; init; }
-        public Altinn.App.Core.Features.Process.ServiceTaskWait Wait { get; init; }
-        public required System.Guid WorkflowId { get; init; }
-    }
-    public sealed class ServiceTaskDeferredResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskDeferredResult>
-    {
-        public ServiceTaskDeferredResult() { }
-        public required System.TimeSpan Delay { get; init; }
-        public string? Reason { get; init; }
-    }
     public abstract class ServiceTaskExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>
     {
         public static Altinn.App.Core.Features.Process.ServiceTaskAwaitNextReplyResult AwaitNextReply() { }
-    }
-    public sealed class ServiceTaskFailedResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskFailedResult>
-    {
-        public required string ErrorMessage { get; init; }
     }
     public sealed class ServiceTaskMailbox : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskMailbox>
     {
@@ -2297,14 +2286,6 @@ namespace Altinn.App.Core.Features.Process
         public static Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult FailedRetryable(string errorMessage) { }
     }
     public sealed class ServiceTaskPipeline { }
-    public sealed class ServiceTaskPipelineBuilder
-    {
-        public Altinn.App.Core.Features.Process.ServiceTaskPipeline ConcludeOnReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipeline Finally(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder HandleReplies(Altinn.App.Core.Features.Process.MailboxHandle handle, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskReply, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult>> onMessage, System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.MailboxClosedReason, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> onClosed, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskStageResult>> work, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-        public Altinn.App.Core.Features.Process.ServiceTaskPipelineBuilder Stage(System.Func<Altinn.App.Core.Features.Process.ServiceTaskContext, Altinn.App.Core.Features.Process.ServiceTaskMailbox, System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.ServiceTaskOpeningStageResult>> work, Altinn.App.Core.Features.Process.MailboxOptions mailbox, out Altinn.App.Core.Features.Process.MailboxHandle handle, Altinn.App.Core.Features.Process.ProcessStepOptions? options = null) { }
-    }
     public sealed class ServiceTaskReply : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskReply>
     {
         public ServiceTaskReply() { }
@@ -2333,40 +2314,57 @@ namespace Altinn.App.Core.Features.Process
     }
     public abstract class ServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskResult>
     {
-        public static Altinn.App.Core.Features.Process.ServiceTaskDeferredResult Defer(System.TimeSpan delay, string? reason = null) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskFailedResult FailedRetryable(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskSuccessResult Success(string? action = null) { }
+        public static Altinn.App.Core.Features.Process.DeferredServiceTaskResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.FailedServiceTaskResult FailedRetryable(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult Success(string? action = null) { }
     }
-    public sealed class ServiceTaskStageAwaitNextReplyResult : Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageAwaitNextReplyResult> { }
-    public abstract class ServiceTaskStageExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult>
+    public sealed class StageAttempt : System.IEquatable<Altinn.App.Core.Features.Process.StageAttempt>
     {
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageAwaitNextReplyResult AwaitNextReply() { }
+        public StageAttempt() { }
+        public System.DateTimeOffset? Deadline { get; init; }
+        public int RetryCount { get; init; }
     }
-    public abstract class ServiceTaskStageResult : Altinn.App.Core.Features.Process.ServiceTaskStageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskStageResult>
+    public sealed class StageAwaitNextReplyResult : Altinn.App.Core.Features.Process.StageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.StageAwaitNextReplyResult> { }
+    public sealed class StageContext : System.IEquatable<Altinn.App.Core.Features.Process.StageContext>
     {
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Completed() { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult Defer(System.TimeSpan delay, string? reason = null) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedPermanent(string errorMessage) { }
-        public static Altinn.App.Core.Features.Process.ServiceTaskStageResult FailedRetryable(string errorMessage) { }
+        public StageContext() { }
+        public Altinn.App.Core.Features.Process.StageAttempt Attempt { get; init; }
+        public System.Threading.CancellationToken CancellationToken { get; init; }
+        public System.DateTimeOffset ExecutionReferenceTime { get; }
+        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
+        public required System.Guid StepId { get; init; }
+        public Altinn.App.Core.Features.Process.StageWait Wait { get; init; }
+        public required System.Guid WorkflowId { get; init; }
     }
-    public sealed class ServiceTaskSuccessResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskSuccessResult>
+    public abstract class StageExchangeResult : System.IEquatable<Altinn.App.Core.Features.Process.StageExchangeResult>
     {
-        public ServiceTaskSuccessResult() { }
-        public string? Action { get; init; }
+        public static Altinn.App.Core.Features.Process.StageAwaitNextReplyResult AwaitNextReply() { }
     }
-    public sealed class ServiceTaskWait : System.IEquatable<Altinn.App.Core.Features.Process.ServiceTaskWait>
+    public abstract class StageResult : Altinn.App.Core.Features.Process.StageExchangeResult, System.IEquatable<Altinn.App.Core.Features.Process.StageResult>
     {
-        public ServiceTaskWait() { }
+        public static Altinn.App.Core.Features.Process.StageResult Completed() { }
+        public static Altinn.App.Core.Features.Process.StageResult Defer(System.TimeSpan delay, string? reason = null) { }
+        public static Altinn.App.Core.Features.Process.StageResult FailedPermanent(string errorMessage) { }
+        public static Altinn.App.Core.Features.Process.StageResult FailedRetryable(string errorMessage) { }
+    }
+    public sealed class StageWait : System.IEquatable<Altinn.App.Core.Features.Process.StageWait>
+    {
+        public StageWait() { }
         public System.DateTimeOffset? Deadline { get; init; }
         public int DeferCount { get; init; }
         public bool IsFinalCheck { get; init; }
         public System.TimeSpan? Remaining { get; }
         public System.DateTimeOffset? StartedAt { get; init; }
     }
-    public sealed class SuccessfulHookResult : Altinn.App.Core.Features.Process.HookResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHookResult>
+    public sealed class SuccessfulHandlerResult : Altinn.App.Core.Features.Process.HandlerResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulHandlerResult>
     {
-        public SuccessfulHookResult() { }
+        public SuccessfulHandlerResult() { }
+    }
+    public sealed class SuccessfulServiceTaskResult : Altinn.App.Core.Features.Process.ServiceTaskResult, System.IEquatable<Altinn.App.Core.Features.Process.SuccessfulServiceTaskResult>
+    {
+        public SuccessfulServiceTaskResult() { }
+        public string? Action { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Redirect
@@ -3721,21 +3719,15 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks
     public interface IProcessTask
     {
         string Type { get; }
-        System.Threading.Tasks.Task Abandon(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
-        System.Threading.Tasks.Task End(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
-        System.Threading.Tasks.Task Start(Altinn.App.Core.Internal.Process.ProcessTasks.ProcessTaskContext context);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineAbandon(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineEnd(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
+        Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart(Altinn.App.Core.Features.Process.PipelineBuilder pipeline);
         System.Collections.Generic.IEnumerable<string> ValidateConfiguration(Altinn.App.Core.Features.Process.ProcessTaskValidationContext context);
     }
     public interface IProcessTaskDataLocker
     {
         System.Threading.Tasks.Task Lock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
         System.Threading.Tasks.Task Unlock(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance);
-    }
-    public sealed class ProcessTaskContext
-    {
-        public ProcessTaskContext() { }
-        public System.Threading.CancellationToken CancellationToken { get; init; }
-        public required Altinn.App.Core.Features.IInstanceDataMutator InstanceDataMutator { get; init; }
     }
 }
 namespace Altinn.App.Core.Internal.Profile

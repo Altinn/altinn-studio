@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
@@ -409,7 +410,7 @@ public class DeploymentService : IDeploymentService
     private static void SetPendingDecommissionTags(DeploymentEntity pendingDecommission, TimeSpan pendingAge)
     {
         Activity activity = Activity.Current;
-        activity?.SetTag(ServiceTelemetry.Attributes.Undeploy.BuildId, pendingDecommission.Build?.Id);
+        activity?.SetTag(AltinnAttributes.AppDeployBuildId, pendingDecommission.Build?.Id);
         activity?.SetTag(ServiceTelemetry.Attributes.Undeploy.PendingAgeSeconds, pendingAge.TotalSeconds);
         activity?.SetTag(
             ServiceTelemetry.Attributes.Undeploy.PendingSkipThresholdSeconds,
@@ -630,8 +631,20 @@ public class DeploymentService : IDeploymentService
         var payload = new NotificationPayload(buildId, status, fields, links, Emoji: "❌");
 
         await Task.WhenAll(
-            _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
-            _notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
+            _notificationService.NotifyInternalAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            ),
+            _notificationService.NotifyServiceOwnersAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            )
         );
     }
 

@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Models;
 
 // Urls should not be hard-coded
@@ -58,8 +59,34 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             "Filter by workflow status (repeatable, case-insensitive). Omit to return all statuses; an unrecognized value returns 400.",
         ["label"] = "Filter by label, formatted as key:value (repeatable). Entries without a colon are ignored.",
         ["collectionKey"] = "Filter to a single workflow collection.",
+        ["role"] =
+            "Filter by workflow role: 'Primary' matches workflows the process waits on (isHead directive true "
+            + "or unset, so it returns rows whose isHead field reads null), 'Auxiliary' matches workflows that "
+            + "run beside the process (isHead directive false). Case-insensitive; omit to return both, and an "
+            + "unrecognized value returns 400.",
         ["cursor"] = "Pagination cursor — pass the nextCursor from the previous response to fetch the next page.",
         ["pageSize"] = "Items per page (default 25, clamped to 1–100).",
+        ["includeState"] =
+            "Include the app's own state payloads — initialState and every step's stateOut — in the response "
+            + "(default true). A status reader that has no use for them, such as Studio's admin panel, passes false.",
+    };
+
+    private static readonly Dictionary<string, string> _listCollectionParamDescriptions = new()
+    {
+        ["key"] =
+            "Annotate mode: report health for these collection keys (repeatable; duplicates are deduplicated). "
+            + "Mutually exclusive with cursor and failures (400). Requests with more distinct keys than "
+            + "pagination.maxAnnotateKeys (default 100) are rejected with 400, never truncated. Keys without a "
+            + "collection row are reported in unmatchedKeys.",
+        ["failures"] =
+            "Discover mode: only collections containing at least one failed workflow (Failed, Canceled, "
+            + "DependencyFailed; Abandoned never matches). 'Primary' restricts to failed primary workflows, "
+            + "'Auxiliary' to failed auxiliary workflows, 'Any' takes both roles. Case-insensitive; an "
+            + "unrecognized value returns 400.",
+        ["cursor"] =
+            "Pagination cursor — pass the nextCursor from the previous response to fetch the next page. "
+            + "Not valid together with key.",
+        ["pageSize"] = "Items per page (default 25, clamped to 1–100). Ignored in annotate (key) mode.",
     };
 
     public Task TransformAsync(
@@ -81,33 +108,66 @@ internal sealed class EngineApiDocsOperationTransformer : IOpenApiOperationTrans
             };
         }
 
-        if (operationId == "ListWorkflows" && operation.Parameters is not null)
-        {
-            foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
-            {
-                if (parameter.Name is { } name && _listWorkflowParamDescriptions.TryGetValue(name, out var description))
-                    parameter.Description = description;
-
-                if (parameter.Name == "status")
+        if (operationId == "ListWorkflows")
+            ApplyParameterDocs(
+                operation,
+                _listWorkflowParamDescriptions,
+                new()
                 {
-                    parameter.Schema = new OpenApiSchema
+                    ["status"] = new OpenApiSchema
                     {
                         Type = JsonSchemaType.Array,
-                        Items = new OpenApiSchema
-                        {
-                            Type = JsonSchemaType.String,
-                            Enum =
-                            [
-                                .. Enum.GetNames<PersistentItemStatus>().Select(JsonNode (x) => JsonValue.Create(x)),
-                            ],
-                        },
-                    };
+                        Items = EnumSchema<PersistentItemStatus>(),
+                    },
+                    ["role"] = EnumSchema<WorkflowRole>(),
                 }
-            }
-        }
+            );
+
+        if (operationId == "ListCollections")
+            ApplyParameterDocs(
+                operation,
+                _listCollectionParamDescriptions,
+                new() { ["failures"] = EnumSchema<CollectionFailureFilter>() }
+            );
 
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Describes an operation's query parameters and replaces the schema of its name-parsed enum
+    /// parameters. Minimal APIs infer a bare string for those, so the schema is set here to list
+    /// exactly the names the endpoint accepts.
+    /// </summary>
+    private static void ApplyParameterDocs(
+        OpenApiOperation operation,
+        Dictionary<string, string> descriptions,
+        Dictionary<string, OpenApiSchema> enumSchemas
+    )
+    {
+        if (operation.Parameters is null)
+            return;
+
+        foreach (var parameter in operation.Parameters.OfType<OpenApiParameter>())
+        {
+            if (parameter.Name is { } name && descriptions.TryGetValue(name, out var description))
+                parameter.Description = description;
+
+            if (parameter.Name is { } enumName && enumSchemas.TryGetValue(enumName, out var enumSchema))
+                parameter.Schema = enumSchema;
+        }
+    }
+
+    /// <summary>
+    /// A string schema enumerating the declared names of <typeparamref name="TEnum"/> — the same
+    /// list <see cref="EnumNames"/> accepts, so the document and the parser cannot disagree.
+    /// </summary>
+    private static OpenApiSchema EnumSchema<TEnum>()
+        where TEnum : struct, Enum =>
+        new()
+        {
+            Type = JsonSchemaType.String,
+            Enum = [.. EnumNames.Of<TEnum>().Select(JsonNode (x) => JsonValue.Create(x))],
+        };
 }
 
 /// <summary>

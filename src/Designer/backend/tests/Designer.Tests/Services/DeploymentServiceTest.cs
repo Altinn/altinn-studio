@@ -85,6 +85,7 @@ public class DeploymentServiceTest
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -95,6 +96,7 @@ public class DeploymentServiceTest
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1012,6 +1014,62 @@ public class DeploymentServiceTest
                 b.QueueAsync(
                     It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
                     azureDevOpsSettings.GitOpsManagerDefinitionId,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task SendToSlackAsync_WhenInstallFailed_ShouldNotifyAboutTheDeployment()
+    {
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
+        );
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        await deploymentService.SendToSlackAsync(
+            "ttd",
+            environment,
+            "test-app",
+            DeployEventType.InstallFailed,
+            "123",
+            startedDate: null,
+            CancellationToken.None
+        );
+
+        _notificationService.Verify(
+            s =>
+                s.NotifyInternalAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _notificationService.Verify(
+            s =>
+                s.NotifyServiceOwnersAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
