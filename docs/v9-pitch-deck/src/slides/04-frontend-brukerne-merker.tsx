@@ -8,7 +8,7 @@ const FEATURES: Feature[] = [
     icon: 'clock',
     eyebrow: 'Innsending',
     title: 'Tydelig venting',
-    body: 'Én lasteside. Etter åtte sekunder står det at siden trygt kan lukkes.',
+    body: 'Samme venteside hver gang. Tar det tid, eller må noe prøves på nytt, får brukeren beskjed.',
   },
   {
     icon: 'refresh',
@@ -26,7 +26,7 @@ const FEATURES: Feature[] = [
     icon: 'check',
     eyebrow: 'Feil i skjemaet',
     title: 'Feil til rett tid',
-    body: 'Feillisten kommer når brukeren prøver å gå videre, og får fokus.',
+    body: 'Feil vises ved feltet. Listen over alle feil kommer først når brukeren prøver å gå videre.',
   },
 ];
 
