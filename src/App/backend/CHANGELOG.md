@@ -12,6 +12,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Pipeline steps are named after the method they run, for Studio's admin panel: a lifecycle stage or service task step composed from `StoreReceipt` shows as "Store receipt". A lambda leaves the step unnamed. Names are display only and change nothing about how a step runs. ([#21580](https://github.com/Altinn/altinn-studio/pull/21580))
+- The process state's `workflow` reports `firstFailedAt`, when the first of the current step's `failedAttempts` failed, on the workflow engine's clock, so a client can tell how long a step has kept failing the same way in every session. ([#21380](https://github.com/Altinn/altinn-studio/issues/21380))
 - PDF preview in the app developer tools can now show a PDF or subform PDF service task before the instance reaches it, including individual subforms. `GET .../pdf/preview` accepts optional `taskId` and `language`; subform PDF service tasks require `dataElementId`. ([Altinn/app-lib-dotnet#1659](https://github.com/Altinn/app-lib-dotnet/issues/1659))
 - `GET .../pdf/preview` now appears in the app's OpenAPI documentation for integrations that use the API directly. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Build checks compare the data types `process.bpmn` uses with `applicationmetadata.json` ([#21024](https://github.com/Altinn/altinn-studio/pull/21024)):

@@ -1260,6 +1260,7 @@ public class WorkflowEngineServiceTests
         var instance = CreateInstanceOnTask("Task_1", instanceGuid);
         DateTimeOffset headCreatedAt = DateTimeOffset.UtcNow.AddHours(-1);
         DateTimeOffset headResumedAt = DateTimeOffset.UtcNow.AddSeconds(-5);
+        DateTimeOffset firstFailedAt = DateTimeOffset.UtcNow.AddSeconds(-3);
 
         var client = new Mock<IWorkflowEngineClient>(MockBehavior.Strict);
         client
@@ -1282,6 +1283,7 @@ public class WorkflowEngineServiceTests
                             StepsCompleted = 7,
                             StepsTotal = 12,
                             FailedAttempts = 3,
+                            FirstFailedAt = firstFailedAt,
                             CreatedAt = headCreatedAt,
                             ResumedAt = headResumedAt,
                         },
@@ -1303,6 +1305,7 @@ public class WorkflowEngineServiceTests
         Assert.Equal("Task_2", result.TargetTask);
         Assert.True(result.Retrying);
         Assert.Equal(3, result.FailedAttempts);
+        Assert.Equal(firstFailedAt, result.ToAppProcessWorkflowStatus().FirstFailedAt);
         // Resume reruns the head in place: both times pass through unchanged, side by side.
         Assert.Equal(headCreatedAt, result.StartedAt);
         Assert.Equal(headResumedAt, result.ResumedAt);

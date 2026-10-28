@@ -8828,6 +8828,11 @@
             "format": "int32",
             "nullable": true
           },
+          "firstFailedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "waitingReason": {
             "type": "string",
             "nullable": true
