@@ -98,8 +98,8 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
   const bindings = dataModelBindings ?? {};
   const selectionMode = getSelectionMode(bindings);
   const readOnly = selectionMode === 'readonly';
-  // While the instance is transitioning, the selection shows but can't change
-  const transitioning = FormStore.useIsTransitioning();
+  // While the instance is locked, the selection shows but can't change
+  const instanceLocked = FormStore.useIsInstanceLocked();
   const isMultipleSelection = selectionMode === 'multiple';
   const { formData, setValues } = useDataModelBindings(bindings, DEFAULT_DEBOUNCE_TIMEOUT, 'raw');
   const { toggle, isChecked } = useSaveObjectToGroup(bindings);
@@ -110,7 +110,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     ? (data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '')
     : '';
   function handleSelectedRadioRow({ selectedValue }: { selectedValue: Row }) {
-    if (transitioning) {
+    if (instanceLocked) {
       return;
     }
     const next: Row = {};
@@ -141,7 +141,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
     </Heading>
   ) : undefined;
   const handleRowClick = (row: Row) => {
-    if (readOnly || transitioning) {
+    if (readOnly || instanceLocked) {
       return;
     }
     if (isMultipleSelection) {
@@ -234,7 +234,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                   onClick={() => handleRowClick(row)}
                   value={JSON.stringify(row)}
                   checked={isChecked(row)}
-                  readOnly={transitioning}
+                  readOnly={instanceLocked}
                   label={renderListItems(row, config.tableHeaders)}
                 />
               ))}
@@ -269,7 +269,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                 value={JSON.stringify(row)}
                 className={cn(classes.mobile, { [classes.selectedRow]: isRowSelected(row) })}
                 onClick={() => handleSelectedRadioRow({ selectedValue: row })}
-                readOnly={transitioning}
+                readOnly={instanceLocked}
                 label={renderListItems(row, config.tableHeaders)}
               />
             ))}
@@ -362,7 +362,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                       value={JSON.stringify(row)}
                       checked={isChecked(row)}
                       name={indexedId}
-                      readOnly={transitioning}
+                      readOnly={instanceLocked}
                     />
                   ) : (
                     <RadioButton
@@ -374,7 +374,7 @@ export const ListComponent = ({ baseComponentId, isSummary }: ListComponentProps
                       value={JSON.stringify(row)}
                       checked={isRowSelected(row)}
                       name={indexedId}
-                      readOnly={transitioning}
+                      readOnly={instanceLocked}
                     />
                   )}
                 </Table.Cell>

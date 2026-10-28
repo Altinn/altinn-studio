@@ -6,7 +6,7 @@ import { userEvent } from '@testing-library/user-event';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ListComponent } from 'src/layout/List/ListComponent';
@@ -232,13 +232,12 @@ describe('ListComponent', () => {
     });
   });
 
-  describe('while the instance is transitioning', () => {
-    const renderTransitioning = () =>
+  describe("on a service task's page", () => {
+    const renderOnServiceTaskPage = () =>
       render({
         apis: {
           instanceApi: {
-            getInstance: async () =>
-              getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' })),
+            getInstance: async () => getInstanceAtServiceTaskMock(),
           },
         },
         queries: {
@@ -257,7 +256,7 @@ describe('ListComponent', () => {
     it('should show the selection but not change it', async () => {
       vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(false);
       const user = userEvent.setup({ delay: null });
-      const { formDataMethods } = await renderTransitioning();
+      const { formDataMethods } = await renderOnServiceTaskPage();
 
       await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
       screen.getAllByRole('radio').forEach((radio) => expect(radio).toHaveAttribute('readonly'));
@@ -272,7 +271,7 @@ describe('ListComponent', () => {
     it('should not change the selection in mobile', async () => {
       vi.spyOn(useDeviceWidths, 'useIsMobile').mockReturnValue(true);
       const user = userEvent.setup({ delay: null });
-      const { formDataMethods } = await renderTransitioning();
+      const { formDataMethods } = await renderOnServiceTaskPage();
 
       await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
       screen.getAllByRole('radio').forEach((radio) => expect(radio).toHaveAttribute('readonly'));

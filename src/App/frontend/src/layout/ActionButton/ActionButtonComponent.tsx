@@ -25,7 +25,7 @@ export function ActionButtonComponent({ baseComponentId }: PropsFromGenericCompo
   const { innerGrid } = useComponentStructureData(baseComponentId);
   const { mutate: processNext, isPending: isPerformingProcessNext } = useProcessNext({ action: config.action });
   const isAuthorized = useIsAuthorized();
-  const transitioning = FormStore.useIsTransitioning();
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   if (useIsSubformPage()) {
     throw new Error('Cannot use process navigation in a subform');
@@ -36,7 +36,7 @@ export function ActionButtonComponent({ baseComponentId }: PropsFromGenericCompo
       componentId={componentId}
       title={title ?? `actions.${config.action}`}
       buttonStyle={config.buttonStyle}
-      disabled={transitioning || !isAuthorized(config.action)}
+      disabled={instanceLocked || !isAuthorized(config.action)}
       isLoading={isPerformingProcessNext}
       onClick={() => processNext()}
       innerGrid={innerGrid}

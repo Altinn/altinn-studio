@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { EditButton, EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -54,7 +54,7 @@ describe('EditButton', () => {
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 
-  test('should return null while the instance is transitioning, also for components without readOnly', async () => {
+  test("should return null on a service task's page, also for components without readOnly", async () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestGroup' />,
       queries: {
@@ -78,8 +78,7 @@ describe('EditButton', () => {
       },
       apis: {
         instanceApi: {
-          getInstance: async () =>
-            getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' })),
+          getInstance: async () => getInstanceAtServiceTaskMock(),
         },
       },
     });

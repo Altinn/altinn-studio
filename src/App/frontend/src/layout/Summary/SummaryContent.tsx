@@ -39,9 +39,9 @@ export function SummaryContent({
   const title = useEvalOptionalTrb(config, 'title', CommonExpressions.TRBLabel);
 
   const display = overrides?.display;
-  // While the instance is transitioning, components without a readOnly setting are read-only too
-  const transitioning = FormStore.useIsTransitioning();
-  const readOnlyComponent = transitioning || ('readOnly' in config && readOnly === true);
+  // While the instance is locked, components without a readOnly setting are read-only too
+  const instanceLocked = FormStore.useIsInstanceLocked();
+  const readOnlyComponent = instanceLocked || ('readOnly' in config && readOnly === true);
   const validations = useUnifiedValidationsForNode(targetBaseComponentId);
   const hasErrors = hasValidationErrors(validations);
   const shouldShowChangeButton = !readOnlyComponent && !display?.hideChangeButton;

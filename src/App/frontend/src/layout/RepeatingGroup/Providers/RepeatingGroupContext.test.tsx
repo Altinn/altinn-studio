@@ -4,7 +4,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import {
   RepeatingGroupProvider,
@@ -62,7 +62,7 @@ function Navigation() {
   );
 }
 
-async function render(rows: { altinnRowId: string; name: string }[], { transitioning = false } = {}) {
+async function render(rows: { altinnRowId: string; name: string }[], { onServiceTaskPage = false } = {}) {
   await renderWithInstanceAndLayout({
     renderer: (
       <RepeatingGroupProvider baseComponentId='group'>
@@ -76,12 +76,12 @@ async function render(rows: { altinnRowId: string; name: string }[], { transitio
           obj.dataModels[defaultDataTypeMock].initialData = { rows };
         }),
     },
-    apis: transitioning ? { instanceApi: { getInstance: getTransitioningInstance } } : undefined,
+    apis: onServiceTaskPage ? { instanceApi: { getInstance: getInstanceAtServiceTask } } : undefined,
   });
 }
 
-async function getTransitioningInstance() {
-  return getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' }));
+async function getInstanceAtServiceTask() {
+  return getInstanceAtServiceTaskMock();
 }
 
 it('skips hidden and non-editable rows and returns the opened row for focus', async () => {
@@ -116,13 +116,13 @@ it('deletes a row and its attachments', async () => {
   expect(deleteAttachments).toHaveBeenCalledWith(0);
 });
 
-it('deletes neither a row nor its attachments while the instance is transitioning', async () => {
+it("deletes neither a row nor its attachments on a service task's page", async () => {
   await render(
     [
       { altinnRowId: 'first-row', name: 'first' },
       { altinnRowId: 'second-row', name: 'second' },
     ],
-    { transitioning: true },
+    { onServiceTaskPage: true },
   );
   await userEvent.click(screen.getByRole('button', { name: 'Delete first row' }));
   expect(deleteAttachments).not.toHaveBeenCalled();

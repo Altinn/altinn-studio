@@ -7,8 +7,8 @@ import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import {
   defaultMockDataElementId,
+  getInstanceAtServiceTaskMock,
   getInstanceDataMock,
-  getInstanceWithProcessMock,
 } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
@@ -75,10 +75,10 @@ describe('openByDefault', () => {
     existingRows?: Row[];
     edit?: Partial<CompRepeatingGroupExternal['edit']>;
     hiddenRow?: CompRepeatingGroupExternal['hiddenRow'];
-    transitioning?: boolean;
+    onServiceTaskPage?: boolean;
   }
 
-  async function render({ existingRows, edit, hiddenRow, transitioning = false }: Props) {
+  async function render({ existingRows, edit, hiddenRow, onServiceTaskPage = false }: Props) {
     const layout: ILayout = [
       {
         id: 'myGroup',
@@ -121,11 +121,10 @@ describe('openByDefault', () => {
             };
           }),
       },
-      apis: transitioning
+      apis: onServiceTaskPage
         ? {
             instanceApi: {
-              getInstance: async () =>
-                getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' })),
+              getInstance: async () => getInstanceAtServiceTaskMock(),
             },
           }
         : undefined,
@@ -250,12 +249,12 @@ describe('openByDefault', () => {
     });
   });
 
-  it('should not add a new row while the instance is transitioning', async () => {
+  it("should not add a new row on a service task's page", async () => {
     nextUuids.push('abc123');
     const { mutations } = await render({
       existingRows: [],
       edit: { openByDefault: true },
-      transitioning: true,
+      onServiceTaskPage: true,
     });
 
     await waitUntil({

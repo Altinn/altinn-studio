@@ -22,14 +22,15 @@ const readOnlyDescriptors = new Set<ExpressionDescriptor>([
  * Evaluates one property at the current data model location. Component properties can use generated descriptors:
  * `useEvalExpression(config.required, Expressions.Input.required)`.
  *
- * A component's `readOnly` property is true while the instance is transitioning, whatever the layout says.
+ * A component's `readOnly` property is true while the instance is locked (FormStore.useIsInstanceLocked), whatever the
+ * layout says.
  */
 export function useEvalExpression<D extends ExpressionDescriptor>(
   expr: DescriptorExpression<D> | undefined,
   descriptor: D,
   runtimeOptions?: ExpressionRuntimeOptions<D['returnType']>,
 ): ExprValToActual<D['returnType']> | D['defaultValue'] {
-  const forceReadOnly = FormStore.useIsTransitioning() && readOnlyDescriptors.has(descriptor);
+  const forceReadOnly = FormStore.useIsInstanceLocked() && readOnlyDescriptors.has(descriptor);
   const dataSources = useExpressionDataSources(expr);
   const baseComponentId = useCurrentComponentId();
   const componentId = useIndexedId(baseComponentId);

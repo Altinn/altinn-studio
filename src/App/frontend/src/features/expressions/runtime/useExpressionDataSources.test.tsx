@@ -55,7 +55,7 @@ vi.mock('src/hooks/navigation', () => ({
   useAllNavigationParams: () => ({ pageKey: mockInputs.currentPage }),
 }));
 vi.mock('src/features/form/FormContext', () => ({
-  FormStore: { raw: { useLaxStore: () => ContextNotProvided }, useIsTransitioning: () => false },
+  FormStore: { raw: { useLaxStore: () => ContextNotProvided }, useIsInstanceLocked: () => false },
 }));
 vi.mock('src/core/contexts/ApiProvider', () => ({
   useTextResourcesApi: () => mockTextResourcesApi,

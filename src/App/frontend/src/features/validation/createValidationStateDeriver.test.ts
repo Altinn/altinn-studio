@@ -48,7 +48,7 @@ function fixture(layout?: ILayoutCollection) {
     parent: undefined,
     nestedFormStatus: { unsaved: 0, unloadWarnings: 0 },
     readOnly: false,
-    transitioning: false,
+    instanceLocked: false,
     bootstrap: {
       layoutLookups: makeLayoutLookups(processLayouts(layouts, defaultDataTypeMock), layouts),
       dataModels: {},

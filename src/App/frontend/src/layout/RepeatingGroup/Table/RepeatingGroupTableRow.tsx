@@ -102,7 +102,7 @@ export function RepeatingGroupTableRow({
     }));
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
-  const transitioning = FormStore.useIsTransitioning();
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   const [rowHasErrors, setRowHasErrors] = React.useState(false);
   const editButtonText = rowHasErrors
@@ -209,7 +209,7 @@ export function RepeatingGroupTableRow({
                       indexedId={indexedId}
                       uuid={uuid}
                       onClick={() => toggleEditing({ index, uuid })}
-                      disabled={transitioning}
+                      disabled={instanceLocked}
                       editButtonText={editButtonText}
                       rowHasErrors={rowHasErrors}
                       compactButtons={compactButtons}
@@ -221,7 +221,7 @@ export function RepeatingGroupTableRow({
                       index={index}
                       uuid={uuid}
                       isDeletingRow={isDeletingRow}
-                      disabled={transitioning}
+                      disabled={instanceLocked}
                       deleteButtonText={deleteButtonText}
                       langAsString={langAsString}
                     >
@@ -253,7 +253,7 @@ export function RepeatingGroupTableRow({
                     indexedId={indexedId}
                     uuid={uuid}
                     onClick={() => toggleEditing({ index, uuid })}
-                    disabled={transitioning}
+                    disabled={instanceLocked}
                     editButtonText={editButtonText}
                     rowHasErrors={rowHasErrors}
                     compactButtons={compactButtons}
@@ -273,7 +273,7 @@ export function RepeatingGroupTableRow({
                     index={index}
                     uuid={uuid}
                     isDeletingRow={isDeletingRow}
-                    disabled={transitioning}
+                    disabled={instanceLocked}
                     deleteButtonText={deleteButtonText}
                     langAsString={langAsString}
                   >
@@ -297,7 +297,7 @@ export function RepeatingGroupTableRow({
                 uuid={uuid}
                 mobileViewSmall={mobileViewSmall}
                 onClick={() => toggleEditing({ index, uuid })}
-                disabled={transitioning}
+                disabled={instanceLocked}
                 editButtonText={editButtonText}
                 rowHasErrors={rowHasErrors}
                 compactButtons={compactButtons}
@@ -311,7 +311,7 @@ export function RepeatingGroupTableRow({
                   index={index}
                   uuid={uuid}
                   isDeletingRow={isDeletingRow}
-                  disabled={transitioning}
+                  disabled={instanceLocked}
                   deleteButtonText={deleteButtonText}
                   langAsString={langAsString}
                 >

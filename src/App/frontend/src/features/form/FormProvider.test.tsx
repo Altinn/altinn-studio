@@ -7,7 +7,7 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
-import { useProcessNextOutsideFormProvider, useProcessResume } from 'src/features/instance/useProcessNext';
+import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { ActionButtonComponent } from 'src/layout/ActionButton/ActionButtonComponent';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
 import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
@@ -15,7 +15,7 @@ import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonCompo
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
-import { doProcessNext, doProcessResume } from 'src/queries/queries';
+import { doProcessNext } from 'src/queries/queries';
 import {
   InstanceRouter,
   renderGenericComponentTest,
@@ -23,13 +23,11 @@ import {
 } from 'src/test/renderWithProviders';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
-import type { FormStoreApi } from 'src/features/form/FormContext';
 import type { IProcess } from 'src/types/shared';
 
 vi.mock('src/queries/queries', async () => ({
   ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
   doProcessNext: vi.fn(),
-  doProcessResume: vi.fn(),
 }));
 
 describe('FormProvider', () => {
@@ -126,10 +124,10 @@ describe('FormProvider', () => {
   });
 });
 
-describe('FormProvider while the instance is transitioning', () => {
+describe("FormProvider on a service task's page", () => {
   const inputBinding = { dataType: defaultDataTypeMock, field: 'myInput' };
 
-  /** The instance the backend returns, changed by each test to move the process along. */
+  /** The process the backend returns, which each test can change. */
   let process: IProcess;
   const getInstance = async (): Promise<IInstanceWithProcess> => ({ ...getInstanceWithProcessMock(), process });
 
@@ -141,8 +139,6 @@ describe('FormProvider while the instance is transitioning', () => {
       { id: 'lookupPerson', authorized: true, type: 'ServerAction' },
     ];
     vi.mocked(doProcessNext).mockReset();
-    vi.mocked(doProcessResume).mockReset();
-    store = undefined;
   });
 
   function WriteProbe() {
@@ -169,25 +165,6 @@ describe('FormProvider while the instance is transitioning', () => {
     );
   }
 
-  function ResumeProbe() {
-    const processResume = useProcessResume();
-    return (
-      <button
-        type='button'
-        onClick={() => processResume.mutate()}
-      >
-        resume-probe
-      </button>
-    );
-  }
-
-  /** The store survives the page being replaced by a loader, so a test can read its state afterwards. */
-  let store: FormStoreApi | undefined;
-  function StoreProbe() {
-    store = FormStore.raw.useStore();
-    return null;
-  }
-
   function makeTask1AServiceTask() {
     process.currentTask!.elementType = ELEMENT_TYPE.SERVICE_TASK;
     process.processTasks = [{ altinnTaskType: 'data', elementId: 'Task_1', elementType: ELEMENT_TYPE.SERVICE_TASK }];
@@ -201,8 +178,6 @@ describe('FormProvider while the instance is transitioning', () => {
           <InputComponent {...props} />
           <WriteProbe />
           <SubmitProbe />
-          <ResumeProbe />
-          <StoreProbe />
         </>
       ),
       component: { dataModelBindings: { simpleBinding: inputBinding } },
@@ -211,25 +186,25 @@ describe('FormProvider while the instance is transitioning', () => {
     });
   }
 
-  it('renders inputs read-only and rejects writes while a workflow is processing, until the instance is idle', async () => {
-    const user = userEvent.setup();
-    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
-    process.workflow = { status: 'processing' };
-    await renderInput();
+  it.each(['idle', 'processing'] as const)(
+    'renders inputs read-only and rejects writes while the workflow is %s',
+    async (status) => {
+      const user = userEvent.setup();
+      const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+      makeTask1AServiceTask();
+      process.workflow = { status };
+      await renderInput();
 
-    expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
-    await user.click(screen.getByRole('button', { name: 'write-probe' }));
-    expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
-    expect(screen.getByRole('textbox')).toHaveValue('');
+      expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
+      await user.click(screen.getByRole('button', { name: 'write-probe' }));
+      expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
+      expect(screen.getByRole('textbox')).toHaveValue('');
+      logError.mockRestore();
+    },
+  );
 
-    process = { ...process, workflow: { status: 'idle' } };
-    await waitFor(() => expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly'));
-    await user.type(screen.getByRole('textbox'), 'typed');
-    expect(screen.getByRole('textbox')).toHaveValue('typed');
-    logError.mockRestore();
-  });
-
-  it('keeps the form editable while process/next is pending and the process has not moved on', async () => {
+  it("keeps a user task's page editable, also while process/next is pending", async () => {
+    // The form is still being validated and saved for the request then
     const user = userEvent.setup();
     vi.mocked(doProcessNext).mockImplementation(() => new Promise(() => {}));
     await renderInput();
@@ -241,46 +216,7 @@ describe('FormProvider while the instance is transitioning', () => {
     expect(screen.getByRole('textbox')).toHaveValue('typed');
   });
 
-  it('stays read-only once the process has moved past the task while process/next is pending', async () => {
-    const user = userEvent.setup();
-    vi.mocked(doProcessNext).mockImplementation(() => new Promise(() => {}));
-    await renderInput();
-
-    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
-    await waitFor(() => expect(doProcessNext).toHaveBeenCalled());
-    expect(store!.getState().transitioning).toBe(false);
-
-    // Polling while process/next is pending finds the next task, and the task's pages give way to a loader
-    process = { ...process, currentTask: { ...process.currentTask!, elementId: 'Task_2' } };
-    await waitFor(() => expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'task-transition'));
-    expect(store!.getState().transitioning).toBe(true);
-  });
-
-  it('renders inputs read-only while process/resume is pending', async () => {
-    const user = userEvent.setup();
-    vi.mocked(doProcessResume).mockImplementation(() => new Promise(() => {}));
-    await renderInput();
-    expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
-
-    await user.click(screen.getByRole('button', { name: 'resume-probe' }));
-    await waitFor(() => expect(screen.getByRole('textbox')).toHaveAttribute('readonly'));
-  });
-
-  it("renders a service task's page read-only and rejects writes, also while its workflow is idle", async () => {
-    const user = userEvent.setup();
-    const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
-    makeTask1AServiceTask();
-    process.workflow = { status: 'idle' };
-    await renderInput();
-
-    expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
-    await user.click(screen.getByRole('button', { name: 'write-probe' }));
-    expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
-    expect(screen.getByRole('textbox')).toHaveValue('');
-    logError.mockRestore();
-  });
-
-  it('leaves PDF mode unaffected, also for a running service task', async () => {
+  it('leaves PDF mode unaffected', async () => {
     makeTask1AServiceTask();
     process.workflow = { status: 'processing' };
     await renderInput('pdf=1');
@@ -289,7 +225,7 @@ describe('FormProvider while the instance is transitioning', () => {
   });
 
   it('disables the submit button', async () => {
-    process.workflow = { status: 'processing' };
+    makeTask1AServiceTask();
     await renderGenericComponentTest({
       type: 'Button',
       renderer: (props) => <ButtonComponent {...props} />,
@@ -298,12 +234,10 @@ describe('FormProvider while the instance is transitioning', () => {
     });
 
     expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
-    process = { ...process, workflow: { status: 'idle' } };
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled());
   });
 
   it('disables action buttons', async () => {
-    process.workflow = { status: 'processing' };
+    makeTask1AServiceTask();
     await renderGenericComponentTest({
       type: 'ActionButton',
       renderer: (props) => <ActionButtonComponent {...props} />,
@@ -315,7 +249,7 @@ describe('FormProvider while the instance is transitioning', () => {
   });
 
   it('disables custom buttons with server actions', async () => {
-    process.workflow = { status: 'processing' };
+    makeTask1AServiceTask();
     await renderGenericComponentTest({
       type: 'CustomButton',
       renderer: (props) => <CustomButtonComponent {...props} />,
@@ -332,7 +266,7 @@ describe('FormProvider while the instance is transitioning', () => {
   });
 
   it('keeps custom buttons that only navigate enabled', async () => {
-    process.workflow = { status: 'processing' };
+    makeTask1AServiceTask();
     await renderGenericComponentTest({
       type: 'CustomButton',
       renderer: (props) => <CustomButtonComponent {...props} />,
@@ -346,7 +280,7 @@ describe('FormProvider while the instance is transitioning', () => {
   });
 
   it('keeps page navigation working', async () => {
-    process.workflow = { status: 'processing' };
+    makeTask1AServiceTask();
     window.altinnAppGlobalData.ui = getUiConfigMock(
       (obj) => (obj.folders.Task_1.pages = { order: ['page1', 'page2'] }),
     );

@@ -44,10 +44,10 @@ export const FormStore = {
     return useLaxCtx() !== ContextNotProvided;
   },
   useIsReadOnly() {
-    return FormStore.raw.useSelector((state) => state.readOnly || state.transitioning);
+    return FormStore.raw.useSelector((state) => state.readOnly);
   },
-  useIsTransitioning() {
-    return FormStore.raw.useLaxSelector((state) => state.transitioning) === true;
+  useIsInstanceLocked() {
+    return FormStore.raw.useLaxSelector((state) => state.instanceLocked) === true;
   },
   raw: {
     ...raw,
@@ -80,10 +80,10 @@ export interface FormStoreState {
   // prevent automatic effects from happening.
   readOnly: boolean;
 
-  // True while the instance is transitioning to another process state. The instance is locked on the server then, so
-  // every write is rejected, no effects run, components render as read-only and buttons that change the instance are
-  // disabled. Never set in PDF mode.
-  transitioning: boolean;
+  // True on a service task's own page. The task owns the instance until the process moves on, and the server rejects
+  // every change until then, so the form is read-only and locked: components render as read-only and buttons that
+  // change the instance are disabled. Never set in PDF mode.
+  instanceLocked: boolean;
 
   data: FormDataSliceState & FormDataMethods;
   attachments: AttachmentsSliceState;

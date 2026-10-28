@@ -115,9 +115,9 @@ export function EditButton({
     CommonExpressions.TRBLabel.title,
   );
 
-  // While the instance is transitioning, components without a readOnly setting are read-only too
-  const transitioning = FormStore.useIsTransitioning();
-  const isReadOnly = transitioning || ('readOnly' in config && readOnly === true);
+  // While the instance is locked, components without a readOnly setting are read-only too
+  const instanceLocked = FormStore.useIsInstanceLocked();
+  const isReadOnly = instanceLocked || ('readOnly' in config && readOnly === true);
   const accessibleTitle = title ? langAsString(title) : '';
 
   const overrides = useTaskOverrides();

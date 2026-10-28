@@ -7,7 +7,7 @@ import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
-import { defaultMockDataElementId, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
+import { defaultMockDataElementId, getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
@@ -42,10 +42,10 @@ interface IRender {
   container?: Partial<CompRepeatingGroupExternal>;
   numRows?: number;
   validationIssues?: BackendValidationIssue[];
-  transitioning?: boolean;
+  onServiceTaskPage?: boolean;
 }
 
-async function render({ container, numRows = 3, validationIssues = [], transitioning = false }: IRender = {}) {
+async function render({ container, numRows = 3, validationIssues = [], onServiceTaskPage = false }: IRender = {}) {
   const mockComponents: ILayout = [
     {
       id: 'field1',
@@ -139,12 +139,12 @@ async function render({ container, numRows = 3, validationIssues = [], transitio
           obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
         }),
     },
-    apis: transitioning ? { instanceApi: { getInstance: getTransitioningInstance } } : undefined,
+    apis: onServiceTaskPage ? { instanceApi: { getInstance: getInstanceAtServiceTask } } : undefined,
   });
 }
 
-async function getTransitioningInstance() {
-  return getInstanceWithProcessMock((process) => (process.workflow = { status: 'processing' }));
+async function getInstanceAtServiceTask() {
+  return getInstanceAtServiceTaskMock();
 }
 
 const { setScreenWidth } = mockMediaQuery(992);
@@ -491,8 +491,8 @@ describe('RepeatingGroupContainer', () => {
     expect(screen.getByText('New save text')).toBeInTheDocument();
   });
 
-  it('disables adding, editing and deleting rows while the instance is transitioning', async () => {
-    await render({ numRows: 2, transitioning: true });
+  it("disables adding, editing and deleting rows on a service task's page", async () => {
+    await render({ numRows: 2, onServiceTaskPage: true });
 
     expect(screen.getByRole('button', { name: /Legg til ny/i })).toBeDisabled();
     const rowButtons = [
@@ -503,8 +503,8 @@ describe('RepeatingGroupContainer', () => {
     rowButtons.forEach((button) => expect(button).toBeDisabled());
   });
 
-  it('disables deleting rows shown in full while the instance is transitioning', async () => {
-    await render({ container: { edit: { mode: 'showAll' } }, numRows: 2, transitioning: true });
+  it("disables deleting rows shown in full on a service task's page", async () => {
+    await render({ container: { edit: { mode: 'showAll' } }, numRows: 2, onServiceTaskPage: true });
 
     const deleteButtons = screen.getAllByTestId('delete-button');
     expect(deleteButtons).toHaveLength(2);

@@ -62,8 +62,8 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   const lock = FormStore.data.useLocking(componentId);
   const performProcess = useProcessingMutation('add-subform');
   const isAdding = useIsThisProcessing('add-subform');
-  const transitioning = FormStore.useIsTransitioning();
-  const isAddingDisabled = useIsAnyProcessing() || transitioning;
+  const instanceLocked = FormStore.useIsInstanceLocked();
+  const isAddingDisabled = useIsAnyProcessing() || instanceLocked;
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
@@ -71,8 +71,8 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
 
   const addEntry = () =>
     performProcess(async () => {
-      // Adding an entry writes to the instance, which is locked while transitioning
-      if (transitioning) {
+      // Adding an entry writes to the instance, which is locked
+      if (instanceLocked) {
         return;
       }
       const currentLock = await lock();
@@ -231,7 +231,7 @@ function SubformTableRow({
 
   const { mutate: deleteSubformEntry, isPending: isDeleting } = useDeleteEntryMutation();
   const deleteButtonText = langAsString('general.delete');
-  const transitioning = FormStore.useIsTransitioning();
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   const editButtonText = component?.textResourceBindings?.tableEditButton
     ? langAsString(evalSubformString(component.textResourceBindings.tableEditButton, editButtonDataSource))
@@ -284,7 +284,7 @@ function SubformTableRow({
       <Table.Cell className={classes.buttonCell}>
         <div className={classes.buttonInCellWrapper}>
           <Button
-            disabled={isDeleting || transitioning}
+            disabled={isDeleting || instanceLocked}
             variant='tertiary'
             color='second'
             onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
@@ -303,12 +303,12 @@ function SubformTableRow({
         <Table.Cell className={classes.buttonCell}>
           <div className={classes.buttonInCellWrapper}>
             <Button
-              disabled={isDeleting || transitioning}
+              disabled={isDeleting || instanceLocked}
               variant='tertiary'
               color='danger'
               onClick={() => {
-                // Deleting an entry writes to the instance, which is locked while transitioning
-                if (!transitioning) {
+                // Deleting an entry writes to the instance, which is locked
+                if (!instanceLocked) {
                   deleteSubformEntry(id);
                 }
               }}
