@@ -890,65 +890,63 @@
    Upgrade slide
    ========================================================= */
 
-/* Both columns sit in the middle of the space under the header, not at its top. */
-.s-upgrade .slide__body {
-  align-content: center;
+/* The terminal sits in the middle of the space under the header, not at its top. */
+.s-upgrade .s-fill {
+  justify-content: center;
   align-items: center;
 }
 
-.s-upgrade .s-fill {
-  height: auto;
-}
-
-.s-bpmn {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  padding: 30px 32px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--line);
-  background: var(--surface-1);
-}
-
-.s-bpmn__caption {
-  font-size: 24px;
-  color: var(--text-300);
-}
-
 .s-term {
-  padding: 24px 28px 26px;
+  width: 1320px;
+  padding: 30px 40px 32px;
   border-radius: var(--r-md);
   background: var(--surface-dark);
-}
-
-.s-term__line {
   font-family: var(--font-mono);
-  font-size: 22px;
-  line-height: 1.72;
-  color: rgb(255 255 255 / 70%);
-  white-space: nowrap;
+  font-size: 24px;
+  line-height: 1.7;
+  color: rgb(255 255 255 / 85%);
 }
 
-.s-term__line--cmd {
+.s-term__cmd {
+  margin-bottom: 14px;
   color: #fff;
   font-weight: var(--fw-semibold);
 }
 
-.s-term__ok {
-  color: #7bd18a;
+/* Status, step and message line up in columns, as studioctl prints them. */
+.s-term__row {
+  display: grid;
+  grid-template-columns: 6ch 13ch 1fr;
+  white-space: nowrap;
 }
 
-.s-term__todo {
-  color: #f0c25a;
+.s-term__status {
   font-weight: var(--fw-bold);
 }
 
-.s-term__note {
+.s-term__status--ok {
+  color: #7bd18a;
+}
+
+.s-term__status--skip,
+.s-term__skip {
+  color: rgb(255 255 255 / 45%);
+}
+
+.s-term__status--todo {
+  color: #f0c25a;
+}
+
+.s-term__step {
+  color: #fff;
+  font-weight: var(--fw-semibold);
+}
+
+.s-term__verdict {
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid var(--line-on-dark);
-  color: var(--text-on-dark-dim);
-  font-size: 24px;
+  color: #f0c25a;
 }
 
 /* =========================================================
