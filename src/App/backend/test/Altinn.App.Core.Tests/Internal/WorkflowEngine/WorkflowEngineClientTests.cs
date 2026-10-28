@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Http;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Microsoft.Extensions.Logging;
@@ -724,6 +725,42 @@ public class WorkflowEngineClientTests
         );
 
         Assert.Equal(512, result.ErrorDetail!.Length);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_ReadsAWorkflowFromAnEngineThatSendsNoRole()
+    {
+        // An engine older than the role field reports an auxiliary workflow by its isHead directive alone.
+        var detail = CreateWorkflowStatusResponse("auxiliary") with
+        {
+            Role = null,
+            IsHead = false,
+        };
+        string body = JsonSerializer.Serialize(detail);
+        Assert.DoesNotContain("\"role\"", body, StringComparison.Ordinal);
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(CreateJsonResponse(detail));
+        handlerMock.Protected().Setup("Dispose", ItExpr.IsAny<bool>());
+
+        using var httpClient = new HttpClient(handlerMock.Object);
+        var client = new WorkflowEngineClient(
+            httpClient,
+            Options.Create(new PlatformSettings { ApiWorkflowEngineEndpoint = "http://workflow-engine/api/v1/" }),
+            Mock.Of<ILogger<WorkflowEngineClient>>()
+        );
+
+        var result = await client.GetWorkflow("ttd/app", detail.DatabaseId);
+
+        Assert.NotNull(result);
+        Assert.Null(result.Role);
+        Assert.True(WorkflowEngineService.IsAuxiliaryWorkflow(result));
     }
 
     private static HttpResponseMessage CreateJsonResponse<T>(T body) =>
