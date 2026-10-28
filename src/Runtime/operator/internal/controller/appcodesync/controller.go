@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
+
 	"github.com/go-logr/logr"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -131,13 +132,13 @@ func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *AppCodesSyncRec
 	}
 }
 
+const controllerName = "appcodesync"
+
 func (r *AppCodesSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	tracer := r.runtime.Tracer()
-	ctx, span := tracer.Start(ctx, "appcodesync.Reconcile",
-		trace.WithAttributes(
-			attribute.String("name", req.Name),
-			attribute.String("namespace", req.Namespace),
-		),
+	ctx, span := telemetry.StartRun(ctx, controllerName, "appcodesync.Reconcile",
+		telemetry.AttrObjectKind.String("Secret"),
+		telemetry.AttrObjectNamespace.String(req.Namespace),
+		telemetry.AttrObjectName.String(req.Name),
 	)
 	defer span.End()
 
@@ -150,13 +151,13 @@ func (r *AppCodesSyncReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_secret", err)
 		return ctrl.Result{}, fmt.Errorf("get secret: %w", err)
 	}
 
 	requeueAfter, err := r.syncSecret(ctx, secret)
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "sync_secret", err)
 		return ctrl.Result{}, err
 	}
 
@@ -210,18 +211,13 @@ func isTargetSecret(namespace, name, serviceOwnerPrefix string) bool {
 
 func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.Secret) (time.Duration, error) {
 	tracer := r.runtime.Tracer()
-	ctx, span := tracer.Start(ctx, "appcodesync.syncSecret",
-		trace.WithAttributes(
-			attribute.String("name", secret.Name),
-			attribute.String("namespace", secret.Namespace),
-		),
-	)
+	ctx, span := tracer.Start(ctx, "appcodesync.syncSecret")
 	defer span.End()
 
 	now := r.runtime.GetClock().Now().UTC()
 	currentFile, err := parseAppCodesFile(secret)
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "parse_app_codes", err)
 		return 0, err
 	}
 	desiredFile := appCodesFile{AppCodes: appCodesSection{}}
@@ -230,13 +226,13 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 	for _, spec := range codeTypeSpecs {
 		current, parseErr := parseCodesForSpec(currentFile, spec, now)
 		if parseErr != nil {
-			span.RecordError(parseErr)
+			commontelemetry.SetError(span, "parse_app_codes", parseErr)
 			return 0, fmt.Errorf("parse current codes for %s: %w", spec.PropertyName, parseErr)
 		}
 
 		desired, buildErr := buildDesiredCodes(spec, current, now)
 		if buildErr != nil {
-			span.RecordError(buildErr)
+			commontelemetry.SetError(span, "build_app_codes", buildErr)
 			return 0, fmt.Errorf("build desired codes for %s: %w", spec.PropertyName, buildErr)
 		}
 
@@ -246,7 +242,7 @@ func (r *AppCodesSyncReconciler) syncSecret(ctx context.Context, secret *corev1.
 
 	desiredFileBytes, err := json.Marshal(desiredFile)
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "marshal_app_codes", err)
 		return 0, fmt.Errorf("marshal app codes file: %w", err)
 	}
 
