@@ -28,7 +28,7 @@
 
 .summary .labelContainer {
   gap: var(--ds-size-1);
-  align-items: baseline;
+  align-items: center;
 }
 
 .summary .labelContainer > :nth-child(2) {
