@@ -52,7 +52,6 @@ export const SingleValueSummary = ({
             <LabelContent
               {...labelProps}
               label={label}
-              isCompact={isCompact}
             />
           ) : (
             label

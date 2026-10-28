@@ -19,15 +19,11 @@
 }
 
 .labelValueWrapper.compact {
-  display: grid;
-  grid-template-columns: fit-content(70%) minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   column-gap: var(--ds-size-2);
   row-gap: var(--ds-size-2);
-}
-
-.labelValueWrapper.compact > :last-child {
-  grid-area: 1 / 2;
 }
 
 .formValue {
