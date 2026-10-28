@@ -892,6 +892,29 @@ public class MailboxRelayTests
     }
 
     [Fact]
+    public void NullVerdict_FailsPermanentlyWithoutThrowingAndLeavesTheExchangeOpen()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        ProcessEngineCommandResult result = MailboxRelay.Decide(
+            null!,
+            ServiceTaskType,
+            _stepId,
+            Delivered(),
+            carry,
+            ArchivingReplyIndex,
+            OpeningStageIndex
+        );
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("with null", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
+    }
+
+    [Fact]
     public void Success_ConcludesAndStopsTheMailboxIdTraveling()
     {
         var carry = new WorkflowCallbackStateCarry();
@@ -1051,6 +1074,30 @@ public class MailboxRelayTests
         Assert.Contains(nameof(RogueStageVerdict), failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(failed.MailboxContinuation);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
+    }
+
+    [Fact]
+    public void NullSegmentVerdict_FailsPermanentlyWithoutThrowingAndLeavesTheExchangeOpen()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        ProcessEngineCommandResult result = MailboxRelay.DecideSegment(
+            null!,
+            ServiceTaskType,
+            _stepId,
+            Delivered(),
+            carry,
+            SegmentHandlerIndex,
+            OpeningStageIndex,
+            _archiveThenJournalPipeline
+        );
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("with null", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
     }
 
     [Fact]
@@ -2067,5 +2114,25 @@ public class MailboxRelayTests
         Assert.Contains(nameof(RogueConclusion), failed.ErrorMessage, StringComparison.Ordinal);
         Assert.Null(failed.MailboxContinuation);
         Assert.NotNull(carry.FindMailbox(OpeningStageIndex));
+    }
+
+    [Fact]
+    public void NullWrappedConclusion_FailsPermanentlyWithoutThrowingAndLeavesTheExchangeOpen()
+    {
+        var carry = new WorkflowCallbackStateCarry();
+        carry.RecordMailbox(OpeningStageIndex, _mailboxId, _mailboxDeadline);
+
+        ProcessEngineCommandResult result = MailboxRelay.DecideOpeningStageConclusion(
+            null!,
+            ServiceTaskType,
+            _stepId,
+            carry
+        );
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("with null", failed.ErrorMessage, StringComparison.Ordinal);
+        Assert.Null(failed.MailboxContinuation);
     }
 }

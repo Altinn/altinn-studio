@@ -649,6 +649,20 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     [Fact]
+    public async Task OpeningStage_ReturningNull_FailsPermanentlyWithoutThrowing()
+    {
+        var task = new SendOnlyTask { OnSend = (_, _) => Task.FromResult<ServiceTaskOpeningStageResult>(null!) };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task OpeningStage_DeferAndFailures_MapAsTheStageVocabularysOwn()
     {
         WorkflowCallbackStateCarry carry = MintedCarry();

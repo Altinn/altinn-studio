@@ -213,13 +213,13 @@ internal sealed class MailboxRelay
             // Reached by the route Decide's last arm documents; answered the same way.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' concluded from its mailbox-opening stage with a result "
-                        + $"of type '{result.GetType().Name}', which this version of the app-lib cannot act "
+                    $"Service task '{serviceTaskType}' concluded from its mailbox-opening stage with "
+                        + $"{StageExecution.DescribeResult(result)}, which this version of the app-lib cannot act "
                         + "on. A conclusion must carry one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
                         + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                         + $"{nameof(ServiceTaskResult.FailedPermanent)} or "
-                        + $"{nameof(ServiceTaskResult.Defer)} — never a type of its own.",
+                        + $"{nameof(ServiceTaskResult.Defer)} — never a type of its own, and never null.",
                     "ServiceTaskResultUnknown"
                 );
         }
@@ -302,13 +302,13 @@ internal sealed class MailboxRelay
             // most destructive of the readings it could have meant.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' answered a message with a result of type "
-                        + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
+                    $"Service task '{serviceTaskType}' answered a message with "
+                        + $"{StageExecution.DescribeResult(result)}, which this version of the app-lib cannot act on. A reply "
                         + "handler must return one of the results the factory methods produce — "
                         + $"{nameof(ServiceTaskResult.Success)}, "
                         + $"{nameof(ServiceTaskResult.FailedRetryable)}, "
                         + $"{nameof(ServiceTaskResult.FailedPermanent)}, {nameof(ServiceTaskResult.Defer)} or "
-                        + $"{nameof(ServiceTaskExchangeResult.AwaitNextReply)} — never a type of its own.",
+                        + $"{nameof(ServiceTaskExchangeResult.AwaitNextReply)} — never a type of its own, and never null.",
                     "ServiceTaskResultUnknown"
                 );
         }
@@ -408,14 +408,14 @@ internal sealed class MailboxRelay
             // Reached by the route Decide's last arm documents; answered the same way.
             default:
                 return FailedProcessEngineCommandResult.Permanent(
-                    $"Service task '{serviceTaskType}' answered a message with a result of type "
-                        + $"'{result.GetType().Name}', which this version of the app-lib cannot act on. A reply "
+                    $"Service task '{serviceTaskType}' answered a message with "
+                        + $"{StageExecution.DescribeResult(result)}, which this version of the app-lib cannot act on. A reply "
                         + "handler that continues the pipeline must return one of the results the factory "
                         + $"methods produce — {nameof(StageResult.Completed)}, "
                         + $"{nameof(StageResult.FailedRetryable)}, "
                         + $"{nameof(StageResult.FailedPermanent)}, "
                         + $"{nameof(StageResult.Defer)} or "
-                        + $"{nameof(StageExchangeResult.AwaitNextReply)} — never a type of its own.",
+                        + $"{nameof(StageExchangeResult.AwaitNextReply)} — never a type of its own, and never null.",
                     "ServiceTaskResultUnknown"
                 );
         }

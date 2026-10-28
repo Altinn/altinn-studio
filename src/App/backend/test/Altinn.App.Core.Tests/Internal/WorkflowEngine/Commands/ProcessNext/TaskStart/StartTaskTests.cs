@@ -266,6 +266,19 @@ public class StartTaskTests
         Assert.Contains(nameof(HomemadeResult), failed.ErrorMessage);
     }
 
+    [Fact]
+    public async Task Execute_StageReturnsNull_FailsPermanentlyWithoutThrowing()
+    {
+        var command = CreateCommand(new FailingTask(null!));
+
+        var result = await command.Execute(CreateContext(CreateInstance()));
+
+        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal(StageExecution.UnknownResultReasonCode, failed.ExceptionType);
+        Assert.Contains("returned null", failed.ErrorMessage);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

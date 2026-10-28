@@ -121,6 +121,19 @@ public class ExecuteServiceTaskStageTests
     }
 
     [Fact]
+    public async Task Stage_WhenItReturnsNull_FailsPermanentlyWithoutThrowing()
+    {
+        var task = new ShippingTask { OnSend = _ => Task.FromResult<StageResult>(null!) };
+
+        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Stage_Completed_DoesNotConcludeTheTask()
     {
         var command = CreateCommand(new ShippingTask());

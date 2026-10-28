@@ -533,15 +533,15 @@ internal sealed class ExecuteServiceTask(
     /// </summary>
     private static FailedProcessEngineCommandResult UnknownResultType(
         IServiceTask task,
-        object result,
+        object? result,
         string rootTypeName,
         string factoryNames
     ) =>
         FailedProcessEngineCommandResult.Permanent(
-            $"Service task '{task.Type}' returned a result of type '{result.GetType().Name}', which this version "
+            $"Service task '{task.Type}' returned {StageExecution.DescribeResult(result)}, which this version "
                 + $"of the app-lib cannot act on. Return one of the results {rootTypeName}'s factory methods "
-                + $"produce ({factoryNames}) — never a type of your own, which has no meaning the workflow "
-                + "engine can be given.",
+                + $"produce ({factoryNames}) — never a type of your own or null, which have no meaning the "
+                + "workflow engine can be given.",
             "ServiceTaskResultUnknown"
         );
 

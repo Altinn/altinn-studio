@@ -254,6 +254,21 @@ public class ExecuteServiceTaskTests
     }
 
     [Fact]
+    public async Task Execute_WhenServiceTaskReturnsNull_FailsPermanentlyWithoutThrowing()
+    {
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult<ServiceTaskResult>(null!));
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Execute_WhenServiceTaskReturnsFailedResult_ReturnsFailedResult()
     {
         // Arrange

@@ -179,17 +179,25 @@ internal static class StageExecution
             ),
             // An author's own result type is an error no retry fixes; a throw here would be caught by the command
             // and retried until the budget runs out, repeating the stage's calls each time.
+            // The same for null, which the pattern above also routes here.
             _ => FailedProcessEngineCommandResult.Permanent(
                 describeFailure(
-                    $"returned a result of type '{result.GetType().Name}', which this version of the app-lib "
-                        + $"cannot act on. Return one of the results {nameof(StageResult)}'s factory methods produce "
+                    $"returned {DescribeResult(result)}, which this version of the app-lib cannot act on. Return one "
+                        + $"of the results {nameof(StageResult)}'s factory methods produce "
                         + $"({nameof(StageResult.Completed)}, {nameof(StageResult.Defer)}, "
                         + $"{nameof(StageResult.FailedRetryable)} or {nameof(StageResult.FailedPermanent)}), never a "
-                        + "type of your own."
+                        + "type of your own and never null."
                 ),
                 UnknownResultReasonCode
             ),
         };
+
+    /// <summary>
+    /// How a result the app-lib cannot act on is named in the step's failure: by its type, or as null, which a
+    /// stage can return despite the annotations and which must not throw on the way to the failure.
+    /// </summary>
+    internal static string DescribeResult(object? result) =>
+        result is null ? "null" : $"a result of type '{result.GetType().Name}'";
 
     /// <summary>Reason code for a stage result the app-lib cannot act on. Operator-visible.</summary>
     internal const string UnknownResultReasonCode = "ProcessTaskStageResultUnknown";
