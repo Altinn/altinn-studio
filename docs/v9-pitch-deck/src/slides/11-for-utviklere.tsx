@@ -25,7 +25,7 @@ const FEATURES: Feature[] = [
     icon: 'user',
     eyebrow: 'Ventesteg',
     title: 'Oppgaven venter selv',
-    body: 'Brukeren ser en venteside, eller appens egen side, til oppgaven er ferdig. Du trenger ikke lenger et eget «feedback»-steg.',
+    body: 'Brukeren ser en venteside til oppgaven er ferdig. Et eget ventesteg trengs ikke lenger.',
   },
   {
     icon: 'refresh',
