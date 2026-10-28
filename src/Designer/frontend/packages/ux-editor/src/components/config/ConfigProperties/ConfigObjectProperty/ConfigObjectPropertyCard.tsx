@@ -76,9 +76,9 @@ export const ConfigObjectPropertyCard = ({
               ? properties[objectPropertyKey].properties
               : {}
           }
-          component={component[objectPropertyKey] || {}}
+          component={(currentValues || {}) as FormComponent}
           handleComponentUpdate={(updatedComponent: FormComponent) =>
-            setCurrentValues({ ...currentValues, ...updatedComponent })
+            setCurrentValues(updatedComponent)
           }
           editFormId={editFormId}
           keepEditOpen={true}
