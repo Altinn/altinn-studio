@@ -146,7 +146,15 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
   });
 }
 
-export function useProcessNext({ action }: ProcessNextProps = {}) {
+interface ProcessNextInFormProps extends ProcessNextProps {
+  /**
+   * Gets the validation issues process/next was refused with first. Returns true when it has handled them, so they
+   * are not shown as validation errors.
+   */
+  handleValidationIssues?: (validationIssues: BackendValidationIssue[]) => Promise<boolean>;
+}
+
+export function useProcessNext({ action, handleValidationIssues }: ProcessNextInFormProps = {}) {
   const onFormSubmitValidation = useOnFormSubmitValidation();
   const updateInitialValidations = useUpdateInitialValidations();
   const setShowAllUnboundValidations = FormStore.validation.useSetShowAllUnboundValidations();
@@ -155,6 +163,10 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     action,
     beforeProcessNext: async () => await onFormSubmitValidation(),
     onValidationIssues: async (validationIssues) => {
+      if (await handleValidationIssues?.(validationIssues)) {
+        return;
+      }
+
       updateInitialValidations(validationIssues);
 
       const hasValidationErrors = await onFormSubmitValidation(true);

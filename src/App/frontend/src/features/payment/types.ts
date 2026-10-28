@@ -4,6 +4,9 @@ export enum PaymentStatus {
   Uninitialized = 'Uninitialized',
   Paid = 'Paid',
   Failed = 'Failed',
+  Cancelled = 'Cancelled',
+  // Gone through at the payment processor, but not charged yet
+  Authorized = 'Authorized',
 }
 
 export interface PaymentResponsePayload {
