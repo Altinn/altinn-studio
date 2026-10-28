@@ -17,6 +17,10 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="../../../../common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 

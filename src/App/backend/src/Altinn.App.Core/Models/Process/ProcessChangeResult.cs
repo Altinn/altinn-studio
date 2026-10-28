@@ -80,11 +80,6 @@ public class ProcessChangeResult
     internal ProcessStatus? BlockingProcessStatus { get; init; }
 
     /// <summary>
-    /// Indicates that CompleteProcess's legacy task-type authorization failed and must retain its bare 403 response.
-    /// </summary>
-    internal bool CompleteProcessAuthorizationFailed { get; init; }
-
-    /// <summary>
     /// Initializes a new <see cref="ProcessChangeResult"/> instance with a mutated instance.
     /// </summary>
     internal ProcessChangeResult(Instance mutatedInstance, StorageVersionMetadata mutatedInstanceVersions)

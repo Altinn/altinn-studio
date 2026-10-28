@@ -636,6 +636,9 @@ same pod. It is the one id allowed on every metric series, since it changes only
 `altinn.workload.start_time` gauge, it gives a dashboard the processes reporting, each restart and, as the earliest
 start per `service.version`, each deploy. A value set in `OTEL_RESOURCE_ATTRIBUTES` must still be unique per process.
 
+The engine exports logs only at Warning and above, since the platform's pipeline drops the rest. The console still
+gets every level the configuration allows.
+
 Health probes are not traffic: the engine leaves them out of the HTTP request metrics and the traces, and leaves the
 dashboard's requests out of the traces.
 
