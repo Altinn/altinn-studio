@@ -94,6 +94,7 @@ public class OnTaskStartingHookTests
                     It.Is<OnTaskStartingContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
+                        && c.Actor == context.Payload.Actor
                     )
                 ),
             Times.Once

@@ -4,7 +4,9 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ internal sealed class PrefillSI : IPrefill
     private readonly ILogger _logger;
     private readonly IAppResources _appResourcesService;
     private readonly IRegisterClient _registerClient;
+    private readonly IProfileClient _profileClient;
     private readonly IAuthenticationContext _authenticationContext;
     private readonly Telemetry? _telemetry;
     private static readonly string _erKey = "ER";
@@ -46,6 +49,7 @@ internal sealed class PrefillSI : IPrefill
         _logger = logger;
         _appResourcesService = appResourcesService;
         _registerClient = serviceProvider.GetRequiredService<IRegisterClient>();
+        _profileClient = serviceProvider.GetRequiredService<IProfileClient>();
         _authenticationContext = authenticationContext;
         _telemetry = telemetry;
     }
@@ -62,11 +66,20 @@ internal sealed class PrefillSI : IPrefill
     }
 
     /// <inheritdoc/>
-    public async Task PrefillDataModel(
+    public Task PrefillDataModel(
         string partyId,
         string dataModelName,
         object dataModel,
         Dictionary<string, string>? externalPrefill = null
+    ) => PrefillDataModel(partyId, dataModelName, dataModel, externalPrefill, actor: null);
+
+    /// <inheritdoc/>
+    public async Task PrefillDataModel(
+        string partyId,
+        string dataModelName,
+        object dataModel,
+        Dictionary<string, string>? externalPrefill,
+        Actor? actor
     )
     {
         using var activity = _telemetry?.StartPrefillDataModelActivity(partyId);
@@ -122,16 +135,16 @@ internal sealed class PrefillSI : IPrefill
 
             if (userProfileDict.Count > 0)
             {
-                UserProfile? userProfile = null;
-                switch (currentAuth)
+                UserProfile? userProfile = (actor, currentAuth) switch
                 {
-                    case Authenticated.User user:
-                    {
-                        var details = await user.LoadDetails(validateSelectedParty: false);
-                        userProfile = details.Profile;
-                        break;
-                    }
-                }
+                    // A workflow-engine callback has no user token, so it reads the actor's profile as the service owner.
+                    ({ UserId: { } userId }, _) => await _profileClient.GetUserProfile(
+                        userId,
+                        StorageAuthenticationMethod.ServiceOwner()
+                    ),
+                    (null, Authenticated.User user) => (await user.LoadDetails(validateSelectedParty: false)).Profile,
+                    _ => null,
+                };
 
                 if (userProfile != null)
                 {

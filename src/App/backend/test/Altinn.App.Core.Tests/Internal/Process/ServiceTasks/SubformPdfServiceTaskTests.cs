@@ -796,6 +796,7 @@ public class SubformPdfServiceTaskTests
         return new StageContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
+            Actor = new(),
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
             CancellationToken = cancellationToken,

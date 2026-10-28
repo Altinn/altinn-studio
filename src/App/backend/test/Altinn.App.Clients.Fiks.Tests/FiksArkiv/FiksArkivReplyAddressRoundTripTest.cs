@@ -238,6 +238,7 @@ public class FiksArkivReplyAddressRoundTripTest
         new()
         {
             InstanceDataMutator = dataMutator,
+            Actor = new(),
             WorkflowId = Guid.Parse("2f4bd7b5-19f0-4bd0-bd0c-9c7ec6f45a4a"),
             StepId = _workflowStepId,
             ExecutionReferenceTime = _executionReferenceTime,

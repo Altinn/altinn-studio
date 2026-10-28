@@ -43,6 +43,7 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
         {
             TaskId = taskId,
             InstanceDataMutator = dataMutator,
+            Actor = parameters.Payload.Actor,
             CancellationToken = parameters.CancellationToken,
         };
 

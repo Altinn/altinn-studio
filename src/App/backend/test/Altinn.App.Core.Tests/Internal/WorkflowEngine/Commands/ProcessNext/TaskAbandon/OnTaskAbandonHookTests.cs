@@ -95,6 +95,7 @@ public class OnTaskAbandonHookTests
                     It.Is<OnTaskAbandoningContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
+                        && c.Actor == context.Payload.Actor
                     )
                 ),
             Times.Once

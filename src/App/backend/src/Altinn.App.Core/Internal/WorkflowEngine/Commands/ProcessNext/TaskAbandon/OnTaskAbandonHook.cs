@@ -43,6 +43,7 @@ internal sealed class OnTaskAbandonHook : IWorkflowEngineCommand
         {
             TaskId = taskId,
             InstanceDataMutator = dataMutator,
+            Actor = parameters.Payload.Actor,
             CancellationToken = parameters.CancellationToken,
         };
 

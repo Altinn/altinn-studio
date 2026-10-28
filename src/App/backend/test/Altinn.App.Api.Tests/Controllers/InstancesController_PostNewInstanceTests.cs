@@ -266,6 +266,43 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
     }
 
     [Fact]
+    public async Task PostNewInstanceWithContent_DataCreationGetsTheCallerAsTheActor()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        var storage = CreateStorageInterceptor(org, app);
+        using var storageInvoker = new HttpMessageInvoker(storage);
+        RouteStorageRequestsToFileBackedInterceptor(org, app, storage, storageInvoker);
+        var instantiationProcessor = new Mock<IInstantiationProcessor>();
+        OverrideServicesForThisTest = services =>
+        {
+            UseHttpDataClient(services);
+            ReplaceProcessEngineForStorePartsTest(services);
+            services.AddSingleton(instantiationProcessor.Object);
+        };
+        HttpClient client = GetRootedUserClient(org, app, 1337, instanceOwnerPartyId);
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("<Skjema />", Encoding.UTF8, "application/xml"), "default");
+
+        var createResponse = await client.PostAsync(
+            $"{org}/{app}/instances/?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        instantiationProcessor.Verify(
+            p => p.DataCreation(It.Is<DataCreationContext>(c => c.Actor.UserId == 1337)),
+            Times.Once
+        );
+        var created = JsonSerializer.Deserialize<Instance>(
+            await createResponse.Content.ReadAsStringAsync(),
+            JsonSerializerOptions
+        )!;
+        TestData.DeleteInstanceAndData(org, app, created.Id);
+    }
+
+    [Fact]
     public async Task PostNewInstance_WithEmailUser_ShouldCreateInstanceAndNotFail()
     {
         // Setup test data

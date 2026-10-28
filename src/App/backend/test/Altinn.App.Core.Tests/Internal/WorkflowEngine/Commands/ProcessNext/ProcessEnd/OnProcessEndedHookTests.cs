@@ -94,6 +94,7 @@ public class OnProcessEndedHookTests
                     It.Is<OnProcessEndedContext>(c =>
                         c.InstanceDataMutator == context.InstanceDataMutator
                         && c.CancellationToken.Equals(context.CancellationToken)
+                        && c.Actor == context.Payload.Actor
                     )
                 ),
             Times.Once

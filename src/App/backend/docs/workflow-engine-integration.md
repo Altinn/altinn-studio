@@ -137,6 +137,12 @@ workflows in the enqueue. The state has its own signature, so a leaked token can
 token for auxiliary workflows lists the commands in a step payload that the engine stores unsigned, so an engine that
 changed the payload could widen that list. The token stays bound to the verified actor and instance.
 
+In a callback, `IAuthenticationContext.Current` is the app, which authenticates the request, and `HttpContext.User`
+is the callback principal. The actor who started the transition, checked against the token's actor hash, is `Actor` on
+the contexts of process hooks, service tasks and process task lifecycle stages, and on the `DataCreationContext` that
+task initialization passes to `IInstantiationProcessor.DataCreation`. Prefill of a form created when a task starts
+reads the actor's user profile with the service-owner token, since a callback has no user token.
+
 Neither the token nor the state of a waiting workflow is refreshed, and both expire with the app code that signed
 them. A workflow still waiting then fails with a permanent 401, and so does a resume. Nothing checks this per
 workflow. Instead the engine's caps on wait budgets and mailbox timeouts stay well inside how long the operator keeps
