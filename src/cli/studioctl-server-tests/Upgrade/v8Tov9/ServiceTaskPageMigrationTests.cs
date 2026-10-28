@@ -103,15 +103,17 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task KeepsTheWaitingPageOfAV9PreviewAndLeavesATodo()
+    public async Task TakesTheWaitingPageOfAV9PreviewOutOfTheOrderLikeAnyOtherPage()
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
         WriteTaskFolder("PdfTask", Settings(), PreviewWaitingPage);
 
         var result = await Migrate();
 
+        Assert.Equal(Settings(order: ""), _app.Read("ui/PdfTask/Settings.json"));
         Assert.True(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
-        Assert.Contains("[ServiceTask]", Assert.Single(result.Todos), StringComparison.Ordinal);
+        Assert.Contains("[ServiceTask]", Assert.Single(result.Warnings), StringComparison.Ordinal);
+        Assert.Empty(result.Todos);
     }
 
     [Theory]
@@ -121,22 +123,28 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
         "{ \"id\": \"service-task-body\"",
         "{ \"id\": \"extra\", \"type\": \"Image\" },\n{ \"id\": \"service-task-body\""
     )]
-    public async Task KeepsAChangedPageAndLeavesATodo(string generated, string changed)
+    public async Task TakesAChangedPageOutOfTheOrderOfAPdfTaskThatHasAPdfLayout(string generated, string changed)
     {
+        // A PDF task with a pdfLayoutName rendered that, so in v8 the pages it listed showed only when it failed
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
         WriteTaskFolder("PdfTask", Settings(), DesignerPage().Replace(generated, changed, StringComparison.Ordinal));
 
         var result = await Migrate();
 
-        Assert.Equal(Settings(), _app.Read("ui/PdfTask/Settings.json"));
+        Assert.False(result.RequiresManualFollowUp);
+        Assert.Equal(Settings(order: ""), _app.Read("ui/PdfTask/Settings.json"));
         Assert.True(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
-        var todo = Assert.Single(result.Todos);
-        Assert.Contains("PDF task 'PdfTask' lists the page(s) [ServiceTask]", todo, StringComparison.Ordinal);
-        Assert.Contains("keep pdfLayoutName", todo, StringComparison.Ordinal);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains(
+            "Took the page(s) [ServiceTask] out of pages.order in ui/PdfTask and kept their layout files",
+            warning,
+            StringComparison.Ordinal
+        );
+        Assert.Contains("The PDF is unchanged.", warning, StringComparison.Ordinal);
     }
 
     [Fact]
-    public async Task RemovesTheGeneratedPageAndLeavesATodoForTheOthers()
+    public async Task RemovesTheGeneratedPageAndTakesTheOthersOutOfTheOrderOfAPdfTaskThatHasAPdfLayout()
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
         WriteTaskFolder("PdfTask", Settings(order: "\"Intro\", \"ServiceTask\""), DesignerPage());
@@ -144,11 +152,61 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
 
         var result = await Migrate();
 
-        Assert.Equal(Settings(order: "\"Intro\""), _app.Read("ui/PdfTask/Settings.json"));
+        Assert.Equal(Settings(order: ""), _app.Read("ui/PdfTask/Settings.json"));
         Assert.False(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
         Assert.True(File.Exists(LayoutFile("PdfTask", "Intro")));
-        Assert.Contains("Removed the page 'ServiceTask'", Assert.Single(result.Warnings), StringComparison.Ordinal);
-        Assert.Contains("[Intro]", Assert.Single(result.Todos), StringComparison.Ordinal);
+        Assert.Collection(
+            result.Warnings,
+            warning => Assert.Contains("Removed the page 'ServiceTask'", warning, StringComparison.Ordinal),
+            warning => Assert.Contains("Took the page(s) [Intro]", warning, StringComparison.Ordinal)
+        );
+        Assert.Empty(result.Todos);
+    }
+
+    [Fact]
+    public async Task LeavesATodoForThePagesOfAPdfTaskWithoutAPdfLayout()
+    {
+        // Without a pdfLayoutName, a v8 PDF task may have rendered the pages it lists
+        _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
+        var settings = """{ "pages": { "order": ["Summary"] } }""";
+        _app.Write("ui/PdfTask/Settings.json", settings);
+        _app.Write("ui/PdfTask/layouts/Summary.json", """{ "data": { "layout": [] } }""");
+
+        var result = await Migrate();
+
+        Assert.Equal(settings, _app.Read("ui/PdfTask/Settings.json"));
+        Assert.Empty(result.Warnings);
+        Assert.Contains(
+            "PDF task 'PdfTask' lists the page(s) [Summary]",
+            Assert.Single(result.Todos),
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task TakesEveryPageOutOfTheOrderOfASubformPdfTask()
+    {
+        // A subform PDF task's PDFs come from the subform's folder, so in v8 its pages showed only when it failed
+        _app.Write(ProcessPath, Process(Task("Task_1", "data"), ServiceTask("SubformPdf", "subformPdf")));
+        WriteTaskFolder("SubformPdf", """{ "pages": { "order": ["Failed", "ServiceTask"] } }""", DesignerPage());
+        _app.Write("ui/SubformPdf/layouts/Failed.json", """{ "data": { "layout": [] } }""");
+
+        var result = await Migrate();
+
+        Assert.Equal("""{ "pages": { "order": [] } }""", _app.Read("ui/SubformPdf/Settings.json"));
+        Assert.False(File.Exists(LayoutFile("SubformPdf", "ServiceTask")));
+        Assert.True(File.Exists(LayoutFile("SubformPdf", "Failed")));
+        Assert.Collection(
+            result.Warnings,
+            warning => Assert.Contains("Removed the page 'ServiceTask'", warning, StringComparison.Ordinal),
+            warning =>
+                Assert.Contains(
+                    "Took the page(s) [Failed] out of pages.order in ui/SubformPdf",
+                    warning,
+                    StringComparison.Ordinal
+                )
+        );
+        Assert.Empty(result.Todos);
     }
 
     [Fact]
@@ -179,7 +237,6 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
     }
 
     [Theory]
-    [InlineData("subformPdf")]
     [InlineData("eFormidling")]
     [InlineData("fiksArkiv")]
     [InlineData("myCustomTask")]

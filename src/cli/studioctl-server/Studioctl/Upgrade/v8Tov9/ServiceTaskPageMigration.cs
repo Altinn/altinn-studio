@@ -14,10 +14,14 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// For a PDF task, Altinn Studio Designer lists a page, <c>ServiceTask</c>, in the folder's <c>pages.order</c>: a
 /// "something went wrong" message with retry and back buttons, which users would see on every PDF run. A page that
 /// is exactly what Altinn Studio generated, ignoring property order and formatting, leaves <c>pages.order</c> and
-/// its layout file is deleted, in any service task's folder; <c>pdfLayoutName</c> stays. Any other page a service
-/// task's folder lists is kept, with a to-do, since only the developer knows whether it is meant for users waiting
-/// on the task. A folder left with only its settings, listing no page and naming no <c>pdfLayoutName</c>, is
-/// removed, since the app reads nothing from it.
+/// its layout file is deleted, in any service task's folder; <c>pdfLayoutName</c> stays.
+///
+/// In v8 the process stopped on a service task only when the task failed, so the pages a subform PDF task lists, and
+/// those a PDF task with a <c>pdfLayoutName</c> lists besides it, showed only then: neither task rendered them into
+/// its PDF. They leave <c>pages.order</c> too, and keep their layout files. Any other page a service task's folder
+/// lists is kept, with a to-do, since only the developer knows whether it is meant for users waiting on the task, or,
+/// for a PDF task without a <c>pdfLayoutName</c>, whether it was the PDF. A folder left with only its settings,
+/// listing no page and naming no <c>pdfLayoutName</c>, is removed, since the app reads nothing from it.
 ///
 /// A task counts as a service task when it is a <c>serviceTask</c> element, as Altinn Studio writes them, or has
 /// the type of one of the app library's service tasks. Runs after the layout migrations and the layout-set
@@ -28,13 +32,14 @@ internal static class ServiceTaskPageMigration
 {
     private const string ProcessPath = "config/process/process.bpmn";
     private const string PdfTaskType = "pdf";
+    private const string SubformPdfTaskType = "subformPdf";
     private static readonly XNamespace _altinnNs = "http://altinn.no/process";
 
     /// <summary>The types of the app library's service tasks, which apply to any task element.</summary>
     private static readonly HashSet<string> _serviceTaskTypes = new(StringComparer.Ordinal)
     {
         PdfTaskType,
-        "subformPdf",
+        SubformPdfTaskType,
         "eFormidling",
         "fiksArkiv",
     };
@@ -188,15 +193,23 @@ internal static class ServiceTaskPageMigration
             .Distinct(StringComparer.Ordinal)
             .Where(page => page != pdfLayoutName && IsGenerated(Path.Combine(folder, "layouts", $"{page}.json")))
             .ToList();
+        var failurePages =
+            taskType == SubformPdfTaskType || (taskType == PdfTaskType && pdfLayoutName is not null)
+                ? order
+                    .Distinct(StringComparer.Ordinal)
+                    .Where(page => page != pdfLayoutName && !generated.Contains(page, StringComparer.Ordinal))
+                    .ToList()
+                : [];
+        var leaving = generated.Concat(failurePages).ToList();
         var listed = order
-            .Where(page => !generated.Contains(page, StringComparer.Ordinal))
+            .Where(page => !leaving.Contains(page, StringComparer.Ordinal))
             .Concat(groupPages ?? [])
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
-        if (generated.Count > 0)
+        if (leaving.Count > 0)
         {
-            if (WithoutPages(text, settings, generated) is { } updated)
+            if (WithoutPages(text, settings, leaving) is { } updated)
             {
                 // Settings first: should the run stop in between, a layout file no order lists is harmless.
                 await Utf8TextFile.Write(settingsFile, updated, hadBom);
@@ -211,10 +224,19 @@ internal static class ServiceTaskPageMigration
                             + (taskType == PdfTaskType ? ", and the PDF is unchanged." : ".")
                     );
                 }
+
+                if (failurePages.Count > 0)
+                    messages.Warn(
+                        $"Took the page(s) [{string.Join(", ", failurePages)}] out of pages.order in ui/{taskId} and "
+                            + $"kept their layout files. In v8 {TaskName(taskId, taskType)} showed them only when it "
+                            + "failed, but v9 shows the pages in pages.order while the task runs, and its own view when "
+                            + "it fails. List a page again only if it is meant for users waiting on the task"
+                            + (taskType == PdfTaskType ? ". The PDF is unchanged." : ".")
+                    );
             }
             else
             {
-                listed = [.. generated, .. listed];
+                listed = [.. leaving, .. listed];
             }
         }
 
