@@ -193,6 +193,7 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, MigrateExclusiveGatewaySignature(scanner, options.CancellationToken));
+        returnCode = CombineExitCodes(returnCode, MigrateProcessTaskLifecycle(scanner, options.CancellationToken));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateAsyncSuffixApis(scanner));
@@ -964,6 +965,33 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating the IProcessExclusiveGateway signature", ex);
+        }
+    }
+
+    /// <summary>
+    /// Gives app implementations of <c>IProcessTask</c> the <c>DefineStart</c>, <c>DefineEnd</c> and <c>DefineAbandon</c>
+    /// members v9 runs instead of the removed <c>Start</c>, <c>End</c> and <c>Abandon</c>, each running the v8 method
+    /// as one stage, and makes an explicit implementation of a removed member the type's own method.
+    /// </summary>
+    static int MigrateProcessTaskLifecycle(CSharpSourceScanner scanner, CancellationToken cancellationToken)
+    {
+        UpgradeConsole.BeginStep("IProcessTask lifecycle stages");
+        try
+        {
+            var result = new ProcessTaskLifecycleMigration(scanner).Migrate(cancellationToken);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No IProcessTask lifecycle members to update",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating the IProcessTask lifecycle members", ex);
         }
     }
 
