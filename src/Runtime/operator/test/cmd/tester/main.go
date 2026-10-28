@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/kubeartifact"
 	"altinn.studio/devenv/pkg/kubernetes"
 	"altinn.studio/devenv/pkg/projectroot"
 	"altinn.studio/devenv/pkg/resource"
@@ -297,8 +298,8 @@ func operatorGraph(projectRoot string, runtime *kind.KindContainerRuntime) (*res
 	return graph, cleanup, nil
 }
 
-func operatorCABundleWorkloads() []cabundle.KubernetesWorkload {
-	return []cabundle.KubernetesWorkload{{
+func operatorCABundleWorkloads() []kubeartifact.KubernetesWorkload {
+	return []kubeartifact.KubernetesWorkload{{
 		Deployment: "controller-manager",
 		Namespace:  "runtime-operator",
 		Container:  "manager",
@@ -310,7 +311,7 @@ func addOperatorPublishResources(
 	runtime *kind.KindContainerRuntime,
 	projectRoot string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 ) ([]resource.ResourceRef, func() error, error) {
 	imageResources, imageRefs := operatorImageResources(projectRoot, runtime)
 	artifactResources, artifactRefs, cleanup, err := operatorArtifactResources(
@@ -383,9 +384,9 @@ func operatorArtifactResources(
 	projectRoot string,
 	runtime *kind.KindContainerRuntime,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 ) ([]resource.Resource, []resource.ResourceRef, func() error, error) {
-	preparedArtifact, err := cabundle.PrepareKubernetesArtifact(
+	preparedArtifact, err := kubeartifact.PrepareKubernetesArtifact(
 		filepath.Join(projectRoot, "config"),
 		bundle,
 		workloads,
@@ -435,11 +436,11 @@ func addOperatorDeploymentResources(
 	runtime *kind.KindContainerRuntime,
 	projectRoot string,
 	bundle *cabundle.Bundle,
-	workloads []cabundle.KubernetesWorkload,
+	workloads []kubeartifact.KubernetesWorkload,
 	publishedDeps []resource.ResourceRef,
 ) error {
 	operatorDeps := append([]resource.ResourceRef{}, publishedDeps...)
-	configMapSet, hasConfigMapSet, err := cabundle.KubernetesConfigMapObjectSet(
+	configMapSet, hasConfigMapSet, err := kubeartifact.KubernetesConfigMapObjectSet(
 		bundle,
 		runtime.ClusterRef(),
 		"deployment-operator-ca-bundle",

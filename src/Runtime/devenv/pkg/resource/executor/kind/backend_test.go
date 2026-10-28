@@ -2,12 +2,15 @@ package kindbackend
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/cabundle"
+	"altinn.studio/devenv/pkg/cabundle/cabundletest"
 	"altinn.studio/devenv/pkg/container/mock"
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/resource/executor"
@@ -149,6 +152,29 @@ func assertStringContains(t *testing.T, values []string, want string) {
 		}
 	}
 	t.Fatalf("string containing %q not found in %#v", want, values)
+}
+
+// A kind cluster takes STUDIO_CA_BUNDLE through cabundle.FromEnv, so a bundle without a certificate fails the
+// cluster's CA step with ErrNoCertificate instead of registering nothing in the nodes' trust stores.
+func TestCABundleDataFromEnvRequiresACertificate(t *testing.T) {
+	valid := cabundletest.WriteFile(t)
+	t.Setenv(cabundle.EnvStudioCABundle, valid)
+	data, configured, err := caBundleData("")
+	if err != nil || !configured || len(data) == 0 {
+		t.Fatalf("caBundleData() = %d bytes, %v, %v; want the bundle", len(data), configured, err)
+	}
+
+	empty := t.TempDir() + "/empty.pem"
+	writeFile(t, empty, "")
+	t.Setenv(cabundle.EnvStudioCABundle, empty)
+	if _, _, err := caBundleData(""); !errors.Is(err, cabundle.ErrNoCertificate) {
+		t.Fatalf("caBundleData() error = %v, want ErrNoCertificate", err)
+	}
+
+	t.Setenv(cabundle.EnvStudioCABundle, "")
+	if data, configured, err := caBundleData(""); err != nil || configured || data != nil {
+		t.Fatalf("caBundleData() unset = %q, %v, %v; want nothing", data, configured, err)
+	}
 }
 
 func writeFile(t *testing.T, path, content string) {

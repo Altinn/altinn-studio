@@ -43,20 +43,39 @@ func containerColors() []Color {
 
 // Output provides structured output to the terminal.
 type Output struct {
-	out     io.Writer
-	err     io.Writer
-	verbose bool
-	mu      sync.Mutex
+	out io.Writer
+	err io.Writer
+	// warnings records each warning when set, for a command that reports them in its JSON (ForJSON).
+	warnings *[]string
+	verbose  bool
+	mu       sync.Mutex
 }
 
 // NewOutput creates a new Output instance.
 func NewOutput(out, errOut io.Writer, verbose bool) *Output {
 	return &Output{
-		out:     out,
-		err:     errOut,
-		verbose: verbose,
-		mu:      sync.Mutex{},
+		out:      out,
+		err:      errOut,
+		warnings: nil,
+		verbose:  verbose,
+		mu:       sync.Mutex{},
 	}
+}
+
+// ForJSON returns an Output for work done by a command that prints JSON on stdout: what would go to stdout is dropped,
+// warnings and errors still go to o's stderr, and the warnings are recorded for the JSON (Warnings).
+func (o *Output) ForJSON() *Output {
+	return &Output{out: io.Discard, err: o.err, warnings: &[]string{}, verbose: o.verbose, mu: sync.Mutex{}}
+}
+
+// Warnings returns the warnings printed through an Output from ForJSON, in order, and nil for other Outputs.
+func (o *Output) Warnings() []string {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if o.warnings == nil || len(*o.warnings) == 0 {
+		return nil
+	}
+	return append([]string(nil), *o.warnings...)
 }
 
 // DefaultOutput returns an Output configured for stdout/stderr.
@@ -119,6 +138,7 @@ func (o *Output) Errorlnf(format string, args ...any) {
 
 // Warning writes a warning message to stderr.
 func (o *Output) Warning(msg string) {
+	o.recordWarning(msg)
 	if Colors() {
 		msg = warningStyle().Render(msg)
 	}
@@ -213,6 +233,15 @@ func (o *Output) ContainerPrefix(name string, colorIndex int) string {
 	color := colors[colorIndex%len(colors)]
 	style := ColorStyle(color)
 	return style.Render(fmt.Sprintf("%-20s", name)) + " | "
+}
+
+func (o *Output) recordWarning(msg string) {
+	if o.warnings == nil {
+		return
+	}
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	*o.warnings = append(*o.warnings, msg)
 }
 
 func (o *Output) write(target io.Writer, msg string, newline bool) error {
