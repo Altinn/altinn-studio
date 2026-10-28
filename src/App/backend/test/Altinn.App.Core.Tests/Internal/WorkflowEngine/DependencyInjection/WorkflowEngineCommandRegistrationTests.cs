@@ -41,6 +41,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -53,6 +54,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -66,6 +68,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
@@ -80,6 +83,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("simple", CreatePipeline()),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -93,6 +97,7 @@ public class WorkflowEngineCommandRegistrationTests
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
+                    StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("mailbox", CreateMailboxPipeline()),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
@@ -100,8 +105,8 @@ public class WorkflowEngineCommandRegistrationTests
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("Task_1"), keys);
-        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline()), keys);
+        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(CreateLifecyclePipeline()), keys);
         CollectCommandKeys(
             WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }),
             keys
@@ -116,11 +121,17 @@ public class WorkflowEngineCommandRegistrationTests
         return keys;
     }
 
+    /// <summary>
+    /// A process task lifecycle pipeline. Every stage count plans the same command key, so one stage suffices.
+    /// </summary>
+    private static ProcessTaskPipeline CreateLifecyclePipeline() =>
+        new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
+
     private static ServiceTaskPipeline CreatePipeline() =>
-        new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
     private static ServiceTaskPipeline CreateMailboxPipeline() =>
-        new ServiceTaskPipelineBuilder()
+        new PipelineBuilder()
             .Stage(
                 (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
                 new MailboxOptions { Timeout = TimeSpan.FromDays(1) },
@@ -134,19 +145,12 @@ public class WorkflowEngineCommandRegistrationTests
 
     private static void CollectCommandKeys(WorkflowCommandSet commandSet, HashSet<string> keys)
     {
-        IEnumerable<StepRequest> steps = commandSet
+        IEnumerable<PlannedStep> steps = commandSet
             .Commands.Concat(commandSet.PrimaryPostCommitCommands)
             .Concat(commandSet.AuxiliaryCommands);
-        foreach (StepRequest step in steps)
+        foreach (PlannedStep step in steps)
         {
-            if (step.Command.Type == "app" && step.Command.Data is { } data)
-            {
-                AppCommandData? appData = JsonSerializer.Deserialize<AppCommandData>(data);
-                if (appData is not null)
-                {
-                    keys.Add(appData.CommandKey);
-                }
-            }
+            keys.Add(step.CommandKey);
         }
     }
 

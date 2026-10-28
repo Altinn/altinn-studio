@@ -194,42 +194,39 @@ public class MailboxRelayFrontierTests
 
     private static readonly MailboxOptions _mailboxThreeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(
-        ServiceTaskContext context,
-        ServiceTaskMailbox mailbox
-    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .ConcludeOnReplies(archive, OnMessage, OnClosed);
     }
 
     /// <summary>Two exchanges: the first answered mid-pipeline, so concluding it starts a continuation.</summary>
-    private sealed class ArchiveThenJournalTask : IPipelineServiceTask
+    private sealed class ArchiveThenJournalTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle archive)
                 .HandleReplies(
                     archive,
-                    (_, _) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed()),
-                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed())
+                    (_, _) => Task.FromResult<StageExchangeResult>(StageResult.Completed()),
+                    (_, _) => Task.FromResult(StageResult.Completed())
                 )
                 .Stage(PlainStage)
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle journal)
@@ -240,18 +237,18 @@ public class MailboxRelayFrontierTests
     /// Both sends up front, so the first send's own step ends the primary workflow and the second rides a continuation
     /// — the hop where a workflow hands over to the next segment with no exchange in between.
     /// </summary>
-    private sealed class UpFrontSendsTask : IPipelineServiceTask
+    private sealed class UpFrontSendsTask : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle alpha)
                 .Stage(SendStage, _mailboxThreeDays, out MailboxHandle beta)
                 .HandleReplies(
                     alpha,
-                    (_, _) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed()),
-                    (_, _) => Task.FromResult(ServiceTaskStageResult.Completed())
+                    (_, _) => Task.FromResult<StageExchangeResult>(StageResult.Completed()),
+                    (_, _) => Task.FromResult(StageResult.Completed())
                 )
                 .ConcludeOnReplies(beta, OnMessage, OnClosed);
     }
@@ -280,7 +277,7 @@ public class MailboxRelayFrontierTests
     /// The relay, wired to the model; the after-workflow is intercepted at the same <see cref="IProcessEngine"/>
     /// entry point production uses and enqueued with the shape it gives it.
     /// </summary>
-    private static MailboxRelay CreateRelay(CollectionModel collection, IPipelineServiceTask? serviceTask = null)
+    private static MailboxRelay CreateRelay(CollectionModel collection, IServiceTask? serviceTask = null)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();

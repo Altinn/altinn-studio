@@ -1,6 +1,7 @@
 import pQueue from 'p-queue';
 import { between, sleep, designerDomain } from '../utils.js';
 import axios from 'axios';
+import { localtestDeployments } from './localtest.js';
 
 const queue = new pQueue({ concurrency: 1 });
 const builds = [];
@@ -103,28 +104,10 @@ export const kubernetesWrapperRoute = async (req, res) => {
   res.json(kubernetesWrapperDeployments.filter((deploy) => !release || deploy.release === release));
 };
 
-export const runtimeGatewayDeploymentsRoute = async (req, res) => {
-  const { org, env, origin } = req.params;
-
-  res.json(
-    deploys
-      .filter((deploy) => deploy.org === org && deploy.envName === env)
-      .map((deploy) => ({
-        org: deploy.org,
-        env: deploy.envName,
-        app: deploy.app,
-        sourceEnvironment: origin,
-        buildId: deploy.buildNumber.toString(),
-        imageTag: deploy.tagName,
-      })),
-  );
-};
-
-export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
-  const { org, env, app, origin } = req.params;
-
-  const deployment = deploys
-    .filter((deploy) => deploy.org === org && deploy.envName === env && deploy.app === app)
+/** Every app deployed through local Studio, plus the apps the studioctl environment holds. */
+async function deploymentsFor(org, env, origin) {
+  const deployed = deploys
+    .filter((deploy) => deploy.org === org && deploy.envName === env)
     .map((deploy) => ({
       org: deploy.org,
       env: deploy.envName,
@@ -132,8 +115,26 @@ export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
       sourceEnvironment: origin,
       buildId: deploy.buildNumber.toString(),
       imageTag: deploy.tagName,
-    }))
-    .at(0);
+    }));
+  const deployedApps = new Set(deployed.map((deployment) => deployment.app));
+  const fromLocaltest = (await localtestDeployments(org, env, origin)).filter(
+    (deployment) => !deployedApps.has(deployment.app),
+  );
+  return [...deployed, ...fromLocaltest];
+}
+
+export const runtimeGatewayDeploymentsRoute = async (req, res) => {
+  const { org, env, origin } = req.params;
+
+  res.json(await deploymentsFor(org, env, origin));
+};
+
+export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
+  const { org, env, app, origin } = req.params;
+
+  const deployment = (await deploymentsFor(org, env, origin)).find(
+    (candidate) => candidate.app === app,
+  );
 
   if (!deployment) {
     res.sendStatus(404);

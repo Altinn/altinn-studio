@@ -15,12 +15,22 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine;
 
 public class WorkflowCommandSetTests
 {
-    private static List<string> Keys(IReadOnlyList<StepRequest> steps) =>
-        steps.Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value)!.CommandKey).ToList();
+    private static List<string> Keys(IReadOnlyList<PlannedStep> steps) => steps.Select(s => s.CommandKey).ToList();
 
     /// <summary>The pipeline a simple service task forwards to: the conclusion and nothing else.</summary>
     private static ServiceTaskPipeline ConclusionOnlyPipeline() =>
-        new ServiceTaskPipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+        new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
+
+    /// <summary>The lifecycle pipeline every task type without its own definition forwards to.</summary>
+    private static ProcessTaskPipeline SingleStagePipeline() =>
+        new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
+
+    private static ProcessTaskPipeline ThreeStagePipeline(ProcessStepOptions? middleOptions = null) =>
+        new PipelineBuilder()
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
+            .Stage(_ => Task.FromResult(StageResult.Completed()), middleOptions)
+            .Stage(_ => Task.FromResult(StageResult.Completed()))
+            .Build();
 
     [Fact]
     public void GetTaskStartSteps_ServiceTaskInstantiation_RoutesCommandsToTheCorrectBuckets()
@@ -29,6 +39,7 @@ public class WorkflowCommandSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
+                StartPipeline = SingleStagePipeline(),
                 ServiceTask = new ResolvedServiceTask("pdf", ConclusionOnlyPipeline()),
                 IsInitialTaskStart = true,
                 IsInstantiation = true,
@@ -65,6 +76,7 @@ public class WorkflowCommandSetTests
             new TaskStartContext
             {
                 TaskId = "Task_1",
+                StartPipeline = SingleStagePipeline(),
                 ServiceTask = null,
                 IsInitialTaskStart = false,
                 RegisterEvents = false,
@@ -88,7 +100,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskEndSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1");
+        var commandSet = WorkflowCommandSet.GetTaskEndSteps("Task_1", SingleStagePipeline());
 
         Assert.Equal(
             [EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
@@ -101,11 +113,98 @@ public class WorkflowCommandSetTests
     [Fact]
     public void GetTaskAbandonSteps_HasNoPostCommitCommands()
     {
-        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps();
+        var commandSet = WorkflowCommandSet.GetTaskAbandonSteps(SingleStagePipeline());
 
         Assert.Equal([AbandonTask.Key, OnTaskAbandonHook.Key], Keys(commandSet.Commands));
         Assert.Empty(commandSet.PrimaryPostCommitCommands);
         Assert.Empty(commandSet.AuxiliaryCommands);
+    }
+
+    [Fact]
+    public void GetTaskStartSteps_SingleStagePipeline_PlansOneStepAtIndexZero()
+    {
+        var options = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(2) };
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                StartPipeline = new PipelineBuilder()
+                    .Stage(_ => Task.FromResult(StageResult.Completed()), options)
+                    .Build(),
+                ServiceTask = null,
+                IsInitialTaskStart = false,
+            }
+        );
+
+        PlannedStep startStep = Assert.Single(commandSet.Commands, step => step.CommandKey == StartTask.Key);
+        Assert.Equal($"{StartTask.Key}: 0", startStep.OperationId);
+        Assert.Equal(0, Assert.IsType<ProcessTaskStagePayload>(startStep.Payload).StageIndex);
+        Assert.Same(options, startStep.DeclaredOptions);
+    }
+
+    [Fact]
+    public void GetTaskStartSteps_MultiStagePipeline_PlansOneStepPerStage()
+    {
+        var middleOptions = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) };
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                StartPipeline = ThreeStagePipeline(middleOptions),
+                ServiceTask = null,
+                IsInitialTaskStart = false,
+            }
+        );
+
+        Assert.Equal(
+            [
+                UnlockTaskData.Key,
+                CleanupGeneratedFromTask.Key,
+                OnTaskStartingHook.Key,
+                CommonTaskInitialization.Key,
+                StartTask.Key,
+                StartTask.Key,
+                StartTask.Key,
+            ],
+            Keys(commandSet.Commands)
+        );
+
+        List<PlannedStep> stageSteps = commandSet.Commands.Where(step => step.CommandKey == StartTask.Key).ToList();
+        Assert.Equal(["StartTask: 0", "StartTask: 1", "StartTask: 2"], stageSteps.Select(step => step.OperationId));
+        Assert.Equal(
+            [0, 1, 2],
+            stageSteps.Select(step => Assert.IsType<ProcessTaskStagePayload>(step.Payload).StageIndex)
+        );
+        Assert.Equal([null, middleOptions, null], stageSteps.Select(step => step.DeclaredOptions));
+    }
+
+    [Fact]
+    public void GetTaskEndAndAbandonSteps_MultiStagePipeline_PlanStagesBeforeTheHooks()
+    {
+        Assert.Equal(
+            [EndTask.Key, EndTask.Key, EndTask.Key, CommonTaskFinalization.Key, OnTaskEndingHook.Key, LockTaskData.Key],
+            Keys(WorkflowCommandSet.GetTaskEndSteps("Task_1", ThreeStagePipeline()).Commands)
+        );
+        Assert.Equal(
+            [AbandonTask.Key, AbandonTask.Key, AbandonTask.Key, OnTaskAbandonHook.Key],
+            Keys(WorkflowCommandSet.GetTaskAbandonSteps(ThreeStagePipeline()).Commands)
+        );
+    }
+
+    [Fact]
+    public void GetTaskStartSteps_EmptyPipeline_PlansNoStartStep()
+    {
+        var commandSet = WorkflowCommandSet.GetTaskStartSteps(
+            new TaskStartContext
+            {
+                TaskId = "Task_1",
+                StartPipeline = new PipelineBuilder().Build(),
+                ServiceTask = null,
+                IsInitialTaskStart = false,
+            }
+        );
+
+        Assert.DoesNotContain(StartTask.Key, Keys(commandSet.Commands));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -115,31 +214,24 @@ public class WorkflowCommandSetTests
 
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskStageResult> PlainStage(ServiceTaskContext context) =>
-        Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> PlainStage(StageContext context) => Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskOpeningStageResult> SendStage(
-        ServiceTaskContext context,
-        ServiceTaskMailbox mailbox
-    ) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
+    private static Task<ServiceTaskOpeningStageResult> SendStage(StageContext context, ServiceTaskMailbox mailbox) =>
+        Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-    private static Task<ServiceTaskExchangeResult> OnMessage(ServiceTaskContext context, ServiceTaskReply reply) =>
+    private static Task<ServiceTaskExchangeResult> OnMessage(StageContext context, ServiceTaskReply reply) =>
         Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskResult> OnClosed(ServiceTaskContext context, MailboxClosedReason reason) =>
+    private static Task<ServiceTaskResult> OnClosed(StageContext context, MailboxClosedReason reason) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
-    private static Task<ServiceTaskStageExchangeResult> OnSegmentMessage(
-        ServiceTaskContext context,
-        ServiceTaskReply reply
-    ) => Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+    private static Task<StageExchangeResult> OnSegmentMessage(StageContext context, ServiceTaskReply reply) =>
+        Task.FromResult<StageExchangeResult>(StageResult.Completed());
 
-    private static Task<ServiceTaskStageResult> OnSegmentClosed(
-        ServiceTaskContext context,
-        MailboxClosedReason reason
-    ) => Task.FromResult(ServiceTaskStageResult.Completed());
+    private static Task<StageResult> OnSegmentClosed(StageContext context, MailboxClosedReason reason) =>
+        Task.FromResult(StageResult.Completed());
 
-    private static Task<ServiceTaskResult> FinalWork(ServiceTaskContext context) =>
+    private static Task<ServiceTaskResult> FinalWork(StageContext context) =>
         Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success());
 
     private static List<string> OperationIds(ServiceTaskSegmentPlan plan) =>
@@ -149,18 +241,14 @@ public class WorkflowCommandSetTests
     private static List<ExecuteServiceTaskPayload> StageStepPayloads(ServiceTaskSegmentPlan plan) =>
         plan
             .Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
-            .Select(step =>
-            {
-                var appData = JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!;
-                return CommandPayloadSerializer.Deserialize<ExecuteServiceTaskPayload>(appData.Payload)!;
-            })
+            .Select(step => Assert.IsType<ExecuteServiceTaskPayload>(step.Payload))
             .ToList();
 
     /// <summary>The raw JSON of the plan's <c>ExecuteServiceTask</c> step payloads, in order.</summary>
     private static List<string> StageStepPayloadJson(ServiceTaskSegmentPlan plan) =>
         plan
             .Steps.Where(step => step.CommandKey == ExecuteServiceTask.Key)
-            .Select(step => JsonSerializer.Deserialize<AppCommandData>(step.Command.Data!.Value)!.Payload!)
+            .Select(step => CommandPayloadSerializer.Serialize(step.Payload)!)
             .ToList();
 
     /// <summary>
@@ -171,9 +259,32 @@ public class WorkflowCommandSetTests
     /// must not move. There are no Verify snapshots for the factory — every pin on it is an assertion.)
     /// </summary>
     [Fact]
+    public void PlanSegment_PutsEachItemsOwnOptionsOnItsStep_AndNoneOnTheMint()
+    {
+        var stage = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(1) };
+        var send = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(2) };
+        var handler = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) };
+        var conclusion = new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(4) };
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
+            .Stage(PlainStage, stage)
+            .Stage(SendStage, _threeDays, out MailboxHandle archive, send)
+            .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed, handler)
+            .Finally(FinalWork, conclusion);
+
+        ServiceTaskSegmentPlan primary = WorkflowCommandSet.PlanSegment("archiving", pipeline);
+        ServiceTaskSegmentPlan receive = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 1);
+        ServiceTaskSegmentPlan rest = WorkflowCommandSet.PlanSegment("archiving", pipeline, afterItemIndex: 2);
+
+        // The mint between the plain stage and the send carries nothing, so it inherits neither's options.
+        Assert.Equal([stage, null, send], primary.Steps.Select(step => step.DeclaredOptions));
+        Assert.Same(handler, Assert.Single(receive.Steps).DeclaredOptions);
+        Assert.Same(conclusion, Assert.Single(rest.Steps).DeclaredOptions);
+    }
+
+    [Fact]
     public void PlanSegment_SingleExchangePipeline_EndsMainOnTheSendAndAnswersItInAWorkflowOfItsOwn()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .ConcludeOnReplies(archive, OnMessage, OnClosed);
@@ -196,7 +307,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_PipelineWithNoExchange_EndsWithTheConcludingStepAndNoReceive()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder().Stage(PlainStage).Finally(FinalWork);
+        ServiceTaskPipeline pipeline = new PipelineBuilder().Stage(PlainStage).Finally(FinalWork);
 
         ServiceTaskSegmentPlan plan = WorkflowCommandSet.PlanSegment("signing", pipeline);
 
@@ -256,7 +367,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_AfterTheLastHandler_EndsWithTheConclusion()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Stage(PlainStage)
@@ -276,7 +387,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_APlainStageBeforeAHandler_EndsItsRunAndTheHandlerRunsAlone()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(PlainStage)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -310,7 +421,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_EndsAtAMailboxOpeningStage_EvenWithStagesComposedAfterIt()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(PlainStage)
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(PlainStage)
@@ -344,7 +455,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_UpFrontSends_RidesOneSegmentPerSend_ThenOnePerHandler()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
@@ -387,7 +498,7 @@ public class WorkflowCommandSetTests
     [Fact]
     public void PlanSegment_HandlerOrderRatherThanSendOrder_DecidesTheSegments()
     {
-        ServiceTaskPipeline pipeline = new ServiceTaskPipelineBuilder()
+        ServiceTaskPipeline pipeline = new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .Stage(SendStage, _threeDays, out MailboxHandle journal)
             .HandleReplies(journal, OnSegmentMessage, OnSegmentClosed)
@@ -464,7 +575,7 @@ public class WorkflowCommandSetTests
     }
 
     private static ServiceTaskPipeline ArchiveThenJournalPipeline() =>
-        new ServiceTaskPipelineBuilder()
+        new PipelineBuilder()
             .Stage(SendStage, _threeDays, out MailboxHandle archive)
             .HandleReplies(archive, OnSegmentMessage, OnSegmentClosed)
             .Stage(PlainStage)

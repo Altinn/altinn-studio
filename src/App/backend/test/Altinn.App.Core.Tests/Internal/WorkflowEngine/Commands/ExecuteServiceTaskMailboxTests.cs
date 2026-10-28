@@ -32,16 +32,16 @@ public class ExecuteServiceTaskMailboxTests
     /// </summary>
     private const int ReplyHandlerIndex = 2;
 
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public Dictionary<string, ServiceTaskContext> Seen { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, StageContext> Seen { get; } = new(StringComparer.Ordinal);
 
         /// <summary>The address handed to the stage that opens the mailbox.</summary>
         public ServiceTaskMailbox? SentTo { get; private set; }
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (context, mailbox) =>
@@ -53,7 +53,7 @@ public class ExecuteServiceTaskMailboxTests
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
-                .Stage(Record<ServiceTaskStageResult>("RecordDispatch", ServiceTaskStageResult.Completed()))
+                .Stage(Record<StageResult>("RecordDispatch", StageResult.Completed()))
                 .ConcludeOnReplies(
                     archive,
                     onMessage: Record<ServiceTaskExchangeResult, ServiceTaskReply>(
@@ -63,14 +63,14 @@ public class ExecuteServiceTaskMailboxTests
                     onClosed: Record<ServiceTaskResult, MailboxClosedReason>("OnClosed", ServiceTaskResult.Success())
                 );
 
-        private Func<ServiceTaskContext, Task<T>> Record<T>(string step, T result) =>
+        private Func<StageContext, Task<T>> Record<T>(string step, T result) =>
             context =>
             {
                 Seen[step] = context;
                 return Task.FromResult(result);
             };
 
-        private Func<ServiceTaskContext, TArg, Task<T>> Record<T, TArg>(string step, T result) =>
+        private Func<StageContext, TArg, Task<T>> Record<T, TArg>(string step, T result) =>
             (context, _) =>
             {
                 Seen[step] = context;
@@ -79,18 +79,18 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>The same task without a mailbox, for the "declares none" branch.</summary>
-    private sealed class PlainTask : IPipelineServiceTask
+    private sealed class PlainTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public Dictionary<string, ServiceTaskContext> Seen { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, StageContext> Seen { get; } = new(StringComparer.Ordinal);
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(context =>
                 {
                     Seen["SendStage"] = context;
-                    return Task.FromResult(ServiceTaskStageResult.Completed());
+                    return Task.FromResult(StageResult.Completed());
                 })
                 .Finally(context =>
                 {
@@ -99,7 +99,7 @@ public class ExecuteServiceTaskMailboxTests
                 });
     }
 
-    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
+    private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -356,14 +356,14 @@ public class ExecuteServiceTaskMailboxTests
     // ---------------------------------------------------------------------------------------------
 
     /// <summary>The Fiks Arkiv shape: the reply handler is composed right after the opening stage.</summary>
-    private sealed class SendOnlyTask : IPipelineServiceTask
+    private sealed class SendOnlyTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> OnSend { get; init; } =
+        public Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> OnSend { get; init; } =
             (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(OnSend, new MailboxOptions { Timeout = TimeSpan.FromDays(3) }, out MailboxHandle archive)
                 .ConcludeOnReplies(
@@ -378,19 +378,19 @@ public class ExecuteServiceTaskMailboxTests
     /// stage which is its workflow's last step (item 2, with the handler composed next) from one which is not
     /// (item 1, with a stage composed next).
     /// </summary>
-    private sealed class SendThenTwoStagesTask : IPipelineServiceTask
+    private sealed class SendThenTwoStagesTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .ConcludeOnReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
@@ -595,18 +595,18 @@ public class ExecuteServiceTaskMailboxTests
     }
 
     /// <summary>The archiving shape concluding from its opening stage, with a plain stage composed after it.</summary>
-    private sealed class MidPipelineConcluderTask : IPipelineServiceTask
+    private sealed class MidPipelineConcluderTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success())),
                     new MailboxOptions { Timeout = TimeSpan.FromDays(3) },
                     out MailboxHandle archive
                 )
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .ConcludeOnReplies(
                     archive,
                     (_, _) => Task.FromResult<ServiceTaskExchangeResult>(ServiceTaskResult.Success()),
@@ -646,6 +646,20 @@ public class ExecuteServiceTaskMailboxTests
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueOpeningStageResult), failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task OpeningStage_ReturningNull_FailsPermanentlyWithoutThrowing()
+    {
+        var task = new SendOnlyTask { OnSend = (_, _) => Task.FromResult<ServiceTaskOpeningStageResult>(null!) };
+
+        ProcessEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
+
+        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     [Fact]

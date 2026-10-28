@@ -258,7 +258,7 @@ public class PdfServiceTaskTests
                 }
             );
 
-    private static ServiceTaskContext CreateContext(string currentTaskId) =>
+    private static StageContext CreateContext(string currentTaskId) =>
         CreateServiceTaskContext(CreateInstanceMutatorMock(currentTaskId));
 
     private static Mock<IInstanceDataMutator> CreateInstanceMutatorMock(string currentTaskId)
@@ -274,9 +274,9 @@ public class PdfServiceTaskTests
         return instanceMutatorMock;
     }
 
-    private static ServiceTaskContext CreateServiceTaskContext(Mock<IInstanceDataMutator> instanceMutatorMock)
+    private static StageContext CreateServiceTaskContext(Mock<IInstanceDataMutator> instanceMutatorMock)
     {
-        return new ServiceTaskContext
+        return new StageContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),

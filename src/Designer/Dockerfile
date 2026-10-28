@@ -66,11 +66,13 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
+COPY src/common/dotnet/Altinn.Studio.Common.Telemetry ./src/common/dotnet/Altinn.Studio.Common.Telemetry
 COPY src/cli/.editorconfig src/cli/Directory.Build.props src/cli/Directory.Packages.props ./src/cli/
 COPY src/cli/common/dotnet/.editorconfig src/cli/common/dotnet/Directory.Build.props ./src/cli/common/dotnet/
 COPY src/cli/common/dotnet/Altinn.Studio.AppDist ./src/cli/common/dotnet/Altinn.Studio.AppDist
 COPY src/Designer/backend ./src/Designer/backend
-RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true
+RUN dotnet publish src/Designer/backend/src/Designer/Designer.csproj -c Release -o /app_output /p:CSharpier_Bypass=true \
+  "/p:InformationalVersion=${DESIGNER_VERSION:-dev}"
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Create version file
 WORKDIR /version
@@ -96,10 +98,8 @@ RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-tem
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:ecf8dcbaab8ebc4bdfb2322d6fe4217bbb118894310ebb6d53c580874ab4b27d AS final
 EXPOSE 80
 WORKDIR /app
-ARG DESIGNER_VERSION=''
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-  DOTNET_RUNNING_IN_CONTAINER=true \
-  DESIGNER_VERSION=${DESIGNER_VERSION}
+  DOTNET_RUNNING_IN_CONTAINER=true
 RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
 
 COPY --from=generate-studio-backend /app_output .

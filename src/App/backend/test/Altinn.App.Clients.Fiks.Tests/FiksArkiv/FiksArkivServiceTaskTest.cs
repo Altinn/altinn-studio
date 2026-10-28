@@ -37,7 +37,7 @@ public class FiksArkivServiceTaskTest
         ServiceTaskPipeline pipeline = fixture.FiksArkivPipeline;
 
         Assert.Equal(2, pipeline.Items.Count);
-        var stage = Assert.IsType<ServiceTaskStage.MailboxOpening>(pipeline.Items[0]);
+        var stage = Assert.IsType<PipelineStage.MailboxOpening>(pipeline.Items[0]);
 
         Assert.Equal(TimeSpan.FromDays(7), stage.Declaration.Timeout);
 
@@ -684,11 +684,11 @@ public class FiksArkivServiceTaskTest
         AllowAnyBinaryDataElement(dataMutator);
         var messageHandler = new Mock<IFiksArkivMessageHandler>(MockBehavior.Strict);
         FiksArkivReceivedMessage? seenMessage = null;
-        ServiceTaskContext? seenContext = null;
+        StageContext? seenContext = null;
         messageHandler
-            .Setup(x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<ServiceTaskContext>()))
+            .Setup(x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<StageContext>()))
             .Callback(
-                (FiksArkivReceivedMessage message, ServiceTaskContext context) =>
+                (FiksArkivReceivedMessage message, StageContext context) =>
                 {
                     seenMessage = message;
                     seenContext = context;
@@ -702,7 +702,7 @@ public class FiksArkivServiceTaskTest
             .Returns(Task.CompletedTask);
         await using var fixture = CreateFixture(messageHandler: messageHandler, instanceClient: instanceClient);
 
-        ServiceTaskContext context = CreateContext(dataMutator.Object);
+        StageContext context = CreateContext(dataMutator.Object);
         await OnMessage(fixture)(context, ReceiptOrPlainReply(messageType));
 
         Assert.NotNull(seenMessage);
@@ -711,7 +711,7 @@ public class FiksArkivServiceTaskTest
         Assert.Equal(_deliveredMessageId, seenMessage.MessageId);
         Assert.Same(context, seenContext);
         messageHandler.Verify(
-            x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<ServiceTaskContext>()),
+            x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<StageContext>()),
             Times.Once
         );
     }
@@ -725,7 +725,7 @@ public class FiksArkivServiceTaskTest
         var instanceClient = new Mock<IFiksArkivInstanceClient>(MockBehavior.Strict);
         var messageHandler = new Mock<IFiksArkivMessageHandler>(MockBehavior.Strict);
         messageHandler
-            .Setup(x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<ServiceTaskContext>()))
+            .Setup(x => x.HandleMessage(It.IsAny<FiksArkivReceivedMessage>(), It.IsAny<StageContext>()))
             .ThrowsAsync(new InvalidOperationException("the app's notification service is down"));
 
         await using var fixture = CreateFixture(messageHandler: messageHandler, instanceClient: instanceClient);
@@ -743,17 +743,16 @@ public class FiksArkivServiceTaskTest
         instanceClient.VerifyNoOtherCalls();
     }
 
-    private static Func<ServiceTaskContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> SendStage(
+    private static Func<StageContext, ServiceTaskMailbox, Task<ServiceTaskOpeningStageResult>> SendStage(
         TestFixture fixture
-    ) => Assert.IsType<ServiceTaskStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]).Work;
+    ) => Assert.IsType<PipelineStage.MailboxOpening>(fixture.FiksArkivPipeline.Items[0]).Work;
 
-    private static Func<ServiceTaskContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> OnMessage(
+    private static Func<StageContext, ServiceTaskReply, Task<ServiceTaskExchangeResult>> OnMessage(
         TestFixture fixture
     ) => Exchange(fixture).OnMessage;
 
-    private static Func<ServiceTaskContext, MailboxClosedReason, Task<ServiceTaskResult>> OnClosed(
-        TestFixture fixture
-    ) => Exchange(fixture).OnClosed;
+    private static Func<StageContext, MailboxClosedReason, Task<ServiceTaskResult>> OnClosed(TestFixture fixture) =>
+        Exchange(fixture).OnClosed;
 
     private static PipelineConclusion.ReplyExchange Exchange(TestFixture fixture) =>
         Assert.IsType<PipelineConclusion.ReplyExchange>(fixture.FiksArkivPipeline.Items[^1]);
@@ -872,7 +871,7 @@ public class FiksArkivServiceTaskTest
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
         };
 
-    private static ServiceTaskContext CreateContext(
+    private static StageContext CreateContext(
         IInstanceDataMutator dataMutator,
         Guid? stepId = null,
         CancellationToken cancellationToken = default

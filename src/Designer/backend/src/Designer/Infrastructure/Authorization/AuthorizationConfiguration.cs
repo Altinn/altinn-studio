@@ -64,11 +64,11 @@ public static class AuthorizationConfiguration
             );
 
             options.AddPolicy(
-                AltinnPolicy.MustBelongToOrganization,
+                AltinnPolicy.MustBeMemberOfAnyOrganization,
                 policy =>
                 {
                     policy.RequireAuthenticatedUser();
-                    policy.Requirements.Add(new BelongsToOrganizationRequirement());
+                    policy.Requirements.Add(new MemberOfAnyOrganizationRequirement());
                 }
             );
 
@@ -105,7 +105,7 @@ public static class AuthorizationConfiguration
         services.AddScoped<IAuthorizationHandler, GiteaReleasePermissionHandler>();
         services.AddScoped<IAuthorizationHandler, GiteaPublishResourcePermissionHandler>();
         services.AddScoped<IAuthorizationHandler, GiteaResourceAccessListPermissionHandler>();
-        services.AddScoped<IAuthorizationHandler, BelongsToOrganizationHandler>();
+        services.AddScoped<IAuthorizationHandler, MemberOfAnyOrganizationHandler>();
         services.AddScoped<IAuthorizationHandler, OrganizationPermissionHandler>();
         services.AddScoped<IAuthorizationHandler, AdminPermissionHandler>();
         services.AddScoped<IAuthorizationHandler, OrgOwnerHandler>();
