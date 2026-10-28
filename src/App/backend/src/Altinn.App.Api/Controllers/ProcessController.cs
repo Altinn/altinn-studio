@@ -135,6 +135,8 @@ public class ProcessController : ControllerBase
     [HttpPut("next")]
     [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(EnrichedInstanceResponse), StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(
         typeof(ProblemDetails),
@@ -201,9 +203,10 @@ public class ProcessController : ControllerBase
                     instanceOwnerPartyId,
                     cancellationToken: cancellationToken
                 );
+                // The workflow can move on before the reload, so describe the reloaded process.
                 var processStateTask = _processStateEnricher.Enrich(
                     instance,
-                    result.ProcessStateChange.NewProcessState,
+                    instance.Process,
                     User,
                     cancellationToken: cancellationToken
                 );
@@ -215,7 +218,7 @@ public class ProcessController : ControllerBase
                     await processStateTask
                 );
 
-                return Ok(dto);
+                return ProcessChangeResponse(result, dto);
             }
 
             AppProcessState appProcessState = await _processStateEnricher.Enrich(
@@ -225,7 +228,7 @@ public class ProcessController : ControllerBase
                 cancellationToken: cancellationToken
             );
 
-            return Ok(appProcessState);
+            return ProcessChangeResponse(result, appProcessState);
         }
         catch (WorkflowSubmissionFailedException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
@@ -247,6 +250,7 @@ public class ProcessController : ControllerBase
     /// </summary>
     [HttpPost("resume")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppProcessState), StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AppProcessState>> ResumeCurrentTask(
@@ -294,7 +298,7 @@ public class ProcessController : ControllerBase
                 cancellationToken: cancellationToken
             );
 
-            return Ok(appProcessState);
+            return ProcessChangeResponse(result, appProcessState);
         }
         catch (PlatformHttpException e)
         {
@@ -453,6 +457,11 @@ public class ProcessController : ControllerBase
                 );
         }
     }
+
+    // A parked chain goes on without the request, so the change is accepted rather than done. The body is the same
+    // process state, whose workflow annotation says the task is processing; GET process tells when it is done.
+    private ObjectResult ProcessChangeResponse(ProcessChangeResult result, object body) =>
+        result.WorkflowParked ? Accepted(body) : Ok(body);
 
     private ObjectResult ConcurrentTransitionConflict(WorkflowSubmissionFailedException exception)
     {

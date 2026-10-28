@@ -6,6 +6,7 @@ import { fetchFreshInstanceData } from 'src/core/queries/instance';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { isPdfRequest } from 'src/hooks/useIsPdf';
 import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { ProcessTaskType } from 'src/types';
@@ -26,7 +27,7 @@ export async function clientLoader({ context, params, request }: LoaderFunctionA
   });
   const processData = instance?.process;
   const uiFolders = getUiConfig().folders;
-  const taskType = getTaskTypeById(processData, taskId, false, uiFolders);
+  const taskType = getTaskTypeById(processData, taskId, false, uiFolders, isPdfRequest(request));
   const firstPage = getRawFirstPage(taskId);
   const queryKeys = new URL(request.url).search;
 

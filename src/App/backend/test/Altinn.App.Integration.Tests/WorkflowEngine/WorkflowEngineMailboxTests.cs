@@ -75,10 +75,10 @@ public class WorkflowEngineMailboxTests(ITestOutputHelper output, AppFixtureClas
         await PatchValidFormData(fixture, token, instance);
 
         // The task does not conclude here: its stages run, the first receiver is enqueued, and the
-        // instance stays committed on Task_Service until a message answers.
+        // instance stays committed on Task_Service until a message answers, so the call is accepted.
         using var processNextResponse = await fixture.Instances.ProcessNext(token, instance);
         using var processState = await processNextResponse.Read<AppProcessState>();
-        Assert.Equal(HttpStatusCode.OK, processState.Response.StatusCode);
+        Assert.Equal(HttpStatusCode.Accepted, processState.Response.StatusCode);
         Assert.Equal("Task_Service", processState.Data.Model!.CurrentTask!.ElementId);
 
         using var engineClient = new HttpClient { BaseAddress = _engineBaseAddress };

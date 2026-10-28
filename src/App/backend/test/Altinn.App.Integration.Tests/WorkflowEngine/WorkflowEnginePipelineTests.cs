@@ -72,14 +72,17 @@ public class WorkflowEnginePipelineTests(ITestOutputHelper output, AppFixtureCla
         Assert.Equal(HttpStatusCode.OK, readPatchResponse.Response.StatusCode);
 
         // The mid-pipeline deferral parks the workflow in Waiting, which releases the synchronous
-        // process/next wait early with the ordinary success shape — so this response may show
-        // either the committed service task (released while parked) or the end event (chain beat
+        // process/next wait early with 202 Accepted — so this response is either 202 with the
+        // committed service task (released while parked) or 200 with the end event (chain beat
         // the release). Both are correct; the settled state is asserted by polling below.
         try
         {
             using var processNextResponse = await fixture.Instances.ProcessNext(token, instance);
             using var processState = await processNextResponse.Read<AppProcessState>();
-            Assert.Equal(HttpStatusCode.OK, processState.Response.StatusCode);
+            Assert.Equal(
+                processState.Data.Model!.Ended is null ? HttpStatusCode.Accepted : HttpStatusCode.OK,
+                processState.Response.StatusCode
+            );
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {

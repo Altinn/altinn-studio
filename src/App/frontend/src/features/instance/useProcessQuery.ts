@@ -1,12 +1,16 @@
+import type { ILayoutSettings } from '@app/layout-contract/generated/common.generated';
+
 import { useOptimisticallyUpdateInstance } from 'src/core/queries/instance';
 import { useIsStateless } from 'src/features/applicationMetadata';
+import { processLayoutSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiConfig } from 'src/features/form/ui';
 import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { TaskKeys } from 'src/routesBuilder';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { LooseAutocomplete } from 'src/types';
-import type { IActionType, IProcess, IProcessWorkflow } from 'src/types/shared';
+import type { IActionType, IProcess, IProcessTask, IProcessWorkflow } from 'src/types/shared';
 
 export function useProcessQuery() {
   const { data, refetch } = useInstanceDataQuery({ select: (instance) => instance.process });
@@ -50,11 +54,30 @@ export function useTaskTypeFromBackend() {
 }
 
 /**
- * Pure classifier: resolves the ProcessTaskType of a given taskId.
+ * The task with this id. It is looked up in processTasks first, so a URL parked on one task keeps resolving that task
+ * after the process has moved on to another. It falls back to currentTask when that is the task asked for, and to
+ * currentTask's fields when the list entry lacks them.
+ */
+export function findProcessTask(process: IProcess | undefined, taskId: string | undefined): IProcessTask | undefined {
+  const fromList = process?.processTasks?.find((task) => task.elementId === taskId);
+  const fromCurrent = process?.currentTask?.elementId === taskId ? process?.currentTask : undefined;
+  if (!fromList || !fromCurrent) {
+    return fromList ?? fromCurrent;
+  }
+
+  return {
+    elementId: fromList.elementId,
+    altinnTaskType: fromList.altinnTaskType ?? fromCurrent.altinnTaskType,
+    elementType: fromList.elementType ?? fromCurrent.elementType,
+  };
+}
+
+/**
+ * Pure classifier: resolves the ProcessTaskType of a given taskId (see findProcessTask).
  *
- * The taskId is looked up in processTasks first, so a URL parked on one task keeps resolving that
- * task's type after the process has moved on to another. It falls back to currentTask when that is
- * the task asked for, and to currentTask's fields when the list entry lacks them.
+ * A task that renders through its UI folder classifies as a data task. A service task does so only
+ * when the folder lists a page, so a folder without one gets the built-in loading view. PDF mode
+ * renders any folder, because designed and subform PDFs draw from it whether or not it lists a page.
  *
  * Stateless apps only have data tasks. As soon as they start creating an instance
  * from that stateless step, applicationMetadata.isStatelessApp will return false
@@ -64,13 +87,18 @@ export function getTaskTypeById(
   processData: IProcess | undefined,
   taskId: string | undefined,
   isStateless: boolean,
-  uiFolders: Record<string, unknown>,
+  uiFolders: Record<string, ILayoutSettings>,
+  isPdf: boolean,
 ): ProcessTaskType {
-  const fromList = processData?.processTasks?.find((t) => t.elementId === taskId);
-  const fromCurrent = processData?.currentTask?.elementId === taskId ? processData?.currentTask : undefined;
-  const task = fromList ?? fromCurrent;
+  const task = findProcessTask(processData, taskId);
+  const elementType = task?.elementType;
 
-  if (isStateless || taskId === TaskKeys.CustomReceipt || (taskId && taskId in uiFolders)) {
+  const rendersUiFolder =
+    taskId !== undefined &&
+    taskId in uiFolders &&
+    (isPdf || elementType !== ELEMENT_TYPE.SERVICE_TASK || processLayoutSettings(uiFolders[taskId]).order.length > 0);
+
+  if (isStateless || taskId === TaskKeys.CustomReceipt || rendersUiFolder) {
     return ProcessTaskType.Data;
   }
 
@@ -78,12 +106,11 @@ export function getTaskTypeById(
     return ProcessTaskType.Archived;
   }
 
-  const elementType = task?.elementType ?? fromCurrent?.elementType;
   if (elementType === ELEMENT_TYPE.SERVICE_TASK) {
     return ProcessTaskType.Service;
   }
 
-  const altinnTaskType = task?.altinnTaskType ?? fromCurrent?.altinnTaskType;
+  const altinnTaskType = task?.altinnTaskType;
   if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
     return altinnTaskType;
   }
@@ -98,8 +125,9 @@ export function useGetTaskTypeById() {
   const { data: processData } = useProcessQuery();
   const isStateless = useIsStateless();
   const uiFolders = getUiConfig().folders;
+  const isPdf = useIsPdf();
 
-  return (taskId: string | undefined) => getTaskTypeById(processData, taskId, isStateless, uiFolders);
+  return (taskId: string | undefined) => getTaskTypeById(processData, taskId, isStateless, uiFolders, isPdf);
 }
 
 /**
