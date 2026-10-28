@@ -9,12 +9,10 @@ import { Heading } from '@digdir/designsystemet-react';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { DummyPresentation } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { SearchParams } from 'src/core/routing/types';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormStore } from 'src/features/form/FormContext';
-import { FormProvider } from 'src/features/form/FormProvider';
 import {
   usePageSettings,
   usePdfExclusions,
@@ -29,6 +27,7 @@ import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { getComponentDef } from 'src/layout';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { InstanceInformation } from 'src/layout/InstanceInformation/InstanceInformationComponent';
+import { SubformEntryForm } from 'src/layout/Subform/SubformWrapper';
 import { AllSubformSummaryComponent2 } from 'src/layout/Subform/Summary/SubformSummaryComponent2';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { SummaryComponent2 } from 'src/layout/Summary2/SummaryComponent2/SummaryComponent2';
@@ -95,16 +94,14 @@ export function PdfForServiceTask() {
   return <AutoGeneratePdfFromTasks taskIds={taskIds} />;
 }
 
-interface PdfForSubformProps {
-  uiFolder: string | null;
-  dataElementId: string | null;
-}
-
 /**
- * The PDF of one subform entry, rendered from the subform's UI folder with the entry as its data. A subform PDF
- * service task renders each entry this way, whether or not the task has a UI folder of its own.
+ * The PDF of one subform entry, named in the search params, rendered from the subform's UI folder with the entry as
+ * its data. A subform PDF service task renders each entry this way, whether or not the task has a UI folder of its own.
  */
-export function PdfForSubform({ uiFolder, dataElementId }: PdfForSubformProps) {
+export function PdfForSubform() {
+  const [params] = useSearchParams();
+  const uiFolder = params.get(SearchParams.PdfSubformUiFolder);
+  const dataElementId = params.get(SearchParams.PdfSubformDataElementId);
   if (!uiFolder || !dataElementId) {
     throw new Error(
       `A subform PDF requires both ${SearchParams.PdfSubformUiFolder} and ${SearchParams.PdfSubformDataElementId} ` +
@@ -124,15 +121,13 @@ export function PdfForSubform({ uiFolder, dataElementId }: PdfForSubformProps) {
   }
 
   return (
-    <TaskOverrides
+    <SubformEntryForm
       uiFolder={uiFolder}
-      dataModelType={settings.defaultDataType}
-      dataModelElementId={dataElementId}
+      dataElementId={dataElementId}
+      readOnly={true}
     >
-      <FormProvider readOnly={true}>
-        <PdfFromLayout />
-      </FormProvider>
-    </TaskOverrides>
+      <PdfFromLayout />
+    </SubformEntryForm>
   );
 }
 

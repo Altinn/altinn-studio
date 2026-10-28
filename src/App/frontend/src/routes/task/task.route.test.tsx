@@ -76,3 +76,52 @@ describe('subform PDF task through the task routes', () => {
     expect(fetchFormBootstrap).not.toHaveBeenCalledWith(expect.objectContaining({ uiFolder: subformPdfTaskId }));
   });
 });
+
+describe("a subform entry's own route", () => {
+  // Only the task's form names the subform's UI folder, through its Subform component
+  it("renders the entry's PDF in PDF mode", async () => {
+    const instance = getInstanceDataMock();
+    instance.data.push({ ...instance.data[0], id: subformIds[0], dataType: 'subform' });
+    const instanceWithProcess = { ...instance, process: getProcessDataMock() };
+    window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
+
+    const fetchFormBootstrap = vi.fn<typeof fetchFormBootstrapForInstance>(async (args) =>
+      getFormBootstrapMock((obj) => {
+        obj.layouts =
+          args.uiFolder === 'Subform'
+            ? {
+                Side1: {
+                  data: {
+                    layout: [{ id: 'entry', type: 'Paragraph', textResourceBindings: { title: 'Subform entry' } }],
+                  },
+                },
+              }
+            : {
+                FormLayout: {
+                  data: {
+                    layout: [
+                      { id: 'main', type: 'Paragraph', textResourceBindings: { title: 'Main form' } },
+                      { id: 'mopeds', type: 'Subform', layoutSet: 'Subform', tableColumns: [] },
+                    ],
+                  },
+                },
+              };
+      }),
+    );
+
+    const path = `/instance/${instance.id}/Task_1/FormLayout/mopeds/${subformIds[0]}?pdf=1`;
+    const { container } = await renderWithoutInstanceAndLayout({
+      renderer: () => <Outlet />,
+      router: ({ children }) => <InstanceRoutesRouter path={path}>{children}</InstanceRoutesRouter>,
+      queries: { fetchFormBootstrapForInstance: fetchFormBootstrap },
+      apis: { instanceApi: { getInstance: async () => instanceWithProcess } },
+    });
+
+    await waitFor(() => expect(container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+    expect(screen.getByText('Subform entry')).toBeInTheDocument();
+    expect(screen.queryByText('Main form')).not.toBeInTheDocument();
+    expect(fetchFormBootstrap).toHaveBeenCalledWith(
+      expect.objectContaining({ uiFolder: 'Subform', dataElementId: subformIds[0] }),
+    );
+  });
+});

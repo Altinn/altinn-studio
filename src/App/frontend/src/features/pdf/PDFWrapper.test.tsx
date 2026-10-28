@@ -316,6 +316,7 @@ describe('PDFWrapper', () => {
 });
 
 describe('getPdfSource', () => {
+  const noParams = new URLSearchParams();
   const pdfTask = getProcessDataMock((process) => {
     process.processTasks = [
       { elementId: 'Task_1', altinnTaskType: 'data', elementType: ELEMENT_TYPE.TASK },
@@ -331,25 +332,39 @@ describe('getPdfSource', () => {
   }
 
   it("decides a PDF service task by its folder's pdfLayoutName", () => {
-    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('automatic');
 
     setFolder('Task_PDF');
-    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('automatic');
 
     setFolder('Task_PDF', ' ');
-    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('automatic');
 
     setFolder('Task_PDF', 'PdfLayout');
-    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('layout');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('layout');
   });
 
   it('gives other service tasks the automatic PDF only without a UI folder', () => {
-    expect(getPdfSource(pdfTask, 'Task_Subform')).toBe('automatic');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_Subform' }, noParams)).toBe('automatic');
     setFolder('Task_Subform');
-    expect(getPdfSource(pdfTask, 'Task_Subform')).toBe('layout');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_Subform' }, noParams)).toBe('layout');
   });
 
-  it('draws any other task from its UI folder', () => {
-    expect(getPdfSource(pdfTask, 'Task_1')).toBe('layout');
+  it('draws any other task from its UI folder, and leaves one without a folder to its own view', () => {
+    expect(getPdfSource(pdfTask, { taskId: 'Task_1' }, noParams)).toBe('layout');
+    delete window.altinnAppGlobalData.ui.folders.Task_1;
+    expect(getPdfSource(pdfTask, { taskId: 'Task_1' }, noParams)).toBeUndefined();
+  });
+
+  it.each(['subformUiFolder=Subform', 'subformDataElementId=abc'])(
+    'draws a subform entry whatever the task, when the search params name one: %s',
+    (query) => {
+      expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, new URLSearchParams(query))).toBe('subform');
+      expect(getPdfSource(pdfTask, { taskId: 'Task_1' }, new URLSearchParams(query))).toBe('subform');
+    },
+  );
+
+  it("leaves a subform entry's own route to render the entry's PDF", () => {
+    expect(getPdfSource(pdfTask, { taskId: 'Task_1', dataElementId: 'abc' }, noParams)).toBeUndefined();
   });
 });

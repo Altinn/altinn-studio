@@ -7,10 +7,10 @@ import { TaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
-import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
+import { PdfFromLayout } from 'src/features/pdf/PdfFromLayout';
 import { useNavigationParam } from 'src/hooks/navigation';
+import { useIsPdf } from 'src/hooks/useIsPdf';
 import { useNavigateToPage } from 'src/hooks/useNavigatePage';
-import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 
 export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<{ baseComponentId: string }>) {
@@ -22,27 +22,66 @@ export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<
   }
 
   return (
-    <SubformOverrideWrapper
-      baseComponentId={baseComponentId}
-      providedDataElementId={dataElementId}
+    <SubformEntryForm
+      uiFolder={config.layoutSet}
+      dataElementId={dataElementId}
     >
-      <FormProvider
-        uiFolderOverride={config.layoutSet}
-        dataElementIdOverride={dataElementId}
-      >
-        {children}
-      </FormProvider>
-    </SubformOverrideWrapper>
+      {children}
+    </SubformEntryForm>
   );
 }
 
-export function SubformForm() {
+interface SubformEntryFormProps {
+  uiFolder: string;
+  dataElementId: string;
+  readOnly?: boolean;
+}
+
+/**
+ * The form of one subform entry: the subform's UI folder, with the entry's data element as its data in the folder's
+ * defaultDataType. The subform route renders an entry with it, and so does the PDF of a subform entry.
+ */
+export function SubformEntryForm({
+  uiFolder,
+  dataElementId,
+  readOnly,
+  children,
+}: PropsWithChildren<SubformEntryFormProps>) {
+  const dataType = getDefaultDataTypeFromUiFolder(uiFolder);
+  if (!dataType) {
+    throw new Error(`Unable to find the data type of the subform UI folder '${uiFolder}'`);
+  }
+
   return (
-    <PdfWrapper>
-      <PresentationComponent>
-        <Form />
-      </PresentationComponent>
-    </PdfWrapper>
+    <TaskOverrides
+      dataModelType={dataType}
+      dataModelElementId={dataElementId}
+      uiFolder={uiFolder}
+    >
+      <FormProvider
+        uiFolderOverride={uiFolder}
+        dataElementIdOverride={dataElementId}
+        readOnly={readOnly}
+      >
+        {children}
+      </FormProvider>
+    </TaskOverrides>
+  );
+}
+
+/**
+ * A subform entry's page, or in PDF mode the entry's PDF, which the task route leaves to this route (see getPdfSource).
+ */
+export function SubformForm() {
+  const isPdf = useIsPdf();
+  if (isPdf) {
+    return <PdfFromLayout />;
+  }
+
+  return (
+    <PresentationComponent>
+      <Form />
+    </PresentationComponent>
   );
 }
 
@@ -56,32 +95,3 @@ export const RedirectBackToMainForm = () => {
 
   return <Loader reason='navigate-to-mainform' />;
 };
-
-export function SubformOverrideWrapper({
-  baseComponentId,
-  providedDataElementId,
-  children,
-}: PropsWithChildren<{
-  baseComponentId: string;
-  providedDataElementId?: string;
-}>) {
-  const dataElementId = useNavigationParam('dataElementId');
-  const actualDataElementId = providedDataElementId ? providedDataElementId : dataElementId;
-  const config = useComponentConfig(baseComponentId, 'Subform');
-  const id = useIndexedId(baseComponentId);
-  const dataType = getDefaultDataTypeFromUiFolder(config.layoutSet);
-
-  if (!dataType) {
-    throw new Error(`Unable to find data type for subform with id ${id}`);
-  }
-
-  return (
-    <TaskOverrides
-      dataModelType={dataType}
-      dataModelElementId={actualDataElementId}
-      uiFolder={config.layoutSet}
-    >
-      {children}
-    </TaskOverrides>
-  );
-}
