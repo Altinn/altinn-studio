@@ -383,49 +383,71 @@ public class PdfControllerTests
         requestBody.Should().BeNull();
     }
 
+    /// <summary>The UI folder of the PDF service task in a test.</summary>
     public enum PdfTaskFolder
     {
+        /// <summary>The task has no UI folder.</summary>
         None,
+
+        /// <summary>The folder lists a waiting page and names no pdfLayoutName.</summary>
         WithoutPdfLayoutName,
+
+        /// <summary>The folder lists a waiting page and names a pdfLayoutName.</summary>
         WithPdfLayoutName,
     }
 
-    /// <summary>
-    /// The setups a PDF service task can render. Any other stops the app from starting (see
-    /// PdfServiceTask.ValidateConfiguration), so no instance reaches the task and no preview is asked of it.
-    /// </summary>
-    public static TheoryData<PdfTaskFolder, bool, bool> PdfServiceTaskSetups()
+    /// <summary>The tasks the PDF service task lists in autoPdfTaskIds in a test.</summary>
+    public enum AutoPdfTasks
     {
-        var data = new TheoryData<PdfTaskFolder, bool, bool>();
-        foreach (PdfTaskFolder folder in Enum.GetValues<PdfTaskFolder>())
-        {
-            foreach (bool listsTasks in new[] { false, true })
-            {
-                if (folder != PdfTaskFolder.WithPdfLayoutName && !listsTasks)
-                {
-                    continue;
-                }
+        /// <summary>No tasks listed.</summary>
+        None,
 
-                foreach (bool atTheTask in new[] { false, true })
-                {
-                    data.Add(folder, listsTasks, atTheTask);
-                }
-            }
-        }
-
-        return data;
+        /// <summary>Task_1 and Task_2 listed.</summary>
+        Task1AndTask2,
     }
+
+    /// <summary>Which task the preview in a test is asked for.</summary>
+    public enum PreviewedTask
+    {
+        /// <summary>The request names the PDF task, while the instance is at another task.</summary>
+        NamedPdfTask,
+
+        /// <summary>The request names no task, and the instance is at the PDF task.</summary>
+        CurrentPdfTask,
+    }
+
+    /// <summary>
+    /// The setups a PDF service task can render, each previewed both ways. A task with neither a pdfLayoutName nor
+    /// autoPdfTaskIds stops the app from starting (see PdfServiceTask.ValidateConfiguration), so no instance reaches
+    /// it and no preview is asked of it.
+    /// </summary>
+    public static TheoryData<PdfTaskFolder, AutoPdfTasks, PreviewedTask> PdfServiceTaskSetups() =>
+        new()
+        {
+            // The automatic PDF of the listed tasks, without a UI folder
+            { PdfTaskFolder.None, AutoPdfTasks.Task1AndTask2, PreviewedTask.NamedPdfTask },
+            { PdfTaskFolder.None, AutoPdfTasks.Task1AndTask2, PreviewedTask.CurrentPdfTask },
+            // The automatic PDF of the listed tasks, from a folder whose only page is a waiting page
+            { PdfTaskFolder.WithoutPdfLayoutName, AutoPdfTasks.Task1AndTask2, PreviewedTask.NamedPdfTask },
+            { PdfTaskFolder.WithoutPdfLayoutName, AutoPdfTasks.Task1AndTask2, PreviewedTask.CurrentPdfTask },
+            // The pdfLayoutName layout
+            { PdfTaskFolder.WithPdfLayoutName, AutoPdfTasks.None, PreviewedTask.NamedPdfTask },
+            { PdfTaskFolder.WithPdfLayoutName, AutoPdfTasks.None, PreviewedTask.CurrentPdfTask },
+            // The pdfLayoutName layout, with listed tasks passed along as well
+            { PdfTaskFolder.WithPdfLayoutName, AutoPdfTasks.Task1AndTask2, PreviewedTask.NamedPdfTask },
+            { PdfTaskFolder.WithPdfLayoutName, AutoPdfTasks.Task1AndTask2, PreviewedTask.CurrentPdfTask },
+        };
 
     [Theory]
     [MemberData(nameof(PdfServiceTaskSetups))]
     public async Task Preview_Of_Pdf_Service_Task_Matches_The_Service_Task(
         PdfTaskFolder folder,
-        bool listsTasks,
-        bool atTheTask
+        AutoPdfTasks autoPdfTasks,
+        PreviewedTask previewedTask
     )
     {
         // The preview renders what the service task renders
-        List<string> autoPdfTaskIds = listsTasks ? ["Task_1", "Task_2"] : [];
+        List<string> autoPdfTaskIds = autoPdfTasks == AutoPdfTasks.Task1AndTask2 ? ["Task_1", "Task_2"] : [];
         var taskExtension = new AltinnTaskExtension
         {
             TaskType = "pdf",
@@ -464,13 +486,15 @@ public class PdfControllerTests
                     ? """{ "WaitingPage": {}, "PdfLayout": {} }"""
                     : """{ "WaitingPage": {} }"""
             );
-        if (atTheTask)
+        if (previewedTask == PreviewedTask.CurrentPdfTask)
         {
             _taskId = "Task_Pdf";
         }
 
         (ServiceTaskResult taskResult, List<List<string>?> renderedTasks) = await ExecutePdfServiceTask("Task_Pdf");
-        (ActionResult result, string? requestBody) = await GetPdfPreview(taskId: atTheTask ? null : "Task_Pdf");
+        (ActionResult result, string? requestBody) = await GetPdfPreview(
+            taskId: previewedTask == PreviewedTask.CurrentPdfTask ? null : "Task_Pdf"
+        );
 
         Assert.IsType<SuccessfulServiceTaskResult>(taskResult);
         Assert.IsType<FileContentResult>(result);
