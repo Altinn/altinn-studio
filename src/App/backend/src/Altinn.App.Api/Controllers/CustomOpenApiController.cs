@@ -161,8 +161,8 @@ public class CustomOpenApiController : Controller
 
         sb.AppendLine("This is the API for an Altinn 3 app. The API is based on the OpenAPI 3.0 specification.");
         sb.AppendLine("This app has the following data types:");
-        sb.AppendLine("| DataTypeId | Type | Allowed number | MimeTypes | TaskId |");
-        sb.AppendLine("|------------|------|----------------|-----------|--------|");
+        sb.AppendLine("| DataTypeId | Type | Allowed number | MimeTypes | TaskIds |");
+        sb.AppendLine("|------------|------|----------------|-----------|---------|");
         foreach (var dataType in appMetadata.DataTypes)
         {
             sb.Append('|');
@@ -218,7 +218,7 @@ public class CustomOpenApiController : Controller
                 sb.Append('*');
             }
             sb.Append('|');
-            sb.Append(dataType.TaskId);
+            sb.AppendJoin(", ", dataType.TaskIds ?? []);
             sb.Append('|');
             sb.AppendLine();
         }
@@ -1106,7 +1106,7 @@ public class CustomOpenApiController : Controller
         const string libraryRefRegex =
             @"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$";
         var optionsIds = appMetadata
-            .DataTypes.Select(d => d.TaskId)
+            .DataTypes.SelectMany(d => d.TaskIds ?? [])
             .Distinct()
             .Select(taskId => _appResources.GetLayoutModelForFolder(taskId))
             .SelectMany(layout => layout?.AllComponents.OfType<OptionsComponent>().Select(oc => oc.OptionsId) ?? [])

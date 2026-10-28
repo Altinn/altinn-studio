@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `GET .../pdf/preview` now appears in the app's OpenAPI documentation for integrations that use the API directly. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Build checks compare the data types `process.bpmn` uses with `applicationmetadata.json` ([#21024](https://github.com/Altinn/altinn-studio/pull/21024)):
     - `ALTINNAPP1013`–`ALTINNAPP1015` (errors): missing, such as `ref-data-as-pdf`, or unable to hold what the task stores
-    - `ALTINNAPP1016`–`ALTINNAPP1019` (warnings): signing and payment data types that are not app-owned, a `taskId` that names no task, and unknown ids the app skips
+    - `ALTINNAPP1016`–`ALTINNAPP1019` (warnings): signing and payment data types that are not app-owned, a `taskIds` entry that names no task, and unknown ids the app skips
 - Build checks report task configuration in `process.bpmn` that the app rejects or ignores ([#21025](https://github.com/Altinn/altinn-studio/pull/21025)):
     - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
     - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
@@ -71,6 +71,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - `ServiceTaskSuccessResult`, `ServiceTaskFailedResult` and `ServiceTaskDeferredResult` are `SuccessfulServiceTaskResult`, `FailedServiceTaskResult` and `DeferredServiceTaskResult`
 - Breaking: the types a pipeline stage uses are named for stages, since process task lifecycle stages use them too: `ServiceTaskContext` is `StageContext`, `ServiceTaskStageResult` is `StageResult`, `ServiceTaskStageExchangeResult` is `StageExchangeResult`, `ServiceTaskStageAwaitNextReplyResult` is `StageAwaitNextReplyResult`, and `ServiceTaskAttempt` and `ServiceTaskWait` are `StageAttempt` and `StageWait`. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 - Breaking: `ServiceTaskPipelineBuilder` is `PipelineBuilder`, the one builder every pipeline is composed with. A service task's `Define` still ends it with `Finally` or `ConcludeOnReplies`; a task's `DefineStart`, `DefineEnd` and `DefineAbandon` end it with `Build()`, which refuses a pipeline that opened a mailbox. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
+- Breaking: a data type in `applicationmetadata.json` is bound to tasks with `taskIds`, so it can belong to several tasks; `taskId` is no longer read. `studioctl app upgrade v9` rewrites it, and build checks `ALTINNAPP0602` and `ALTINNAPP0603` report any that remain. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
+- Breaking: Altinn Storage refuses writes to a data type in tasks its `taskIds` does not list, including those from process hooks, service tasks and `IDataClient` calls with the app's own token. Add those tasks to `taskIds`. Task-start hooks run after the new task is saved, so they write in that task. After process end, only `autoDeleteOnProcessEnd` deletions are allowed. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 
 ### Fixed
 
@@ -89,6 +91,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Apps owned by `ttd` now act as `ttd`, not `digdir`, when they call Altinn as the service owner, so the `[org]` rules in `policy.xml` apply to them. A separate rule for `digdir` is no longer needed. ([#21474](https://github.com/Altinn/altinn-studio/pull/21474))
 - The app's OpenAPI documentation for `PUT .../process/next` now describes the response it returns, including `processTasks`, `workflow` and the actions on `currentTask`, instead of a top-level `actions` that never appears. ([#21553](https://github.com/Altinn/altinn-studio/pull/21553))
 - Delegated signing retries the step that failed when Access Management, Correspondence or Register is briefly unavailable, instead of leaving signees without signing rights or a notification. A retry does not notify anyone twice. ([#21182](https://github.com/Altinn/altinn-studio/pull/21182))
+- The app's OpenAPI document at `/{org}/{app}/v1/customOpenapi.json` no longer fails with a server error when a data type, such as `ref-data-as-pdf`, is not bound to a task. ([#21434](https://github.com/Altinn/altinn-studio/pull/21434))
 
 ### Removed
 

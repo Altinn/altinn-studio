@@ -145,7 +145,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -187,7 +187,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = mainClassRef },
                 },
@@ -266,7 +266,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -306,7 +306,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -322,6 +322,43 @@ public class CommonTaskInitializationTests
         Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
         appModelMock.Verify(x => x.Create(It.IsAny<string>()), Times.Never);
         mutatorMock.Verify(x => x.AddFormDataElement(It.IsAny<string>(), It.IsAny<object>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("Task_2", true)]
+    [InlineData("Task_3", true)]
+    [InlineData("Task_1", false)]
+    public async Task Execute_AutoCreatesDataElementsAtEveryTaskInTaskIds(string currentTaskId, bool created)
+    {
+        // Arrange
+        var instance = CreateInstance(currentTaskId);
+        var testData = new TestModel();
+
+        var appModelMock = new Mock<IAppModel>();
+        appModelMock.Setup(x => x.Create("App.Models.TestModel")).Returns(testData);
+
+        var appMetadata = new ApplicationMetadata("ttd/test-app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    TaskIds = ["Task_2", "Task_3"],
+                    AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
+                },
+            ],
+        };
+
+        var command = CreateCommand(appMetadata, appModelMock: appModelMock);
+        var (context, mutatorMock) = CreateContextWithMutator(instance, new CommonTaskInitializationPayload(null));
+
+        // Act
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        // Assert
+        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        mutatorMock.Verify(x => x.AddFormDataElement("model", testData), created ? Times.Once() : Times.Never());
     }
 
     [Fact]
@@ -345,7 +382,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],
@@ -393,7 +430,7 @@ public class CommonTaskInitializationTests
                 new DataType
                 {
                     Id = "model",
-                    TaskId = "Task_2", // Different task
+                    TaskIds = ["Task_2"], // Different task
                     AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = "App.Models.TestModel" },
                 },
             ],

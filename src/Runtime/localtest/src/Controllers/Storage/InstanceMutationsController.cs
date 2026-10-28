@@ -69,7 +69,8 @@ public class InstanceMutationsController(
     /// instance returns 404 before a possible delete-policy 403. A complete confirmation is subject
     /// to the <c>InstanceComplete</c> policy and is recorded for the calling organization only; an
     /// organization that already has a confirmation keeps the one it has, and the remaining
-    /// operations commit either way.
+    /// operations commit either way. A mutation that sets the process state cannot also create,
+    /// update, or delete data elements (400), so every data element write is made in the current task.
     /// </remarks>
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
     [HttpPost]
@@ -126,6 +127,20 @@ public class InstanceMutationsController(
         if (deleteInstanceRequestError is not null)
         {
             return deleteInstanceRequestError;
+        }
+
+        if (
+            mutationRequest.ProcessState?.State is not null
+            && (
+                mutationRequest.CreateDataElements?.Count > 0
+                || mutationRequest.UpdateDataElements?.Count > 0
+                || mutationRequest.DeleteDataElements?.Count > 0
+            )
+        )
+        {
+            return BadRequest(
+                "processState.state cannot be combined with data element creates, updates or deletes."
+            );
         }
 
         ActionResult instanceEventError = ValidateMutationInstanceEvents(
@@ -216,6 +231,22 @@ public class InstanceMutationsController(
             return NotFound($"Cannot find application {instance.AppId} in storage");
         }
 
+        Dictionary<Guid, DataElement> existingDataElements = (instance.Data ?? []).ToDictionary(
+            e => new Guid(e.Id),
+            e => e
+        );
+        ActionResult dataTypeAuthorizationError = await AuthorizeDataTypeWrites(
+            mutationRequest,
+            instance,
+            existingDataElements,
+            application,
+            cancellationToken
+        );
+        if (dataTypeAuthorizationError is not null)
+        {
+            return dataTypeAuthorizationError;
+        }
+
         if (mutationRequest.DeleteInstance is not null)
         {
             instance.Status ??= new InstanceStatus();
@@ -240,10 +271,6 @@ public class InstanceMutationsController(
             return ProcessStatusConflict(exception);
         }
 
-        Dictionary<Guid, DataElement> existingDataElements = (instance.Data ?? []).ToDictionary(
-            e => new Guid(e.Id),
-            e => e
-        );
         ActionResult duplicateDataElementIdError = ValidateDuplicateDataElementMutationIds(
             mutationRequest
         );
@@ -324,10 +351,10 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
+                if (dataType.GetTaskBindingConflict(instance, isDelete: false) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
-                    return Forbid();
+                    return Conflict(taskBindingConflict);
                 }
 
                 Guid dataElementId = Guid.NewGuid();
@@ -426,10 +453,10 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
+                if (dataType.GetTaskBindingConflict(instance, isDelete: false) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
-                    return Forbid();
+                    return Conflict(taskBindingConflict);
                 }
 
                 Dictionary<string, object> propertyList = BuildMetadataPropertyList(update);
@@ -576,10 +603,10 @@ public class InstanceMutationsController(
                     return dataTypeError;
                 }
 
-                if (await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true)
+                if (dataType.GetTaskBindingConflict(instance, isDelete: true) is { } taskBindingConflict)
                 {
                     await CleanupStagedBlobs();
-                    return Forbid();
+                    return Conflict(taskBindingConflict);
                 }
 
                 dataElement.LastChanged = mutationLastChanged;
@@ -1226,6 +1253,41 @@ public class InstanceMutationsController(
         );
 
         return authorizationResult.Succeeded ? null : Forbid();
+    }
+
+    // As Storage does, a caller who may not write one of the data types gets 403 before the deletion-period, process
+    // status and task-binding checks. Data types and data elements that don't resolve are refused per element later.
+    private async Task<ActionResult> AuthorizeDataTypeWrites(
+        InstanceMutationRequest request,
+        Instance instance,
+        Dictionary<Guid, DataElement> existingDataElements,
+        Application application,
+        CancellationToken cancellationToken
+    )
+    {
+        IEnumerable<string> dataTypeIds = (request.CreateDataElements ?? [])
+            .Select(create => create.DataType)
+            .Concat(
+                (request.UpdateDataElements ?? [])
+                    .Select(update => update.DataElementId)
+                    .Concat((request.DeleteDataElements ?? []).Select(delete => delete.DataElementId))
+                    .Select(dataElementId => existingDataElements.GetValueOrDefault(dataElementId)?.DataType)
+            )
+            .Distinct(StringComparer.Ordinal);
+
+        foreach (string dataTypeId in dataTypeIds)
+        {
+            DataType dataType = application.DataTypes.FirstOrDefault(e => e.Id == dataTypeId);
+            if (
+                dataType is not null
+                && await dataType.CanWrite(_authorizationService, instance, cancellationToken) is not true
+            )
+            {
+                return Forbid();
+            }
+        }
+
+        return null;
     }
 
     private static InstanceStatus BuildHardDeleteStatus(InstanceStatus currentStatus, DateTime now)

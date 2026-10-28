@@ -8795,6 +8795,15 @@
         },
         "additionalProperties": false
       },
+      "AppStatus": {
+        "enum": [
+          "Completed",
+          "Deprecated",
+          "UnderDevelopment",
+          "Withdrawn"
+        ],
+        "type": "string"
+      },
       "ApplicationLanguage": {
         "type": "object",
         "properties": {
@@ -8972,6 +8981,9 @@
               "$ref": "#/components/schemas/AppMetadataContactPoint"
             },
             "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppStatus"
           },
           "id": {
             "type": "string"
@@ -9701,6 +9713,14 @@
           },
           "taskId": {
             "type": "string",
+            "nullable": true,
+            "deprecated": true
+          },
+          "taskIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "maxSize": {

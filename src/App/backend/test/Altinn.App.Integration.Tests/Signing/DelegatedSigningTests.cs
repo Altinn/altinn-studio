@@ -198,8 +198,8 @@ public class DelegatedSigningTests(ITestOutputHelper output, AppFixtureClassFixt
     }
 
     /// <summary>
-    /// The signees are initialized before the transition commits, so the transition only lands on the signing task
-    /// once every step, retries included, has completed.
+    /// The signees are initialized inside the transition into the signing task, so process/next answers only once
+    /// every step, retries included, has completed.
     /// </summary>
     private static async Task ProcessNextInto(AppFixture fixture, SigningRun run, string taskId)
     {

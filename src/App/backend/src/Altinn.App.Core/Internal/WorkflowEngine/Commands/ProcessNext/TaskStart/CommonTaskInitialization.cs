@@ -1,3 +1,4 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -50,7 +51,7 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
 
         foreach (
             DataType dataType in applicationMetadata.DataTypes.Where(dt =>
-                dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true
+                dt.IsBoundToTask(taskId) && dt.AppLogic?.AutoCreate == true
             )
         )
         {

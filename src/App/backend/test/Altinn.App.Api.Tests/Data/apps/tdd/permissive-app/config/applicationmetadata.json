@@ -24,7 +24,7 @@
                 "autoCreate": true,
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema"
             },
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "allowedKeysForUserDefinedMetadata": [
                 "TheKey"
             ]
@@ -37,18 +37,18 @@
                 "orgno:405003309",
                 "invalidKey:value"
             ],
-            "taskId": "Task_1"
+            "taskIds": ["Task_1"]
         },
         {
             "id": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "maxSize": 1,
             "maxCount": 1,
             "minCount": 0
         },
         {
             "id": "specificFileType",
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "maxSize": 1,
             "maxCount": 1,
             "minCount": 0,
@@ -73,7 +73,7 @@
             "appLogic": {
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema"
             },
-            "taskId": "Task_1",
+            "taskIds": ["Task_1"],
             "allowedKeysForUserDefinedMetadata": [
                 "TheKey"
             ]
@@ -88,7 +88,7 @@
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema",
                 "disallowUserCreate": true
             },
-            "taskId": "Task_1"
+            "taskIds": ["Task_1"]
         },
         {
             "id": "disallowUserDelete",
@@ -100,7 +100,7 @@
                 "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.permissive_app.models.Skjema",
                 "diallowUserDelete": true
             },
-            "taskId": "Task_1"
+            "taskIds": ["Task_1"]
         }
     ]
 }

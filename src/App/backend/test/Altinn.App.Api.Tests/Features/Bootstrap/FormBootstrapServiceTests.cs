@@ -952,6 +952,69 @@ public class FormBootstrapServiceTests
         );
     }
 
+    [Theory]
+    // Storage refuses a change outside the data type's tasks, whoever makes it, the instance's service owner
+    // included, and every change to a locked element.
+    [InlineData(null, new[] { "Task_1" }, false, true)]
+    [InlineData("ttd", new[] { "Task_1" }, false, true)]
+    [InlineData(null, new[] { "Task_2" }, false, false)]
+    [InlineData("ttd", new[] { "Task_2" }, false, false)]
+    [InlineData(null, null, true, false)]
+    public async Task GetInstanceFormBootstrap_PersistsReadHookChangesOnlyWhereStorageAcceptsThem(
+        string? callerOrg,
+        string[]? taskIds,
+        bool locked,
+        bool persisted
+    )
+    {
+        var instance = CreateTestInstance("Task_1", locked: locked);
+        instance.Org = "ttd";
+        var appMetadata = CreateAppMetadata("model");
+        appMetadata.DataTypes.Single(dataType => dataType.Id == "model").TaskIds = taskIds?.ToList();
+
+        SetupMocks(appMetadata);
+        SetupMutatingReadHook();
+        _authenticationContext
+            .Setup(x => x.Current)
+            .Returns(
+                callerOrg is null
+                    ? TestAuthentication.GetUserAuthentication()
+                    : TestAuthentication.GetServiceOwnerAuthentication(org: callerOrg)
+            );
+        _mutationClient
+            .Setup(x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new InstanceMutationWithStorageMetadata(instance, StorageVersionMetadata.Empty));
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("changed", Assert.IsType<DummyModel>(result.DataModels["model"].InitialData).Name);
+        _mutationClient.Verify(
+            x =>
+                x.CommitInstanceMutationWithStorageMetadata(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageInstanceMutationRequest>(),
+                    It.IsAny<IReadOnlyDictionary<string, StorageInstanceMutationContent>>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<StorageWritePreconditions?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            persisted ? Times.Once() : Times.Never()
+        );
+    }
+
     [Fact]
     public async Task GetInstanceFormBootstrap_WhenAcquireWinsReadHookPersistenceRace_IgnoresTypedStatusConflict()
     {

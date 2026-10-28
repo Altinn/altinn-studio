@@ -1,3 +1,4 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
@@ -325,7 +326,7 @@ public static class IInstanceDataAccessorExtensions
         foreach (var dataElement in accessor.Instance.Data)
         {
             var dataType = accessor.GetDataType(dataElement.DataType);
-            if (taskId.Equals(dataType?.TaskId, StringComparison.Ordinal))
+            if (dataType?.IsBoundToTask(taskId) is true)
             {
                 yield return (dataType, dataElement);
             }
@@ -360,7 +361,7 @@ public static class IInstanceDataAccessorExtensions
         foreach (var dataElement in accessor.Instance.Data)
         {
             var dataType = accessor.GetDataType(dataElement.DataType);
-            if (dataType?.AppLogic?.ClassRef is not null && taskId.Equals(dataType.TaskId, StringComparison.Ordinal))
+            if (dataType?.AppLogic?.ClassRef is not null && dataType.IsBoundToTask(taskId))
             {
                 yield return (dataType, dataElement);
             }

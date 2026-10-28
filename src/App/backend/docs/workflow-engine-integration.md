@@ -19,8 +19,12 @@ settle between the two. Instantiation runs as one workflow that starts with the 
 [`WorkflowCommandSet`](../src/Altinn.App.Core/Internal/WorkflowEngine/WorkflowCommandSet.cs) decides the steps, on
 these rules:
 
-- `CommitProcessState` is the commit boundary. The steps before it move the process state in memory, so the task-start
-  steps already read the target task.
+- `CommitProcessState` is the commit boundary. It runs after the task-end or abandon steps and before the task-start
+  steps, so each group runs while Storage holds the task it belongs to. Storage checks a data type's `taskIds` against
+  the stored current task, with no exception for a process transition, so a task-end step can write the leaving task's
+  data and a task-start step the entering task's, and neither can write data bound to another task.
+- The process-end steps run after the commit. The one write made with no current task is `DeleteDataOnProcessEnd`,
+  which Storage allows because the process has ended and the data type sets `autoDeleteOnProcessEnd`.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
 - `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
@@ -82,8 +86,6 @@ produce different bytes. On a replay the app rebuilds its state from Storage and
 attempt wins. A callback with nothing to save skips Storage, which is safe because the same incoming state leads to
 the same decision.
 
-- Between the in-memory move and the commit, Storage still has the task being left. Saves in that window keep the
-  in-memory process state.
 - Storage allows standalone data value patches and read status updates while the instance is processing, without
   changing its versions. A patch changes only the keys it sends, so writers that need more than last-writer-wins own
   separate keys. Values that other systems set, such as `dialog.id`, reach the callback state with the next save.
@@ -92,9 +94,7 @@ the same decision.
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)
-lists. Storage always lets the app owner commit a process transition. Task-start steps save while Storage still has
-the old task, which works because the service owner's `write` right does not depend on the task. If Storage ever
-authorizes workflow saves as the end user, the new task must be committed before the task-start steps run.
+lists. Storage always lets the app owner commit a process transition.
 
 The gateways also run as the service owner, through the data accessor they are given. A gateway that calls
 `IDataClient` directly acts as the caller, and the accessor does not see what it changes.
@@ -152,10 +152,11 @@ command. The engine's technical guide defines
 [primary and auxiliary workflows](../../../Runtime/workflow-engine/docs/technical-guide.md#primary-and-auxiliary-workflows),
 and the [ADR](../../../../docs/adr/2026-07-10-workflow-engine-noncritical-side-effects.md) records why.
 
-- They are enqueued in one atomic batch: right after the commit for a task transition, and after the release for a
-  process end, so `completed` is announced only for a finished process.
-- They exist only for a committed transition, carry their own state, and run independently of the primary workflow.
-  The `process/next` wait, the next transition and status reads ignore them.
+- They are enqueued in one atomic batch: right after the task-start steps for a task transition, and after the
+  release for a process end, so `completed` is announced only for a finished process.
+- They exist only once the transition has committed and its task has started; a failure before that schedules nothing
+  until a resume gets past it. They carry their own state, and run independently of the primary workflow. The
+  `process/next` wait, the next transition and status reads ignore them.
 - Nothing orders them. The Events component delivers at least once and in any order anyway, so consumers that mirror
   process state from Altinn events must handle that. An auxiliary command that must run after another needs an
   explicit dependency.

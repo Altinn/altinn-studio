@@ -90,7 +90,7 @@ public class TestScenariosData : IEnumerable<object[]>
             {
                 DataTypes = new List<DataType>
                 {
-                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "Task_1" },
+                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskIds = ["Task_1"] },
                 },
             },
             ReceivedValidationIssues = new List<ValidationIssueWithSource>(),
@@ -137,7 +137,7 @@ public class TestScenariosData : IEnumerable<object[]>
             {
                 DataTypes = new List<DataType>
                 {
-                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "Task_1" },
+                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskIds = ["Task_1"] },
                 },
             },
             ReceivedValidationIssues = new List<ValidationIssueWithSource>
@@ -246,6 +246,91 @@ public class ValidationControllerValidateDataTests
             );
             Assert.Equal(testScenario.ExpectedExceptionMessage, exception.Message);
         }
+    }
+
+    [Theory]
+    // The current task is Task_2.
+    [InlineData(new[] { "Task_2" }, "Task_2", null)]
+    [InlineData(new[] { "Task_1", "Task_2" }, "Task_2", null)]
+    [InlineData(new[] { "Task_1" }, "Task_1", "Task_1")]
+    [InlineData(new[] { "Task_1", "Task_3" }, "Task_1", "Task_1, Task_3")]
+    // Task IDs are case-sensitive, as in Storage.
+    [InlineData(new[] { "task_2" }, "task_2", "task_2")]
+    // A data type bound to no task is validated at the current task.
+    [InlineData(null, "Task_2", null)]
+    [InlineData(new string[0], "Task_2", null)]
+    public async Task ValidateData_ValidatesAtATaskTheDataTypeBelongsTo(
+        string[]? taskIds,
+        string expectedValidationTaskId,
+        string? expectedWrongTaskWarningFor
+    )
+    {
+        // Arrange
+        const string dataElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd";
+        var instanceId = Guid.NewGuid();
+        var testScenario = new ValidateDataTestScenario("validates at a task the data type belongs to")
+        {
+            InstanceId = instanceId,
+            DataGuid = Guid.Parse(dataElementId),
+            ReceivedInstance = new Instance
+            {
+                AppId = $"{Org}/{App}",
+                Org = Org,
+                Id = $"{InstanceOwnerId}/{instanceId}",
+                InstanceOwner = new() { PartyId = InstanceOwnerId.ToString() },
+                Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_2" } },
+                Data = [new DataElement { Id = dataElementId, DataType = "model" }],
+            },
+            ReceivedApplication = new ApplicationMetadata($"{Org}/{App}")
+            {
+                DataTypes = [new DataType { Id = "model", TaskIds = taskIds?.ToList() }],
+            },
+        };
+        SetupMocks(App, Org, InstanceOwnerId, testScenario);
+        var validatorIssue = new ValidationIssueWithSource
+        {
+            Code = "validator",
+            Description = "validator",
+            DataElementId = dataElementId,
+            Severity = ValidationIssueSeverity.Error,
+            Source = "source",
+            NoIncrementalUpdates = false,
+        };
+        _validationMock
+            .Setup(v =>
+                v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), expectedValidationTaskId, null, true, null)
+            )
+            .ReturnsAsync([validatorIssue]);
+        await using var sp = _services.BuildStrictServiceProvider();
+        var validateController = sp.GetRequiredService<ValidateController>();
+
+        // Act
+        var result = await validateController.ValidateData(
+            Org,
+            App,
+            InstanceOwnerId,
+            instanceId,
+            Guid.Parse(dataElementId)
+        );
+
+        // Assert
+        var issues = Assert.IsType<List<ValidationIssueWithSource>>(Assert.IsType<OkObjectResult>(result).Value);
+        if (expectedWrongTaskWarningFor is null)
+        {
+            Assert.Equal([validatorIssue], issues);
+            return;
+        }
+
+        Assert.Equal(2, issues.Count);
+        var warning = issues[0];
+        Assert.Equal(ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, warning.Code);
+        Assert.Equal(ValidationIssueSeverity.Warning, warning.Severity);
+        Assert.Equal(
+            $"Data element for task {expectedWrongTaskWarningFor} validated while currentTask is Task_2",
+            warning.Description
+        );
+        Assert.Equal([expectedWrongTaskWarningFor, "Task_2"], warning.CustomTextParams);
+        Assert.Same(validatorIssue, issues[1]);
     }
 
     private void SetupMocks(string app, string org, int instanceOwnerId, ValidateDataTestScenario testScenario)

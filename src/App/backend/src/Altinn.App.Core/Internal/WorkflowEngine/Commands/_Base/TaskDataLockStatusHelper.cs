@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -17,7 +18,7 @@ internal static class TaskDataLockStatusHelper
     {
         ApplicationMetadata applicationMetadata = appMetadata.ApplicationMetadata;
         HashSet<string> connectedDataTypeIds = applicationMetadata
-            .DataTypes.Where(dataType => dataType.TaskId == taskId)
+            .DataTypes.Where(dataType => dataType.IsBoundToTask(taskId))
             .Select(dataType => dataType.Id)
             .ToHashSet(StringComparer.Ordinal);
 

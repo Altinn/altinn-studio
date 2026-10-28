@@ -318,7 +318,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
                     MaxCount = 1,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -893,7 +893,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -1500,63 +1500,6 @@ public sealed class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
-    public async Task SaveWorkflowOwnedAggregate_DataSaveBeforeProcessCommit_PreservesAdvancedCallbackProcessSnapshot()
-    {
-        await using var setup = await BinaryDataUnitOfWorkSetup.Create(
-            "initial"u8.ToArray(),
-            new StorageVersionMetadata(InstanceVersion: 7, ProcessStateVersion: 3),
-            seedStorageVersions: true,
-            blobVersionId: BlobVersion(1)
-        );
-        var (storedInstance, _) = setup.Services.Storage.GetInstanceAndData(
-            setup.InstanceOwnerPartyId,
-            setup.InstanceGuid
-        );
-        storedInstance.Process!.Status = ProcessStatus.Processing;
-        storedInstance.Process.CurrentTask = new ProcessElementInfo { ElementId = "Task_1" };
-        var ended = new DateTime(2026, 7, 24, 8, 30, 0, DateTimeKind.Utc);
-        var advancedProcessSnapshot = new ProcessState
-        {
-            Status = ProcessStatus.Processing,
-            Ended = ended,
-            EndEvent = "EndEvent_1",
-            CurrentTask = null,
-        };
-        setup.DataMutator.Instance.Process = advancedProcessSnapshot;
-        setup.DataMutator.UpdateBinaryDataElement(
-            setup.DataElement,
-            setup.DataElement.ContentType!,
-            "updated-before-process-commit"u8.ToArray()
-        );
-
-        WorkflowAggregateSaveOutcome outcome = await setup.DataMutator.SaveWorkflowOwnedAggregate(
-            setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false),
-            "workflow-pre-commit-data-save",
-            CancellationToken.None
-        );
-
-        RequestResponse request = Assert.Single(
-            setup.Services.Storage.RequestsResponses,
-            request =>
-                request.RequestMethod == HttpMethod.Post
-                && request.RequestUrl?.AbsolutePath.EndsWith("/mutations", StringComparison.Ordinal) == true
-        );
-        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
-        Assert.Equal(WorkflowAggregateSaveOutcome.Saved, outcome);
-        Assert.Null(mutation.ProcessState);
-        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
-        Assert.Same(advancedProcessSnapshot, setup.DataMutator.Instance.Process);
-        Assert.Equal(ended, setup.DataMutator.Instance.Process?.Ended);
-        Assert.Equal("EndEvent_1", setup.DataMutator.Instance.Process?.EndEvent);
-        Assert.Null(setup.DataMutator.Instance.Process?.CurrentTask);
-        Assert.Equal(ProcessStatus.Processing, setup.DataMutator.Instance.Process?.Status);
-        Assert.Equal("Task_1", storedInstance.Process?.CurrentTask?.ElementId);
-        Assert.Null(storedInstance.Process?.Ended);
-        Assert.Null(storedInstance.Process?.EndEvent);
-        Assert.Equal(ProcessStatus.Processing, storedInstance.Process?.Status);
-    }
-
-    [Fact]
     public async Task SaveWorkflowOwnedAggregate_WithStagedReleaseOnly_SavesAndClearsPendingRelease()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create(
@@ -2077,7 +2020,7 @@ public sealed class InstanceDataUnitOfWorkTests
         var committedVersions = new StorageVersionMetadata(InstanceVersion: 9, ProcessStateVersion: 5);
         var appMetadata = new ApplicationMetadata(instance.AppId)
         {
-            DataTypes = [new DataType { Id = "task-data", TaskId = "Task_1" }],
+            DataTypes = [new DataType { Id = "task-data", TaskIds = ["Task_1"] }],
         };
         var dataClientMock = new Mock<IDataClientWithStorageMetadata>(MockBehavior.Strict);
         StorageInstanceMutationRequest? capturedMutation = null;
@@ -2215,7 +2158,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "task-data",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -2434,7 +2377,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = "payment",
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = ["application/json"],
                 },
             ],
@@ -3658,7 +3601,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 new DataType
                 {
                     Id = dataElement.DataType,
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                     AllowedContentTypes = [dataElement.ContentType],
                 },
             ],
@@ -3779,7 +3722,7 @@ public sealed class InstanceDataUnitOfWorkTests
         new()
         {
             Id = id,
-            TaskId = "Task_1",
+            TaskIds = ["Task_1"],
             AllowedContentTypes = ["application/json"],
         };
 
@@ -4072,7 +4015,7 @@ public sealed class InstanceDataUnitOfWorkTests
                 {
                     Id = "payment",
                     AllowedContentTypes = ["application/json"],
-                    TaskId = "Task_1",
+                    TaskIds = ["Task_1"],
                 },
             ],
         };
@@ -4182,7 +4125,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = dataTypeId,
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
             services.AddDataType(
@@ -4191,7 +4134,7 @@ public sealed class InstanceDataUnitOfWorkTests
                     Id = "receipt",
                     AllowedContentTypes = [contentType],
                     MaxCount = 1,
-                    TaskId = taskId,
+                    TaskIds = [taskId],
                 }
             );
 

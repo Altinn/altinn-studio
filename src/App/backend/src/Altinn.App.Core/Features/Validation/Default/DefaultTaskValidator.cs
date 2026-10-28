@@ -1,3 +1,4 @@
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -28,7 +29,7 @@ internal sealed class DefaultTaskValidator : ITaskValidator //TODO: Implement IV
         var messages = new List<ValidationIssue>();
         var application = _appMetadata.ApplicationMetadata;
 
-        foreach (var dataType in application.DataTypes.Where(et => et.TaskId == taskId))
+        foreach (var dataType in application.DataTypes.Where(et => et.IsBoundToTask(taskId)))
         {
             List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
 

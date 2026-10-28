@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Features.Validation.Wrappers;
@@ -80,7 +81,7 @@ internal sealed class ValidatorFactory : IValidatorFactory
                         $"DataType {dataElementValidator.DataType} from {dataElementValidator.ValidationSource} not found in dataTypes from applicationmetadata"
                     );
                 }
-                if (dataType.TaskId == taskId)
+                if (dataType.IsBoundToTask(taskId))
                 {
                     yield return dataElementValidator;
                 }
@@ -106,7 +107,7 @@ internal sealed class ValidatorFactory : IValidatorFactory
                         $"DataType {formDataValidator.DataType} from {formDataValidator.ValidationSource} not found in dataTypes from applicationmetadata"
                     );
                 }
-                if (dataType.TaskId == taskId)
+                if (dataType.IsBoundToTask(taskId))
                 {
                     yield return formDataValidator;
                 }
