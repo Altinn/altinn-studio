@@ -324,8 +324,6 @@ dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 volumeMounts:
   - name: altinn-repo-storage
     mountPath: "/AltinnCore/Repos"
-  - name: altinn-appsettings
-    mountPath: "/app/altinn-appsettings"
   - name: datakeys
     mountPath: /mnt/keys
   - name: accesstoken
@@ -335,9 +333,6 @@ volumes:
   - name: altinn-repo-storage
     persistentVolumeClaim:
       claimName: altinn-storage-repo-premium-volume-claim
-  - name: altinn-appsettings
-    secret:
-      secretName: altinn-appsettings-secret
   - name: accesstoken
     secret:
       secretName: accesstoken
