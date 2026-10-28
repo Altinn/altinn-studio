@@ -43,3 +43,6 @@ ALTINNAPP1020 | Process | Error | Task configuration is missing a required setti
 ALTINNAPP1021 | Process | Warning | Task configuration contains an element the app ignores
 ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the app cannot use
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
+ALTINNAPP1027 | Process | Error | More than one task hook of a kind runs for a task
+ALTINNAPP1028 | Process | Error | More than one IOnProcessEndedHandler is registered
+ALTINNAPP1029 | Process | Warning | Task hook compares the task id with a task that does not exist

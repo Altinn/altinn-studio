@@ -11,6 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
+- Build checks report process hooks the app does not run together: `ALTINNAPP1027` (error) two registered task hooks of a kind that run for the same task in `process.bpmn`, and `ALTINNAPP1028` (error) more than one `IOnProcessEndedHandler`. `ALTINNAPP1029` (warning) reports a `ShouldRunForTask` that compares the task id with an id that is not a task.
 - Pipeline steps are named after the method they run, for Studio's admin panel: a lifecycle stage or service task step composed from `StoreReceipt` shows as "Store receipt". A lambda leaves the step unnamed. Names are display only and change nothing about how a step runs. ([#21580](https://github.com/Altinn/altinn-studio/pull/21580))
 - PDF preview in the app developer tools can now show a PDF or subform PDF service task before the instance reaches it, including individual subforms. `GET .../pdf/preview` accepts optional `taskId` and `language`; subform PDF service tasks require `dataElementId`. ([Altinn/app-lib-dotnet#1659](https://github.com/Altinn/app-lib-dotnet/issues/1659))
 - `GET .../pdf/preview` now appears in the app's OpenAPI documentation for integrations that use the API directly. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))

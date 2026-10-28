@@ -492,38 +492,10 @@ internal static class ProcessDataTypeUtils
                     FileLocationHelper.GetLocation(metadataFile, dataType.TaskIdStart, dataType.TaskIdEnd),
                     dataType.Id,
                     taskId,
-                    WhyNotATask(process, taskId)
+                    ProcessFile.WhyNotATask(process, taskId)
                 )
             );
         }
-    }
-
-    private static string WhyNotATask(XElement process, string taskId)
-    {
-        if (taskId.Length == 0)
-        {
-            return "no task has an empty id";
-        }
-
-        var other = process.Descendants().FirstOrDefault(e => e.Attribute("id")?.Value == taskId);
-        if (other is null || other.Name.Namespace != ProcessFile.Bpmn)
-        {
-            return "process.bpmn has no task with that id";
-        }
-
-        // The runtime reads only the elements directly in the process (Process in Altinn.App.Core), and every task
-        // there is a task id already, so this one is nested.
-        if (
-            (other.Name == ProcessFile.Task || other.Name == ProcessFile.ServiceTask)
-            && other.Parent is { Name: var parent }
-        )
-        {
-            var parentName = parent.Namespace == ProcessFile.Bpmn ? $"bpmn:{parent.LocalName}" : parent.LocalName;
-            return $"'{taskId}' is a <bpmn:{other.Name.LocalName}> inside a <{parentName}> in process.bpmn, which the "
-                + "app does not run";
-        }
-
-        return $"'{taskId}' is a <bpmn:{other.Name.LocalName}> in process.bpmn, not a task";
     }
 
     /// <summary>

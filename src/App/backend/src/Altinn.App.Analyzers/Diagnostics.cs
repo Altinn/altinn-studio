@@ -387,6 +387,42 @@ public static class Diagnostics
                 + "condition, so the app does not start. Remove the <bpmn:conditionExpression> from '{1}', or remove "
                 + "default=\"{1}\" from the gateway so the condition is evaluated."
         );
+
+        // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which also covers the hooks
+        // this rule cannot read; see ProcessHookAnalyzer for which those are. The runtime skips a hook it cannot create
+        // at startup, and then only the hook step finds the overlap. '{2}' lists the implementations.
+        public static readonly DiagnosticDescriptor TaskHooksOverlap = Error(
+            "ALTINNAPP1027",
+            Category.Process,
+            "More than one task hook of a kind runs for a task",
+            "Task '{0}' has more than one {1} implementation that runs for it: {2}. Only one may run for a task, so "
+                + "the app fails to start, or fails when the hook runs. Combine them, or change ShouldRunForTask so "
+                + "that only one returns true for '{0}'.",
+            WellKnownDiagnosticTags.CompilationEnd
+        );
+
+        // Worded like the runtime backstop in ProcessTaskConfigurationValidationService, which counts registrations
+        // without creating them, so the app never starts.
+        public static readonly DiagnosticDescriptor SeveralProcessEndedHooks = Error(
+            "ALTINNAPP1028",
+            Category.Process,
+            "More than one IOnProcessEndedHandler is registered",
+            "More than one IOnProcessEndedHandler implementation is registered: {0}. Only one may run when the "
+                + "process ends, so the app does not start. Register only one.",
+            WellKnownDiagnosticTags.CompilationEnd
+        );
+
+        // A warning, like ALTINNAPP1017, since comparing with a task that was removed is legitimate while it is
+        // cleaned up. '{2}' says why the id is not a task.
+        public static readonly DiagnosticDescriptor TaskHookUnknownTask = Create(
+            "ALTINNAPP1029",
+            "Task hook compares the task id with a task that does not exist",
+            "ShouldRunForTask in '{0}' compares the task id with '{1}', but {2}, so the comparison never matches. "
+                + "Correct the id, or remove the comparison.",
+            Category.Process,
+            DiagnosticSeverity.Warning,
+            WellKnownDiagnosticTags.CompilationEnd
+        );
     }
 
     internal static class Deprecations

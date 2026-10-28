@@ -94,6 +94,47 @@ internal static class ProcessFile
     }
 
     /// <summary>
+    /// The ids of the tasks the runtime reads: the <c>bpmn:task</c> and <c>bpmn:serviceTask</c> elements directly in
+    /// the process (Process in Altinn.App.Core), in document order.
+    /// </summary>
+    internal static IEnumerable<string> TaskIds(XElement process) =>
+        process
+            .Elements()
+            .Where(element => element.Name == Task || element.Name == ServiceTask)
+            .Select(element => element.Attribute("id")?.Value)
+            .OfType<string>()
+            .Where(id => id.Length > 0);
+
+    /// <summary>
+    /// Completes a sentence that says a reference names <paramref name="taskId"/>, which is not one of the
+    /// <see cref="TaskIds"/>: what the id is instead.
+    /// </summary>
+    internal static string WhyNotATask(XElement process, string taskId)
+    {
+        if (taskId.Length == 0)
+        {
+            return "no task has an empty id";
+        }
+
+        var other = process.Descendants().FirstOrDefault(e => e.Attribute("id")?.Value == taskId);
+        if (other is null || other.Name.Namespace != Bpmn)
+        {
+            return "process.bpmn has no task with that id";
+        }
+
+        // The runtime reads only the elements directly in the process, and every task there is a task id already, so
+        // this one is nested.
+        if ((other.Name == Task || other.Name == ServiceTask) && other.Parent is { Name: var parent })
+        {
+            var parentName = parent.Namespace == Bpmn ? $"bpmn:{parent.LocalName}" : parent.LocalName;
+            return $"'{taskId}' is a <bpmn:{other.Name.LocalName}> inside a <{parentName}> in process.bpmn, which the "
+                + "app does not run";
+        }
+
+        return $"'{taskId}' is a <bpmn:{other.Name.LocalName}> in process.bpmn, not a task";
+    }
+
+    /// <summary>
     /// The task an <c>altinn:taskType</c> belongs to: the nearest enclosing <c>bpmn:task</c> or
     /// <c>bpmn:serviceTask</c>. Those are the only two elements that can carry a task extension (see
     /// <c>Process.cs</c> in Altinn.App.Core, which models the process's element set).
