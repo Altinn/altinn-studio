@@ -27,18 +27,7 @@ public static class AltinnStudioOpenTelemetry
     {
         /// <summary>
         /// Registers OpenTelemetry with what every Studio service shares, and returns the builder for the service's own
-        /// sources, meters and instrumentation. The shared part is:
-        /// <list type="bullet">
-        ///   <item>
-        ///     The resource's <c>service.instance.id</c>, a UUID per process that <c>OTEL_RESOURCE_ATTRIBUTES</c> can
-        ///     override, and its <c>service.version</c>, the informational version of
-        ///     <paramref name="serviceAssembly"/>, which the deployment can't override.
-        ///   </item>
-        ///   <item>The <c>altinn.workload.start_time</c> gauge (<see cref="Workload"/>).</item>
-        ///   <item>ASP.NET Core and HttpClient traces and metrics, with requests under <c>/health</c> left out of traces.</item>
-        ///   <item>.NET runtime metrics.</item>
-        ///   <item>OTLP export of all three signals when the deployment sets an endpoint, with logs only at Warning and above.</item>
-        /// </list>
+        /// sources, meters and instrumentation.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -47,6 +36,10 @@ public static class AltinnStudioOpenTelemetry
         /// endpoint. The per-signal endpoint variables don't turn exporting on. The exporters read the endpoint, the
         /// protocol and the other <c>OTEL_*</c> settings themselves, and the deployment sets the export interval with
         /// <c>OTEL_METRIC_EXPORT_INTERVAL</c>.
+        /// </para>
+        /// <para>
+        /// <c>OTEL_SERVICE_NAME</c> and <c>OTEL_RESOURCE_ATTRIBUTES</c> take precedence over the code's defaults, except for
+        /// <c>service.version</c>, which describes the binary.
         /// </para>
         /// <para>
         /// Exceptions aren't recorded as span events. Set <c>error.type</c> on the span and log the exception at Error.
