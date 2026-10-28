@@ -12,9 +12,8 @@ import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiC
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PdfWrapper, rendersAutomaticPdf } from 'src/features/pdf/PdfWrapper';
+import { getPdfSource, PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import { ProcessTaskType } from 'src/types';
 import { ELEMENT_TYPE } from 'src/types/shared';
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IProcess } from 'src/types/shared';
@@ -234,7 +233,7 @@ describe('PDFWrapper', () => {
   });
 });
 
-describe('rendersAutomaticPdf', () => {
+describe('getPdfSource', () => {
   const pdfTask = getProcessDataMock((process) => {
     process.processTasks = [
       { elementId: 'Task_1', altinnTaskType: 'data', elementType: ELEMENT_TYPE.TASK },
@@ -249,26 +248,26 @@ describe('rendersAutomaticPdf', () => {
     });
   }
 
-  it.each([
-    // Whatever the task counts as: a folder with an empty pages.order may count as having no page
-    [ProcessTaskType.Data],
-    [ProcessTaskType.Service],
-  ])('decides a PDF service task by its pdfLayoutName when it counts as %s', (taskType) => {
-    expect(rendersAutomaticPdf(pdfTask, 'Task_PDF', taskType)).toBe(true);
+  it("decides a PDF service task by its folder's pdfLayoutName", () => {
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
 
     setFolder('Task_PDF');
-    expect(rendersAutomaticPdf(pdfTask, 'Task_PDF', taskType)).toBe(true);
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
 
     setFolder('Task_PDF', ' ');
-    expect(rendersAutomaticPdf(pdfTask, 'Task_PDF', taskType)).toBe(true);
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('automatic');
 
     setFolder('Task_PDF', 'PdfLayout');
-    expect(rendersAutomaticPdf(pdfTask, 'Task_PDF', taskType)).toBe(false);
+    expect(getPdfSource(pdfTask, 'Task_PDF')).toBe('layout');
   });
 
-  it('decides other tasks by their task type', () => {
-    expect(rendersAutomaticPdf(pdfTask, 'Task_1', ProcessTaskType.Data)).toBe(false);
-    expect(rendersAutomaticPdf(pdfTask, 'Task_Subform', ProcessTaskType.Data)).toBe(false);
-    expect(rendersAutomaticPdf(pdfTask, 'Task_Subform', ProcessTaskType.Service)).toBe(true);
+  it('gives other service tasks the automatic PDF only without a UI folder', () => {
+    expect(getPdfSource(pdfTask, 'Task_Subform')).toBe('automatic');
+    setFolder('Task_Subform');
+    expect(getPdfSource(pdfTask, 'Task_Subform')).toBe('layout');
+  });
+
+  it('draws any other task from its UI folder', () => {
+    expect(getPdfSource(pdfTask, 'Task_1')).toBe('layout');
   });
 });
