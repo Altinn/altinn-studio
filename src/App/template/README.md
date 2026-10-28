@@ -15,7 +15,8 @@ configuration, is shared instead. MSBuild and CSharpier search upwards from the 
 a new app.
 
 `v9` started as a copy of `v8`, migrated once with `studioctl app upgrade v9`. Changes to `v8` are not carried over.
-Each `<id>/global.json` pins the SDK that the template's Dockerfile builds with, so building `v8` needs a .NET 10 SDK.
+Each `<id>/global.json` pins the SDK for builds in the template folder, so building `v8` needs a .NET 10 SDK.
+The Dockerfile builds with the SDK in its image.
 
 To add a version, copy a folder and change its `apptemplate.json`, `App.csproj` and `global.json`. Then add its ID
 wherever the existing IDs appear: the template workflows, `renovate.json` and the Designer Dockerfile. Without the
