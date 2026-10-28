@@ -349,6 +349,7 @@ window.toggleRetried = () => {
     if (state.queryLoaded) loadQuery();
 };
 
+
 // Role checkboxes (query only)
 window.toggleRole = () => {
     syncUrl();
