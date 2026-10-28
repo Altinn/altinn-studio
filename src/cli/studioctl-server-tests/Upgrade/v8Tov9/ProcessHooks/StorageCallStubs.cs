@@ -62,6 +62,7 @@ internal static class StorageCallStubs
             public class InstanceOwner
             {
                 public string PartyId { get; set; } = "";
+                public string? OrganisationNumber { get; set; }
             }
 
             public class ProcessState
@@ -121,6 +122,17 @@ internal static class StorageCallStubs
         namespace Altinn.App.Core.Models
         {
             using Altinn.Platform.Storage.Interface.Models;
+
+            public class AppIdentifier
+            {
+                public string Org { get; } = "";
+                public string App { get; } = "";
+            }
+
+            public class ApplicationMetadata
+            {
+                public AppIdentifier AppIdentifier { get; } = new();
+            }
 
             public class InstanceIdentifier
             {
@@ -184,6 +196,16 @@ internal static class StorageCallStubs
             public interface IAuthenticationContext
             {
                 Authenticated Current { get; }
+            }
+        }
+
+        namespace Altinn.App.Core.Internal.App
+        {
+            using Altinn.App.Core.Models;
+
+            public interface IAppMetadata
+            {
+                Task<ApplicationMetadata> GetApplicationMetadata();
             }
         }
 

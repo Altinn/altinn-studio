@@ -21,6 +21,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - `studioctl env up --monitoring` shows the workflow engine's traces, metrics and logs, as service `workflow-engine-app`, and adds a Workflow Engine dashboard to Grafana.
 - `studioctl doctor` shows how much disk space studioctl uses for logs, localtest data and the studioctl server, and in total. `studioctl env reset` deletes the localtest data. ([#21447](https://github.com/Altinn/altinn-studio/pull/21447))
 - `studioctl app upgrade v9` removes code in `ProcessDataRead` that unlocks, writes and locks the form being read, which v9 refuses while it creates the payment receipt. Changes the method makes to the form are still shown, but no longer saved. ([#21480](https://github.com/Altinn/altinn-studio/pull/21480))
+- `studioctl app upgrade v9` replaces an `IProcessTaskStart` class that only unlocks an earlier task's form when a later data task starts with that task in the form's `taskIds`, unless the form creates a PDF; for other tasks, such as signing, it explains the choice. It replaces an `IProcessEnd` class that only deletes app-owned data with `autoDeleteOnProcessEnd` on that data type. ([#21531](https://github.com/Altinn/altinn-studio/pull/21531))
 
 ### Changed
 
