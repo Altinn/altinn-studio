@@ -365,13 +365,14 @@ public class UiFoldersService : IUiFoldersService
         TaskType? taskType
     )
     {
-        if (taskType is TaskType.Pdf or TaskType.SubformPdf)
+        if (taskType == TaskType.Pdf)
         {
-            await CreateServiceTaskLayoutSetFiles(
-                altinnAppGitRepository,
-                newLayoutSet,
-                withPdfLayout: taskType == TaskType.Pdf
-            );
+            await CreatePdfTaskLayoutSetFiles(altinnAppGitRepository, newLayoutSet);
+            return;
+        }
+        if (taskType == TaskType.SubformPdf)
+        {
+            await CreateSubformPdfTaskLayoutSetFiles(altinnAppGitRepository, newLayoutSet);
             return;
         }
 
@@ -388,19 +389,24 @@ public class UiFoldersService : IUiFoldersService
         );
         await altinnAppGitRepository.SaveLayoutSettings(
             newLayoutSet.Id,
-            BuildLayoutSettings(altinnAppGitRepository, newLayoutSet)
+            BuildLayoutSettings(
+                altinnAppGitRepository,
+                newLayoutSet,
+                new JsonObject { ["order"] = new JsonArray([AltinnAppGitRepository.InitialLayoutFileName]) }
+            )
         );
     }
 
     private static JsonObject BuildLayoutSettings(
         AltinnAppGitRepository altinnAppGitRepository,
-        LayoutSetConfig layoutSet
+        LayoutSetConfig layoutSet,
+        JsonObject pages
     )
     {
         JsonObject settings = new()
         {
             ["$schema"] = altinnAppGitRepository.InitialLayoutSettings["$schema"]!.GetValue<string>(),
-            ["pages"] = new JsonObject { ["order"] = new JsonArray([AltinnAppGitRepository.InitialLayoutFileName]) },
+            ["pages"] = pages,
         };
         ApplyLayoutSetMetadata(settings, layoutSet);
         return settings;
@@ -434,39 +440,50 @@ public class UiFoldersService : IUiFoldersService
     }
 
     /// <summary>
-    /// Creates the waiting page for a PDF or subform PDF task. A custom UI folder replaces the default task view.
-    /// Adds an empty PDF layout only for PDF tasks. Subform PDF tasks use the subform layout set.
-    /// The v9 frontend provides the failure view and retry action.
+    /// Creates the UI folder files for a PDF task: an empty <c>PdfLayout</c> page set as <c>pdfLayoutName</c>,
+    /// and an empty <c>pages.order</c>, so the folder has no waiting page.
     /// </summary>
-    private static async Task CreateServiceTaskLayoutSetFiles(
+    private static async Task CreatePdfTaskLayoutSetFiles(
         AltinnAppGitRepository altinnAppGitRepository,
-        LayoutSetConfig layoutSet,
-        bool withPdfLayout
+        LayoutSetConfig layoutSet
     )
     {
         const string PdfLayoutFilename = "PdfLayout";
-        const string ServiceTaskLayoutFilename = "ServiceTask";
-        string layoutSchema = altinnAppGitRepository.InitialLayout["$schema"]!.GetValue<string>();
 
-        if (withPdfLayout)
-        {
-            await altinnAppGitRepository.SaveLayout(
-                layoutSet.Id,
-                PdfLayoutFilename,
-                new JsonObject
-                {
-                    ["$schema"] = layoutSchema,
-                    ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
-                }
-            );
-        }
+        await altinnAppGitRepository.SaveLayout(
+            layoutSet.Id,
+            PdfLayoutFilename,
+            new JsonObject
+            {
+                ["$schema"] = altinnAppGitRepository.LayoutSchemaUrl,
+                ["data"] = new JsonObject { ["layout"] = new JsonArray([]) },
+            }
+        );
+
+        JsonObject pages = new() { ["pdfLayoutName"] = PdfLayoutFilename, ["order"] = new JsonArray([]) };
+        await altinnAppGitRepository.SaveLayoutSettings(
+            layoutSet.Id,
+            BuildLayoutSettings(altinnAppGitRepository, layoutSet, pages)
+        );
+    }
+
+    /// <summary>
+    /// Creates the UI folder files for a subform PDF task: a <c>ServiceTask</c> waiting page in
+    /// <c>pages.order</c>. The subform PDF content comes from the subform's own UI folder.
+    /// </summary>
+    private static async Task CreateSubformPdfTaskLayoutSetFiles(
+        AltinnAppGitRepository altinnAppGitRepository,
+        LayoutSetConfig layoutSet
+    )
+    {
+        const string ServiceTaskLayoutFilename = "ServiceTask";
 
         await altinnAppGitRepository.SaveLayout(
             layoutSet.Id,
             ServiceTaskLayoutFilename,
             new JsonObject
             {
-                ["$schema"] = layoutSchema,
+                ["$schema"] = altinnAppGitRepository.LayoutSchemaUrl,
                 ["data"] = new JsonObject
                 {
                     ["layout"] = new JsonArray([
@@ -488,20 +505,11 @@ public class UiFoldersService : IUiFoldersService
             }
         );
 
-        JsonObject pages = new();
-        if (withPdfLayout)
-        {
-            pages["pdfLayoutName"] = PdfLayoutFilename;
-        }
-        pages["order"] = new JsonArray([ServiceTaskLayoutFilename]);
-
-        JsonObject settings = new()
-        {
-            ["$schema"] = altinnAppGitRepository.InitialLayoutSettings["$schema"]!.GetValue<string>(),
-            ["pages"] = pages,
-        };
-        ApplyLayoutSetMetadata(settings, layoutSet);
-        await altinnAppGitRepository.SaveLayoutSettings(layoutSet.Id, settings);
+        JsonObject pages = new() { ["order"] = new JsonArray([ServiceTaskLayoutFilename]) };
+        await altinnAppGitRepository.SaveLayoutSettings(
+            layoutSet.Id,
+            BuildLayoutSettings(altinnAppGitRepository, layoutSet, pages)
+        );
     }
 
     /// <summary>
