@@ -23,6 +23,7 @@ import {
   MinusIcon,
   NavBarIcon,
   PaperclipIcon,
+  PaperplaneIcon,
   PaymentDetailsIcon,
   PinIcon,
   PresentationIcon,
@@ -43,6 +44,7 @@ import type { ComponentConfig } from '../types/ComponentConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { FilterUtils } from './FilterUtils';
 import type { SerializedComponentDefaults } from '../types/SerializedComponent';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 type ConfiguredComponentType<T extends ComponentType | ComponentPreset> = T extends ComponentPreset
   ? ComponentType.CustomButton
@@ -112,6 +114,19 @@ export const formItemConfigs: FormItemConfigs = {
     name: ComponentType.AttachmentList,
     defaultProperties: {},
     icon: PaperclipIcon,
+  },
+  [ComponentType.BrokerFileTransfer]: {
+    name: ComponentType.BrokerFileTransfer,
+    defaultProperties: {
+      dataModelBindings: {
+        fileTransferId: '',
+        fileTransferStatus: '',
+      },
+      resourceId: '',
+      hasCustomRecipients: false,
+      hasCustomFileEndings: false,
+    },
+    icon: PaperplaneIcon,
   },
   [ComponentType.Button]: {
     name: ComponentType.Button,
@@ -551,6 +566,8 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Audio],
   formItemConfigs[ComponentType.Video],
   formItemConfigs[ComponentType.Cards],
+  shouldDisplayFeature(FeatureFlag.BrokerFileTransfer) &&
+    formItemConfigs[ComponentType.BrokerFileTransfer],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigEntry[] = [

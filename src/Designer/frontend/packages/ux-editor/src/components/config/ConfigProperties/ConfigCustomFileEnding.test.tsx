@@ -6,8 +6,22 @@ import { componentMocks } from '../../../testing/componentMocks';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { getPropertyByRole } from './testConfigUtils';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 
 describe('ConfigCustomFileEnding', () => {
+  it('should show the switch for a broker file transfer', () => {
+    renderConfigCustomFileEnding({
+      props: {
+        component: {
+          id: 'brokerFileTransfer',
+          type: ComponentType.BrokerFileTransfer,
+          resourceId: 'broker-resource',
+        },
+      },
+    });
+    expect(getPropertyByRole('switch', 'hasCustomFileEndings')).toBeInTheDocument();
+  });
+
   it('should call handleComponentUpdate with updated component', async () => {
     const handleComponentUpdateMock = vi.fn();
     renderConfigCustomFileEnding({

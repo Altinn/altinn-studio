@@ -8,6 +8,7 @@ export class FilterUtils {
 
   public static filterUnsupportedSubformComponents = (component: FormItemConfigEntry): boolean => {
     const unsupportedSubformComponents: FormItemConfigEntry[] = [
+      formItemConfigs[ComponentType.BrokerFileTransfer],
       formItemConfigs[ComponentType.Button],
       formItemConfigs[ComponentType.FileUpload],
       formItemConfigs[ComponentType.InstantiationButton],

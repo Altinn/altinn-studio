@@ -19,6 +19,9 @@ describe('FilterUtils', () => {
   describe('filterUnsupportedSubformComponents', () => {
     it.each([
       {
+        component: formItemConfigs[ComponentType.BrokerFileTransfer],
+      },
+      {
         component: formItemConfigs[ComponentType.Button],
       },
       {
