@@ -119,7 +119,7 @@ export const slides: SlideDef[] = [
     component: Oppgradering,
     steps: 1,
     notes:
-      'Verktøyet gjør det meste. Oppgraderingen kjøres rett fra Studio, eller med studioctl. Det oppdaterer pakker, .NET-versjon, navn og navnerom, tekster og sidefiler, gjør PDF og forsendelse om til tjenesteoppgaver i prosessfilen og legger til tilgangene appen trenger. Det som ikke er i bruk, hoppes over. To ting viser det at dere må gjøre for hånd: skrive om egen kode i prosessteg, og fjerne ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.',
+      'Verktøyet gjør det meste. Oppgraderingen kjøres rett fra Studio, eller med studioctl. Det oppdaterer pakker, .NET-versjon, navn og navnerom, tekster og sidefiler, gjør PDF og forsendelse om til tjenesteoppgaver i prosessfilen og legger til tilgangene appen trenger. To ting viser det at dere må gjøre for hånd: skrive om egen kode i prosessteg, og fjerne ventesteg som ikke lenger trengs. Prosessmotoren er en fast del av v9, ikke noe man skrur av eller på.',
   },
   {
     id: 'bli-med',

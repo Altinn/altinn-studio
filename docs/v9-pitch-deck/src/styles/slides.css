@@ -928,11 +928,6 @@
   color: #7bd18a;
 }
 
-.s-term__status--skip,
-.s-term__skip {
-  color: rgb(255 255 255 / 45%);
-}
-
 .s-term__status--todo {
   color: #f0c25a;
 }

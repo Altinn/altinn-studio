@@ -12,14 +12,13 @@ import { Slide, Reveal } from '../components';
  * (RemovedTaskEventInterfaceDetector, ported by hand) and feedback steps behind
  * a service task (FeedbackAfterServiceTaskAdvisor).
  */
-const REPORT: { status: 'OK' | 'SKIP' | 'TODO'; step: string; text: string }[] = [
+const REPORT: { status: 'OK' | 'TODO'; step: string; text: string }[] = [
   { status: 'OK', step: 'Prosjektfil', text: 'Altinn.App-pakkene er oppdatert til v9' },
   { status: 'OK', step: 'Dockerfile', text: 'Bygger med ny versjon av .NET' },
   { status: 'OK', step: 'Kode', text: 'Navn og navnerom er oppdatert' },
   { status: 'OK', step: 'Tekster', text: 'Tekstnøkler med nytt navn er oppdatert' },
   { status: 'OK', step: 'Sider', text: 'Sidefilene er oppdatert' },
   { status: 'OK', step: 'PDF', text: 'PDF lages i en egen tjenesteoppgave' },
-  { status: 'SKIP', step: 'eFormidling', text: 'Ikke i bruk' },
   { status: 'OK', step: 'Tilganger', text: 'Tilgangene appen trenger, er lagt til' },
   { status: 'TODO', step: 'Prosessteg', text: 'Egen kode i prosessteg må skrives om' },
   { status: 'TODO', step: 'Ventesteg', text: 'Fjern ventesteg som ikke lenger trengs' },
@@ -46,9 +45,7 @@ export default function OppgraderingSlide({ step }: SlideProps) {
                     {line.status}
                   </span>
                   <span className="s-term__step">{line.step}</span>
-                  <span className={line.status === 'SKIP' ? 's-term__skip' : undefined}>
-                    {line.text}
-                  </span>
+                  <span>{line.text}</span>
                 </p>
               </Reveal>
             ))}
