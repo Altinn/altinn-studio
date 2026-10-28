@@ -3,27 +3,28 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { PROCESS_ELEMENT_LABEL } from 'admin/features/apps/utils/workflowPhases';
 
-/** The name the app gave a service task's step, sent by its app libraries as a step label. */
-export const STEP_NAME_LABEL = 'serviceTaskStepName';
-
-/**
- * What kind of service task step it is, sent with the name: `stage`, `conclusion`, `replies`
- * (answering messages, named by the handler itself), `replyTo` (answering messages, named by the
- * stage that sent) or `mintMailbox` (opening the mailbox, named by the stage that sends).
- */
-export const STEP_KIND_LABEL = 'serviceTaskStepKind';
+/** The name of the method a pipeline step runs, sent by the app libraries as a step label. */
+export const STEP_NAME_LABEL = 'stepName';
 
 const SERVICE_TASK_STEP = /^ExecuteServiceTask: (\d+)$/;
 const MINT_MAILBOX_STEP = /^MintMailbox: (\d+)$/;
+const LIFECYCLE_STEP = /^(StartTask|EndTask|AbandonTask): (\d+)$/;
 const RECEIVE_WORKFLOW_PREFIX = 'Mailbox receive:';
 const TARGET_TASK_LABEL = 'processNextTargetTask';
 
+const LIFECYCLE_TEXT: Record<string, string> = {
+  StartTask: 'admin.workflows.step.position.task_start',
+  EndTask: 'admin.workflows.step.position.task_end',
+  AbandonTask: 'admin.workflows.step.position.task_abandon',
+};
+
 /**
- * What a step is called in the panel. A service task's steps carry a position in the task rather
- * than a name, so they are named the way a service owner can follow: by the name the app gave the
- * step, when its app libraries send one, and otherwise by its position. Every other step keeps the
- * name of its command.
+ * What a step is called in the panel. A pipeline step carries a position in its pipeline rather than
+ * a name, so it is named the way a service owner can follow: by the name of the method it runs, when
+ * its app libraries send one, and otherwise by its position and what the step does to the task.
+ * Every other step keeps the name of its command.
  */
 export function stepDisplayName(
   step: WorkflowStepStatus,
@@ -33,14 +34,18 @@ export function stepDisplayName(
 ): string {
   const name = step.labels?.[STEP_NAME_LABEL];
   if (name) {
-    switch (step.labels?.[STEP_KIND_LABEL]) {
-      case 'mintMailbox':
-        return t('admin.workflows.step.name.mint_mailbox', { name });
-      case 'replyTo':
-        return t('admin.workflows.step.name.reply_to', { name });
-      default:
-        return name;
-    }
+    return name;
+  }
+
+  const lifecycle = LIFECYCLE_STEP.exec(step.operationId);
+  if (lifecycle) {
+    const element = step.labels?.[PROCESS_ELEMENT_LABEL];
+    return element
+      ? t(LIFECYCLE_TEXT[lifecycle[1]], {
+          number: positionOf(lifecycle[2]),
+          task: taskNameOf(element),
+        })
+      : step.operationId;
   }
 
   const mint = MINT_MAILBOX_STEP.exec(step.operationId);
@@ -52,15 +57,17 @@ export function stepDisplayName(
   if (!stage) {
     return step.operationId;
   }
+
   const number = positionOf(stage[1]);
   if (workflow.operationId.startsWith(RECEIVE_WORKFLOW_PREFIX)) {
     return t('admin.workflows.step.position.replies', { number });
   }
+
   const task = workflow.labels?.[TARGET_TASK_LABEL];
   return task
     ? t('admin.workflows.step.position.stage_in_task', { number, task: taskNameOf(task) })
     : t('admin.workflows.step.position.stage', { number });
 }
 
-/** A step's index in its task, counted from one the way people count. */
+/** A step's index in its pipeline, counted from one the way people count. */
 const positionOf = (index: string): number => Number(index) + 1;

@@ -4,7 +4,8 @@ import type {
   WorkflowStatus,
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
-import { STEP_KIND_LABEL, STEP_NAME_LABEL, stepDisplayName } from './stepNames';
+import { PROCESS_ELEMENT_LABEL } from 'admin/features/apps/utils/workflowPhases';
+import { STEP_NAME_LABEL, stepDisplayName } from './stepNames';
 
 const stepOf = (operationId: string, labels?: Record<string, string>): WorkflowStepStatus => ({
   databaseId: 'step',
@@ -34,40 +35,33 @@ const transition = workflowOf('Process next: Form -> Approval', {
 const receiver = workflowOf('Mailbox receive: Approval · 0', { processNextTargetTask: 'Approval' });
 
 describe('stepDisplayName', () => {
-  it('names a step by the name the app gave it', () => {
-    const step = stepOf('ExecuteServiceTask: 0', {
-      [STEP_NAME_LABEL]: 'Send til arkiv',
-      [STEP_KIND_LABEL]: 'stage',
-    });
-    expect(stepDisplayName(step, transition, textMock)).toBe('Send til arkiv');
+  it('names a step by the method it runs, whichever pipeline it belongs to', () => {
+    const stage = stepOf('ExecuteServiceTask: 0', { [STEP_NAME_LABEL]: 'Send to archive' });
+    const lifecycle = stepOf('EndTask: 1', { [STEP_NAME_LABEL]: 'Revoke signee rights' });
+    expect(stepDisplayName(stage, transition, textMock)).toBe('Send to archive');
+    expect(stepDisplayName(lifecycle, transition, textMock)).toBe('Revoke signee rights');
   });
 
-  it('says what an opening or answering step does for the step it belongs to', () => {
-    const mint = stepOf('MintMailbox: 0', {
-      [STEP_NAME_LABEL]: 'Send til arkiv',
-      [STEP_KIND_LABEL]: 'mintMailbox',
-    });
-    const replyTo = stepOf('ExecuteServiceTask: 1', {
-      [STEP_NAME_LABEL]: 'Send til arkiv',
-      [STEP_KIND_LABEL]: 'replyTo',
-    });
-    expect(stepDisplayName(mint, transition, textMock)).toBe(
-      textMock('admin.workflows.step.name.mint_mailbox', { name: 'Send til arkiv' }),
+  it('names an unnamed lifecycle step by what the transition does to its task', () => {
+    const start = stepOf('StartTask: 0', { [PROCESS_ELEMENT_LABEL]: 'Approval' });
+    const end = stepOf('EndTask: 1', { [PROCESS_ELEMENT_LABEL]: 'Form' });
+    const abandon = stepOf('AbandonTask: 0', { [PROCESS_ELEMENT_LABEL]: 'Form' });
+    expect(stepDisplayName(start, transition, textMock)).toBe(
+      textMock('admin.workflows.step.position.task_start', { number: 1, task: 'Approval' }),
     );
-    expect(stepDisplayName(replyTo, receiver, textMock)).toBe(
-      textMock('admin.workflows.step.name.reply_to', { name: 'Send til arkiv' }),
+    expect(stepDisplayName(end, transition, textMock)).toBe(
+      textMock('admin.workflows.step.position.task_end', { number: 2, task: 'Form' }),
+    );
+    expect(stepDisplayName(abandon, transition, textMock)).toBe(
+      textMock('admin.workflows.step.position.task_abandon', { number: 1, task: 'Form' }),
     );
   });
 
-  it('names a reply handler with a name of its own by that name', () => {
-    const replies = stepOf('ExecuteServiceTask: 1', {
-      [STEP_NAME_LABEL]: 'Behandle svar',
-      [STEP_KIND_LABEL]: 'replies',
-    });
-    expect(stepDisplayName(replies, receiver, textMock)).toBe('Behandle svar');
+  it('keeps the command name of a lifecycle step that names no task', () => {
+    expect(stepDisplayName(stepOf('EndTask: 0'), transition, textMock)).toBe('EndTask: 0');
   });
 
-  it('names an unnamed step by its position in the task, counted from one', () => {
+  it('names an unnamed service task step by its position in the task, counted from one', () => {
     expect(stepDisplayName(stepOf('ExecuteServiceTask: 0'), transition, textMock)).toBe(
       textMock('admin.workflows.step.position.stage_in_task', { number: 1, task: 'Approval' }),
     );
