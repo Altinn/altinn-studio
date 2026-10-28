@@ -92,6 +92,7 @@ internal sealed class AzureMonitorClient(
         CancellationToken cancellationToken
     )
     {
+        Activity? caller = Activity.Current;
         using Activity? span = ServiceTelemetry.Source.StartActivity("AzureMonitorClient.Query");
         span?.SetTag(ServiceTelemetry.Attributes.AzureMonitorQuery, queryKind);
         long start = Stopwatch.GetTimestamp();
@@ -109,6 +110,8 @@ internal sealed class AzureMonitorClient(
         {
             errorType = ServiceTelemetry.ErrorTypeOf(ex);
             span.SetError(errorType);
+            // Most callers answer with an unavailable result instead of failing, so the entry span would look successful.
+            ServiceTelemetry.EntrySpanOf(caller).SetError(errorType);
             throw;
         }
         finally

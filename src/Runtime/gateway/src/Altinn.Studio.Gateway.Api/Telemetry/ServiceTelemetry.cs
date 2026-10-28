@@ -73,6 +73,21 @@ internal static class ServiceTelemetry
         activity?.SetTag(Attributes.ErrorType, errorType);
     }
 
+    /// <summary>
+    /// The span that started the unit of work the given span belongs to in this process: the nearest server or
+    /// consumer span among it and its ancestors, or the local root.
+    /// </summary>
+    public static Activity? EntrySpanOf(Activity? activity)
+    {
+        Activity? entry = activity;
+        while (entry?.Parent is not null && entry.Kind is not (ActivityKind.Server or ActivityKind.Consumer))
+        {
+            entry = entry.Parent;
+        }
+
+        return entry;
+    }
+
     public static void SetErrorIfAny(this Activity? activity, string? errorType)
     {
         if (errorType is not null)

@@ -70,10 +70,11 @@ public sealed class GatewayTelemetryTests : IDisposable
         var span = Assert.Single(QuerySpans());
         Assert.Equal("failed_requests", span.GetTagItem(ServiceTelemetry.Attributes.AzureMonitorQuery));
         Assert.Equal(ActivityStatusCode.Unset, span.Status);
+        Assert.Equal(ActivityStatusCode.Unset, RequestSpan().Status);
     }
 
     [Fact]
-    public async Task AzureMonitorQuery_WhenItFails_RecordsTheErrorTypeOnTheMetricAndTheSpan()
+    public async Task AzureMonitorQuery_WhenItFails_RecordsTheErrorTypeOnTheMetricTheSpanAndTheEntrySpan()
     {
         var client = CreateAzureMonitorClient(
             new StubLogsQueryClient(_columns, _ => throw new RequestFailedException("boom"))
@@ -91,6 +92,10 @@ public sealed class GatewayTelemetryTests : IDisposable
         Assert.Equal(ActivityStatusCode.Error, span.Status);
         Assert.Equal("Azure.RequestFailedException", span.GetTagItem(ServiceTelemetry.Attributes.ErrorType));
         Assert.Empty(span.Events);
+        // The client answers with an unavailable result, so only the error marks the request as failed.
+        var entrySpan = RequestSpan();
+        Assert.Equal(ActivityStatusCode.Error, entrySpan.Status);
+        Assert.Equal("Azure.RequestFailedException", entrySpan.GetTagItem(ServiceTelemetry.Attributes.ErrorType));
     }
 
     [Fact]
@@ -141,11 +146,19 @@ public sealed class GatewayTelemetryTests : IDisposable
     public void ErrorTypeOf_OtherException_IsItsFullTypeName() =>
         Assert.Equal("System.TimeoutException", ServiceTelemetry.ErrorTypeOf(new TimeoutException()));
 
-    private List<Activity> QuerySpans()
+    private Activity RequestSpan()
     {
         lock (_spans)
         {
-            var request = Assert.Single(_spans, span => span.Source == _testSource);
+            return Assert.Single(_spans, span => span.Source == _testSource);
+        }
+    }
+
+    private List<Activity> QuerySpans()
+    {
+        var request = RequestSpan();
+        lock (_spans)
+        {
             return _spans
                 .Where(span => span.TraceId == request.TraceId && span.OperationName == "AzureMonitorClient.Query")
                 .ToList();
