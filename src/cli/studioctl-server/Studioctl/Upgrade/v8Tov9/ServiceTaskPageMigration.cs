@@ -14,13 +14,15 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// For a PDF task, Altinn Studio Designer lists a page, <c>ServiceTask</c>, in the folder's <c>pages.order</c>: a
 /// "something went wrong" message with retry and back buttons, which users would see on every PDF run. A page that
 /// is exactly what Altinn Studio generated, ignoring property order and formatting, leaves <c>pages.order</c> and
-/// its layout file is deleted; <c>pdfLayoutName</c> stays. Any other page a service task's folder lists is kept,
-/// with a to-do, since only the developer knows whether it is meant for users waiting on the task. Subform PDF
-/// tasks are left out: the step that moves them to <c>subformUiFolder</c> deals with their folders.
+/// its layout file is deleted, in any service task's folder; <c>pdfLayoutName</c> stays. Any other page a service
+/// task's folder lists is kept, with a to-do, since only the developer knows whether it is meant for users waiting
+/// on the task. A folder left with only its settings, listing no page and naming no <c>pdfLayoutName</c>, is
+/// removed, since the app reads nothing from it.
 ///
 /// A task counts as a service task when it is a <c>serviceTask</c> element, as Altinn Studio writes them, or has
-/// the type of one of the app library's service tasks. Runs after the layout-set conversion, so a task's folder is
-/// <c>ui/&lt;taskId&gt;</c>.
+/// the type of one of the app library's service tasks. Runs after the layout migrations and the layout-set
+/// conversion, so a task's folder is <c>ui/&lt;taskId&gt;</c>, and after the subform PDF task step, which leaves
+/// out the Subform component copy those tasks no longer use.
 /// </summary>
 internal static class ServiceTaskPageMigration
 {
@@ -59,27 +61,25 @@ internal static class ServiceTaskPageMigration
     };
 
     /// <summary>
-    /// The pages Altinn Studio generated for a PDF task: Designer's page, with the <c>Header</c> it wrote until
-    /// August 2026 and the <c>Heading</c> it writes since, and the waiting page earlier versions of this upgrade
-    /// gave the PDF tasks they added.
+    /// The page Altinn Studio Designer generates for a v8 PDF task. It wrote a <c>Header</c> until August 2026,
+    /// which the layout migrations, run before this step, rename to <c>Heading</c>.
     /// </summary>
-    private static readonly JsonArray[] _generatedPages =
-    [
-        DesignerPage("Header"),
-        DesignerPage("Heading"),
-        Components(
-            """
-            [
-              { "size": "L", "id": "service-task-waiting-title", "type": "Heading", "textResourceBindings": { "title": "service_task.waiting_title" } },
-              { "id": "service-task-waiting-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task.waiting_body" } }
-            ]
-            """
-        ),
-    ];
+    private static readonly JsonArray _generatedPage = Components(
+        """
+        [
+          { "size": "L", "id": "service-task-title", "type": "Heading", "textResourceBindings": { "title": "service_task_custom_pdf_default.title" } },
+          { "id": "service-task-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.body" } },
+          { "id": "service-task-help-text", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.help_text" } },
+          { "id": "service-task-button-group", "type": "ButtonGroup", "children": ["service-task-retry-button", "service-task-back-button"] },
+          { "id": "service-task-retry-button", "type": "Button", "textResourceBindings": { "title": "service_task_custom_pdf_default.retry_button" } },
+          { "id": "service-task-back-button", "type": "ActionButton", "textResourceBindings": { "title": "service_task_custom_pdf_default.back_button" }, "action": "reject", "buttonStyle": "secondary" }
+        ]
+        """
+    );
 
     /// <summary>
-    /// Runs the migration. A warning names each page removed; a to-do names the pages a service task's folder
-    /// still lists, or settings that could not be read. No messages means no service task lists a page.
+    /// Runs the migration. A warning names each page and folder removed; a to-do names the pages a service task's
+    /// folder still lists, or settings that could not be read. No messages means no service task lists a page.
     /// </summary>
     public static async Task<MigrationResult> Migrate(string projectFolder)
     {
@@ -93,7 +93,7 @@ internal static class ServiceTaskPageMigration
         try
         {
             var (text, _) = Utf8TextFile.Decode(await File.ReadAllBytesAsync(processFile));
-            tasks = ServiceTasks(XDocument.Parse(text)).Where(task => task.TaskType != "subformPdf").ToList();
+            tasks = ServiceTasks(XDocument.Parse(text)).ToList();
         }
         catch (Exception ex) when (ex is DecoderFallbackException or XmlException)
         {
@@ -183,21 +183,6 @@ internal static class ServiceTaskPageMigration
             .OfType<string>()
             .ToList();
         var order = (pages?["order"] as JsonArray)?.Select(StringValue).OfType<string>().ToList() ?? [];
-
-        if (taskType != PdfTaskType)
-        {
-            var allPages = order.Concat(groupPages ?? []).Distinct(StringComparer.Ordinal).ToList();
-            if (allPages.Count > 0)
-            {
-                messages.Todo(
-                    $"Service task '{taskId}'{(taskType is null ? "" : $" ({taskType})")} lists the page(s) "
-                        + $"[{string.Join(", ", allPages)}] in {displaySettings}. {ShownWhileRunning} Keep them only if "
-                        + "they are meant for users waiting on the task; otherwise empty pages.order."
-                );
-            }
-            return;
-        }
-
         var pdfLayoutName = StringValue(pages?["pdfLayoutName"]);
         var generated = order
             .Distinct(StringComparer.Ordinal)
@@ -221,8 +206,9 @@ internal static class ServiceTaskPageMigration
                     messages.Warn(
                         $"Removed the page '{page}' Altinn Studio generated in ui/{taskId}, from pages.order and "
                             + $"layouts/{page}.json. In v9 a service task shows the pages in its pages.order while it "
-                            + $"runs, so PDF task '{taskId}' would have shown it on every run. The app shows its own "
-                            + "waiting view instead, and the PDF is unchanged."
+                            + $"runs, so {TaskName(taskId, taskType)} would have shown it every time it runs. The app "
+                            + "shows its own waiting view instead"
+                            + (taskType == PdfTaskType ? ", and the PDF is unchanged." : ".")
                     );
                 }
             }
@@ -235,15 +221,42 @@ internal static class ServiceTaskPageMigration
         if (listed.Count > 0)
         {
             messages.Todo(
-                $"PDF task '{taskId}' lists the page(s) [{string.Join(", ", listed)}] in {displaySettings}. "
-                    + $"{ShownWhileRunning} They are not part of the PDF. Remove them from pages.order (keep "
-                    + "pdfLayoutName) unless they are meant for users waiting for the PDF."
+                taskType == PdfTaskType
+                    ? $"PDF task '{taskId}' lists the page(s) [{string.Join(", ", listed)}] in {displaySettings}. "
+                        + $"{ShownWhileRunning} They are not part of the PDF. Remove them from pages.order (keep "
+                        + "pdfLayoutName) unless they are meant for users waiting for the PDF."
+                    : $"{TaskName(taskId, taskType)} lists the page(s) [{string.Join(", ", listed)}] in "
+                        + $"{displaySettings}. {ShownWhileRunning} Keep them only if they are meant for users waiting "
+                        + "on the task; otherwise empty pages.order."
+            );
+            return;
+        }
+
+        if (pdfLayoutName is null && HoldsOnlySettings(folder))
+        {
+            Directory.Delete(folder, recursive: true);
+            messages.Warn(
+                $"Removed ui/{taskId}, which held only its settings and listed no page, so the app read nothing from "
+                    + $"it. {TaskName(taskId, taskType)} shows the app's own waiting view while it runs."
             );
         }
     }
 
+    private static string TaskName(string taskId, string? taskType)
+    {
+        if (taskType == PdfTaskType)
+            return $"PDF task '{taskId}'";
+        return taskType is null ? $"Service task '{taskId}'" : $"Service task '{taskId}' ({taskType})";
+    }
+
+    /// <summary>Whether the folder's only file is its <c>Settings.json</c>.</summary>
+    private static bool HoldsOnlySettings(string folder) =>
+        Directory
+            .EnumerateFiles(folder, "*", SearchOption.AllDirectories)
+            .All(file => Path.GetRelativePath(folder, file) == "Settings.json");
+
     /// <summary>
-    /// Whether the layout file holds exactly a page Altinn Studio generated: its components, in order, and
+    /// Whether the layout file holds exactly the page Altinn Studio generated: its components, in order, and
     /// nothing besides them and a <c>$schema</c>.
     /// </summary>
     private static bool IsGenerated(string layoutFile)
@@ -257,7 +270,7 @@ internal static class ServiceTaskPageMigration
                 && root.All(property => property.Key is "$schema" or "data")
                 && root["data"] is JsonObject { Count: 1 } data
                 && data["layout"] is JsonArray layout
-                && _generatedPages.Any(page => JsonNode.DeepEquals(layout, page));
+                && JsonNode.DeepEquals(layout, _generatedPage);
         }
         catch (Exception ex) when (ex is JsonException or DecoderFallbackException)
         {
@@ -337,20 +350,6 @@ internal static class ServiceTaskPageMigration
 
         return false;
     }
-
-    private static JsonArray DesignerPage(string headingType) =>
-        Components(
-            $$"""
-            [
-              { "size": "L", "id": "service-task-title", "type": "{{headingType}}", "textResourceBindings": { "title": "service_task_custom_pdf_default.title" } },
-              { "id": "service-task-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.body" } },
-              { "id": "service-task-help-text", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.help_text" } },
-              { "id": "service-task-button-group", "type": "ButtonGroup", "children": ["service-task-retry-button", "service-task-back-button"] },
-              { "id": "service-task-retry-button", "type": "Button", "textResourceBindings": { "title": "service_task_custom_pdf_default.retry_button" } },
-              { "id": "service-task-back-button", "type": "ActionButton", "textResourceBindings": { "title": "service_task_custom_pdf_default.back_button" }, "action": "reject", "buttonStyle": "secondary" }
-            ]
-            """
-        );
 
     private static JsonArray Components(string json) =>
         JsonNode.Parse(json) as JsonArray ?? throw new InvalidOperationException("Not a JSON array.");

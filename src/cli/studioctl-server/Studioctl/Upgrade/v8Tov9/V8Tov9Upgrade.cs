@@ -282,7 +282,8 @@ internal static class V8Tov9Upgrade
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
 
-        // After the layout-set conversion, so a service task's folder is ui/<taskId>.
+        // After the layout migrations and the layout-set conversion, so a service task's folder is ui/<taskId> and
+        // holds v9 layouts.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
 
@@ -1896,8 +1897,8 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Removes the page Altinn Studio generated in each PDF task's UI folder, and reports the pages other service
-    /// tasks' folders list, which v9 shows while the task runs.
+    /// Removes the page Altinn Studio generated from each service task's UI folder, and a folder left with nothing
+    /// the app reads, and reports the other pages the folders list, which v9 shows while the task runs.
     /// </summary>
     static async Task<int> MigrateServiceTaskPages(string projectFolder)
     {

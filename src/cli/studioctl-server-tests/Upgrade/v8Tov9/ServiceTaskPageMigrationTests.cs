@@ -7,10 +7,10 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
 {
     private const string ProcessPath = "config/process/process.bpmn";
 
-    /// <summary>The page Altinn Studio Designer generates for a PDF task, with the given heading type.</summary>
-    private static string DesignerPage(string headingType = "Heading") =>
-        $$"""
-            { "size": "L", "id": "service-task-title", "type": "{{headingType}}", "textResourceBindings": { "title": "service_task_custom_pdf_default.title" } },
+    /// <summary>The page Altinn Studio Designer generates for a v8 PDF task, after the layout migrations.</summary>
+    private static string DesignerPage() =>
+        """
+            { "size": "L", "id": "service-task-title", "type": "Heading", "textResourceBindings": { "title": "service_task_custom_pdf_default.title" } },
             { "id": "service-task-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.body" } },
             { "id": "service-task-help-text", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.help_text" } },
             { "id": "service-task-button-group", "type": "ButtonGroup", "children": ["service-task-retry-button", "service-task-back-button"] },
@@ -18,8 +18,11 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
             { "id": "service-task-back-button", "type": "ActionButton", "textResourceBindings": { "title": "service_task_custom_pdf_default.back_button" }, "action": "reject", "buttonStyle": "secondary" }
             """;
 
-    /// <summary>The waiting page earlier versions of the upgrade generated for the PDF tasks they added.</summary>
-    private const string UpgradeWaitingPage = """
+    /// <summary>
+    /// The waiting page previews of v9 generated for PDF tasks. No app in production has it, so the upgrade treats
+    /// it like any page a developer wrote.
+    /// </summary>
+    private const string PreviewWaitingPage = """
         { "size": "L", "id": "service-task-waiting-title", "type": "Heading", "textResourceBindings": { "title": "service_task.waiting_title" } },
         { "id": "service-task-waiting-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task.waiting_body" } }
         """;
@@ -42,15 +45,11 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
 
     private Task<MigrationResult> Migrate() => ServiceTaskPageMigration.Migrate(_app.Root);
 
-    public static TheoryData<string> GeneratedPages =>
-        new(DesignerPage("Header"), DesignerPage("Heading"), UpgradeWaitingPage);
-
-    [Theory]
-    [MemberData(nameof(GeneratedPages))]
-    public async Task RemovesThePageAltinnStudioGenerated(string components)
+    [Fact]
+    public async Task RemovesThePageAltinnStudioGenerated()
     {
         _app.Write(ProcessPath, Process(Task("Task_1", "data"), PdfServiceTask("PdfTask")));
-        WriteTaskFolder("PdfTask", Settings(), components);
+        WriteTaskFolder("PdfTask", Settings(), DesignerPage());
 
         var result = await Migrate();
 
@@ -101,6 +100,18 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
             _app.ReadBytes("ui/PdfTask/Settings.json")
         );
         Assert.False(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
+    }
+
+    [Fact]
+    public async Task KeepsTheWaitingPageOfAV9PreviewAndLeavesATodo()
+    {
+        _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
+        WriteTaskFolder("PdfTask", Settings(), PreviewWaitingPage);
+
+        var result = await Migrate();
+
+        Assert.True(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
+        Assert.Contains("[ServiceTask]", Assert.Single(result.Todos), StringComparison.Ordinal);
     }
 
     [Theory]
@@ -168,22 +179,27 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData("subformPdf")]
     [InlineData("eFormidling")]
     [InlineData("fiksArkiv")]
     [InlineData("myCustomTask")]
-    public async Task LeavesATodoForThePagesOfOtherServiceTasks(string taskType)
+    public async Task RemovesTheGeneratedPageAndLeavesATodoForTheOthersInAnyServiceTask(string taskType)
     {
         _app.Write(ProcessPath, Process(Task("Task_1", "data"), ServiceTask("Service", taskType)));
-        var settings = """{ "pages": { "order": ["Waiting", "ServiceTask"] } }""";
-        WriteTaskFolder("Service", settings, DesignerPage());
+        WriteTaskFolder("Service", """{ "pages": { "order": ["Waiting", "ServiceTask"] } }""", DesignerPage());
 
         var result = await Migrate();
 
-        Assert.Equal(settings, _app.Read("ui/Service/Settings.json"));
-        Assert.True(File.Exists(LayoutFile("Service", "ServiceTask")));
+        Assert.Equal("""{ "pages": { "order": ["Waiting"] } }""", _app.Read("ui/Service/Settings.json"));
+        Assert.False(File.Exists(LayoutFile("Service", "ServiceTask")));
+        Assert.Contains(
+            $"so Service task 'Service' ({taskType}) would have shown it",
+            Assert.Single(result.Warnings),
+            StringComparison.Ordinal
+        );
         var todo = Assert.Single(result.Todos);
         Assert.Contains(
-            $"Service task 'Service' ({taskType}) lists the page(s) [Waiting, ServiceTask]",
+            $"Service task 'Service' ({taskType}) lists the page(s) [Waiting]",
             todo,
             StringComparison.Ordinal
         );
@@ -195,7 +211,7 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
     public async Task LeavesATodoForTheGroupedPagesOfABuiltInServiceTaskWrittenAsATask()
     {
         _app.Write(ProcessPath, Process(Task("Arkiv", "fiksArkiv")));
-        WriteTaskFolder("Arkiv", """{ "pages": { "groups": [{ "order": ["Waiting"] }] } }""", UpgradeWaitingPage);
+        WriteTaskFolder("Arkiv", """{ "pages": { "groups": [{ "order": ["Waiting"] }] } }""", PreviewWaitingPage);
 
         var result = await Migrate();
 
@@ -203,14 +219,13 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
     }
 
     [Fact]
-    public async Task LeavesUserTasksSubformPdfTasksAndServiceTasksWithoutPagesAlone()
+    public async Task LeavesUserTasksAndServiceTasksWithoutPagesAlone()
     {
         _app.Write(
             ProcessPath,
             Process(
                 Task("Task_1", "data"),
                 Task("Signing", "signing"),
-                ServiceTask("SubformPdf", "subformPdf"),
                 ServiceTask("EFormidling", "eFormidling"),
                 ServiceTask("NoFolder", "eFormidling"),
                 PdfServiceTask("AutoPdf"),
@@ -219,7 +234,6 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
         );
         WriteTaskFolder("Task_1", Settings(), DesignerPage());
         WriteTaskFolder("Signing", Settings(), DesignerPage());
-        WriteTaskFolder("SubformPdf", Settings(), DesignerPage());
         WriteTaskFolder("EFormidling", """{ "pages": { "order": [] } }""", DesignerPage());
         WriteTaskFolder("PdfTask", Settings(order: ""), DesignerPage());
 
@@ -228,8 +242,45 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
         Assert.Empty(result.Messages);
         Assert.True(File.Exists(LayoutFile("Task_1", "ServiceTask")));
         Assert.True(File.Exists(LayoutFile("Signing", "ServiceTask")));
-        Assert.True(File.Exists(LayoutFile("SubformPdf", "ServiceTask")));
+        Assert.True(File.Exists(LayoutFile("EFormidling", "ServiceTask")));
         Assert.True(File.Exists(LayoutFile("PdfTask", "ServiceTask")));
+    }
+
+    [Theory]
+    [InlineData("subformPdf")]
+    [InlineData("eFormidling")]
+    public async Task RemovesAFolderLeftWithOnlyItsSettings(string taskType)
+    {
+        _app.Write(ProcessPath, Process(ServiceTask("Service", taskType)));
+        _app.Write("ui/Service/Settings.json", """{ "pages": { "order": ["ServiceTask"] } }""");
+        _app.Write("ui/Service/layouts/ServiceTask.json", $$"""{ "data": { "layout": [{{DesignerPage()}}] } }""");
+
+        var result = await Migrate();
+
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "Service")));
+        Assert.Empty(result.Todos);
+        Assert.Equal(2, result.Warnings.Count);
+        Assert.StartsWith(
+            "Removed ui/Service, which held only its settings",
+            result.Warnings[1],
+            StringComparison.Ordinal
+        );
+    }
+
+    [Theory]
+    [InlineData("""{ "pages": { "pdfLayoutName": "PdfLayout", "order": [] } }""", null)]
+    [InlineData("""{ "pages": { "order": [] } }""", "layouts/Notes.json")]
+    public async Task KeepsAFolderThatNamesAPdfLayoutOrHoldsMore(string settings, string? otherFile)
+    {
+        _app.Write(ProcessPath, Process(ServiceTask("Service", "subformPdf")));
+        _app.Write("ui/Service/Settings.json", settings);
+        if (otherFile is not null)
+            _app.Write($"ui/Service/{otherFile}", """{ "data": { "layout": [] } }""");
+
+        var result = await Migrate();
+
+        Assert.Empty(result.Messages);
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "Service", "Settings.json")));
     }
 
     [Fact]

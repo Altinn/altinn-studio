@@ -42,7 +42,8 @@ public sealed class V8Tov9UpgradeServiceTaskPageTests : IDisposable
         );
         _app.Write("ui/form/Settings.json", """{ "pages": { "order": ["Page1"] } }""");
         _app.Write("ui/form/layouts/Page1.json", """{ "data": { "layout": [] } }""");
-        // The folder the v8 Designer generated for a PDF task, with the Header it wrote then.
+        // The folder the v8 Designer generated for a PDF task, with the Header it wrote then, which the layout
+        // migrations rename to Heading before the page step looks for it.
         _app.Write(
             "ui/pdf/Settings.json",
             """{ "pages": { "pdfLayoutName": "PdfLayout", "order": ["ServiceTask"] } }"""
