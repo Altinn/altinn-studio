@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Infrastructure.DeveloperSession;
 using Altinn.Studio.Designer.Infrastructure.ExceptionHandling;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Middleware;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
@@ -49,6 +50,7 @@ WebApplicationBuilder builder;
 WebApplication app;
 try
 {
+    LibGit2Configuration.DisableSymbolicLinks();
     builder = WebApplication.CreateBuilder(args);
     builder.Services.AddGracefulShutdown(
         builder.Environment,
