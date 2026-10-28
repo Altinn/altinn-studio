@@ -17,9 +17,8 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9;
 /// needs no UI folder of its own.
 ///
 /// Runs after the layout-set conversion, so the task's UI folder is <c>ui/&lt;taskId&gt;</c> and a subform's
-/// folder is named after its layout set. The task's folder is removed when it holds nothing but the waiting
-/// page Altinn Studio generates and the copy. Otherwise it is kept, with a to-do when its <c>pages.order</c>
-/// lists pages, which v9 shows while the task runs.
+/// folder is named after its layout set. The copy is removed from the task's folder. The service task page step,
+/// which runs later, deals with what the folder still holds, as it does for every service task.
 /// </summary>
 internal static class SubformPdfConfigMigration
 {
@@ -45,34 +44,6 @@ internal static class SubformPdfConfigMigration
     };
 
     /// <summary>
-    /// The waiting page components Altinn Studio generates for a service task: the v9 page, and the v8 page
-    /// with its retry and back buttons. A v9 subform PDF task shows the frontend's own waiting view instead.
-    /// </summary>
-    private static readonly JsonObject[] _generatedWaitingComponents =
-    [
-        WaitingText("service-task-waiting-title", "Heading", "service_task.waiting_title", size: "L"),
-        WaitingText("service-task-waiting-body", "Paragraph", "service_task.waiting_body"),
-        WaitingText("service-task-title", "Heading", "service_task_custom_pdf_default.title", size: "L"),
-        WaitingText("service-task-body", "Paragraph", "service_task_custom_pdf_default.body"),
-        WaitingText("service-task-help-text", "Paragraph", "service_task_custom_pdf_default.help_text"),
-        new()
-        {
-            ["id"] = "service-task-button-group",
-            ["type"] = "ButtonGroup",
-            ["children"] = new JsonArray("service-task-retry-button", "service-task-back-button"),
-        },
-        WaitingText("service-task-retry-button", "Button", "service_task_custom_pdf_default.retry_button"),
-        new()
-        {
-            ["id"] = "service-task-back-button",
-            ["type"] = "ActionButton",
-            ["textResourceBindings"] = new JsonObject { ["title"] = "service_task_custom_pdf_default.back_button" },
-            ["action"] = "reject",
-            ["buttonStyle"] = "secondary",
-        },
-    ];
-
-    /// <summary>
     /// A task to rewrite, with the subform's UI folder its component copy names, and the data type to give that
     /// folder when its settings have none.
     /// </summary>
@@ -86,9 +57,9 @@ internal static class SubformPdfConfigMigration
     );
 
     /// <summary>
-    /// Runs the migration. Warnings describe what was rewritten or kept; a to-do names a task that was left
-    /// unchanged, or a kept folder whose pages show while the task runs, and what to do about it. No messages
-    /// means there was no subform PDF task to migrate.
+    /// Runs the migration. Warnings describe what was rewritten; a to-do names a task that was left unchanged, or a
+    /// subform folder whose data type needs checking, and what to do about it. No messages means there was no
+    /// subform PDF task to migrate.
     /// </summary>
     public static async Task<MigrationResult> Migrate(string projectFolder)
     {
@@ -169,12 +140,14 @@ internal static class SubformPdfConfigMigration
             return new MigrationResult(messages);
         }
 
-        // The process is written before any folder is removed, so a failure leaves the v8 setup working.
+        // The process is written before any copy is removed, so a failure leaves the v8 setup working.
         await Utf8TextFile.Write(processFile, rewritten, hadBom);
 
+        var workspace = await LayoutMigrationWorkspace.Load(projectFolder);
         foreach (var plan in applied)
         {
             var added = await CompleteSubformSettings(uiPath, plan, messages);
+            var copiesRemoved = workspace is null ? 0 : RemoveCopy(workspace, plan);
             messages.Warn(
                 $"Subform PDF task '{plan.TaskId}' now names the subform's UI folder '{plan.UiFolder}' in "
                     + $"{UiFolderName}, instead of the Subform component '{plan.ComponentIdElement.Value.Trim()}' in "
@@ -185,9 +158,16 @@ internal static class SubformPdfConfigMigration
                             ? ""
                             : $" Added {string.Join(" and ", added)} to ui/{plan.UiFolder}/Settings.json."
                     )
+                    + (
+                        copiesRemoved > 0
+                            ? $" Removed the Subform component from ui/{plan.TaskId}, which v9 does not use."
+                            : ""
+                    )
             );
-            RemoveTaskFolder(uiPath, plan, messages);
         }
+
+        if (workspace is not null)
+            await workspace.Save();
 
         messages.Warn(
             $"The PDFs that subform PDF task(s) [{string.Join(", ", applied.Select(p => p.TaskId))}] create carry the "
@@ -239,8 +219,8 @@ internal static class SubformPdfConfigMigration
         var componentId = componentIds.Count == 1 ? componentIds[0].Value.Trim() : null;
         var manualFix =
             $"In its subformPdfConfig, replace {ComponentIdName} and {DataTypeIdName} with "
-            + $"<altinn:{UiFolderName}>, naming the UI folder of the subform, and remove ui/{taskId} unless its "
-            + "pages are wanted while the task runs.";
+            + $"<altinn:{UiFolderName}>, naming the UI folder of the subform, and remove the Subform component "
+            + $"from ui/{taskId}, which v9 does not use.";
 
         if (
             componentIds.Count != 1
@@ -370,79 +350,24 @@ internal static class SubformPdfConfigMigration
     }
 
     /// <summary>
-    /// Removes the task's UI folder when it holds only its settings, the waiting page Altinn Studio generates
-    /// and the Subform component copy. Otherwise keeps it and says what else it holds, as a to-do when it lists
-    /// pages.
+    /// Removes the Subform component copy from the layouts in the task's UI folder, and returns how many it
+    /// removed. A page left empty stays for the service task page step, which removes it.
     /// </summary>
-    private static void RemoveTaskFolder(string uiPath, Plan plan, List<UpgradeMessage> messages)
+    private static int RemoveCopy(LayoutMigrationWorkspace workspace, Plan plan)
     {
-        if (!Directory.Exists(plan.TaskFolder))
-            return;
-
         var componentId = plan.ComponentIdElement.Value.Trim();
-        var otherContent = new List<string>();
-        foreach (var file in Directory.EnumerateFiles(plan.TaskFolder, "*", SearchOption.AllDirectories).Order())
-        {
-            var relative = Path.GetRelativePath(plan.TaskFolder, file).Replace('\\', '/');
-            if (relative == "Settings.json")
-                continue;
-
-            if (Path.GetDirectoryName(relative) == "layouts" && relative.EndsWith(".json", StringComparison.Ordinal))
+        var layouts = workspace.DocumentsIn(Path.Combine(plan.TaskFolder, "layouts")).ToHashSet();
+        return workspace
+            .ApplyDocuments(document =>
             {
-                if (Components(file) is not { } components)
-                {
-                    otherContent.Add(relative);
-                    continue;
-                }
-
-                var custom = components
-                    .Where(c =>
-                        !IsSubform(c, componentId) && !_generatedWaitingComponents.Any(g => JsonNode.DeepEquals(c, g))
-                    )
-                    .Select(c => StringValue(c["id"]) ?? "(no id)")
-                    .ToList();
-                if (custom.Count > 0)
-                    otherContent.Add($"{relative} ({string.Join(", ", custom)})");
-                continue;
-            }
-
-            otherContent.Add(relative);
-        }
-
-        var displayFolder = $"ui/{Path.GetRelativePath(uiPath, plan.TaskFolder).Replace('\\', '/')}";
-        if (otherContent.Count > 0)
-        {
-            var kept =
-                $"Kept {displayFolder}, because it holds more than the waiting page Altinn Studio generates and the "
-                + $"Subform component '{componentId}': {string.Join("; ", otherContent)}.";
-            var cleanUp =
-                $"Remove the folder unless those pages are wanted, and remove the Subform component '{componentId}', "
-                + "which v9 does not use.";
-
-            // In v9 the pages in pages.order show while the task runs, so a kept folder changes what users see.
-            var pages = ListedPages(Path.Combine(plan.TaskFolder, "Settings.json"));
-            if (pages.Count > 0)
-            {
-                messages.Todo(
-                    $"{kept} In v9 a subform PDF task shows the pages in its folder's pages.order "
-                        + $"[{string.Join(", ", pages)}] while it runs. {cleanUp}"
-                );
-                return;
-            }
-
-            messages.Warn(
-                $"{kept} A v9 subform PDF task needs no UI folder: the app shows its own waiting view while the task "
-                    + $"runs, or the folder's pages if it has one. {cleanUp}"
-            );
-            return;
-        }
-
-        Directory.Delete(plan.TaskFolder, recursive: true);
-        messages.Warn(
-            $"Removed {displayFolder}, which held only the waiting page Altinn Studio generates and the Subform "
-                + $"component '{componentId}'. A v9 subform PDF task needs no UI folder, and the app shows its own "
-                + "waiting view while the task runs."
-        );
+                if (!layouts.Contains(document) || document.Root["data"]?["layout"] is not JsonArray components)
+                    return 0;
+                var copies = components.OfType<JsonObject>().Where(c => IsSubform(c, componentId)).ToList();
+                foreach (var copy in copies)
+                    components.Remove(copy);
+                return copies.Count;
+            })
+            .Changes;
     }
 
     /// <summary>
@@ -527,29 +452,6 @@ internal static class SubformPdfConfigMigration
         }
     }
 
-    /// <summary>
-    /// The pages a folder's settings list in <c>pages.order</c>, or in the orders of <c>pages.groups</c>.
-    /// Settings that cannot be read list none.
-    /// </summary>
-    private static List<string> ListedPages(string settingsFile)
-    {
-        if (!File.Exists(settingsFile))
-            return [];
-        try
-        {
-            var (text, _) = Utf8TextFile.Decode(File.ReadAllBytes(settingsFile));
-            var pages = JsonNode.Parse(text, documentOptions: _layoutOptions)?["pages"] as JsonObject;
-            var orders = new List<JsonNode?> { pages?["order"] };
-            if (pages?["groups"] is JsonArray groups)
-                orders.AddRange(groups.Select(group => (group as JsonObject)?["order"]));
-            return [.. orders.OfType<JsonArray>().SelectMany(order => order).Select(StringValue).OfType<string>()];
-        }
-        catch (Exception ex) when (ex is JsonException or DecoderFallbackException or InvalidOperationException)
-        {
-            return [];
-        }
-    }
-
     /// <summary>A folder's settings, or null when they are missing or cannot be read.</summary>
     private static JsonObject? ReadSettings(string settingsFile)
     {
@@ -572,15 +474,4 @@ internal static class SubformPdfConfigMigration
 
     private static string? StringValue(JsonNode? node) =>
         node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
-
-    private static JsonObject WaitingText(string id, string type, string textKey, string? size = null)
-    {
-        var component = new JsonObject();
-        if (size is not null)
-            component["size"] = size;
-        component["id"] = id;
-        component["type"] = type;
-        component["textResourceBindings"] = new JsonObject { ["title"] = textKey };
-        return component;
-    }
 }

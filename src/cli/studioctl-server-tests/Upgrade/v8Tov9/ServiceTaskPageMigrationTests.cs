@@ -148,7 +148,10 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
     {
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
         WriteTaskFolder("PdfTask", Settings(order: "\"Intro\", \"ServiceTask\""), DesignerPage());
-        _app.Write("ui/PdfTask/layouts/Intro.json", """{ "data": { "layout": [] } }""");
+        _app.Write(
+            "ui/PdfTask/layouts/Intro.json",
+            """{ "data": { "layout": [{ "id": "intro", "type": "Paragraph" }] } }"""
+        );
 
         var result = await Migrate();
 
@@ -170,7 +173,10 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
         _app.Write(ProcessPath, Process(PdfServiceTask("PdfTask")));
         var settings = """{ "pages": { "order": ["Summary"] } }""";
         _app.Write("ui/PdfTask/Settings.json", settings);
-        _app.Write("ui/PdfTask/layouts/Summary.json", """{ "data": { "layout": [] } }""");
+        _app.Write(
+            "ui/PdfTask/layouts/Summary.json",
+            """{ "data": { "layout": [{ "id": "summary", "type": "Summary2" }] } }"""
+        );
 
         var result = await Migrate();
 
@@ -189,7 +195,10 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
         // A subform PDF task's PDFs come from the subform's folder, so in v8 its pages showed only when it failed
         _app.Write(ProcessPath, Process(Task("Task_1", "data"), ServiceTask("SubformPdf", "subformPdf")));
         WriteTaskFolder("SubformPdf", """{ "pages": { "order": ["Failed", "ServiceTask"] } }""", DesignerPage());
-        _app.Write("ui/SubformPdf/layouts/Failed.json", """{ "data": { "layout": [] } }""");
+        _app.Write(
+            "ui/SubformPdf/layouts/Failed.json",
+            """{ "data": { "layout": [{ "id": "failed", "type": "Paragraph" }] } }"""
+        );
 
         var result = await Migrate();
 
@@ -320,6 +329,24 @@ public sealed class ServiceTaskPageMigrationTests : IDisposable
         Assert.StartsWith(
             "Removed ui/Service, which held only its settings",
             result.Warnings[1],
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public async Task RemovesAnEmptyPage()
+    {
+        _app.Write(ProcessPath, Process(ServiceTask("SubformPdf", "subformPdf")));
+        _app.Write("ui/SubformPdf/Settings.json", """{ "pages": { "order": ["ServiceTask"] } }""");
+        _app.Write("ui/SubformPdf/layouts/ServiceTask.json", """{ "data": { "layout": [] } }""");
+
+        var result = await Migrate();
+
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf")));
+        Assert.Empty(result.Todos);
+        Assert.StartsWith(
+            "Removed the empty page 'ServiceTask' in ui/SubformPdf",
+            result.Warnings[0],
             StringComparison.Ordinal
         );
     }

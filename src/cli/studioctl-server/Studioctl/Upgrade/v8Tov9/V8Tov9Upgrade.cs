@@ -277,7 +277,8 @@ internal static class V8Tov9Upgrade
         }
 
         // After the layout-set conversion, so a subform PDF task's folder is ui/<taskId> and the subform's folder is
-        // named after its layout set.
+        // named after its layout set, and before the service task page step, which deals with what the task's folder
+        // holds once the Subform component copy is gone.
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateSubformPdfConfig(projectFolder));
 
@@ -1872,8 +1873,8 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Rewrites each subform PDF task to name the subform's UI folder in subformUiFolder, and removes the task's
-    /// own UI folder when it holds only what Altinn Studio generates.
+    /// Rewrites each subform PDF task to name the subform's UI folder in subformUiFolder, and removes the Subform
+    /// component copy from the task's own UI folder.
     /// </summary>
     static async Task<int> MigrateSubformPdfConfig(string projectFolder)
     {
@@ -1924,8 +1925,9 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Removes the page Altinn Studio generated from each service task's UI folder, and a folder left with nothing
-    /// the app reads, and reports the other pages the folders list, which v9 shows while the task runs.
+    /// Removes the page Altinn Studio generated and empty pages from each service task's UI folder, and a folder
+    /// left with nothing the app reads, and reports the other pages the folders list, which v9 shows while the task
+    /// runs.
     /// </summary>
     static async Task<int> MigrateServiceTaskPages(string projectFolder)
     {

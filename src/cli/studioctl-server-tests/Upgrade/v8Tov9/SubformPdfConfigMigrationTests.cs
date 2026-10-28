@@ -12,8 +12,8 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
     private const string GeneratedCopy =
         """{ "id": "Subform", "type": "Subform", "layoutSet": "SubformFolder", "hidden": true }""";
 
-    /// <summary>The waiting page Altinn Studio generates for a v9 service task.</summary>
-    private const string GeneratedWaitingComponents = """
+    /// <summary>A waiting page in a subform PDF task's folder, next to the copy.</summary>
+    private const string WaitingPage = """
         { "size": "L", "id": "service-task-waiting-title", "type": "Heading", "textResourceBindings": { "title": "service_task.waiting_title" } },
         { "id": "service-task-waiting-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task.waiting_body" } }
         """;
@@ -25,7 +25,7 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
     private Task<MigrationResult> Migrate() => SubformPdfConfigMigration.Migrate(_app.Root);
 
     [Fact]
-    public async Task NamesTheSubformFolderAndRemovesTheGeneratedTaskFolder()
+    public async Task NamesTheSubformFolderAndRemovesTheCopy()
     {
         _app.Write(
             ProcessPath,
@@ -34,7 +34,7 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
         WriteSubformFolder("SubformFolder", "SubformModel");
         // A folder named after the component, which the copy does not point at.
         WriteSubformFolder("Subform", "SubformModel");
-        WriteTaskFolder("SubformPdf", GeneratedWaitingComponents + ",\n" + GeneratedCopy);
+        WriteTaskFolder("SubformPdf", WaitingPage + ",\n" + GeneratedCopy);
 
         var result = await Migrate();
 
@@ -43,14 +43,17 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
             Process(Task("Task_1", "data"), SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")),
             _app.Read(ProcessPath)
         );
-        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf")));
+        Assert.Equal(["service-task-waiting-title", "service-task-waiting-body"], ComponentIds("SubformPdf"));
         Assert.True(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformFolder")));
-        Assert.Contains(result.Warnings, w => w.Contains("Removed ui/SubformPdf", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Warnings,
+            w => w.Contains("Removed the Subform component from ui/SubformPdf", StringComparison.Ordinal)
+        );
         Assert.Contains(result.Warnings, w => w.Contains("metadata key subformUiFolder", StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task RemovesTheTaskFolderOfAV8WaitingPageWithAFullCopy()
+    public async Task RemovesAFullCopyFromTheV8WaitingPage()
     {
         // The v8 waiting page Altinn Studio generated for a PDF task, and a copy with the component's settings.
         _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
@@ -71,11 +74,21 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
         var result = await Migrate();
 
         Assert.False(result.RequiresManualFollowUp);
-        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf")));
+        Assert.Equal(
+            [
+                "service-task-title",
+                "service-task-body",
+                "service-task-help-text",
+                "service-task-button-group",
+                "service-task-retry-button",
+                "service-task-back-button",
+            ],
+            ComponentIds("SubformPdf")
+        );
     }
 
     [Fact]
-    public async Task KeepsATaskFolderWithOtherContentAndLeavesATodoForItsPages()
+    public async Task RemovesOnlyTheCopyFromAPageWithOtherContent()
     {
         _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
         WriteSubformFolder("SubformFolder", "SubformModel");
@@ -84,30 +97,10 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
 
         var result = await Migrate();
 
-        Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
-        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf", "layouts", "ServiceTask.json")));
-        var todo = Assert.Single(result.Todos);
-        Assert.StartsWith("Kept ui/SubformPdf", todo, StringComparison.Ordinal);
-        Assert.Contains("layouts/ServiceTask.json (custom-text)", todo, StringComparison.Ordinal);
-        Assert.Contains("RuleHandler.js", todo, StringComparison.Ordinal);
-        Assert.Contains("pages.order [ServiceTask]", todo, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task KeepsATaskFolderWithOtherContentButNoPagesAndWarns()
-    {
-        _app.Write(ProcessPath, Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel")));
-        WriteSubformFolder("SubformFolder", "SubformModel");
-        WriteTaskFolder("SubformPdf", GeneratedCopy);
-        _app.Write("ui/SubformPdf/Settings.json", """{ "pages": { "order": [] }, "defaultDataType": "Model" }""");
-        _app.Write("ui/SubformPdf/RuleHandler.js", "// custom");
-
-        var result = await Migrate();
-
         Assert.False(result.RequiresManualFollowUp);
         Assert.Equal(Process(SubformPdfTask("SubformPdf", uiFolder: "SubformFolder")), _app.Read(ProcessPath));
-        var warning = Assert.Single(result.Warnings, w => w.StartsWith("Kept ui/SubformPdf", StringComparison.Ordinal));
-        Assert.Contains("RuleHandler.js", warning, StringComparison.Ordinal);
+        Assert.Equal(["custom-text"], ComponentIds("SubformPdf"));
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf", "RuleHandler.js")));
     }
 
     [Fact]
@@ -116,7 +109,7 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
         var process = Process(SubformPdfTask("SubformPdf", "Subform", "SubformModel"));
         _app.Write(ProcessPath, process);
         WriteSubformFolder("SubformFolder", "SubformModel");
-        WriteTaskFolder("SubformPdf", GeneratedWaitingComponents);
+        WriteTaskFolder("SubformPdf", WaitingPage);
 
         var result = await Migrate();
 
@@ -189,8 +182,8 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
             ),
             _app.Read(ProcessPath)
         );
-        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf_A")));
-        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf_B")));
+        Assert.Empty(ComponentIds("SubformPdf_A"));
+        Assert.Empty(ComponentIds("SubformPdf_B"));
         Assert.Contains(
             "[SubformPdf_A, SubformPdf_B]",
             Assert.Single(result.Warnings, w => w.Contains("metadata", StringComparison.Ordinal)),
@@ -203,7 +196,7 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
     {
         var process = Process(Task("Task_1", "data"), ServiceTask("Task_Pdf", "pdf"));
         _app.Write(ProcessPath, process);
-        WriteTaskFolder("Task_Pdf", GeneratedWaitingComponents);
+        WriteTaskFolder("Task_Pdf", WaitingPage);
 
         var result = await Migrate();
 
@@ -448,6 +441,15 @@ public sealed class SubformPdfConfigMigrationTests : IDisposable
         _app.Write($"ui/{folder}/Settings.json", $$"""{ "type": "subform", "defaultDataType": "{{dataType}}" }""");
         _app.Write($"ui/{folder}/layouts/Page.json", """{ "data": { "layout": [] } }""");
     }
+
+    /// <summary>The ids of the components on the ServiceTask page of a subform PDF task's own UI folder.</summary>
+    private List<string?> ComponentIds(string taskId) =>
+        [
+            .. (
+                JsonNode.Parse(_app.Read($"ui/{taskId}/layouts/ServiceTask.json"))?["data"]?["layout"] as JsonArray
+                ?? []
+            ).Select(component => component?["id"]?.GetValue<string>()),
+        ];
 
     /// <summary>A subform PDF task's own UI folder, with one page holding <paramref name="components"/>.</summary>
     private void WriteTaskFolder(string taskId, string components)

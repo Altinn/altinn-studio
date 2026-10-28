@@ -6,8 +6,9 @@ namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
 /// End-to-end ordering check for the subform PDF task step: it runs after the layout migrations and the layout-set
-/// conversion, so it finds the task's folder at ui/&lt;taskId&gt; with the v8 waiting page already migrated. The
-/// csproj upgrade and semantic analysis are skipped so the run stays offline and local.
+/// conversion, so it finds the task's folder at ui/&lt;taskId&gt; with the v8 waiting page already migrated, and
+/// before the service task page step, which deals with what the folder holds once the copy is gone. The csproj
+/// upgrade and semantic analysis are skipped so the run stays offline and local.
 /// </summary>
 public sealed class V8Tov9UpgradeSubformPdfTests : IDisposable
 {
@@ -15,8 +16,58 @@ public sealed class V8Tov9UpgradeSubformPdfTests : IDisposable
 
     public void Dispose() => _app.Dispose();
 
+    /// <summary>The waiting page the v8 Designer generated, with a Header the layout migrations rename to Heading.</summary>
+    private const string GeneratedPage = """
+          { "size": "L", "id": "service-task-title", "type": "Header", "textResourceBindings": { "title": "service_task_custom_pdf_default.title" } },
+          { "id": "service-task-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.body" } },
+          { "id": "service-task-help-text", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.help_text" } },
+          { "id": "service-task-button-group", "type": "ButtonGroup", "children": ["service-task-retry-button", "service-task-back-button"] },
+          { "id": "service-task-retry-button", "type": "Button", "textResourceBindings": { "title": "service_task_custom_pdf_default.retry_button" } },
+          { "id": "service-task-back-button", "type": "ActionButton", "textResourceBindings": { "title": "service_task_custom_pdf_default.back_button" }, "action": "reject", "buttonStyle": "secondary" }
+        """;
+
+    private const string Copy = """{ "id": "Subform", "type": "Subform", "layoutSet": "subform", "hidden": true }""";
+
     [Fact]
-    public async Task Upgrade_RewritesASubformPdfTaskFromALayoutSetsApp()
+    public async Task Upgrade_RewritesASubformPdfTaskAndRemovesItsGeneratedFolder()
+    {
+        var report = await Upgrade(GeneratedPage + ",\n" + Copy);
+
+        var step = Assert.Single(report.Steps, step => step.Name == "Subform PDF tasks");
+        Assert.DoesNotContain(step.Messages, message => message.Status == UpgradeMessageStatus.Todo);
+        var process = _app.Read("config/process/process.bpmn");
+        Assert.Contains("<altinn:subformUiFolder>subform</altinn:subformUiFolder>", process, StringComparison.Ordinal);
+        Assert.DoesNotContain("subformComponentId", process, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(_app.Root, "App", "ui", "layout-sets.json")));
+        var pagesStep = Assert.Single(report.Steps, step => step.Name == "Service task pages");
+        Assert.DoesNotContain(pagesStep.Messages, message => message.Status == UpgradeMessageStatus.Todo);
+        Assert.Contains(
+            pagesStep.Messages,
+            message => message.Text.StartsWith("Removed ui/SubformPdf", StringComparison.Ordinal)
+        );
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf")));
+        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "subform-pdf")));
+        Assert.True(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "subform")));
+    }
+
+    [Fact]
+    public async Task Upgrade_TakesAPageOfTheTaskOutOfItsOrderOnceInThePageStep()
+    {
+        // A page beside the copy, such as an error page: in v8 a subform PDF task showed it only when it failed
+        var report = await Upgrade(Copy + ",\n" + """{ "id": "custom-text", "type": "Paragraph" }""");
+
+        var messages = report
+            .Steps.SelectMany(step => step.Messages.Select(message => (step.Name, message)))
+            .Where(entry => entry.message.Text.Contains("SubformPdf", StringComparison.Ordinal))
+            .ToList();
+        Assert.DoesNotContain(messages, entry => entry.message.Status == UpgradeMessageStatus.Todo);
+        var warning = Assert.Single(messages, entry => entry.Name == "Service task pages").message;
+        Assert.Equal(UpgradeMessageStatus.Warning, warning.Status);
+        Assert.Contains("Took the page(s) [ServiceTask] out of pages.order", warning.Text, StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf", "layouts", "ServiceTask.json")));
+    }
+
+    private async Task<UpgradeReport> Upgrade(string taskPageComponents)
     {
         _app.Write(
             "App.csproj",
@@ -65,21 +116,10 @@ public sealed class V8Tov9UpgradeSubformPdfTests : IDisposable
         );
         _app.Write("ui/subform/Settings.json", """{ "pages": { "order": ["Page1"] } }""");
         _app.Write("ui/subform/layouts/Page1.json", """{ "data": { "layout": [] } }""");
-        // The waiting page the v8 Designer generated, with a Header the layout migrations rename to Heading.
         _app.Write("ui/subform-pdf/Settings.json", """{ "pages": { "order": ["ServiceTask"] } }""");
         _app.Write(
             "ui/subform-pdf/layouts/ServiceTask.json",
-            """
-            { "data": { "layout": [
-              { "size": "L", "id": "service-task-title", "type": "Header", "textResourceBindings": { "title": "service_task_custom_pdf_default.title" } },
-              { "id": "service-task-body", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.body" } },
-              { "id": "service-task-help-text", "type": "Paragraph", "textResourceBindings": { "title": "service_task_custom_pdf_default.help_text" } },
-              { "id": "service-task-button-group", "type": "ButtonGroup", "children": ["service-task-retry-button", "service-task-back-button"] },
-              { "id": "service-task-retry-button", "type": "Button", "textResourceBindings": { "title": "service_task_custom_pdf_default.retry_button" } },
-              { "id": "service-task-back-button", "type": "ActionButton", "textResourceBindings": { "title": "service_task_custom_pdf_default.back_button" }, "action": "reject", "buttonStyle": "secondary" },
-              { "id": "Subform", "type": "Subform", "layoutSet": "subform", "hidden": true }
-            ] } }
-            """
+            $$"""{ "data": { "layout": [{{taskPageComponents}}] } }"""
         );
 
         var report = new UpgradeReport();
@@ -99,14 +139,6 @@ public sealed class V8Tov9UpgradeSubformPdfTests : IDisposable
             )
         );
 
-        var step = Assert.Single(report.Steps, step => step.Name == "Subform PDF tasks");
-        Assert.DoesNotContain(step.Messages, message => message.Status == UpgradeMessageStatus.Todo);
-        var process = _app.Read("config/process/process.bpmn");
-        Assert.Contains("<altinn:subformUiFolder>subform</altinn:subformUiFolder>", process, StringComparison.Ordinal);
-        Assert.DoesNotContain("subformComponentId", process, StringComparison.Ordinal);
-        Assert.False(File.Exists(Path.Combine(_app.Root, "App", "ui", "layout-sets.json")));
-        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "SubformPdf")));
-        Assert.False(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "subform-pdf")));
-        Assert.True(Directory.Exists(Path.Combine(_app.Root, "App", "ui", "subform")));
+        return report;
     }
 }
