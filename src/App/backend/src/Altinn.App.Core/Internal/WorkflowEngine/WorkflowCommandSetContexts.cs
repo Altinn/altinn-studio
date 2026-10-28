@@ -25,7 +25,7 @@ internal sealed record TaskStartContext
     /// <summary>
     /// The start pipeline the entering task's type composed. Each stage becomes a step, unless there is only one.
     /// </summary>
-    public required Pipeline StartPipeline { get; init; }
+    public required ProcessTaskPipeline StartPipeline { get; init; }
 
     /// <summary>
     /// If this is a service task, the task and its pipeline. Otherwise null.

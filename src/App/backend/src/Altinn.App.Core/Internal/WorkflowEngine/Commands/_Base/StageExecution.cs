@@ -46,7 +46,7 @@ internal static class StageExecution
     /// stages before it changed, so a later stage that defers fails the step permanently instead.
     /// </remarks>
     public static async Task<ProcessEngineCommandResult> Run(
-        Pipeline pipeline,
+        ProcessTaskPipeline pipeline,
         ProcessTaskStagePayload payload,
         ProcessEngineCommandContext context,
         LifecyclePhase phase,

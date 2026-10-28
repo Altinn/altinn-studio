@@ -117,7 +117,7 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(context =>
                 {
@@ -170,7 +170,7 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(2))))
@@ -222,7 +222,7 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
             pipeline.Stage(_ => Task.FromResult(StageResult.Defer(TimeSpan.FromMinutes(1), "not yet"))).Build();
     }
 
@@ -242,7 +242,8 @@ public class StartTaskTests
     {
         public string Type => "data";
 
-        public Pipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(_ => Task.FromResult(result)).Build();
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+            pipeline.Stage(_ => Task.FromResult(result)).Build();
     }
 
     // A record's protected copy constructor lets an app derive its own result, which no mapper can act on.

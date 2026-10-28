@@ -210,7 +210,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
             throw new InvalidOperationException("no stages for you");
     }
 
@@ -235,7 +235,7 @@ public class ProcessTaskConfigurationValidationServiceTests
     {
         public string Type => type;
 
-        public Pipeline DefineEnd(PipelineBuilder pipeline) => null!;
+        public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => null!;
     }
 
     [Theory]

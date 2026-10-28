@@ -23,10 +23,10 @@ public class WorkflowCommandSetTests
         new PipelineBuilder().Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
     /// <summary>The lifecycle pipeline every task type without its own definition forwards to.</summary>
-    private static Pipeline SingleStagePipeline() =>
+    private static ProcessTaskPipeline SingleStagePipeline() =>
         new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
 
-    private static Pipeline ThreeStagePipeline(ProcessStepOptions? middleOptions = null) =>
+    private static ProcessTaskPipeline ThreeStagePipeline(ProcessStepOptions? middleOptions = null) =>
         new PipelineBuilder()
             .Stage(_ => Task.FromResult(StageResult.Completed()))
             .Stage(_ => Task.FromResult(StageResult.Completed()), middleOptions)

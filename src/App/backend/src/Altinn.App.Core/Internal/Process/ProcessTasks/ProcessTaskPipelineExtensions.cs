@@ -24,10 +24,10 @@ internal static class ProcessTaskPipelineExtensions
     /// which no honest implementation does (the builder is the only source of a pipeline) but an unstubbed mock does:
     /// at startup that is a finding naming the task and the phase, at run time a failed step.
     /// </summary>
-    public static Pipeline ResolvePipeline(this IProcessTask task, LifecyclePhase phase)
+    public static ProcessTaskPipeline ResolvePipeline(this IProcessTask task, LifecyclePhase phase)
     {
         var builder = new PipelineBuilder();
-        Pipeline? pipeline = phase switch
+        ProcessTaskPipeline? pipeline = phase switch
         {
             LifecyclePhase.Start => task.DefineStart(builder),
             LifecyclePhase.End => task.DefineEnd(builder),

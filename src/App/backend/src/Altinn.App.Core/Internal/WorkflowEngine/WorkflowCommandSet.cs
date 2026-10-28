@@ -112,7 +112,7 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// Creates command group for task end events.
     /// </summary>
-    public static WorkflowCommandSet GetTaskEndSteps(string taskId, Pipeline endPipeline)
+    public static WorkflowCommandSet GetTaskEndSteps(string taskId, ProcessTaskPipeline endPipeline)
     {
         return new WorkflowCommandSet()
             .AddProcessTaskStages(EndTask.Key, endPipeline)
@@ -124,7 +124,7 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// Creates command group for task abandon events.
     /// </summary>
-    public static WorkflowCommandSet GetTaskAbandonSteps(Pipeline abandonPipeline)
+    public static WorkflowCommandSet GetTaskAbandonSteps(ProcessTaskPipeline abandonPipeline)
     {
         return new WorkflowCommandSet()
             .AddProcessTaskStages(AbandonTask.Key, abandonPipeline)
@@ -161,7 +161,7 @@ internal sealed class WorkflowCommandSet
     /// Adds one step per stage of a process task's lifecycle pipeline, dispatched by position like service task
     /// items, so each stage saves on its own and a retry starts at the stage that failed.
     /// </summary>
-    private WorkflowCommandSet AddProcessTaskStages(string commandKey, Pipeline pipeline)
+    private WorkflowCommandSet AddProcessTaskStages(string commandKey, ProcessTaskPipeline pipeline)
     {
         IReadOnlyList<PipelineStage.Plain> stages = pipeline.Stages;
         for (int index = 0; index < stages.Count; index++)

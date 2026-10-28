@@ -2469,7 +2469,7 @@ public class ProcessNextRequestFactoryTests
     {
         public string Type => "staged";
 
-        public Pipeline DefineStart(PipelineBuilder pipeline) =>
+        public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Stage(

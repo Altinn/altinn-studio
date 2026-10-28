@@ -77,19 +77,22 @@ public interface IProcessTask
     /// only. Deploy such a change when no transition can be in flight, as for a service task pipeline.
     /// </remarks>
 #pragma warning disable CS0618 // The defaults run the deprecated members on purpose, until those are removed.
-    Pipeline DefineStart(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(Start, context)).Build();
+    ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) =>
+        pipeline.Stage(context => RunAsStage(Start, context)).Build();
 
     /// <summary>
     /// Composes the work to do when the task ends as stages. See <see cref="DefineStart"/>. The default is one
     /// stage that calls <see cref="End"/>.
     /// </summary>
-    Pipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(End, context)).Build();
+    ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+        pipeline.Stage(context => RunAsStage(End, context)).Build();
 
     /// <summary>
     /// Composes the work to do when the task is abandoned as stages. See <see cref="DefineStart"/>. The default is
     /// one stage that calls <see cref="Abandon"/>.
     /// </summary>
-    Pipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Stage(context => RunAsStage(Abandon, context)).Build();
+    ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) =>
+        pipeline.Stage(context => RunAsStage(Abandon, context)).Build();
 
 #pragma warning restore CS0618
 

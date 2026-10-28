@@ -123,7 +123,7 @@ public sealed class PipelineBuilder
     /// into or out of the task and never advance the process. A pipeline that opened a mailbox cannot end here,
     /// since only a service task's conclusion can answer it.
     /// </summary>
-    public Pipeline Build()
+    public ProcessTaskPipeline Build()
     {
         if (_mailboxes.Count > 0)
         {
@@ -135,7 +135,7 @@ public sealed class PipelineBuilder
             );
         }
 
-        return new Pipeline([.. _items.Select(item => (PipelineStage.Plain)item)]);
+        return new ProcessTaskPipeline([.. _items.Select(item => (PipelineStage.Plain)item)]);
     }
 
     /// <summary>

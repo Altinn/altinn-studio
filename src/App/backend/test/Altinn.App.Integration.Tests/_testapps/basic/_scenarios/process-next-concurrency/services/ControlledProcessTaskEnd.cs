@@ -21,7 +21,7 @@ public sealed class ControlledProcessTaskEnd : IProcessTask
 
     public string Type => AltinnTaskTypes.Data;
 
-    public Pipeline DefineEnd(PipelineBuilder pipeline) =>
+    public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
         pipeline
             .Stage(async _ =>
             {

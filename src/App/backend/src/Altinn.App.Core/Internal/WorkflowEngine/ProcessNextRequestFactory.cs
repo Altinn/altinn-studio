@@ -580,12 +580,12 @@ internal sealed class ProcessNextRequestFactory
     /// implementation (startup validation rejects that) gets a single step, which reports the missing
     /// implementation when it runs.
     /// </summary>
-    private Pipeline ResolveProcessTaskPipeline(string? altinnTaskType, LifecyclePhase phase) =>
+    private ProcessTaskPipeline ResolveProcessTaskPipeline(string? altinnTaskType, LifecyclePhase phase) =>
         new ProcessTaskResolver(_appImplementationFactory).FindProcessTaskInstance(altinnTaskType) is { } task
             ? task.ResolvePipeline(phase)
             : _unresolvedTaskPipeline;
 
-    private static readonly Pipeline _unresolvedTaskPipeline = new PipelineBuilder()
+    private static readonly ProcessTaskPipeline _unresolvedTaskPipeline = new PipelineBuilder()
         .Stage(_ => Task.FromResult(StageResult.Completed()))
         .Build();
 

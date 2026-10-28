@@ -35,7 +35,7 @@ internal sealed class EndTask : WorkflowEngineCommandBase<ProcessTaskStagePayloa
         try
         {
             IProcessTask processTask = _processTaskResolver.GetProcessTaskInstance(altinnTaskType);
-            Pipeline pipeline = processTask.ResolvePipeline(LifecyclePhase.End);
+            ProcessTaskPipeline pipeline = processTask.ResolvePipeline(LifecyclePhase.End);
             return await StageExecution.Run(pipeline, payload, context, LifecyclePhase.End, altinnTaskType);
         }
         catch (Exception ex)

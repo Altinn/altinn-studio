@@ -124,7 +124,7 @@ public class WorkflowEngineCommandRegistrationTests
     /// <summary>
     /// A process task lifecycle pipeline. Every stage count plans the same command key, so one stage suffices.
     /// </summary>
-    private static Pipeline CreateLifecyclePipeline() =>
+    private static ProcessTaskPipeline CreateLifecyclePipeline() =>
         new PipelineBuilder().Stage(_ => Task.FromResult(StageResult.Completed())).Build();
 
     private static ServiceTaskPipeline CreatePipeline() =>

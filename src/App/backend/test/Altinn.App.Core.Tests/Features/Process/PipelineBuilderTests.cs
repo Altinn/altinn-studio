@@ -16,7 +16,7 @@ public class PipelineBuilderTests
     {
         var second = new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(5) };
 
-        Pipeline pipeline = new PipelineBuilder().Stage(Plain).Stage(Plain, second).Build();
+        ProcessTaskPipeline pipeline = new PipelineBuilder().Stage(Plain).Stage(Plain, second).Build();
 
         Assert.Equal(2, pipeline.Stages.Count);
         Assert.Null(pipeline.Stages[0].StepOptions);
