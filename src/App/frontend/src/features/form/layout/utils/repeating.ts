@@ -1,5 +1,6 @@
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
+import { isRepeatingChild } from 'src/utils/layout/plugins/claimRepeatingChildren';
 import type { CompExternal, CompTypes, IDataModelBindings } from 'src/layout/layout';
 
 const repeatingComponents = ['RepeatingGroup', 'Likert'] as const satisfies CompTypes[];
@@ -12,6 +13,15 @@ export function isRepeatingComponent(component: unknown): component is CompExter
     'type' in component &&
     typeof component.type === 'string' &&
     repeatingComponents.includes(component.type as RepeatingComponents)
+  );
+}
+
+/** Whether this component repeats the given direct child, excluding static table rows. */
+export function isRepeatingParent(component: unknown, childId: string): component is CompExternal<RepeatingComponents> {
+  return (
+    isRepeatingComponent(component) &&
+    (component.type !== 'RepeatingGroup' ||
+      isRepeatingChild(component.children, component.edit?.multiPage === true, childId))
   );
 }
 

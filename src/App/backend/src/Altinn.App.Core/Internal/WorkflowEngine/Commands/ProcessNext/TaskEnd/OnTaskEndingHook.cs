@@ -48,16 +48,16 @@ internal sealed class OnTaskEndingHook : IWorkflowEngineCommand
 
         try
         {
-            HookResult result = await hook.Execute(hookParameters);
+            HandlerResult result = await hook.Execute(hookParameters);
 
             return result switch
             {
-                SuccessfulHookResult => new SuccessfulProcessEngineCommandResult(),
-                FailedHookResult failed => failed.Kind == FailureKind.Permanent
+                SuccessfulHandlerResult => new SuccessfulProcessEngineCommandResult(),
+                FailedHandlerResult failed => failed.Kind == FailureKind.Permanent
                     ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
                     : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(
-                    $"Unexpected {nameof(HookResult)} type: {result.GetType().Name}"
+                    $"Unexpected {nameof(HandlerResult)} type: {result.GetType().Name}"
                 ),
             };
         }

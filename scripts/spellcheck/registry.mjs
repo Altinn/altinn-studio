@@ -44,9 +44,9 @@ export const GROUPS = [
     english: 'en-gb',
   },
   {
-    // en.json is a partial translation by design: language support for
-    // English "is not yet available in the project" and the file "is not
-    // maintained" (src/Designer/frontend/AGENTS.md). Keys that exist in en
+    // en.json is a partial translation by design: Designer does not offer
+    // English to users, and en.json has only part of the texts
+    // (src/Designer/frontend/README.md). Keys that exist in en
     // must still exist in nb — Designer always runs with lng 'nb', so a key
     // missing from nb renders as the raw key.
     name: 'Designer frontend',

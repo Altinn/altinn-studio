@@ -32,11 +32,22 @@ public sealed class DashboardConfigDatabaseFixture : IAsyncLifetime
 public sealed class DashboardConfigEndpointTests(DashboardConfigDatabaseFixture database)
     : IClassFixture<DashboardConfigDatabaseFixture>
 {
+    private const string TraceUrlTemplateKey = "EngineSettings:Dashboard:TraceUrlTemplate";
     private const string GrafanaUrlKey = "EngineSettings:Dashboard:GrafanaUrl";
     private const string GrafanaTracesDatasourceUidKey = "EngineSettings:Dashboard:GrafanaTracesDatasourceUid";
 
+    private const string AspireTemplate = "http://localhost:18888/traces/detail/{traceId}";
+
     [Fact]
-    public async Task Config_GrafanaConfigured_ReturnsBothSettings()
+    public async Task Config_TraceUrlTemplate_ReturnsIt()
+    {
+        var body = await GetConfig((TraceUrlTemplateKey, AspireTemplate));
+
+        Assert.Equal($$"""{"traceUrlTemplate":"{{AspireTemplate}}"}""", body);
+    }
+
+    [Fact]
+    public async Task Config_GrafanaPair_ReturnsAGrafanaExploreTemplate()
     {
         var body = await GetConfig(
             (GrafanaUrlKey, "https://grafana.example.com"),
@@ -44,9 +55,21 @@ public sealed class DashboardConfigEndpointTests(DashboardConfigDatabaseFixture 
         );
 
         Assert.Equal(
-            """{"grafanaUrl":"https://grafana.example.com","grafanaTracesDatasourceUid":"engine-traces"}""",
+            """{"traceUrlTemplate":"https://grafana.example.com/explore?schemaVersion=1\u0026panes=%7B%22trace%22%3A%7B%22datasource%22%3A%22engine-traces%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22engine-traces%22%7D%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22{traceId}%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-24h%22%2C%22to%22%3A%22now%22%7D%7D%7D"}""",
             body
         );
+    }
+
+    [Fact]
+    public async Task Config_TemplateAndGrafanaPair_ReturnsTheTemplate()
+    {
+        var body = await GetConfig(
+            (TraceUrlTemplateKey, AspireTemplate),
+            (GrafanaUrlKey, "https://grafana.example.com"),
+            (GrafanaTracesDatasourceUidKey, "engine-traces")
+        );
+
+        Assert.Equal($$"""{"traceUrlTemplate":"{{AspireTemplate}}"}""", body);
     }
 
     [Fact]
@@ -62,7 +85,11 @@ public sealed class DashboardConfigEndpointTests(DashboardConfigDatabaseFixture 
     [InlineData("  ")]
     public async Task Config_EmptyOrWhitespaceSettings_AreOmittedAsUnset(string value)
     {
-        var body = await GetConfig((GrafanaUrlKey, value), (GrafanaTracesDatasourceUidKey, value));
+        var body = await GetConfig(
+            (TraceUrlTemplateKey, value),
+            (GrafanaUrlKey, value),
+            (GrafanaTracesDatasourceUidKey, value)
+        );
 
         Assert.Equal("{}", body);
     }

@@ -470,10 +470,10 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         public bool ShouldRunForTask(string taskId) => true;
 
-        public Task<HookResult> Execute(OnTaskStartingContext context)
+        public Task<HandlerResult> Execute(OnTaskStartingContext context)
         {
             Language = context.InstanceDataMutator.Language;
-            return Task.FromResult<HookResult>(HookResult.Success());
+            return Task.FromResult<HandlerResult>(HandlerResult.Success());
         }
     }
 

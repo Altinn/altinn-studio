@@ -11,7 +11,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useCurrentView, useNavigateToComponent } from 'src/hooks/useNavigatePage';
 import { useIsEditableInRepGroup } from 'src/layout/RepeatingGroup/Summary2/RepGroupSummaryEditableContext';
-import { useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
+import { useSummaryOverrides, useSummaryProp } from 'src/layout/Summary2/summaryStoreContext';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -123,6 +123,9 @@ export function EditButton({
   const overriddenDataElementId = overrides?.dataModelElementId;
   const indexedId = useIndexedId(targetBaseComponentId, skipLastIdMutator);
   const summary2Id = useSummaryProp('id');
+  const summaryOverrides = useSummaryOverrides(targetBaseComponentId);
+  const showNextButton =
+    summaryOverrides && 'showNextButton' in summaryOverrides ? summaryOverrides.showNextButton : undefined;
 
   // Check if we're in a repeating group row and if this component is editable
   const editableInRepGroup = useIsEditableInRepGroup(targetBaseComponentId);
@@ -153,7 +156,7 @@ export function EditButton({
       });
     }
 
-    setReturnToView?.(currentPageId);
+    setReturnToView?.(currentPageId ? { pageId: currentPageId, showNextButton } : undefined);
     setNodeOfOrigin?.(summary2Id);
   };
   return (

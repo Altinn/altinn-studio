@@ -66,6 +66,7 @@ services:
       OTEL_SERVICE_NAME: workflow-engine-testapp
       OTEL_METRIC_EXPORT_INTERVAL: "15000"
       # Unset in the shell, these stay empty and the dashboard draws no trace links (docs/docker.md#monitoring).
+      EngineSettings__Dashboard__TraceUrlTemplate: ${EngineSettings__Dashboard__TraceUrlTemplate:-}
       EngineSettings__Dashboard__GrafanaUrl: ${EngineSettings__Dashboard__GrafanaUrl:-}
       EngineSettings__Dashboard__GrafanaTracesDatasourceUid: ${EngineSettings__Dashboard__GrafanaTracesDatasourceUid:-}
     volumes:
