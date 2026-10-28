@@ -12,6 +12,7 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { doProcessNext } from 'src/queries/queries';
+import Page from 'src/routes/page/page.route';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { IProcess, IProcessWorkflow } from 'src/types/shared';
@@ -232,6 +233,38 @@ describe('ProcessWrapper workflow state machine', () => {
     }
   });
 
+  it('a service task page shows the trouble banner above its content while a step fails and is retried', async () => {
+    const instance = getInstanceWithProcessMock();
+    instance.process.currentTask!.elementType = 'ServiceTask';
+    instance.process.workflow = {
+      status: 'processing',
+      targetTask: instance.process.currentTask!.elementId,
+      failedAttempts: 2,
+    };
+
+    // The page route, as the task route renders it, so the banner's place on the page is tested too.
+    await renderWithInstanceAndLayout({
+      renderer: () => (
+        <ProcessWrapper>
+          <Page />
+        </ProcessWrapper>
+      ),
+      apis: {
+        instanceApi: {
+          getInstance: async () => instance,
+        },
+      },
+    });
+
+    const firstComponent = await screen.findByRole('heading', { name: /you haven't added any components yet/i });
+    // The visible warning; the status region beside it is visually hidden and only for screen readers.
+    const banner = document.querySelector('.ds-alert[data-color="warning"]');
+    expect(banner).toHaveTextContent(/vi kan ikke behandle skjemaet ditt/i);
+    expect(screen.getByTestId('presentation')).toContainElement(banner as HTMLElement);
+    expect(banner!.compareDocumentPosition(firstComponent) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+  });
+
   it('a failure after a service task with a page shows the error page, not the page', async () => {
     // The transition onward from the service task failed before committing the next task: no task
     // UI owns that failure, so the terminal error page wins over the service task's page.
@@ -345,7 +378,8 @@ describe('ProcessWrapper workflow state machine', () => {
         await vi.advanceTimersByTimeAsync(1);
       });
       const status = screen.getByRole('status');
-      expect(status).toHaveAttribute('aria-live', 'polite');
+      // role='status' is already a polite live region; adding aria-live makes VoiceOver announce twice.
+      expect(status).not.toHaveAttribute('aria-live');
       expect(status).toHaveAttribute('aria-atomic', 'true');
       expect(status).toHaveTextContent(/du kan trygt lukke siden/i);
       expect(status.parentElement).toContainElement(screen.getByTestId('loader'));

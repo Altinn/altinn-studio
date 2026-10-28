@@ -591,6 +591,32 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
   });
 
+  it('a service task page shows a trouble banner while a step fails and is retried, until it succeeds', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // Each attempt takes ~8s; the first two fail retryably and the third succeeds.
+    fillLevers({ path: 'postCommit', serviceView: 'layout', delayMs: 8000, attempts: 3 });
+    cy.intercept({ method: 'GET', url: '**/instances/*/*/enriched*' }).as('instanceRead');
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 15000 }).should('be.visible');
+
+    // A single failed attempt early in the run stays quiet. Checked once, right after the page saw it.
+    waitForPageToSeeFailedAttempts(1);
+    cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 0 }).should('not.exist');
+
+    // The banner joins the page rather than replacing it, the way the loading view's warning would.
+    // Its status region for screen readers is visually hidden, so check the visible warning itself.
+    cy.contains('div.ds-alert[data-color="warning"]', 'Vi kan ikke behandle skjemaet ditt', { timeout: 30000 }).should(
+      'be.visible',
+    );
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 0 }).should('be.visible');
+    workflowLoader().should('not.exist');
+
+    cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+    cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 0 }).should('not.exist');
+  });
+
   it('failed on the layouted service task: the failure view takes precedence over the custom layout', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', serviceView: 'layout', attempts: 1, endState: 'failure' });
