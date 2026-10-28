@@ -23,6 +23,17 @@ const (
 	otelCollectorHTTPPort = "4318"
 )
 
+// OTLPCollector returns where the monitoring group's collector receives OTLP: over gRPC at the topology's otel
+// URL. Its host name resolves to the collector's published port on the host machine (from the hosts file) and, as
+// the collector's network alias, to the collector itself on the environment network, so both are the same address.
+func OTLPCollector(topology envtopology.Local) envtopology.OTLPCollector {
+	destination := envtopology.OTLPDestination{
+		Endpoint: topology.OTelURL(),
+		Protocol: envtopology.OTLPProtocolGRPC,
+	}
+	return envtopology.OTLPCollector{Host: destination, Network: destination}
+}
+
 func registerMonitoringComponents(manifest *Manifest, opts *Options) {
 	enabled := opts.IncludeMonitoring
 	manifest.addContainer(

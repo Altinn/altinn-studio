@@ -60,13 +60,148 @@ func TestBuildDockerRunSpec_AddsDockerLocaltestEnv(t *testing.T) {
 		"AppSettings__OpenIdWellKnownEndpoint=http://local.altinn.cloud:8000/authentication/api/v1/openid/",
 		"GeneralSettings__ExternalAppBaseUrl=http://local.altinn.cloud:8000/{org}/{app}/",
 		"GeneralSettings__HostName=local.altinn.cloud",
-		"OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.local.altinn.cloud:4317",
 		"PlatformSettings__ApiStorageEndpoint=http://local.altinn.cloud:8000/storage/api/v1/",
 		"PlatformSettings__ApiPdf2Endpoint=http://pdf.local.altinn.cloud:8000/pdf",
 		"PlatformSettings__ApiWorkflowEngineEndpoint=http://workflow-engine.local.altinn.cloud:8000/api/v1/",
 		"PlatformFrontendSettings__ArbeidsflateInboxUrl=http://local.altinn.cloud:8000/",
 		"PlatformFrontendSettings__LogoutUrl=http://local.altinn.cloud:8000/",
 	})
+}
+
+// testCollector reaches the collector at different addresses from the host and from the environment's network, so a
+// test sees which one a run is given.
+func testCollector() *envtopology.OTLPCollector {
+	return &envtopology.OTLPCollector{
+		Host:    envtopology.OTLPDestination{Endpoint: "http://otel.local.altinn.cloud:4317", Protocol: "grpc"},
+		Network: envtopology.OTLPDestination{Endpoint: "http://collector:4318", Protocol: "http/protobuf"},
+	}
+}
+
+func TestBuildRunSpecs_ExportOnlyWhileACollectorRuns(t *testing.T) {
+	t.Parallel()
+
+	appPath := t.TempDir()
+	writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+	writeAppProject(t, appPath)
+	detection := repocontext.Detection{AppRoot: appPath, InAppRepo: true}
+	otlpKeys := []string{
+		"OTEL_EXPORTER_OTLP_ENDPOINT",
+		"OTEL_EXPORTER_OTLP_PROTOCOL",
+		"AppSettings__UseOpenTelemetry",
+	}
+
+	native, err := testRunService(t).BuildDotnetRunSpec(
+		t.Context(), appPath, nil, nil, defaultTopology(), appsvc.DotnetRunOptions{},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+	container, err := testRunService(t).BuildDockerRunSpec(detection, nil, defaultTopology(), appsvc.DockerRunOptions{})
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+	for _, key := range otlpKeys {
+		assertEnvMissing(t, native.Env, key)
+		assertEnvMissing(t, container.Config.Env, key)
+	}
+
+	native, err = testRunService(t).BuildDotnetRunSpec(
+		t.Context(), appPath, nil, nil, defaultTopology(), appsvc.DotnetRunOptions{OTLPCollector: testCollector()},
+	)
+	if err != nil {
+		t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+	}
+	assertEnvContainsAll(t, native.Env, []string{
+		"OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.local.altinn.cloud:4317",
+		"OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+		"AppSettings__UseOpenTelemetry=true",
+	})
+	container, err = testRunService(t).BuildDockerRunSpec(
+		detection, nil, defaultTopology(), appsvc.DockerRunOptions{OTLPCollector: testCollector()},
+	)
+	if err != nil {
+		t.Fatalf("BuildDockerRunSpec() error = %v", err)
+	}
+	assertEnvContainsAll(t, container.Config.Env, []string{
+		"OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318",
+		"OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf",
+		"AppSettings__UseOpenTelemetry=true",
+	})
+}
+
+// The shell's endpoint and protocol are a pair: an endpoint of its own keeps its protocol, and a protocol alone does
+// not apply to the collector's endpoint. The shell can also turn OpenTelemetry off.
+func TestBuildDotnetRunSpec_TheShellOverridesTheCollector(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name      string
+		collector *envtopology.OTLPCollector
+		current   []string
+		want      []string
+		missing   []string
+	}{
+		{
+			name:      "own endpoint",
+			collector: testCollector(),
+			current:   []string{"OTEL_EXPORTER_OTLP_ENDPOINT=http://mine:4318"},
+			want:      []string{"OTEL_EXPORTER_OTLP_ENDPOINT=http://mine:4318", "AppSettings__UseOpenTelemetry=true"},
+			missing:   []string{"OTEL_EXPORTER_OTLP_PROTOCOL"},
+		},
+		{
+			name:      "own endpoint without a collector",
+			collector: nil,
+			current: []string{
+				"OTEL_EXPORTER_OTLP_ENDPOINT=http://mine:4318",
+				"OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf",
+			},
+			want: []string{
+				"OTEL_EXPORTER_OTLP_ENDPOINT=http://mine:4318",
+				"OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf",
+				"AppSettings__UseOpenTelemetry=true",
+			},
+			missing: nil,
+		},
+		{
+			name:      "protocol alone",
+			collector: testCollector(),
+			current:   []string{"OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf"},
+			want: []string{
+				"OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.local.altinn.cloud:4317",
+				"OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+			},
+			missing: nil,
+		},
+		{
+			name:      "OpenTelemetry off",
+			collector: testCollector(),
+			current:   []string{"AppSettings__UseOpenTelemetry=false"},
+			want: []string{
+				"OTEL_EXPORTER_OTLP_ENDPOINT=http://otel.local.altinn.cloud:4317",
+				"AppSettings__UseOpenTelemetry=false",
+			},
+			missing: nil,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			appPath := t.TempDir()
+			writeAppMetadata(t, appPath, `{"id":"ttd/test-app"}`)
+			writeAppProject(t, appPath)
+			spec, err := testRunService(t).BuildDotnetRunSpec(
+				t.Context(), appPath, nil, tc.current, defaultTopology(),
+				appsvc.DotnetRunOptions{OTLPCollector: tc.collector},
+			)
+			if err != nil {
+				t.Fatalf("BuildDotnetRunSpec() error = %v", err)
+			}
+			assertEnvContainsAll(t, spec.Env, tc.want)
+			for _, key := range tc.missing {
+				assertEnvMissing(t, spec.Env, key)
+			}
+		})
+	}
 }
 
 // The app frontend no longer falls back to localtest's start page from the page's host: the run sets the inbox and

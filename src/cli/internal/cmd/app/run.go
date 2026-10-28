@@ -53,6 +53,8 @@ type DotnetRunSpec struct {
 
 // DotnetRunOptions contains native run-specific app options.
 type DotnetRunOptions struct {
+	// OTLPCollector is the environment's collector while it runs, and nil otherwise.
+	OTLPCollector           *envtopology.OTLPCollector
 	AppFrontendAssetBaseUrl string
 	RandomHostPort          bool
 }
@@ -66,6 +68,8 @@ type DockerRunSpec struct {
 
 // DockerRunOptions contains docker run-specific app options.
 type DockerRunOptions struct {
+	// OTLPCollector is the environment's collector while it runs, and nil otherwise.
+	OTLPCollector           *envtopology.OTLPCollector
 	ImageTag                string
 	AppFrontendAssetBaseUrl string
 	RandomHostPort          bool
@@ -140,8 +144,32 @@ func (s *Service) BuildDotnetRunSpec(
 		AppArgs:        args,
 		BuildArgs:      []string{"build", projectPath},
 		TargetPathArgs: []string{"msbuild", projectPath, "-getProperty:TargetPath"},
-		Env:            newAppRunEnv(env, baseURL, topology, opts.AppFrontendAssetBaseUrl, secretsDir, ""),
+		Env: newAppRunEnv(
+			env,
+			baseURL,
+			topology,
+			opts.AppFrontendAssetBaseUrl,
+			secretsDir,
+			"",
+			hostOTLP(opts.OTLPCollector),
+		),
 	}, nil
+}
+
+// hostOTLP is where an app run as a process on the host sends OTLP, or nil without a collector.
+func hostOTLP(collector *envtopology.OTLPCollector) *envtopology.OTLPDestination {
+	if collector == nil {
+		return nil
+	}
+	return &collector.Host
+}
+
+// networkOTLP is where an app container on the environment's network sends OTLP, or nil without a collector.
+func networkOTLP(collector *envtopology.OTLPCollector) *envtopology.OTLPDestination {
+	if collector == nil {
+		return nil
+	}
+	return &collector.Network
 }
 
 // ReadAppID returns the app id declared in an app directory's application metadata. Exported because
@@ -277,6 +305,7 @@ func (s *Service) BuildDockerRunSpec(
 				opts.AppFrontendAssetBaseUrl,
 				appsecrets.ContainerDir,
 				keysDirEnv,
+				networkOTLP(opts.OTLPCollector),
 			),
 			Command: args,
 			CapAdd:  nil,

@@ -300,6 +300,7 @@ func (c *AppCommand) runEnv(ctx context.Context, args []string) error {
 		nil,
 		topology,
 		appsvc.DotnetRunOptions{
+			OTLPCollector:           runningOTLPCollector(ctx, c.out, topology),
 			AppFrontendAssetBaseUrl: appEnvFrontendAssetBaseURL(topology, flags),
 			RandomHostPort:          flags.randomHostPort,
 		},

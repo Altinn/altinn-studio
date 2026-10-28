@@ -16,9 +16,19 @@ type appEnv struct {
 	values map[string]string
 }
 
+// The variables that make an app export its telemetry over OTLP. app-lib uses OpenTelemetry only when
+// AppSettings:UseOpenTelemetry is true, and Application Insights otherwise, which sends nothing locally.
+const (
+	envOTLPEndpoint       = "OTEL_EXPORTER_OTLP_ENDPOINT"
+	envOTLPProtocol       = "OTEL_EXPORTER_OTLP_PROTOCOL"
+	envUseOpenTelemetry   = "AppSettings__UseOpenTelemetry"
+	useOpenTelemetryValue = "true"
+)
+
 // newAppRunEnv builds the environment an app is started with. secretsDir is required - every run is given a
 // secrets directory, and the caller has created it by now; keysDir is set only where studioctl decides where
-// the data-protection keys go.
+// the data-protection keys go. otlp is set only while the environment's collector runs, as the address this
+// run reaches it at.
 func newAppRunEnv(
 	current []string,
 	kestrelURL string,
@@ -26,9 +36,11 @@ func newAppRunEnv(
 	appFrontendAssetBaseUrl string,
 	secretsDir string,
 	keysDir string,
+	otlp *envtopology.OTLPDestination,
 ) []string {
 	env := newAppEnv(current)
 	env.addRunDefaults(kestrelURL, topology, appFrontendAssetBaseUrl, secretsDir, keysDir)
+	env.addOTLPDefaults(otlp)
 	return env.entries()
 }
 
@@ -82,7 +94,6 @@ func (e appEnv) addRunDefaults(
 	e.setDefault("AppSettings__OpenIdWellKnownEndpoint", endpoints.platform+"/authentication/api/v1/openid/")
 	e.setDefault("GeneralSettings__ExternalAppBaseUrl", topology.AppBaseURL())
 	e.setDefault("GeneralSettings__HostName", topology.AppHostName())
-	e.setDefault("OTEL_EXPORTER_OTLP_ENDPOINT", topology.OTelURL())
 	e.setDefault("PlatformSettings__ApiStorageEndpoint", endpoints.platform+"/storage/api/v1/")
 	e.setDefault("PlatformSettings__ApiRegisterEndpoint", endpoints.platform+"/register/api/v1/")
 	e.setDefault("PlatformSettings__ApiProfileEndpoint", endpoints.platform+"/profile/api/v1/")
@@ -102,6 +113,22 @@ func (e appEnv) addRunDefaults(
 	localtestStartPage := topology.LocaltestURL() + "/"
 	e.setDefault("PlatformFrontendSettings__ArbeidsflateInboxUrl", localtestStartPage)
 	e.setDefault("PlatformFrontendSettings__LogoutUrl", localtestStartPage)
+}
+
+// addOTLPDefaults points the app at the environment's collector while one runs, and leaves the telemetry variables
+// unset otherwise, so an app exports exactly when it has somewhere to export to. The endpoint and the protocol are
+// a pair, overridden together: an endpoint the shell sets keeps the shell's protocol (or the SDK's default), and the
+// collector's endpoint always comes with the collector's protocol. An app with an endpoint, the collector's or the
+// shell's, uses OpenTelemetry unless the shell or the app's appsettings.Local.json says otherwise (the app reads
+// that file after its environment).
+func (e appEnv) addOTLPDefaults(otlp *envtopology.OTLPDestination) {
+	if _, inherited := e.values[envOTLPEndpoint]; !inherited && otlp != nil {
+		e.values[envOTLPEndpoint] = otlp.Endpoint
+		e.values[envOTLPProtocol] = otlp.Protocol
+	}
+	if _, exports := e.values[envOTLPEndpoint]; exports {
+		e.setDefault(envUseOpenTelemetry, useOpenTelemetryValue)
+	}
 }
 
 func (e appEnv) setDefault(key, value string) {
