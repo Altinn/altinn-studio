@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { useIsMobileOrTablet } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
@@ -8,15 +8,11 @@ import type { GridCell, ITableColumnFormatting } from '@app/layout-contract/gene
 import type { IGroupColumnFormatting } from '@app/layout-contract/generated/components/RepeatingGroup/config.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
-import { evalExpr } from 'src/features/expressions';
-import { useExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
-import { ExprVal } from 'src/features/expressions/types';
-import { ExprValidation } from 'src/features/expressions/validation';
 import { FormStore } from 'src/features/form/FormContext';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { GridRowsRenderer } from 'src/layout/Grid/GridComponent';
-import { getGridCellHiddenExpr, useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
+import { useBaseIdsFromGridRows } from 'src/layout/Grid/tools';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
 import { RepeatingGroupPagination } from 'src/layout/RepeatingGroup/Pagination/RepeatingGroupPagination';
 import {
@@ -28,14 +24,13 @@ import {
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import { RepeatingGroupTableRow } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableRow';
 import { RepeatingGroupTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
-import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
-import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
-import { getRepeatingRowReference } from 'src/layout/RepeatingGroup/utils';
+import { getRepeatingRowReference, RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import utilClasses from 'src/styles/utils.module.css';
 import { useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpressionCallback, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import type { GridRowLayout } from 'src/layout/Grid/useGridRows';
 import type { IDataModelBindings } from 'src/layout/layout';
 import type { BaseRow } from 'src/utils/layout/types';
 
@@ -61,21 +56,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
 
   const required = !!config.minCount && config.minCount > 0;
 
-  const hiddenColumns = useHiddenColumns(config.tableColumns);
-  const columnSettings = Object.fromEntries(
-    Object.entries(config.tableColumns ?? {}).map(([id, column]) => [
-      id,
-      { ...column, hidden: hiddenColumns.includes(id) },
-    ]),
-  );
-
-  const tableIds = useTableComponentIds(baseComponentId);
-  const tableIdsWithoutHiddenColumns = tableIds.filter((id) => !hiddenColumns.includes(id));
-
-  // Calculate hidden column indices for ExtraRows (which uses positional indexing)
-  const hiddenColumnIndices = tableIds
-    .map((id, index) => (hiddenColumns.includes(id) ? index : -1))
-    .filter((index) => index !== -1);
+  const { columns, columnSettings, rowsBefore, rowsAfter } = RepGroupHooks.useTableLayout(baseComponentId);
 
   const numRows = rowsToDisplay.length;
   const firstRowId = numRows >= 1 ? rowsToDisplay[0].uuid : undefined;
@@ -152,9 +133,9 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         )}
         <ExtraRows
           where='Before'
+          rows={rowsBefore}
           extraCells={extraCells}
           columnSettings={columnSettings}
-          hiddenColumnIndices={hiddenColumnIndices}
         />
         {showTableHeader && !mobileView && (
           <Table.Head id={`group-${componentId}-table-header`}>
@@ -163,7 +144,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                 groupBinding={dataModelBindings.group}
                 rowIndex={0} // Force the header row to show texts as if it is in the first row
               >
-                {tableIdsWithoutHiddenColumns?.map((id) => (
+                {columns?.map((id) => (
                   <TitleCell
                     key={id}
                     baseComponentId={id}
@@ -219,17 +200,16 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
               displayEditColumn={displayEditColumn}
               columnCount={columnCount}
               useVerticalButtonLayout={useVerticalButtonLayout}
-              tableIds={tableIdsWithoutHiddenColumns}
-              hiddenColumns={hiddenColumns}
+              tableIds={columns}
             />
           ))}
         </Table.Body>
         <RepeatingGroupPagination />
         <ExtraRows
           where='After'
+          rows={rowsAfter}
           extraCells={extraCells}
           columnSettings={columnSettings}
-          hiddenColumnIndices={hiddenColumnIndices}
         />
       </Table>
     </div>
@@ -246,7 +226,6 @@ function RowToDisplay({
   index,
   uuid,
   tableIds,
-  hiddenColumns,
 }: {
   baseComponentId: string;
   dataModelBindings: IDataModelBindings<'RepeatingGroup'>;
@@ -255,7 +234,6 @@ function RowToDisplay({
   columnCount: number;
   useVerticalButtonLayout: boolean;
   tableIds: string[];
-  hiddenColumns: string[];
 } & BaseRow) {
   const component = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const mobileView = useIsMobileOrTablet();
@@ -278,7 +256,7 @@ function RowToDisplay({
         displayDeleteColumn={displayDeleteColumn}
         displayEditColumn={displayEditColumn}
         useVerticalButtonLayout={useVerticalButtonLayout}
-        hiddenColumns={hiddenColumns}
+        tableIds={tableIds}
       />
       {isEditingRow && (
         <Table.Row
@@ -303,10 +281,10 @@ interface ExtraRowsProps {
   where: 'Before' | 'After';
   extraCells: GridCell[];
   columnSettings: ITableColumnFormatting;
-  hiddenColumnIndices: number[];
+  rows: GridRowLayout[];
 }
 
-function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: ExtraRowsProps) {
+function ExtraRows({ where, extraCells, columnSettings, rows }: ExtraRowsProps) {
   const mobileView = useIsMobileOrTablet();
   const baseComponentId = useRepeatingGroupComponentId();
   const { visibleRows } = useRepeatingGroupRowState();
@@ -315,35 +293,8 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
-  const rows = where === 'Before' ? config.rowsBefore : config.rowsAfter;
-  const columnHiddenExprs = useMemo(() => rows?.find((r) => r.header)?.cells?.map(getGridCellHiddenExpr) ?? [], [rows]);
-  const expressionDataSources = useExpressionDataSources(columnHiddenExprs);
-  const hiddenFromExtraRows = useMemo(
-    () =>
-      columnHiddenExprs.reduce<number[]>((indices, hiddenExpr, cellIdx) => {
-        if (!ExprValidation.isValidOrScalar(hiddenExpr, ExprVal.Boolean)) {
-          return indices;
-        }
-
-        const hidden = evalExpr(hiddenExpr, expressionDataSources, {
-          returnType: ExprVal.Boolean,
-          defaultValue: false,
-          errorIntroText: `Invalid expression for hidden in RepeatingGroup ${where} column ${cellIdx}`,
-        });
-        if (hidden) {
-          indices.push(cellIdx);
-        }
-        return indices;
-      }, []),
-    [columnHiddenExprs, expressionDataSources, where],
-  );
-  const mergedHiddenColumnIndices = useMemo(
-    () => [...new Set([...hiddenColumnIndices, ...hiddenFromExtraRows])],
-    [hiddenColumnIndices, hiddenFromExtraRows],
-  );
-
-  const mobileBaseIds = useBaseIdsFromGridRows(rows, mobileView);
-  if (isEmpty || !rows) {
+  const mobileBaseIds = useBaseIdsFromGridRows(where === 'Before' ? config.rowsBefore : config.rowsAfter, mobileView);
+  if (isEmpty || !rows.length) {
     return null;
   }
 
@@ -376,7 +327,6 @@ function ExtraRows({ where, extraCells, columnSettings, hiddenColumnIndices }: E
       extraCells={extraCells}
       isNested={isNested}
       mutableColumnSettings={columnSettings}
-      hiddenColumnIndices={mergedHiddenColumnIndices}
       bodyClassName={where === 'Before' ? classes.rowsBeforeInTableHeaderGroup : undefined}
     />
   );

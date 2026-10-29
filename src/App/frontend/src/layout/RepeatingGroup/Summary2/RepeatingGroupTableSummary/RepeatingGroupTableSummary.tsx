@@ -21,10 +21,6 @@ import { ValidationMessageList } from 'src/features/validation/ValidationMessage
 import repeatingGroupClasses from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import tableClasses from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary.module.css';
-import {
-  type SummaryExtraRow,
-  useSummaryTableLayout,
-} from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/useSummaryTableLayout';
 import { RepeatingGroupTableTitle, useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
@@ -42,6 +38,7 @@ import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+import type { GridRowLayout } from 'src/layout/Grid/useGridRows';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {
@@ -64,14 +61,10 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
 
   const title = summaryTitle || resolvedTitle;
   const captionProps = useSummaryCaptionProps(baseComponentId, title);
-  const tableIds = useTableComponentIds(baseComponentId);
-  const { columnSettings, rowsBefore, rowsAfter } = useSummaryTableLayout({
-    tableIds,
-    tableColumns: config.tableColumns,
-    rowsBefore: config.rowsBefore,
-    rowsAfter: config.rowsAfter,
-    pdfModeActive,
-  });
+  const { columns, hiddenColumns, columnSettings, rowsBefore, rowsAfter } = RepGroupHooks.useTableLayout(
+    baseComponentId,
+    'summary',
+  );
   const showEditColumn = !pdfModeActive && !isSmall;
   return (
     <div
@@ -90,7 +83,7 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
               groupBinding={dataModelBindings.group}
               rowIndex={0} // Force the header row to show texts as if it is in the first row
             >
-              {tableIds.map((id) => (
+              {columns.map((id) => (
                 <HeaderCell
                   key={id}
                   baseComponentId={id}
@@ -117,6 +110,8 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
                 baseComponentId={baseComponentId}
                 pdfModeActive={pdfModeActive}
                 columnSettings={columnSettings}
+                columns={columns}
+                hiddenColumns={hiddenColumns}
               />
             </DataModelLocationProvider>
           ))}
@@ -133,13 +128,13 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   );
 };
 
-function renderExtraRows(rows: SummaryExtraRow[], keyPrefix: 'before' | 'after', showEditColumn: boolean) {
+function renderExtraRows(rows: GridRowLayout[], keyPrefix: 'before' | 'after', showEditColumn: boolean) {
   return rows.map((row, rowIdx) => {
     const cells = row.cells.map(({ cell, colSpan }, cellIdx) => (
       <ExtraRowCell
         key={cellIdx}
         cell={cell}
-        isHeader={row.header}
+        isHeader={!!row.header}
         colSpan={colSpan}
       />
     ));
@@ -187,11 +182,6 @@ function HeaderCell({
   const title = useTableTitle(baseComponentId);
   const labelProps = useSummaryLabelProps(baseComponentId);
 
-  const isHidden = columnSettings[baseComponentId]?.hidden === true;
-  if (isHidden) {
-    return null;
-  }
-
   return (
     <Table.HeaderCell
       className={repeatingGroupClasses.tableCellFormatting}
@@ -213,30 +203,25 @@ function HeaderCell({
 
 type DataRowProps = {
   row: BaseRow | undefined;
+  columns: string[];
+  hiddenColumns: string[];
   baseComponentId: string;
   pdfModeActive: boolean;
   columnSettings: ITableColumnFormatting;
 };
 
-function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRowProps) {
+function DataRow({ row, baseComponentId, pdfModeActive, columnSettings, columns, hiddenColumns }: DataRowProps) {
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const children = RepGroupHooks.useChildIds(baseComponentId);
   const ids = useTableComponentIds(baseComponentId);
-  const visibleIds = ids.filter((id) => columnSettings[id]?.hidden !== true);
   const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const editButton = useEvalExpression(config.edit?.editButton, Expressions.RepeatingGroup.edit.editButton);
-  const editableChildren = RepGroupHooks.useEditableChildCandidates(
-    baseComponentId,
-    editButton,
-    Object.entries(columnSettings)
-      .filter(([, column]) => column.hidden === true)
-      .map(([id]) => id),
-  );
+  const editableChildren = RepGroupHooks.useEditableChildCandidates(baseComponentId, editButton, hiddenColumns);
   const editableIds = [...ids, ...children].filter((id) => editableChildren.includes(id));
   const rowErrors = useDeepValidationsForNode(baseComponentId, false, row?.index, true).filter(
     (validation) => validation.severity === 'error',
   );
-  const visibleIdSet = new Set(visibleIds);
+  const visibleIdSet = new Set(columns);
   const errorsByColumnId: Record<string, typeof rowErrors> = {};
   const unmappedRowErrors: typeof rowErrors = [];
   for (const validation of rowErrors) {
@@ -255,7 +240,7 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRo
 
   return (
     <Table.Row>
-      {visibleIds.map((id) =>
+      {columns.map((id) =>
         layoutLookups.getComponent(id).type === 'Custom' ? (
           <Table.Cell key={id}>
             <ComponentSummary targetBaseComponentId={id} />
@@ -265,7 +250,7 @@ function DataRow({ row, baseComponentId, pdfModeActive, columnSettings }: DataRo
             key={id}
             baseComponentId={id}
             columnSettings={columnSettings}
-            errors={errorsByColumnId[id] ?? (id === visibleIds[0] ? unmappedRowErrors : [])}
+            errors={errorsByColumnId[id] ?? (id === columns[0] ? unmappedRowErrors : [])}
           />
         ),
       )}

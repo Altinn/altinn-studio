@@ -47,7 +47,7 @@ export interface IRepeatingGroupTableRowProps {
   displayEditColumn: boolean;
   displayDeleteColumn: boolean;
   useVerticalButtonLayout: boolean;
-  hiddenColumns: string[];
+  tableIds: string[];
 }
 
 function getEditButtonText(
@@ -68,7 +68,7 @@ export function RepeatingGroupTableRow({
   displayEditColumn,
   displayDeleteColumn,
   useVerticalButtonLayout,
-  hiddenColumns,
+  tableIds,
 }: IRepeatingGroupTableRowProps): JSX.Element | null {
   const mobileViewSmall = useIsMobile();
   const { refSetter } = useRepeatingGroupsFocusContext();
@@ -93,13 +93,10 @@ export function RepeatingGroupTableRow({
   );
 
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const rawTableIds = useTableComponentIds(baseComponentId);
-  const tableItems = rawTableIds
-    .filter((id) => !hiddenColumns.includes(id))
-    .map((baseId) => ({
-      baseId,
-      type: layoutLookups.getComponent(baseId).type,
-    }));
+  const tableItems = tableIds.map((baseId) => ({
+    baseId,
+    type: layoutLookups.getComponent(baseId).type,
+  }));
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
 
