@@ -289,11 +289,11 @@ function ExtraRows({ where, extraCells, columnSettings, rows }: ExtraRowsProps) 
   const baseComponentId = useRepeatingGroupComponentId();
   const { visibleRows } = useRepeatingGroupRowState();
   const isEmpty = visibleRows.length === 0;
-  const config = useComponentConfig(baseComponentId, 'RepeatingGroup');
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
-  const mobileBaseIds = useBaseIdsFromGridRows(where === 'Before' ? config.rowsBefore : config.rowsAfter, mobileView);
+  const mobileRows = rows.map(({ cells, ...row }) => ({ ...row, cells: cells.map(({ cell }) => cell) }));
+  const mobileBaseIds = useBaseIdsFromGridRows(mobileRows, mobileView);
   if (isEmpty || !rows.length) {
     return null;
   }
