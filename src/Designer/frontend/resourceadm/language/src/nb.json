@@ -164,7 +164,6 @@
   "resourceadm.dashboard_import_environment_header": "Importer ressurs til Altinn Studio",
   "resourceadm.dashboard_import_environment_radio_header": "Velg miljø å importere fra",
   "resourceadm.dashboard_import_resource_success": "Ressurs {{resourceName}} importert",
-  "resourceadm.dashboard_num_resources": "Alle ressurser ({{num}})",
   "resourceadm.dashboard_organizationdata_error_body": "Det oppsto en feil da vi skulle hente organisasjoner som kreves for å kjøre appen.",
   "resourceadm.dashboard_organizationdata_error_header": "Fikk ikke til å laste inn organisasjoner",
   "resourceadm.dashboard_resource_name_and_id_change": "Endre {{objectType}}",

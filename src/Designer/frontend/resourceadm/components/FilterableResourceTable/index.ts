@@ -1,0 +1,1 @@
+export { FilterableResourceTable } from './FilterableResourceTable';

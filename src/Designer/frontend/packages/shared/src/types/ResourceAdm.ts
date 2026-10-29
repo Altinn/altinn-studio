@@ -70,6 +70,7 @@ export interface ResourceListItem {
   lastChanged?: Date;
   identifier: string;
   environments: string[];
+  status?: string;
 }
 
 export interface ResourceVersionStatus {

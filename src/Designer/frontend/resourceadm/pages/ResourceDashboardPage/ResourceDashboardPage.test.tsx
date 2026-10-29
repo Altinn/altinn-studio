@@ -97,7 +97,7 @@ describe('ResourceDashBoardPage', () => {
     expect(screen.getByLabelText(textMock('resourceadm.dashboard_spinner'))).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', {
-        name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
+        name: textMock('dashboard.resource_table_num_resources', { num: mockResourceList.length }),
         level: 2,
       }),
     ).not.toBeInTheDocument();
@@ -119,7 +119,7 @@ describe('ResourceDashBoardPage', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
-        name: textMock('resourceadm.dashboard_num_resources', { num: mockResourceList.length }),
+        name: textMock('dashboard.resource_table_num_resources', { num: mockResourceList.length }),
         level: 2,
       }),
     ).toBeInTheDocument();
@@ -173,6 +173,57 @@ describe('ResourceDashBoardPage', () => {
 
     const resourceRowsAfterFilter = screen.getAllByRole('row'); // Also selects the <th />
     expect(resourceRowsAfterFilter.length).toBe(2); // The one data row + 1 <th />
+  });
+
+  it('hides inactive resources by default and shows them when the switch is turned on', async () => {
+    const user = userEvent.setup();
+    const deprecatedResource: ResourceListItem = {
+      ...mockResourceListItem1,
+      title: { nb: 'deprecated resource', nn: '', en: '' },
+      identifier: 'deprecated',
+      status: 'Deprecated',
+    };
+    const resourceList: ResourceListItem[] = [
+      { ...mockResourceListItem2, status: 'Completed' },
+      mockResourceListItem3,
+      deprecatedResource,
+    ];
+    const getResourceList = vi
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(resourceList));
+    renderResourceDashboardPage({ getResourceList });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const showInactiveSwitch = getShowInactiveSwitch();
+    expect(showInactiveSwitch).not.toBeChecked();
+    expect(screen.getAllByRole('row')).toHaveLength(3); // Two data rows + the header row
+    expect(getNumResourcesHeading(2)).toBeInTheDocument();
+    expect(screen.queryByText(deprecatedResource.title.nb)).not.toBeInTheDocument();
+
+    await user.click(showInactiveSwitch);
+
+    expect(showInactiveSwitch).toBeChecked();
+    expect(screen.getAllByRole('row')).toHaveLength(4); // Three data rows + the header row
+    expect(getNumResourcesHeading(3)).toBeInTheDocument();
+    expect(screen.getByText(deprecatedResource.title.nb)).toBeInTheDocument();
+  });
+
+  it('shows the number of resources matching the search value in the heading', async () => {
+    const user = userEvent.setup();
+    const getResourceList = vi
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const searchInput = screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'));
+    await user.type(searchInput, mockResourceListItem1.title.nb);
+
+    expect(getNumResourcesHeading(1)).toBeInTheDocument();
   });
 
   it('does not display the error message when the list is not empty', async () => {
@@ -318,6 +369,15 @@ describe('ResourceDashBoardPage', () => {
     expect(mockedNavigate).toHaveBeenCalledWith('/ttd/ttd-resources/accesslists');
   });
 });
+
+const getShowInactiveSwitch = (): HTMLElement =>
+  screen.getByRole('switch', { name: textMock('dashboard.resource_table_show_inactive') });
+
+const getNumResourcesHeading = (num: number): HTMLElement =>
+  screen.getByRole('heading', {
+    name: textMock('dashboard.resource_table_num_resources', { num }),
+    level: 2,
+  });
 
 const renderResourceDashboardPage = (
   queries: Partial<ServicesContextProps> = {},
