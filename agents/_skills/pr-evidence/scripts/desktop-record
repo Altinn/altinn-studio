@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+"""Record the X11 desktop for a pull request, with a camera that zooms in and follows the pointer.
+
+  desktop-record start DIR          start capturing the display and the pointer into DIR
+  desktop-record zoom DIR LEVEL     from now on, ease the camera to LEVEL (1 shows the whole screen)
+  desktop-record glide X Y [SECS]   move the pointer smoothly, in the `desktop` helper's screenshot pixels
+  desktop-record stop DIR           stop capturing
+  desktop-record render DIR OUT.mp4 [--width PIXELS]
+
+Drive the desktop between start and stop with any tool. The camera keeps still while the pointer stays
+near the middle of the view, and pans when the pointer leaves it.
+"""
+
+import argparse
+import bisect
+import json
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
+
+FPS = 25
+
+
+def display():
+    info = json.loads(subprocess.run(['desktop', '--json', 'display'], check=True, capture_output=True, text=True).stdout)
+    return info['display'], info['width'], info['height'], info['width'] / info['sentWidth']
+
+
+def start(args):
+    os.makedirs(args.dir, exist_ok=True)
+    name, width, height, _ = display()
+    with open(os.path.join(args.dir, 'zoom.tsv'), 'w') as f:
+        f.write(f'{time.time()}\t1\n')
+    # -copyts keeps the grabber's wall-clock timestamps for showinfo, so render can match frames to the pointer log
+    ffmpeg = subprocess.Popen(
+        ['ffmpeg', '-hide_banner', '-y', '-f', 'x11grab', '-framerate', str(FPS), '-video_size', f'{width}x{height}',
+         '-draw_mouse', '1', '-i', name, '-copyts', '-vf', 'showinfo,setpts=PTS-STARTPTS',
+         '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '10', os.path.join(args.dir, 'raw.mkv')],
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=open(os.path.join(args.dir, 'ffmpeg.log'), 'w'),
+        start_new_session=True)
+    sampler = subprocess.Popen([sys.executable, '-I', __file__, '_sample', args.dir], stdin=subprocess.DEVNULL,
+                               start_new_session=True)
+    with open(os.path.join(args.dir, 'pids.json'), 'w') as f:
+        json.dump({'ffmpeg': ffmpeg.pid, 'sampler': sampler.pid, 'size': [width, height]}, f)
+    time.sleep(1)  # let the grabber start before the first action
+
+
+def sample(args):
+    with open(os.path.join(args.dir, 'pointer.tsv'), 'w', buffering=1) as f:
+        while True:
+            out = subprocess.run(['xdotool', 'getmouselocation', '--shell'], capture_output=True, text=True).stdout
+            pos = dict(line.split('=', 1) for line in out.split())
+            f.write(f"{time.time()}\t{pos['X']}\t{pos['Y']}\n")
+            time.sleep(1 / FPS)
+
+
+def zoom(args):
+    with open(os.path.join(args.dir, 'zoom.tsv'), 'a') as f:
+        f.write(f'{time.time()}\t{args.level}\n')
+
+
+def glide(args):
+    _, _, _, scale = display()
+    out = subprocess.run(['xdotool', 'getmouselocation', '--shell'], capture_output=True, text=True).stdout
+    pos = dict(line.split('=', 1) for line in out.split())
+    x0, y0, x1, y1 = int(pos['X']), int(pos['Y']), args.x * scale, args.y * scale
+    steps = max(1, int(args.seconds * 60))
+    for i in range(1, steps + 1):
+        s = i / steps
+        s = s * s * (3 - 2 * s)
+        subprocess.run(['xdotool', 'mousemove', str(round(x0 + (x1 - x0) * s)), str(round(y0 + (y1 - y0) * s))])
+        time.sleep(args.seconds / steps)
+
+
+def stop(args):
+    with open(os.path.join(args.dir, 'pids.json')) as f:
+        pids = json.load(f)
+    time.sleep(0.5)  # keep the last frame on screen
+    os.kill(pids['sampler'], signal.SIGTERM)
+    os.kill(pids['ffmpeg'], signal.SIGINT)
+    for _ in range(100):
+        try:
+            os.kill(pids['ffmpeg'], 0)
+        except ProcessLookupError:
+            return
+        time.sleep(0.1)
+    sys.exit('ffmpeg did not stop')
+
+
+def read_tsv(path):
+    with open(path) as f:
+        return [[float(v) for v in line.split('\t')] for line in f if line.strip()]
+
+
+class Damped:
+    """Critically damped spring, so the camera eases in and out instead of jumping."""
+
+    def __init__(self, value, seconds):
+        self.value, self.velocity, self.seconds = value, 0.0, seconds
+
+    def step(self, target, dt):
+        omega = 2 / self.seconds
+        x = omega * dt
+        decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x)
+        change = self.value - target
+        temp = (self.velocity + omega * change) * dt
+        self.velocity = (self.velocity - omega * temp) * decay
+        self.value = target + (change + temp) * decay
+        return self.value
+
+
+def camera_path(dir, width, height):
+    with open(os.path.join(dir, 'ffmpeg.log')) as f:
+        first = float(re.search(r'pts_time:([0-9.]+)', f.read()).group(1))
+    duration = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0',
+                                     os.path.join(dir, 'raw.mkv')], check=True, capture_output=True, text=True).stdout)
+    pointer = read_tsv(os.path.join(dir, 'pointer.tsv'))
+    zooms = read_tsv(os.path.join(dir, 'zoom.tsv'))
+    pointer_times = [p[0] for p in pointer]
+    zoom_times = [z[0] for z in zooms]
+
+    def pointer_at(t):
+        i = min(max(bisect.bisect_left(pointer_times, t), 1), len(pointer) - 1)
+        (ta, xa, ya), (tb, xb, yb) = pointer[i - 1], pointer[i]
+        s = min(max((t - ta) / (tb - ta), 0), 1) if tb > ta else 1
+        return xa + (xb - xa) * s, ya + (yb - ya) * s
+
+    z, cx, cy = Damped(1, 0.6), Damped(width / 2, 0.5), Damped(height / 2, 0.5)
+    target_x, target_y = width / 2, height / 2
+    path = []
+    for frame in range(int(duration * FPS)):
+        t = first + frame / FPS
+        level = zooms[max(bisect.bisect_right(zoom_times, t) - 1, 0)][1]
+        px, py = pointer_at(t)
+        # Pan only when the pointer leaves the middle of the view
+        half_w, half_h = width / level / 2 * 0.6, height / level / 2 * 0.6
+        target_x = min(max(target_x, px - half_w), px + half_w)
+        target_y = min(max(target_y, py - half_h), py + half_h)
+        zl = z.step(level, 1 / FPS)
+        x = cx.step(target_x, 1 / FPS)
+        y = cy.step(target_y, 1 / FPS)
+        x = min(max(x, width / zl / 2), width - width / zl / 2)
+        y = min(max(y, height / zl / 2), height - height / zl / 2)
+        path.append((zl, x, y))
+    return path
+
+
+def piecewise(values, every):
+    """A balanced if() tree over the output frame number, interpolating linearly between samples."""
+    points = list(range(0, len(values), every))
+    if points[-1] != len(values) - 1:
+        points.append(len(values) - 1)
+
+    def build(lo, hi):
+        if hi - lo == 1:
+            a, b = points[lo], points[hi]
+            va, vb = values[a], values[b]
+            return f'({va:.3f}+({vb - va:.3f})*(on-{a})/{b - a})'
+        mid = (lo + hi) // 2
+        return f'if(lt(on,{points[mid]}),{build(lo, mid)},{build(mid, hi)})'
+
+    return build(0, len(points) - 1)
+
+
+def render(args):
+    with open(os.path.join(args.dir, 'pids.json')) as f:
+        width, height = json.load(f)['size']
+    path = camera_path(args.dir, width, height)
+    out_w = args.width - args.width % 2
+    out_h = round(out_w * height / width / 2) * 2
+    up = 2  # upscale first, so that slow pans move in whole output pixels without jitter
+    z = piecewise([p[0] for p in path], 3)
+    x = piecewise([p[1] * up for p in path], 3)
+    y = piecewise([p[2] * up for p in path], 3)
+    graph = (f"[0:v]scale={width * up}:{height * up}:flags=lanczos,"
+             f"zoompan=z='{z}':x='{x}-iw/zoom/2':y='{y}-ih/zoom/2':d=1:s={out_w}x{out_h}:fps={FPS},"
+             f"format=yuv420p[v]")
+    script = os.path.join(args.dir, 'camera.filter')
+    with open(script, 'w') as f:
+        f.write(graph)
+    subprocess.run(['ffmpeg', '-loglevel', 'error', '-y', '-i', os.path.join(args.dir, 'raw.mkv'),
+                    '-filter_complex_script', script, '-map', '[v]', '-c:v', 'libx264', '-crf', '23', '-preset', 'slow',
+                    '-movflags', '+faststart', '-an', args.out], check=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(required=True)
+    p = sub.add_parser('start')
+    p.add_argument('dir')
+    p.set_defaults(func=start)
+    p = sub.add_parser('_sample')
+    p.add_argument('dir')
+    p.set_defaults(func=sample)
+    p = sub.add_parser('zoom')
+    p.add_argument('dir')
+    p.add_argument('level', type=float)
+    p.set_defaults(func=zoom)
+    p = sub.add_parser('glide')
+    p.add_argument('x', type=float)
+    p.add_argument('y', type=float)
+    p.add_argument('seconds', type=float, nargs='?', default=0.8)
+    p.set_defaults(func=glide)
+    p = sub.add_parser('stop')
+    p.add_argument('dir')
+    p.set_defaults(func=stop)
+    p = sub.add_parser('render')
+    p.add_argument('dir')
+    p.add_argument('out')
+    p.add_argument('--width', type=int, default=1280)
+    p.set_defaults(func=render)
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == '__main__':
+    main()

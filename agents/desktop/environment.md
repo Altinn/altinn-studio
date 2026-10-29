@@ -10,6 +10,9 @@
   both use the fully qualified name.
 - The `kind` Podman network is IPv4-only, because on a dual-stack network .NET clients calling `localhost` time out.
   Keep it rather than delete it. devenv registers the mediated CA in the kind nodes through `STUDIO_CA_BUNDLE`.
+- LocalTest reaches the App frontend's dev server through the host's network address, not its loopback. For
+  `studioctl run --dev-frontend`, start it with `yarn start --host 0.0.0.0`, or `app-frontend.local.altinn.cloud`
+  answers 502.
 - Chromium trusts the mediated CA once `$XDG_RUNTIME_DIR/chromium-ca-ready` exists, seconds after boot. After an early
   certificate error, wait for that file and reopen the browser.
 - App frontend's Cypress tests find Chromium only by path, so pass `--browser "$CHROME_PATH"`. Run `yarn cypress install`
