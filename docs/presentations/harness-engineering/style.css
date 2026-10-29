@@ -1,0 +1,174 @@
+/* Digdir palette (Designsystemet "digdir" theme) on a dark navy base */
+:root {
+  --dd-navy: #1e2b3c;
+  --dd-bg: #0f1823;
+  --dd-surface: #172333;
+  --dd-surface-2: #213247;
+  --dd-line: #2e4560;
+  --dd-blue: #0062ba;
+  --dd-sky: #1e98f5;
+  --dd-coral: #f45f63;
+  --dd-amber: #e5aa20;
+  --dd-green: #3fb27f;
+  --dd-text: #e8eef5;
+  --dd-muted: #93a4b8;
+
+  --slidev-theme-primary: var(--dd-sky);
+  --slidev-code-background: #0b131d;
+  --slidev-code-font-size: 0.78em;
+  --slidev-code-line-height: 1.55em;
+}
+
+.slidev-layout {
+  background:
+    radial-gradient(1200px 600px at 110% -10%, rgba(30, 152, 245, 0.12), transparent 60%),
+    radial-gradient(900px 500px at -10% 120%, rgba(244, 95, 99, 0.08), transparent 60%),
+    var(--dd-bg);
+  color: var(--dd-text);
+}
+
+.slidev-layout h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.slidev-layout h1 + p {
+  opacity: 1;
+  color: var(--dd-muted);
+}
+.slidev-layout strong { color: #fff; }
+.slidev-layout a { color: var(--dd-sky); border-bottom-color: var(--dd-sky); }
+.slidev-layout code:not(pre code) {
+  background: var(--dd-surface-2);
+  color: #cfe6ff;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+.slidev-layout ul li::marker { color: var(--dd-sky); }
+
+.kicker {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dd-sky);
+  margin-bottom: 0.4rem;
+}
+
+.accent-bar {
+  display: flex;
+  height: 5px;
+  width: 140px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.accent-bar span { flex: 1; }
+.accent-bar span:nth-child(1) { background: var(--dd-blue); }
+.accent-bar span:nth-child(2) { background: var(--dd-sky); }
+.accent-bar span:nth-child(3) { background: var(--dd-coral); }
+.accent-bar span:nth-child(4) { background: var(--dd-amber); }
+
+/* Cards and diagram boxes */
+.card {
+  background: var(--dd-surface);
+  border: 1px solid var(--dd-line);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+}
+.card h3 {
+  font-size: 1rem;
+  font-weight: 650;
+  margin: 0 0 0.35rem;
+}
+.card p, .card li { font-size: 0.85rem; color: var(--dd-muted); margin: 0; line-height: 1.45; }
+
+.box {
+  border-radius: 10px;
+  border: 1px solid var(--dd-line);
+  background: var(--dd-surface);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.85rem;
+}
+.box .title { font-weight: 650; color: #fff; }
+.box .sub { color: var(--dd-muted); font-size: 0.72rem; }
+.box.blue  { border-color: var(--dd-sky);   background: rgba(30, 152, 245, 0.10); }
+.box.coral { border-color: var(--dd-coral); background: rgba(244, 95, 99, 0.10); }
+.box.amber { border-color: var(--dd-amber); background: rgba(229, 170, 32, 0.10); }
+.box.green { border-color: var(--dd-green); background: rgba(63, 178, 127, 0.10); }
+.box.dashed { border-style: dashed; background: transparent; }
+
+.tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--dd-surface-2);
+  color: var(--dd-muted);
+  border: 1px solid var(--dd-line);
+}
+.tag.blue  { color: var(--dd-sky);   border-color: var(--dd-sky); }
+.tag.coral { color: var(--dd-coral); border-color: var(--dd-coral); }
+.tag.amber { color: var(--dd-amber); border-color: var(--dd-amber); }
+.tag.green { color: var(--dd-green); border-color: var(--dd-green); }
+
+.muted { color: var(--dd-muted); }
+.c-sky { color: var(--dd-sky); }
+.c-coral { color: var(--dd-coral); }
+.c-amber { color: var(--dd-amber); }
+.c-green { color: var(--dd-green); }
+
+.big-quote {
+  font-size: 2.1rem;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.mermaid { display: flex; justify-content: center; }
+
+/* Long manifests: fit ~26 lines on one slide */
+.compact-code .slidev-code {
+  --slidev-code-font-size: 0.63em;
+  --slidev-code-line-height: 1.3em;
+  padding: 0.7rem 1rem !important;
+}
+
+.slidev-layout code, .slidev-code { font-variant-ligatures: none; }
+
+.tight .box { padding: 0.32rem 0.75rem; }
+.tight .card { padding: 0.6rem 1rem; }
+.tight .flex-col.gap-2 { gap: 0.3rem; }
+.tight h1 { margin-bottom: 0.5rem; }
+
+/* A lane on the maturity slide: one tag centred in each of four columns, on a line that runs through them */
+.lane {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
+  align-items: center;
+}
+.lane::before {
+  content: "";
+  position: absolute;
+  left: 12.5%;
+  right: 12.5%;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--dd-line), var(--dd-sky), var(--dd-green));
+}
+.lane .tag { position: relative; background: var(--dd-bg); font-size: 0.72rem; }
+/* The open question on the maturity slide: the line between the last two stages in coral */
+.lane.question::before {
+  background: linear-gradient(90deg, var(--dd-line) 0%, var(--dd-line) 55%, var(--dd-coral) 70%, var(--dd-coral) 100%);
+}
+
+/* Demo prompts: wrap long lines on the slide, while a copy keeps only the prompt's own line breaks */
+.prompt .slidev-code {
+  --slidev-code-font-size: 0.72em;
+  --slidev-code-line-height: 1.5em;
+  white-space: pre-wrap;
+  padding: 0.8rem 1rem !important;
+}
+.prompt .slidev-code code, .prompt .slidev-code .line { white-space: pre-wrap; }

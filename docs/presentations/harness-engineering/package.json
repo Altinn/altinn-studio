@@ -1,0 +1,20 @@
+{
+  "name": "harness-engineering-presentation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "slidev --port 3030 --remote --bind 127.0.0.1",
+    "build": "slidev build",
+    "export": "slidev export"
+  },
+  "devDependencies": {
+    "@slidev/cli": "^53.0.0",
+    "@slidev/theme-default": "^0.25.0",
+    "@slidev/types": "^53.0.0"
+  },
+  "overrides": {
+    "monaco-editor": {
+      "dompurify": "^3.4.17"
+    }
+  }
+}
