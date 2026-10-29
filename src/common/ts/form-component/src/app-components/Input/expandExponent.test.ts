@@ -10,12 +10,16 @@ describe('expandExponent', () => {
     ['1.25e1', '12.5'],
     ['0.05e2', '5'],
     ['0e5', '0'],
+    ['5e-324', `0.${'0'.repeat(323)}5`],
   ])('writes %s as %s', (value, expected) => {
     expect(expandExponent(value)).toBe(expected);
     expect(Number(expandExponent(value))).toBe(Number(value));
   });
 
-  it.each(['', '123.45', '-0.5', '1 234,5', 'e5', 'abc'])('returns %j unchanged', (value) => {
-    expect(expandExponent(value)).toBe(value);
-  });
+  it.each(['', '123.45', '-0.5', '1 234,5', 'e5', 'abc', '1e9999999999', '1e-9999999999'])(
+    'returns %j unchanged',
+    (value) => {
+      expect(expandExponent(value)).toBe(value);
+    },
+  );
 });
