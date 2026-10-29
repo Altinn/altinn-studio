@@ -6,10 +6,10 @@
 
 ## Result
 
-A3: App-lib v9 gets a Maskinporten token from the per-app client that Studio's runtime operator provisions, and sends it
-to Storage in the `Altinn-App-Token` header. The token carries a new app-only scope owned by Altinn,
-`altinn:storage/app`. Storage validates the token directly against Maskinporten and checks that the token's `consumer`
-org owns the target instance or app (org-level binding). App-level binding is the long-term goal.
+A3: App-lib v9 gets a Maskinporten token from the per-app client that Studio's runtime operator provisions, and sends it to Storage in the `Altinn-App-Token` header.
+The token carries a new app-only scope owned by Altinn, `altinn:storage/app`.
+Storage validates the token directly against Maskinporten and checks that the token's `consumer` org owns the target instance or app (org-level binding).
+App-level binding is the long-term goal.
 
 This extends Maskinporten from the workflow engine's calls to every call from the app.
 We accept that and limit how long a Maskinporten outage can be absorbed before apps fail (see Consequences). We do not turn on `Enforce` before that is in place.
@@ -19,8 +19,8 @@ Storage stays behind both DIS Edge and APIM until `Enforce` is on in that enviro
 
 ## Problem context
 
-Storage's mutating endpoints are meant to be called by apps. Most of them are on instances and data elements, but this
-covers every mutating endpoint apps call, including:
+Storage's mutating endpoints are meant to be called by apps.
+Most of them are on instances and data elements, but this covers every mutating endpoint apps call, including:
 
 - creating and deleting instances
 - process updates
@@ -31,53 +31,54 @@ covers every mutating endpoint apps call, including:
 - completion
 - read status and substatus
 
-A user or service owner token alone should not be enough to call them directly, because the app is where validation,
-process rules and data processing happen.
+A user or service owner token alone should not be enough to call them directly, because the app is where validation, process rules and data processing happen.
 
-Today that gate is APIM's per-app subscription key (`Ocp-Apim-Subscription-Key`). APIM is being replaced by DIS Edge
-([altinn-platform RFC 0015](https://github.com/Altinn/altinn-platform/blob/main/rfcs/0015-envoy-gateway-api-edge.md)) and subscription keys are being retired, so Storage has to identify app callers itself.
-DIS Edge does not authenticate callers. It protects against DDoS and blocks some paths.
+Today that gate is APIM's per-app subscription key (`Ocp-Apim-Subscription-Key`).
+APIM is being replaced by DIS Edge ([altinn-platform RFC 0015](https://github.com/Altinn/altinn-platform/blob/main/rfcs/0015-envoy-gateway-api-edge.md)) and subscription keys are being retired, so Storage has to identify app callers itself.
+DIS Edge does not authenticate callers.
+It protects against DDoS and blocks some paths.
 Because the check moves from APIM into Storage, everything the credential needs to be issued and validated becomes part of the path from app to Storage.
 
-The current keys are also weak credentials. They are years old, have never been rotated and service owners can read
-them. A replacement should not just move that secret from APIM into Storage.
+The current keys are also weak credentials.
+They are years old, have never been rotated and service owners can read them.
+A replacement should not just move that secret from APIM into Storage.
 
 The gate protects against three things:
 
 - end users and other outside parties calling Storage directly
-- a service owner's own systems and integrations calling Storage directly instead of going through the app, whether
-  for convenience or by mistake
+- a service owner's own systems and integrations calling Storage directly instead of going through the app, whether for convenience or by mistake
 - a leaked or copied credential staying usable for a long time
 
-It does not protect against a service owner who deliberately sets out to bypass their own app. Service owners write and
-control the app, so no option in this ADR can tell the app apart from a service owner acting on purpose. That is out of
-scope.
+It does not protect against a service owner who deliberately sets out to bypass their own app.
+Service owners write and control the app, so no option in this ADR can tell the app apart from a service owner acting on purpose.
+That is out of scope.
 
 Relevant facts:
 
-- Studio's runtime operator (`src/Runtime/operator`) already creates one Maskinporten client per app through Digdir's
-  supplier client. The client has `client_orgno` set to the service owner and gets its scopes from the
-  `MaskinportenClient` resource. The operator generates the key, stores it in a Kubernetes Secret, rotates it and
-  restarts the app. Nothing is stored in the service owner's Key Vault, so service owners do not have the key at hand.
-- App-lib v9 reads that key through provisioned secrets, and every deployed v9 app has one. `MaskinportenClient` caches
-  tokens.
+- Studio's runtime operator (`src/Runtime/operator`) already creates one Maskinporten client per app through Digdir's supplier client.
+  The client has `client_orgno` set to the service owner and gets its scopes from the `MaskinportenClient` resource.
+  The operator generates the key, stores it in a Kubernetes Secret, rotates it and restarts the app.
+  Nothing is stored in the service owner's Key Vault, so service owners do not have the key at hand.
+- App-lib v9 reads that key through provisioned secrets, and every deployed v9 app has one.
+  `MaskinportenClient` caches tokens.
 - App-lib v8 is not supported after Christmas 2026. It gets no new features, and only a critical bug fix would be backported.
   v8 apps can opt in to an operator client, but since it is opt-in it cannot be relied on, and there is no v8 backport.
 - Storage already binds service owner access at org level, by mapping the consumer org number to a service owner code.
-- Apps on old app-lib versions can never be made to send a new credential. Any gate based on a credential therefore
-  becomes a deadline for upgrading.
+- Apps on old app-lib versions can never be made to send a new credential.
+  Any gate based on a credential therefore becomes a deadline for upgrading.
 - Storage only trusts tokens issued by Altinn's Authentication today. It validates them locally and has no direct dependency on Maskinporten.
-- In v9, Maskinporten is already part of the auth between apps and Storage. The workflow engine reruns calls until they
-  succeed or the retry policy gives up, after the user may have closed the tab, so those calls cannot use the user's token.
+- In v9, Maskinporten is already part of the auth between apps and Storage.
+  The workflow engine reruns calls until they succeed or the retry policy gives up, after the user may have closed the tab, so those calls cannot use the user's token.
   Until the app has an identity of its own, app-lib calls Storage as the service owner, with a Maskinporten token exchanged at Authentication.
-  Process transitions, gateways and workflow callbacks do this today. Calls made directly for the user, such as saving form data, still use the user's token.
+  Process transitions, gateways and workflow callbacks do this today.
+  Calls made directly for the user, such as saving form data, still use the user's token.
 - Maskinporten access tokens live for 120 seconds by default. App-lib caches them per pod and fetches a new one 30 seconds before expiry.
   So an app can keep calling for at most about 90 seconds after it loses Maskinporten.
 
 ## Decision drivers
 
-- B1: Only apps, and a few named platform callers, can call Storage's app-only endpoints. A service owner's own systems,
-  or a user with a valid token, cannot bypass the app.
+- B1: Only apps, and a few named platform callers, can call Storage's app-only endpoints.
+  A service owner's own systems, or a user with a valid token, cannot bypass the app.
 - B2: The credential is short-lived and rotated automatically, and service owners do not have it at hand.
 - B3: What Storage trusts does not depend on where or how apps are hosted. We must not be tied to one hosting platform.
   Apps can move to other clusters, or to another hosting platform, without changing Storage.
@@ -86,8 +87,8 @@ Relevant facts:
 - B6: The credential adds as little as possible to the path from app to Storage.
   Both issuing it in the app and validating it in Storage should keep working when services outside our own platform are down.
 - B7: Little operational coupling, such as configuration that must be kept in sync with clusters or apps.
-- B8: Long-term goal: identifies the app and not just the org (app-level binding), so it can serve as the app principal
-  for the workflow engine. Not required for the first rollout.
+- B8: Long-term goal: identifies the app and not just the org (app-level binding), so it can serve as the app principal for the workflow engine.
+  Not required for the first rollout.
 - B9: Nice to have: can be built now, without waiting for other teams' roadmaps.
 - B10: Nice to have: works without app changes, so v8 apps are covered too.
 
@@ -96,9 +97,9 @@ Relevant facts:
 - A1: Reuse the existing service owner scopes `altinn:serviceowner/instances.read` and `altinn:serviceowner/instances.write` in a token from the app.
 - A2: The org-signed `PlatformAccessToken` that app-lib already sends to Register, Profile, Events, Notifications and others.
 - A3: A Maskinporten token from the per-app client the operator provisions, with a new scope that only those clients get.
-- A4: An app token issued by Authentication. When the service owner's Maskinporten token is exchanged, Authentication
-  looks up the token's `client_id` in a mapping from client ID to app, and adds a verified app claim. The lookup could be
-  served by Designer or by a standalone service.
+- A4: An app token issued by Authentication.
+  When the service owner's Maskinporten token is exchanged, Authentication looks up the token's `client_id` in a mapping from client ID to app, and adds a verified app claim.
+  The lookup could be served by Designer or by a standalone service.
   Proposed in [altinn-studio#21008](https://github.com/Altinn/altinn-studio/issues/21008).
 - A5: Grants bound to actions. The app tells Storage which actions the current user can potentially perform on an instance.
   Storage checks them in one multi-decision request to Authorization and returns a short-lived grant.
@@ -122,15 +123,17 @@ What each option needs to be up for an app to call Storage (B6):
 | A7: subscription key        | Nothing                                                      | Local                                            |
 | A8: workload identity       | The app's own cluster                                        | Each cluster's published keys, cached            |
 
-Validation with cached keys survives a short outage. Storage keeps the last keys it fetched, so only a Storage pod that
-starts during the outage is affected. Issuing does not: when an app cannot get a new token, it cannot call Storage.
+Validation with cached keys survives a short outage.
+Storage keeps the last keys it fetched, so only a Storage pod that starts during the outage is affected.
+Issuing does not: when an app cannot get a new token, it cannot call Storage.
 
 ### A1: Existing service owner scopes
 
 - Good, because the scopes and their validation already exist (B9).
 - Bad, because the app must reach both Maskinporten and Authentication to get a token (B6).
-- Bad, because it fails B1. Service owners already have these scopes on their own Maskinporten clients and use them to
-  call apps from their own systems. A token with them proves "the service owner" and not "the app", so their systems could call Storage directly and bypass the app.
+- Bad, because it fails B1.
+  Service owners already have these scopes on their own Maskinporten clients and use them to call apps from their own systems.
+  A token with them proves "the service owner" and not "the app", so their systems could call Storage directly and bypass the app.
 - Bad, because it is already unclear whether these scopes belong to the app's API or to Storage's. Giving them a second meaning makes that worse.
 
 ### A2: `PlatformAccessToken` signed with the org certificate
@@ -254,8 +257,7 @@ If a service owner can add a key of their own to the operator's client, that has
 
 ## Consequences
 
-- Storage gets an app caller policy on the app-only endpoints, a validator behind `IAppCallerTokenValidator`, an
-  `AppCallerSettings` section (`Mode`, Maskinporten metadata address and scope) and a metric tagged with outcome, mode and org.
+- Storage gets an app caller policy on the app-only endpoints, a validator behind `IAppCallerTokenValidator`, an `AppCallerSettings` section (`Mode`, Maskinporten metadata address and scope) and a metric tagged with outcome, mode and org.
   `PUT …/datavalues` also accepts the Dialogporten sync adapter scope.
 - `Observe` records the outcome and lets the request through. `Enforce` rejects requests with a missing, invalid or mismatched token.
   The setting is temporary and is removed once production enforces.
