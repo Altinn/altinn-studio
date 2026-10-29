@@ -1,22 +1,16 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { useIsMobile } from '@app/form-component';
-import { CommonExpressions, Expressions } from '@app/layout-contract/generated/expressions.generated';
+import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import { Table } from '@digdir/designsystemet-react';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
-import type {
-  GridCell,
-  GridRow,
-  GridRows,
-  ITableColumnFormatting,
-} from '@app/layout-contract/generated/common.generated';
+import type { GridCell, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
 import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
-import { usePdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -24,12 +18,14 @@ import { useDeepValidationsForNode } from 'src/features/validation/selectors/dee
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { ValidationMessageList } from 'src/features/validation/ValidationMessageList';
-import { getComponentDef } from 'src/layout';
 import repeatingGroupClasses from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
 import tableClasses from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary.module.css';
+import {
+  type SummaryExtraRow,
+  useSummaryTableLayout,
+} from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/useSummaryTableLayout';
 import { RepeatingGroupTableTitle, useTableTitle } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTableTitle';
-import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
@@ -45,11 +41,7 @@ import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
-import {
-  useEvalExpression,
-  useEvalExpressionDictionary,
-  useEvalOptionalText,
-} from 'src/utils/layout/useEvalExpression';
+import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { BaseRow } from 'src/utils/layout/types';
 
 export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentId: string }) => {
@@ -73,56 +65,13 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const title = summaryTitle || resolvedTitle;
   const captionProps = useSummaryCaptionProps(baseComponentId, title);
   const tableIds = useTableComponentIds(baseComponentId);
-  const layoutLookups = FormStore.bootstrap.useLayoutLookups();
-  const hiddenColumns = useHiddenColumns(config.tableColumns);
-  const pdfExclusions = usePdfExclusions();
-  const extraRows = useMemo(
-    () => [...(config.rowsBefore ?? []), ...(config.rowsAfter ?? [])],
-    [config.rowsBefore, config.rowsAfter],
-  );
-  const spanExpressions = useMemo(
-    () =>
-      Object.fromEntries(
-        extraRows.flatMap((row, rowIdx) =>
-          row.cells.map((cell, cellIdx) => [`${rowIdx}-${cellIdx}`, cell?.cellStyle?.colSpan]),
-        ),
-      ),
-    [extraRows],
-  );
-  const resolvedSpans = useEvalExpressionDictionary(spanExpressions, CommonExpressions.IGridColumnProperties.colSpan);
-  const extraContentColumns = new Set<number>();
-  extraRows.forEach((row, rowIdx) => {
-    for (const { cell, start, span } of getExtraRowCells(row, rowIdx, resolvedSpans)) {
-      const hasContent =
-        cell &&
-        (('text' in cell && !!cell.text) ||
-          ('component' in cell &&
-            cell.component &&
-            !!getComponentDef(layoutLookups.getComponent(cell.component).type).renderSummary2));
-      if (hasContent) {
-        for (let idx = start; idx < start + span; idx++) {
-          extraContentColumns.add(idx);
-        }
-      }
-    }
+  const { columnSettings, rowsBefore, rowsAfter } = useSummaryTableLayout({
+    tableIds,
+    tableColumns: config.tableColumns,
+    rowsBefore: config.rowsBefore,
+    rowsAfter: config.rowsAfter,
+    pdfModeActive,
   });
-  const columnSettings = Object.fromEntries(
-    Object.entries(config.tableColumns ?? {}).map(([id, column]) => [
-      id,
-      { ...column, hidden: hiddenColumns.includes(id) },
-    ]),
-  );
-  if (pdfModeActive) {
-    for (const id of pdfExclusions.components) {
-      columnSettings[id] = { ...columnSettings[id], hidden: true };
-    }
-  }
-  for (const [index, id] of tableIds.entries()) {
-    if (!getComponentDef(layoutLookups.getComponent(id).type).renderSummary2 && !extraContentColumns.has(index)) {
-      columnSettings[id] = { ...columnSettings[id], hidden: true };
-    }
-  }
-  const hiddenColumnIndices = tableIds.flatMap((id, index) => (columnSettings[id]?.hidden ? [index] : []));
   const showEditColumn = !pdfModeActive && !isSmall;
   return (
     <div
@@ -135,7 +84,7 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
           title={<Lang id={title} />}
         />
         <Table.Body>
-          {renderExtraRows(config.rowsBefore, 'before', 0, showEditColumn, hiddenColumnIndices, resolvedSpans)}
+          {renderExtraRows(rowsBefore, 'before', showEditColumn)}
           <Table.Row>
             <DataModelLocationProvider
               groupBinding={dataModelBindings.group}
@@ -171,14 +120,7 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
               />
             </DataModelLocationProvider>
           ))}
-          {renderExtraRows(
-            config.rowsAfter,
-            'after',
-            config.rowsBefore?.length ?? 0,
-            showEditColumn,
-            hiddenColumnIndices,
-            resolvedSpans,
-          )}
+          {renderExtraRows(rowsAfter, 'after', showEditColumn)}
         </Table.Body>
       </Table>
       <ValidationMessageList
@@ -191,42 +133,16 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   );
 };
 
-function getExtraRowSpan(spans: Record<string, number> | undefined, rowIdx: number, cellIdx: number) {
-  return Math.max(1, spans?.[`${rowIdx}-${cellIdx}`] ?? 1);
-}
-
-function getExtraRowCells(row: GridRow, rowIdx: number, spans: Record<string, number> | undefined) {
-  let start = 0;
-  return row.cells.map((cell, cellIdx) => {
-    const span = getExtraRowSpan(spans, rowIdx, cellIdx);
-    const result = { cell, start, span, cellIdx };
-    start += span;
-    return result;
-  });
-}
-
-function renderExtraRows(
-  rows: GridRows | undefined,
-  keyPrefix: 'before' | 'after',
-  rowOffset: number,
-  showEditColumn: boolean,
-  hiddenColumnIndices: number[],
-  resolvedSpans: Record<string, number> | undefined,
-) {
-  return rows?.map((row, rowIdx) => {
-    const cells = getExtraRowCells(row, rowOffset + rowIdx, resolvedSpans).map(({ cell, start, span, cellIdx }) => {
-      const visibleSpan = Array.from({ length: span }, (_, idx) => start + idx).filter(
-        (index) => !hiddenColumnIndices.includes(index),
-      ).length;
-      return visibleSpan ? (
-        <ExtraRowCell
-          key={cellIdx}
-          cell={cell}
-          isHeader={!!row.header}
-          colSpan={visibleSpan}
-        />
-      ) : null;
-    });
+function renderExtraRows(rows: SummaryExtraRow[], keyPrefix: 'before' | 'after', showEditColumn: boolean) {
+  return rows.map((row, rowIdx) => {
+    const cells = row.cells.map(({ cell, colSpan }, cellIdx) => (
+      <ExtraRowCell
+        key={cellIdx}
+        cell={cell}
+        isHeader={row.header}
+        colSpan={colSpan}
+      />
+    ));
     return (
       <Table.Row key={`row-${keyPrefix}-${rowIdx}`}>
         {cells}
