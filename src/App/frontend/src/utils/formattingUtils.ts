@@ -1,6 +1,8 @@
 import { numericFormatter, patternFormatter } from 'react-number-format';
 import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
 
+import { expandExponent } from '@app/form-component';
+
 type FormattingResult = {
   thousandSeparator: string | undefined;
   decimalSeparator: string | undefined;
@@ -70,7 +72,7 @@ export const isNumericFormat = (
 
 export const formatNumericText = (text: string, format?: NumericFormatProps | PatternFormatProps) => {
   if (format && isNumericFormat(format)) {
-    return numericFormatter(text, format);
+    return numericFormatter(expandExponent(text), format);
   } else if (format && isPatternFormat(format)) {
     return patternFormatter(text, format);
   } else {
