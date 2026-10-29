@@ -20,26 +20,15 @@ reuse them. Entries saved under one pull request cannot serve other pull request
 
 ## Image build contexts
 
-An image's build context holds only what the image needs, whichever tool and callsite builds it. Docker and Podman
-send the context to the builder before the build starts, so a larger context makes each build slower.
+An image's build context holds only what the image needs, with Docker and with Podman.
 
-- An image builds from `src/` by default, so that it can use shared code such as `src/common`. An image that uses no
-  shared code builds from its own directory. An image builds from the repository root only when it needs files there,
-  and its ignore file says why.
-- An image that builds from `src/` or the root has a `<Dockerfile>.dockerignore` allowlist next to its Dockerfile. It
-  starts with `**` and re-includes what the Dockerfile copies.
-- Allowlists re-include explicit paths, such as `!Runtime/gateway/src/**`. Podman does not re-include a file through a
-  `**/` pattern inside a directory that an earlier pattern excluded, and re-including a parent directory sends all of
-  it.
-- `src/` has no `.dockerignore`, since Podman reads `<Dockerfile>.dockerignore` only when the context has none.
-- Every callsite of an image, such as its deploy workflow, studioctl, a Go test tool, a Compose file or a Makefile,
-  uses the same context and Dockerfile.
+- Images build from `src/`, or from their own directory when they use no shared code. Only images that need the
+  repository root, such as Designer, build from there.
+- Each image built from `src/` has a `<Dockerfile>.dockerignore` that starts with `**` and re-includes explicit paths.
+  Podman matches `**/` re-includes differently.
+- `src/` has no `.dockerignore`, since Podman would use it instead of the image's own.
 
-Compose against Podman reads only the context's `.dockerignore`, so it sends all of `src/`. Podman still copies only
-what the allowlist allows.
-
-[check-image-contexts.sh](scripts/check-image-contexts.sh) checks in CI that Docker and Podman send each image built
-from `src/` the same context, within a size budget. Add a new image built from `src/` to its list.
+[check-image-contexts.sh](scripts/check-image-contexts.sh) checks this in CI. Add new images built from `src/` to it.
 
 ## Workflow names
 
