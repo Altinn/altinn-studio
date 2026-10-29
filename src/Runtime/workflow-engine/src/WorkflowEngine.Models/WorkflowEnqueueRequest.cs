@@ -17,8 +17,9 @@ public sealed record WorkflowEnqueueRequest
     public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
-    /// Opaque context passed to command handlers at execution time.
-    /// Applied to all workflows in this batch. The engine never inspects this.
+    /// Opaque context passed to command handlers at execution time. Applied to all workflows in this batch. The
+    /// engine does not interpret it, but hands it to each command that declares a context type, at enqueue for
+    /// validation and at execution.
     /// </summary>
     [JsonPropertyName("context")]
     public JsonElement? Context { get; init; }
@@ -34,8 +35,9 @@ public sealed record WorkflowEnqueueRequest
     /// returns the original workflows, and a different fingerprint is a conflict. The fingerprint covers what the
     /// engine runs and indexes, and leaves out what it only carries for others:
     /// <list type="bullet">
-    ///   <item><see cref="Context"/>. The engine never inspects it, and a caller may rebuild it per attempt, such
-    ///   as a fresh auth token with a new issued-at.</item>
+    ///   <item><see cref="Context"/>. A caller may rebuild it per attempt, such as a fresh auth token with a new
+    ///   issued-at. The commands still validate it before the fingerprint is checked, so a replay whose context a
+    ///   command rejects is invalid rather than a duplicate.</item>
     ///   <item>Each step's <see cref="StepRequest.Labels"/>. The engine stores them for its readers and never
     ///   queries them, so a caller may rename what it shows for a step between an enqueue whose response was lost
     ///   and the replay, and the replay still finds the workflow it already has.</item>
