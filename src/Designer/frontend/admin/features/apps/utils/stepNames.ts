@@ -5,9 +5,13 @@ import type {
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { PROCESS_ELEMENT_LABEL } from 'admin/features/apps/utils/workflowPhases';
 import { TARGET_TASK_LABEL } from 'admin/features/apps/utils/workflowTriage';
+import appWorkflowLabels from './appWorkflowLabels.json';
 
-/** The name of the method a pipeline step runs, sent by the app libraries as a step label. */
-export const STEP_NAME_LABEL = 'stepName';
+/**
+ * The name of the method a pipeline step runs, sent by the app libraries as a step label. The name
+ * is in `appWorkflowLabels.json`.
+ */
+export const STEP_NAME_LABEL = appWorkflowLabels.stepName;
 
 const SERVICE_TASK_STEP = /^ExecuteServiceTask: (\d+)$/;
 const MINT_MAILBOX_STEP = /^MintMailbox: (\d+)$/;

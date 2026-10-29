@@ -91,4 +91,12 @@
     <EmbeddedResource Include="../../../../Runtime/workflow-engine-app/tests/WorkflowEngine.App.Tests/Contract/wire-contract.verified.json" Link="Internal/WorkflowEngine/ContractTests/wire-contract.verified.json" />
   </ItemGroup>
 
+  <!--
+    The labels Studio's admin panel reads off the app's workflows, as the panel names them. Embedded from
+    the Designer frontend so AdminPanelLabelsTests fails when a label is renamed on one side only.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../../../Designer/frontend/admin/features/apps/utils/appWorkflowLabels.json" Link="Internal/WorkflowEngine/ContractTests/appWorkflowLabels.json" />
+  </ItemGroup>
+
 </Project>
