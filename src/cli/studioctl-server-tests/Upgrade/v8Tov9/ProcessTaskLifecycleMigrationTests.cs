@@ -264,6 +264,167 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
     }
 
     [Fact]
+    public async Task PartialType_DeclaringTheMethodInAnotherPart_IsMigratedWithoutASemanticModel()
+    {
+        Write(
+            "logic/SplitTask.cs",
+            Usings
+                + """
+                public partial class SplitTask : IProcessTask
+                {
+                    public string Type => "split";
+                }
+                """
+        );
+        var methods = Write(
+            "logic/SplitTask.Lifecycle.cs",
+            Usings
+                + """
+                public partial class SplitTask
+                {
+                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                }
+                """
+        );
+
+        var result = Migrate(semantic: false);
+
+        Assert.Empty(result.Todos);
+        Assert.Single(result.Warnings);
+        AssertCompilesAgainstV9();
+        Assert.Contains("DefineStart(", await File.ReadAllTextAsync(methods, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task InheritedImplementation_GetsTheDefinitionBesideTheMethod()
+    {
+        var baseFile = Write(
+            "logic/BaseTask.cs",
+            Usings
+                + """
+                public abstract class BaseTask
+                {
+                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                }
+                """
+        );
+        var derived = Write(
+            "logic/DerivedTask.cs",
+            Usings
+                + """
+                public class DerivedTask : BaseTask, IProcessTask
+                {
+                    public string Type => "derived";
+                }
+                """
+        );
+
+        var result = Migrate(semantic: true);
+
+        Assert.Empty(result.Todos);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("BaseTask.Start", warning);
+        Assert.Contains("DerivedTask implements IProcessTask through it", warning);
+        AssertCompilesAgainstV9();
+        // The definition sits beside the method, in the base class; the task inherits it.
+        Assert.Contains("DefineStart(", await File.ReadAllTextAsync(baseFile, TestContext.Current.CancellationToken));
+        Assert.DoesNotContain(
+            "DefineStart(",
+            await File.ReadAllTextAsync(derived, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public void InheritanceWithoutASemanticModel_IsReported()
+    {
+        Write(
+            "logic/BaseTask.cs",
+            Usings
+                + """
+                public abstract class BaseTask
+                {
+                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                }
+
+                public class DerivedTask : BaseTask, IProcessTask
+                {
+                    public string Type => "derived";
+                }
+                """
+        );
+
+        var result = Migrate(semantic: false);
+
+        Assert.Empty(result.Warnings);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("DerivedTask lists IProcessTask but declares none of Start, End and Abandon", todo);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ExplicitBesideImplicit_IsRenamedToAvoidACollision(bool semantic)
+    {
+        var task = Write(
+            "logic/TwoStartsTask.cs",
+            Usings
+                + """
+                public class TwoStartsTask : IProcessTask
+                {
+                    public string Type => "two";
+
+                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+
+                    Task IProcessTask.Start(string taskId, Instance instance) => Task.Delay(1);
+                }
+                """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        var warning = Assert.Single(result.Warnings);
+        Assert.Contains("runs RunStart as one stage", warning);
+        AssertCompilesAgainstV9();
+
+        var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+        Assert.Contains("private Task RunStart(string taskId, Instance instance) => Task.Delay(1);", migrated);
+        Assert.Contains("await RunStart(", migrated);
+        Assert.Contains("public Task Start(string taskId, Instance instance) => Task.CompletedTask;", migrated);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task UnrelatedDefineHelper_DoesNotCountAsADefinition(bool semantic)
+    {
+        var task = Write(
+            "logic/HelperTask.cs",
+            Usings
+                + """
+                public class HelperTask : IProcessTask
+                {
+                    public string Type => "helper";
+
+                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+
+                    public void DefineStart() { }
+                }
+                """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        Assert.Contains("Added a DefineStart", Assert.Single(result.Warnings));
+        AssertCompilesAgainstV9();
+        Assert.Contains(
+            "DefineStart(global::Altinn.App.Core.Features.Process.PipelineBuilder pipeline)",
+            await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
     public void TaskWithNoLegacyMembers_IsLeftAlone()
     {
         Write(
