@@ -42,16 +42,40 @@ describe('Group summary test', () => {
 
   it('Renders the different options for add buttons and limits cell text without truncating headers', () => {
     const tableTitle = 'A long column heading that must remain fully visible. '.repeat(8).trim();
-    cy.interceptLayout('Task_1', (component) => {
-      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
-        component.tableColumns = {
-          'RepeatingGroup-Input-Name': { width: '20%', textOverflow: { maxHeight: 4 } },
-        };
-      }
-      if (component.type === 'Input' && component.id === 'RepeatingGroup-Input-Name') {
-        component.textResourceBindings = { ...component.textResourceBindings, tableTitle };
-      }
-    });
+    cy.interceptLayout(
+      'Task_1',
+      (component) => {
+        if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+          component.children.push('RepeatingGroup-ExtraAction');
+          component.tableHeaders = [
+            'RepeatingGroup-Input-Name',
+            'RepeatingGroup-ExtraAction',
+            'RepeatingGroup-Input-Points',
+            'RepeatingGroup-Input-Date',
+          ];
+          component.tableColumns = {
+            'RepeatingGroup-Input-Name': { width: '20%', textOverflow: { maxHeight: 4 } },
+          };
+          component.rowsBefore = [
+            { cells: [{ text: '' }, { text: 'Additional information' }, { text: '' }, { text: '' }] },
+          ];
+          component.rowsAfter = [
+            { cells: [{ text: 'Across columns', cellStyle: { colSpan: 2 } }, { text: 'Points' }, { text: 'Date' }] },
+          ];
+        }
+        if (component.type === 'Input' && component.id === 'RepeatingGroup-Input-Name') {
+          component.textResourceBindings = { ...component.textResourceBindings, tableTitle };
+        }
+      },
+      (layouts) => {
+        layouts.RepeatingGroupPage!.data.layout.push({
+          id: 'RepeatingGroup-ExtraAction',
+          type: 'CustomButton',
+          actions: [],
+          textResourceBindings: { title: 'Extra action' },
+        } satisfies CompExternal<'CustomButton'>);
+      },
+    );
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Repeterende gruppe');
     const inputValue = 'Long cell content that should be truncated. '.repeat(12).trim();
@@ -84,6 +108,11 @@ describe('Group summary test', () => {
         });
     });
     cy.get('#add-button-RepeatingGroup').should('be.visible');
+    cy.get('[data-componentid="RepeatingGroup-Summary2-table"] table').within(() => {
+      cy.findByRole('columnheader', { name: 'Extra action' }).should('exist');
+      cy.contains('td', 'Additional information').should('exist');
+      cy.contains('td', 'Across columns').should('have.attr', 'colspan', '2');
+    });
     cy.visualTesting('repeatingGroupAddButtons');
   });
 
