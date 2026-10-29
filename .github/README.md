@@ -20,13 +20,14 @@ reuse them. Entries saved under one pull request cannot serve other pull request
 
 ## Image build contexts
 
-An image's build context holds only what the image needs, with Docker and with Podman.
+An image's build context holds only what the image needs.
 
 - Images build from `src/`, or from their own directory when they use no shared code. Only images that need the
   repository root, such as Designer, build from there.
 - Each image built from `src/` has a `<Dockerfile>.dockerignore` that starts with `**` and re-includes explicit paths.
   Podman matches `**/` re-includes differently.
-- `src/` has no `.dockerignore`, since Podman would use it instead of the image's own.
+- `src/.dockerignore` allows what any of them needs, for Compose and plain `podman build`, which use it instead of an
+  image's own. Regenerate it with `check-image-contexts.sh --write`.
 
 [check-image-contexts.sh](scripts/check-image-contexts.sh) checks this in CI. Add new images built from `src/` to it.
 
