@@ -213,9 +213,9 @@ starts during the outage is affected. Issuing does not: when an app cannot get a
 
 ## Notes
 
-A4 and A5 are less alternatives to A3 than ways to build on it. Both start from the operator's Maskinporten client: A4
-exchanges its token at Authentication, and A5 needs it to ask for a grant. Choosing A3 now leaves both open, and each
-removes some of A3's negatives.
+A4 and A5 are less alternatives to A3 than ways to build on it. 
+Both start from the operator's Maskinporten client: A4 exchanges its token at Authentication, and A5 needs it to ask for a grant.
+Choosing A3 now leaves both open, and each removes some of A3's negatives.
 
 ### A3 with A4
 
