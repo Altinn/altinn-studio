@@ -1,0 +1,92 @@
+.previewEditor {
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  min-height: var(--studio-markdown-editor-min-height);
+  padding: var(--ds-size-2) var(--ds-size-3);
+  outline: none;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: var(--ds-body-md-font-size);
+  line-height: 1.5;
+  color: var(--ds-color-neutral-text-default);
+}
+
+.content > :first-child {
+  margin-top: 0;
+}
+
+.content > :last-child {
+  margin-bottom: 0;
+}
+
+.content p,
+.content ul,
+.content ol,
+.content blockquote,
+.content pre {
+  margin-block: 0 var(--ds-size-3);
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+  margin-block: var(--ds-size-4) var(--ds-size-2);
+  line-height: 1.3;
+}
+
+.content h1 {
+  font-size: 1.75em;
+}
+
+.content h2 {
+  font-size: 1.4em;
+}
+
+.content h3 {
+  font-size: 1.2em;
+}
+
+.content ul,
+.content ol {
+  padding-left: var(--ds-size-6);
+}
+
+.content blockquote {
+  margin-inline: 0;
+  padding-left: var(--ds-size-3);
+  border-left: 4px solid var(--ds-color-neutral-border-default);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.content code,
+.content pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background-color: var(--ds-color-neutral-surface-tinted);
+  border-radius: var(--ds-border-radius-sm);
+}
+
+.content code {
+  padding: 0.1em 0.3em;
+}
+
+.content pre {
+  padding: var(--ds-size-2) var(--ds-size-3);
+  white-space: pre-wrap;
+}
+
+.content a {
+  color: var(--ds-color-accent-text-subtle);
+  text-decoration: underline;
+}
+
+.content hr {
+  border: none;
+  border-top: 1px solid var(--ds-color-neutral-border-default);
+}
