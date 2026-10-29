@@ -17,9 +17,13 @@ import { useUpdateFormComponentMutation } from '../hooks/mutations/useUpdateForm
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import * as formItemUtils from '../utils/formItemUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../hooks';
+import { useAppContext, useSelectedFormLayout } from '../hooks';
+import { getItem } from '../utils/formLayoutUtils';
+import { ItemType } from '../components/Properties/ItemType';
 import type { MutateOptions } from '@tanstack/react-query';
 import useUxEditorParams from '../hooks/useUxEditorParams';
+import { useSearchParams } from 'react-router-dom';
+import { componentSearchParam } from '../AppContext';
 
 export type FormItemContext = {
   formItemId: string;
@@ -72,7 +76,9 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutName, updateLayoutsForPreview } = useAppContext();
+  const { selectedFormLayoutName, setSelectedItem, updateLayoutsForPreview } = useAppContext();
+  const selectedFormLayout = useSelectedFormLayout();
+  const [searchParams] = useSearchParams();
   const { layoutSet } = useUxEditorParams();
 
   const prevSelectedFormLayoutSetNameRef = useRef(layoutSet);
@@ -84,6 +90,16 @@ export const FormItemContextProvider = ({
   const [formItem, setFormItem] = useState<FormContainer | FormComponent>();
   const formItemIdRef = useRef<string>(formItemId);
   const formItemRef = useRef<FormContainer | FormComponent>(formItem);
+
+  // Only a component selected through the URL when the editor opens is restored. Once an item has been
+  // edited, a missing item was discarded, for example deleted, and stays discarded. The ID is read from
+  // the URL rather than selectedItem, which ComponentConfigPanel clears if it renders before the pages load.
+  const canRestoreSelectedComponentRef = useRef(true);
+  const componentIdFromUrl = searchParams.get(componentSearchParam);
+  const selectedComponentToRestore =
+    canRestoreSelectedComponentRef.current && !formItemId && componentIdFromUrl
+      ? getItem(selectedFormLayout, componentIdFromUrl)
+      : undefined;
 
   const { mutateAsync: updateFormContainer } = useUpdateFormContainerMutation(
     org,
@@ -135,6 +151,7 @@ export const FormItemContextProvider = ({
   );
 
   const handleEdit = useCallback((updatedForm: FormContainer | FormComponent): void => {
+    if (updatedForm) canRestoreSelectedComponentRef.current = false;
     setFormItemId(updatedForm?.id);
     setFormItem(updatedForm);
   }, []);
@@ -160,7 +177,9 @@ export const FormItemContextProvider = ({
 
   useEffect(() => {
     const autoSaveOnLayoutChange = async () => {
+      // Without an item there is nothing to save, and awaiting would delay the discard past the restore below.
       if (
+        formItemRef.current &&
         prevSelectedFormLayoutSetNameRef.current === layoutSet &&
         prevSelectedFormLayoutNameRef.current !== selectedFormLayoutName
       ) {
@@ -174,17 +193,32 @@ export const FormItemContextProvider = ({
     autoSaveOnLayoutChange();
   }, [handleDiscard, handleSave, layoutSet, selectedFormLayoutName]);
 
+  // Declared after the effect above, so the restored item is not saved by its page change.
+  useEffect(() => {
+    if (!selectedComponentToRestore) return;
+    handleEdit(selectedComponentToRestore);
+    setSelectedItem({ type: ItemType.Component, id: selectedComponentToRestore.id });
+  }, [selectedComponentToRestore, handleEdit, setSelectedItem]);
+
   const value = useMemo(
     () => ({
-      formItemId,
-      formItem,
+      formItemId: formItemId ?? selectedComponentToRestore?.id,
+      formItem: formItem ?? selectedComponentToRestore,
       handleDiscard,
       handleUpdate: setFormItem,
       handleEdit,
       handleSave,
       debounceSave,
     }),
-    [formItemId, formItem, handleDiscard, handleEdit, handleSave, debounceSave],
+    [
+      formItemId,
+      formItem,
+      selectedComponentToRestore,
+      handleDiscard,
+      handleEdit,
+      handleSave,
+      debounceSave,
+    ],
   );
 
   return <FormItemContext.Provider value={value}>{children}</FormItemContext.Provider>;

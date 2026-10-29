@@ -67,6 +67,7 @@ type WrapperArgs = {
   appRouteParams?: AppRouteParams;
   featureFlags?: FeatureFlag[];
   featureFlagMutations?: FeatureFlagMutationContextValue;
+  search?: string;
 };
 
 function wrapper({
@@ -78,9 +79,10 @@ function wrapper({
   appRouteParams = defaultAppRouteParams,
   featureFlags = [],
   featureFlagMutations = defaultFeatureFlagMutations,
+  search,
 }: WrapperArgs): (component: ReactNode) => ReactElement {
   const renderComponent = (component: ReactNode): ReactElement => (
-    <AppRouter params={{ ...appRouteParams, ...uxEditorParams }}>
+    <AppRouter params={{ ...appRouteParams, ...uxEditorParams }} search={search}>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <PreviewConnectionContextProvider>
           <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
@@ -104,14 +106,16 @@ function wrapper({
 
 type AppRouterProps = {
   params: AppRouteParams & UxEditorParams;
+  search?: string;
   children: ReactNode;
 };
 
 export function AppRouter({
   params: { org, app, layoutSet },
+  search = '',
   children,
 }: AppRouterProps): ReactElement {
-  const route = `/${org}/${app}/${layoutSet}`;
+  const route = `/${org}/${app}/${layoutSet}${search}`;
   const path = '/:org/:app/:layoutSet';
   return (
     <MemoryRouter initialEntries={[route]}>
@@ -131,6 +135,7 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   featureFlags?: FeatureFlag[];
   featureFlagMutations?: FeatureFlagMutationContextValue;
   uxEditorParams?: UxEditorParams;
+  search?: string;
 }
 
 export const renderHookWithProviders = (
@@ -172,6 +177,7 @@ export const renderWithProviders = (
     featureFlags = [],
     featureFlagMutations = defaultFeatureFlagMutations,
     uxEditorParams = defaultUxEditorParams,
+    search,
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
@@ -187,6 +193,7 @@ export const renderWithProviders = (
           appRouteParams,
           featureFlags,
           featureFlagMutations,
+          search,
         })(children),
       ...renderOptions,
     }),
