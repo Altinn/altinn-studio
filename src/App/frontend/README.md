@@ -25,8 +25,7 @@ run `yarn serve 8080 -c-1`. Without `-c-1` the browser caches the old bundle for
 - Avoid `any` and type casts with `as`, and remove them where you can. CI counts the errors under the stricter
   [tsconfig-strict.json](tsconfig-strict.json) and fails when the count reaches the ceiling in
   [the workflow](../../../.github/workflows/app-frontend-unit-tests.yml).
-- Keep TanStack Query inside [core/queries](src/core/queries/README.md). Its README explains the boundary and how
-  tests inject typed API clients while running real queries.
+- Keep TanStack Query inside [core/queries](src/core/queries/AGENTS.md).
 - Build UI from [Designsystemet](https://designsystemet.no) components where they exist, styled with CSS modules.
 
 ## Testing
