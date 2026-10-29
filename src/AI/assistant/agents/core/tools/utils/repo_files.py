@@ -44,6 +44,13 @@ def mark_read(ctx: LoopContext, rel_path: str) -> None:
     read_set.add(rel_path)
 
 
+def mark_unread(ctx: LoopContext, rel_path: str) -> None:
+    """Forget the model's read of a file that a tool rewrote, so that it reads the new content before it changes the file."""
+    read_set = ctx.extras.get("read_set")
+    if read_set is not None:
+        read_set.discard(rel_path)
+
+
 def mark_changed(ctx: LoopContext, rel_path: str) -> None:
     changed: set[str] = ctx.extras.setdefault("changed_files", set())
     changed.add(rel_path)
