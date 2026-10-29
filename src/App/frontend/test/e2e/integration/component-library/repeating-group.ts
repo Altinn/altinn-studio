@@ -42,40 +42,16 @@ describe('Group summary test', () => {
 
   it('Renders the different options for add buttons and limits cell text without truncating headers', () => {
     const tableTitle = 'A long column heading that must remain fully visible. '.repeat(8).trim();
-    cy.interceptLayout(
-      'Task_1',
-      (component) => {
-        if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
-          component.children.push('RepeatingGroup-ExtraAction');
-          component.tableHeaders = [
-            'RepeatingGroup-Input-Name',
-            'RepeatingGroup-ExtraAction',
-            'RepeatingGroup-Input-Points',
-            'RepeatingGroup-Input-Date',
-          ];
-          component.tableColumns = {
-            'RepeatingGroup-Input-Name': { width: '20%', textOverflow: { maxHeight: 4 } },
-          };
-          component.rowsBefore = [
-            { cells: [{ text: '' }, { text: 'Additional information' }, { text: '' }, { text: '' }] },
-          ];
-          component.rowsAfter = [
-            { cells: [{ text: 'Across columns', cellStyle: { colSpan: 2 } }, { text: 'Points' }, { text: 'Date' }] },
-          ];
-        }
-        if (component.type === 'Input' && component.id === 'RepeatingGroup-Input-Name') {
-          component.textResourceBindings = { ...component.textResourceBindings, tableTitle };
-        }
-      },
-      (layouts) => {
-        layouts.RepeatingGroupPage!.data.layout.push({
-          id: 'RepeatingGroup-ExtraAction',
-          type: 'CustomButton',
-          actions: [],
-          textResourceBindings: { title: 'Extra action' },
-        } satisfies CompExternal<'CustomButton'>);
-      },
-    );
+    cy.interceptLayout('Task_1', (component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.tableColumns = {
+          'RepeatingGroup-Input-Name': { width: '20%', textOverflow: { maxHeight: 4 } },
+        };
+      }
+      if (component.type === 'Input' && component.id === 'RepeatingGroup-Input-Name') {
+        component.textResourceBindings = { ...component.textResourceBindings, tableTitle };
+      }
+    });
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
     cy.gotoNavPage('Repeterende gruppe');
     const inputValue = 'Long cell content that should be truncated. '.repeat(12).trim();
@@ -253,14 +229,16 @@ describe('Group summary test', () => {
       .click();
 
     cy.get('div[data-testid="summary-repeating-group-component"] > table').within(() => {
-      cy.findAllByRole('row').should('have.length', 3);
+      cy.findAllByRole('row').should('have.length', 5);
       cy.findByRole('columnheader', { name: /Navn/ }).should('exist');
       cy.findAllByRole('cell', { name: inputValue }).should('exist');
       cy.findAllByRole('cell', { name: inputValue2 }).should('exist');
-      cy.findAllByRole('columnheader').should(($headers) => {
-        const nameWidth = $headers[0].getBoundingClientRect().width;
-        const pointsWidth = $headers[1].getBoundingClientRect().width;
-        expect(pointsWidth, 'the 70% column is wider than the 10% column').to.be.greaterThan(nameWidth * 3);
+      cy.findByRole('columnheader', { name: /Navn/ }).then(($nameHeader) => {
+        const nameWidth = $nameHeader[0].getBoundingClientRect().width;
+        cy.findByRole('columnheader', { name: /Poeng/ }).should(($pointsHeader) => {
+          const pointsWidth = $pointsHeader[0].getBoundingClientRect().width;
+          expect(pointsWidth, 'the 70% column is wider than the 10% column').to.be.greaterThan(nameWidth * 3);
+        });
       });
       cy.contains('Største gyldig tall er 100').should('be.visible');
     });
