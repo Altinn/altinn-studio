@@ -201,11 +201,18 @@ internal sealed class ProcessTaskLifecycleMigration
                 continue;
             }
 
-            var hasDefinition = BaseTypes(symbol)
+            var definitions = BaseTypes(symbol)
                 .SelectMany(baseType => baseType.GetMembers("Define" + phase).OfType<IMethodSymbol>())
-                .Any(static definition =>
+                .Where(static definition =>
                     definition.Parameters.Length == 1 && definition.Parameters[0].Type.Name == BuilderName
-                );
+                )
+                .ToList();
+            var hasDefinition = definitions.Any(IsImplementation);
+            if (!hasDefinition && definitions.Count > 0)
+            {
+                messages.Todo(NotAnImplementation(declaringFile, method, phase));
+                continue;
+            }
             var isExplicit = implementation.ExplicitInterfaceImplementations.Length > 0;
             var collides =
                 isExplicit
@@ -278,11 +285,19 @@ internal sealed class ProcessTaskLifecycleMigration
 
             found = true;
             var isExplicit = method.ExplicitInterfaceSpecifier is not null;
-            var hasDefinition = methods.Any(other =>
-                other.Identifier.ValueText == "Define" + phase
-                && other.ParameterList.Parameters.Count == 1
-                && SimpleName(other.ParameterList.Parameters[0].Type) == BuilderName
-            );
+            var definitions = methods
+                .Where(other =>
+                    other.Identifier.ValueText == "Define" + phase
+                    && other.ParameterList.Parameters.Count == 1
+                    && SimpleName(other.ParameterList.Parameters[0].Type) == BuilderName
+                )
+                .ToList();
+            var hasDefinition = definitions.Any(IsImplementation);
+            if (!hasDefinition && definitions.Count > 0)
+            {
+                messages.Todo(NotAnImplementation(file, method, phase));
+                continue;
+            }
             if (
                 Decide(
                     file,
@@ -435,6 +450,26 @@ internal sealed class ProcessTaskLifecycleMigration
     /// <summary>The whitespace the method's first token is indented with, so the new member lines up with it.</summary>
     private static string Indentation(MethodDeclarationSyntax method) =>
         method.GetLeadingTrivia().LastOrDefault(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)).ToString();
+
+    /// <summary>
+    /// Whether the member can implement the v9 interface member: a public instance method, or an explicit
+    /// implementation of the Altinn interface. A private or static helper of that signature cannot, and a generated
+    /// public one would collide with it.
+    /// </summary>
+    private static bool IsImplementation(IMethodSymbol definition) =>
+        definition.ExplicitInterfaceImplementations.Any(static member => IsSdkProcessTask(member.ContainingType))
+        || (definition.DeclaredAccessibility == Accessibility.Public && !definition.IsStatic);
+
+    private static bool IsImplementation(MethodDeclarationSyntax definition) =>
+        definition.ExplicitInterfaceSpecifier is { } explicitInterface
+            ? SimpleName(explicitInterface.Name) == InterfaceName
+            : definition.Modifiers.Any(SyntaxKind.PublicKeyword) && !definition.Modifiers.Any(SyntaxKind.StaticKeyword);
+
+    private static string NotAnImplementation(ScannedCSharpFile file, MethodDeclarationSyntax method, string phase) =>
+        $"{Location(file, method)}: {MemberName(method)}(string taskId, Instance instance) is no longer part of "
+        + $"{InterfaceName}, and the type's Define{phase}({BuilderName}) cannot take its place: v9 calls only a public "
+        + $"instance method of that signature, or an explicit implementation. Make it one, and run the {phase} work "
+        + "from it.";
 
     private static bool IsSdkProcessTask(INamedTypeSymbol contract) =>
         contract.Name == InterfaceName

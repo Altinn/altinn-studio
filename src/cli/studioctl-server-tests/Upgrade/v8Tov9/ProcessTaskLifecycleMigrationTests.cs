@@ -424,6 +424,40 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
         );
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PrivateDefineHelper_IsReportedInsteadOfBeingTakenForTheDefinition(bool semantic)
+    {
+        var task = Write(
+            "logic/PrivateHelperTask.cs",
+            Usings
+                + """
+                using Altinn.App.Core.Features.Process;
+
+                public class PrivateHelperTask : IProcessTask
+                {
+                    public string Type => "private";
+
+                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+
+                    private ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
+                }
+                """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Warnings);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("DefineStart(PipelineBuilder) cannot take its place", todo);
+        // Nothing generated: a public member of that signature would collide with the helper.
+        Assert.DoesNotContain(
+            "global::Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart",
+            await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken)
+        );
+    }
+
     [Fact]
     public void TaskWithNoLegacyMembers_IsLeftAlone()
     {
