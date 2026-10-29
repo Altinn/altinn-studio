@@ -22,7 +22,7 @@ from agents.services.designer import (
     generate_datamodel,
 )
 
-from .utils.repo_files import PathError, mark_changed, resolve_repo_path
+from .utils.repo_files import PathError, mark_changed, mark_unread, resolve_repo_path
 
 SCHEMA_FILE_SUFFIX = ".schema.json"
 APPLICATION_METADATA_PATH = "App/config/applicationmetadata.json"
@@ -46,7 +46,8 @@ class DatamodelSyncTool(WriteTool[DatamodelSyncArgs]):
         "format, and adds or updates the model's data type in "
         "App/config/applicationmetadata.json.  Call this after creating or "
         "changing any `App/models/*.schema.json`, and never write the .cs "
-        "or .xsd file yourself.  Returns the list of files written."
+        "or .xsd file yourself.  Returns the list of files written.  Read a "
+        "written file again before you change it."
     )
     input_schema = DatamodelSyncArgs
     is_concurrency_safe = False  # writes files
@@ -129,6 +130,9 @@ def _write_generated_files(
 ) -> list[str] | ToolResult:
     """Writes each file whose content changed, and marks it changed so that it is verified again before commit.
 
+    A written file is also marked unread: the model's earlier read of the schema or the application metadata
+    no longer matches the file, and a write from that read would undo the generation.
+
     Every path is checked before the first write, so a refused path leaves the model files as they were.
     """
     schema_dir = Path(schema_path).parent
@@ -156,4 +160,5 @@ def _write_generated_files(
             return ToolResult(content=f"Could not write {rel_path}: {exc}", is_error=True)
         written.append(rel_path)
         mark_changed(ctx, rel_path)
+        mark_unread(ctx, rel_path)
     return written

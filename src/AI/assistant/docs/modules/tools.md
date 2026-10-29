@@ -19,7 +19,7 @@ Each tool is a class with a name, a description, a Pydantic input schema and a `
 | `altinn_datamodel_sync` | Make C#, XSD and data type with Designer         | No       | Yes              |
 | `web_fetch`             | Get a page from the Altinn docs hosts only       | Yes      | No               |
 
-There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `altinn_datamodel_sync` sends the JSON schema and the application metadata to the Designer API with the API key of the run. It writes the files that Designer generates. `preview_render_check` is off by default (`PREVIEW_CHECK_ENABLED=false`) and works only with the local Designer stack.
+There is no automatic rollback. The model undoes a change with `discard_file_changes`, one file at a time. The file tools refuse absolute paths and `..`, so the model cannot leave the repository. `edit_file` and `write_file` refuse to change an existing file that the model did not read first. They save a valid `.json` file in the format that Studio uses, with two-space indentation. `altinn_datamodel_sync` sends the JSON schema and the application metadata to the Designer API with the API key of the run. It writes the files that Designer generates. Before the model changes a file that this tool wrote, it must read the file again. `preview_render_check` is off by default (`PREVIEW_CHECK_ENABLED=false`) and works only with the local Designer stack.
 
 ```mermaid
 flowchart LR

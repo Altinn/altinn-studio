@@ -8,11 +8,12 @@ from pathlib import Path
 import pytest
 
 from agents.altinn.app_version import V8_PROFILE, V9_PROFILE
-from agents.core import DatamodelSyncTool, LoopContext, ToolResult
+from agents.core import DatamodelSyncTool, LoopContext, ToolResult, WriteFileTool
 from agents.services.designer import DatamodelGenerationError, DatamodelGenerationRequest, GeneratedDatamodel
 
 DATAMODEL_SYNC_TOOL_MODULE = "agents.core.tools.datamodel_sync_tool"
 SCHEMA_PATH = "App/models/model.schema.json"
+APPLICATION_METADATA_PATH = "App/config/applicationmetadata.json"
 APPLICATION_METADATA = '{\n  "dataTypes": []\n}'
 GENERATED = GeneratedDatamodel(
     json_schema='{\n  "type": "object"\n}',
@@ -118,11 +119,29 @@ async def test_writes_the_generated_files_and_marks_them_for_verification(repo: 
 async def test_leaves_a_file_that_the_generation_does_not_change(repo: Path, generation_requests):
     (repo / SCHEMA_PATH).write_text(GENERATED.json_schema, encoding="utf-8")
     ctx = _ctx(repo)
+    ctx.extras["read_set"] = {SCHEMA_PATH}
 
     result = await _run(ctx)
 
     assert SCHEMA_PATH not in json.loads(result.content)["files_written"]
     assert SCHEMA_PATH not in ctx.extras["changed_files"]
+    assert ctx.extras["read_set"] == {SCHEMA_PATH}
+
+
+async def test_a_written_file_must_be_read_again_before_it_is_changed(repo: Path, generation_requests):
+    ctx = _ctx(repo)
+    ctx.extras["read_set"] = {APPLICATION_METADATA_PATH}
+    await _run(ctx)
+    write_file = WriteFileTool()
+
+    # The content the model read before the generation added the data type.
+    result = await write_file.run(
+        write_file.input_schema.model_validate({"path": APPLICATION_METADATA_PATH, "content": APPLICATION_METADATA}),
+        ctx,
+    )
+
+    assert result.is_error
+    assert (repo / APPLICATION_METADATA_PATH).read_text(encoding="utf-8") == GENERATED.application_metadata
 
 
 async def test_reports_why_designer_did_not_generate_the_files(repo: Path, monkeypatch):
