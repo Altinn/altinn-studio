@@ -924,14 +924,17 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
     expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
   });
 
-  it('shows the page when moving to the service task remounts ProcessWrapper mid-transition', async () => {
+  it('shows the service page mid-transition and releases a task mounted before the response', async () => {
     // In the app, the URL moving to the service task mounts a new ProcessWrapper while process/next
     // is still pending. That mount must show the page, not wait for the response on the loader.
     setServiceTaskPages(['page1']);
-    let requestStarted = false;
+    let instance = getInstanceOnTask('Task_1', { status: 'idle' });
+    let resolveProcessNext: (response: ProcessNextResponse) => void = () => {};
     const doProcessNext = vi.fn<ApiClients['processApi']['doProcessNext']>().mockImplementationOnce(() => {
-      requestStarted = true;
-      return new Promise(() => {});
+      instance = getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' });
+      return new Promise((resolve) => {
+        resolveProcessNext = resolve;
+      });
     });
 
     const routerRef: RouterRef = { current: undefined };
@@ -946,10 +949,7 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       apis: {
         processApi: { doProcessNext },
         instanceApi: {
-          getInstance: async () =>
-            requestStarted
-              ? getInstanceOnTask('Task_Service', { status: 'processing', targetTask: 'Task_Service' })
-              : getInstanceOnTask('Task_1', { status: 'idle' }),
+          getInstance: async () => instance,
         },
       },
     });
@@ -961,6 +961,31 @@ describe('ProcessWrapper on a service task with a page, from the submitting sess
       await vi.advanceTimersByTimeAsync(2_000);
     });
     expect(routerRef.current!.state.location.pathname).toContain('/Task_Service');
+    expect(screen.getByTestId('task-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
+
+    // A task can mount before the mutation finishes. It must wait for the response, then unblock.
+    await act(async () => {
+      instance = getInstanceOnTask('Task_2', { status: 'processing', targetTask: 'Task_2' });
+      await vi.advanceTimersByTimeAsync(1_000);
+      await routerRef.current!.navigate(
+        routerRef.current!.state.location.pathname.replace('/ttd/test', '').replace('/Task_Service', '/Task_2'),
+      );
+    });
+    expect(screen.getByTestId('loader')).toHaveAttribute('data-reason', 'process-wrapper');
+
+    await act(async () => {
+      instance = getInstanceOnTask('Task_2', { status: 'idle' });
+      resolveProcessNext({
+        data: instance,
+        status: 200,
+        statusText: 'OK',
+        headers: new AxiosHeaders(),
+        config: { headers: new AxiosHeaders() },
+      });
+      await vi.advanceTimersByTimeAsync(1_000);
+    });
+    expect(routerRef.current!.state.location.pathname).toContain('/Task_2');
     expect(screen.getByTestId('task-content')).toBeInTheDocument();
     expect(screen.queryByTestId('loader')).not.toBeInTheDocument();
   });
