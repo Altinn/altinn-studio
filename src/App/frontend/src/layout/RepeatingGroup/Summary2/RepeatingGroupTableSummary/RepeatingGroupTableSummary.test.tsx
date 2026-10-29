@@ -334,6 +334,30 @@ describe('RepeatingGroupTableSummary', () => {
     expect(within(extraRow).getAllByRole('cell')).toHaveLength(3);
   });
 
+  test.each([false, true])('accounts for extra-row component visibility when hidden=%s', async (hidden) => {
+    const layout = createLayout({
+      withCustomButton: true,
+      tableHeaders: ['input1', 'custom-button', 'input2'],
+      rowsBefore: [{ cells: [null, { component: 'extra-text' }, null] }],
+    });
+    layout.FormPage1.data.layout.push({
+      id: 'extra-text',
+      type: 'Text',
+      value: 'Additional information',
+      hidden,
+    });
+    await render({ layout });
+
+    expect(screen.getAllByRole('columnheader')).toHaveLength(hidden ? 3 : 4);
+    if (hidden) {
+      expect(screen.queryByText('Action')).not.toBeInTheDocument();
+      expect(screen.queryByText('Additional information')).not.toBeInTheDocument();
+    } else {
+      expect(screen.getByText('Action')).toBeInTheDocument();
+      expect(screen.getByText('Additional information')).toBeInTheDocument();
+    }
+  });
+
   test('removes hidden columns from extra rows and shortens overlapping colSpans', async () => {
     await render({
       layout: createLayout({
