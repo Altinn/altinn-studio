@@ -41,6 +41,7 @@ public sealed class PaymentControllerProcessStatusGuardTests
             processReader
                 .Setup(reader => reader.GetProcessTasks())
                 .Returns(Services.GetRequiredService<IProcessReader>().GetProcessTasks());
+            processReader.Setup(reader => reader.GetExclusiveGateways()).Returns([]);
             processReader
                 .Setup(reader => reader.GetAltinnTaskExtension("Task_1"))
                 .Returns(CreatePaymentTaskExtension());
@@ -126,6 +127,7 @@ public sealed class PaymentControllerProcessStatusGuardTests
             processReader
                 .Setup(reader => reader.GetProcessTasks())
                 .Returns(Services.GetRequiredService<IProcessReader>().GetProcessTasks());
+            processReader.Setup(reader => reader.GetExclusiveGateways()).Returns([]);
             processReader
                 .Setup(reader => reader.GetAltinnTaskExtension(historicalTaskId))
                 .Returns(CreatePaymentTaskExtension());

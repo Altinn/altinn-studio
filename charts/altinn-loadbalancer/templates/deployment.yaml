@@ -22,6 +22,14 @@ spec:
             - containerPort: {{ .Values.image.containerPorts.http }}
             - containerPort: {{ .Values.image.containerPorts.https }}
             - containerPort: {{ .Values.image.containerPorts.lhci }}
+          # With the Service's Local traffic policy, a node stops passing the load balancer's
+          # health probe once its pod is terminating, but the load balancer only notices after a
+          # few failed probes. nginx stops accepting connections as soon as it is signaled, so
+          # the pod keeps serving until new connections have moved to the replacement pod's node.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 15
           env:
             {{- if not (hasKey $.Values.hosts $.Values.environment) }}
             {{- fail "the chosen environment has no host" }}
@@ -50,6 +58,13 @@ spec:
         {{- if .Values.sidecar.enabled }}
         - name: {{ .Values.sidecar.name }}
           image: "{{ .Values.sidecar.image}}"
+          # nginx sends its access log here, and keeps serving for its own pre-stop delay after
+          # the pod starts terminating, so the sidecar outlasts that delay and the few seconds
+          # nginx takes to finish its requests. Otherwise those requests' log lines are lost.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 20
           {{- if .Values.sidecar.args }}
           args:
           {{- range $arg := .Values.sidecar.args }}

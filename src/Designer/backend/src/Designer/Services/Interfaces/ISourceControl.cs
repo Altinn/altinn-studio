@@ -214,6 +214,15 @@ public interface ISourceControl
     CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext);
 
     /// <summary>
+    /// Summarizes the history of each top-level folder on the remote default branch of the local clone,
+    /// as last fetched. The commits that count for a folder are the ones `git log -- &lt;folder&gt;` lists.
+    /// </summary>
+    /// <param name="editingContext">The altinn repo editing context</param>
+    /// <returns>The history per folder name, or an empty dictionary when there is no valid local clone
+    /// or it has no remote default branch.</returns>
+    Dictionary<string, FolderHistory> GetTopLevelFolderHistory(AltinnRepoEditingContext editingContext);
+
+    /// <summary>
     /// Checks out a branch, validating that there are no uncommitted changes first
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>

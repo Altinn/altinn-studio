@@ -160,11 +160,11 @@ public sealed class ApplicationMetadataPdfRewriterTests : IDisposable
     }
 
     [Theory]
-    [InlineData("", true)] // v8's default is true
+    [InlineData("", false)] // unlike v8, whose default is true
     [InlineData("\"enablePdfCreation\": true,", true)]
     [InlineData("\"enablePdfCreation\": false,", false)]
     [InlineData("\"enablePdfCreation\": \"true\",", false)]
-    public void FormDataType_RequiresPdfUnlessTheFlagIsNotTrue(string flagProperty, bool requiresPdf)
+    public void FormDataType_RequiresPdfOnlyWhenTheFlagIsTrue(string flagProperty, bool requiresPdf)
     {
         var file = _app.Write(
             "config/applicationmetadata.json",

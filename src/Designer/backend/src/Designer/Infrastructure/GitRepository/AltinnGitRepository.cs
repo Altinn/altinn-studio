@@ -264,6 +264,6 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     // include new files and/or settings added after the repository was crated.
     private bool IsDatamodelsRepo()
     {
-        return Repository.Contains("-datamodels");
+        return RepositoryNames.KindOf(Org, Repository) == RepositoryKind.DataModels;
     }
 }

@@ -2,6 +2,7 @@
 
 **
 !common/dotnet/Altinn.Studio.Common/**
+!common/dotnet/Altinn.Studio.Common.Telemetry/**
 !Runtime/workflow-engine/**
 !Runtime/workflow-engine-app/**
 

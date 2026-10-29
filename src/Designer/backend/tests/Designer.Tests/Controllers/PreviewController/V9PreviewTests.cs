@@ -135,13 +135,7 @@ public class V9PreviewTests : PreviewControllerTestsBase<V9PreviewTests>, IClass
 
         Assert.NotNull(processTasks);
         Assert.Equal(
-            new[]
-            {
-                ("Task_1", "data"),
-                ("PdfWithStaleCopy", "subformPdf"),
-                ("PdfWithCopy", "subformPdf"),
-                ("PdfWithoutPages", "subformPdf"),
-            },
+            new[] { ("Task_1", "data"), ("SubformPdf", "subformPdf") },
             processTasks.Select(task =>
                 (task?["elementId"]?.GetValue<string>(), task?["altinnTaskType"]?.GetValue<string>())
             )

@@ -5,8 +5,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useProcessApi } from 'src/core/contexts/ApiProvider';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
+import { invalidateFormBootstrapQueries } from 'src/core/queries/formBootstrap/formBootstrap.queries';
 import { invalidateFormDataQueries } from 'src/core/queries/formData/formData.queries';
-import { useCurrentInstance, useInstanceDataQuery, useInstanceDataQueryArgs } from 'src/core/queries/instance';
+import { useInstanceDataQuery, useInstanceDataQueryArgs } from 'src/core/queries/instance';
 import { instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
 import { mutationResult } from 'src/core/queries/mutationResult';
 import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/core/queries/process/process.queries';
@@ -24,7 +25,7 @@ import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 type ProcessNextProblemDetails = ProblemDetails & {
   validationIssues?: BackendValidationIssue[] | null;
-  processNextState?: 'retrying' | 'resumeRequired';
+  processNextState?: 'retrying' | 'resumeRequired' | 'instanceChanged' | 'concurrentTransition';
   workflowFailure?: IProcessWorkflowFailure;
 };
 
@@ -40,8 +41,8 @@ interface ProcessNextInternalProps extends ProcessNextProps {
 function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
   const { doProcessNext } = useProcessApi();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
+  const refreshProcess = useRefreshProcess();
   const language = useCurrentLanguage();
-  const process = useCurrentInstance()?.process;
   const navigateToTask = useNavigateToTask();
   const instanceId = useLaxInstanceId();
   const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
@@ -70,25 +71,14 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
         .catch(async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
           const validationIssues = error.response?.data?.validationIssues;
           if (error.response?.status === 409 && validationIssues?.length) {
-            // If process next failed due to validation, return validationIssues instead of throwing
             return [null, validationIssues] as const;
           }
 
-          // The workflow engine can report a live status synchronously via the process/next error body.
-          // Map it onto the same state machine ProcessWrapper drives off the polled workflow.status, so a
-          // synchronous failure and a polled status render identically:
-          //  - a blocked call (409 with processNextState): 'retrying' means the transition is still in
-          //    flight (processing), 'resumeRequired' means it failed terminally (failed);
-          //  - the failing/timed-out call itself (500/504 with a workflowFailure extension): the refetched
-          //    status resolves to failed (terminal) or processing (timeout — the engine keeps retrying).
-          // In all cases we refetch the (live-enriched) instance and swallow the error rather than showing
-          // a hard toast — the refetched workflow.status takes over. The backend deliberately ships no raw
-          // failure detail on these responses (only the coarse classification), so there is nothing more
-          // meaningful to show than the state machine's localized screens.
+          // Refetched workflow status drives the same recovery screens as polling.
           const processNextState = error.response?.data?.processNextState;
           const workflowFailure = error.response?.data?.workflowFailure;
           if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
-            const refetchResult = await reFetchInstanceData();
+            const refetchResult = await refreshProcess();
             if (refetchResult.error) {
               throw refetchResult.error;
             }
@@ -105,18 +95,14 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
-        // An instance fetch that raced the mutation can resolve after this handler and overwrite
-        // the fresh cache with a pre-transition snapshot. Cancel in-flight fetches so the
-        // response instance is the newest write.
+        // Older reads can overwrite the transition result.
         if (instanceOwnerPartyId && instanceGuid) {
           await queryClient.cancelQueries({
             queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
           });
         }
 
-        // Atomic flip: cache and navigate dispatch in the same task so React 18 batches both
-        // into one commit. ProcessWrapper covers the cache/URL gap during the router's loading
-        // state via useNavigation() and the useIsMutating() guard on this mutation.
+        // Batch the cache update with navigation so the old task does not render against the new process.
         if (instanceOwnerPartyId && instanceGuid) {
           queryClient.setQueryData<IInstance>(
             instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
@@ -138,18 +124,20 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
     onError: async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
       window.logError('Process next failed:\n', error);
 
-      const { data: newInstance } = await reFetchInstanceData();
-      const newCurrentTask = newInstance?.process?.currentTask;
+      const { data: newInstance } = await refreshProcess();
 
-      if (newCurrentTask?.elementId && newCurrentTask?.elementId !== process?.currentTask?.elementId) {
-        navigateToTask(newCurrentTask.elementId);
+      const instanceChanged = error.response?.data?.processNextState === 'instanceChanged';
+      if (instanceChanged) {
+        // Bootstrap initializes FormStore; form data queries alone cannot refresh editable fields.
+        await Promise.all([invalidateFormBootstrapQueries(queryClient), invalidateFormDataQueries(queryClient)]);
       }
 
       if (!isPdfMode && isRenderedByWorkflowStateMachine(newInstance)) {
         return;
       }
 
-      toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
+      const textId = instanceChanged ? 'process_error.instance_changed' : getProcessErrorTextId(error);
+      toast(<Lang id={textId} />, {
         type: 'error',
         autoClose: false,
       });
@@ -167,7 +155,6 @@ export function useProcessNext({ action }: ProcessNextProps = {}) {
     action,
     beforeProcessNext: async () => await onFormSubmitValidation(),
     onValidationIssues: async (validationIssues) => {
-      // Set initial validation to validation issues from process/next and make all errors visible
       updateInitialValidations(validationIssues);
 
       const hasValidationErrors = await onFormSubmitValidation(true);
@@ -182,21 +169,10 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
   return useProcessNextInternal({ action });
 }
 
-/**
- * Resumes the terminally failed workflow that owns the current task (POST process/resume). This is
- * the engine-era analogue of "retry the service task": the engine re-runs the failed step (and its
- * dependents) in place, whereas a plain process/next is rejected with 409/resumeRequired while the
- * workflow is failed. The mutation shares the process/next scope so resuming and advancing can never
- * run concurrently, but deliberately not its mutation key: the key gates ProcessWrapper's
- * full-screen loader, so the failed task view stays mounted (button spinner) until the instance poll
- * that runs while a resume is pending reports the workflow processing, and the transition loader
- * takes over.
- */
+// Resume shares the process/next scope, but its separate key keeps the failed task mounted until polling sees progress.
 export function useProcessResume() {
   const { doProcessResume } = useProcessApi();
-  const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
-  const process = useCurrentInstance()?.process;
-  const navigateToTask = useNavigateToTask();
+  const refreshProcess = useRefreshProcess();
   const instanceId = useLaxInstanceId();
   const queryClient = useQueryClient();
   const isPdfMode = usePdfModeActive();
@@ -212,13 +188,10 @@ export function useProcessResume() {
       return doProcessResume(instanceId)
         .then(() => true)
         .catch(async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
-          // Same convergence rule as process/next: when the response is a workflow state the
-          // polled status can represent (still retrying, failed again, timed out), refetch and let
-          // ProcessWrapper's state machine render it instead of surfacing a hard error.
           const processNextState = error.response?.data?.processNextState;
           const workflowFailure = error.response?.data?.workflowFailure;
           if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
-            const refetchResult = await reFetchInstanceData();
+            const refetchResult = await refreshProcess();
             if (refetchResult.error) {
               throw refetchResult.error;
             }
@@ -233,40 +206,54 @@ export function useProcessResume() {
         return;
       }
 
-      // The resume response carries only the process state, and instance polling is off while the
-      // workflow is failed - so converge explicitly: refetch the instance (the source of truth the
-      // process query derives from) and navigate to the settled task like a successful
-      // process/next would have.
-      const { data: newInstance } = await reFetchInstanceData();
-      const task = getTargetTaskFromProcess(newInstance?.process);
-      if (task) {
-        navigateToTask(task);
-      }
+      // Failed workflows are not polled, and resume returns no instance.
+      await refreshProcess();
       await invalidateFormDataQueries(queryClient);
     },
     onError: async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
       window.logError('Process resume failed:\n', error);
 
-      // E.g. a concurrent session already resumed (409 "does not need to be resumed"): converge on
-      // the fresh state before reporting anything.
-      const { data: newInstance } = await reFetchInstanceData();
-      const newCurrentTask = newInstance?.process?.currentTask;
-
-      if (newCurrentTask?.elementId && newCurrentTask?.elementId !== process?.currentTask?.elementId) {
-        navigateToTask(newCurrentTask.elementId);
-      }
+      // A concurrent session may have resumed already.
+      const { data: newInstance } = await refreshProcess();
 
       if (!isPdfMode && isRenderedByWorkflowStateMachine(newInstance)) {
         return;
       }
 
-      toast(<Lang id={error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry'} />, {
+      toast(<Lang id={getProcessErrorTextId(error)} />, {
         type: 'error',
         autoClose: false,
       });
     },
   });
   return mutationResult(mutation);
+}
+
+function useRefreshProcess() {
+  const refetch = useInstanceDataQuery({ enabled: false }).refetch;
+  const navigateToTask = useNavigateToTask();
+
+  return async () => {
+    const result = await refetch();
+    const task = getTargetTaskFromProcess(result.data?.process);
+    if (task) {
+      navigateToTask(task);
+    }
+    return result;
+  };
+}
+
+// Server error details are for logs; users receive a localized retry message.
+function getProcessErrorTextId(error: HttpClientError<ProcessNextProblemDetails | undefined>) {
+  if (error.response?.data?.processNextState === 'concurrentTransition') {
+    return 'process_error.concurrent_transition';
+  }
+
+  if ((error.response?.status ?? 0) >= 500) {
+    return 'process_error.submit_error_please_retry';
+  }
+
+  return error.response?.data?.detail ?? error.message ?? 'process_error.submit_error_please_retry';
 }
 
 function isRenderedByWorkflowStateMachine(instance: IInstance | undefined) {

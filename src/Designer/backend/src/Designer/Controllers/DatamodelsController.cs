@@ -214,7 +214,7 @@ public class DatamodelsController : ControllerBase
     /// <param name="repository">The name of the repository to which the file is being added.</param>
     /// <param name="theFile">The XSD file being uploaded.</param>
     /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    [Authorize(Policy = AltinnPolicy.MustBeMemberOfAnyOrganization)]
     [HttpPost]
     [Route("upload")]
     public async Task<IActionResult> AddXsd(
@@ -252,7 +252,7 @@ public class DatamodelsController : ControllerBase
     /// Replaces the data model at <paramref name="modelPath"/> with an uploaded XSD. The model keeps
     /// its name, so references to it, e.g. the data type in the application metadata, are kept intact.
     /// </summary>
-    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    [Authorize(Policy = AltinnPolicy.MustBeMemberOfAnyOrganization)]
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

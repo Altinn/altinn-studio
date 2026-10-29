@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -34,7 +33,6 @@ public class UndeployGitOpsTests
     private readonly MockServerFixture _mockServerFixture;
     private readonly Mock<IGitOpsConfigurationManager> _gitOpsConfigurationManagerMock;
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock;
-    private const int DecommissionDefinitionId = 297;
     private const int GitOpsManagerDefinitionId = 298;
 
     private static string VersionPrefix(string org, string repository) =>
@@ -49,7 +47,7 @@ public class UndeployGitOpsTests
     {
         _mockServerFixture = mockServerFixture;
         _gitOpsConfigurationManagerMock = new Mock<IGitOpsConfigurationManager>();
-        _runtimeGatewayClientMock = new Mock<IRuntimeGatewayClient>();
+        _runtimeGatewayClientMock = new Mock<IRuntimeGatewayClient>(MockBehavior.Strict);
 
         JsonConfigOverrides.Add(
             $$"""
@@ -57,7 +55,6 @@ public class UndeployGitOpsTests
                "Integrations": {
                     "AzureDevOpsSettings": {
                         "BaseUri": "{{mockServerFixture.MockApi.Url}}/",
-                        "DecommissionDefinitionId": {{DecommissionDefinitionId}},
                         "GitOpsManagerDefinitionId": {{GitOpsManagerDefinitionId}}
                     }
                }
@@ -167,7 +164,7 @@ public class UndeployGitOpsTests
 
     [Theory]
     [MemberData(nameof(TestDataAppNotInGitOps))]
-    public async Task Undeploy_WhenAppDoesNotExistInGitOps_AndNotDeployedInCluster_ShouldFallbackToDecommissionDefinitionId(
+    public async Task Undeploy_WhenAppDoesNotExistInGitOps_ShouldUseGitOpsManagerDefinitionId(
         string org,
         string app,
         string environment,
@@ -189,19 +186,7 @@ public class UndeployGitOpsTests
             )
             .ReturnsAsync(false);
 
-        // App is NOT deployed in cluster
-        _runtimeGatewayClientMock
-            .Setup(m =>
-                m.IsAppDeployedWithGitOpsAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(false);
-
-        _mockServerFixture.PrepareQueueBuildResponse(DecommissionDefinitionId, azureDevopsMockQueueBuildResponse);
+        _mockServerFixture.PrepareQueueBuildResponse(GitOpsManagerDefinitionId, azureDevopsMockQueueBuildResponse);
 
         var entity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: environment);
         await DesignerDbFixture.PrepareEntityInDatabase(entity);
@@ -251,8 +236,8 @@ public class UndeployGitOpsTests
     }
 
     [Theory]
-    [MemberData(nameof(TestDataDeprecatedPipelineScheduledEvent))]
-    public async Task Undeploy_WhenUsingDeprecatedPipeline_ShouldCreateDeprecatedPipelineScheduledEvent(
+    [MemberData(nameof(TestDataPipelineScheduledEvent))]
+    public async Task Undeploy_WhenAppDoesNotExistInGitOps_ShouldCreatePipelineScheduledEvent(
         string org,
         string app,
         string environment,
@@ -275,19 +260,7 @@ public class UndeployGitOpsTests
             )
             .ReturnsAsync(false);
 
-        // App is NOT deployed in cluster - this causes deprecated pipeline to be used
-        _runtimeGatewayClientMock
-            .Setup(m =>
-                m.IsAppDeployedWithGitOpsAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<AltinnEnvironment>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(false);
-
-        _mockServerFixture.PrepareQueueBuildResponse(DecommissionDefinitionId, azureDevopsMockQueueBuildResponse);
+        _mockServerFixture.PrepareQueueBuildResponse(GitOpsManagerDefinitionId, azureDevopsMockQueueBuildResponse);
 
         var entity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, app, envName: environment);
         await DesignerDbFixture.PrepareEntityInDatabase(entity);
@@ -306,14 +279,14 @@ public class UndeployGitOpsTests
         // Assert
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        // Verify DeprecatedPipelineScheduled event was created in the database
+        // Verify PipelineScheduled event was created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
             .ToListAsync();
 
         Assert.Single(events);
-        Assert.Equal(DeployEventType.DeprecatedPipelineScheduled.ToString(), events[0].EventType);
+        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[0].EventType);
     }
 
     public static IEnumerable<object[]> TestDataAppExistsInGitOps()
@@ -339,7 +312,7 @@ public class UndeployGitOpsTests
         yield return
         [
             "ttd",
-            "non-gitops-app",
+            "removed-gitops-app",
             "TestEnv",
             """
                 {
@@ -352,12 +325,12 @@ public class UndeployGitOpsTests
         ];
     }
 
-    public static IEnumerable<object[]> TestDataDeprecatedPipelineScheduledEvent()
+    public static IEnumerable<object[]> TestDataPipelineScheduledEvent()
     {
         yield return
         [
             "ttd",
-            "deprecated-pipeline-app",
+            "removed-gitops-event-app",
             "TestEnv",
             "90003",
             """

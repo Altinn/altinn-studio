@@ -24,6 +24,11 @@ namespace Altinn.App.services.options
         public async Task<AppOptions> GetAppOptions(string? language, Dictionary<string, string> keyValuePairs)
         {
 
+            if (keyValuePairs.GetValueOrDefault("fail") == "true")
+            {
+                throw new InvalidOperationException("Reference options request failed as configured in the test app.");
+            }
+
             string? source = keyValuePairs.GetValueOrDefault("source");
 
             if (string.IsNullOrEmpty(source))

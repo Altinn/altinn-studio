@@ -12,6 +12,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
 import { convertDataBindingToInternalFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import { getTextResourceId } from '@altinn/ux-editor/utils/textResourceUtils';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';
@@ -47,7 +48,7 @@ describe('ColumnElement', () => {
     renderColumnElement({
       onChange: onChangeMock,
       tableColumn: {
-        headerContent: subformLayoutMock.component4.textResourceBindings.title,
+        headerContent: getTextResourceId(subformLayoutMock.component4.textResourceBindings.title),
         cellContent: { query: addressDataField },
       },
     });

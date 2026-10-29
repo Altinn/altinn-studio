@@ -59,7 +59,7 @@ def aggregate_token_usage(
     loaded_at: str,
 ) -> list[DailyTokenUsageRow]:
     """Aggregate lists of traces and observations into token usage rows."""
-    buckets: dict[str, dict] = {}
+    buckets: dict[tuple[str, str, str, str], dict] = {}
 
     for observation in observations:
         trace = traces_by_id.get(observation["trace_id"])
@@ -72,10 +72,11 @@ def aggregate_token_usage(
             continue
 
         service_owner_code = _get_service_owner_code(trace)
+        repo_owner = _get_repo_owner(trace, service_owner_code)
         app_name = _get_app_name(trace)
-        service_resource_id = _get_service_resource_id(service_owner_code, app_name)
+        service_resource_id = _get_service_resource_id(service_owner_code, repo_owner, app_name)
         observation_date = _to_date_string(observation["start_time"])
-        bucket_key = f"{service_owner_code}-{app_name}-{observation_date}"
+        bucket_key = (service_owner_code, repo_owner, app_name, observation_date)
 
         bucket = buckets.setdefault(
             bucket_key,
@@ -83,6 +84,7 @@ def aggregate_token_usage(
                 "date": observation_date,
                 "service_owner_code": service_owner_code,
                 "app_name": app_name,
+                "repo_owner": repo_owner,
                 "service_resource_id": service_resource_id,
                 "input_tokens": 0,
                 "output_tokens": 0,
@@ -131,6 +133,16 @@ def _get_service_owner_code(trace: Trace) -> str:
     return UNKNOWN
 
 
+def _get_repo_owner(trace: Trace, service_owner_code: str) -> str:
+    """Get the owner of the repository that the assistant worked in.
+
+    The owner is different from the service owner when the developer owns the repository.
+    A trace from before Designer sent `repo_owner` does not have this value. Then the owner is the service owner.
+    """
+    metadata = trace["metadata"] or {}
+    return metadata.get("repo_owner") or service_owner_code
+
+
 def _get_app_name(trace: Trace) -> str:
     if _is_langfuse_internal(trace):
         return trace["environment"]
@@ -147,8 +159,9 @@ def _get_app_name(trace: Trace) -> str:
     return app_name
 
 
-def _get_service_resource_id(service_owner_code: str, app_name: str) -> str | None:
-    if service_owner_code == INTERNAL_OWNER_CODE:
+def _get_service_resource_id(service_owner_code: str, repo_owner: str, app_name: str) -> str | None:
+    # A repository that a developer owns does not have a service resource for the service owner.
+    if service_owner_code == INTERNAL_OWNER_CODE or repo_owner != service_owner_code:
         return None
     rr_app_prefix = "app"
     return f"{rr_app_prefix}_{service_owner_code}_{app_name}"
@@ -164,6 +177,12 @@ def _usage_value(usage: dict[str, Any] | None, key: str) -> int:
     return usage.get(key) or 0
 
 
+def _get_service_resource_title(bucket: dict) -> str:
+    if bucket["repo_owner"] == bucket["service_owner_code"]:
+        return bucket["app_name"]
+    return f"{bucket['repo_owner']}/{bucket['app_name']}"
+
+
 def _to_usage_row(bucket: dict, loaded_at: str, langfuse_host: str) -> DailyTokenUsageRow:
     year, month, day = bucket["date"].split("-")
     return {
@@ -175,7 +194,7 @@ def _to_usage_row(bucket: dict, loaded_at: str, langfuse_host: str) -> DailyToke
         "serviceownercode": bucket["service_owner_code"],
         "messagesender": None,
         "serviceresourceid": bucket["service_resource_id"],
-        "serviceresourcetitle": bucket["app_name"],
+        "serviceresourcetitle": _get_service_resource_title(bucket),
         "recipienttype": None,
         "costcenter": None,
         "messagecount": None,

@@ -102,6 +102,7 @@ export function RepeatingGroupTableRow({
     }));
   const isEditingRow = RepGroupContext.useIsEditingRow(uuid);
   const isDeletingRow = RepGroupContext.useIsDeletingRow(uuid);
+  const instanceLocked = FormStore.useIsInstanceLocked();
 
   const [rowHasErrors, setRowHasErrors] = React.useState(false);
   const editButtonText = rowHasErrors
@@ -208,6 +209,7 @@ export function RepeatingGroupTableRow({
                       indexedId={indexedId}
                       uuid={uuid}
                       onClick={() => toggleEditing({ index, uuid })}
+                      disabled={instanceLocked}
                       editButtonText={editButtonText}
                       rowHasErrors={rowHasErrors}
                       compactButtons={compactButtons}
@@ -219,6 +221,7 @@ export function RepeatingGroupTableRow({
                       index={index}
                       uuid={uuid}
                       isDeletingRow={isDeletingRow}
+                      disabled={instanceLocked}
                       deleteButtonText={deleteButtonText}
                       langAsString={langAsString}
                     >
@@ -250,6 +253,7 @@ export function RepeatingGroupTableRow({
                     indexedId={indexedId}
                     uuid={uuid}
                     onClick={() => toggleEditing({ index, uuid })}
+                    disabled={instanceLocked}
                     editButtonText={editButtonText}
                     rowHasErrors={rowHasErrors}
                     compactButtons={compactButtons}
@@ -269,6 +273,7 @@ export function RepeatingGroupTableRow({
                     index={index}
                     uuid={uuid}
                     isDeletingRow={isDeletingRow}
+                    disabled={instanceLocked}
                     deleteButtonText={deleteButtonText}
                     langAsString={langAsString}
                   >
@@ -292,6 +297,7 @@ export function RepeatingGroupTableRow({
                 uuid={uuid}
                 mobileViewSmall={mobileViewSmall}
                 onClick={() => toggleEditing({ index, uuid })}
+                disabled={instanceLocked}
                 editButtonText={editButtonText}
                 rowHasErrors={rowHasErrors}
                 compactButtons={compactButtons}
@@ -305,6 +311,7 @@ export function RepeatingGroupTableRow({
                   index={index}
                   uuid={uuid}
                   isDeletingRow={isDeletingRow}
+                  disabled={instanceLocked}
                   deleteButtonText={deleteButtonText}
                   langAsString={langAsString}
                 >
@@ -348,6 +355,7 @@ function EditElement({
   uuid,
   compactButtons,
   buttonRef,
+  disabled,
 }: {
   ariaExpanded: boolean;
   indexedId: string;
@@ -358,6 +366,7 @@ function EditElement({
   rowHasErrors: boolean;
   compactButtons: boolean;
   buttonRef?: (node: HTMLButtonElement | null) => void;
+  disabled?: boolean;
 }) {
   const ariaLabel = useAriaLabel(editButtonText);
   const showText = compactButtons ? ariaExpanded : ariaExpanded || !mobileViewSmall;
@@ -369,6 +378,7 @@ function EditElement({
       variant='tertiary'
       color='second'
       icon={!ariaExpanded && (compactButtons || mobileViewSmall)}
+      disabled={disabled}
       onClick={onClick}
       aria-label={ariaLabel}
       className={classes.tableButton}
@@ -505,7 +515,7 @@ function NonEditableCell({
   return (
     <Table.Cell className={classes.tableCell}>
       <span
-        className={classes.contentFormatting}
+        className={cn(classes.contentFormatting, classes.cellContentFormatting)}
         style={style}
       >
         {isEditingRow ? null : <DisplayData baseComponentId={baseComponentId} />}

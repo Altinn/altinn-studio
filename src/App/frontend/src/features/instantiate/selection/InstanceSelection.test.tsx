@@ -1,13 +1,14 @@
 import React from 'react';
 
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { renderWithInstanceAndLayout, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ISimpleInstance } from 'src/types';
 
 const mockActiveInstances: ISimpleInstance[] = [
@@ -88,6 +89,47 @@ describe('InstanceSelection', () => {
     const { instanceCreateMock } = await render();
     await userEvent.click(screen.getByText(/start på nytt/i));
     expect(instanceCreateMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should explain that new instances cannot be started when instantiation responds with 410', async () => {
+    vi.spyOn(window, 'logError').mockImplementation(() => {});
+    await renderWithoutInstanceAndLayout({
+      renderer: () => <InstanceSelectionWrapper />,
+      apis: {
+        instanceApi: {
+          getActiveInstances: async () => mockActiveInstances,
+          create: async () => {
+            throw Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } });
+          },
+        },
+      },
+    });
+    await userEvent.click(screen.getByText(/start på nytt/i));
+
+    await waitFor(() =>
+      expect(screen.getByText(/det er ikke mulig å starte nye skjema i denne tjenesten/i)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/ikke har rettigheter til å starte denne tjenesten/i)).not.toBeInTheDocument();
+  });
+
+  it('should list active instances but not offer to start a new one when validTo has passed', async () => {
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({ validTo: '2020-01-01T00:00:00Z' });
+    const { instanceCreateMock } = await render();
+
+    expect(await screen.findByText(mockActiveInstances[0].lastChangedBy)).toBeInTheDocument();
+    expect(screen.getByText(/det er ikke mulig å starte nye skjema i denne tjenesten/i)).toBeInTheDocument();
+    expect(screen.queryByText(/start på nytt/i)).not.toBeInTheDocument();
+    expect(instanceCreateMock).not.toHaveBeenCalled();
+  });
+
+  it('should list active instances but not offer to start a new one before validFrom', async () => {
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({ validFrom: '2099-01-01T10:00:00Z' });
+    const { instanceCreateMock } = await render();
+
+    expect(await screen.findByText(mockActiveInstances[0].lastChangedBy)).toBeInTheDocument();
+    expect(screen.getByText(/Tjenesten åpner 01\.01\.2099/)).toBeInTheDocument();
+    expect(screen.queryByText(/start på nytt/i)).not.toBeInTheDocument();
+    expect(instanceCreateMock).not.toHaveBeenCalled();
   });
 
   it('should trigger openInstance on editButton click', async () => {

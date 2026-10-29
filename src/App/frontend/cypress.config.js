@@ -7,6 +7,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { cypressDiagnostics } from './scripts/cypress-diagnostics.js';
 import { configureCypressShard } from './scripts/cypress-shard.js';
 
 const env = dotenv.config();
@@ -19,18 +20,8 @@ export default defineConfig({
   allowCypressEnv: false,
   e2e: {
     setupNodeEvents(on, config) {
+      const diagnostics = cypressDiagnostics(on);
       const snapshotsPath = path.resolve('snapshots.json');
-      const reportProgress = (event, details) => {
-        if (!process.env.CYPRESS_DIAGNOSTICS_URL) {
-          return;
-        }
-        void fetch(process.env.CYPRESS_DIAGNOSTICS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ source: 'node', event, ...details }),
-          signal: AbortSignal.timeout(2000),
-        }).catch(() => {});
-      };
-      on('before:spec', (spec) => reportProgress('before:spec', { spec: spec.relative }));
       installLogsPrinter(on, { printLogsToConsole: 'always' });
       on(
         'file:preprocessor',
@@ -41,7 +32,7 @@ export default defineConfig({
       );
 
       on('before:browser:launch', (browser, launchOptions) => {
-        reportProgress('before:browser:launch', { browser: browser.displayName, version: browser.version });
+        diagnostics.browserLaunch(browser, launchOptions);
         if (browser.name === 'electron') {
           launchOptions.preferences.width = CYPRESS_WINDOW_WIDTH;
           launchOptions.preferences.height = CYPRESS_WINDOW_HEIGHT;
@@ -63,7 +54,7 @@ export default defineConfig({
       });
 
       on('after:spec', async (_spec, results) => {
-        reportProgress('after:spec', { spec: _spec.relative, failures: results?.stats.failures });
+        diagnostics.afterSpec(_spec, results);
         if (results && results.video) {
           // Do we have failures for any retry attempts?
           const failures = results.tests.some((test) => test.attempts.some((attempt) => attempt.state === 'failed'));
@@ -143,7 +134,7 @@ Valid environments are:
   // Yarn hoists it to the repo root. Resolve it here in the Node process instead and hand it to
   // `cy.injectAxe` (see the command override in test/e2e/support/custom.ts).
   expose: {
-    diagnosticsUrl: process.env.CYPRESS_DIAGNOSTICS_URL || '',
+    cypressDiagnostics: Boolean(process.env.CYPRESS_DIAGNOSTICS_DIR),
     axeCorePath: fileURLToPath(import.meta.resolve('axe-core/axe.min.js')),
     // Percy uses this public local endpoint to communicate with its CLI. Exposing it prevents
     // @percy/cypress from falling back to the disabled Cypress.env() API when Percy is not running.
@@ -160,6 +151,8 @@ Valid environments are:
   viewportHeight: 768,
   viewportWidth: 1536,
   requestTimeout: 20000,
+  // Assertions retry until this timeout, so `should('not.exist')` passes as soon as the page moves on. To check that
+  // something is not shown at a given moment, first wait for a state the server reports, then use `{ timeout: 0 }`.
   defaultCommandTimeout: 20000,
   reporter: 'junit',
   reporterOptions: {

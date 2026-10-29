@@ -126,10 +126,6 @@ fpr
 @paths src/App/backend/Makefile **/BotAccounts/**
 ba
 
-# "Statistisk sentralbyrå" named in the codelists docs
-@paths src/App/codelists/**
-Statistisk
-
 # --------------- foreign-language content in otherwise-English code ---
 # Only the specific foreign tokens are accepted, and only where they occur
 # — a whole-directory exclude would hide real English typos as collateral.
@@ -278,4 +274,3 @@ selv
 # "det ser rart ut" is a Norwegian request quoted from gates_confidence.jsonl
 @paths src/AI/assistant/agents/prompts/intent_security.md
 ser
-

@@ -68,8 +68,9 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/openapi/internal-v1.json", "Internal API v1");
 });
 
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
+// Probes aren't traffic: the shared telemetry setup keeps them out of traces, and these out of request metrics.
+app.MapHealthChecks("/health/live").DisableHttpMetrics();
+app.MapHealthChecks("/health/ready").DisableHttpMetrics();
 
 app.UseGateway();
 

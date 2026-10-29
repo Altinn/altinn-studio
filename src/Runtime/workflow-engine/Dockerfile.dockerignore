@@ -2,6 +2,7 @@
 
 **
 !common/dotnet/Altinn.Studio.Common/**
+!common/dotnet/Altinn.Studio.Common.Telemetry/**
 !Runtime/workflow-engine/**
 
 # Build outputs, including EF/MSBuild-generated literal backslash dirs on macOS

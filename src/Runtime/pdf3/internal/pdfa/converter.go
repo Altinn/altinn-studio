@@ -237,13 +237,13 @@ func parsePDFState(pdf []byte) (*pdfState, error) {
 }
 
 func parseLastStartXRef(pdf []byte) (int, error) {
-	index := bytes.LastIndex(pdf, []byte("startxref"))
-	if index == -1 {
+	_, after, ok := bytes.CutLast(pdf, []byte("startxref"))
+	if !ok {
 		return 0, errTrailerNotFound
 	}
 
-	value := strings.TrimSpace(string(pdf[index+len("startxref"):]))
-	line := strings.SplitN(value, "\n", 2)[0]
+	value := strings.TrimSpace(string(after))
+	line, _, _ := strings.Cut(value, "\n")
 	startXRef, err := strconv.Atoi(strings.TrimSpace(line))
 	if err != nil {
 		return 0, fmt.Errorf("parse startxref: %w", err)

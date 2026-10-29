@@ -6,7 +6,11 @@ import type { CompRepeatingGroupExternal } from '@app/layout-contract/generated/
 import type { Mock } from 'vitest';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import {
+  defaultMockDataElementId,
+  getInstanceAtServiceTaskMock,
+  getInstanceDataMock,
+} from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
 import { ALTINN_ROW_ID, IDataModelMultiPatchResponse } from 'src/features/formData/types';
@@ -73,9 +77,10 @@ describe('openByDefault', () => {
     existingRows?: Row[];
     edit?: Partial<CompRepeatingGroupExternal['edit']>;
     hiddenRow?: CompRepeatingGroupExternal['hiddenRow'];
+    onServiceTaskPage?: boolean;
   }
 
-  async function render({ existingRows, edit, hiddenRow }: Props) {
+  async function render({ existingRows, edit, hiddenRow, onServiceTaskPage = false }: Props) {
     const layout: ILayout = [
       {
         id: 'myGroup',
@@ -106,6 +111,13 @@ describe('openByDefault', () => {
         </RepeatingGroupProvider>
       ),
       apis: {
+        ...(onServiceTaskPage
+          ? {
+              instanceApi: {
+                getInstance: async () => getInstanceAtServiceTaskMock(),
+              },
+            }
+          : undefined),
         formBootstrapApi: {
           fetchFormBootstrapForInstance: async () =>
             getFormBootstrapMock((obj) => {
@@ -239,6 +251,28 @@ describe('openByDefault', () => {
       },
       apis,
     });
+  });
+
+  it("should not add a new row on a service task's page", async () => {
+    nextUuids.push('abc123');
+    const { apis } = await render({
+      existingRows: [],
+      edit: { openByDefault: true },
+      onServiceTaskPage: true,
+    });
+
+    await waitUntil({
+      state: {
+        editingId: undefined,
+        addingIds: [],
+        visibleRows: [],
+        hiddenRows: [],
+        data: [],
+      },
+      apis,
+    });
+    // No new row took the id
+    expect(nextUuids.splice(0)).toEqual(['abc123']);
   });
 
   it('should not add a new row if one already exists', async () => {

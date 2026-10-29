@@ -42,6 +42,7 @@ public class RepositoryController : ControllerBase
     private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
     private readonly IBranchService _branchService;
     private readonly IAppTemplateCatalog _appTemplateCatalog;
+    private readonly IAppRepositorySearchService _appRepositorySearchService;
 
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -55,13 +56,15 @@ public class RepositoryController : ControllerBase
     /// <param name="syncHub">websocket syncHub</param>
     /// <param name="branchService">the branch service</param>
     /// <param name="appTemplateCatalog">the available app scaffolds</param>
+    /// <param name="appRepositorySearchService">the search for the repositories that hold apps</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
         IRepository repository,
         IHubContext<SyncHub, ISyncClient> syncHub,
         IBranchService branchService,
-        IAppTemplateCatalog appTemplateCatalog
+        IAppTemplateCatalog appTemplateCatalog,
+        IAppRepositorySearchService appRepositorySearchService
     )
     {
         _giteaClient = giteaClient;
@@ -70,27 +73,36 @@ public class RepositoryController : ControllerBase
         _syncHub = syncHub;
         _branchService = branchService;
         _appTemplateCatalog = appTemplateCatalog;
+        _appRepositorySearchService = appRepositorySearchService;
     }
 
     /// <summary>
     /// Returns a list over repositories specified by search parameters
     /// </summary>
     /// <remarks>
-    /// All parameters create the search parameters
+    /// All parameters create the search parameters. With <paramref name="excludeNonAppRepos"/>, the shared
+    /// repositories ({owner}-datamodels, {owner}-content and {owner}-resources) are left out of the page and the
+    /// total count, and the page count stays Gitea's. It can't be combined with a keyword.
     /// </remarks>
     /// <returns>List of filtered repositories that user has access to.</returns>
     [AllowApiKey]
     [HttpGet]
     [Route("search")]
-    public async Task<SearchResults> Search(
+    public async Task<ActionResult<SearchResults?>> Search(
         [FromQuery] string? keyword,
         [FromQuery] int uId,
         [FromQuery] string? sortBy,
         [FromQuery] string? order,
         [FromQuery] int page,
-        [FromQuery] int limit
+        [FromQuery] int limit,
+        [FromQuery] bool excludeNonAppRepos = false
     )
     {
+        if (excludeNonAppRepos && !string.IsNullOrEmpty(keyword))
+        {
+            return BadRequest("excludeNonAppRepos can't be combined with keyword.");
+        }
+
         SearchOptions searchOptions = new SearchOptions
         {
             Keyword = keyword,
@@ -100,8 +112,9 @@ public class RepositoryController : ControllerBase
             Page = page,
             Limit = limit,
         };
-        SearchResults repositories = await _giteaClient.SearchRepo(searchOptions);
-        return repositories;
+        return excludeNonAppRepos
+            ? await _appRepositorySearchService.SearchApps(searchOptions)
+            : await _giteaClient.SearchRepo(searchOptions);
     }
 
     /// <summary>
@@ -488,7 +501,7 @@ public class RepositoryController : ControllerBase
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
     /// <param name="repository">The name of repository</param>
     /// <param name="branch">Name of branch</param>
-    /// <returns>The branch info</returns>
+    /// <returns>The branch info, or no content if the branch does not exist in Gitea</returns>
     [HttpGet]
     [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/branches/branch")]
     public async Task<Branch> Branch(string org, string repository, [FromQuery] string? branch) =>

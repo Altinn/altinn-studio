@@ -55,6 +55,19 @@ describe('PageLayout', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders "UnsupportedRepositoryPage" instead of the app pages when the repository is not an app', () => {
+    const resourcesRepoName = 'my-org-resources';
+    render({}, resourcesRepoName);
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('unsupported_repository_page.heading', { repoName: resourcesRepoName }),
+        level: 1,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(textMock('repo_status.loading'))).not.toBeInTheDocument();
+  });
+
   it('renders "MergeConflictWarning" when repoStatus has merge conflict', async () => {
     render({
       getRepoStatus: () => Promise.resolve({ ...repoStatus, hasMergeConflict: true }),
@@ -196,13 +209,13 @@ const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesCont
   await waitForElementToBeRemoved(() => screen.queryByLabelText(textMock('repo_status.loading')));
 };
 
-const render = async (queries: Partial<ServicesContextProps> = {}) => {
+const render = async (queries: Partial<ServicesContextProps> = {}, repoName: string = 'my-app') => {
   renderWithProviders(
     <FeatureFlagsContextProvider value={{ flags: [] }}>
       <PageLayout />
     </FeatureFlagsContextProvider>,
     {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/${RoutePaths.Overview}`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/${repoName}/${RoutePaths.Overview}`,
       queries,
     },
   );

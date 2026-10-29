@@ -79,7 +79,7 @@ class PreviewRenderCheckTool(WriteTool[PreviewRenderCheckArgs]):
                 render_check,
                 studio_base=config.PREVIEW_STUDIO_BASE_URL,
                 username=config.PREVIEW_STUDIO_USER,
-                org=ctx.org,
+                repo_owner=ctx.repo_owner,
                 app=ctx.extras["app_name"],
                 branch=ctx.extras["session_branch"],
                 page_order=page_order,
@@ -103,8 +103,8 @@ def _check_preconditions(ctx: LoopContext, *, is_enabled: bool) -> ToolResult | 
             ),
             is_error=True,
         )
-    if not ctx.extras.get("app_name") or not ctx.org:
-        return _report_unavailable("Preview render check cannot resolve the app's org/name.")
+    if not ctx.extras.get("app_name") or not ctx.repo_owner:
+        return _report_unavailable("Preview render check cannot resolve the repository owner or the app name.")
     return None
 
 

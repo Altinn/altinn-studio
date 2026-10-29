@@ -187,7 +187,7 @@ public sealed class MailboxDashboardTests(PostgresFixture fixture) : IAsyncLifet
     }
 
     [Fact]
-    public async Task AReceiverBornRunnable_ReadsWithNoHeldStamp()
+    public async Task AReceiverCreatedRunnable_ReadsWithNoHeldStamp()
     {
         var repository = fixture.CreateRepository();
         var mailbox = await MintMailbox(repository);
@@ -552,7 +552,11 @@ public sealed class MailboxDashboardTests(PostgresFixture fixture) : IAsyncLifet
         );
 
         Assert.Equal(PostgresErrorCodes.CheckViolation, violation.SqlState);
-        Assert.Contains("ck_mailbox_receivers_birth_is_recorded", violation.Message, StringComparison.Ordinal);
+        Assert.Contains(
+            "ck_mailbox_receivers_enqueue_outcome_is_recorded",
+            violation.Message,
+            StringComparison.Ordinal
+        );
     }
 
     #endregion

@@ -108,7 +108,9 @@ export const ControlledRadioGroup = (props: PropsFromGenericComponent<'RadioButt
           {renderLegend && <Fieldset.Legend className={classes.legend}>{labelText}</Fieldset.Legend>}
           {description && (
             <Fieldset.Description
-              className={cn({ [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false })}
+              className={cn(classes.description, {
+                [utilClasses.visuallyHidden]: overrideDisplay?.renderLegend === false,
+              })}
             >
               <Lang id={description} />
             </Fieldset.Description>

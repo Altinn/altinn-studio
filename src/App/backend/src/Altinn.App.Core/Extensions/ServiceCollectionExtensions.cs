@@ -370,7 +370,7 @@ public static class ServiceCollectionExtensions
 
         // Service tasks
         services.AddTransient<IServiceTask, PdfServiceTask>();
-        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
         services.AddTransient<IServiceTask, SubformPdfServiceTask>();
 
         // The validation reads the hook registrations themselves, which the service provider does not expose.

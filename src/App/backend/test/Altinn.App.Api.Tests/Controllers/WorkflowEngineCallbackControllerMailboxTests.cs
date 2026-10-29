@@ -58,15 +58,15 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// receiver.
     /// </param>
     private sealed class RelayProbeTask(
-        Func<ServiceTaskContext, ServiceTaskReply, ServiceTaskExchangeResult> onMessage,
-        Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult> onClosed,
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null,
+        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult> onMessage,
+        Func<StageContext, MailboxClosedReason, ServiceTaskResult> onClosed,
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null,
         bool trailingStage = false
-    ) : IPipelineServiceTask
+    ) : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
         {
             pipeline.Stage(
                 (context, mailbox) =>
@@ -79,7 +79,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
             if (trailingStage)
             {
-                pipeline.Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()));
+                pipeline.Stage(_ => Task.FromResult(StageResult.Completed()));
             }
 
             return pipeline.ConcludeOnReplies(
@@ -188,9 +188,6 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             CancellationToken cancellationToken = default
         ) => throw new NotSupportedException();
 
-        public Task<bool> AbandonWorkflow(string ns, Guid workflowId, CancellationToken cancellationToken = default) =>
-            throw new NotSupportedException();
-
         public Task<MailboxMintResult> MintMailbox(
             string ns,
             MailboxCreateRequest request,
@@ -212,8 +209,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// </summary>
     private Task<CallbackOutcome> RunReceiveCallback(
         AppCallbackMailbox mailbox,
-        Func<ServiceTaskContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage = null,
-        Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult>? onClosed = null
+        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage = null,
+        Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed = null
     ) =>
         RunCallback(
             mailbox,
@@ -225,11 +222,11 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
         );
 
     /// <summary>
-    /// Drives the send stage's own callback — Main's last step. The exchange's handler is composed right
-    /// after it, so its completion starts that exchange's receive leg; nothing in its payload says so.
+    /// Drives the send stage's own callback — the primary workflow's last step. The exchange's handler is composed
+    /// right after it, so its completion starts that exchange's receive leg; nothing in its payload says so.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallback(
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
     ) =>
         RunCallback(
             mailbox: null,
@@ -244,7 +241,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// same payload, and its completion starts the workflow carrying that stage instead.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallbackWithTrailingStage(
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
     ) =>
         RunCallback(
             mailbox: null,
@@ -258,9 +255,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     private async Task<CallbackOutcome> RunCallback(
         AppCallbackMailbox? mailbox,
         ExecuteServiceTaskPayload stepPayload,
-        Func<ServiceTaskContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage,
-        Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult>? onClosed,
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
+        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage,
+        Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed,
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
         Exception? engineThrowsOnEnqueue = null,
         CallRecorder? recorder = null,
         bool trailingStage = false
@@ -275,7 +272,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             App,
             configureServices: services =>
             {
-                services.AddSingleton<IPipelineServiceTask>(
+                services.AddSingleton<IServiceTask>(
                     new RelayProbeTask(
                         onMessage ?? ((_, _) => throw new InvalidOperationException("Unexpected message handler")),
                         onClosed ?? ((_, _) => throw new InvalidOperationException("Unexpected closure handler")),
@@ -553,7 +550,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     }
 
     // ---------------------------------------------------------------------------------------------
-    // The send stage's own callback — Main's last step for a declaring pipeline.
+    // The send stage's own callback — the primary workflow's last step for a declaring pipeline.
     // ---------------------------------------------------------------------------------------------
 
     [Fact]
@@ -658,7 +655,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
     /// <summary>
     /// The relay runs inside the callback, after the save: a throw from its tail must reach the engine as a
-    /// retryable failure (5xx) — never a swallowed success, which would settle Main with no receiver
+    /// retryable failure (5xx) — never a swallowed success, which would settle the primary workflow with no receiver
     /// listening on the published address, and never a non-retryable 4xx, since the enqueue is
     /// idempotency-keyed and a replay of the whole step is the designed recovery. The controller has no
     /// catch on this path and the app pipeline no exception handler, so the pin here is the exception

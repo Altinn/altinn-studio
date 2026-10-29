@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@studio/components": "workspace:^",
-    "dompurify": "^3.2.6",
+    "dompurify": "^3.4.17",
     "marked": "^17.0.6"
   }
 }

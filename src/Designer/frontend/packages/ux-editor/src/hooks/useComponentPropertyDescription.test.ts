@@ -19,6 +19,7 @@ const customTextMockToHandleUndefined = (
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: customTextMockToHandleUndefined,
+    i18n: { language: 'nb' },
   }),
 }));
 

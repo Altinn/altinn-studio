@@ -1,1 +1,0 @@
-App used for cypress testing.

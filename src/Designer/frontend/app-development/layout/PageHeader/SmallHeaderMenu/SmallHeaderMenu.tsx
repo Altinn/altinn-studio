@@ -75,7 +75,7 @@ const DropdownMenuGroups = ({ profileText }: DropdownMenuGroupsProps): ReactElem
     showName: false,
     items: profileMenuItems.map((item: StudioProfileMenuItem) => ({
       name: item.itemName,
-      action: item.action,
+      action: item.action.type === 'link' ? { ...item.action, isOutsideRouter: true } : item.action,
     })),
   };
 

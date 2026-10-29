@@ -5,10 +5,7 @@ import { useStore } from 'zustand';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import {
-  type useGetCachedInitialValidations,
-  useIsUpdatingInitialValidations,
-} from 'src/core/queries/backendValidation';
+import { useIsUpdatingInitialValidations } from 'src/core/queries/backendValidation';
 import { useFormDataSaveMutation, useIsSavingFormData, useIsSavingFormDataNow } from 'src/core/queries/formData';
 import { FormStore, getRootFormStore } from 'src/features/form/FormContext';
 import { createBatchedFormDataSetter } from 'src/features/formData/FormDataWriteBatch';
@@ -33,10 +30,11 @@ export type FDValue = FDLeafValue | object | FDValue[];
 export interface FormDataSliceProps {
   dataModels: FormBootstrapQueryResponse['dataModels'];
   autoSaving: boolean;
+  // Rejects every write, as if all data elements were locked
+  locked: boolean;
   proxies: FormDataWriteProxies;
   changeInstance: ChangeInstanceData;
   selectFromInstance: InstanceDataSelector;
-  getCachedInitialValidations: ReturnType<typeof useGetCachedInitialValidations>;
   getCalculationDataSources: () => ExpressionDataSources;
 }
 
@@ -663,6 +661,12 @@ export const formDataHooks = {
    * @see useDataModelBindings
    */
   useSetLeafValue: () => FormStore.raw.useStaticSelector((s) => s.data.setLeafValue),
+
+  /**
+   * Returns a function to set a value in a row in a list, by use of a callback that lets you find the correct row.
+   * The value is set in the first row where the callback returns true. If no row matches, nothing happens.
+   */
+  useSetLeafValueInList: () => FormStore.raw.useStaticSelector((s) => s.data.setLeafValueInList),
 
   /**
    * This returns the raw method for setting multiple leaf values in the form data at once. This is

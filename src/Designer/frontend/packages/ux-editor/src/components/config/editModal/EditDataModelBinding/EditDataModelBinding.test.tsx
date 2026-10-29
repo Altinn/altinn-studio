@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { EditDataModelBinding, type EditDataModelBindingProps } from './EditDataModelBinding';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';

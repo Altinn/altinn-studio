@@ -1,13 +1,11 @@
 import type { FormItem } from '../../../../types/FormItem';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import { useComponentSchemaQuery } from '@altinn/ux-editor/hooks/queries/useComponentSchemaQuery';
+import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
+import { getComponentDefinition } from '@altinn/ux-editor/data/componentCatalog';
 import { ConfigStringProperties } from '@altinn/ux-editor/components/config/ConfigProperties';
-import type { properties } from '../../../../testing/schemas/json/component/Heading.schema.v1.json';
 
 import type { JSX } from 'react';
 
-type TitleMainProperties = (keyof typeof properties)[];
-export const titleMainProperties: TitleMainProperties = ['size'];
+export const titleMainProperties = ['size'];
 
 export type TitleMainConfigProps = {
   component: FormItem<ComponentType.Heading>;
@@ -20,13 +18,13 @@ export const TitleMainConfig = ({
   handleComponentChange,
   className,
 }: TitleMainConfigProps): JSX.Element => {
-  const { data: schema } = useComponentSchemaQuery(component.type);
+  const properties = getComponentDefinition(component.type)?.properties ?? {};
 
   return (
     <ConfigStringProperties
       component={component}
       handleComponentUpdate={handleComponentChange}
-      schema={schema}
+      properties={properties}
       stringPropertyKeys={titleMainProperties}
       className={className}
     />

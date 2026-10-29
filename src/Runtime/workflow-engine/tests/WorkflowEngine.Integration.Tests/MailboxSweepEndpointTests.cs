@@ -79,10 +79,10 @@ public sealed class MailboxSweepEndpointTests(EngineAppFixture<Program> fixture)
         using var collector = new TelemetryCollector();
         Assert.Equal(1, (await Sweep()).Closed);
 
-        var closure = Assert.Single(collector.GetMeasurements("engine.mailboxes.closed"));
-        Assert.Equal("deadline", closure.Tags.Single(t => t.Key == "reason").Value);
+        var closure = Assert.Single(collector.GetMeasurements("altinn.workflow_engine.mailbox.closed"));
+        Assert.Equal("deadline", closure.Tags.Single(t => t.Key == "altinn.workflow_engine.reason").Value);
 
-        var unpaired = Assert.Single(collector.GetMeasurements("engine.mailboxes.deliveries.unpaired"));
+        var unpaired = Assert.Single(collector.GetMeasurements("altinn.workflow_engine.mailbox.delivery.unpaired"));
         Assert.Equal(2L, Convert.ToInt64(unpaired.Value, CultureInfo.InvariantCulture));
     }
 

@@ -46,16 +46,16 @@ func MergeCapabilities(defaults, explicit []string) []string {
 	seen := make(map[string]bool)
 	var result []string
 
-	for _, cap := range defaults {
-		if !seen[cap] {
-			seen[cap] = true
-			result = append(result, cap)
+	for _, capability := range defaults {
+		if !seen[capability] {
+			seen[capability] = true
+			result = append(result, capability)
 		}
 	}
-	for _, cap := range explicit {
-		if !seen[cap] {
-			seen[cap] = true
-			result = append(result, cap)
+	for _, capability := range explicit {
+		if !seen[capability] {
+			seen[capability] = true
+			result = append(result, capability)
 		}
 	}
 	return result

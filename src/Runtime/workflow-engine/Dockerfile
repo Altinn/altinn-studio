@@ -4,11 +4,12 @@ WORKDIR /app
 ENV ASPNETCORE_HTTP_PORTS=9090
 EXPOSE 9090
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:de4fe90a98845d75910b9769662465c84de1a934665c431279d1382b2bddc02b AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /build
 
 COPY common/dotnet/Altinn.Studio.Common/ common/dotnet/Altinn.Studio.Common/
+COPY common/dotnet/Altinn.Studio.Common.Telemetry/ common/dotnet/Altinn.Studio.Common.Telemetry/
 COPY Runtime/workflow-engine/ Runtime/workflow-engine/
 
 # Prune host build artifacts, including literal backslash dirs such as `bin\Debug`.

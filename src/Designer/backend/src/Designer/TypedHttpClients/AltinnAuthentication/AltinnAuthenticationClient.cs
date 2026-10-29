@@ -37,30 +37,6 @@ public class AltinnAuthenticationClient : IAltinnAuthenticationClient
     /// <inheritdoc/>
     public async Task<string> ConvertTokenAsync(string token, Uri uri)
     {
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
-        {
-            _httpClient.DefaultRequestHeaders.Add(
-                _platformSettings.SubscriptionKeyHeaderName,
-                _platformSettings.SubscriptionKeyTT02
-            );
-        }
-        else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
-        {
-            _httpClient.DefaultRequestHeaders.Add(
-                _platformSettings.SubscriptionKeyHeaderName,
-                _platformSettings.SubscriptionKeyYT01
-            );
-        }
-        else if (uri.Host.Equals("platform.altinn.no", StringComparison.InvariantCultureIgnoreCase))
-        {
-            _httpClient.DefaultRequestHeaders.Add(
-                _platformSettings.SubscriptionKeyHeaderName,
-                _platformSettings.SubscriptionKeyProd
-            );
-        }
-
         /*
          * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
          * because the endpoint is built up in that way
@@ -71,6 +47,23 @@ public class AltinnAuthenticationClient : IAltinnAuthenticationClient
                 $"{uri.Scheme}://{uri.Host}:{uri.Port}/{_platformSettings.ApiAuthenticationConvertUri}"
             ),
         };
+
+        // The headers go on the message, not on _httpClient.DefaultRequestHeaders: this client is shared by
+        // concurrent requests, and HttpClient's default headers must not change while requests are in flight.
+        message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
+        {
+            message.Headers.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+        }
+        else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
+        {
+            message.Headers.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
+        }
+        else if (uri.Host.Equals("platform.altinn.no", StringComparison.InvariantCultureIgnoreCase))
+        {
+            message.Headers.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyProd);
+        }
 
         using HttpResponseMessage response = await _httpClient.SendAsync(message);
 

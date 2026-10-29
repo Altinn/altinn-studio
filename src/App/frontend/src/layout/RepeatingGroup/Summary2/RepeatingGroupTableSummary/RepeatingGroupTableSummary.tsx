@@ -8,8 +8,10 @@ import cn from 'classnames';
 import type { GridCell, GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { Caption } from 'src/components/form/caption/Caption';
+import { LabelContent } from 'src/components/label/LabelContent';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { FormStore } from 'src/features/form/FormContext';
+import { usePdfExclusions } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
@@ -25,11 +27,16 @@ import { useHiddenColumns } from 'src/layout/RepeatingGroup/useHiddenColumns';
 import { useTableComponentIds } from 'src/layout/RepeatingGroup/useTableComponentIds';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { EditButtonFirstVisibleAndEditable } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
+import {
+  useSummaryCaptionProps,
+  useSummaryLabelProps,
+} from 'src/layout/Summary2/CommonSummaryComponents/useSummaryLabelText';
 import { useReportSummaryRender } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary, SummaryContains } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import utilClasses from 'src/styles/utils.module.css';
 import { getColumnStyles, useColumnStylesRepeatingGroups } from 'src/utils/formComponentUtils';
 import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useComponentIsRequired } from 'src/utils/layout/useComponentIsRequired';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
@@ -54,14 +61,21 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   );
 
   const title = summaryTitle || resolvedTitle;
+  const captionProps = useSummaryCaptionProps(baseComponentId, title);
   const tableIds = useTableComponentIds(baseComponentId);
   const hiddenColumns = useHiddenColumns(config.tableColumns);
+  const pdfExclusions = usePdfExclusions();
   const columnSettings = Object.fromEntries(
     Object.entries(config.tableColumns ?? {}).map(([id, column]) => [
       id,
       { ...column, hidden: hiddenColumns.includes(id) },
     ]),
   );
+  if (pdfModeActive) {
+    for (const id of pdfExclusions.components) {
+      columnSettings[id] = { ...columnSettings[id], hidden: true };
+    }
+  }
   const showEditColumn = !pdfModeActive && !isSmall;
   return (
     <div
@@ -69,7 +83,10 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
       data-testid='summary-repeating-group-component'
     >
       <Table className={cn({ [tableClasses.mobileTable]: isSmall })}>
-        <Caption title={<Lang id={title} />} />
+        <Caption
+          {...captionProps}
+          title={<Lang id={title} />}
+        />
         <Table.Body>
           {renderExtraRows(config.rowsBefore, 'before', showEditColumn)}
           <Table.Row>
@@ -168,6 +185,8 @@ function HeaderCell({
   columnSettings: ITableColumnFormatting;
 }) {
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
+  const title = useTableTitle(baseComponentId);
+  const labelProps = useSummaryLabelProps(baseComponentId);
 
   const isHidden = columnSettings[baseComponentId]?.hidden === true;
   if (isHidden) {
@@ -175,10 +194,19 @@ function HeaderCell({
   }
 
   return (
-    <Table.HeaderCell style={style}>
-      <RepeatingGroupTableTitle
-        baseComponentId={baseComponentId}
-        columnSettings={columnSettings}
+    <Table.HeaderCell
+      className={repeatingGroupClasses.tableCellFormatting}
+      style={style}
+    >
+      <LabelContent
+        {...labelProps}
+        label={
+          <RepeatingGroupTableTitle
+            baseComponentId={baseComponentId}
+            columnSettings={columnSettings}
+          />
+        }
+        helpTitle={title}
       />
     </Table.HeaderCell>
   );
@@ -264,7 +292,17 @@ type DataCellProps = {
   errors: ReturnType<typeof useDeepValidationsForNode>;
 };
 
-function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
+function DataCell(props: DataCellProps) {
+  const hidden = useIsHidden(props.baseComponentId);
+  return hidden ? <HiddenDataCell /> : <VisibleDataCell {...props} />;
+}
+
+function HiddenDataCell() {
+  useReportSummaryRender(SummaryContains.EmptyValueNotRequired);
+  return <Table.Cell />;
+}
+
+function VisibleDataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
   const { langAsString } = useLanguage();
   const headerTitle = langAsString(useTableTitle(baseComponentId));
   const style = useColumnStylesRepeatingGroups(baseComponentId, columnSettings);
@@ -284,10 +322,14 @@ function DataCell({ baseComponentId, columnSettings, errors }: DataCellProps) {
   return (
     <Table.Cell
       data-header-title={headerTitle}
-      className={tableClasses.dataCell}
+      className={cn(tableClasses.dataCell, repeatingGroupClasses.tableCellFormatting)}
     >
       <span
-        className={cn(repeatingGroupClasses.contentFormatting, tableClasses.cellValue)}
+        className={cn(
+          repeatingGroupClasses.contentFormatting,
+          repeatingGroupClasses.cellContentFormatting,
+          tableClasses.cellValue,
+        )}
         style={style}
       >
         {displayData}

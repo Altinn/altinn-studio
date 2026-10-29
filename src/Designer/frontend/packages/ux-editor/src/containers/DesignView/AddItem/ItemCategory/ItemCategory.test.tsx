@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IToolbarElement } from '../../../../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ItemCategory, type ItemCategoryProps } from './ItemCategory';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { screen } from '@testing-library/react';

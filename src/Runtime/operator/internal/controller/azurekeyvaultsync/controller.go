@@ -9,12 +9,14 @@ import (
 	"net/http"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -144,13 +146,13 @@ func NewReconciler(
 
 	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "azure_credentials", err)
 		return nil, fmt.Errorf("failed to get Azure credentials: %w", err)
 	}
 
 	azClient, err := azsecrets.NewClient(config.KeyVaultURL(environment), cred, nil)
 	if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "create_key_vault_client", err)
 		return nil, fmt.Errorf("failed to create Key Vault client: %w", err)
 	}
 
@@ -236,10 +238,11 @@ func (c *AzureKeyVaultReconciler) Start(ctx context.Context) error {
 	}
 }
 
+const controllerName = "azurekeyvaultsync"
+
 func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) error {
-	tracer := c.runtime.Tracer()
-	ctx, span := tracer.Start(ctx, "keyvaultsync.SyncAll",
-		trace.WithAttributes(attribute.Int("mappings", len(c.mappings))),
+	ctx, span := telemetry.StartRun(ctx, controllerName, "keyvaultsync.SyncAll",
+		attribute.Int("altinn.operator.azurekeyvaultsync.mappings", len(c.mappings)),
 	)
 	defer span.End()
 
@@ -255,7 +258,7 @@ func (c *AzureKeyVaultReconciler) SyncAll(ctx context.Context) error {
 	}
 
 	if lastErr != nil {
-		span.SetStatus(codes.Error, "one or more mappings failed")
+		commontelemetry.SetError(span, "sync_mappings", lastErr)
 	}
 
 	return lastErr
@@ -265,9 +268,10 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 	tracer := c.runtime.Tracer()
 	ctx, span := tracer.Start(ctx, "keyvaultsync.syncMapping",
 		trace.WithAttributes(
-			attribute.String("secretName", mapping.Name),
-			attribute.String("namespace", mapping.Namespace),
-			attribute.Int("kvSecrets", len(mapping.Secrets)),
+			telemetry.AttrObjectKind.String("Secret"),
+			telemetry.AttrObjectNamespace.String(mapping.Namespace),
+			telemetry.AttrObjectName.String(mapping.Name),
+			attribute.Int("altinn.operator.azurekeyvaultsync.key_vault_secrets", len(mapping.Secrets)),
 		),
 	)
 	defer span.End()
@@ -276,7 +280,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 	for _, kvSecretName := range mapping.Secrets {
 		value, err := c.getSecret(ctx, kvSecretName)
 		if err != nil {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "get_key_vault_secret", err)
 			return fmt.Errorf("failed to get secret %q: %w", kvSecretName, err)
 		}
 		secretData[kvSecretName] = value
@@ -297,7 +301,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 		var marshalErr error
 		outputBytes, marshalErr = json.Marshal(output)
 		if marshalErr != nil {
-			span.RecordError(marshalErr)
+			commontelemetry.SetError(span, "marshal_secrets", marshalErr)
 			return fmt.Errorf("failed to marshal secrets to JSON: %w", marshalErr)
 		}
 	}
@@ -322,7 +326,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 			},
 		}
 		if err := c.k8sClient.Create(ctx, secret); err != nil {
-			span.RecordError(err)
+			commontelemetry.SetError(span, "create_secret", err)
 			return fmt.Errorf("failed to create secret: %w", err)
 		}
 		c.logger.Info("created secret",
@@ -331,7 +335,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 		)
 		return nil
 	} else if err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_secret", err)
 		return fmt.Errorf("failed to get secret: %w", err)
 	}
 
@@ -341,7 +345,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 	secret.Data[mapping.FileName] = outputBytes
 
 	if err := c.k8sClient.Update(ctx, secret); err != nil {
-		span.RecordError(err)
+		commontelemetry.SetError(span, "update_secret", err)
 		return fmt.Errorf("failed to update secret: %w", err)
 	}
 
@@ -357,7 +361,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (string, error) {
 	tracer := c.runtime.Tracer()
 	ctx, span := tracer.Start(ctx, "keyvaultsync.getSecret",
-		trace.WithAttributes(attribute.String("secretName", name)),
+		trace.WithAttributes(attribute.String("altinn.operator.azurekeyvaultsync.key_vault_secret", name)),
 	)
 	defer span.End()
 
@@ -366,11 +370,12 @@ func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (s
 		respErr := &azcore.ResponseError{}
 		if errors.As(err, &respErr) {
 			if respErr.StatusCode == http.StatusNotFound {
-				span.SetStatus(codes.Error, "secret not found")
-				return "", fmt.Errorf("%w: %q", errKeyVaultSecretNotFound, name)
+				err = fmt.Errorf("%w: %q", errKeyVaultSecretNotFound, name)
+				commontelemetry.SetError(span, "key_vault_secret_not_found", err)
+				return "", err
 			}
 		}
-		span.RecordError(err)
+		commontelemetry.SetError(span, "get_key_vault_secret", err)
 		return "", fmt.Errorf("get Key Vault secret %q: %w", name, err)
 	}
 

@@ -17,6 +17,7 @@ import {
   getFileUploadUrl,
   getFormBootstrapUrlForInstance,
   getFormBootstrapUrlForStateless,
+  getLayoutsUrl,
   getOrderDetailsUrl,
   getPaymentInformationForTaskUrl,
   getProcessNextUrl,
@@ -33,6 +34,7 @@ import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from '
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
+import type { ILayoutCollection } from 'src/layout/layout';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
@@ -165,6 +167,8 @@ const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
 
+const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
+
 const fetchPaymentInformationForTask = (
   instanceId: string,
   language?: string,
@@ -239,7 +243,7 @@ export type SubformApi = typeof subformApi;
 export const formDataApi = { doPatchMultipleFormData, doPostStatelessFormData, fetchFormData };
 export type FormDataApi = typeof formDataApi;
 
-export const resourcesApi = { fetchLogo, fetchLayoutSchema, fetchPostalCodes };
+export const resourcesApi = { fetchLogo, fetchLayoutSchema, fetchPostalCodes, fetchLayouts };
 export type ResourcesApi = typeof resourcesApi;
 
 export const authApi = { fetchRefreshJwtToken };

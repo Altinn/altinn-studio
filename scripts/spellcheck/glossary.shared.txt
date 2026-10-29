@@ -130,6 +130,32 @@ pageref
 showaddbutton
 taxform     # "taxform-2019", an example app name
 
+# Component names displayed verbatim from the generated App catalog
+accordiongroup
+actionbutton
+addtolist
+attachmentlist
+buttongroup
+custombutton
+datepicker
+fileuploadwithtag
+instanceinformation
+instantiationbutton
+multipleselect
+navigationbar
+navigationbuttons
+organisationlookup
+paymentdetails
+personlookup
+printbutton
+radiobuttons
+repeatinggroup
+signeelist
+signingactions
+signingdocumentlist
+simpletable
+timepicker
+
 # JSON Schema combination keywords (allOf/anyOf/oneOf) quoted in the
 # schema-editor UI text
 allof

@@ -11,7 +11,6 @@ namespace Altinn.Studio.Gateway.Api.Tests;
 [Trait("Category", "Kubernetes")]
 public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
 {
-    private const string KindContextName = "kind-runtime-fixture-kind-minimal";
     private const string TestNamespace = "default";
     private const string TestAppName = "test-app";
     private const string SyncrootOciRepoName = "apps-syncroot-repo";
@@ -25,8 +24,7 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
 
     public TriggerReconcileIntegrationTests()
     {
-        var config = KubernetesClientConfiguration.BuildConfigFromConfigFile(currentContext: KindContextName);
-        _k8sClient = new Kubernetes(config);
+        _k8sClient = KindKubernetesClient.Create();
         _httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:8020") };
     }
 

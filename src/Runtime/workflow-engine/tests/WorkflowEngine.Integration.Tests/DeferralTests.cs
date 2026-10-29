@@ -94,9 +94,9 @@ public sealed class DeferralTests(EngineAppFixture<Program> fixture) : IAsyncLif
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed, TimeSpan.FromSeconds(30));
-        await collector.WaitForMeasurement("engine.steps.wait.duration");
+        await collector.WaitForMeasurement("altinn.workflow_engine.step.wait.duration");
 
-        var measurement = Assert.Single(collector.GetMeasurements("engine.steps.wait.duration"));
+        var measurement = Assert.Single(collector.GetMeasurements("altinn.workflow_engine.step.wait.duration"));
         Assert.True(
             Convert.ToDouble(measurement.Value, CultureInfo.InvariantCulture) > 0,
             "Expected a positive wait duration for a step that deferred twice."

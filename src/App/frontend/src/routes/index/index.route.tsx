@@ -4,6 +4,7 @@ import { Outlet, useLoaderData } from 'react-router';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
+import { InstantiationClosedError } from 'src/features/instantiate/containers/InstantiationClosedError';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { clientLoader } from 'src/routes/index/index.loader';
 import type { IndexLoaderResult } from 'src/routes/index/index.loader';
@@ -12,6 +13,10 @@ export { clientLoader };
 
 export default function Index() {
   const loaderData = useLoaderData<IndexLoaderResult>();
+
+  if (loaderData?.error === 'instantiation-closed') {
+    return <InstantiationClosedError reason={loaderData.reason} />;
+  }
 
   if (loaderData?.error === 'forbidden') {
     return <MissingRolesError />;

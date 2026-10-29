@@ -57,10 +57,23 @@ public class GitRepository
 
         foreach (string searchPattern in searchPatterns)
         {
+            // A pattern such as App/models/*.json starts the enumeration in a subdirectory, which the enumeration
+            // opens even if it is a link.
+            string searchDirectory = Path.GetDirectoryName(Path.Join(RepositoryDirectory, searchPattern));
+            if (SymbolicLinkHelper.PassesThroughLink(RepositoryDirectory, searchDirectory))
+            {
+                continue;
+            }
+
             IEnumerable<string> foundFiles = Directory.EnumerateFiles(
                 RepositoryDirectory,
                 searchPattern,
-                new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive }
+                new EnumerationOptions
+                {
+                    AttributesToSkip = FileAttributes.Hidden | FileAttributes.System | FileAttributes.ReparsePoint,
+                    MatchCasing = MatchCasing.CaseInsensitive,
+                    RecurseSubdirectories = recursive,
+                }
             );
             files.AddRange(foundFiles);
         }
@@ -91,7 +104,11 @@ public class GitRepository
         string searchPatternMatch = patternMatch ?? "*.*";
 
         return Directory
-            .GetFiles(absoluteDirectory, searchPatternMatch, searchOption)
+            .GetFiles(
+                absoluteDirectory,
+                searchPatternMatch,
+                SymbolicLinkHelper.EnumerationOptionsSkippingLinks(searchOption)
+            )
             .Where(filePath => !IsReplacementFile(filePath))
             .ToArray();
     }
@@ -124,7 +141,7 @@ public class GitRepository
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
 
         string[] directories = Directory
-            .GetDirectories(absoluteDirectory)
+            .GetDirectories(absoluteDirectory, "*", SymbolicLinkHelper.EnumerationOptionsSkippingLinks())
             .Select(dir => new DirectoryInfo(dir).Name)
             .ToArray();
 
@@ -139,6 +156,7 @@ public class GitRepository
     protected async Task<string> ReadTextByAbsolutePathAsync(string absoluteFilePath)
     {
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+        AssertNotThroughLink(absoluteFilePath);
 
         // Commented out ref comment below in the ReadTextByRelativePathAsync method
         // return await ReadTextAsync(absoluteFilePath)
@@ -175,6 +193,7 @@ public class GitRepository
         catch (IOException)
         {
             Thread.Sleep(1000);
+            AssertNotThroughLink(absoluteFilePath);
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
             return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
         }
@@ -300,6 +319,7 @@ public class GitRepository
     {
         Guard.AssertNotNullOrEmpty(absoluteFilePath, nameof(absoluteFilePath));
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+        AssertNotThroughLink(absoluteFilePath);
 
         File.Delete(absoluteFilePath);
     }
@@ -438,13 +458,18 @@ public class GitRepository
         DirectoryInfo source = new(sourceDirectory);
         DirectoryInfo target = new(targetDirectory);
 
-        foreach (FileInfo file in source.GetFiles())
+        foreach (FileInfo file in source.GetFiles("*", SymbolicLinkHelper.EnumerationOptionsSkippingLinks()))
         {
             File.SetAttributes(file.FullName, FileAttributes.Normal);
             file.CopyTo(Path.Combine(target.FullName, file.Name), true);
         }
 
-        foreach (DirectoryInfo subDirectory in source.GetDirectories())
+        foreach (
+            DirectoryInfo subDirectory in source.GetDirectories(
+                "*",
+                SymbolicLinkHelper.EnumerationOptionsSkippingLinks()
+            )
+        )
         {
             DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDirectory.Name);
             CopyAll(subDirectory.FullName, nextTargetSubDir.FullName);
@@ -479,7 +504,21 @@ public class GitRepository
             );
         }
 
+        AssertNotThroughLink(absoluteFilePath);
+
         return absoluteFilePath;
+    }
+
+    /// <summary>
+    /// Asserts that a path within the repository does not pass through a symbolic link.
+    /// </summary>
+    /// <param name="absolutePath">Absolute path within the repository directory.</param>
+    private void AssertNotThroughLink(string absolutePath)
+    {
+        if (SymbolicLinkHelper.PassesThroughLink(RepositoryDirectory, absolutePath))
+        {
+            throw new ArgumentException($"The path '{absolutePath}' must not pass through a symbolic link.");
+        }
     }
 
     private static void CreateDirectory(string absoluteFilePath)

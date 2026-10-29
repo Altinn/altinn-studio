@@ -105,6 +105,10 @@ export function createApiMocks(overrides: ApiOverrides = {}) {
       ),
     },
     resourcesApi: {
+      fetchLayouts: apiMock(
+        apiClients.resourcesApi.fetchLayouts,
+        overrides.resourcesApi?.fetchLayouts ?? (async () => ({})),
+      ),
       fetchLogo: apiMock(
         apiClients.resourcesApi.fetchLogo,
         overrides.resourcesApi?.fetchLogo ?? (async () => getLogoMock()),

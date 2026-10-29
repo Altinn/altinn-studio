@@ -1,6 +1,6 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
 
-import { registerQueryClient } from 'src/core/queries/queryClient.queries';
+import { getAppQueryClient, registerQueryClient } from 'src/core/queries/queryClient.queries';
 
 const clientId = Symbol('AppQueryClient');
 
@@ -53,4 +53,8 @@ export function createTestQueryClient(): AppQueryClient {
       },
     }),
   );
+}
+
+export function useAppQueryClient(): AppQueryClient {
+  return getAppQueryClient(useQueryClient());
 }

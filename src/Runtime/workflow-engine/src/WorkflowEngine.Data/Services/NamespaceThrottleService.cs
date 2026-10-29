@@ -114,7 +114,7 @@ internal sealed class NamespaceThrottleService(
             catch (Exception ex)
             {
                 consecutiveFailures++;
-                Metrics.Errors.Add(1, ("operation", "throttleSweep"));
+                Metrics.Errors.Add(1, (TelemetryAttributes.Operation, "throttle_sweep"));
                 activity?.Errored(ex);
 
                 var backoff = _databaseBackoff.CalculateDelay(consecutiveFailures);
@@ -275,7 +275,7 @@ internal sealed class NamespaceThrottleService(
 
         var cleared = await repository.ClearNamespaceThrottledUntil(ns, cancellationToken);
 
-        Metrics.ThrottleCleared.Add(1, ("namespace", ns));
+        Metrics.ThrottleCleared.Add(1, (TelemetryAttributes.Namespace, ns));
         logger.ThrottleForceCleared(ns, cleared);
 
         await RefreshSnapshot(cancellationToken);
@@ -325,7 +325,7 @@ internal sealed class NamespaceThrottleService(
 
         var parked = await Park(counts.Namespace, canaries, window, now, ct);
 
-        Metrics.ThrottleTripped.Add(1, ("namespace", counts.Namespace));
+        Metrics.ThrottleTripped.Add(1, (TelemetryAttributes.Namespace, counts.Namespace));
         logger.ThrottleTripped(counts.Namespace, counts.Requeued, counts.Active, window, parked);
 
         return (throttle, parked);
@@ -410,7 +410,7 @@ internal sealed class NamespaceThrottleService(
 
             var parked = await Park(throttle.Namespace, freshCanaries, extendedWindow, now, ct);
 
-            Metrics.ThrottleExtended.Add(1, ("namespace", throttle.Namespace));
+            Metrics.ThrottleExtended.Add(1, (TelemetryAttributes.Namespace, throttle.Namespace));
             logger.ThrottleExtended(throttle.Namespace, extendedWindow, parked);
         }
         else
@@ -456,7 +456,7 @@ internal sealed class NamespaceThrottleService(
 
             var parked = await Park(throttle.Namespace, throttle.Canaries, throttle.CurrentWindow, now, ct);
 
-            Metrics.ThrottleTripped.Add(1, ("namespace", throttle.Namespace));
+            Metrics.ThrottleTripped.Add(1, (TelemetryAttributes.Namespace, throttle.Namespace));
             logger.ThrottleReTripped(
                 throttle.Namespace,
                 unparked.Requeued,
@@ -481,7 +481,7 @@ internal sealed class NamespaceThrottleService(
 
         if (released > 0)
         {
-            Metrics.ThrottleCohortReleased.Add(released, ("namespace", throttle.Namespace));
+            Metrics.ThrottleCohortReleased.Add(released, (TelemetryAttributes.Namespace, throttle.Namespace));
             logger.ThrottleCohortReleased(throttle.Namespace, released, cohortSize);
         }
 
@@ -502,7 +502,7 @@ internal sealed class NamespaceThrottleService(
             throttle.Canaries = [];
             _releaseCohortSizes.Remove(throttle.Namespace);
 
-            Metrics.ThrottleCleared.Add(1, ("namespace", throttle.Namespace));
+            Metrics.ThrottleCleared.Add(1, (TelemetryAttributes.Namespace, throttle.Namespace));
             logger.ThrottleCleared(throttle.Namespace);
         }
 

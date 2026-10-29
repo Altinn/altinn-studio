@@ -373,7 +373,8 @@ func callWorker(
 		if attempt < maxRetries && ctx.Err() == nil {
 			// This is an error condition that may hit if the worker
 			// crashes or similar. Worthwhile to retry here. Retries are logged at INFO, so they
-			// are not exported; running out of them is logged as an error below.
+			// are not exported; they are counted, and running out of them is logged as an error below.
+			telemetry.CountRetry(ctx, telemetry.ProxyWorkerRetriesMetric, telemetry.RetryTransportError)
 			logger.InfoContext(
 				ctx,
 				"Worker request failed, will retry",
@@ -432,6 +433,7 @@ func callWorker(
 
 	// Check if this is a retryable error (429 - queue full)
 	if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
+		telemetry.CountRetry(ctx, telemetry.ProxyWorkerRetriesMetric, telemetry.RetryQueueFull)
 		logger.InfoContext(
 			ctx,
 			"Worker queue full, retrying",

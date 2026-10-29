@@ -1,7 +1,7 @@
 {
   "axes": {
     "actor_prompt": "333710f2f15b",
-    "code": "8a69954 clean",
+    "code": "519a974 clean",
     "dataset": "116 items 90d5f6e70f83",
     "environment": "local",
     "evaluators": "not recorded",
@@ -11,8 +11,8 @@
     "sampling": "reasoning_effort low, temperature 0.1, temperature_planner model default",
     "tools": "36867ddc0e3f"
   },
-  "check_id": "20261006T171623Z-remove-the-v9-upgrade-tool-rerun-1-8a699541ee-05ff",
-  "label": "remove the v9 upgrade tool rerun-1 8a699541ee",
-  "recorded_at": "2026-10-06T17:21:03+00:00",
-  "why": "Removes the v9 upgrade tool from #20721, which moves the tools digest. No regressions with e2e."
+  "check_id": "20261021T081022Z-repo-owner-from-repo-url-519a974da8-d01f",
+  "label": "repo owner from repo_url 519a974da8",
+  "recorded_at": "2026-10-21T08:15:41+00:00",
+  "why": "Takes the repository owner from repo_url in #21389, which changes benchmarks/preview_check.py. Full check with e2e and the preview check: every pinned behavior scored, at the same scores as the earlier baseline."
 }

@@ -2,7 +2,7 @@
 
 When pdf3 runs as a shared service, the proxy requires an API key. The [relay](../cmd/relay) sends a key with each
 request. The [`internal/auth`](../internal/auth) package comment describes the key file and when changes take effect.
-The [DIS Core vault manifest](../infra/syncroot/base/vault.yaml) defines the Key Vault for the shared service.
+The [DIS Core vault manifest](../infra/core/base/vault.yaml) defines the Key Vault for the shared service.
 
 ## What the keys protect
 
@@ -17,7 +17,7 @@ anything else depends on the header, such as limits per service owner.
 ## Keys in DIS Core
 
 In DIS Core, the proxy's key file comes from the Key Vault secret `pdf3-api-keys` through an
-[ExternalSecret](../infra/syncroot/base/secrets.yaml). The secret holds the whole file, one key per line, so the steps
+[ExternalSecret](../infra/core/base/secrets.yaml). The secret holds the whole file, one key per line, so the steps
 below change a proxy's key file by writing a new version of the secret. Never delete the secret: that revokes nothing,
 and soft delete blocks its name for 90 days. Writing requires network access that the Key Vault's firewall allows.
 

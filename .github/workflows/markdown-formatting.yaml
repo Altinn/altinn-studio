@@ -1,0 +1,42 @@
+name: Markdown formatting
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
+    paths:
+      - '**/*.md'
+      - '**/.prettierignore'
+      - '**/.prettierrc*'
+      - '**/prettier.config.*'
+      - '**/.editorconfig'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/markdown-formatting.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  markdown:
+    if: ${{ github.event_name != 'pull_request' || (github.event.action != 'closed' && !github.event.pull_request.draft) }}
+    name: Markdown formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CYPRESS_INSTALL_BINARY: 0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        uses: ./.github/actions/yarn-install
+
+      - name: Check Markdown formatting
+        run: yarn format:markdown:check

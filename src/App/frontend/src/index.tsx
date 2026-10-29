@@ -16,6 +16,7 @@ import { apiClients } from 'src/core/api-client';
 import { ApiProvider } from 'src/core/contexts/ApiProvider';
 import { createAppQueryClient } from 'src/core/queries/queryClient';
 import { AppQueryProvider } from 'src/core/queries/QueryProvider';
+import { applyFontFromUrl } from 'src/features/devtools/utils/devFont';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { createRouter } from 'src/router';
 import { executeHashRouterRedirect } from 'src/utils/urls/hashRouterRedirect';
@@ -29,6 +30,9 @@ import 'src/styles/shared.css';
 // Bundles the core-js polyfills into the app, so it works in older browsers
 
 const isRedirectingFromHashRoute = executeHashRouterRedirect();
+
+// Temporary font switch for PDF and screenshot comparisons. See #19944.
+applyFontFromUrl();
 
 const queryClient = createAppQueryClient();
 

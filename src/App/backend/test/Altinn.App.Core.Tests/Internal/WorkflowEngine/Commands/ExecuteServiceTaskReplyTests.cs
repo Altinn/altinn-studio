@@ -56,7 +56,7 @@ public class ExecuteServiceTaskReplyTests
     /// A task answered by messages: a sending stage that opens the mailbox, an unrelated stage after it, and
     /// the two handlers that answer the exchange. Each handler records what it was handed.
     /// </summary>
-    private sealed class ArchivingTask : IPipelineServiceTask
+    private sealed class ArchivingTask : IServiceTask
     {
         public string Type => "archiving";
 
@@ -64,17 +64,17 @@ public class ExecuteServiceTaskReplyTests
 
         public ServiceTaskResult ClosedVerdict { get; init; } = ServiceTaskResult.Success();
 
-        public ServiceTaskContext? MessageContext { get; private set; }
+        public StageContext? MessageContext { get; private set; }
 
         public ServiceTaskReply? Message { get; private set; }
 
-        public ServiceTaskContext? ClosedContext { get; private set; }
+        public StageContext? ClosedContext { get; private set; }
 
         public MailboxClosedReason? ClosedReason { get; private set; }
 
-        public ServiceTaskContext? Stage { get; private set; }
+        public StageContext? Stage { get; private set; }
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(
                     (_, _) => Task.FromResult(ServiceTaskOpeningStageResult.Completed()),
@@ -84,7 +84,7 @@ public class ExecuteServiceTaskReplyTests
                 .Stage(context =>
                 {
                     Stage = context;
-                    return Task.FromResult(ServiceTaskStageResult.Completed());
+                    return Task.FromResult(StageResult.Completed());
                 })
                 .ConcludeOnReplies(
                     archive,
@@ -105,28 +105,28 @@ public class ExecuteServiceTaskReplyTests
 
     private static readonly MailboxOptions _threeDays = new() { Timeout = TimeSpan.FromDays(3) };
 
-    private static Task<ServiceTaskOpeningStageResult> Send(ServiceTaskContext context, ServiceTaskMailbox mailbox) =>
+    private static Task<ServiceTaskOpeningStageResult> Send(StageContext context, ServiceTaskMailbox mailbox) =>
         Task.FromResult(ServiceTaskOpeningStageResult.Completed());
 
     /// <summary>
     /// A task whose exchange is answered <strong>mid-pipeline</strong>: the handler is an ordinary item rather
     /// than the conclusion, so the pipeline carries on after the exchange and ends with a final step.
     /// </summary>
-    private sealed class ContinuingTask : IPipelineServiceTask
+    private sealed class ContinuingTask : IServiceTask
     {
         public string Type => "archiving";
 
-        public ServiceTaskStageExchangeResult MessageVerdict { get; init; } = ServiceTaskStageResult.Completed();
+        public StageExchangeResult MessageVerdict { get; init; } = StageResult.Completed();
 
-        public ServiceTaskStageResult ClosedVerdict { get; init; } = ServiceTaskStageResult.Completed();
+        public StageResult ClosedVerdict { get; init; } = StageResult.Completed();
 
         public ServiceTaskReply? Message { get; private set; }
 
         public MailboxClosedReason? ClosedReason { get; private set; }
 
-        public ServiceTaskContext? Conclusion { get; private set; }
+        public StageContext? Conclusion { get; private set; }
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -142,7 +142,7 @@ public class ExecuteServiceTaskReplyTests
                         return Task.FromResult(ClosedVerdict);
                     }
                 )
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Finally(context =>
                 {
                     Conclusion = context;
@@ -153,7 +153,7 @@ public class ExecuteServiceTaskReplyTests
     /// <summary>
     /// Two exchanges, one answered each way: the first's mid-pipeline, the second's by the terminal.
     /// </summary>
-    private sealed class TwoExchangeTask : IPipelineServiceTask
+    private sealed class TwoExchangeTask : IServiceTask
     {
         /// <summary>The item index of the handler answering the first exchange.</summary>
         public const int SegmentIndex = 1;
@@ -165,7 +165,7 @@ public class ExecuteServiceTaskReplyTests
 
         public List<string> Answered { get; } = [];
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
                 .Stage(Send, _threeDays, out MailboxHandle archive)
                 .HandleReplies(
@@ -173,12 +173,12 @@ public class ExecuteServiceTaskReplyTests
                     onMessage: (_, _) =>
                     {
                         Answered.Add("segment.onMessage");
-                        return Task.FromResult<ServiceTaskStageExchangeResult>(ServiceTaskStageResult.Completed());
+                        return Task.FromResult<StageExchangeResult>(StageResult.Completed());
                     },
                     onClosed: (_, _) =>
                     {
                         Answered.Add("segment.onClosed");
-                        return Task.FromResult(ServiceTaskStageResult.Completed());
+                        return Task.FromResult(StageResult.Completed());
                     }
                 )
                 .Stage(Send, _threeDays, out MailboxHandle journal)
@@ -198,17 +198,17 @@ public class ExecuteServiceTaskReplyTests
     }
 
     /// <summary>The same task without a mailbox — it is never answered by a message.</summary>
-    private sealed class PlainTask : IPipelineServiceTask
+    private sealed class PlainTask : IServiceTask
     {
         public string Type => "archiving";
 
         public ServiceTaskResult Verdict { get; init; } = ServiceTaskResult.Success();
 
-        public ServiceTaskContext? Conclusion { get; private set; }
+        public StageContext? Conclusion { get; private set; }
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
             pipeline
-                .Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()))
+                .Stage(_ => Task.FromResult(StageResult.Completed()))
                 .Finally(context =>
                 {
                     Conclusion = context;
@@ -216,7 +216,7 @@ public class ExecuteServiceTaskReplyTests
                 });
     }
 
-    private static ExecuteServiceTask CreateCommand(IPipelineServiceTask serviceTask)
+    private static ExecuteServiceTask CreateCommand(IServiceTask serviceTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -712,7 +712,7 @@ public class ExecuteServiceTaskReplyTests
     [Fact]
     public async Task ReceiveStep_AnsweredMidPipeline_MapsBothHalvesThroughTheStageVocabulary()
     {
-        var awaiting = new ContinuingTask { MessageVerdict = ServiceTaskStageExchangeResult.AwaitNextReply() };
+        var awaiting = new ContinuingTask { MessageVerdict = StageExchangeResult.AwaitNextReply() };
 
         SuccessfulProcessEngineCommandResult onMessage = Assert.IsType<SuccessfulProcessEngineCommandResult>(
             await CreateCommand(awaiting).Execute(CreateContext(Delivered(seq: 2)), ReceiveStep(ContinuingSegmentIndex))
@@ -725,10 +725,7 @@ public class ExecuteServiceTaskReplyTests
         Assert.Equal(2, next.Position);
         Assert.NotNull(awaiting.Message);
 
-        var failing = new ContinuingTask
-        {
-            ClosedVerdict = ServiceTaskStageResult.FailedPermanent("the archive never confirmed"),
-        };
+        var failing = new ContinuingTask { ClosedVerdict = StageResult.FailedPermanent("the archive never confirmed") };
 
         FailedProcessEngineCommandResult onClosed = Assert.IsType<FailedProcessEngineCommandResult>(
             await CreateCommand(failing)

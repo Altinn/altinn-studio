@@ -41,9 +41,13 @@ export interface IPagination {
   default: number;
 }
 
+export interface ListSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type ListSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'List' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & ListSummaryOverrides)
+  | ({ componentType: 'List' } & ListSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -69,8 +73,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompListExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: ListSummaryOverrides;
   summaryOverridesWithRef: ListSummaryOverridesWithRef;
 };
 
-// Source hash: 8b2f8d49812711ce5a2540645fd91d965265991a3cd53a31c28158ca23f0bb88
+// Source hash: 5bf25d846ccc4dc9dce5c441c5885ee094e130879af554e450868db41539a49d

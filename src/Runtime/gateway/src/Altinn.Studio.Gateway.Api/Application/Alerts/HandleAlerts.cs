@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using Altinn.Studio.Gateway.Api.Clients.AlertsClient;
 using Altinn.Studio.Gateway.Api.Clients.AlertsClient.Contracts;
 using Altinn.Studio.Gateway.Api.Clients.Designer;
 using Altinn.Studio.Gateway.Api.Clients.Designer.Contracts;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Altinn.Studio.Gateway.Contracts.Alerts;
 using Microsoft.Extensions.Options;
 
@@ -75,6 +77,9 @@ internal static class HandleAlerts
         {
             return Results.BadRequest();
         }
+        Activity? span = Activity.Current;
+        span?.SetTag(ServiceTelemetry.Attributes.AlertRuleId, ruleId);
+        span.SetOriginEnvironment(designerEnvironment);
 
         var apps = alertPayload
             .Alerts.GroupBy(a => a.Labels.GetValueOrDefault("cloud_RoleName", string.Empty))

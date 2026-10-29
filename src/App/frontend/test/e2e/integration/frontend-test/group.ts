@@ -492,6 +492,16 @@ describe('Group', () => {
 
     // And the component we focussed should not have been scrolled out of view by a layout shift
     cy.focused().should('be.inViewport');
+
+    for (const [target, label] of [
+      ['subGroupStaticBefore', 'Før tabellen'],
+      ['subGroupStaticAfter', 'Etter tabellen'],
+    ]) {
+      cy.gotoNavPage('repeating (store endringer)');
+      cy.get('[data-componentid="subGroupNavigationLinks-5"]').findByRole('link', { name: label }).click();
+      cy.get(`#${target}-5`).should('be.focused').and('have.value', '-NOK 33335');
+      cy.get(`#${target}-0`, { timeout: 0 }).should('not.exist');
+    }
   });
 
   it('Opens delete warning popup when alertOnDelete is true and deletes on confirm', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 
 import { screen } from '@testing-library/dom';
 import { act, render as renderRtl } from '@testing-library/react';
@@ -10,6 +10,7 @@ import { NotificationStatus, SigneeState } from 'src/core/queries/signeeList';
 import { FormStore } from 'src/features/form/FormContext';
 import { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { Lang } from 'src/features/language/Lang';
+import { useLanguage } from 'src/features/language/useLanguage';
 import { CompExternal } from 'src/layout/layout';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
 import { apiMock } from 'src/test/apiMocks';
@@ -24,10 +25,13 @@ vi.mock('react-router');
 vi.mock('src/utils/layout/hooks');
 vi.mock('src/utils/layout/useEvalExpression', () => ({
   useEvalExpression: (value: unknown, descriptor: { defaultValue: unknown }) => value ?? descriptor.defaultValue,
+  useEvalOptionalTrb: (config: { textResourceBindings?: Record<string, unknown> }, key: string) =>
+    config.textResourceBindings?.[key],
   useEvalOptionalText: (value: unknown, descriptor: { defaultValue: unknown }) =>
     value === undefined ? undefined : (value ?? descriptor.defaultValue),
 }));
 vi.mock('src/features/language/Lang');
+vi.mock('src/features/language/useLanguage');
 vi.mock('src/features/formBootstrap/FormBootstrap');
 vi.mock('src/utils/layout/hidden');
 vi.mock('src/core/contexts/TaskOverrides');
@@ -50,6 +54,7 @@ describe('SigneeListSummary', () => {
     mockedUseLayoutLookups.mockImplementation(
       () =>
         ({
+          componentToParent: {},
           getComponent(id: string, type?: string) {
             if (id !== mockedItem.id || (type && type !== mockedItem.type)) {
               throw new Error('Component id in useLayoutLookups() is not the mocked one');
@@ -82,6 +87,13 @@ describe('SigneeListSummary', () => {
     vi.resetAllMocks();
     queryTest = createQueryTestWrapper();
 
+    vi.mocked(useLocation).mockReturnValue({
+      pathname: '/',
+      search: '',
+      hash: '',
+      state: null,
+      key: 'default',
+    });
     vi.mocked(useParams).mockReturnValue({
       instanceOwnerPartyId: 'instanceOwnerPartyId',
       instanceGuid: 'instanceGuid',
@@ -89,6 +101,9 @@ describe('SigneeListSummary', () => {
     });
     mockNodeItem();
     vi.mocked(Lang).mockImplementation(({ id }: { id: string }) => id);
+    vi.mocked(useLanguage).mockReturnValue({
+      elementAsString: () => 'title',
+    } as unknown as ReturnType<typeof useLanguage>);
     vi.mocked(mockedUseIsHidden).mockReturnValue(false);
     mockedUseTaskOverrides.mockReturnValue({});
   });

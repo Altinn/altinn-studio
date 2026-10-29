@@ -36,13 +36,13 @@ internal sealed class MintMailbox(
     {
         try
         {
-            IPipelineServiceTask serviceTask =
+            IServiceTask serviceTask =
                 appImplementationFactory.FindServiceTask(payload.ServiceTaskType)
                 ?? throw new ProcessException($"No service task found for type {payload.ServiceTaskType}");
 
             ServiceTaskPipeline pipeline = serviceTask.ResolvePipeline();
 
-            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not ServiceTaskStage.MailboxOpening declaring)
+            if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not PipelineStage.MailboxOpening declaring)
             {
                 return FailedProcessEngineCommandResult.Permanent(
                     $"Service task '{payload.ServiceTaskType}' opened a mailbox from the stage at index "

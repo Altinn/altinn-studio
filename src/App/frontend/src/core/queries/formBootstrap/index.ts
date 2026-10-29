@@ -1,6 +1,7 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 
 import { useFormBootstrapApi } from 'src/core/contexts/ApiProvider';
+import { formBootstrapQueryKeys } from 'src/core/queries/formBootstrap/formBootstrap.queries';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
@@ -42,7 +43,7 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
   const enabled = options.enabled && options.uiFolder && (isStateless || !!instanceId);
 
   const { data, error } = useQuery<FormBootstrapQueryResponse>({
-    queryKey: ['formBootstrap', options, isStateless ? 'stateless' : 'instance', instanceId, isPdf, language],
+    queryKey: formBootstrapQueryKeys.withParams({ options, isStateless, instanceId, isPdf, language }),
     queryFn: enabled
       ? async () => {
           const raw = isStateless
@@ -66,7 +67,9 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
           };
         }
       : skipToken,
-    staleTime: 0,
+    // PDF summaries can mount several forms for the same task or subform. Reuse their
+    // bootstrap snapshot so mounting one cannot reset and remount the others.
+    staleTime: isPdf ? Infinity : 0,
     gcTime: 0,
   });
   return { data, error };

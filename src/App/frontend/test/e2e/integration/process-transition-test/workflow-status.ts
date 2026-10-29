@@ -1,5 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
+import type { IInstance } from 'src/types/shared';
+
 const appFrontend = new AppFrontend();
 
 /**
@@ -38,12 +40,12 @@ const appFrontend = new AppFrontend();
  *   - preCommit: an IOnTaskEndingHandler runs the scenario PRE-commit (committed=Task_1), so the
  *     engine surfaces `processing` (delay / transient retries) or `failed` (endState failure) on Task_1.
  *   - postCommit: an IPipelineServiceTask ("scenario") runs it POST-commit inside ExecuteServiceTask — a
- *     critical post-commit step of the committed Task_1 -> Task_Service transition — so
+ *     primary post-commit step of the committed Task_1 -> Task_Service transition — so
  *     `processing` is observable on the committed Task_Service and an endState "failure" is a real
  *     permanent failure (terminal Failed -> frontend `failed`). On success the service task
- *     advances the process to Task_2. Non-gating side effects (the Altinn event registrations) are
- *     deliberately NOT lever-controlled: they run in fire-and-forget side-effects workflows that
- *     are invisible to the frontend by design (see the noncritical-side-effects ADR).
+ *     advances the process to Task_2. The Altinn event registrations are deliberately NOT
+ *     lever-controlled: they run in auxiliary workflows, which the process never waits on and the
+ *     frontend never sees.
  *
  * UI states:
  *   processing  = the standard form loader, followed by a safe-to-leave message after eight seconds
@@ -235,6 +237,62 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
     cy.get('#finishedLoading').should('exist');
     cy.findByRole('button', { name: task2SubmitButton }).should('be.visible');
+  });
+
+  it('an instanceChanged response refreshes a real editable field and lets the user review and submit again', () => {
+    cy.ignoreConsoleMessages([/Process next failed:/]);
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'none' });
+
+    // Change persisted form data through the real API while this page still holds the old value.
+    captureInstanceRoot().then((instanceRoot) => {
+      const instanceUrl = instanceRoot.replace('/instance/', '/instances/');
+      cy.request<IInstance>(instanceUrl).then(({ body: instance }) => {
+        const dataElement = instance.data?.find((data) => data.dataType === 'TransitionControl');
+        expect(dataElement, 'Task_1 form data').to.exist;
+        const dataUrl = `${instanceUrl}/data/${dataElement!.id}`;
+        cy.request<Record<string, unknown>>({ url: dataUrl, headers: { Accept: 'application/json' } }).then(
+          ({ body }) => {
+            cy.getCookie('XSRF-TOKEN').then((token) => {
+              cy.request({
+                method: 'PUT',
+                url: dataUrl,
+                headers: { 'X-XSRF-TOKEN': token?.value },
+                body: { ...body, path: 'preCommit' },
+              })
+                .its('status')
+                .should('eq', 201);
+            });
+          },
+        );
+      });
+    });
+    cy.get('#path').should('have.value', leverLabels.path.none);
+
+    // Backend integration tests cover the acquire conflict. Only its response is injected here;
+    // the form, stored data, bootstrap refresh and following submission use the real app.
+    cy.intercept(
+      { method: 'PUT', url: '**/instances/*/*/process/next*', times: 1 },
+      {
+        statusCode: 409,
+        body: { processNextState: 'instanceChanged', validationIssues: null },
+      },
+    ).as('instanceChanged');
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.wait('@instanceChanged').its('response.statusCode').should('eq', 409);
+
+    cy.get(appFrontend.toast).should(
+      'contain.text',
+      'Skjemaet ble endret mens du sendte det inn, så det ble ikke sendt. Se over skjemaet og prøv igjen.',
+    );
+    cy.get('#path').should('have.value', leverLabels.path.preCommit);
+    waitForProcessState({ workflowStatus: 'idle', currentTask: 'Task_1' });
+
+    // The refreshed field remains editable, and retrying goes through ordinary validation and save.
+    fillLevers({ path: 'none' });
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: /Task 2/, timeout: 30000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
   });
 
   it('processing (pre-commit): reload during the delay shows the loader, then converges on Task_2', () => {
@@ -510,6 +568,55 @@ describe('Live workflow status (real engine)', () => {
     cy.get('#finishedLoading').should('exist');
   });
 
+  it('a service task with a page shows it from the commit, while the task runs and process/next is pending', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', serviceView: 'layout', delayMs: 15000 });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The task runs without deferring, so process/next has not answered yet; the page shows anyway.
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 10000 }).should('be.visible');
+    cy.url().should('contain', '/Task_ServiceLayout');
+
+    // Past the loading view's eight-second message: the page owns the waiting presentation.
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(9000);
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 0 }).should('be.visible');
+    cy.contains(/du kan trygt lukke siden/i, { timeout: 0 }).should('not.exist');
+    workflowLoader().should('not.exist');
+
+    cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+  });
+
+  it('a service task page shows a trouble banner while a step fails and is retried, until it succeeds', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    // Each attempt takes ~8s; the first two fail retryably and the third succeeds.
+    fillLevers({ path: 'postCommit', serviceView: 'layout', delayMs: 8000, attempts: 3 });
+    cy.intercept({ method: 'GET', url: '**/instances/*/*/enriched*' }).as('instanceRead');
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 15000 }).should('be.visible');
+
+    // A single failed attempt early in the run stays quiet. Checked once, right after the page saw it.
+    waitForPageToSeeFailedAttempts(1);
+    cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 0 }).should('not.exist');
+
+    // The banner joins the page rather than replacing it, the way the loading view's warning would.
+    // Its status region for screen readers is visually hidden, so check the visible warning itself.
+    cy.contains('div.ds-alert[data-color="warning"]', 'Vi kan ikke behandle skjemaet ditt', { timeout: 30000 }).should(
+      'be.visible',
+    );
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 0 }).should('be.visible');
+    workflowLoader().should('not.exist');
+
+    cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
+    cy.contains('Vi kan ikke behandle skjemaet ditt', { timeout: 0 }).should('not.exist');
+  });
+
   it('failed on the layouted service task: the failure view takes precedence over the custom layout', () => {
     cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
     fillLevers({ path: 'postCommit', serviceView: 'layout', attempts: 1, endState: 'failure' });
@@ -521,6 +628,27 @@ describe('Live workflow status (real engine)', () => {
     cy.findByRole('heading', { name: 'Noe gikk galt', timeout: 30000 }).should('be.visible');
     cy.findByRole('button', { name: 'Prøv igjen' }).should('be.visible');
     cy.findByRole('heading', { name: 'Egendefinert venteside' }).should('not.exist');
+  });
+
+  it("deferral with a custom layout: the page's fields are read-only while the task runs", () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', serviceView: 'layout' });
+    captureInstanceRoot().then((instanceRoot) => {
+      const [appRoot, instanceId] = instanceRoot.split('/instance/');
+      heldInstanceGateUrl = `${appRoot}/test/service-task-gates/${instanceId.split('/')[1]}`;
+      cy.request('PUT', heldInstanceGateUrl).its('status').should('eq', 204);
+    });
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+
+    // The instance is locked while the task runs, so the page's input shows the lever's value but can't change it
+    waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_ServiceLayout' });
+    cy.findByRole('heading', { name: 'Egendefinert venteside', timeout: 30000 }).should('be.visible');
+    cy.findByRole('textbox', { name: 'Valgt venteside' }).should('have.value', 'layout').and('have.attr', 'readonly');
+
+    cy.then(() => cy.request('DELETE', heldInstanceGateUrl!));
+    cy.findByRole('heading', { name: /Task 2/, timeout: 60000 }).should('be.visible');
+    cy.get('#finishedLoading').should('exist');
   });
 
   it('retryable (pre-commit): engine auto-retries to success, no manual retry needed', () => {
@@ -579,10 +707,9 @@ describe('Live workflow status (real engine)', () => {
 
     cy.findByRole('button', { name: task1AdvanceButton }).click();
     waitForProcessState({ workflowStatus: 'processing', currentTask: 'Task_Service' }).then((root) =>
-      cy.visit(`${root}/Task_Service`, {
-        onLoad: (win) => {
-          cy.spy(win, 'logErrorOnce').as('logErrorOnce');
-        },
+      cy.visit(`${root}/Task_Service`).then((win) => {
+        cy.wrap(win).its('logErrorOnce').should('be.a', 'function');
+        cy.then(() => cy.spy(win, 'logErrorOnce').as('logErrorOnce'));
       }),
     );
     workflowLoader().should('be.visible');

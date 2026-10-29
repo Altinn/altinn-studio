@@ -12,6 +12,7 @@
     org: ttd
   },
   overallStatus: Completed,
+  role: Primary,
   steps: [
     {
       databaseId: {Scrubbed},
@@ -24,16 +25,17 @@
       },
       status: Completed,
       retryCount: 2,
+      firstFailedAt: DateTimeOffset_1,
       deferCount: 0,
       errorHistory: [
         {
-          timestamp: DateTimeOffset_1,
+          timestamp: DateTimeOffset_2,
           message: Webhook execution failed with status 500: <no body content>,
           httpStatusCode: 500,
           wasRetryable: true
         },
         {
-          timestamp: DateTimeOffset_2,
+          timestamp: DateTimeOffset_3,
           message: Webhook execution failed with status 500: <no body content>,
           httpStatusCode: 500,
           wasRetryable: true

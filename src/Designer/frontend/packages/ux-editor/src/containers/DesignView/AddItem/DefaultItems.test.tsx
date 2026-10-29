@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import { DefaultItems, type DefaultItemsProps } from './DefaultItems';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { CircleFillIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';

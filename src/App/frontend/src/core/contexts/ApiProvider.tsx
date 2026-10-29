@@ -15,6 +15,8 @@ export function ApiProvider({ children, apis }: ApiProviderProps) {
   return <Provider value={{ ...apiClients, ...apis }}>{children}</Provider>;
 }
 
+export const useApiClients = () => useCtx();
+
 export const useProcessApi = () => useCtx().processApi;
 export const useAttachmentsApi = () => useCtx().attachmentsApi;
 export const useActionsApi = () => useCtx().actionsApi;

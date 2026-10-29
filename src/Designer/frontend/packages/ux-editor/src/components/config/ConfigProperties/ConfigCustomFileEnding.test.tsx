@@ -13,7 +13,7 @@ describe('ConfigCustomFileEnding', () => {
     renderConfigCustomFileEnding({
       props: {
         component: {
-          ...componentMocks.Input,
+          ...componentMocks.FileUpload,
           hasCustomFileEndings: false,
         },
         handleComponentUpdate: handleComponentUpdateMock,
@@ -35,7 +35,7 @@ describe('ConfigCustomFileEnding', () => {
     renderConfigCustomFileEnding({
       props: {
         component: {
-          ...componentMocks.Input,
+          ...componentMocks.FileUpload,
           hasCustomFileEndings: true,
           validFileEndings: ['.txt'],
         },
@@ -61,9 +61,9 @@ describe('ConfigCustomFileEnding', () => {
     props?: Partial<ConfigCustomFileEndingProps>;
     queries?: Partial<ServicesContextProps>;
   }) => {
-    const { Input: inputComponent } = componentMocks;
+    const { FileUpload: fileUploadComponent } = componentMocks;
     const defaultProps: ConfigCustomFileEndingProps = {
-      component: inputComponent,
+      component: fileUploadComponent,
       handleComponentUpdate: vi.fn(),
     };
     return renderWithProviders(<ConfigCustomFileEnding {...defaultProps} {...props} />, {

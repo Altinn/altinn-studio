@@ -16,26 +16,19 @@ spec:
         capacity: "64Gi"
         mode: layered
     initSystem: image
-    # The Sandbox default sizes /tmp at a quarter of guest memory, capped at 512 MiB, which is
-    # too small for a large build's scratch space. A tmpfs holds only what is written to it.
-    mounts:
-      - type: tmpfs
-        target: /tmp
-        capacity: "2Gi"
   home:
-    source: home
+    source: ../home
   instructions:
     - source: ../instructions.md
     - source: environment.md
   skills:
-    - source: ../../src/cli/resources/agent/skills/app-development
+    - source: ../_skills/app-development
       name: altinn-studio-app-development
-    - source: ../skills/pr-evidence
-    # Repository-wide Skills live where Claude Code discovers them in a plain checkout, and the
-    # manifests reach across so every harness in an Agent gets them too.
-    - source: ../../.claude/skills/changelog
-    - source: ../../.claude/skills/tekstforfatter-docs
-    - source: ../../.claude/skills/text-content-review
+    - source: ../_skills/pr-evidence
+    - source: ../_skills/fix-dependabot-alerts
+    - source: ../_skills/changelog
+    - source: ../_skills/tekstforfatter-docs
+    - source: ../_skills/text-content-review
   harnesses:
     - type: claudeCode
       auth: mediated
@@ -49,6 +42,12 @@ spec:
     - type: codex
       auth: mediated
       optional: true
+    # Pi has no platform login: its providers and models come from ~/.pi/agent/models.json in the
+    # `home` overlay, and the gateway key from the optional AIVAR_API_KEY secret below. Without the
+    # key Pi starts, but a prompt's wait times out.
+    - type: pi
+      defaults:
+        model: aivar/sigma2:Qwen3.8-27B
   environment:
     - name: GIT_USER_NAME
     - name: GIT_USER_EMAIL
@@ -78,6 +77,10 @@ spec:
       optional: true
       allowedHosts:
         - dev.altinn.studio
+    - environment: AIVAR_API_KEY
+      optional: true
+      allowedHosts:
+        - api.aivar.no
   access:
     - type: ssh
   network:

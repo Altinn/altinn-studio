@@ -11,8 +11,6 @@ public class EndpointNameSyncEligibilityEvaluatorTests
     // Serialize these actions with BPMN saves for the same repository. They read process.bpmn, which the
     // save operation locks exclusively.
     [Theory]
-    [InlineData(nameof(UiFoldersController.GetSubformComponents))]
-    [InlineData(nameof(UiFoldersController.SaveSubformPdfComponent))]
     [InlineData(nameof(UiFoldersController.AddLayoutSet))]
     public void IsEligibleForSynchronization_AllowedUiFoldersAction_ReturnsTrue(string actionName)
     {

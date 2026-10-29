@@ -7,6 +7,11 @@ import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 /**
  * Replaces the process in the editor with the process as it is saved, and selects the given element in it.
  * The editor keeps its current state if the saved process cannot be fetched or imported.
+ *
+ * Import XML into the live modeler only through this hook. An import clears and redraws the canvas, which fires the
+ * shape add and remove handlers in useBpmnEditor and with them the side effects of adding and removing a task, such
+ * as changes to UI folders, the policy and the app metadata. isReloadingRef suppresses them here. Tests with a mocked
+ * modeler cannot catch an import that bypasses this.
  */
 export const useReloadSavedProcess = (): ((elementIdToSelect?: string) => Promise<void>) => {
   const { modelerRef, setBpmnDetails, isReloadingRef } = useBpmnContext();

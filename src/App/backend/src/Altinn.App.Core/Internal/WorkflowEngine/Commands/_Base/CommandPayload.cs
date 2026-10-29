@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskStart;
 using Altinn.App.Core.Models.Notifications.Future;
+using Altinn.App.Core.Models.Process;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
@@ -19,11 +20,23 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
     typeof(NotifyInstanceOwnerOnInstantiationPayload),
     typeDiscriminator: "notifyInstanceOwnerOnInstantiation"
 )]
-[JsonDerivedType(typeof(EnqueueSideEffectsWorkflowPayload), typeDiscriminator: "enqueueSideEffectsWorkflow")]
+[JsonDerivedType(typeof(EnqueueAuxiliaryWorkflowsPayload), typeDiscriminator: "enqueueAuxiliaryWorkflows")]
 [JsonDerivedType(typeof(MintMailboxPayload), typeDiscriminator: "mintMailbox")]
+[JsonDerivedType(typeof(ProcessTaskStagePayload), typeDiscriminator: "processTaskStage")]
 internal abstract record CommandRequestPayload;
 
 internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayload;
+
+/// <summary>
+/// Selects the one stage of a process task's lifecycle pipeline a <c>StartTask</c>, <c>EndTask</c> or
+/// <c>AbandonTask</c> step runs. Absent when the step runs the whole pipeline.
+/// </summary>
+internal sealed record ProcessTaskStagePayload(int? StageIndex) : CommandRequestPayload;
+
+/// <summary>
+/// Process/next's prepared transition; instantiation carries no payload.
+/// </summary>
+internal sealed record AcquireProcessingStatusPayload(ProcessStateChange ProcessStateChange) : CommandRequestPayload;
 
 /// <summary>
 /// Source-generated JSON serialization context for command payloads.
@@ -37,8 +50,9 @@ internal sealed record TaskDataLockPayload(string TaskId) : CommandRequestPayloa
 [JsonSerializable(typeof(CommonTaskInitializationPayload))]
 [JsonSerializable(typeof(TaskDataLockPayload))]
 [JsonSerializable(typeof(NotifyInstanceOwnerOnInstantiationPayload))]
-[JsonSerializable(typeof(EnqueueSideEffectsWorkflowPayload))]
+[JsonSerializable(typeof(EnqueueAuxiliaryWorkflowsPayload))]
 [JsonSerializable(typeof(MintMailboxPayload))]
+[JsonSerializable(typeof(ProcessTaskStagePayload))]
 [JsonSerializable(typeof(InstantiationNotification))]
 [JsonSerializable(typeof(InstantiationNotificationReminder))]
 [JsonSerializable(typeof(CustomSms))]

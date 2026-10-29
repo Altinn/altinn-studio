@@ -266,6 +266,12 @@ export function en() {
     'instance_selection.last_changed': 'Last changed',
     'instance_selection.left_of': 'Continue where you left of',
     'instance_selection.new_instance': 'Start over',
+    'instantiate.not_yet_open_error_title': 'This service has not opened yet',
+    'instantiate.not_yet_open_error_text':
+      'The service opens {0}. It is not possible to start new forms before then.',
+    'instantiate.closed_error_title': 'You cannot start this service',
+    'instantiate.closed_error_text':
+      'It is not possible to start new forms in this service. You can still complete forms you have already started from your inbox.',
     'instantiate.all_forms': 'all forms',
     'instantiate.inbox': 'inbox',
     'instantiate.profile': 'profile',
@@ -485,6 +491,10 @@ export function en() {
     'likert.left_column_default_header_text': 'Question',
     'process_error.submit_error_please_retry':
       'Something went wrong when submitting, please try again in a few minutes.',
+    'process_error.instance_changed':
+      'The form was changed while you were submitting it, so it was not submitted. Check the form and try again.',
+    'process_error.concurrent_transition':
+      'The form was submitted from somewhere else at the same time, so your submission was not sent. Check the form and try again.',
     'process_workflow.failed_heading': 'Something went wrong',
     'process_workflow.failed_description':
       'We couldn’t finish processing your form, and the problem won’t resolve on its own. You’ll need to get in touch so we can help you.',

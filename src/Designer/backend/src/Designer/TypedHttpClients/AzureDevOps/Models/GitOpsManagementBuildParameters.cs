@@ -5,7 +5,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 
 /// <summary>
 /// Parameters for publishing the apps syncroot image.
-/// Supports calling deprecated Decommission pipeline.
 /// </summary>
 public class GitOpsManagementBuildParameters
 {

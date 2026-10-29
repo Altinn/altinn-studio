@@ -10,7 +10,7 @@ public sealed record MailboxReference
 {
     /// <summary>
     /// The mailbox to receive from; must exist in the enqueue's namespace. A <em>closed</em> mailbox is not an
-    /// error: the receiver is born runnable — with the delivery already at its position (an accepted delivery
+    /// error: the receiver is created runnable — with the delivery already at its position (an accepted delivery
     /// outranks closure), or with the closing signal.
     /// </summary>
     [JsonPropertyName("id")]

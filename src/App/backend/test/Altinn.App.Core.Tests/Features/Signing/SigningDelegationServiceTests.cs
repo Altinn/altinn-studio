@@ -1,6 +1,8 @@
+using System.Net;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Signing.Models;
 using Altinn.App.Core.Features.Signing.Services;
+using Altinn.App.Core.Internal.AccessManagement.Exceptions;
 using Altinn.App.Core.Internal.AccessManagement.Models;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
@@ -18,7 +20,7 @@ public class SigningDelegationServiceTests
     {
         FullName = "Testperson 1",
         SocialSecurityNumber = "123456678233",
-        Party = new Party(),
+        Party = new Party { PartyUuid = Guid.NewGuid() },
     };
 
     [Fact]
@@ -129,7 +131,7 @@ public class SigningDelegationServiceTests
         var cancellationToken = new CancellationToken();
 
         // Act
-        (signeeContexts, var success) = await service.DelegateSigneeRights(
+        await service.DelegateSigneeRights(
             taskId,
             instanceId,
             InstanceOwnerPartyUuid,
@@ -139,7 +141,6 @@ public class SigningDelegationServiceTests
         );
 
         // Assert
-        Assert.True(success);
         Assert.True(signeeContexts[0].SigneeState.IsAccessDelegated);
     }
 
@@ -170,7 +171,7 @@ public class SigningDelegationServiceTests
         var cancellationToken = new CancellationToken();
 
         // Act
-        (signeeContexts, var success) = await service.DelegateSigneeRights(
+        await service.DelegateSigneeRights(
             taskId,
             instanceId,
             InstanceOwnerPartyUuid,
@@ -180,7 +181,6 @@ public class SigningDelegationServiceTests
         );
 
         // Assert
-        Assert.True(success);
         Assert.True(signeeContexts[0].SigneeState.IsAccessDelegated);
         accessManagementClient.Verify(
             x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
@@ -189,89 +189,124 @@ public class SigningDelegationServiceTests
     }
 
     [Fact]
-    public async Task DelegateSigneeRights_WhenInstanceOwnerPartyUuidIsNull_ReturnsFalseAndSetsFailureReason()
+    public async Task DelegateSigneeRights_WhenSigneeHasNoPartyUuid_RecordsFailureWithoutCallingAccessManagement()
     {
         // Arrange
         var accessManagementClient = new Mock<IAccessManagementClient>();
         var logger = new Mock<ILogger<SigningDelegationService>>();
         var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
-        var taskId = "taskId";
-        Guid instanceGuid = Guid.NewGuid();
-        var instanceId = "instanceOwnerPartyId" + "/" + instanceGuid;
-        Guid? instanceOwnerPartyUuid = null; // Null party UUID
-        var appIdentifier = new AppIdentifier("testOrg", "testApp");
         var signeeContexts = new List<SigneeContext>()
         {
             new()
             {
-                TaskId = taskId,
+                TaskId = "taskId",
                 SigneeState = new SigneeState() { IsAccessDelegated = false },
-                Signee = _signee,
+                Signee = new PersonSignee
+                {
+                    FullName = "Testperson 2",
+                    SocialSecurityNumber = "123456678234",
+                    Party = new Party(),
+                },
             },
         };
-        var cancellationToken = new CancellationToken();
 
         // Act
-        (signeeContexts, var success) = await service.DelegateSigneeRights(
-            taskId,
-            instanceId,
-            instanceOwnerPartyUuid,
-            appIdentifier,
+        await service.DelegateSigneeRights(
+            "taskId",
+            "instanceOwnerPartyId/" + Guid.NewGuid(),
+            Guid.NewGuid(),
+            new AppIdentifier("testOrg", "testApp"),
             signeeContexts,
-            cancellationToken
+            CancellationToken.None
         );
 
         // Assert
-        Assert.False(success);
         Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
-        Assert.Contains("Instance owner party UUID is null", signeeContexts[0].SigneeState.DelegationFailedReason);
+        Assert.Contains("no party UUID", signeeContexts[0].SigneeState.DelegationFailedReason);
         accessManagementClient.Verify(
             x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()),
             Times.Never
         );
     }
 
-    [Fact]
-    public async Task DelegateSigneeRights_WhenDelegationFails_ReturnsFalseAndSetsFailureReason()
+    [Theory]
+    [InlineData(HttpStatusCode.BadRequest)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task DelegateSigneeRights_WhenAccessManagementRejectsTheSignee_RecordsFailureAndContinues(
+        HttpStatusCode status
+    )
+    {
+        // Arrange
+        var accessManagementClient = new Mock<IAccessManagementClient>();
+        accessManagementClient
+            .SetupSequence(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new AccessManagementRequestException("Rejected", null, status, null))
+            .ReturnsAsync(new DelegationResponse());
+        var logger = new Mock<ILogger<SigningDelegationService>>();
+        var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
+        List<SigneeContext> signeeContexts = [CreateUndelegatedSignee(), CreateUndelegatedSignee()];
+
+        // Act
+        await service.DelegateSigneeRights(
+            "taskId",
+            "instanceOwnerPartyId/" + Guid.NewGuid(),
+            Guid.NewGuid(),
+            new AppIdentifier("testOrg", "testApp"),
+            signeeContexts,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
+        Assert.Contains("Failed to delegate signee rights", signeeContexts[0].SigneeState.DelegationFailedReason);
+        Assert.True(signeeContexts[1].SigneeState.IsAccessDelegated);
+        Assert.Null(signeeContexts[1].SigneeState.DelegationFailedReason);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task DelegateSigneeRights_WhenTheFailureIsNotAboutTheSignee_Throws(HttpStatusCode? status)
     {
         // Arrange
         var accessManagementClient = new Mock<IAccessManagementClient>();
         accessManagementClient
             .Setup(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Delegation failed"));
+            .ThrowsAsync(new AccessManagementRequestException("Failed", null, status, null));
         var logger = new Mock<ILogger<SigningDelegationService>>();
         var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
-        var taskId = "taskId";
-        Guid instanceGuid = Guid.NewGuid();
-        var instanceId = "instanceOwnerPartyId" + "/" + instanceGuid;
-        Guid instanceOwnerPartyUuid = Guid.NewGuid();
-        var appIdentifier = new AppIdentifier("testOrg", "testApp");
-        var signeeContexts = new List<SigneeContext>()
+        List<SigneeContext> signeeContexts = [CreateUndelegatedSignee()];
+
+        // Act & Assert
+        await Assert.ThrowsAsync<AccessManagementRequestException>(() =>
+            service.DelegateSigneeRights(
+                "taskId",
+                "instanceOwnerPartyId/" + Guid.NewGuid(),
+                Guid.NewGuid(),
+                new AppIdentifier("testOrg", "testApp"),
+                signeeContexts,
+                CancellationToken.None
+            )
+        );
+        Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
+        Assert.Null(signeeContexts[0].SigneeState.DelegationFailedReason);
+    }
+
+    private static SigneeContext CreateUndelegatedSignee() =>
+        new()
         {
-            new()
+            TaskId = "taskId",
+            SigneeState = new SigneeState() { IsAccessDelegated = false },
+            Signee = new PersonSignee
             {
-                TaskId = taskId,
-                SigneeState = new SigneeState() { IsAccessDelegated = false },
-                Signee = _signee,
+                FullName = "Testperson",
+                SocialSecurityNumber = "123456678233",
+                Party = new Party { PartyUuid = Guid.NewGuid() },
             },
         };
-        var cancellationToken = new CancellationToken();
-
-        // Act
-        (signeeContexts, var success) = await service.DelegateSigneeRights(
-            taskId,
-            instanceId,
-            instanceOwnerPartyUuid,
-            appIdentifier,
-            signeeContexts,
-            cancellationToken
-        );
-
-        // Assert
-        Assert.False(success);
-        Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
-        Assert.Contains("Failed to delegate signee rights", signeeContexts[0].SigneeState.DelegationFailedReason);
-    }
 
     [Fact]
     public async Task DelegateSigneeRights_WhenInstanceIdFormatIsInvalid_ThrowsArgumentException()
@@ -408,7 +443,7 @@ public class SigningDelegationServiceTests
         var cancellationToken = new CancellationToken();
 
         // Act
-        (signeeContexts, bool success) = await service.DelegateSigneeRights(
+        await service.DelegateSigneeRights(
             taskId,
             instanceId,
             instanceOwnerPartyUuid,
@@ -418,7 +453,6 @@ public class SigningDelegationServiceTests
         );
 
         // Assert
-        Assert.True(success);
         Assert.True(signeeContexts[0].SigneeState.IsAccessDelegated);
     }
 
@@ -429,7 +463,7 @@ public class SigningDelegationServiceTests
         var accessManagementClient = new Mock<IAccessManagementClient>();
         accessManagementClient
             .Setup(x => x.DelegateRights(It.IsAny<DelegationRequest>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Delegation failed"));
+            .ThrowsAsync(new AccessManagementRequestException("Rejected", null, HttpStatusCode.BadRequest, null));
         var logger = new Mock<ILogger<SigningDelegationService>>();
         var service = new SigningDelegationService(accessManagementClient.Object, logger.Object);
         var taskId = "taskId";
@@ -449,7 +483,7 @@ public class SigningDelegationServiceTests
         var cancellationToken = new CancellationToken();
 
         // Act
-        (signeeContexts, bool success) = await service.DelegateSigneeRights(
+        await service.DelegateSigneeRights(
             taskId,
             instanceId,
             instanceOwnerPartyUuid,
@@ -459,7 +493,6 @@ public class SigningDelegationServiceTests
         );
 
         // Assert
-        Assert.False(success);
         Assert.False(signeeContexts[0].SigneeState.IsAccessDelegated);
     }
 
@@ -571,7 +604,7 @@ public class SigningDelegationServiceTests
         var cancellationToken = new CancellationToken();
 
         // Act
-        (signeeContexts, var success) = await service.DelegateSigneeRights(
+        await service.DelegateSigneeRights(
             taskId,
             instanceId,
             instanceOwnerPartyUuid,
@@ -581,7 +614,6 @@ public class SigningDelegationServiceTests
         );
 
         // Assert
-        Assert.True(success);
         Assert.True(signeeContexts[0].SigneeState.IsAccessDelegated);
         Assert.NotNull(capturedRequest);
         Assert.Equal(3, capturedRequest!.Rights.Count);
@@ -620,7 +652,7 @@ public class SigningDelegationServiceTests
         var cancellationToken = new CancellationToken();
 
         // Act
-        (_, bool success) = await service.DelegateSigneeRights(
+        await service.DelegateSigneeRights(
             taskId,
             instanceId,
             instanceOwnerPartyUuid,
@@ -630,7 +662,6 @@ public class SigningDelegationServiceTests
         );
 
         // Assert
-        Assert.True(success);
         Assert.NotNull(capturedRequest);
         Assert.Equal(2, capturedRequest!.Rights.Count);
         Assert.Equal("read", capturedRequest.Rights[0].Action!.Value);

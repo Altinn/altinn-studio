@@ -42,7 +42,8 @@ def _state(goal: str) -> AgentState:
         repo_path="/tmp/repo",
         app_name="test-app",
         developer="dev",
-        org="ttd",
+        repo_owner="ttd",
+        cost_org="ttd",
         allow_app_changes=True,
     )
 

@@ -115,11 +115,10 @@ public sealed record Workflow : PersistentItem
     public string? InitialState { get; init; }
 
     /// <summary>
-    /// The head-visibility directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>),
-    /// persisted verbatim. <c>false</c> identifies workflows deliberately invisible to collection
-    /// head tracking (e.g. non-blocking side chains), so status consumers and telemetry can tell
-    /// them apart from head workflows without inspecting operation ids; <c>null</c> means natural
-    /// leaf detection applied at enqueue.
+    /// The head directive this workflow was enqueued with (<see cref="WorkflowRequest.IsHead"/>),
+    /// persisted verbatim. <c>false</c> marks an auxiliary workflow and <c>true</c> or <c>null</c> a
+    /// primary one, so status consumers and telemetry can tell them apart without inspecting
+    /// operation ids; <c>null</c> means natural leaf detection applied at enqueue.
     /// </summary>
     public bool? IsHead { get; init; }
 

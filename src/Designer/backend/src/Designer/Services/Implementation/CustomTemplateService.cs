@@ -126,7 +126,7 @@ public class CustomTemplateService : ICustomTemplateService
         CancellationToken cancellationToken = default
     )
     {
-        string templateRepo = GetContentRepoName(templateOwner);
+        string templateRepo = RepositoryNames.Content(templateOwner);
         string templateCacheFolderPath = Path.Combine(
             _serviceRepoSettings.RepositoryLocation,
             _templateSettings.Cache.LocalCacheFolder,
@@ -245,7 +245,7 @@ public class CustomTemplateService : ICustomTemplateService
 
     private async Task<CustomTemplate> GetCustomTemplate(string owner, string id)
     {
-        string templateRepo = GetContentRepoName(owner);
+        string templateRepo = RepositoryNames.Content(owner);
 
         string path = Path.Combine(TemplateFolder, id, TemplateFileName);
 
@@ -313,7 +313,7 @@ public class CustomTemplateService : ICustomTemplateService
         CancellationToken cancellationToken = default
     )
     {
-        string templateRepo = GetContentRepoName(templateOwner);
+        string templateRepo = RepositoryNames.Content(templateOwner);
 
         string templateCachePath = Path.Combine(
             _serviceRepoSettings.RepositoryLocation,
@@ -455,11 +455,6 @@ public class CustomTemplateService : ICustomTemplateService
         }
 
         throw new TimeoutException($"Could not acquire template cache lock after {maxRetries} retries");
-    }
-
-    private static string GetContentRepoName(string org)
-    {
-        return $"{org}-content";
     }
 
     /// <summary>

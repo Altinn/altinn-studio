@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
@@ -18,7 +19,6 @@ using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
-using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
@@ -49,7 +49,6 @@ public class DeploymentService : IDeploymentService
     private readonly GitOpsSettings _gitOpsSettings;
     private readonly TimeProvider _timeProvider;
     private readonly IGitOpsConfigurationManager _gitOpsConfigurationManager;
-    private readonly IRuntimeGatewayClient _runtimeGatewayClient;
     private readonly IApiKeyService _apiKeyService;
     private readonly INotificationService _notificationService;
     private readonly IHostEnvironment _hostEnvironment;
@@ -70,7 +69,6 @@ public class DeploymentService : IDeploymentService
         GeneralSettings generalSettings,
         TimeProvider timeProvider,
         IGitOpsConfigurationManager gitOpsConfigurationManager,
-        IRuntimeGatewayClient runtimeGatewayClient,
         IApiKeyService apiKeyService,
         INotificationService notificationService,
         IHostEnvironment hostEnvironment,
@@ -90,7 +88,6 @@ public class DeploymentService : IDeploymentService
         _gitOpsSettings = gitOpsSettings ?? new GitOpsSettings();
         _timeProvider = timeProvider;
         _gitOpsConfigurationManager = gitOpsConfigurationManager;
-        _runtimeGatewayClient = runtimeGatewayClient;
         _apiKeyService = apiKeyService;
         _notificationService = notificationService;
         _hostEnvironment = hostEnvironment;
@@ -284,8 +281,7 @@ public class DeploymentService : IDeploymentService
             env,
             _gitOpsSettings.BotPersonalAccessToken,
             appAuthHeaderName: null,
-            cancellationToken: cancellationToken,
-            isSystemContext: true
+            cancellationToken: cancellationToken
         );
     }
 
@@ -294,8 +290,7 @@ public class DeploymentService : IDeploymentService
         string env,
         string appDeployToken,
         string appAuthHeaderName = null,
-        CancellationToken cancellationToken = default,
-        bool isSystemContext = false
+        CancellationToken cancellationToken = default
     )
     {
         Guard.AssertValidEnvironmentName(env);
@@ -305,13 +300,17 @@ public class DeploymentService : IDeploymentService
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(appDeployToken))
+        {
+            throw new InvalidOperationException("A deploy token is required for GitOps undeploy.");
+        }
+
         // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
         // cancels the request, but we prefer to at least attempt completion once we've started mutating state
-        // This particular multi-step process can start mutating state via `ShouldUseGitOpsDecommission` since
-        // it calls `RemoveAppFromGitOpsRepoIfExists` (which is a bit unexpected)
+        // This particular multi-step process can start mutating state via `RemoveAppFromGitOpsRepoIfExists`
         cancellationToken = CancellationToken.None;
 
-        bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(editingContext, env, cancellationToken);
+        await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
 
         // find the deployed tag
         DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(
@@ -319,22 +318,6 @@ public class DeploymentService : IDeploymentService
             editingContext.Repo,
             env
         );
-
-        if (isSystemContext)
-        {
-            appDeployToken = useGitOpsDecommission ? appDeployToken : null;
-        }
-
-        if (useGitOpsDecommission && string.IsNullOrWhiteSpace(appDeployToken))
-        {
-            throw new InvalidOperationException(
-                "GitOps bot token is required for system undeploy when GitOps decommission pipeline is selected."
-            );
-        }
-
-        int definitionId = useGitOpsDecommission
-            ? _azureDevOpsSettings.GitOpsManagerDefinitionId
-            : _azureDevOpsSettings.DecommissionDefinitionId;
 
         var traceContext = GetCurrentTraceContext();
         GitOpsManagementBuildParameters gitOpsManagementBuildParameters = new()
@@ -352,7 +335,7 @@ public class DeploymentService : IDeploymentService
 
         var build = await _azureDevOpsBuildClient.QueueAsync(
             gitOpsManagementBuildParameters,
-            definitionId,
+            _azureDevOpsSettings.GitOpsManagerDefinitionId,
             cancellationToken
         );
 
@@ -377,9 +360,7 @@ public class DeploymentService : IDeploymentService
             deploymentEntity.Build.Id,
             new DeployEvent
             {
-                EventType = useGitOpsDecommission
-                    ? DeployEventType.PipelineScheduled
-                    : DeployEventType.DeprecatedPipelineScheduled,
+                EventType = DeployEventType.PipelineScheduled,
                 Message = $"Undeploy pipeline {build.Id} scheduled",
                 Timestamp = _timeProvider.GetUtcNow(),
             }
@@ -429,7 +410,7 @@ public class DeploymentService : IDeploymentService
     private static void SetPendingDecommissionTags(DeploymentEntity pendingDecommission, TimeSpan pendingAge)
     {
         Activity activity = Activity.Current;
-        activity?.SetTag(ServiceTelemetry.Attributes.Undeploy.BuildId, pendingDecommission.Build?.Id);
+        activity?.SetTag(AltinnAttributes.AppDeployBuildId, pendingDecommission.Build?.Id);
         activity?.SetTag(ServiceTelemetry.Attributes.Undeploy.PendingAgeSeconds, pendingAge.TotalSeconds);
         activity?.SetTag(
             ServiceTelemetry.Attributes.Undeploy.PendingSkipThresholdSeconds,
@@ -446,34 +427,13 @@ public class DeploymentService : IDeploymentService
             _ => value,
         };
 
-    private async Task<bool> ShouldUseGitOpsDecommission(
-        AltinnRepoEditingContext editingContext,
-        string env,
-        CancellationToken cancellationToken = default
-    )
-    {
-        bool removedFromGitOps = await RemoveAppFromGitOpsRepoIfExists(editingContext, env);
-        if (removedFromGitOps)
-        {
-            return true;
-        }
-
-        var environment = AltinnEnvironment.FromName(env);
-        return await _runtimeGatewayClient.IsAppDeployedWithGitOpsAsync(
-            editingContext.Org,
-            editingContext.Repo,
-            environment,
-            cancellationToken
-        );
-    }
-
-    private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
+    private async Task RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
     {
         var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(editingContext.Org, editingContext.Developer);
 
         if (!await _gitOpsConfigurationManager.GitOpsConfigurationExistsAsync(orgContext))
         {
-            return false;
+            return;
         }
         var environment = AltinnEnvironment.FromName(env);
         await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
@@ -488,13 +448,11 @@ public class DeploymentService : IDeploymentService
 
         if (!appExistsInGitOps)
         {
-            return false;
+            return;
         }
 
         await _gitOpsConfigurationManager.RemoveAppFromGitOpsEnvironmentConfigurationAsync(editingContext, environment);
         _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
-
-        return true;
     }
 
     private async Task PublishDeploymentPipelineQueued(
@@ -593,7 +551,7 @@ public class DeploymentService : IDeploymentService
     {
         var (rawKey, _) = await _apiKeyService.CreateAsync(
             username,
-            $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+            $"deploy-{Guid.NewGuid()}",
             Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
             _timeProvider.GetUtcNow().AddHours(1)
         );
@@ -673,8 +631,20 @@ public class DeploymentService : IDeploymentService
         var payload = new NotificationPayload(buildId, status, fields, links, Emoji: "❌");
 
         await Task.WhenAll(
-            _notificationService.NotifyInternalAsync(org, environment, payload, cancellationToken),
-            _notificationService.NotifyServiceOwnersAsync(org, environment, payload, cancellationToken)
+            _notificationService.NotifyInternalAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            ),
+            _notificationService.NotifyServiceOwnersAsync(
+                org,
+                environment,
+                NotificationKind.Deployment,
+                payload,
+                cancellationToken
+            )
         );
     }
 

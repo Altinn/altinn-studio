@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderHookWithProviders } from '../../testing/mocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import type { UpdateFormComponentMutationArgs } from './useUpdateFormComponentMutation';
 import { useUpdateFormComponentMutation } from './useUpdateFormComponentMutation';
 import {
@@ -17,11 +17,10 @@ import type {
   FormFileUploaderComponent,
   FormRadioButtonsComponent,
 } from '../../types/FormComponent';
-import type { IDataModelBindingsKeyValue } from '../../types/global';
+import type { IDataModelBindingsKeyValueExplicit } from '../../types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { ruleConfig as ruleConfigMock } from '../../testing/ruleConfigMock';
-import type { DataModelBindingsSimple } from 'app-shared/types/ComponentSpecificConfig';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../testing/componentMocks';
 import { getDataTypesToSignMock } from 'app-shared/mocks/bpmnDefinitionsMock';
@@ -31,12 +30,11 @@ const selectedLayoutName = layout1NameMock;
 const selectedLayoutSet = layoutSet1NameMock;
 const id = component1IdMock;
 const type = ComponentType.TextArea;
-const dataModelBindings: IDataModelBindingsKeyValue & DataModelBindingsSimple = {
+const dataModelBindings: IDataModelBindingsKeyValueExplicit = {
   simpleBinding: { field: 'some-path', dataType: '' },
 };
-const updatedComponent: FormComponent = {
+const updatedComponent: FormComponent<ComponentType.TextArea> = {
   id,
-  itemType: 'COMPONENT',
   type: ComponentType.TextArea,
   dataModelBindings,
 };
@@ -109,8 +107,7 @@ describe('useUpdateFormComponentMutation', () => {
     ).result;
     const newComponent: FormFileUploaderComponent = {
       ...updatedComponent,
-      description: 'test',
-      displayMode: 'test',
+      displayMode: 'list',
       hasCustomFileEndings: false,
       maxFileSizeInMB: 100,
       maxNumberOfAttachments: 2,
@@ -173,6 +170,77 @@ describe('useUpdateFormComponentMutation', () => {
 
   describe('Update FileUpload components', () => {
     const componentTypes = [ComponentType.FileUpload];
+
+    it.each([false, true])(
+      'preserves expression limits and metadata when renaming is %s',
+      async (rename) => {
+        renderAndWaitForData();
+        const oldId = fileUploadDataType.id;
+        const newId = rename ? 'renamed-upload' : oldId;
+        const component: FormFileUploaderComponent = {
+          ...componentMocks[ComponentType.FileUpload],
+          id: newId,
+          maxNumberOfAttachments: ['if', true, 3, 1],
+          minNumberOfAttachments: ['if', true, 1, 0],
+        };
+        const { result } = renderHookWithProviders(() =>
+          useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+        );
+
+        await result.current.mutateAsync({ id: oldId, updatedComponent: component });
+
+        const metadataQuery = rename
+          ? queriesMock.addAppAttachmentMetadata
+          : queriesMock.updateAppAttachmentMetadata;
+        expect(metadataQuery).toHaveBeenCalledWith(
+          org,
+          app,
+          expect.objectContaining({
+            id: newId,
+            maxCount: fileUploadDataType.maxCount,
+            minCount: fileUploadDataType.minCount,
+          }),
+        );
+        expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+          org,
+          app,
+          selectedLayoutName,
+          selectedLayoutSet,
+          expect.objectContaining({
+            layout: expect.objectContaining({
+              data: expect.objectContaining({ layout: expect.arrayContaining([component]) }),
+            }),
+          }),
+        );
+        if (rename) {
+          expect(queriesMock.deleteAppAttachmentMetadata).toHaveBeenCalledWith(org, app, oldId);
+          expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
+        }
+      },
+    );
+
+    it('rejects an expression without static metadata before saving the layout', async () => {
+      renderAndWaitForData();
+      queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], { dataTypes: [] });
+      const { result } = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      );
+
+      await expect(
+        result.current.mutateAsync({
+          id: fileUploadDataType.id,
+          updatedComponent: {
+            ...componentMocks[ComponentType.FileUpload],
+            id: 'renamed-upload',
+            maxNumberOfAttachments: ['if', true, 3, 1],
+          },
+        }),
+      ).rejects.toThrow('maxNumberOfAttachments must be a static number');
+
+      expect(queriesMock.saveFormLayout).not.toHaveBeenCalled();
+      expect(queriesMock.addAppAttachmentMetadata).not.toHaveBeenCalled();
+      expect(queriesMock.deleteAppAttachmentMetadata).not.toHaveBeenCalled();
+    });
 
     it.each(componentTypes)(
       `Updates the layout and the bpmn file when updating the id of a %s component`,
@@ -258,7 +326,6 @@ describe('useUpdateFormComponentMutation', () => {
     const oldId = componentMocks[ComponentType.FileUpload].id;
     const imageUploadComponent: FormComponent = {
       id: oldId,
-      itemType: 'COMPONENT',
       type: ComponentType.ImageUpload,
     };
     const imageUploadDataType = {
@@ -389,8 +456,7 @@ function createFileUploaderMutationPayload(
     ...updatedComponent,
     id,
     optionsId: 'test',
-    description: 'test',
-    displayMode: 'test',
+    displayMode: 'list',
     hasCustomFileEndings: false,
     maxFileSizeInMB: 100,
     maxNumberOfAttachments: newMaxCount,

@@ -19,11 +19,11 @@
 }
 
 .labelValueWrapper.compact {
-  display: inline-block;
-}
-
-.labelValueWrapper.compact label {
-  margin-right: var(--ds-size-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--ds-size-2);
+  row-gap: var(--ds-size-2);
 }
 
 .formValue {

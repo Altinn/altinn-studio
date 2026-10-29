@@ -76,11 +76,11 @@ internal static class ServiceCollectionExtensions
         services.AddTransient<IWorkflowEngineCommand, DeleteDataOnProcessEnd>();
 
         // Process engine callback handlers - State Management
-        services.AddTransient<IWorkflowEngineCommand, AcquireProcessingStatus>();
+        services.AddTransient<ProcessingStatusAcquirer>();
         services.AddTransient<IWorkflowEngineCommand, MutateProcessState>();
         services.AddTransient<IWorkflowEngineCommand, CommitProcessState>();
         services.AddTransient<IWorkflowEngineCommand, ReleaseProcessingStatus>();
-        services.AddTransient<IWorkflowEngineCommand, EnqueueSideEffectsWorkflow>();
+        services.AddTransient<IWorkflowEngineCommand, EnqueueAuxiliaryWorkflows>();
 
         // Process engine callback handlers - Altinn Events
         services.AddTransient<IWorkflowEngineCommand, CompletedAltinnEvent>();
@@ -90,8 +90,8 @@ internal static class ServiceCollectionExtensions
         // Fail fast at startup if any app handler declares invalid step execution options.
         services.AddHostedService<WorkflowStepOptionsValidator>();
 
-        // Fail fast at startup on invalid service-task pipelines (throwing/null Define, replaced
-        // forwarding default).
+        // Fail fast at startup on invalid service-task pipelines (a DefineExecute that throws or returns null, a
+        // mailbox left unanswered).
         services.AddHostedService<ServiceTaskRegistrationValidator>();
     }
 }

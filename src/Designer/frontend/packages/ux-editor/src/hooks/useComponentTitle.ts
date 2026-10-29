@@ -9,6 +9,7 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useTextResourcesSelector } from 'app-shared/hooks';
 import type { ITextResource } from 'app-shared/types/global';
 import { getTextResource, getTitleByComponentType } from '../utils/language';
+import { getTextResourceId } from '../utils/textResourceUtils';
 
 export function useComponentTitle(): (
   formItem: FormComponent | FormContainer | IToolbarElement,
@@ -36,7 +37,7 @@ const useTextResourceTitle = (): ((item: FormComponent | FormContainer) => strin
   );
   return useCallback(
     (item: FormComponent | FormContainer) =>
-      getTextResource(item.textResourceBindings?.title, textResources),
+      getTextResource(getTextResourceId(item.textResourceBindings?.title), textResources),
     [textResources],
   );
 };

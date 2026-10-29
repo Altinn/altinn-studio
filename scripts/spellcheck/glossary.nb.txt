@@ -31,6 +31,7 @@ applikasjonsmetrikker
 applikasjonsnavnet
 appstyrt
 appversjon
+arbeidsflytmotoren
 arbeidslagsnavn
 arbeidstidsdata
 autentiseringer
@@ -48,6 +49,9 @@ avpubliserer
 avpubliseres
 avpublisering
 avpublisert
+avvisningsdialog
+avvisningsdialogen
+avvisningsknapp
 behandlingsreferanse
 bekreftelseskoden
 beskjæringsområde
@@ -76,7 +80,6 @@ driftsmeldinger
 egenregistrering
 endringslogg
 endringsoppsummering
-endringstransaksjon
 endringstransaksjonen
 endringsvalg
 engangssamtykke
@@ -106,6 +109,7 @@ handlingsknapp
 handlingstype
 headerne
 hjemmelserklæring
+hovedflyten
 infoside
 innboks
 innboksen
@@ -113,6 +117,7 @@ innholdstype
 innloggingsløsningen
 innloggingsmetode
 innloggingsmetoden
+innsendingsknapp
 innsendingsrett
 instansier
 instansiering
@@ -145,6 +150,7 @@ navigasjonsmeny
 navigasjonsmenyen
 navigasjonsoppgaver
 navigeringsregler
+nedlastingsknapp
 nedkvitteringer
 nedtrekksliste
 nedtrekkslisten
@@ -208,6 +214,7 @@ samtykkemetadata
 seksjonstittel
 sidenavigasjonen
 signatarliste
+signeringsknapp
 signeringsoppgave
 signeringsrett
 signeringsrettighet

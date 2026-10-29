@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { OptionListUploader } from './OptionListUploader';
 import { screen } from '@testing-library/react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { renderWithProviders, optionListIdsMock } from '../../../../../../../testing/mocks';

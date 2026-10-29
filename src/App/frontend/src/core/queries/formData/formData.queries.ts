@@ -65,5 +65,7 @@ function getFormDataCacheKeyUrl(url: string | undefined) {
 }
 
 export async function invalidateFormDataQueries(queryClient: QueryClient) {
-  await queryClient.invalidateQueries({ queryKey: ['fetchFormData'] });
+  // Discard inactive snapshots so a new form reads the data produced by backend task processing.
+  queryClient.removeQueries({ queryKey: formDataQueryKeys.all, type: 'inactive' });
+  await queryClient.invalidateQueries({ queryKey: formDataQueryKeys.all });
 }

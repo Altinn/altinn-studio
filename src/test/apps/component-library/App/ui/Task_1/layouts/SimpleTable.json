@@ -18,6 +18,11 @@
         "id": "Table1",
         "type": "SimpleTable",
         "title": "Schmitle",
+        "textResourceBindings": {
+          "title": "Registrerte oppføringer",
+          "description": "Tabellen viser registrerte oppføringer",
+          "help": "Velg en oppføring for å se detaljene"
+        },
         "dataModelBindings": {
           "tableData": "repeatingGroup"
         },

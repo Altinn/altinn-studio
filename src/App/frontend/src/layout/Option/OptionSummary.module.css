@@ -1,0 +1,19 @@
+.summary {
+  padding-bottom: var(--ds-size-4);
+}
+
+.value {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+}
+
+.description {
+  font-weight: normal;
+}

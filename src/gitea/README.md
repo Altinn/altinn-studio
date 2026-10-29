@@ -1,47 +1,20 @@
-# About upgrading Gitea
+# Gitea
 
-The routine for upgrading Gitea can be found [here](https://github.com/Altinn/altinnpedia/blob/main/content/altinn-3/ops/patching/containers/_index.md#gitea) in Norwegian, but in short :
+The image for Studio's Git server, with our configuration, templates and locales. Designer reaches it through the
+[gitea-proxy](../gitea-proxy), and [deploy-repositories.yaml](../../.github/workflows/deploy-repositories.yaml) builds
+and deploys both. Locally, run `docker compose up -d --build studio_repositories` in `src/Designer` to apply a change.
 
-> :warning:
-> Do not upgrade to the first patch version `x.x.0`, wait until the major version is stable
+## Upgrading Gitea
 
-> :warning:
-> Ensure all custom files (configuration, templates, and locales) are up to date, as they may change between releases
+The [upgrade routine](https://github.com/Altinn/altinnpedia/blob/main/content/altinn-3/ops/patching/containers/_index.md#gitea)
+is in Norwegian. In short:
 
-## Updating configuration
-
-Ensure that our custom configuration is up to date by comparing it with the app.example.ini file provided by Gitea (see: https://github.com/go-gitea/gitea/blob/v{VERSION}/custom/conf/app.example.ini).
-
-## Updating templates
-
-Ensure that our custom templates are up to date by comparing them with the templates from Gitea (see: https://github.com/go-gitea/gitea/tree/v{VERSION}/templates).
-
-## Updating locales
-
-### Updating original locales from Gitea
-
-The files located in [./files/locale/base](./files/locale/base) are the original translations from Gitea. They must be updated when upgrading Gitea to a newer version.
-
-- Update [locale_en-US.ini](./files/locale/base/locale_en-US.ini) using https://github.com/go-gitea/gitea/tree/v{VERSION}/options/locale/locale_en-US.ini.
-
-- Update [locale_nb-NO.ini](./files/locale/base/locale_nb-NO.ini) using [Crowdin](https://crowdin.com/project/gitea/no). Crowdin only contains the latest version, so you must ensure that the keys match the version your are upgrading to.
-
-> :warning:
-> Do not make custom changes to these files, as they will be overwritten during future upgrades. If you need to make changes, you can either :
->
-> - Submit your changes via [Crowdin](https://crowdin.com/project/gitea/no) for the Norwegian version, and download the updated file that includes your changes
-> - Add custom translations to our custom locale files (see below)
-
-### Updating custom locales
-
-The files located in [./files/locale/custom](./files/locale/custom) are our custom locales for Studio. Ensure that all keys in these files are still in use when upgrading Gitea to a newer version.
-
-## Useful commands
-
-Reload config:
-
-```bash
-docker rm --force studio-repositories
-docker rmi --force repositories:latest
-docker compose -f ../compose.yaml up -d
-```
+- Do not upgrade to an `x.y.0` release. Wait until the version is stable.
+- Our configuration, templates and locales can break between releases. Compare
+  [app.ini](files/conf/app.ini) with Gitea's `custom/conf/app.example.ini`, and [templates](files/custom/templates)
+  with Gitea's `templates`, at the version you upgrade to.
+- [files/locale/base](files/locale/base) holds Gitea's Norwegian translation. Update it from
+  [Crowdin](https://crowdin.com/project/gitea/no) when you upgrade, checking that the keys match the new version, since
+  Crowdin only has the latest. The [Dockerfile](Dockerfile) takes the English locale from the Gitea image.
+- Do not edit the base translation, since the next upgrade overwrites it. Submit a change to Crowdin, or add it to
+  our own locales in [files/locale/custom](files/locale/custom). Check that their keys are still in use.

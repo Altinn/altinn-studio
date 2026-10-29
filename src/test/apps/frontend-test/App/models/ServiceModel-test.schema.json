@@ -518,6 +518,9 @@
         "ChooseExtraPages": {
           "type": "string"
         },
+        "FailReferenceOptions": {
+          "type": "boolean"
+        },
         "Numeric": {
           "type": "object",
           "properties": {

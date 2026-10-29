@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.WorkflowEngine.ContractTesting;
@@ -72,6 +73,71 @@ public class AppWireContractTests
                 + string.Join("\n  - ", problems)
         );
     }
+
+    /// <summary>
+    /// The copies carry nothing the wire does not. The compatibility check above sees only what serializes, so a
+    /// member added for the app's own bookkeeping — non-public, or public but never serialized — would pass it
+    /// unseen, and the copy would stop being a copy. What the app needs to carry alongside a request belongs on a
+    /// type of its own, as <c>PlannedStep</c> does for the options a step is resolved from before its request is
+    /// built.
+    /// </summary>
+    [Fact]
+    public void AppContract_CarriesNothingTheWireDoesNot()
+    {
+        var problems = new List<string>();
+        foreach (Type type in AppWireModelTypes())
+        {
+            const BindingFlags instance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            foreach (PropertyInfo property in type.GetProperties(instance))
+            {
+                if (property.Name == "EqualityContract")
+                {
+                    continue; // every record has one, and it never serializes
+                }
+
+                if (property.GetMethod is not { IsPublic: true })
+                {
+                    problems.Add($"{type.Name}.{property.Name}: non-public property on a wire model.");
+                }
+                else if (
+                    property.GetCustomAttribute<JsonIgnoreAttribute>() is { Condition: JsonIgnoreCondition.Always }
+                )
+                {
+                    problems.Add($"{type.Name}.{property.Name}: public property that never serializes.");
+                }
+            }
+
+            foreach (FieldInfo field in type.GetFields(instance))
+            {
+                if (!field.Name.Contains("k__BackingField", StringComparison.Ordinal))
+                {
+                    problems.Add($"{type.Name}.{field.Name}: field on a wire model.");
+                }
+            }
+        }
+
+        Assert.True(
+            problems.Count == 0,
+            "The app's copies of the engine wire models carry members the wire does not have:\n  - "
+                + string.Join("\n  - ", problems)
+        );
+    }
+
+    /// <summary>
+    /// Every type in the two namespaces that hold the copies, nested types included, except enums, the JSON
+    /// converters that live beside them, and the types those converters serialize.
+    /// </summary>
+    private static IEnumerable<Type> AppWireModelTypes() =>
+        typeof(StepRequest)
+            .Assembly.GetTypes()
+            .Where(type =>
+                type.Namespace == typeof(StepRequest).Namespace || type.Namespace == typeof(AppCommandData).Namespace
+            )
+            .Where(type => !type.IsEnum && !typeof(System.Text.Json.Serialization.JsonConverter).IsAssignableFrom(type))
+            .Where(type => !type.IsAbstract || !type.IsSealed) // not static classes
+            // A type a converter serializes has the converter's shape, not its members'; the contract describes it
+            // by the converter, and the compatibility check compares that.
+            .Where(type => type.GetCustomAttribute<JsonConverterAttribute>() is null);
 
     private static string ReadEngineContract()
     {

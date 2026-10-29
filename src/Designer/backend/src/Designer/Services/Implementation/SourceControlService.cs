@@ -1083,6 +1083,163 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
+    public Dictionary<string, FolderHistory> GetTopLevelFolderHistory(AltinnRepoEditingContext editingContext)
+    {
+        using var activity = StartActivity(editingContext);
+        return ExecuteWithTelemetry(
+            activity,
+            editingContext,
+            static (self, editingContext) =>
+                ReadTopLevelFolderHistory(
+                    self._repositorySettings.GetServicePath(
+                        editingContext.Org,
+                        editingContext.Repo,
+                        editingContext.Developer
+                    )
+                )
+        );
+    }
+
+    private static Dictionary<string, FolderHistory> ReadTopLevelFolderHistory(string localPath)
+    {
+        if (!LibGit2Sharp.Repository.IsValid(localPath))
+        {
+            return [];
+        }
+
+        using LibGit2Sharp.Repository repo = new(localPath);
+        LibGit2Sharp.Commit? remoteDefaultBranchTip = repo.Branches[$"origin/{General.DefaultBranch}"]?.Tip;
+        if (remoteDefaultBranchTip is null)
+        {
+            return [];
+        }
+
+        // Children before parents, so each commit is handled after every child that leads to it.
+        List<LibGit2Sharp.Commit> commits = repo
+            .Commits.QueryBy(
+                new CommitFilter
+                {
+                    IncludeReachableFrom = remoteDefaultBranchTip,
+                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
+                }
+            )
+            .ToList();
+        Dictionary<ObjectId, HashSet<string>[]> changedFoldersByCommit = commits.ToDictionary(
+            commit => commit.Id,
+            commit => GetTopLevelFoldersChangedFromEachParent(repo, commit)
+        );
+
+        // Follows the history of each folder like `git log -- <folder>` does by default: a merge that left the
+        // folder identical to one of its parents is skipped, and only that parent's history is followed.
+        Dictionary<ObjectId, HashSet<string>> foldersToFollow = new()
+        {
+            [remoteDefaultBranchTip.Id] = changedFoldersByCommit
+                .Values.SelectMany(changed => changed)
+                .SelectMany(folders => folders)
+                .ToHashSet(),
+        };
+        Dictionary<string, FolderHistory> history = [];
+        Dictionary<string, DateTimeOffset> firstCommitTimes = [];
+        foreach (LibGit2Sharp.Commit commit in commits)
+        {
+            if (!foldersToFollow.Remove(commit.Id, out HashSet<string>? folders))
+            {
+                continue;
+            }
+
+            LibGit2Sharp.Commit[] parents = commit.Parents.ToArray();
+            HashSet<string>[] changedFromParents = changedFoldersByCommit[commit.Id];
+            foreach (string folder in folders)
+            {
+                int unchangedParentIndex = Array.FindIndex(changedFromParents, changed => !changed.Contains(folder));
+                if (parents.Length > 1 && unchangedParentIndex >= 0)
+                {
+                    FollowFolder(foldersToFollow, parents[unchangedParentIndex], folder);
+                    continue;
+                }
+
+                if (unchangedParentIndex < 0)
+                {
+                    RecordFolderCommit(history, firstCommitTimes, folder, commit);
+                }
+
+                foreach (LibGit2Sharp.Commit parent in parents)
+                {
+                    FollowFolder(foldersToFollow, parent, folder);
+                }
+            }
+        }
+
+        return history;
+    }
+
+    private static void FollowFolder(
+        Dictionary<ObjectId, HashSet<string>> foldersToFollow,
+        LibGit2Sharp.Commit commit,
+        string folder
+    )
+    {
+        if (!foldersToFollow.TryGetValue(commit.Id, out HashSet<string>? folders))
+        {
+            folders = [];
+            foldersToFollow[commit.Id] = folders;
+        }
+
+        folders.Add(folder);
+    }
+
+    private static void RecordFolderCommit(
+        Dictionary<string, FolderHistory> history,
+        Dictionary<string, DateTimeOffset> firstCommitTimes,
+        string folder,
+        LibGit2Sharp.Commit commit
+    )
+    {
+        DateTimeOffset commitTime = commit.Committer.When;
+        if (!history.TryGetValue(folder, out FolderHistory? folderHistory))
+        {
+            history[folder] = new FolderHistory(commit.Author.Name, commitTime);
+            firstCommitTimes[folder] = commitTime;
+            return;
+        }
+
+        if (commitTime > folderHistory.LastCommitTime)
+        {
+            folderHistory = folderHistory with { LastCommitTime = commitTime };
+        }
+
+        if (commitTime < firstCommitTimes[folder])
+        {
+            folderHistory = folderHistory with { FirstCommitAuthorName = commit.Author.Name };
+            firstCommitTimes[folder] = commitTime;
+        }
+
+        history[folder] = folderHistory;
+    }
+
+    /// <returns>The top-level folders changed from each parent, in parent order; for a root commit, the folders
+    /// changed from the empty tree.</returns>
+    private static HashSet<string>[] GetTopLevelFoldersChangedFromEachParent(
+        LibGit2Sharp.Repository repo,
+        LibGit2Sharp.Commit commit
+    )
+    {
+        Tree?[] parentTrees = commit.Parents.Any() ? [.. commit.Parents.Select(parent => parent.Tree)] : [null];
+        return parentTrees
+            .Select(parentTree =>
+            {
+                using TreeChanges changes = repo.Diff.Compare<TreeChanges>(parentTree, commit.Tree);
+                return changes
+                    .SelectMany(change => new[] { change.Path, change.OldPath })
+                    .Select(path => path.Split('/', 2))
+                    .Where(pathSegments => pathSegments.Length == 2)
+                    .Select(pathSegments => pathSegments[0])
+                    .ToHashSet();
+            })
+            .ToArray();
+    }
+
+    /// <inheritdoc/>
     public RepoStatus CheckoutBranchWithValidation(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName

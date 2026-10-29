@@ -29,6 +29,10 @@ Session.vim
 ## AI settings
 **/.claude/settings.local.json
 
+## Harness skill directories; skills are maintained in agents/_skills
+/.claude/skills/
+/.agents/skills/
+
 # Local scratch space for notes, TODOs, plans etc..
 .notes/*
 !.notes/.gitkeep

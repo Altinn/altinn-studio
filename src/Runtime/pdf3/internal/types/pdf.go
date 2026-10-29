@@ -80,17 +80,17 @@ func (w WaitFor) MarshalJSON() ([]byte, error) {
 	return data, nil
 }
 
-func (w *WaitFor) AsString() (string, bool) {
+func (w WaitFor) AsString() (string, bool) {
 	s, ok := w.value.(string)
 	return s, ok
 }
 
-func (w *WaitFor) AsTimeout() (int32, bool) {
+func (w WaitFor) AsTimeout() (int32, bool) {
 	n, ok := w.value.(int32)
 	return n, ok
 }
 
-func (w *WaitFor) AsOptions() (WaitForOptions, bool) {
+func (w WaitFor) AsOptions() (WaitForOptions, bool) {
 	opts, ok := w.value.(WaitForOptions)
 	return opts, ok
 }

@@ -66,6 +66,7 @@ public class EFormidlingServiceTaskConfigurationTests
     {
         var processReader = new Mock<IProcessReader>();
         processReader.Setup(x => x.GetProcessTasks()).Returns([.. tasks]);
+        processReader.Setup(x => x.GetExclusiveGateways()).Returns([]);
         processReader
             .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns((string taskId) => tasks.Single(task => task.Id == taskId).ExtensionElements?.TaskExtension);
@@ -90,7 +91,7 @@ public class EFormidlingServiceTaskConfigurationTests
         services.AddSingleton(processReader.Object);
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
-        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
         services.AddSingleton<IProcessTask, DataTask>();
         services.Configure<EFormidlingClientSettings>(settings => settings.BaseUrl = baseUrl);
         switch (eFormidlingService)

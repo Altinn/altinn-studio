@@ -90,6 +90,23 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
         return new CommandValidationResult.Valid();
     }
 
+    /// <summary>
+    /// Names the app instance the step works on — its service owner, app and instance GUID — in the shared
+    /// Altinn vocabulary. Not the instance owner's party ID, nor the actor.
+    /// </summary>
+    protected override IReadOnlyList<KeyValuePair<string, object?>> GetTelemetryAttributes(
+        AppCommandData? commandData,
+        AppWorkflowContext? workflowContext
+    ) =>
+        workflowContext is null
+            ? []
+            :
+            [
+                new(AppTelemetryAttributes.ServiceOwner, workflowContext.Org),
+                new(AppTelemetryAttributes.App, workflowContext.App),
+                new(AppTelemetryAttributes.InstanceGuid, workflowContext.InstanceGuid.ToString("D")),
+            ];
+
     /// <inheritdoc/>
     protected override async Task<ExecutionResult> Execute(
         CommandExecutionContext context,
@@ -103,7 +120,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             "AppCommand.Execute",
             parentContext: context.ParentTraceContext ?? context.Step.EngineActivity?.Context,
             kind: ActivityKind.Client,
-            tags: [("command.key", commandData.CommandKey)]
+            tags: [(AppTelemetryAttributes.AppCommandKey, commandData.CommandKey)]
         );
 
         using var slot = await _limiter.AcquireHttpSlot(activity?.Context, cancellationToken);

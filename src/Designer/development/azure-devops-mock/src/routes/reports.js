@@ -6,13 +6,15 @@ const APPS = [
   { name: 'mocked-app-empty', version: '0.9.0' },
 ];
 
-const DEFAULT_RANGE_MINUTES = 1440;
-// Monthly reports cover 30 days, the longest window the report frontend requests.
-const MAX_RANGE_MINUTES = 30 * 1440;
+const MILLISECONDS_PER_MINUTE = 60 * 1000;
+// Reports cover up to a calendar month: 31 days, plus the hour gained when daylight saving time ends.
+const MAX_PERIOD_MINUTES = (31 * 24 + 1) * 60;
 
-const parseRange = (rawRange) => {
-  const range = Number.parseInt(rawRange ?? String(DEFAULT_RANGE_MINUTES), 10);
-  return Number.isSafeInteger(range) && range > 0 && range <= MAX_RANGE_MINUTES ? range : undefined;
+const parsePeriodMinutes = (rawFrom, rawTo) => {
+  const minutes = (Date.parse(rawTo) - Date.parse(rawFrom)) / MILLISECONDS_PER_MINUTE;
+  return Number.isFinite(minutes) && minutes > 0 && minutes <= MAX_PERIOD_MINUTES
+    ? Math.ceil(minutes)
+    : undefined;
 };
 
 // Request-derived values are logged verbatim; strip line breaks so a single request cannot forge log lines.
@@ -38,10 +40,12 @@ const buildSeries = (range, seed) => {
 };
 
 export const reportMetricsRoute = (req, res) => {
-  const range = parseRange(req.query.range);
+  const range = parsePeriodMinutes(req.query.from, req.query.to);
   const { org, env } = req.params;
   if (range === undefined) {
-    res.status(400).json({ error: `range must be an integer between 1 and ${MAX_RANGE_MINUTES}` });
+    res.status(400).json({
+      error: `from must be before to, and at most ${MAX_PERIOD_MINUTES} minutes earlier`,
+    });
     return;
   }
   const bucketSize = getBucketSize(range);
@@ -78,7 +82,7 @@ export const reportMetricsRoute = (req, res) => {
   }
 
   console.log(
-    `Report metrics requested: org=${sanitizeForLog(org)} env=${sanitizeForLog(env)} range=${range}`,
+    `Report metrics requested: org=${sanitizeForLog(org)} env=${sanitizeForLog(env)} from=${sanitizeForLog(req.query.from)} to=${sanitizeForLog(req.query.to)}`,
   );
   res.json({ apps: APPS, metrics, errorMetrics });
 };

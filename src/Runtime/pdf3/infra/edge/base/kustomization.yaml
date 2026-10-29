@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# DIS Edge applies an environment's folder in this namespace, which only takes routes for
+# studio.platform.<env>.altinn.cloud whose path starts with /pdf.
+namespace: product-studio-pdf3
+
+resources:
+  - backend.yaml
+  - httproute.yaml

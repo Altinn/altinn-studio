@@ -20,6 +20,7 @@ public class FiksArkivUnreferencedTaskWarningTest
         var services = new ServiceCollection();
         var reader = new Mock<IProcessReader>();
         reader.Setup(r => r.GetProcessTasks()).Returns([]);
+        reader.Setup(r => r.GetExclusiveGateways()).Returns([]);
         services.AddSingleton(reader.Object);
         var metadata = new Mock<IAppMetadata>();
         metadata.Setup(m => m.ApplicationMetadata).Returns(new ApplicationMetadata("ttd/app"));
@@ -28,7 +29,7 @@ public class FiksArkivUnreferencedTaskWarningTest
         environment.SetupGet(e => e.EnvironmentName).Returns("tt02");
         services.AddSingleton(environment.Object);
         // AddFiksArkiv() registers this; its dependencies are irrelevant to startup validation.
-        services.AddSingleton<IPipelineServiceTask>(
+        services.AddSingleton<IServiceTask>(
             (FiksArkivServiceTask)RuntimeHelpers.GetUninitializedObject(typeof(FiksArkivServiceTask))
         );
         await using ServiceProvider provider = services.BuildServiceProvider();

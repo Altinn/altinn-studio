@@ -13,18 +13,7 @@ export const ContactServiceDesk = (): ReactElement => {
       <StudioList.Unordered>
         <StudioList.Item>
           <Trans
-            i18nKey='contact.serviceDesk.phone'
-            components={{
-              b: <b />,
-              a: <StudioLink href={contactByPhone.url('phone')}>{null}</StudioLink>,
-            }}
-          />
-        </StudioList.Item>
-
-        <StudioList.Item>
-          <Trans
             i18nKey='contact.serviceDesk.emergencyPhone'
-            values={{ phoneNumber: contactByPhone.url('phone') }}
             components={{
               b: <b />,
               a: <StudioLink href={contactByPhone.url('emergencyPhone')}>{null}</StudioLink>,
@@ -35,7 +24,6 @@ export const ContactServiceDesk = (): ReactElement => {
         <StudioList.Item>
           <Trans
             i18nKey='contact.serviceDesk.email'
-            values={{ phoneNumber: contactByPhone.url('phone') }}
             components={{
               b: <b />,
               a: <StudioLink href={contactByEmail.url('serviceOwner')}>{null}</StudioLink>,

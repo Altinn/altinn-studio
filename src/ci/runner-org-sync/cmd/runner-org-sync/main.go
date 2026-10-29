@@ -147,15 +147,16 @@ func run() error { //nolint:funlen // Main wires dependencies and emits run tele
 
 	// Independent of the per-org reconcile — runs even when its outcome is
 	// "partial" or fatal because the KEDA Secret has its own lifecycle.
-	// Failure is non-fatal: logged + counted, but the CronJob exit code is
-	// still driven by the org reconcile result so fatal reconcile errors stay
-	// visible to Kubernetes.
+	// Both paths report failures through telemetry and retry on the next tick.
 	applyKedaSecret(ctx, namespaceClient, cfg, kedaPAT, metrics, logger)
 
 	if runErr != nil {
 		span.RecordError(runErr)
 		span.SetStatus(codes.Error, runErr.Error())
-		return fmt.Errorf("run reconcile: %w", runErr)
+		logger.Error("reconcile.failed", "err", runErr.Error())
+		// A failed tick is not a failed CronJob. Keep the failure outcome in
+		// telemetry, then let the deferred span end and exporter shutdown run.
+		return nil
 	}
 
 	if report.Outcome == reconcile.OutcomePartial {

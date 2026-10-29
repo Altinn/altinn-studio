@@ -5,9 +5,9 @@ import { Button, Flex } from '@app/form-component';
 
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/process/ProcessWrapper.module.css';
+import { useIsServiceTaskPage, useServiceTaskPage } from 'src/components/process/serviceTaskPage';
 import {
   useIsWorkflowFailedOnCurrentServiceTask,
-  useIsWorkflowProcessingOnCurrentServiceTask,
   WorkflowFailed,
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
@@ -16,10 +16,15 @@ import { getTargetTaskFromProcess, useIsProcessNextPending, useIsRunningProcessN
 import { useWaitForQueries } from 'src/core/queries/useWaitForQueries';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useGetTaskTypeById, useProcessQuery, useProcessWorkflow } from 'src/features/instance/useProcessQuery';
+import {
+  findProcessTask,
+  useGetTaskTypeById,
+  useProcessQuery,
+  useProcessWorkflow,
+} from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { PdfWrapper, usePdfModeActive } from 'src/features/pdf/PdfWrapper';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
@@ -134,9 +139,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isProcessNextPending = useIsProcessNextPending();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
-  const processingOnCurrentServiceTask = useIsWorkflowProcessingOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
   const { data: process } = useProcessQuery();
+  const isServiceTaskPage = useIsServiceTaskPage();
+  const showServiceTaskPage = useServiceTaskPage(taskId);
 
   // PDF mode never navigates: the render is a one-shot snapshot taken *during* the transition.
   useNavigateToSettledTask(taskId, !isPdfMode, isProcessNextPending);
@@ -145,14 +151,24 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // outcome), so nothing in this session would otherwise observe the advance: the live workflow
   // annotation is idle (no transition in flight) and InstanceContext only polls while processing.
   // Poll here and carry the user forward when the process moves. Keyed on the committed task's
-  // element type - not the classified taskType - so a service task with a custom layout (which
-  // classifies and renders as a Data task) is followed the same way as the default waiting view.
+  // element type - not the classified taskType - so a service task with a page (which classifies
+  // and renders as a Data task) is followed the same way as the default waiting view.
   const isParkedOnServiceTask =
     process?.currentTask?.elementType === ELEMENT_TYPE.SERVICE_TASK && (workflow?.status ?? 'idle') === 'idle';
-  useFollowProcess(!isPdfMode && isParkedOnServiceTask);
+  // Follow feedback here as well, so observing a new task cannot unmount the component owning navigation.
+  useFollowProcess(!isPdfMode && (isParkedOnServiceTask || taskType === ProcessTaskType.Feedback));
 
-  if (isRunningProcessNext === null || isRunningProcessNext || isWrongTask === null) {
+  // Mounting mid-mutation waits for the response, except on a service task's page: the URL moves
+  // there while the call is pending, and no form on it is part of the call.
+  if (isRunningProcessNext === null || (isRunningProcessNext && !isServiceTaskPage) || isWrongTask === null) {
     return <Loader reason='process-wrapper' />;
+  }
+
+  // A service task's page owns the screen from the commit until the next task is on screen, whether
+  // the task runs, defers, retries or waits, so none of the transition views below replace it. Only
+  // a failure does (see the failure views below).
+  if (showServiceTaskPage && workflow?.status !== 'failed') {
+    return children;
   }
 
   // A poll can observe a committed task before process/next responds, including the brief idle gap
@@ -196,16 +212,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   // transition (workflow.status === 'processing' by definition), so gating on it would replace the
   // form - and #readyForPrint - with a spinner and deadlock the PDF generation it is part of.
   //
-  // A deferring service task also bypasses it when the task supplies its own layout and the URL is
-  // on it: the process genuinely sits on the committed task, and the app's page owns the waiting
-  // presentation - exactly as it does for a parked (idle) task. Park and defer are opposites in
-  // the engine but deliberately identical UX on layouted service tasks (see the durable-yield ADR).
-  // The replacement stays for transitions toward other tasks, default-view service tasks, and
-  // stale URLs until navigation converges.
-  const deferringOnLayoutedServiceTask =
-    processingOnCurrentServiceTask && taskType === ProcessTaskType.Data && taskId === process?.currentTask?.elementId;
-
-  if (!isPdfMode && workflow?.status === 'processing' && !deferringOnLayoutedServiceTask) {
+  // A service task's page is never replaced (see above): it owns the waiting presentation, without
+  // the loading view's "taking a long time" message. The replacement stays for transitions toward
+  // other tasks, service tasks without a page, and stale URLs until navigation converges.
+  if (!isPdfMode && workflow?.status === 'processing') {
     return <WorkflowProcessing />;
   }
 
@@ -257,16 +267,10 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     );
   }
 
-  // A service task without a failure and without a custom layout is an implicit waiting step:
-  // the process is parked here pending an outcome, and the poll above carries the user forward
-  // when it advances. The PdfWrapper stays because PDF mode renders the PDF service task's
-  // snapshot through it; outside PDF mode it just passes the waiting view through.
+  // A service task without a failure and without a page is an implicit waiting step: the process
+  // is parked here pending an outcome, and the poll above carries the user forward when it advances.
   if (taskType === ProcessTaskType.Service) {
-    return (
-      <PdfWrapper>
-        <Loader reason='service-task-waiting' />
-      </PdfWrapper>
-    );
+    return <Loader reason='service-task-waiting' />;
   }
 
   if (taskType === ProcessTaskType.Data) {
@@ -287,10 +291,9 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
  */
 function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
   const { data: process } = useProcessQuery();
-  const fromList = process?.processTasks?.find((t) => t.elementId === taskId);
-  const fromCurrent = process?.currentTask?.elementId === taskId ? process?.currentTask : undefined;
-  const altinnTaskType = fromList?.altinnTaskType ?? fromCurrent?.altinnTaskType ?? '';
-  const elementType = fromList?.elementType ?? fromCurrent?.elementType ?? '';
+  const task = findProcessTask(process, taskId);
+  const altinnTaskType = task?.altinnTaskType ?? '';
+  const elementType = task?.elementType ?? '';
 
   const appName = useAppName();
   const appOwner = useAppOwner();
@@ -348,6 +351,7 @@ function useIsWrongTask(taskId: string | undefined) {
   const { data: process } = useProcessQuery();
   const currentTaskId = process?.currentTask?.elementId;
   const waitForQueries = useWaitForQueries();
+  const isPdfMode = usePdfModeActive();
 
   const [isWrongTask, setIsWrongTask] = useState<boolean | null>(null);
   const isCurrentTask =
@@ -357,7 +361,7 @@ function useIsWrongTask(taskId: string | undefined) {
   // does not show up while we're navigating. Without this, the message will flash over the screen shortly
   // in-between all the <Loader /> components.
   useEffect(() => {
-    if (isCurrentTask) {
+    if (isCurrentTask || isPdfMode) {
       setIsWrongTask(false);
     } else {
       let cancelled = false;
@@ -374,7 +378,7 @@ function useIsWrongTask(taskId: string | undefined) {
         cancelled = true;
       };
     }
-  }, [isCurrentTask, waitForQueries]);
+  }, [isCurrentTask, isPdfMode, waitForQueries]);
 
-  return isWrongTask && !isCurrentTask && !isNavigating;
+  return isWrongTask && !isCurrentTask && !isPdfMode && !isNavigating;
 }

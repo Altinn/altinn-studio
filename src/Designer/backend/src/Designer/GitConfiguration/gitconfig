@@ -1,0 +1,4 @@
+# libgit2 reads this file as its system-level configuration, see LibGit2Configuration.
+[core]
+	# Check out symbolic links as plain files holding the link target.
+	symlinks = false

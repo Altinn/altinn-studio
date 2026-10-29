@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Metadata;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -42,9 +43,10 @@ internal static class EngineEndpoints
                 Lists workflows in the namespace, newest first.
 
                 Optionally filtered by status (repeatable, case-insensitive), label (key:value, repeatable),
-                and collectionKey. Cursor-paginated: pass the nextCursor from a response back as the cursor parameter.
+                collectionKey, and role (primary or auxiliary).
+                Cursor-paginated: pass the nextCursor from a response back as the cursor parameter.
 
-                Returns 204 No Content when nothing matches, and 400 Bad Request for an unrecognized status value.
+                Returns 204 No Content when nothing matches, and 400 Bad Request for an unrecognized status or role value.
                 """
             );
 
@@ -244,13 +246,45 @@ internal static class EngineEndpoints
             .MapGet("", EngineRequestHandlers.ListCollections)
             .WithName("ListCollections")
             .WithSummary("List collections")
-            .WithDescription("Lists all workflow collections in the namespace, ordered by most recently updated");
+            .WithDescription(
+                """
+                Lists workflow collections in the namespace as a health view: every entry carries a
+                workflowCounts rollup covering all of the collection's workflows, split into primary and
+                auxiliary workflows. Cursor-paginated over a stable,
+                collation-defined key order; treat the cursor as opaque and pass the nextCursor from a
+                response back as the cursor parameter.
+
+                Three mutually exclusive modes:
+                - list: no key/failures parameters — enumerate the namespace's collections page by page.
+                - annotate (key, repeatable): health for a set of collection keys the caller already
+                  holds. The response also reports unmatchedKeys — requested keys with no collection row,
+                  which must not be read as healthy (the collection may have been purged by retention).
+                - discover (failures=Any|Primary|Auxiliary): only collections containing at least one
+                  failed workflow (Failed, Canceled, DependencyFailed — Abandoned is a written-off
+                  failure and never matches), optionally restricted to one role.
+
+                Returns 400 Bad Request when key is combined with cursor or failures, when more keys are
+                supplied than the maximum page size (the request is rejected rather than truncated), or
+                for an unrecognized failures value. Returns 204 No Content when nothing matches in list
+                or discover mode; annotate mode always returns 200 so unmatchedKeys is explicit.
+                """
+            );
 
         collectionGroup
             .MapGet("/{key}", EngineRequestHandlers.GetCollection)
             .WithName("GetCollection")
             .WithSummary("Get collection")
-            .WithDescription("Gets a single workflow collection by key, including head workflow statuses");
+            .WithDescription(
+                """
+                Gets a single workflow collection by key, including head workflow statuses.
+
+                This is a frontier view by contract: it reports only the current head workflows, so
+                auxiliary workflows never appear and no health rollup is included — it sits on a hot
+                path and stays cheap. For per-collection health use the collection list endpoint's
+                workflowCounts rollup; to enumerate a collection's failures use the workflow list
+                endpoint with collectionKey, status and role filters.
+                """
+            );
 
         var mailboxGroup = app.MapGroup("/api/v1/{namespace}/mailboxes").WithTags("Mailboxes");
 
@@ -376,14 +410,14 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
+        Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, (TelemetryAttributes.Endpoint, "enqueue"));
 
         var ns = NormalizeNamespace(@namespace);
         var inbound = MetadataExtractor.ExtractEnqueueMetadata(httpContext, ns);
 
-        Activity.Current?.SetTag("workflow.collection.key", inbound.CollectionKey);
-        Activity.Current?.SetTag("workflow.idempotency.key", inbound.IdempotencyKey);
-        Activity.Current?.SetTag("workflow.namespace", inbound.Namespace);
+        Activity.Current?.SetTag(TelemetryAttributes.CollectionKey, inbound.CollectionKey);
+        Activity.Current?.SetTag(TelemetryAttributes.WorkflowIdempotencyKey, inbound.IdempotencyKey);
+        Activity.Current?.SetTag(TelemetryAttributes.Namespace, inbound.Namespace);
 
         var metadata = new WorkflowRequestMetadata(
             inbound.Namespace,
@@ -397,8 +431,8 @@ internal static class EngineRequestHandlers
         if (response is WorkflowEnqueueResponse.Accepted accepted)
         {
             Activity.Current?.SetTag(
-                "workflow.database.ids",
-                string.Join(", ", accepted.Workflows.Select(w => w.DatabaseId))
+                TelemetryAttributes.WorkflowIds,
+                accepted.Workflows.Select(w => w.DatabaseId.ToString()).ToArray()
             );
         }
 
@@ -429,20 +463,34 @@ internal static class EngineRequestHandlers
         [FromQuery] string? collectionKey,
         [FromQuery(Name = "label")] string[]? labels,
         [FromQuery(Name = "status")] string[]? statuses,
+        [FromQuery] string? role,
         [FromQuery] Guid? cursor,
         [FromQuery] int? pageSize,
+        [FromQuery] bool? includeState,
         [FromServices] IEngineRepository repository,
         [FromServices] IOptions<EngineSettings> settings,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "list"));
 
         if (!TryParseStatuses(statuses, out var effectiveStatuses, out var invalidStatus))
             return TypedResults.Problem(
                 detail: $"'{invalidStatus}' is not a valid workflow status. Valid values: {string.Join(", ", AllPersistentItemStatuses)}.",
                 statusCode: StatusCodes.Status400BadRequest
             );
+
+        WorkflowRole? roleFilter = null;
+        if (role is not null)
+        {
+            if (!EnumNames.TryParse(role, out WorkflowRole parsedRole))
+                return TypedResults.Problem(
+                    detail: $"'{role}' is not a valid workflow role. Valid values (case-insensitive): {string.Join(", ", EnumNames.Of<WorkflowRole>())}.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+
+            roleFilter = parsedRole;
+        }
 
         var pagination = settings.Value.Pagination;
         var effectivePageSize = Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
@@ -457,6 +505,7 @@ internal static class EngineRequestHandlers
             labelFilters: labelFilters,
             namespaceFilter: ns,
             collectionKey: collectionKey,
+            role: roleFilter,
             cancellationToken: cancellationToken
         );
 
@@ -466,7 +515,9 @@ internal static class EngineRequestHandlers
         return TypedResults.Ok(
             new PaginatedResponse<WorkflowStatusResponse>
             {
-                Data = result.Workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Data = result
+                    .Workflows.Select(workflow => WorkflowStatusResponse.FromWorkflow(workflow, includeState ?? true))
+                    .ToList(),
                 PageSize = effectivePageSize,
                 TotalCount = result.TotalCount ?? 0, // always populated here (includeTotalCount: true)
                 NextCursor = result.NextCursor,
@@ -477,11 +528,12 @@ internal static class EngineRequestHandlers
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [FromRoute] string @namespace,
         [FromRoute] Guid workflowId,
+        [FromQuery] bool? includeState,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get"));
 
         var ns = NormalizeNamespace(@namespace);
         var workflow = await repository.GetWorkflow(workflowId, ns, cancellationToken);
@@ -489,7 +541,7 @@ internal static class EngineRequestHandlers
         if (workflow is null)
             return TypedResults.NotFound();
 
-        return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
+        return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow, includeState ?? true));
     }
 
     public static async Task<Results<Ok<WorkflowDependencyGraphResponse>, NotFound>> GetWorkflowDependencyGraph(
@@ -499,7 +551,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "dependency-graph"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "dependency_graph"));
 
         var ns = NormalizeNamespace(@namespace);
         var dependencyGraph = await repository.GetWorkflowDependencyGraph(
@@ -515,7 +567,7 @@ internal static class EngineRequestHandlers
             new WorkflowDependencyGraphResponse
             {
                 RootWorkflowId = workflowId,
-                Workflows = dependencyGraph.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
+                Workflows = dependencyGraph.Select(workflow => WorkflowStatusResponse.FromWorkflow(workflow)).ToList(),
                 Edges = BuildDependencyGraphEdges(dependencyGraph),
             }
         );
@@ -530,7 +582,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "cancel"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "cancel"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.CancelWorkflow(workflowId, ns, cancellationToken);
@@ -567,7 +619,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "resume"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "resume"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.ResumeWorkflow(workflowId, ns, cascade ?? false, cancellationToken);
@@ -600,7 +652,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "abandon"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "abandon"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.AbandonWorkflow(workflowId, ns, cancellationToken);
@@ -636,7 +688,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "nudge"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "nudge"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.NudgeWorkflow(workflowId, ns, cancellationToken);
@@ -679,7 +731,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "fail"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "fail"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await engine.FailWorkflow(workflowId, ns, request?.Reason ?? DefaultFailReason, cancellationToken);
@@ -777,7 +829,7 @@ internal static class EngineRequestHandlers
         var parsed = new PersistentItemStatus[raw.Length];
         for (int i = 0; i < raw.Length; i++)
         {
-            if (!Enum.TryParse(raw[i], ignoreCase: true, out PersistentItemStatus status) || !Enum.IsDefined(status))
+            if (!EnumNames.TryParse(raw[i], out PersistentItemStatus status))
             {
                 statuses = [];
                 invalid = raw[i];
@@ -847,19 +899,98 @@ internal static class EngineRequestHandlers
         return edges;
     }
 
-    public static async Task<Results<Ok<IReadOnlyList<WorkflowCollectionResponse>>, NoContent>> ListCollections(
+    public static async Task<Results<Ok<WorkflowCollectionListResponse>, NoContent, ProblemHttpResult>> ListCollections(
         [FromRoute(Name = "namespace")] string ns,
+        [FromQuery(Name = "key")] string[]? keys,
+        [FromQuery] string? failures,
+        [FromQuery] string? cursor,
+        [FromQuery] int? pageSize,
         [FromServices] IEngineRepository repository,
+        [FromServices] IOptions<EngineSettings> settings,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-collections"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "list_collections"));
+
+        var pagination = settings.Value.Pagination;
+
+        // Deduplicate up front so repeated ?key= values neither trip the cap nor inflate the
+        // echoed page size. This is the one place keys are deduplicated — the repository trusts
+        // the set it is handed (documented on IEngineRepository.GetCollections), so the page size
+        // echoed here and the unmatched keys it reports describe the same set. Annotate mode is
+        // simply "distinctKeys is not null": Distinct of a non-empty array is never empty, so one
+        // nullable carries both the mode and the count.
+        string[]? distinctKeys = keys is { Length: > 0 } ? keys.Distinct(StringComparer.Ordinal).ToArray() : null;
+
+        if (distinctKeys is not null)
+        {
+            // The three modes are orthogonal by design: annotate answers "how are these specific
+            // collections", so pagination and discovery filters cannot meaningfully combine with it.
+            if (cursor is not null)
+                return TypedResults.Problem(
+                    detail: "The key filter cannot be combined with a cursor: annotate requests are not paginated.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+
+            if (failures is not null)
+                return TypedResults.Problem(
+                    detail: "The key filter cannot be combined with the failures filter: annotate reports the health of the requested keys as-is.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+
+            // Reject rather than truncate: silently dropping keys from a health read would let
+            // their failures pass as healthy, which is the exact failure class this endpoint
+            // exists to fix.
+            if (distinctKeys.Length > pagination.MaxAnnotateKeys)
+                return TypedResults.Problem(
+                    detail: $"Too many keys: {distinctKeys.Length} distinct keys supplied, maximum is {pagination.MaxAnnotateKeys}. Split the request instead — keys are never silently truncated.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+        }
+
+        CollectionFailureFilter? failureFilter = null;
+        if (failures is not null)
+        {
+            if (!EnumNames.TryParse(failures, out CollectionFailureFilter parsedFilter))
+                return TypedResults.Problem(
+                    detail: $"'{failures}' is not a valid failures filter. Valid values (case-insensitive): {string.Join(", ", EnumNames.Of<CollectionFailureFilter>())}.",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+
+            failureFilter = parsedFilter;
+        }
+
+        // Annotate mode is a single page by construction: the page must fit every requested key
+        // (their count is already capped at MaxAnnotateKeys above), so pageSize is ignored.
+        var effectivePageSize =
+            distinctKeys?.Length ?? Math.Clamp(pageSize ?? pagination.DefaultPageSize, 1, pagination.MaxPageSize);
 
         ns = NormalizeNamespace(ns);
 
-        var collections = await repository.GetCollections(ns, cancellationToken);
+        var result = await repository.GetCollections(
+            ns,
+            effectivePageSize,
+            cursor: cursor,
+            keys: distinctKeys,
+            failures: failureFilter,
+            cancellationToken: cancellationToken
+        );
 
-        return collections.Count == 0 ? TypedResults.NoContent() : TypedResults.Ok(collections);
+        // Annotate mode always answers 200: an empty data set still carries unmatchedKeys, which the
+        // caller must be able to distinguish from "no failures".
+        if (result.TotalCount == 0 && distinctKeys is null)
+            return TypedResults.NoContent();
+
+        return TypedResults.Ok(
+            new WorkflowCollectionListResponse
+            {
+                Data = result.Collections,
+                PageSize = effectivePageSize,
+                TotalCount = result.TotalCount,
+                NextCursor = result.NextCursor,
+                UnmatchedKeys = result.UnmatchedKeys,
+            }
+        );
     }
 
     public static async Task<Results<Ok<WorkflowCollectionDetailResponse>, NotFound>> GetCollection(
@@ -869,7 +1000,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-collection"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get_collection"));
 
         ns = NormalizeNamespace(ns);
 
@@ -886,7 +1017,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list-throttles"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "list_throttles"));
 
         var throttles = await repository.GetNamespaceThrottles(cancellationToken);
         if (throttles.Count == 0)
@@ -907,7 +1038,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-throttle"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get_throttle"));
 
         var ns = NormalizeNamespace(@namespace);
         var throttle = (await repository.GetNamespaceThrottles(cancellationToken)).FirstOrDefault(t =>
@@ -926,7 +1057,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-trip"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "throttle_force_trip"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await throttleOperator.ForceTrip(ns, cancellationToken);
@@ -950,7 +1081,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "mint-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "mint_mailbox"));
 
         ns = NormalizeNamespace(ns);
 
@@ -983,7 +1114,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "get_mailbox"));
 
         ns = NormalizeNamespace(ns);
 
@@ -999,7 +1130,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "close-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "close_mailbox"));
 
         ns = NormalizeNamespace(ns);
 
@@ -1022,7 +1153,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "throttle-force-clear"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "throttle_force_clear"));
 
         var ns = NormalizeNamespace(@namespace);
         var result = await throttleOperator.ForceClear(ns, cancellationToken);
@@ -1053,7 +1184,7 @@ internal static class EngineRequestHandlers
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "deliver-to-mailbox"));
+        Metrics.WorkflowQueriesReceived.Add(1, (TelemetryAttributes.Endpoint, "deliver_to_mailbox"));
 
         ns = NormalizeNamespace(ns);
 

@@ -23,6 +23,8 @@ namespace Altinn.App.Core.Tests.Features.Signing;
 
 public class SigningCallToActionServiceTests(ITestOutputHelper output)
 {
+    private static readonly Guid _idempotentKey = Guid.Parse("0f8b8d5e-2b6a-4c3e-9a51-5f0d3c2e7a11");
+
     private readonly IOptions<GeneralSettings> _generalSettings = Microsoft.Extensions.Options.Options.Create(
         new GeneralSettings()
     );
@@ -143,6 +145,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             signingParty,
             serviceOwnerParty,
             correspondenceResources,
+            _idempotentKey,
             CancellationToken.None
         );
 
@@ -156,6 +159,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
         Assert.Null(capturedPayload.CorrespondenceRequest.Notification.EmailBody);
         Assert.Null(capturedPayload.CorrespondenceRequest.Notification.EmailSubject);
         Assert.Equal("app_ttd_appname", capturedPayload.CorrespondenceRequest.ResourceId);
+        Assert.Equal(_idempotentKey, capturedPayload.CorrespondenceRequest.IdempotentKey);
         // Assert.Equal(orgNo.ToString(), capturedPayload.CorrespondenceRequest.Sender.ToString());
         Assert.IsType<OrganizationOrPersonIdentifier.Person>(capturedPayload.CorrespondenceRequest.Recipients[0]);
         Assert.True(ssn == capturedPayload.CorrespondenceRequest.Recipients[0]);
@@ -236,6 +240,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             signingParty,
             serviceOwnerParty,
             correspondenceResources,
+            _idempotentKey,
             CancellationToken.None
         );
 
@@ -346,6 +351,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             signingParty,
             serviceOwnerParty,
             correspondenceResources,
+            _idempotentKey,
             CancellationToken.None
         );
 
@@ -429,6 +435,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
             signingParty,
             serviceOwnerParty,
             correspondenceResources,
+            _idempotentKey,
             CancellationToken.None
         );
 
@@ -515,6 +522,7 @@ public class SigningCallToActionServiceTests(ITestOutputHelper output)
                 signingParty,
                 serviceOwnerParty,
                 correspondenceResources,
+                _idempotentKey,
                 CancellationToken.None
             )
         );

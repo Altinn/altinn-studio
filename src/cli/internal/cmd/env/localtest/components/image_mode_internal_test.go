@@ -6,6 +6,7 @@ import (
 
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/studioctl/internal/config"
+	"altinn.studio/studioctl/internal/envtopology"
 )
 
 func TestLocalDevImageBuildsByDefault(t *testing.T) {
@@ -51,6 +52,7 @@ func TestManifestPullPolicies(t *testing.T) {
 	manifest := NewManifest(&Options{
 		Paths:             NewPaths(t.TempDir()),
 		Images:            images,
+		Topology:          envtopology.NewLocal(envtopology.DefaultIngressPortString()),
 		IncludeMonitoring: true,
 		IncludePgAdmin:    true,
 	})

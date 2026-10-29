@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { isCancelledError, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useInstanceApi } from 'src/core/contexts/ApiProvider';
 import { useActiveInstancesQuery } from 'src/core/queries/instance/activeInstances';
@@ -79,12 +79,24 @@ export function ensureInstanceData(
   return queryClient.ensureQueryData(instanceDataQuery(params));
 }
 
-export function fetchFreshInstanceData(
+const maxJoinedReads = 5;
+
+export async function fetchFreshInstanceData(
   client: AppQueryClient,
   params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
-) {
+): Promise<IInstance> {
   const queryClient = getQueryClient(client);
-  return queryClient.fetchQuery({ ...instanceDataQuery(params), staleTime: 0 });
+  // fetchQuery joins a read already in flight, such as a poll's. When a refetch cancels that read to start a newer one,
+  // everyone who joined it gets a CancelledError, so join the newer read.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await queryClient.fetchQuery({ ...instanceDataQuery(params), staleTime: 0 });
+    } catch (error) {
+      if (!isCancelledError(error) || attempt >= maxJoinedReads) {
+        throw error;
+      }
+    }
+  }
 }
 
 export function invalidateInstanceData(client: AppQueryClient) {

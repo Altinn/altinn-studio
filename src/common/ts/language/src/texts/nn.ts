@@ -267,6 +267,12 @@ export function nn() {
     'instance_selection.last_changed': 'Sist endra',
     'instance_selection.left_of': 'Hald fram der du slapp',
     'instance_selection.new_instance': 'Start på nytt',
+    'instantiate.not_yet_open_error_title': 'Denne tenesta har ikkje opna enno',
+    'instantiate.not_yet_open_error_text':
+      'Tenesta opnar {0}. Det er ikkje mogleg å starte nye skjema før det.',
+    'instantiate.closed_error_title': 'Du kan ikkje starte denne tenesta',
+    'instantiate.closed_error_text':
+      'Det er ikkje mogleg å starte nye skjema i denne tenesta. Skjema du allereie har starta, kan du framleis fullføre frå innboksen.',
     'instantiate.all_forms': 'alle skjema',
     'instantiate.inbox': 'innboks',
     'instantiate.profile': 'profil',
@@ -485,6 +491,10 @@ export function nn() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noko gjekk gale med innsending, prøv igjen om nokre minutt.',
+    'process_error.instance_changed':
+      'Skjemaet blei endra medan du sende det inn, så det blei ikkje sendt. Sjå over skjemaet og prøv igjen.',
+    'process_error.concurrent_transition':
+      'Skjemaet blei sendt inn frå ein annan stad samstundes, så innsendinga di blei ikkje sendt. Sjå over skjemaet og prøv igjen.',
     'process_workflow.failed_heading': 'Noko gjekk gale',
     'process_workflow.failed_description':
       'Vi klarte ikkje å fullføre handsaminga av skjemaet ditt, og feilen rettar seg ikkje av seg sjølv. Du må ta kontakt for å få hjelp til å komme vidare.',

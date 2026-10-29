@@ -13,10 +13,13 @@ import (
 	"strings"
 	"time"
 
+	commontelemetry "altinn.studio/common/telemetry"
+	"altinn.studio/operator/internal/telemetry"
+
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -156,6 +159,8 @@ func (r *Reconciler) Start(ctx context.Context) error {
 	}
 }
 
+const controllerName = "grafanapolicysync"
+
 func (r *Reconciler) SyncAll(ctx context.Context) error {
 	opCtx := r.runtime.GetOperatorContext()
 	environment := opCtx.Environment
@@ -165,47 +170,42 @@ func (r *Reconciler) SyncAll(ctx context.Context) error {
 		"environment", environment,
 	)
 
-	ctx, span := r.runtime.Tracer().Start(ctx, "grafanapolicysync.SyncAll")
+	ctx, span := telemetry.StartRun(ctx, controllerName, "grafanapolicysync.SyncAll")
 	defer span.End()
-	span.SetAttributes(
-		attribute.String("serviceOwner", opCtx.ServiceOwner.Id),
-		attribute.String("environment", opCtx.Environment),
-	)
-	withErrorStatus := func(err error, status string) error {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, status)
+	withErrorStatus := func(err error, errorType string) error {
+		commontelemetry.SetError(span, errorType, err)
 		return err
 	}
 
 	grafanaURL, token, err := r.getGrafanaCredentials(ctx)
 	if err != nil {
-		return withErrorStatus(err, "get grafana credentials")
+		return withErrorStatus(err, "get_grafana_credentials")
 	}
 	if host := grafanaHost(grafanaURL); host != "" {
-		span.SetAttributes(attribute.String("grafana.host", host))
+		span.SetAttributes(semconv.ServerAddress(host))
 	}
 
 	rawTree, err := r.getPolicyTree(ctx, grafanaURL, token)
 	if err != nil {
-		return withErrorStatus(err, "get policy tree")
+		return withErrorStatus(err, "get_policy_tree")
 	}
 
 	updatedTree, changed, err := upsertManagedRoute(rawTree)
 	if err != nil {
-		return withErrorStatus(err, "upsert managed route")
+		return withErrorStatus(err, "upsert_managed_route")
 	}
-	span.SetAttributes(attribute.Bool("policy.changed", changed))
+	span.SetAttributes(attribute.Bool("altinn.operator.grafanapolicysync.policy_changed", changed))
 	if !changed {
 		return nil
 	}
 
 	span.SetAttributes(
 		attribute.String("altinn.studio.sampling", "always"),
-		attribute.Int("policy.updated_bytes", len(updatedTree)),
+		attribute.Int("altinn.operator.grafanapolicysync.policy_bytes", len(updatedTree)),
 	)
 
 	if err := r.putPolicyTree(ctx, grafanaURL, token, updatedTree); err != nil {
-		return withErrorStatus(err, "put policy tree")
+		return withErrorStatus(err, "put_policy_tree")
 	}
 	r.logger.Info("synced managed Grafana notification route")
 	return nil

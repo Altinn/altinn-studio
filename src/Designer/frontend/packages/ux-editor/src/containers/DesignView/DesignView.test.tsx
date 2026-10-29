@@ -23,7 +23,7 @@ import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsU
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import type { FormLayoutsResponse } from 'app-shared/types/api';
+import type { SerializedFormLayoutsResponse } from '../../types/SerializedComponent';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import type { PagesModel } from 'app-shared/types/api/dto/PagesModel';
 
@@ -140,6 +140,24 @@ describe('DesignView', () => {
     consoleWarnSpy.mockRestore();
   });
 
+  it('lists the PDF page and lets a page be added when the folder has only a PDF page', async () => {
+    const user = userEvent.setup();
+    const pdfLayoutName = 'PdfLayout';
+    renderDesignView({
+      layoutSettings: { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
+      externalLayout: { [pdfLayoutName]: layout1Mock },
+      pagesModel: { pages: [], pdfLayoutName },
+    });
+
+    await user.click(screen.getByText(pdfLayoutName));
+    expect(appContextMock.setSelectedFormLayoutName).toHaveBeenCalledWith(pdfLayoutName);
+
+    await user.click(screen.getByRole('button', { name: textMock('ux_editor.pages_add') }));
+    expect(queriesMock.createPage).toHaveBeenCalledWith(org, app, mockSelectedLayoutSet, {
+      id: `${textMock('ux_editor.page')}${1}`,
+    });
+  });
+
   it('does not render Accordion when pagesModel has no pages', () => {
     renderDesignView({ layoutSettings: { ...formLayoutSettingsMock, pages: { order: [] } } });
     const accordion = screen.queryByRole('group', { name: /accordion/i });
@@ -180,7 +198,7 @@ describe('DesignView', () => {
 
 type renderDesignViewParams = {
   layoutSettings?: ILayoutSettings;
-  externalLayout?: FormLayoutsResponse;
+  externalLayout?: SerializedFormLayoutsResponse;
   pagesModel?: PagesModel;
 };
 

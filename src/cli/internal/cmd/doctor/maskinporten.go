@@ -7,9 +7,6 @@ import (
 	appsvc "altinn.studio/studioctl/internal/cmd/app"
 )
 
-// maskinportenCheckID names the disk check, in the report and in the tests that assert on it.
-const maskinportenCheckID = "maskinporten_client"
-
 // checkMaskinportenClientState reports whether a Maskinporten client is stored for the detected app.
 //
 // It reports state, not advice: most apps never call an external API from a local run, so having no client
@@ -40,7 +37,7 @@ func (s *Service) checkMaskinportenClientState(appPath string) (DiskCheck, bool)
 	client, err := appsecrets.LoadMaskinportenClient(dir)
 	if errors.Is(err, appsecrets.ErrNoMaskinportenClient) {
 		return DiskCheck{
-			ID:      maskinportenCheckID,
+			ID:      DiskCheckMaskinportenClient,
 			Level:   diskLevelInfo,
 			Path:    dir,
 			Message: "no local Maskinporten client configured",
@@ -49,16 +46,16 @@ func (s *Service) checkMaskinportenClientState(appPath string) (DiskCheck, bool)
 	if err != nil {
 		// A file is there and cannot be used, which does break a local run that needs it.
 		return DiskCheck{
-			ID:      maskinportenCheckID,
+			ID:      DiskCheckMaskinportenClient,
 			Level:   diskLevelWarn,
 			Path:    dir,
-			Message: "stored Maskinporten client cannot be read: " + err.Error(),
+			Message: "stored Maskinporten client cannot be read: " + errorWithoutPath(err),
 		}, true
 	}
 
 	summary := client.Summary()
 	return DiskCheck{
-		ID:      maskinportenCheckID,
+		ID:      DiskCheckMaskinportenClient,
 		Level:   diskLevelOK,
 		Path:    dir,
 		Message: "local Maskinporten client configured (" + summary.ClientID + ", " + summary.Environment + ")",

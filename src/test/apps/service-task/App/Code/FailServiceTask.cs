@@ -17,7 +17,9 @@ public class FailServiceTask : IServiceTask
 
     public string Type => "fail";
 
-    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+    public async Task<ServiceTaskResult> Execute(StageContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
 

@@ -21,6 +21,7 @@
   "components": {
     "excludeFromPdf": [
       "confirmChangeName",
+      "fail-reference-options",
       "mapSummaryHeader",
       "map-location"
     ]

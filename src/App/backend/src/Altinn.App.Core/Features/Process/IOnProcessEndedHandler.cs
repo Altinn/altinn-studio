@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Features.Process;
 /// ending; it leaves the ended instance processing until resumed. It runs however the process reached its end event,
 /// so it is the place for logic that belongs to the end of the process. Only logic that must be able to stop the
 /// process from ending belongs in the <see cref="IOnTaskEndingHandler"/> of the task that leads to the end event;
-/// when a rejection ends the process, that task's <see cref="IOnTaskAbandonHandler"/> runs instead.
+/// when a rejection ends the process, that task's <see cref="IOnTaskAbandoningHandler"/> runs instead.
 /// </para>
 /// <para>An app registers at most one implementation; with more, it does not start.</para>
 /// </remarks>
@@ -23,10 +23,10 @@ public interface IOnProcessEndedHandler : IProcessStepConfigurable
     /// </summary>
     /// <param name="context">A context object with relevant parameters and data.</param>
     /// <returns>
-    /// A result indicating success or failure. Construct via <see cref="HookResult.Success"/>,
-    /// <see cref="HookResult.FailedRetryable"/>, or <see cref="HookResult.FailedPermanent"/>.
+    /// A result indicating success or failure. Construct via <see cref="HandlerResult.Success"/>,
+    /// <see cref="HandlerResult.FailedRetryable"/>, or <see cref="HandlerResult.FailedPermanent"/>.
     /// </returns>
-    public Task<HookResult> Execute(OnProcessEndedContext context);
+    public Task<HandlerResult> Execute(OnProcessEndedContext context);
 }
 
 /// <summary>

@@ -1,10 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -14,8 +19,21 @@ public class GetRepositoryResourceListTests
     : ResourceAdminControllerTestsBaseClass<GetRepositoryResourceListTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly Mock<ISourceControl> _sourceControlMock = new();
+
     public GetRepositoryResourceListTests(WebApplicationFactory<Program> factory)
-        : base(factory) { }
+        : base(factory)
+    {
+        _sourceControlMock
+            .Setup(sourceControl => sourceControl.GetTopLevelFolderHistory(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns([]);
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddTransient(_ => _sourceControlMock.Object);
+    }
 
     [Fact]
     public async Task GetResourceList_OK()
@@ -69,6 +87,43 @@ public class GetRepositoryResourceListTests
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetResourceList_SetsCreatedByAndLastChangedFromTheFolderHistory()
+    {
+        // Arrange
+        string uri = $"{VersionPrefix}/ttd/resources/resourcelist";
+        RepositoryMock
+            .Setup(r =>
+                r.GetServiceResources(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<System.Threading.CancellationToken>()
+                )
+            )
+            .ReturnsAsync([
+                new ServiceResource { Identifier = "shared", Title = new Dictionary<string, string>() },
+                new ServiceResource { Identifier = "not-shared", Title = new Dictionary<string, string>() },
+            ]);
+        DateTimeOffset lastCommitTime = new(2026, 1, 1, 12, 0, 0, TimeSpan.FromHours(1));
+        _sourceControlMock
+            .Setup(sourceControl => sourceControl.GetTopLevelFolderHistory(It.IsAny<AltinnRepoEditingContext>()))
+            .Returns(new Dictionary<string, FolderHistory> { ["shared"] = new("alice", lastCommitTime) });
+
+        // Act
+        using HttpResponseMessage res = await HttpClient.GetAsync(uri);
+        List<ListviewServiceResource> resources = await res.Content.ReadFromJsonAsync<List<ListviewServiceResource>>();
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        ListviewServiceResource shared = resources.Single(resource => resource.Identifier == "shared");
+        Assert.Equal("alice", shared.CreatedBy);
+        Assert.Equal(lastCommitTime.UtcDateTime, shared.LastChanged);
+        ListviewServiceResource notShared = resources.Single(resource => resource.Identifier == "not-shared");
+        Assert.Null(notShared.CreatedBy);
+        Assert.Null(notShared.LastChanged);
     }
 
     [Fact]

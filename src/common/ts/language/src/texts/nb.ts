@@ -267,6 +267,12 @@ export function nb() {
     'instance_selection.last_changed': 'Sist endret',
     'instance_selection.left_of': 'Fortsett der du slapp',
     'instance_selection.new_instance': 'Start på nytt',
+    'instantiate.not_yet_open_error_title': 'Denne tjenesten har ikke åpnet ennå',
+    'instantiate.not_yet_open_error_text':
+      'Tjenesten åpner {0}. Det er ikke mulig å starte nye skjema før det.',
+    'instantiate.closed_error_title': 'Du kan ikke starte denne tjenesten',
+    'instantiate.closed_error_text':
+      'Det er ikke mulig å starte nye skjema i denne tjenesten. Skjema du allerede har startet, kan du fortsatt fullføre fra innboksen.',
     'instantiate.all_forms': 'alle skjema',
     'instantiate.inbox': 'innboks',
     'instantiate.profile': 'profil',
@@ -487,6 +493,10 @@ export function nb() {
     'likert.left_column_default_header_text': 'Spørsmål',
     'process_error.submit_error_please_retry':
       'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
+    'process_error.instance_changed':
+      'Skjemaet ble endret mens du sendte det inn, så det ble ikke sendt. Se over skjemaet og prøv igjen.',
+    'process_error.concurrent_transition':
+      'Skjemaet ble sendt inn fra et annet sted samtidig, så innsendingen din ble ikke sendt. Se over skjemaet og prøv igjen.',
     'process_workflow.failed_heading': 'Noe gikk galt',
     'process_workflow.failed_description':
       'Vi klarte ikke å fullføre behandlingen av skjemaet ditt, og feilen retter seg ikke av seg selv. Du må ta kontakt for å få hjelp til å komme videre.',

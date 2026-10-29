@@ -205,7 +205,6 @@ async def handle(state: AgentState) -> AgentState:
         allow_app_changes=state.allow_app_changes,
         form_spec_summary=state.form_spec.to_summary() if state.form_spec else None,
         developer=state.developer,
-        org=state.org,
         app_version_profile=app_version_profile,
     )
     skills = discover_skills()
@@ -223,7 +222,7 @@ async def handle(state: AgentState) -> AgentState:
         repo_path=state.repo_path,
         allow_app_changes=state.allow_app_changes,
         developer=state.developer,
-        org=state.org,
+        repo_owner=state.repo_owner,
         designer_api_key=state.designer_api_key,
         permission_requester=(
             None if state.allow_app_changes else lambda action: permission_broker.request(state.session_id, action)
