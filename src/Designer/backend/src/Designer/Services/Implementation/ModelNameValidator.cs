@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
@@ -71,11 +72,9 @@ public class ModelNameValidator : IModelNameValidator
             Path.Combine(repository.GetRelativeModelFolder(), fileName)
         );
 
-        bool alreadyHasTypeName = CheckIfAppAlreadyHasTypeName(applicationMetadata, modelName);
-
-        if (!fileExistsByRelativePath && alreadyHasTypeName)
+        if (!fileExistsByRelativePath)
         {
-            throw new ModelWithTheSameBaseTypeAlreadyExists();
+            ValidateTypeNameForNewModel(applicationMetadata, modelName);
         }
     }
 
@@ -114,20 +113,24 @@ public class ModelNameValidator : IModelNameValidator
 
         var applicationMetadata = await repository.GetApplicationMetadata();
 
-        bool alreadyHasTypeName = CheckIfAppAlreadyHasTypeName(applicationMetadata, modelName);
-
-        if (alreadyHasTypeName)
-        {
-            throw new ModelWithTheSameBaseTypeAlreadyExists();
-        }
+        ValidateTypeNameForNewModel(applicationMetadata, modelName);
     }
 
-    private bool CheckIfAppAlreadyHasTypeName(ApplicationMetadata metadata, string modelName)
+    public void ValidateTypeNameForNewModel(ApplicationMetadata applicationMetadata, string typeName)
     {
-        return metadata.DataTypes.Any(d =>
-            d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}"
-            || d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}.{modelName}"
+        DataType? dataType = applicationMetadata.DataTypes.FirstOrDefault(d =>
+            d.AppLogic?.ClassRef == $"Altinn.App.Models.{typeName}"
+            || d.AppLogic?.ClassRef == $"Altinn.App.Models.{typeName}.{typeName}"
         );
+        if (dataType is not null)
+        {
+            throw new ModelWithTheSameBaseTypeAlreadyExists(
+                $"The C# class {dataType.AppLogic?.ClassRef} already belongs to the data type '{dataType.Id}'. "
+                    + "A new data model needs a root type name that no other data model uses. In a JSON schema, "
+                    + "the root type is the $defs or definitions type that the root refers to with $ref, or "
+                    + "@xsdRootElement when the root has its own properties."
+            );
+        }
     }
 
     private string SerializeJsonSchema(JsonSchema jsonSchema)
