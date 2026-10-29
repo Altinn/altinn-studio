@@ -4,6 +4,8 @@
 !common/dotnet/Altinn.Studio.Common/**
 !common/dotnet/Altinn.Studio.Common.Telemetry/**
 !Runtime/workflow-engine/**
+**/tests/
+!Runtime/workflow-engine/tests/WorkflowEngine.TestApp/
 
 # Build outputs, including EF/MSBuild-generated literal backslash dirs on macOS
 # such as `bin\Debug`, must stay out of the Docker build context.
@@ -16,14 +18,10 @@
 **/readme.*
 **/README.*
 **/docs/
-**/tests/
-!**/tests/WorkflowEngine.TestApp/
 *.sln.DotSettings*
 *.slnx
 **/.DS_Store
 **/.csharpier*
 
-Directory.*.props
 **/Directory.*.props
-!Directory.Packages.props
-!**/Directory.Packages.props
+!Runtime/workflow-engine/Directory.Packages.props

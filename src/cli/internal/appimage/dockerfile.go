@@ -77,6 +77,45 @@ func generateDockerfile(runRepo repoContext) (string, error) {
 	return b.String(), nil
 }
 
+// generatedDockerignoreExcludes keep the checkout's build output and tool state out of the copied directories.
+const generatedDockerignoreExcludes = `**/.DS_Store
+**/.cache
+**/.config
+**/.git
+**/.idea
+**/.vscode
+**/bin
+**/obj
+**/node_modules
+`
+
+// generateDockerignore returns the allowlist for the generated Dockerfile, so that the src/ context holds only what
+// the Dockerfile copies.
+func generateDockerignore(runRepo repoContext) (string, error) {
+	var b strings.Builder
+	b.WriteString("**\n")
+	for _, file := range slices.Concat(runRepo.ProjectFiles, runRepo.MetadataFiles) {
+		rel, err := relPathWithin(runRepo.BuildRoot, file)
+		if err != nil {
+			return "", err
+		}
+		b.WriteString("!" + rel + "\n")
+	}
+	dirs := runRepo.SourceDirs
+	if configDir := filepath.Join(runRepo.AppRoot, "App", "config"); dirExists(configDir) {
+		dirs = append(slices.Clip(dirs), configDir)
+	}
+	for _, dir := range dirs {
+		rel, err := relPathWithin(runRepo.BuildRoot, dir)
+		if err != nil {
+			return "", err
+		}
+		b.WriteString("!" + rel + "/**\n")
+	}
+	b.WriteString(generatedDockerignoreExcludes)
+	return b.String(), nil
+}
+
 func appDockerfileGeneratedStages(appRoot string) (string, string, error) {
 	dockerfile := filepath.Join(appRoot, "Dockerfile")
 	//nolint:gosec // G304: appRoot comes from repository detection and is constrained before use.

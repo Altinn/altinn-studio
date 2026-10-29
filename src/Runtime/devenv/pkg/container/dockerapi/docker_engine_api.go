@@ -1126,8 +1126,7 @@ func runIndeterminateBuild(
 	binary, contextPath, dockerfile, tag string,
 	onProgress types.ProgressHandler,
 ) error {
-	args := []string{"build", "-t", tag, "-f", dockerfile, contextPath}
-	cmd := processutil.CommandContext(ctx, binary, args...)
+	cmd := processutil.CommandContext(ctx, binary, types.PodmanBuildArgs(contextPath, dockerfile, tag)...)
 
 	reportProgress(onProgress, types.ProgressUpdate{
 		Message:       "build started",

@@ -3,6 +3,8 @@ package types
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -116,6 +118,22 @@ func (p ContainerPlatform) PushArgs(image string) []string {
 		args = append(args, "--tls-verify=false")
 	}
 	return append(args, image)
+}
+
+// PodmanBuildArgs returns the arguments for building an image with Podman. Docker uses the Dockerfile's own
+// <Dockerfile>.dockerignore over the context's .dockerignore. Podman uses it only when the context has none, and remote
+// Podman not at all for a Dockerfile outside the context, so the arguments pass it explicitly.
+func PodmanBuildArgs(contextPath, dockerfile, tag string) []string {
+	args := []string{"build", "-t", tag, "-f", dockerfile}
+	ignoreFile := dockerfile
+	if !filepath.IsAbs(ignoreFile) {
+		ignoreFile = filepath.Join(contextPath, ignoreFile)
+	}
+	ignoreFile += ".dockerignore"
+	if _, err := os.Stat(ignoreFile); err == nil {
+		args = append(args, "--ignorefile", ignoreFile)
+	}
+	return append(args, contextPath)
 }
 
 // IsLocalRegistryReference reports whether the image points at the local plain-http registry used by devenv.

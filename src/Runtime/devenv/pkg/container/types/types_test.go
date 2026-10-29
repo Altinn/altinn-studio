@@ -1,6 +1,8 @@
 package types
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -146,6 +148,66 @@ func TestContainerPlatformPushArgs(t *testing.T) {
 			got := tt.platform.PushArgs(tt.image)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("%v.PushArgs(%q) = %#v, want %#v", tt.platform, tt.image, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPodmanBuildArgs(t *testing.T) {
+	contextDir := t.TempDir()
+	dockerfileDir := t.TempDir()
+	withIgnore := filepath.Join(dockerfileDir, "app.Dockerfile")
+	if err := os.WriteFile(withIgnore+".dockerignore", []byte("**\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(
+		filepath.Join(contextDir, "Dockerfile.proxy.dockerignore"),
+		[]byte("**\n"),
+		0o600,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name       string
+		dockerfile string
+		want       []string
+	}{
+		{
+			name:       "Dockerfile with its own ignore file",
+			dockerfile: withIgnore,
+			want: []string{
+				"build", "-t", "app:dev", "-f", withIgnore,
+				"--ignorefile", withIgnore + ".dockerignore", contextDir,
+			},
+		},
+		{
+			name:       "relative Dockerfile resolves its ignore file in the context",
+			dockerfile: "Dockerfile.proxy",
+			want: []string{
+				"build", "-t", "app:dev", "-f", "Dockerfile.proxy",
+				"--ignorefile", filepath.Join(contextDir, "Dockerfile.proxy.dockerignore"), contextDir,
+			},
+		},
+		{
+			name:       "Dockerfile without its own ignore file",
+			dockerfile: filepath.Join(dockerfileDir, "Dockerfile"),
+			want: []string{
+				"build",
+				"-t",
+				"app:dev",
+				"-f",
+				filepath.Join(dockerfileDir, "Dockerfile"),
+				contextDir,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := PodmanBuildArgs(contextDir, tt.dockerfile, "app:dev")
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PodmanBuildArgs() = %#v, want %#v", got, tt.want)
 			}
 		})
 	}

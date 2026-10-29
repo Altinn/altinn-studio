@@ -23,7 +23,6 @@
 **/.DS_Store
 **/.csharpier*
 
-Directory.*.props
 **/Directory.*.props
-!Directory.Packages.props
-!**/Directory.Packages.props
+!Runtime/workflow-engine/Directory.Packages.props
+!Runtime/workflow-engine-app/Directory.Packages.props
