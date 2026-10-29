@@ -97,10 +97,17 @@ describe('auxiliaryWorkflowName', () => {
 });
 
 describe('groupTransitions', () => {
-  const labelsOf = (source?: string, target?: string) => ({
-    ...(source ? { processNextSourceId: source } : {}),
-    ...(target ? { processNextTargetId: target } : {}),
-  });
+  // The labels as the app runtime writes them. `source` is the visit a transition left, as
+  // `task:flow`; `target` is the task it enters.
+  const labelsOf = (source?: string, target?: string): Record<string, string> => {
+    const [sourceTask, sourceFlow] = source?.split(':') ?? [];
+    return {
+      ...(sourceTask
+        ? { processNextSourceTask: sourceTask, processNextSourceFlow: sourceFlow }
+        : {}),
+      ...(target ? { processNextTargetTask: target } : {}),
+    };
+  };
   const transition = (
     id: string,
     source: string | undefined,
@@ -114,11 +121,11 @@ describe('groupTransitions', () => {
       steps: [step(0, 'Completed', { operationId: 'EndTask' }), step(1, 'Completed')],
       ...extra,
     });
-  const acquire = (id: string, source: string) =>
+  const acquire = (id: string, source: string, target?: string) =>
     workflow('Completed', {
       databaseId: id,
       operationId: 'Process next: Mark instance as processing',
-      labels: labelsOf(source),
+      labels: labelsOf(source, target),
       steps: [step(0, 'Completed', { operationId: 'AcquireProcessingStatus' })],
     });
   const receiver = (id: string, target: string, extra: Partial<WorkflowStatus> = {}) =>
@@ -132,7 +139,7 @@ describe('groupTransitions', () => {
   const auxiliaryWorkflow = (id: string, source?: string, target?: string) =>
     workflow('Completed', {
       databaseId: id,
-      operationId: 'Process next side-effects: · MovedToAltinnEvent',
+      operationId: 'Process next auxiliary: · MovedToAltinnEvent',
       labels: labelsOf(source, target),
       role: 'Auxiliary',
     });
@@ -140,19 +147,47 @@ describe('groupTransitions', () => {
 
   it('shows the workflow that takes the instance and the transition it was for as one row', () => {
     const groups = groupTransitions([
-      acquire('a1', 'Form:2'),
-      transition('t1', 'Form:2', 'Verify:3'),
+      acquire('a1', 'Form:2', 'Verify'),
+      transition('t1', 'Form:2', 'Verify'),
     ]);
     expect(groups).toHaveLength(1);
     expect(groups[0].workflow.databaseId).toBe('t1');
     expect(ids(groups[0].members)).toEqual(['a1', 't1']);
   });
 
+  it('nests the auxiliary workflows under the transition that spawned them', () => {
+    const groups = groupTransitions([
+      transition('t0', undefined, 'Form'),
+      auxiliaryWorkflow('s0', undefined, 'Form'),
+      auxiliaryWorkflow('s0b', undefined, 'Form'),
+      acquire('a1', 'Form:1', 'Verify'),
+      transition('t1', 'Form:1', 'Verify'),
+      auxiliaryWorkflow('s1', 'Form:1', 'Verify'),
+    ]);
+    expect(groups.map((group) => ids(group.members))).toEqual([['t0'], ['a1', 't1']]);
+    expect(groups.map((group) => ids(group.auxiliaryWorkflows))).toEqual([['s0', 's0b'], ['s1']]);
+  });
+
+  it('tells two visits to the same task apart by their flow number', () => {
+    const groups = groupTransitions([
+      acquire('a1', 'Form:1', 'Verify'),
+      transition('t1', 'Form:1', 'Verify'),
+      transition('t2', 'Verify:2', 'Form'),
+      acquire('a3', 'Form:3', 'Verify'),
+      transition('t3', 'Form:3', 'Verify'),
+      auxiliaryWorkflow('s3', 'Form:3', 'Verify'),
+      // Created late, but it belongs to the first visit.
+      auxiliaryWorkflow('s1', 'Form:1', 'Verify'),
+    ]);
+    expect(groups.map((group) => ids(group.members))).toEqual([['a1', 't1'], ['t2'], ['a3', 't3']]);
+    expect(groups.map((group) => ids(group.auxiliaryWorkflows))).toEqual([['s1'], [], ['s3']]);
+  });
+
   it('adds the stages of the task a transition entered that ran as workflows of their own', () => {
     const groups = groupTransitions([
-      transition('t1', 'Verify:3', 'Approval:4'),
-      receiver('r1', 'Approval:4'),
-      auxiliaryWorkflow('s1', 'Verify:3', 'Approval:4'),
+      transition('t1', 'Verify:3', 'Approval'),
+      receiver('r1', 'Approval'),
+      auxiliaryWorkflow('s1', 'Verify:3', 'Approval'),
     ]);
     expect(groups).toHaveLength(1);
     expect(ids(groups[0].members)).toEqual(['t1', 'r1']);
@@ -161,15 +196,15 @@ describe('groupTransitions', () => {
 
   it('keeps the transitions the process makes on its own as rows of their own', () => {
     const groups = groupTransitions([
-      acquire('a1', 'Form:2'),
-      transition('t1', 'Form:2', 'Verify:3'),
-      transition('t2', 'Verify:3', 'Approval:4'),
-      transition('t3', 'Approval:4', 'Pdf:5'),
+      acquire('a1', 'Form:2', 'Verify'),
+      transition('t1', 'Form:2', 'Verify'),
+      transition('t2', 'Verify:3', 'Approval'),
+      transition('t3', 'Approval:4', 'Pdf'),
     ]);
     expect(groups.map((group) => ids(group.members))).toEqual([['a1', 't1'], ['t2'], ['t3']]);
   });
 
-  it('files the auxiliary workflows of ending the process by the task the transition left', () => {
+  it('files the auxiliary workflows of ending the process by the visit the transition left', () => {
     const groups = groupTransitions([
       acquire('a1', 'Sign:6'),
       transition('t1', 'Sign:6', undefined),
@@ -182,23 +217,23 @@ describe('groupTransitions', () => {
 
   it('starts a row with the transition that starts the process, which has no source', () => {
     const groups = groupTransitions([
-      transition('t0', undefined, 'Form:2'),
-      auxiliaryWorkflow('s0', undefined, 'Form:2'),
+      transition('t0', undefined, 'Form'),
+      auxiliaryWorkflow('s0', undefined, 'Form'),
     ]);
     expect(groups.map((group) => ids(group.members))).toEqual([['t0']]);
     expect(ids(groups[0].auxiliaryWorkflows)).toEqual(['s0']);
   });
 
   it('keeps a workflow that takes the instance as a row of its own until its transition comes', () => {
-    const groups = groupTransitions([acquire('a1', 'Form:2')]);
+    const groups = groupTransitions([acquire('a1', 'Form:2', 'Verify')]);
     expect(groups.map((group) => ids(group.members))).toEqual([['a1']]);
     expect(groups[0].workflow.databaseId).toBe('a1');
   });
 
   it('keeps an auxiliary workflow in place when its transition is not in the list or it has no label', () => {
     const groups = groupTransitions([
-      auxiliaryWorkflow('s0', 'Form:2', 'Verify:3'),
-      transition('t1', 'Verify:3', 'Approval:4'),
+      auxiliaryWorkflow('s0', 'Form:2', 'Verify'),
+      transition('t1', 'Verify:3', 'Approval'),
       auxiliaryWorkflow('s1'),
     ]);
     expect(ids(groups.map((group) => group.workflow))).toEqual(['s0', 't1', 's1']);
@@ -207,16 +242,16 @@ describe('groupTransitions', () => {
 
   it('speaks for the workflow the row stopped at, and covers them all in its duration', () => {
     const [group] = groupTransitions([
-      { ...acquire('a1', 'Form:2'), updatedAt: '2026-08-02T09:00:01Z' },
-      { ...transition('t1', 'Form:2', 'Approval:4'), updatedAt: '2026-08-02T09:00:02Z' },
-      receiver('r1', 'Approval:4', { overallStatus: 'Held' }),
+      { ...acquire('a1', 'Form:2', 'Approval'), updatedAt: '2026-08-02T09:00:01Z' },
+      { ...transition('t1', 'Form:2', 'Approval'), updatedAt: '2026-08-02T09:00:02Z' },
+      receiver('r1', 'Approval', { overallStatus: 'Held' }),
     ]);
     expect(groupFocusWorkflow(group).databaseId).toBe('r1');
     expect(groupElapsed(group)).toBeUndefined();
 
     const [settled] = groupTransitions([
-      { ...acquire('a1', 'Form:2'), updatedAt: '2026-08-02T09:00:01Z' },
-      { ...transition('t1', 'Form:2', 'Verify:3'), updatedAt: '2026-08-02T09:00:03Z' },
+      { ...acquire('a1', 'Form:2', 'Verify'), updatedAt: '2026-08-02T09:00:01Z' },
+      { ...transition('t1', 'Form:2', 'Verify'), updatedAt: '2026-08-02T09:00:03Z' },
     ]);
     expect(groupFocusWorkflow(settled).databaseId).toBe('t1');
     expect(groupElapsed(settled)).toBe(3_000);
