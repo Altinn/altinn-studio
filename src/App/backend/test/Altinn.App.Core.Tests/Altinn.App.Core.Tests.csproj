@@ -80,6 +80,14 @@
   </ItemGroup>
 
   <!--
+    The provisioned Maskinporten file's contract, shared with the operator's and studioctl's tests, which test
+    their writers against the same examples. See Features/Maskinporten/ProvisionedFileContractTests.cs.
+  -->
+  <ItemGroup>
+    <None Include="../../../../common/provisioned-secrets-contract/*.json" LinkBase="ProvisionedSecretsContract" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
     Workflow-engine wire-contract drift guard. The engine owns the contract; these two files are
     consumed (not copied) directly from the engine host's test project so there is a single source of
     truth in the monorepo. The shared describer is compiled in; the engine's committed contract

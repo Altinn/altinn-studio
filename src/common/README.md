@@ -11,6 +11,8 @@ Code that several product areas share, grouped by stack. Code that only one area
 - [go](go/README.md) has the OpenTelemetry setup that Go services share.
 - [expression-tests](expression-tests/README.md) has the expression tests that both the App frontend and the App
   backend run.
+- [provisioned-secrets-contract](provisioned-secrets-contract/README.md) has the example Maskinporten files that the
+  operator, studioctl and the App backend are tested against, so that the writers and the reader agree.
 - [ts](ts/README.md) has the TypeScript and React libraries for app forms.
 
 The products build and ship separately, so a change here can break several of them. Build and test each product that
