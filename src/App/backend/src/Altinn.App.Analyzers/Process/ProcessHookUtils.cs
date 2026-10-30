@@ -59,7 +59,7 @@ internal static class ProcessHookUtils
         var reportedComparisons = new HashSet<Location>();
         foreach (var hook in taskHooks)
         {
-            if (hook.GetMembers(ShouldRunForTask).OfType<IMethodSymbol>().FirstOrDefault() is not { } interfaceMethod)
+            if (ShouldRunForTaskOf(hook) is not { } interfaceMethod)
             {
                 continue;
             }
@@ -122,6 +122,17 @@ internal static class ProcessHookUtils
             }
         }
     }
+
+    /// <summary>
+    /// The hook's <c>ShouldRunForTask</c>, declared on the hook interface itself or on an interface it extends, such as
+    /// a base shared by the task hooks.
+    /// </summary>
+    private static IMethodSymbol? ShouldRunForTaskOf(INamedTypeSymbol hook) =>
+        new[] { hook }
+            .Concat(hook.AllInterfaces)
+            .SelectMany(type => type.GetMembers(ShouldRunForTask))
+            .OfType<IMethodSymbol>()
+            .FirstOrDefault();
 
     private static IEnumerable<Location> OtherLocations(List<HookRegistration> registrations, int primary) =>
         registrations.Where((_, index) => index != primary).Select(registration => registration.Location);

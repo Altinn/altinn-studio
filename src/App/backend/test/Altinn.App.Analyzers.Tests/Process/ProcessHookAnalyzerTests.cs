@@ -267,6 +267,51 @@ public class ProcessHookAnalyzerTests
         Assert.Equal(["Task_2", "Task_3"], OverlappingTasks(diagnostics));
     }
 
+    [Fact]
+    public async Task A_ShouldRunForTask_Inherited_From_A_Base_Interface_Is_Read()
+    {
+        // Stand-ins for the hook interfaces, in place of Altinn.App.Core's, give the task hooks a shared base that
+        // declares ShouldRunForTask.
+        var diagnostics = await Analyze(
+            """
+            namespace Altinn.App.Core.Features.Process
+            {
+                public interface IOnTaskLifecycleHandler
+                {
+                    bool ShouldRunForTask(string taskId);
+                }
+
+                public interface IOnTaskStartingHandler : IOnTaskLifecycleHandler { }
+
+                public interface IOnTaskEndingHandler : IOnTaskLifecycleHandler { }
+
+                public interface IOnTaskAbandoningHandler : IOnTaskLifecycleHandler { }
+
+                public interface IOnProcessEndedHandler { }
+            }
+
+            public sealed class Everywhere : IOnTaskStartingHandler
+            {
+                public bool ShouldRunForTask(string taskId) => true;
+            }
+
+            public sealed class Explicit : IOnTaskStartingHandler
+            {
+                bool IOnTaskLifecycleHandler.ShouldRunForTask(string taskId) => taskId is "Task_2" or "Task_9";
+            }
+
+            """
+                + Registrations(
+                    "services.AddTransient<IOnTaskStartingHandler, Everywhere>();",
+                    "services.AddTransient<IOnTaskStartingHandler, Explicit>();"
+                ),
+            referenceAltinn: false
+        );
+
+        Assert.Equal(["ALTINNAPP1029", "ALTINNAPP1027"], diagnostics.Select(d => d.Id));
+        Assert.Equal(["Task_2"], OverlappingTasks(diagnostics));
+    }
+
     [Theory]
     [InlineData("services.AddTransient<IOnProcessEndedHandler, Notify>();", true)]
     [InlineData("services.AddTransient<IOnProcessEndedHandler, Archive>();", true)]
@@ -344,7 +389,8 @@ public class ProcessHookAnalyzerTests
     private static async Task<ImmutableArray<Diagnostic>> Analyze(
         string source,
         string? process = Process,
-        bool isAltinnApp = true
+        bool isAltinnApp = true,
+        bool referenceAltinn = true
     )
     {
         var references = AppDomain
@@ -355,6 +401,9 @@ public class ProcessHookAnalyzerTests
             // Where the factories' IServiceProvider is forwarded from.
             .Append(Assembly.Load("System.ComponentModel"))
             .Distinct()
+            .Where(assembly =>
+                referenceAltinn || assembly.GetName().Name?.StartsWith("Altinn.", StringComparison.Ordinal) != true
+            )
             .Select(assembly => MetadataReference.CreateFromFile(assembly.Location));
 
         var compilation = CSharpCompilation.Create(
