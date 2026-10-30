@@ -27,9 +27,7 @@ public class FrontendEnvironmentController : ControllerBase
         _studioOidcLoginSettings = studioOidcLoginSettings;
     }
 
-    // Cached like the static file it replaces: the values only change when Designer is redeployed.
     [HttpGet("env.json")]
-    [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
     [ProducesResponseType<FrontendEnvironmentResponse>(StatusCodes.Status200OK)]
     public ActionResult<FrontendEnvironmentResponse> GetEnvironment() =>
         new FrontendEnvironmentResponse(

@@ -41,6 +41,8 @@ public class GetEnvironmentTests
         using HttpResponseMessage response = await anonymousClient.GetAsync(Url);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        // Not cacheable, so that browsers pick up changed settings on their next page load.
+        Assert.Null(response.Headers.CacheControl);
         JsonNode environment = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
         Assert.Equal("InstrumentationKey=test", environment["aiConnectionString"]?.GetValue<string>());
         Assert.Equal("phc_test", environment["postHogApiKey"]?.GetValue<string>());
