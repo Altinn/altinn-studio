@@ -54,6 +54,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
 
+# A deployed app gets these platform links from the platform, and studioctl leaves them unset on localtest, where the
+# app frontend shows them as not configured. We set them here so the links get the styling a user sees. No test
+# follows them, so localtest's start page is enough.
+env:
+  PlatformFrontendSettings__AllFormsUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflateProfileUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflatePartiesUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__AccessManagementUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__RolesAndRightsHelpUrl: http://local.altinn.cloud:8000/
+
 jobs:
   build-frontend:
     if: |
