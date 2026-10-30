@@ -106,13 +106,16 @@ export function httpResponse<T>(data: T): AxiosResponse<T> {
   return { data, status: 200, statusText: 'OK', headers: {}, config: { headers: new AxiosHeaders() } };
 }
 
+// Mock postal codes data for testing. Uses the indexed format where:
+// - places array contains unique place names (index 0 is null for "not found")
+// - mapping array maps zip code (as index) to places array index
 const defaultPostalCodesMock = (() => {
   const places: (string | null)[] = [null, 'OSLO', 'BERGEN', 'FREDRIKSTAD', 'KARDEMOMME BY'];
-  const mapping: number[] = Array.from({ length: 4610 }, () => 0);
-  mapping[1] = 1;
-  mapping[2] = 2;
-  mapping[1613] = 3;
-  mapping[4609] = 4;
+  const mapping = new Array(4610).fill(0);
+  mapping[1] = 1; // 0001 -> OSLO
+  mapping[2] = 2; // 0002 -> BERGEN
+  mapping[1613] = 3; // 1613 -> FREDRIKSTAD
+  mapping[4609] = 4; // 4609 -> KARDEMOMME BY
   return { places, mapping };
 })();
 
@@ -122,18 +125,18 @@ export interface QueryOverrides {
 }
 
 const defaultQueryMocks: AppQueries = {
-  fetchFormData: async () => {
-    throw new Error('Override fetchFormData in this test');
-  },
-  fetchLayouts: async () => ({}),
   fetchLogo: async () => getLogoMock(),
-  fetchLayoutSchema: async () => ({}),
-  fetchPostalCodes: async () => defaultPostalCodesMock,
   fetchRefreshJwtToken: async () => ({}),
+  fetchFormData: async () => {
+    throw new Error('Not implemented/overridden in test');
+  },
   fetchOptions: async () => ({ data: [], headers: {} }),
   fetchDataList: async () => getDataListMock(),
+  fetchLayouts: async () => ({}),
+  fetchLayoutSchema: async () => ({}),
   fetchPaymentInformationForTask: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
+  fetchPostalCodes: async () => defaultPostalCodesMock,
   fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
   fetchFormBootstrapForStateless: async () => getFormBootstrapMock(),
   fetchExternalApi: async () => {
@@ -476,7 +479,8 @@ const renderBase = async ({
         const queryCalls: string[] = [];
         for (const [name, fn] of Object.entries(finalQueries)) {
           for (const args of fn.mock.calls) {
-            queryCalls.push(`- ${name}(${JSON.stringify(args)})`);
+            const argsAsStr = args.map((arg) => JSON.stringify(arg)).join(', ');
+            queryCalls.push(`- ${name}(${argsAsStr})`);
           }
         }
 
