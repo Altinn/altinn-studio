@@ -156,7 +156,9 @@ public class ImageController : ControllerBase
 
     private static string GetFileNameFromUploadedFile(IFormFile image)
     {
-        return ContentDispositionHeaderValue.Parse(new StringSegment(image.ContentDisposition)).FileName.ToString();
+        return HeaderUtilities
+            .RemoveQuotes(ContentDispositionHeaderValue.Parse(new StringSegment(image.ContentDisposition)).FileName)
+            .ToString();
     }
 
     private bool IsValidImageContentType(string contentType)

@@ -128,6 +128,7 @@ public class SourceControlService(
                 try
                 {
                     Tree head = repo.Head.Tip.Tree;
+                    Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     MergeResult mergeResult = Commands.Pull(
                         repo,
                         self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
@@ -852,6 +853,7 @@ public class SourceControlService(
 
                 try
                 {
+                    Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     RebaseResult rebaseResult = repo.Rebase.Start(repo.Head, upstream, null, identity, rebaseOptions);
                     rebaseStatus = rebaseResult.Status;
 
@@ -1025,6 +1027,7 @@ public class SourceControlService(
                     }
                 }
 
+                Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                 Commands.Checkout(repo, branch);
             }
         );
@@ -1045,9 +1048,11 @@ public class SourceControlService(
 
                 Branch branch = repo.Branches.Single(branch => branch.FriendlyName == ctx.featureBranch);
                 LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.editingContext.Developer);
+                Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                 MergeResult result = repo.Merge(branch, signature);
                 if (result.Status == MergeStatus.Conflicts)
                 {
+                    Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     repo.Reset(ResetMode.Hard, repo.Head.Tip);
                     throw new InvalidOperationException("Merge failed; repository reset to pre-merge HEAD.");
                 }
@@ -1309,6 +1314,7 @@ public class SourceControlService(
 
                 using (var repo = new LibGit2Sharp.Repository(localPath))
                 {
+                    Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     repo.Reset(ResetMode.Hard, repo.Head.Tip);
                     repo.RemoveUntrackedFiles();
                 }

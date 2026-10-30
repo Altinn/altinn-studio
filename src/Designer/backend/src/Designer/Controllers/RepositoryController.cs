@@ -764,22 +764,25 @@ public class RepositoryController : ControllerBase
         var zipFileName = $"{appContext.Org}-{appContext.Repo}-{zipType}.zip";
         var tempAltinnFolderPath = Path.Combine(Path.GetTempPath(), "altinn");
         Directory.CreateDirectory(tempAltinnFolderPath);
-        var zipFilePath = Path.Combine(tempAltinnFolderPath, zipFileName);
+        var zipFilePath = Path.Combine(tempAltinnFolderPath, Path.GetRandomFileName());
 
         var fileStream = new FileStream(
             zipFilePath,
-            FileMode.Create,
+            FileMode.CreateNew,
             FileAccess.ReadWrite,
             FileShare.Read,
             512,
             FileOptions.DeleteOnClose
         );
-        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true))
+        try
         {
+            using var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true);
             IEnumerable<string> changedFiles;
             if (full)
             {
-                changedFiles = GetFilesInDirectory(appRoot, new DirectoryInfo(appRoot));
+                changedFiles = RepositoryFileAccess
+                    .GetFiles(appRoot, appRoot, recursive: true)
+                    .Select(file => Path.GetRelativePath(appRoot, file));
             }
             else
             {
@@ -791,33 +794,18 @@ public class RepositoryController : ControllerBase
 
             foreach (var changedFile in changedFiles)
             {
-                archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
+                string filePath = RepositoryFileAccess.Validate(appRoot, Path.Join(appRoot, changedFile));
+                archive.CreateEntryFromFile(filePath, changedFile);
             }
+        }
+        catch
+        {
+            fileStream.Dispose();
+            throw;
         }
 
         fileStream.Seek(0, SeekOrigin.Begin);
 
         return File(fileStream, "application/zip", zipFileName);
-    }
-
-    private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
-    {
-        var ret = new List<string>();
-        foreach (var directory in currentDir.EnumerateDirectories())
-        {
-            if (directory.Name == ".git")
-            {
-                continue;
-            }
-
-            ret.AddRange(GetFilesInDirectory(appRoot, directory));
-        }
-
-        foreach (var file in currentDir.GetFiles())
-        {
-            ret.Add(file.FullName.Replace('\\', '/').Replace(appRoot, string.Empty));
-        }
-
-        return ret;
     }
 }
