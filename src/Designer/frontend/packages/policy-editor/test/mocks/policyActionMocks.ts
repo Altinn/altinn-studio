@@ -13,21 +13,17 @@ const mockActionTitle4: string = 'Action 4';
 export const mockAction1: PolicyAction = {
   actionId: mockActionId1,
   actionTitle: mockActionTitle1,
-  actionDescription: null,
 };
 export const mockAction2: PolicyAction = {
   actionId: mockActionId2,
   actionTitle: mockActionTitle2,
-  actionDescription: null,
 };
 export const mockAction3: PolicyAction = {
   actionId: mockActionId3,
   actionTitle: mockActionTitle3,
-  actionDescription: null,
 };
 export const mockAction4: PolicyAction = {
   actionId: mockActionId4,
   actionTitle: mockActionTitle4,
-  actionDescription: null,
 };
 export const mockActions: PolicyAction[] = [mockAction1, mockAction2, mockAction3, mockAction4];

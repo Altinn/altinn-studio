@@ -11,13 +11,13 @@ import { useResourcePolicyQuery, useSingleResourceQuery } from '../../hooks/quer
 import { useEditResourcePolicyMutation } from '../../hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import {
-  useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
   useResourceAccessPackagesQuery,
 } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { useGetAllAccessListsQuery } from '../../hooks/queries/useGetAllAccessListsQuery';
 import { getResourcePolicyRules, getResourceSubjects } from '../../utils/resourceUtils';
+import { POLICY_ACTIONS } from '@altinn/policy-editor/actions';
 
 export type PolicyEditorPageProps = {
   showAllErrors: boolean;
@@ -57,7 +57,7 @@ export const PolicyEditorPage = ({
     org,
     isConsentResource,
   );
-  const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(org, app);
+  const actionData = POLICY_ACTIONS;
   const { data: subjectData, isPending: isSubjectsPending } = useResourcePolicySubjectsQuery(
     org,
     app,
@@ -85,7 +85,6 @@ export const PolicyEditorPage = ({
   const displayContent = () => {
     if (
       isPolicyPending ||
-      isActionPending ||
       isSubjectsPending ||
       isLoadingAccessPackages ||
       isLoadingResource ||
