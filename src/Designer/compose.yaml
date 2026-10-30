@@ -95,8 +95,8 @@ services:
     depends_on:
       studio_repositories:
         condition: service_healthy
-      studio_designer_ready:
-        condition: service_completed_successfully
+      studio_designer:
+        condition: service_started
     extra_hosts:
       - 'host.docker.internal:host-gateway'
 
@@ -175,25 +175,6 @@ services:
       - 'host.docker.internal:host-gateway'
       - 'studio.localhost:host-gateway'
 
-  # Designer's healthcheck runs outside its container, because the chiseled image Designer is moving to has no shell
-  # or HTTP client to run one with. The services that need Designer running wait for this container to finish.
-  studio_designer_ready:
-    container_name: studio-designer-ready
-    image: docker.io/library/alpine:3.24
-    command:
-      - /bin/sh
-      - -c
-      - |
-        for attempt in $$(seq 1 90); do
-          wget -q -O /dev/null http://studio-designer:6000/health && exit 0
-          sleep 2
-        done
-        echo "Designer did not become healthy within three minutes" >&2
-        exit 1
-    depends_on:
-      studio_designer:
-        condition: service_started
-
   gitea_proxy:
     container_name: gitea-proxy
     image: gitea-proxy:${COMMIT:-latest}
@@ -223,8 +204,8 @@ services:
     depends_on:
       studio_repositories:
         condition: service_healthy
-      studio_designer_ready:
-        condition: service_completed_successfully
+      studio_designer:
+        condition: service_started
 
   studio_repositories:
     container_name: studio-repositories
