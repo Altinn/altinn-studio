@@ -18,6 +18,7 @@ import { ItemType } from '@altinn/ux-editor-v4/components/Properties/ItemType';
 import * as useDeletePageMutationModule from '../../../hooks/mutations/useDeletePageMutation';
 
 const mockPageName1: string = layout1NameMock;
+const mockPdfPageName: string = 'pdfPage';
 const mockSelectedLayoutSet = layoutSet1NameMock;
 
 vi.mock('../../../hooks/mutations/useDeletePageMutation', async () => ({
@@ -87,6 +88,29 @@ describe('PageAccordion', () => {
       app,
       mockSelectedLayoutSet,
       expectedPagesModel,
+    );
+  });
+
+  it.each([
+    ['groups', groupsPagesModelMock],
+    ['an order', pagesModelMock],
+  ])('deletes the PDF page with deletePage when the pages are in %s', async (_, pagesModel) => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockImplementation(vi.fn(() => true));
+    await render({ props: { pageId: mockPdfPageName, pageIsPdf: true }, pagesModel });
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete_item', { item: mockPdfPageName }),
+    });
+    await user.click(deleteButton);
+
+    expect(queriesMock.changePageGroups).not.toHaveBeenCalled();
+    expect(queriesMock.deletePage).toHaveBeenCalledTimes(1);
+    expect(queriesMock.deletePage).toHaveBeenCalledWith(
+      org,
+      app,
+      mockSelectedLayoutSet,
+      mockPdfPageName,
     );
   });
 
