@@ -6,16 +6,16 @@ using Altinn.Studio.Designer.Models;
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
 /// <summary>
-/// The interface for business logic service for kubernetes deployments
+/// Finds what runs of an app in each of the org's environments.
 /// </summary>
-public interface IKubernetesDeploymentsService
+public interface IRunningDeploymentsService
 {
     /// <summary>
-    /// Gets kubernetes deployments
+    /// Gets the deployments of an app that run in the org's environments
     /// </summary>
     /// <param name="org">Organization</param>
     /// <param name="app">Application name</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>List of kubernetes deployments for a specific app</returns>
-    Task<List<KubernetesDeployment>> GetAsync(string org, string app, CancellationToken ct);
+    /// <returns>One deployment for each environment the app runs in</returns>
+    Task<List<RunningDeployment>> GetAsync(string org, string app, CancellationToken ct);
 }

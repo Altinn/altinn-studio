@@ -118,7 +118,7 @@ public static class ServiceRegistration
         services.AddTransient<IContactPointsService, ContactPointsService>();
         services.AddTransient<IChatService, ChatService>();
         services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
-        services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
+        services.AddTransient<IRunningDeploymentsService, RunningDeploymentsService>();
         services.AddTransient<IAppResourcesService, AppResourcesService>();
         services.AddTransient<INotificationService, NotificationService>();
         services.AddSingleton<NotificationMetrics>();

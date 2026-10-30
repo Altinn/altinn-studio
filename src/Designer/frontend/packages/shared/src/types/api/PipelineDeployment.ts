@@ -1,5 +1,5 @@
 import { BuildResult, type Build } from '../Build';
-import type { KubernetesDeployment } from './KubernetesDeployment';
+import type { RunningDeployment } from './RunningDeployment';
 
 export interface PipelineDeployment {
   id: string;
@@ -119,10 +119,10 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
  */
 export const findRunningPipelineDeployment = (
   pipelineDeployments: PipelineDeployment[],
-  kubernetesDeployment: KubernetesDeployment | undefined,
+  runningDeployment: RunningDeployment | undefined,
 ): PipelineDeployment | undefined => {
-  if (kubernetesDeployment?.buildId) {
-    return pipelineDeployments.find((item) => item.build?.id === kubernetesDeployment.buildId);
+  if (runningDeployment?.buildId) {
+    return pipelineDeployments.find((item) => item.build?.id === runningDeployment.buildId);
   }
-  return pipelineDeployments.find((item) => item.tagName === kubernetesDeployment?.version);
+  return pipelineDeployments.find((item) => item.tagName === runningDeployment?.version);
 };

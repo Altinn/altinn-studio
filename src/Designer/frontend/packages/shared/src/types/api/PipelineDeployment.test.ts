@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { build, kubernetesDeployment, pipelineDeployment } from 'app-shared/mocks/mocks';
-import type { KubernetesDeployment } from './KubernetesDeployment';
+import { build, runningDeployment, pipelineDeployment } from 'app-shared/mocks/mocks';
+import type { RunningDeployment } from './RunningDeployment';
 import { findRunningPipelineDeployment, type PipelineDeployment } from './PipelineDeployment';
 
 const deploy = (buildId: string, tagName: string): PipelineDeployment => ({
@@ -9,8 +9,8 @@ const deploy = (buildId: string, tagName: string): PipelineDeployment => ({
   build: { ...build, id: buildId },
 });
 
-const running = (version: string, buildId?: string | null): KubernetesDeployment => ({
-  ...kubernetesDeployment,
+const running = (version: string, buildId?: string | null): RunningDeployment => ({
+  ...runningDeployment,
   version,
   buildId,
 });

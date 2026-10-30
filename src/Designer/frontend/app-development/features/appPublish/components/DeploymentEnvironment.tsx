@@ -7,12 +7,12 @@ import {
   getDeployStatus,
   type PipelineDeployment,
 } from 'app-shared/types/api/PipelineDeployment';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { RunningDeployment } from 'app-shared/types/api/RunningDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 
 export interface DeploymentEnvironmentProps {
   pipelineDeploymentList: PipelineDeployment[];
-  kubernetesDeployment: KubernetesDeployment;
+  runningDeployment: RunningDeployment;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
@@ -21,7 +21,7 @@ export interface DeploymentEnvironmentProps {
 
 export const DeploymentEnvironment = ({
   pipelineDeploymentList,
-  kubernetesDeployment,
+  runningDeployment,
   envName,
   isProduction,
   urlToApp,
@@ -34,10 +34,10 @@ export const DeploymentEnvironment = ({
     <div className={classes.container}>
       <div className={classes.header}>
         <DeploymentEnvironmentStatus
-          kubernetesDeployment={kubernetesDeployment}
+          runningDeployment={runningDeployment}
           isDeploymentInProgress={isDeploymentInProgress}
           lastPublishedDate={
-            findRunningPipelineDeployment(pipelineDeploymentList, kubernetesDeployment)?.build
+            findRunningPipelineDeployment(pipelineDeploymentList, runningDeployment)?.build
               ?.finished
           }
           envName={envName}
@@ -47,7 +47,7 @@ export const DeploymentEnvironment = ({
       </div>
       <div className={classes.content}>
         <Deploy
-          appDeployedVersion={kubernetesDeployment?.version}
+          appDeployedVersion={runningDeployment?.version}
           isDeploymentInProgress={isDeploymentInProgress}
           envName={envName}
           isProduction={isProduction}

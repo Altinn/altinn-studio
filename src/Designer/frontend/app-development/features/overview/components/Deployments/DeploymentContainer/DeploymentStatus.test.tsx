@@ -5,7 +5,7 @@ import { DeploymentStatus } from './DeploymentStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { kubernetesDeployment } from 'app-shared/mocks/mocks';
+import { runningDeployment } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
 
 // Test data
@@ -56,7 +56,7 @@ describe('DeploymentStatus', () => {
 
   it('shows alert when no app is deployed when app is decommissioned', async () => {
     render({
-      ...kubernetesDeployment,
+      ...runningDeployment,
       deploymentType: 'Decommission',
     });
 
@@ -65,7 +65,7 @@ describe('DeploymentStatus', () => {
 
   it('shows alert when the deployment status is unavailable', async () => {
     render({
-      kubernetesDeployment,
+      runningDeployment,
     });
 
     expect(screen.getByText(textMock('app_deployment.status.unavailable'))).toBeInTheDocument();
@@ -73,8 +73,8 @@ describe('DeploymentStatus', () => {
 
   it('shows alert when the deployment is successful', async () => {
     render({
-      kubernetesDeployment: {
-        ...kubernetesDeployment,
+      runningDeployment: {
+        ...runningDeployment,
         version: '1',
       },
     });

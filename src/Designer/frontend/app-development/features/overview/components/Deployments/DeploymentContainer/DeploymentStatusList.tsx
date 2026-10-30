@@ -3,7 +3,7 @@ import type { Environment } from 'app-shared/types/Environment';
 import { DeploymentStatus } from './DeploymentStatus';
 import classes from './DeploymentStatusList.module.css';
 import { getAppLink } from 'app-shared/ext-urls';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { RunningDeployment } from 'app-shared/types/api/RunningDeployment';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
 import {
   findRunningPipelineDeployment,
@@ -14,13 +14,13 @@ import { BuildResult } from 'app-shared/types/Build';
 
 export interface DeploymentStatusListProps {
   orgEnvironmentList: Environment[];
-  kubernetesDeploymentList: KubernetesDeployment[];
+  runningDeploymentList: RunningDeployment[];
   pipelineDeploymentList: PipelineDeployment[];
 }
 
 export const DeploymentStatusList = ({
   orgEnvironmentList,
-  kubernetesDeploymentList,
+  runningDeploymentList,
   pipelineDeploymentList,
 }: DeploymentStatusListProps) => {
   const { org, app } = useStudioEnvironmentParams();
@@ -31,7 +31,7 @@ export const DeploymentStatusList = ({
         const pipelineDeploymentEnvList = pipelineDeploymentList.filter(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
-        const kubernetesDeployment = kubernetesDeploymentList.find(
+        const runningDeployment = runningDeploymentList.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         const lastPipelineDeployment = pipelineDeploymentEnvList[0];
@@ -42,10 +42,10 @@ export const DeploymentStatusList = ({
           <DeploymentStatus
             deploymentType={lastPipelineDeployment?.deploymentType}
             key={orgEnvironment.name}
-            kubernetesDeployment={kubernetesDeployment}
+            runningDeployment={runningDeployment}
             isDeploymentInProgress={isDeploymentInProgress}
             lastPublishedDate={
-              findRunningPipelineDeployment(pipelineDeploymentEnvList, kubernetesDeployment)?.build
+              findRunningPipelineDeployment(pipelineDeploymentEnvList, runningDeployment)?.build
                 ?.finished
             }
             envName={orgEnvironment.name}

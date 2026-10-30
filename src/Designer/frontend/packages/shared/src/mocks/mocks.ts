@@ -27,7 +27,7 @@ import {
 } from 'app-shared/types/api/PipelineDeployment';
 import type { Environment } from 'app-shared/types/Environment';
 import type { Organization } from 'app-shared/types/Organization';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { RunningDeployment } from 'app-shared/types/api/RunningDeployment';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 
@@ -79,7 +79,7 @@ export const dataModelMetadataResponse: DataModelMetadataResponse = {
 
 export const deploymentsResponse: DeploymentsResponse = {
   pipelineDeploymentList: [],
-  kubernetesDeploymentList: [],
+  runningDeploymentList: [],
 };
 
 export const pipelineDeployment: PipelineDeployment = {
@@ -103,9 +103,8 @@ export const deployEvent: DeployEvent = {
   origin: 'Internal',
 };
 
-export const kubernetesDeployment: KubernetesDeployment = {
+export const runningDeployment: RunningDeployment = {
   envName: '',
-  release: '',
   version: '',
 };
 

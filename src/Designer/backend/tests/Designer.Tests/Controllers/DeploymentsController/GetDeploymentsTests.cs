@@ -25,8 +25,7 @@ public class GetDeployments
     : DbDesignerEndpointsTestsBase<GetDeployments>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock =
-        new Mock<IKubernetesDeploymentsService>();
+    private readonly Mock<IRunningDeploymentsService> _runningDeploymentsMock = new Mock<IRunningDeploymentsService>();
 
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/deployments";
@@ -37,7 +36,7 @@ public class GetDeployments
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_ => _kubernetesDeploymentsMock.Object);
+        services.AddSingleton(_ => _runningDeploymentsMock.Object);
     }
 
     [Theory]
@@ -47,13 +46,13 @@ public class GetDeployments
         // Arrange
         string uri = $"{VersionPrefix(org, app)}?sortDirection=Descending";
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
-        List<KubernetesDeployment> kubernetesDeployments = GetKubernetesDeploymentsList("completedDeployments.json");
+        List<RunningDeployment> runningDeployments = GetRunningDeploymentsList("completedDeployments.json");
 
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
 
-        _kubernetesDeploymentsMock
+        _runningDeploymentsMock
             .Setup(rs => rs.GetAsync(org, app, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(kubernetesDeployments);
+            .ReturnsAsync(runningDeployments);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -68,7 +67,7 @@ public class GetDeployments
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.PipelineDeploymentList.Count);
-        Assert.Equal(2, actual.KubernetesDeploymentList.Count);
+        Assert.Equal(2, actual.RunningDeploymentList.Count);
         foreach (DeploymentEntity entity in actual.PipelineDeploymentList)
         {
             Assert.Equal(DateTimeKind.Utc, entity.Created.Kind);
@@ -89,15 +88,15 @@ public class GetDeployments
         return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, JsonSerializerOptions);
     }
 
-    private List<KubernetesDeployment> GetKubernetesDeploymentsList(string filename)
+    private List<RunningDeployment> GetRunningDeploymentsList(string filename)
     {
-        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "KubernetesDeployments", filename);
+        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "RunningDeployments", filename);
         if (!File.Exists(path))
         {
             return null;
         }
 
         string deployments = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<List<KubernetesDeployment>>(deployments, JsonSerializerOptions);
+        return JsonSerializer.Deserialize<List<RunningDeployment>>(deployments, JsonSerializerOptions);
     }
 }

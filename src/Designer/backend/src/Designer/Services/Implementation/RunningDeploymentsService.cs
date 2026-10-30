@@ -13,23 +13,23 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 /// <summary>
-/// Implementation of the business logic
+/// Asks each environment's runtime gateway what runs of the app.
 /// </summary>
-public class KubernetesDeploymentsService : IKubernetesDeploymentsService
+public class RunningDeploymentsService : IRunningDeploymentsService
 {
     private readonly IEnvironmentsService _environmentsService;
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
     private readonly GeneralSettings _generalSettings;
-    private readonly ILogger<KubernetesDeploymentsService> _logger;
+    private readonly ILogger<RunningDeploymentsService> _logger;
 
     /// <summary>
     /// Constructor
     /// </summary>
-    public KubernetesDeploymentsService(
+    public RunningDeploymentsService(
         IEnvironmentsService environmentsService,
         IRuntimeGatewayClient runtimeGatewayClient,
         GeneralSettings generalSettings,
-        ILogger<KubernetesDeploymentsService> logger
+        ILogger<RunningDeploymentsService> logger
     )
     {
         _environmentsService = environmentsService;
@@ -39,7 +39,7 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
     }
 
     /// <inheritdoc/>
-    public async Task<List<KubernetesDeployment>> GetAsync(string org, string app, CancellationToken ct)
+    public async Task<List<RunningDeployment>> GetAsync(string org, string app, CancellationToken ct)
     {
         IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org, ct);
 
@@ -59,10 +59,9 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
                     return null;
                 }
 
-                return new KubernetesDeployment
+                return new RunningDeployment
                 {
                     EnvName = env.Name,
-                    Release = deployment.Release,
                     Version = deployment.ImageTag,
                     // Several Studio environments share a runtime cluster. Only a deploy from this one is in its history.
                     BuildId =
@@ -73,12 +72,12 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
             // the whole request either. Only the caller's cancellation is.
             catch (Exception e) when (!ct.IsCancellationRequested)
             {
-                _logger.LogError(e, "Could not reach environment {EnvName} for org {Org}.", env.Name, org);
+                _logger.LogError(e, "Could not get the running deployment in environment {EnvName}.", env.Name);
                 return null;
             }
         });
 
-        KubernetesDeployment?[] kubernetesDeployments = await Task.WhenAll(getDeploymentTasks);
-        return kubernetesDeployments.OfType<KubernetesDeployment>().ToList();
+        RunningDeployment?[] runningDeployments = await Task.WhenAll(getDeploymentTasks);
+        return runningDeployments.OfType<RunningDeployment>().ToList();
     }
 }

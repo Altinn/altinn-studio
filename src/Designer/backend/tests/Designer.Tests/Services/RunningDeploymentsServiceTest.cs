@@ -16,16 +16,16 @@ using Xunit;
 
 namespace Designer.Tests.Services;
 
-public class KubernetesDeploymentsServiceTest
+public class RunningDeploymentsServiceTest
 {
     private const string Org = "ttd";
     private const string App = "my-app";
 
     private readonly Mock<IEnvironmentsService> _environmentsService = new();
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClient = new();
-    private readonly KubernetesDeploymentsService _service;
+    private readonly RunningDeploymentsService _service;
 
-    public KubernetesDeploymentsServiceTest()
+    public RunningDeploymentsServiceTest()
     {
         _environmentsService
             .Setup(service => service.GetOrganizationEnvironments(Org, It.IsAny<CancellationToken>()))
@@ -38,19 +38,19 @@ public class KubernetesDeploymentsServiceTest
                 }
             );
 
-        _service = new KubernetesDeploymentsService(
+        _service = new RunningDeploymentsService(
             _environmentsService.Object,
             _runtimeGatewayClient.Object,
             new GeneralSettings { HostName = "altinn.studio" },
-            NullLogger<KubernetesDeploymentsService>.Instance
+            NullLogger<RunningDeploymentsService>.Instance
         );
     }
 
     [Fact]
     public async Task GetAsync_ReturnsTheVersionRunningInEachEnvironment_AndSkipsWhereTheAppDoesNotRun()
     {
-        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8", "1234", "prod", "42"));
-        SetupRunning("at22", new RunningAppDeployment($"{Org}-{App}", "6.1", null, null, null));
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "prod"));
+        SetupRunning("at22", new RunningAppDeployment("6.1", null, null));
         SetupRunning("production", null);
 
         var deployments = await _service.GetAsync(Org, App, CancellationToken.None);
@@ -58,19 +58,13 @@ public class KubernetesDeploymentsServiceTest
         Assert.Equivalent(
             new[]
             {
-                new KubernetesDeployment
+                new RunningDeployment
                 {
                     EnvName = "tt02",
-                    Release = $"{Org}-{App}",
                     Version = "8",
                     BuildId = "1234",
                 },
-                new KubernetesDeployment
-                {
-                    EnvName = "at22",
-                    Release = $"{Org}-{App}",
-                    Version = "6.1",
-                },
+                new RunningDeployment { EnvName = "at22", Version = "6.1" },
             },
             deployments,
             strict: true
@@ -80,7 +74,7 @@ public class KubernetesDeploymentsServiceTest
     [Fact]
     public async Task GetAsync_WhenAnotherStudioEnvironmentDeployed_LeavesOutItsBuild()
     {
-        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8", "1234", "staging", "42"));
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "staging"));
         SetupRunning("at22", null);
         SetupRunning("production", null);
 
@@ -94,7 +88,7 @@ public class KubernetesDeploymentsServiceTest
     [Fact]
     public async Task GetAsync_WhenAnEnvironmentFails_ReturnsTheOthers()
     {
-        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8", null, null, null));
+        SetupRunning("tt02", new RunningAppDeployment("8", null, null));
         SetupRunning("at22", null);
         SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
 

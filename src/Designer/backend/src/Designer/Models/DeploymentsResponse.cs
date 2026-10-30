@@ -11,5 +11,5 @@ public class DeploymentsResponse
 {
     public List<DeploymentEntity> PipelineDeploymentList { get; set; }
 
-    public List<KubernetesDeployment> KubernetesDeploymentList { get; set; }
+    public List<RunningDeployment> RunningDeploymentList { get; set; }
 }

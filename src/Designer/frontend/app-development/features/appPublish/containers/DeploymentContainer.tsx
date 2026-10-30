@@ -68,7 +68,7 @@ export const DeploymentContainer = () => {
         const pipelineDeploymentList = appDeployment.pipelineDeploymentList
           .filter((item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase())
           .filter((item, index) => index === 0 || item.build?.result !== BuildResult.none);
-        const kubernetesDeployment = appDeployment.kubernetesDeploymentList.find(
+        const runningDeployment = appDeployment.runningDeploymentList.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         return (
@@ -78,7 +78,7 @@ export const DeploymentContainer = () => {
             isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}
             urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}
             pipelineDeploymentList={pipelineDeploymentList}
-            kubernetesDeployment={kubernetesDeployment}
+            runningDeployment={runningDeployment}
             orgName={orgName}
           />
         );

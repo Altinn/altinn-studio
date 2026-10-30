@@ -51,8 +51,18 @@ public class RuntimeGatewayClientTests
     [Fact]
     public async Task GetRunningAppDeployment_ReturnsTheDeploymentTheGatewayReports()
     {
-        var expected = new RunningAppDeployment("ttd-my-app", "8", "1234", "prod", "42");
-        using var handler = new RespondingHandler(HttpStatusCode.OK, expected);
+        // The gateway's full response; Designer keeps only what it reads.
+        using var handler = new RespondingHandler(
+            HttpStatusCode.OK,
+            new
+            {
+                release = "ttd-my-app",
+                imageTag = "8",
+                buildId = "1234",
+                sourceEnvironment = "prod",
+                deploymentId = "42",
+            }
+        );
         var client = CreateClient(handler);
 
         var deployment = await client.GetRunningAppDeployment(
@@ -62,7 +72,7 @@ public class RuntimeGatewayClientTests
             CancellationToken.None
         );
 
-        Assert.Equal(expected, deployment);
+        Assert.Equal(new RunningAppDeployment("8", "1234", "prod"), deployment);
         Assert.Equal(
             "https://ttd.apps.tt02.altinn.no/runtime/gateway/api/v1/deploy/apps/my-app/running",
             handler.RequestUri?.ToString()

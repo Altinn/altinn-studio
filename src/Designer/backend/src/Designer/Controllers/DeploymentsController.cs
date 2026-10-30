@@ -32,7 +32,7 @@ public class DeploymentsController : ControllerBase
 {
     private readonly IDeploymentService _deploymentService;
     private readonly IGiteaClient _giteaClient;
-    private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
+    private readonly IRunningDeploymentsService _runningDeploymentsService;
 
     // TODO(#18666): DeveloperAppToken is unused with OIDC auth; placeholder satisfies
     // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
@@ -41,12 +41,12 @@ public class DeploymentsController : ControllerBase
     public DeploymentsController(
         IDeploymentService deploymentService,
         IGiteaClient giteaClient,
-        IKubernetesDeploymentsService kubernetesDeploymentsService
+        IRunningDeploymentsService runningDeploymentsService
     )
     {
         _deploymentService = deploymentService;
         _giteaClient = giteaClient;
-        _kubernetesDeploymentsService = kubernetesDeploymentsService;
+        _runningDeploymentsService = runningDeploymentsService;
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class DeploymentsController : ControllerBase
     /// <param name="app">Application name</param>
     /// <param name="query">Document query model</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of Pipeline deployments and Kubernetes deployments</returns>
+    /// <returns>List of Pipeline deployments and the deployments that run</returns>
     [HttpGet]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
     public async Task<DeploymentsResponse> Get(
@@ -73,7 +73,7 @@ public class DeploymentsController : ControllerBase
             cancellationToken
         );
 
-        List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(
+        List<RunningDeployment> runningDeploymentList = await _runningDeploymentsService.GetAsync(
             org,
             app,
             cancellationToken
@@ -82,7 +82,7 @@ public class DeploymentsController : ControllerBase
         return new DeploymentsResponse
         {
             PipelineDeploymentList = deployments.Results.ToList(),
-            KubernetesDeploymentList = kubernetesDeploymentList,
+            RunningDeploymentList = runningDeploymentList,
         };
     }
 
