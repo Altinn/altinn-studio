@@ -32,8 +32,6 @@ internal sealed class OnProcessEndedHook : IWorkflowEngineCommand
         }
 
         IOnProcessEndedHandler? hook = onProcessEndedHandlers.FirstOrDefault();
-        // The planner plans this step only when the app registers a handler. A step an earlier version planned
-        // regardless, or whose handler a redeploy removed, finds none and has nothing to run.
         if (hook == null)
         {
             return new SuccessfulProcessEngineCommandResult();

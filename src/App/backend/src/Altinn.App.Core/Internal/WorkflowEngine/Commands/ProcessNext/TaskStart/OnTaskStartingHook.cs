@@ -34,8 +34,6 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
         }
 
         IOnTaskStartingHandler? hook = applicableHooks.FirstOrDefault();
-        // The planner plans this step only when a handler runs for the task. A step an earlier version planned
-        // regardless, or whose handler a redeploy removed, finds none and has nothing to run.
         if (hook == null)
         {
             return new SuccessfulProcessEngineCommandResult();
