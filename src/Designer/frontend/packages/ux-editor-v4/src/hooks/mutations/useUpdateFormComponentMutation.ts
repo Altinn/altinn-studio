@@ -72,6 +72,7 @@ export const useUpdateFormComponentMutation = (
             await handleFileUploadUpdate({
               updatedComponent,
               oldId: id,
+              oldComponent: layout.components[id] as FormFileUploaderComponent,
               updatedLayout,
             });
           }
@@ -103,6 +104,7 @@ const isImageUploadComponent = (
 type UseHandleFileUploadComponentUpdateParams = {
   updatedComponent: FormFileUploaderComponent;
   oldId: string;
+  oldComponent?: FormFileUploaderComponent;
   updatedLayout: IInternalLayout;
 };
 
@@ -115,6 +117,7 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
   return async ({
     updatedComponent,
     oldId,
+    oldComponent,
     updatedLayout,
   }: UseHandleFileUploadComponentUpdateParams): Promise<void> => {
     const oldDataType = findAttachmentDataType(appMetadata, oldId);
@@ -123,6 +126,7 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
       updatedLayout,
       taskId,
       oldDataType,
+      oldComponent,
     );
 
     if (oldId !== updatedComponent.id) {
@@ -187,6 +191,7 @@ const buildDataTypeForFileUpload = (
   layout: IInternalLayout,
   taskId: string,
   oldDataType?: ApplicationAttachmentMetadata,
+  oldComponent?: FormFileUploaderComponent,
 ): ApplicationAttachmentMetadata => {
   const baseDataType: ApplicationAttachmentMetadata = {
     id: component.id,
@@ -194,7 +199,9 @@ const buildDataTypeForFileUpload = (
     taskId,
     maxSize: component.maxFileSizeInMB,
     maxCount: component.maxNumberOfAttachments,
-    minCount: component.minNumberOfAttachments,
+    minCount: shouldUpdateMinCount(component, oldDataType, oldComponent)
+      ? component.minNumberOfAttachments
+      : oldDataType.minCount,
   };
 
   const isInRepeatingGroup = isItemChildOfContainer(
@@ -215,4 +222,23 @@ const buildDataTypeForFileUpload = (
         : oldDataType?.maxCount,
     minCount: oldDataType?.minCount,
   };
+};
+
+/**
+ * minCount follows the component's minNumberOfAttachments, unless it was lower before the save and is not higher
+ * than the new minNumberOfAttachments. A lower minCount has been set on purpose, typically 0 on an attachment that
+ * is required only while the component is shown, since the backend counts data elements for the whole task and
+ * does not check `hidden`. A higher minCount would make the backend stricter than the form, so it is updated.
+ */
+const shouldUpdateMinCount = (
+  component: FormFileUploaderComponent,
+  oldDataType?: ApplicationAttachmentMetadata,
+  oldComponent?: FormFileUploaderComponent,
+): boolean => {
+  if (oldDataType === undefined || oldComponent === undefined) return true;
+  const oldMinCount = oldDataType.minCount ?? 0;
+  return (
+    oldMinCount >= (oldComponent.minNumberOfAttachments ?? 0) ||
+    oldMinCount > (component.minNumberOfAttachments ?? 0)
+  );
 };
