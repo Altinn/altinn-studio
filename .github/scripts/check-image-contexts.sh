@@ -109,13 +109,22 @@ for context in "${contexts[@]}"; do
     if grep -nE '^[[:space:]]*!.*\*\*/' "${allowlist}" >"${work_dir}/reincludes"; then
       fail "${prefix}${image}.dockerignore re-includes through **/, which Podman matches differently: $(paste -sd ' ' "${work_dir}/reincludes")"
     fi
-    # Re-including a directory sends all of it, so a narrower re-include below it means the directory is too wide.
-    if awk '/^!/ { path = substr($0, 2); sub(/\/$/, "", path); paths[NR] = path }
+    # Re-including a directory sends all of it. A narrower re-include below it, with no exclusion in between to
+    # narrow the directory, means the directory is too wide.
+    if awk '/^[[:space:]]*(#|$)/ { next }
+      /^!/ {
+        path = substr($0, 2); sub(/\/$/, "", path); sub(/\/\*\*$/, "", path)
+        n++; line[n] = NR; paths[n] = path
+        next
+      }
+      { excluded[NR] = 1 }
       END {
-        for (i in paths) for (j in paths)
-          if (i != j && paths[i] !~ /[*?[]/ && index(paths[j], paths[i] "/") == 1 && paths[j] != paths[i] "/**") {
-            print "!" paths[i]; exit 1
-          }
+        for (i = 1; i <= n; i++) for (j = 1; j <= n; j++) {
+          if (i == j || paths[i] ~ /[*?[]/ || index(paths[j], paths[i] "/") != 1) continue
+          narrowed = 0
+          for (k = line[i] + 1; k < line[j]; k++) if (excluded[k]) narrowed = 1
+          if (!narrowed) { print "!" paths[i]; exit 1 }
+        }
       }' "${allowlist}" >"${work_dir}/parents"; then :; else
       fail "${prefix}${image}.dockerignore re-includes all of $(cat "${work_dir}/parents"). Re-include the paths below it instead."
     fi
