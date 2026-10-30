@@ -8,6 +8,7 @@ using Altinn.Studio.Gateway.Contracts.Alerts;
 using Altinn.Studio.Gateway.Contracts.Deploy;
 using Altinn.Studio.Gateway.Contracts.Metrics;
 using Altinn.Studio.Gateway.Contracts.Workflows;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Gateway.Api;
 
@@ -35,4 +36,6 @@ namespace Altinn.Studio.Gateway.Api;
 [JsonSerializable(typeof(List<AppHealthMetric>))]
 [JsonSerializable(typeof(TriggerReconcileRequest))]
 [JsonSerializable(typeof(FailWorkflowRequest))]
+// Results.Problem writes it, and the AOT image has no reflection fallback.
+[JsonSerializable(typeof(ProblemDetails))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }
