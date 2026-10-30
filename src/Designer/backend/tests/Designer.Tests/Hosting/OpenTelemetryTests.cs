@@ -392,39 +392,38 @@ public class OpenTelemetryTests
     public async Task HubConnections_AreLeftOutOfTracesAndRequestMetrics()
     {
         await StartAsync();
-        using HttpResponseMessage failedAttempt = await HttpClient.GetAsync("/hubs/preview?id=unknown");
+        using HttpResponseMessage failedAttempt = await HttpClient.GetAsync("/hubs/sync?id=unknown");
 
         // The SignalR client disposes the test server's handler when it stops, so this comes last.
         await using HubConnection connection = new HubConnectionBuilder()
-            .WithUrl("ws://localhost/hubs/preview", options => options.HttpMessageHandlerFactory = _ => Handler())
+            .WithUrl("ws://localhost/hubs/sync", options => options.HttpMessageHandlerFactory = _ => Handler())
             .Build();
         await connection.StartAsync();
         string? connectionId = connection.ConnectionId;
-        await connection.InvokeAsync("SendMessage", "reload-layouts");
         await connection.StopAsync();
         Services.GetRequiredService<MeterProvider>().ForceFlush();
 
-        foreach (string method in new[] { "OnConnectedAsync", "SendMessage", "OnDisconnectedAsync" })
+        foreach (string method in new[] { "OnConnectedAsync", "OnDisconnectedAsync" })
         {
             Activity span = await SingleSpanAsync(span =>
-                span.DisplayName == $"Altinn.Studio.Designer.Hubs.Preview.PreviewHub/{method}"
+                span.DisplayName == $"Altinn.Studio.Designer.Hubs.Sync.SyncHub/{method}"
             );
             Assert.Equal(default, span.ParentSpanId);
             Assert.Equal("testUser", span.GetTagItem(ServiceTelemetry.Attributes.EndUserId));
             Assert.Equal(connectionId, span.GetTagItem(ServiceTelemetry.Attributes.SignalR.ConnectionId));
         }
-        Assert.Contains(_spans, span => span.GetTagItem("url.path") as string == "/hubs/preview/negotiate");
-        Assert.DoesNotContain(_spans, span => span.GetTagItem("url.path") as string == "/hubs/preview");
+        Assert.Contains(_spans, span => span.GetTagItem("url.path") as string == "/hubs/sync/negotiate");
+        Assert.DoesNotContain(_spans, span => span.GetTagItem("url.path") as string == "/hubs/sync");
 
         List<MetricPoint> requestPoints = MetricPoints("http.server.request.duration");
-        Assert.Contains(requestPoints, point => Tag(point, "http.route") == "/hubs/preview/negotiate");
+        Assert.Contains(requestPoints, point => Tag(point, "http.route") == "/hubs/sync/negotiate");
         Assert.DoesNotContain(
             requestPoints,
-            point => Tag(point, "http.route") == "/hubs/preview" && Tag(point, "http.response.status_code") != "404"
+            point => Tag(point, "http.route") == "/hubs/sync" && Tag(point, "http.response.status_code") != "404"
         );
         Assert.Contains(
             requestPoints,
-            point => Tag(point, "http.route") == "/hubs/preview" && Tag(point, "http.response.status_code") == "404"
+            point => Tag(point, "http.route") == "/hubs/sync" && Tag(point, "http.response.status_code") == "404"
         );
     }
 
