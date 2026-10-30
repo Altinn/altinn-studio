@@ -2,9 +2,14 @@
 
 public class CSharpGenerationSettings
 {
+    /// <summary>
+    /// The namespace of an app's data models, which their class references in the application metadata name too.
+    /// </summary>
+    public const string DefaultModelNamespace = "Altinn.App.Models";
+
     public int IndentSize { get; set; } = 2;
 
-    public string ModelNamespace { get; set; } = "Altinn.App.Models";
+    public string ModelNamespace { get; set; } = DefaultModelNamespace;
 
     /// <summary>
     /// Create two properties on [XmlText] elements
