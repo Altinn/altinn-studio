@@ -4,6 +4,13 @@ The image for Studio's Git server, with our configuration, templates and locales
 [gitea-proxy](../gitea-proxy), and [deploy-repositories.yaml](../../.github/workflows/deploy-repositories.yaml) builds
 and deploys both. Locally, run `docker compose up -d --build studio_repositories` in `src/Designer` to apply a change.
 
+## Personal access tokens
+
+On the public proxy listener, `/api/v1/users/{username}/tokens` and its child routes require a Designer browser
+session. Studio API keys, native Gitea tokens, and standalone Basic authentication cannot create, list, or delete
+personal access tokens. This prevents a token from issuing another credential with an independent lifetime.
+Token authentication remains available for other permitted Git and API operations.
+
 ## Git hooks
 
 Repositories must not contain symbolic links, since the tools that check them out, such as app builds, would follow
