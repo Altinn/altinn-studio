@@ -50,7 +50,7 @@ load_context() {
 contexts=(src root)
 common_excludes=(
   '**/.DS_Store' '**/.cache' '**/.git' '**/.idea' '**/.vscode' '**/bin' '**/obj' '**/node_modules' '**/target'
-  '**/.venv' '**/__pycache__' '**/*.pyc' '**/.pytest_cache'
+  '**/.venv' '**/.ci-venv' '**/__pycache__' '**/*.pyc' '**/.pytest_cache'
 )
 
 # Prints the context's .dockerignore: every path an image's allowlist re-includes, without build output.
@@ -109,7 +109,7 @@ for context in "${contexts[@]}"; do
     if grep -nE '^[[:space:]]*!.*\*\*/' "${allowlist}" >"${work_dir}/reincludes"; then
       fail "${prefix}${image}.dockerignore re-includes through **/, which Podman matches differently: $(paste -sd ' ' "${work_dir}/reincludes")"
     fi
-    # Re-including a directory sends all of it. A narrower re-include below it, with no exclusion in between to
+    # Re-including a directory sends all of it. A narrower re-include below it, with no exclusion in between that can
     # narrow the directory, means the directory is too wide.
     if awk '/^[[:space:]]*(#|$)/ { next }
       /^!/ {
@@ -117,12 +117,20 @@ for context in "${contexts[@]}"; do
         n++; line[n] = NR; paths[n] = path
         next
       }
-      { excluded[NR] = 1 }
+      {
+        # An exclusion can only narrow directories its literal prefix, before any wildcard, overlaps.
+        prefix = $0; sub(/^\//, "", prefix); sub(/[*?[].*$/, "", prefix)
+        excluded[NR] = 1; exclusion_prefix[NR] = prefix
+      }
       END {
         for (i = 1; i <= n; i++) for (j = 1; j <= n; j++) {
           if (i == j || paths[i] ~ /[*?[]/ || index(paths[j], paths[i] "/") != 1) continue
           narrowed = 0
-          for (k = line[i] + 1; k < line[j]; k++) if (excluded[k]) narrowed = 1
+          for (k = line[i] + 1; k < line[j]; k++) {
+            if (!excluded[k]) continue
+            prefix = exclusion_prefix[k]
+            if (prefix == "" || index(paths[i] "/", prefix) == 1 || index(prefix, paths[i] "/") == 1) narrowed = 1
+          }
           if (!narrowed) { print "!" paths[i]; exit 1 }
         }
       }' "${allowlist}" >"${work_dir}/parents"; then :; else

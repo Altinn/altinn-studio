@@ -52,6 +52,7 @@
 **/node_modules
 **/target
 **/.venv
+**/.ci-venv
 **/__pycache__
 **/*.pyc
 **/.pytest_cache
