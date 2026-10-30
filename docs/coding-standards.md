@@ -31,7 +31,8 @@ reason is bigger than the code.
 - Do not add the `Async` suffix to method names.
 - Write an XML doc comment on every public type and member.
 - Warnings fail the build locally as they do in CI. To build past one while you work, pass
-  `-p:TreatWarningsAsErrors=false`.
+  `-p:TreatWarningsAsErrors=false`. A later build does not recompile code that has not changed since, so it does not
+  report those warnings again. Build with `--no-incremental` before you push.
 
 ## Go
 
