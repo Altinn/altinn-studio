@@ -1,6 +1,8 @@
 import { numericFormatter, patternFormatter } from 'react-number-format';
 import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
 
+import { expandExponent } from '@app/form-component/app-components/Input';
+
 import classes from './DisplayNumber.module.css';
 
 export type DisplayNumberProps = {
@@ -49,7 +51,7 @@ const isNumericFormat = (
 
 const formatNumericText = (text: string, format?: NumericFormatProps | PatternFormatProps) => {
   if (format && isNumericFormat(format)) {
-    return numericFormatter(text, format);
+    return numericFormatter(expandExponent(text), format);
   } else if (format && isPatternFormat(format)) {
     return patternFormatter(text, format);
   } else {

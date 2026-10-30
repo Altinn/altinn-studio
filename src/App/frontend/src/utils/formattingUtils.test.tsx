@@ -62,6 +62,20 @@ describe('numberFormat', () => {
     expect(screen.getByText('NOK 12 345,67')).toBeInTheDocument();
   });
 
+  it('should render a value in exponent notation as plain decimals', () => {
+    render({
+      text: '1.270667891713e-16',
+      format: {
+        thousandSeparator: ' ',
+        decimalSeparator: ',',
+        decimalScale: 2,
+        suffix: ' kr',
+      },
+    });
+
+    expect(screen.getByText('0,00 kr')).toBeInTheDocument();
+  });
+
   it('should render as PatternFormat if format is of type PatternFormatProps', () => {
     render({
       text: '98765432',
