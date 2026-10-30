@@ -33,23 +33,16 @@ public class DatamodelsController : ControllerBase
 {
     private readonly ISchemaModelService _schemaModelService;
     private readonly IJsonSchemaValidator _jsonSchemaValidator;
-    private readonly IModelNameValidator _modelNameValidator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
     /// </summary>
     /// <param name="schemaModelService">Interface for working with models.</param>
     /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
-    /// <param name="modelNameValidator">Interface for validating that the model name does not already belong to a data type</param>
-    public DatamodelsController(
-        ISchemaModelService schemaModelService,
-        IJsonSchemaValidator jsonSchemaValidator,
-        IModelNameValidator modelNameValidator
-    )
+    public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator)
     {
         _schemaModelService = schemaModelService;
         _jsonSchemaValidator = jsonSchemaValidator;
-        _modelNameValidator = modelNameValidator;
     }
 
     /// <summary>
@@ -232,16 +225,10 @@ public class DatamodelsController : ControllerBase
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-        var fileStream = theFile!.OpenReadStream();
-        await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(
-            fileStream,
-            fileNameWithExtension,
-            editingContext
-        );
         string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(
             editingContext,
             fileNameWithExtension,
-            theFile.OpenReadStream(),
+            theFile!.OpenReadStream(),
             cancellationToken
         );
 
@@ -311,7 +298,6 @@ public class DatamodelsController : ControllerBase
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-        await _modelNameValidator.ValidateModelNameForNewJsonSchemaAsync(createModel.ModelName, editingContext);
         var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(
             editingContext,
             createModel.ModelName,
