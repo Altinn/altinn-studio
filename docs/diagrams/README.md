@@ -1,8 +1,7 @@
 # Diagrams
 
-Diagrams that span components. [architecture.svg](architecture.svg) shows how Altinn Studio fits together. New
-diagrams are handwritten SVG in the shared style, so they diff as text and anyone, person or agent, can change them in
-an editor. The older diagrams are Excalidraw and draw.io exports, which you change in those tools.
+Diagrams that span components. New diagrams are handwritten SVG in the shared style, so they diff as text and anyone can
+change them in an editor. The older diagrams are Excalidraw and draw.io exports, which you change in those tools.
 
 ## The shared style
 
