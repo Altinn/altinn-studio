@@ -1,4 +1,4 @@
-import { fetchSigningDocuments } from 'src/core/api-client/signing.api';
+import { fetchSigningDocuments } from 'src/core/api-client/signingDocuments.api';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 vi.mock('src/utils/network/sharedNetworking');
 describe('fetchSigningDocuments', () => {
