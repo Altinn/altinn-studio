@@ -137,7 +137,6 @@ public class OrgLibraryService(
 
         sourceControl.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
         sourceControl.PullRemoteChanges(authenticatedContext);
-        sourceControl.FetchGitNotes(authenticatedContext);
 
         if (latestCommitSha == request.BaseCommitSha)
         {
