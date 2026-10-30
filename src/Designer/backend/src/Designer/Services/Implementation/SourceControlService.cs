@@ -148,14 +148,6 @@ public class SourceControlService(
 
                     if (aheadBy > 0)
                     {
-                        if (isDirtyBefore)
-                        {
-                            status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
-                            SetErrorStatus(ctx.activity, "checkout_conflict");
-                            checkoutConflict = true;
-                            return status;
-                        }
-
                         RemoteRebaseResult rebaseResult = self.RebaseOntoRemoteBranch(
                             ctx.authenticatedContext,
                             headBranchBefore
@@ -922,12 +914,17 @@ public class SourceControlService(
                     }
 
                     Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
-                    if (repo.RetrieveStatus(new StatusOptions()).IsDirty)
+                    // Uncommitted changes stay in the working directory, where the checkout refuses to overwrite them.
+                    // Staged changes would end up in a merge commit, so they count as being in the way.
+                    RepositoryStatus worktreeStatus = repo.RetrieveStatus(new StatusOptions());
+                    if (
+                        worktreeStatus.Added.Any()
+                        || worktreeStatus.Staged.Any()
+                        || worktreeStatus.Removed.Any()
+                        || worktreeStatus.RenamedInIndex.Any()
+                    )
                     {
-                        SetErrorStatus(ctx.activity, "rebase_dirty_worktree");
-                        throw new InvalidOperationException(
-                            "Cannot rebase onto remote branch with uncommitted changes."
-                        );
+                        throw new CheckoutConflictException("Staged changes are in the way of the remote changes.");
                     }
 
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);

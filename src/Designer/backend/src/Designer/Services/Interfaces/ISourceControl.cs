@@ -186,7 +186,8 @@ public interface ISourceControl
 
     /// <summary>
     /// Rebases the local commits on a branch onto the same branch on origin, so that pushing them does not need a
-    /// merge commit. On conflicts it leaves them in the working directory, as pulling does.
+    /// merge commit. On conflicts it leaves them in the working directory, as pulling does. Uncommitted changes stay as
+    /// they are, and it throws <see cref="LibGit2Sharp.CheckoutConflictException"/> when they are in the way.
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     /// <param name="branchName">The branch on origin to rebase onto</param>
