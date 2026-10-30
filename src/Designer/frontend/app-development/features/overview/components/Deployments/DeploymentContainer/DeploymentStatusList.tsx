@@ -3,7 +3,7 @@ import type { Environment } from 'app-shared/types/Environment';
 import { DeploymentStatus } from './DeploymentStatus';
 import classes from './DeploymentStatusList.module.css';
 import { getAppLink } from 'app-shared/ext-urls';
-import type { RunningDeployment } from 'app-shared/types/api/RunningDeployment';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
 import {
   findRunningPipelineDeployment,
@@ -14,13 +14,13 @@ import { BuildResult } from 'app-shared/types/Build';
 
 export interface DeploymentStatusListProps {
   orgEnvironmentList: Environment[];
-  runningDeploymentList: RunningDeployment[];
+  runningAppList: RunningApp[];
   pipelineDeploymentList: PipelineDeployment[];
 }
 
 export const DeploymentStatusList = ({
   orgEnvironmentList,
-  runningDeploymentList,
+  runningAppList,
   pipelineDeploymentList,
 }: DeploymentStatusListProps) => {
   const { org, app } = useStudioEnvironmentParams();
@@ -31,7 +31,7 @@ export const DeploymentStatusList = ({
         const pipelineDeploymentEnvList = pipelineDeploymentList.filter(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
-        const runningDeployment = runningDeploymentList.find(
+        const runningApp = runningAppList.find(
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         const lastPipelineDeployment = pipelineDeploymentEnvList[0];
@@ -42,11 +42,10 @@ export const DeploymentStatusList = ({
           <DeploymentStatus
             deploymentType={lastPipelineDeployment?.deploymentType}
             key={orgEnvironment.name}
-            runningDeployment={runningDeployment}
+            runningApp={runningApp}
             isDeploymentInProgress={isDeploymentInProgress}
             lastPublishedDate={
-              findRunningPipelineDeployment(pipelineDeploymentEnvList, runningDeployment)?.build
-                ?.finished
+              findRunningPipelineDeployment(pipelineDeploymentEnvList, runningApp)?.build?.finished
             }
             envName={orgEnvironment.name}
             isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}

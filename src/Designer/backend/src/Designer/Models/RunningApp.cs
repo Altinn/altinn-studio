@@ -1,9 +1,9 @@
 namespace Altinn.Studio.Designer.Models;
 
 /// <summary>
-/// The deployment of an app that runs in an environment.
+/// The app as it runs in an environment.
 /// </summary>
-public class RunningDeployment
+public class RunningApp
 {
     public required string EnvName { get; init; }
 

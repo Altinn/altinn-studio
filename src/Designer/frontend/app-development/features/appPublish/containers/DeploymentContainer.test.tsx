@@ -48,7 +48,7 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [],
-          runningDeploymentList: [],
+          runningAppList: [],
         }),
       ),
     });
@@ -96,7 +96,7 @@ describe('DeploymentContainer', () => {
             secondDeploymentWithNone,
             thirdDeploymentWithSuccess,
           ],
-          runningDeploymentList: [],
+          runningAppList: [],
         }),
       ),
     });
@@ -136,7 +136,7 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [firstDeployment, secondDeployment],
-          runningDeploymentList: [],
+          runningAppList: [],
         }),
       ),
     });

@@ -8,7 +8,7 @@ import {
   StudioAlert,
 } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
-import type { RunningDeployment } from 'app-shared/types/api/RunningDeployment';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
@@ -16,7 +16,7 @@ import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptions
 export interface DeploymentEnvironmentStatusProps {
   lastPublishedDate?: string;
   isDeploymentInProgress?: boolean;
-  runningDeployment?: RunningDeployment;
+  runningApp?: RunningApp;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
@@ -25,7 +25,7 @@ export interface DeploymentEnvironmentStatusProps {
 export const DeploymentEnvironmentStatus = ({
   lastPublishedDate,
   isDeploymentInProgress,
-  runningDeployment,
+  runningApp,
   envName,
   isProduction,
   urlToApp,
@@ -54,7 +54,7 @@ export const DeploymentEnvironmentStatus = ({
         <StudioHeading spacing level={2} data-size='xs'>
           {envTitle}
         </StudioHeading>
-        {runningDeployment?.version && (
+        {runningApp?.version && (
           <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
         )}
 
@@ -78,7 +78,7 @@ export const DeploymentEnvironmentStatus = ({
     );
   }
 
-  if (!runningDeployment) {
+  if (!runningApp) {
     return (
       <DeploymentStatusAlert
         severity='info'
@@ -91,7 +91,7 @@ export const DeploymentEnvironmentStatus = ({
     );
   }
 
-  if (!runningDeployment?.version) {
+  if (!runningApp?.version) {
     return (
       <DeploymentStatusAlert
         severity='warning'
@@ -112,7 +112,7 @@ export const DeploymentEnvironmentStatus = ({
           <Trans
             i18nKey={'app_deployment.status.succeeded'}
             values={{
-              version: runningDeployment.version,
+              version: runningApp.version,
             }}
             components={{
               a: (

@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
@@ -12,11 +14,14 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.Telemetry;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Controllers;
 
@@ -32,7 +37,10 @@ public class DeploymentsController : ControllerBase
 {
     private readonly IDeploymentService _deploymentService;
     private readonly IGiteaClient _giteaClient;
-    private readonly IRunningDeploymentsService _runningDeploymentsService;
+    private readonly IEnvironmentsService _environmentsService;
+    private readonly IRuntimeGatewayClient _runtimeGatewayClient;
+    private readonly GeneralSettings _generalSettings;
+    private readonly ILogger<DeploymentsController> _logger;
 
     // TODO(#18666): DeveloperAppToken is unused with OIDC auth; placeholder satisfies
     // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
@@ -41,12 +49,18 @@ public class DeploymentsController : ControllerBase
     public DeploymentsController(
         IDeploymentService deploymentService,
         IGiteaClient giteaClient,
-        IRunningDeploymentsService runningDeploymentsService
+        IEnvironmentsService environmentsService,
+        IRuntimeGatewayClient runtimeGatewayClient,
+        GeneralSettings generalSettings,
+        ILogger<DeploymentsController> logger
     )
     {
         _deploymentService = deploymentService;
         _giteaClient = giteaClient;
-        _runningDeploymentsService = runningDeploymentsService;
+        _environmentsService = environmentsService;
+        _runtimeGatewayClient = runtimeGatewayClient;
+        _generalSettings = generalSettings;
+        _logger = logger;
     }
 
     /// <summary>
@@ -56,7 +70,7 @@ public class DeploymentsController : ControllerBase
     /// <param name="app">Application name</param>
     /// <param name="query">Document query model</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of Pipeline deployments and the deployments that run</returns>
+    /// <returns>List of Pipeline deployments and the app as it runs in each environment</returns>
     [HttpGet]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
     public async Task<DeploymentsResponse> Get(
@@ -73,17 +87,60 @@ public class DeploymentsController : ControllerBase
             cancellationToken
         );
 
-        List<RunningDeployment> runningDeploymentList = await _runningDeploymentsService.GetAsync(
-            org,
-            app,
-            cancellationToken
-        );
+        List<RunningApp> runningAppList = await GetRunningApps(org, app, cancellationToken);
 
         return new DeploymentsResponse
         {
             PipelineDeploymentList = deployments.Results.ToList(),
-            RunningDeploymentList = runningDeploymentList,
+            RunningAppList = runningAppList,
         };
+    }
+
+    private async Task<List<RunningApp>> GetRunningApps(string org, string app, CancellationToken ct)
+    {
+        IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org, ct);
+
+        RunningApp?[] runningApps = await Task.WhenAll(
+            environments.Select(async env =>
+            {
+                try
+                {
+                    var deployment = await _runtimeGatewayClient.GetRunningAppDeployment(
+                        org,
+                        app,
+                        AltinnEnvironment.FromName(env.Name),
+                        ct
+                    );
+                    return deployment is null
+                        ? null
+                        : new RunningApp
+                        {
+                            EnvName = env.Name,
+                            Version = deployment.ImageTag,
+                            // Several Studio environments share a runtime cluster. Only a deploy from this one is in
+                            // its history.
+                            BuildId =
+                                deployment.SourceEnvironment == _generalSettings.OriginEnvironment
+                                    ? deployment.BuildId
+                                    : null,
+                        };
+                }
+                // One unreachable cluster should not hide where the app runs in the others, and a timeout is no reason
+                // to fail the whole request either. Only the caller's cancellation is.
+                catch (Exception e) when (!ct.IsCancellationRequested)
+                {
+                    _logger.LogError(
+                        e,
+                        "Could not get {App} from environment {EnvName} for org {Org}.",
+                        app.WithoutLineBreaks(),
+                        env.Name,
+                        org.WithoutLineBreaks()
+                    );
+                    return null;
+                }
+            })
+        );
+        return runningApps.OfType<RunningApp>().ToList();
     }
 
     /// <summary>

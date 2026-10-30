@@ -6,7 +6,7 @@ import {
   buildsRoute,
   runtimeGatewayDeploymentsRoute,
   runtimeGatewayDeploymentDetailsRoute,
-  runtimeGatewayRunningDeploymentRoute,
+  runtimeGatewayRunningAppRoute,
 } from './routes/builds.js';
 import { authenticationRoute } from './routes/authentication.js';
 import {
@@ -55,7 +55,7 @@ app.get(
 // Before the details route, whose origin would otherwise match "running".
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/running',
-  runtimeGatewayRunningDeploymentRoute,
+  runtimeGatewayRunningAppRoute,
 );
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',

@@ -4,7 +4,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 
 import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { RunningDeployment } from 'app-shared/types/api/RunningDeployment';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import { BuildResult } from 'app-shared/types/Build';
 import {
   ExclamationmarkTriangleFillIcon,
@@ -21,7 +21,7 @@ export interface DeploymentEnvironmentLogListProps {
   envName: string;
   isProduction: boolean;
   pipelineDeploymentList: PipelineDeployment[];
-  runningDeployment?: RunningDeployment;
+  runningApp?: RunningApp;
 }
 
 const getIcon = (buildResult: BuildResult) => {

@@ -10,12 +10,16 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Xunit;
 
@@ -25,56 +29,123 @@ public class GetDeployments
     : DbDesignerEndpointsTestsBase<GetDeployments>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IRunningDeploymentsService> _runningDeploymentsMock = new Mock<IRunningDeploymentsService>();
+    private const string Org = "ttd";
+    private const string App = "issue-6094";
+
+    // The test host's appsettings.json names studio.localhost, which is the prod Studio environment.
+    private const string ThisStudioEnvironment = "prod";
+
+    private readonly Mock<IEnvironmentsService> _environmentsServiceMock = new();
+    private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock = new();
 
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/deployments";
 
     public GetDeployments(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
-        : base(factory, designerDbFixture) { }
+        : base(factory, designerDbFixture)
+    {
+        _environmentsServiceMock
+            .Setup(service => service.GetOrganizationEnvironments(Org, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new() { Name = "tt02" }, new() { Name = "at22" }, new() { Name = "production" }]);
+    }
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
-        services.AddSingleton(_ => _runningDeploymentsMock.Object);
+        services.RemoveAll<IEnvironmentsService>();
+        services.AddSingleton(_environmentsServiceMock.Object);
+        services.RemoveAll<IRuntimeGatewayClient>();
+        services.AddSingleton(_runtimeGatewayClientMock.Object);
     }
 
-    [Theory]
-    [InlineData("ttd", "issue-6094")]
-    public async Task GetDeployments_OK(string org, string app)
+    [Fact]
+    public async Task GetDeployments_OK()
     {
-        // Arrange
-        string uri = $"{VersionPrefix(org, app)}?sortDirection=Descending";
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
-        List<RunningDeployment> runningDeployments = GetRunningDeploymentsList("completedDeployments.json");
-
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234", ThisStudioEnvironment));
+        SetupRunning("at22", new RunningAppDeployment("6.1", null, null));
+        SetupRunning("production", null);
 
-        _runningDeploymentsMock
-            .Setup(rs => rs.GetAsync(org, app, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(runningDeployments);
+        DeploymentsResponse actual = await GetDeploymentsResponse();
 
-        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-        // Act
-        HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-        string responseString = await res.Content.ReadAsStringAsync();
-        DeploymentsResponse actual = JsonSerializer.Deserialize<DeploymentsResponse>(
-            responseString,
-            JsonSerializerOptions
-        );
-
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         Assert.Equal(8, actual.PipelineDeploymentList.Count);
-        Assert.Equal(2, actual.RunningDeploymentList.Count);
         foreach (DeploymentEntity entity in actual.PipelineDeploymentList)
         {
             Assert.Equal(DateTimeKind.Utc, entity.Created.Kind);
             Assert.Equal(DateTimeKind.Utc, entity.Build.Started!.Value.Kind);
             Assert.Equal(DateTimeKind.Utc, entity.Build.Finished!.Value.Kind);
         }
+        Assert.Equivalent(
+            new[]
+            {
+                new RunningApp
+                {
+                    EnvName = "tt02",
+                    Version = "8",
+                    BuildId = "1234",
+                },
+                new RunningApp { EnvName = "at22", Version = "6.1" },
+            },
+            actual.RunningAppList,
+            strict: true
+        );
     }
+
+    [Fact]
+    public async Task GetDeployments_WhenAnotherStudioEnvironmentDeployed_LeavesOutItsBuild()
+    {
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "staging"));
+        SetupRunning("at22", null);
+        SetupRunning("production", null);
+
+        DeploymentsResponse actual = await GetDeploymentsResponse();
+
+        RunningApp runningApp = Assert.Single(actual.RunningAppList);
+        Assert.Equal("8", runningApp.Version);
+        Assert.Null(runningApp.BuildId);
+    }
+
+    [Fact]
+    public async Task GetDeployments_WhenAnEnvironmentFails_ReturnsTheOthers()
+    {
+        SetupRunning("tt02", new RunningAppDeployment("8", null, null));
+        SetupRunning("at22", null);
+        SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
+
+        DeploymentsResponse actual = await GetDeploymentsResponse();
+
+        Assert.Equal("tt02", Assert.Single(actual.RunningAppList).EnvName);
+    }
+
+    private async Task<DeploymentsResponse> GetDeploymentsResponse()
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{VersionPrefix(Org, App)}?sortDirection=Descending"
+        );
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return JsonSerializer.Deserialize<DeploymentsResponse>(
+            await response.Content.ReadAsStringAsync(),
+            JsonSerializerOptions
+        );
+    }
+
+    private void SetupRunning(string environment, RunningAppDeployment deployment) =>
+        SetupGatewayCall(environment).ReturnsAsync(deployment);
+
+    private Moq.Language.Flow.ISetup<IRuntimeGatewayClient, Task<RunningAppDeployment>> SetupGatewayCall(
+        string environment
+    ) =>
+        _runtimeGatewayClientMock.Setup(client =>
+            client.GetRunningAppDeployment(
+                Org,
+                App,
+                It.Is<AltinnEnvironment>(env => env.Name == environment),
+                It.IsAny<CancellationToken>()
+            )
+        );
 
     private List<DeploymentEntity> GetDeploymentsList(string filename)
     {
@@ -86,17 +157,5 @@ public class GetDeployments
 
         string deployments = File.ReadAllText(path);
         return JsonSerializer.Deserialize<List<DeploymentEntity>>(deployments, JsonSerializerOptions);
-    }
-
-    private List<RunningDeployment> GetRunningDeploymentsList(string filename)
-    {
-        string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "RunningDeployments", filename);
-        if (!File.Exists(path))
-        {
-            return null;
-        }
-
-        string deployments = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<List<RunningDeployment>>(deployments, JsonSerializerOptions);
     }
 }

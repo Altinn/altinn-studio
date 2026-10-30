@@ -1,5 +1,5 @@
 import { BuildResult, type Build } from '../Build';
-import type { RunningDeployment } from './RunningDeployment';
+import type { RunningApp } from './RunningApp';
 
 export interface PipelineDeployment {
   id: string;
@@ -119,10 +119,10 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
  */
 export const findRunningPipelineDeployment = (
   pipelineDeployments: PipelineDeployment[],
-  runningDeployment: RunningDeployment | undefined,
+  runningApp: RunningApp | undefined,
 ): PipelineDeployment | undefined => {
-  if (runningDeployment?.buildId) {
-    return pipelineDeployments.find((item) => item.build?.id === runningDeployment.buildId);
+  if (runningApp?.buildId) {
+    return pipelineDeployments.find((item) => item.build?.id === runningApp.buildId);
   }
-  return pipelineDeployments.find((item) => item.tagName === runningDeployment?.version);
+  return pipelineDeployments.find((item) => item.tagName === runningApp?.version);
 };

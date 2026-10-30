@@ -27,7 +27,7 @@ import {
 } from 'app-shared/types/api/PipelineDeployment';
 import type { Environment } from 'app-shared/types/Environment';
 import type { Organization } from 'app-shared/types/Organization';
-import type { RunningDeployment } from 'app-shared/types/api/RunningDeployment';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 
@@ -79,7 +79,7 @@ export const dataModelMetadataResponse: DataModelMetadataResponse = {
 
 export const deploymentsResponse: DeploymentsResponse = {
   pipelineDeploymentList: [],
-  runningDeploymentList: [],
+  runningAppList: [],
 };
 
 export const pipelineDeployment: PipelineDeployment = {
@@ -103,7 +103,7 @@ export const deployEvent: DeployEvent = {
   origin: 'Internal',
 };
 
-export const runningDeployment: RunningDeployment = {
+export const runningApp: RunningApp = {
   envName: '',
   version: '',
 };

@@ -137,7 +137,7 @@ function studioEnvironment(studioHostname = '') {
 }
 
 /** The app's latest deploy through local Studio is what runs in the environment. */
-export const runtimeGatewayRunningDeploymentRoute = (req, res) => {
+export const runtimeGatewayRunningAppRoute = (req, res) => {
   const { org, env, app } = req.params;
 
   const deploy = deploys.findLast(
