@@ -1,7 +1,7 @@
 # GitHub Actions runner
 
 The self-hosted runners for this repository's workflows. Workflows select them with `runs-on: self-hosted-ubuntu`,
-and [GitHub Actions](../../../.github/README.md) says when to use them.
+and [GitHub Actions](../../../docs/cicd.md) says when to use them.
 
 Each job runs in its own Sandbox virtual machine:
 

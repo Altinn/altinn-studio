@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks that the images built from src/ and from the repository root follow the build context convention in
-# .github/README.md, and that each container tool given as an argument sends them the same context. Prints each
+# docs/cicd.md, and that each container tool given as an argument sends them the same context. Prints each
 # context's size.
 #
 # Usage: check-image-contexts.sh [tool...]   (default: docker podman)
@@ -218,6 +218,6 @@ for context in "${contexts[@]}"; do
 done
 
 if [ "${failures}" -gt 0 ]; then
-  echo "${failures} problem(s) with the image build contexts. See .github/README.md."
+  echo "${failures} problem(s) with the image build contexts. See docs/cicd.md."
   exit 1
 fi
