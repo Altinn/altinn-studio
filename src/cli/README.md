@@ -29,9 +29,8 @@ the rule.
 install scripts do. `make dev-install` installs them into `build/dev-home` instead, and `make dev-run CMD="env up"`
 runs that installation.
 
-- `make dev-install` publishes `studioctl-server` in Release configuration, which CI builds with warnings as errors.
-  It can fail where `make test` passed. Before you push .NET changes, run `dotnet clean studioctl.slnx`,
-  `CI=true make test` and `make dev-install`.
+- `make dev-install` publishes `studioctl-server` in Release configuration, which can raise warnings that `make test`
+  does not. Before you push .NET changes, run `make test` and `make dev-install`.
 - On macOS, `make dev-run` in a deeply nested checkout, such as a worktree, fails with `connect: invalid argument`,
   because the socket path for `studioctl-server` is too long. Set `STUDIOCTL_SOCKET_DIR` to a short directory.
 - The top level of `internal/cmd` parses commands, orchestrates and renders output. The work lives in its subpackages
