@@ -66,7 +66,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        using Activity? activity = _telemetry?.StartWorkflowEngineCallbackActivity(instanceGuid, commandKey);
+        using Activity? activity = _telemetry?.StartProcessCallbackActivity(instanceGuid, commandKey);
 
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
