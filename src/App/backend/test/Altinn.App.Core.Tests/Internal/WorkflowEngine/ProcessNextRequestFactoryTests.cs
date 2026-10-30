@@ -370,7 +370,7 @@ public class ProcessNextRequestFactoryTests
     /// <summary>
     /// Unwraps the enqueue request embedded in the primary workflow's EnqueueAuxiliaryWorkflows step
     /// payload (the request that step submits to the engine at the commit boundary), or null when
-    /// the transition has no auxiliary commands.
+    /// the transition has no auxiliary steps.
     /// </summary>
     private static WorkflowEnqueueRequest? TryExtractAuxiliaryEnqueueRequest(WorkflowEnqueueEnvelope bundle)
     {
@@ -399,8 +399,8 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The auxiliary command keys across all auxiliary workflows, in declaration order (one
-    /// single-step workflow per auxiliary command).
+    /// The command keys of the auxiliary steps across all auxiliary workflows, in declaration order (one
+    /// single-step workflow per auxiliary step).
     /// </summary>
     private static List<string> ExtractAuxiliaryCommandKeys(WorkflowEnqueueEnvelope bundle) =>
         ExtractAuxiliaryWorkflows(bundle).SelectMany(ExtractCommandKeys).ToList();
@@ -1926,7 +1926,7 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
-        // The release is the last step: with no auxiliary commands, nothing is enqueued after it.
+        // The release is the last step: with no auxiliary steps, nothing is enqueued after it.
         Assert.Equal(
             [CommitProcessState.Key, OnProcessEndedHook.Key, DeleteDataOnProcessEnd.Key, ReleaseProcessingStatus.Key],
             keys[^4..]
@@ -2099,7 +2099,7 @@ public class ProcessNextRequestFactoryTests
     [Fact]
     public async Task Create_NoAuxiliaryCommands_EmitsSingleWorkflowWithoutEnqueueStep()
     {
-        // Arrange - no events, no service task, no instantiation extras -> no auxiliary commands
+        // Arrange - no events, no service task, no instantiation extras -> no auxiliary steps
         var factory = CreateFactory(registerEvents: false);
         var stateChange = CreateTaskToTaskTransition();
 
@@ -2139,7 +2139,7 @@ public class ProcessNextRequestFactoryTests
             notification: notification
         );
 
-        // Assert - the auxiliary commands are independent outcomes: each rides its own single-step
+        // Assert - the auxiliary steps are independent outcomes: each rides its own single-step
         // auxiliary workflow so a dead-lettered event registration cannot starve the notification behind it.
         Assert.Single(bundle.Request.Workflows);
         List<WorkflowRequest> siblings = ExtractAuxiliaryWorkflows(bundle);

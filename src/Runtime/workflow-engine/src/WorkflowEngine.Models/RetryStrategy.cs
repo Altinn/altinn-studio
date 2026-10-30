@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Defines a retry strategy for process engine tasks.
+/// Defines a retry strategy for workflow engine steps.
 /// </summary>
 public sealed record RetryStrategy
 {

@@ -75,39 +75,39 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         try
         {
-            var descriptor = _registry.GetCommand(step.Command.Type);
+            var command = _registry.GetCommand(step.Command.Type);
 
             // Centralized deserialization — commands receive typed data
             object? typedCommandData = null;
-            if (descriptor.CommandDataType is not null)
+            if (command.CommandDataType is not null)
             {
                 if (step.Command.Data is not { } rawData)
                 {
                     return ExecutionResult.CriticalError(
                         $"Command '{step.Command.Type}' requires command data of type "
-                            + $"{descriptor.CommandDataType.Name}, but none was provided"
+                            + $"{command.CommandDataType.Name}, but none was provided"
                     );
                 }
-                typedCommandData = rawData.Deserialize(descriptor.CommandDataType, CommandDefinition.SerializerOptions);
+                typedCommandData = rawData.Deserialize(command.CommandDataType, CommandDefinition.SerializerOptions);
             }
 
             object? typedWorkflowContext = null;
-            if (descriptor.WorkflowContextType is not null)
+            if (command.WorkflowContextType is not null)
             {
                 if (workflow.Context is not { } rawContext)
                 {
                     return ExecutionResult.CriticalError(
                         $"Command '{step.Command.Type}' requires workflow context of type "
-                            + $"{descriptor.WorkflowContextType.Name}, but none was provided"
+                            + $"{command.WorkflowContextType.Name}, but none was provided"
                     );
                 }
                 typedWorkflowContext = rawContext.Deserialize(
-                    descriptor.WorkflowContextType,
+                    command.WorkflowContextType,
                     CommandDefinition.SerializerOptions
                 );
             }
 
-            SetDomainAttributes(descriptor, typedCommandData, typedWorkflowContext, workflow, step);
+            SetDomainAttributes(command, typedCommandData, typedWorkflowContext, workflow, step);
 
             var stateIn = ResolveStateIn(workflow, step);
 
@@ -130,7 +130,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 ParentTraceContext = activity?.Context ?? step.EngineActivity?.Context,
             };
 
-            var result = await descriptor.Execute(context, cts.Token);
+            var result = await command.Execute(context, cts.Token);
 
             if (result.IsSuccess())
                 _logger.SuccessfulExecution(step, Stopwatch.GetElapsedTime(startTimestamp));
@@ -192,7 +192,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     /// logged and otherwise ignored: what telemetry says about a step must never decide how the step runs.
     /// </remarks>
     private void SetDomainAttributes(
-        ICommand descriptor,
+        ICommand command,
         object? commandData,
         object? workflowContext,
         Workflow workflow,
@@ -207,7 +207,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         try
         {
-            var attributes = descriptor.GetTelemetryAttributes(commandData, workflowContext);
+            var attributes = command.GetTelemetryAttributes(commandData, workflowContext);
             for (int i = 0; i < attributes.Count; i++)
             {
                 var (key, value) = attributes[i];
@@ -217,7 +217,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         }
         catch (Exception e)
         {
-            _logger.TelemetryAttributesFailed(step, descriptor.CommandType, e);
+            _logger.TelemetryAttributesFailed(step, command.CommandType, e);
         }
     }
 

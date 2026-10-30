@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
 /// <summary>
 /// Command that advances the in-memory process state without persisting to Storage.
-/// Inserted between task-end and task-start command groups so that:
+/// Inserted between the task-end and task-start steps so that:
 /// - Task-end commands see the OLD CurrentTask (the task being ended)
 /// - Task-start commands see the NEW CurrentTask (the task being started)
 /// The actual persistence happens later via <see cref="CommitProcessState"/>.
@@ -21,14 +21,14 @@ internal sealed class MutateProcessState : WorkflowEngineCommandBase<ProcessStat
 
     public override string GetKey() => Key;
 
-    protected override ProcessStateChangePayload? ResolvePayload(ProcessEngineCommandContext context)
+    protected override ProcessStateChangePayload? ResolvePayload(WorkflowEngineCommandContext context)
     {
         ProcessStateChangePayload? payload = base.ResolvePayload(context);
         return payload?.ProcessStateChange is null ? null : payload;
     }
 
-    public override Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public override Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         ProcessStateChangePayload toStoragePayload
     )
     {
@@ -36,8 +36,8 @@ internal sealed class MutateProcessState : WorkflowEngineCommandBase<ProcessStat
 
         if (processStateChange.NewProcessState == null)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
+            return Task.FromResult<WorkflowEngineCommandResult>(
+                FailedWorkflowEngineCommandResult.Permanent(
                     "ProcessStateChange.NewProcessState is null",
                     "InvalidOperationException"
                 )
@@ -48,6 +48,6 @@ internal sealed class MutateProcessState : WorkflowEngineCommandBase<ProcessStat
         processStateChange.NewProcessState.Status = instance.Process?.Status;
         instance.Process = processStateChange.NewProcessState;
 
-        return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+        return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
     }
 }

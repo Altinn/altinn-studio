@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 namespace Altinn.Studio.Designer.Helpers;
 
@@ -22,6 +21,12 @@ public static class DirectoryHelper
     {
         DirectoryInfo directoryToDeleteInfo = new DirectoryInfo(directoryToDelete);
 
+        if (directoryToDeleteInfo.LinkTarget is not null)
+        {
+            Directory.Delete(directoryToDeleteInfo.FullName);
+            return;
+        }
+
         if (!directoryToDeleteInfo.Exists)
         {
             return;
@@ -32,7 +37,10 @@ public static class DirectoryHelper
         FileInfo[] files = directoryToDeleteInfo.GetFiles();
         foreach (FileInfo file in files)
         {
-            File.SetAttributes(file.FullName, FileAttributes.Normal);
+            if (file.LinkTarget is null)
+            {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
+            }
             File.Delete(file.FullName);
         }
 
@@ -50,34 +58,43 @@ public static class DirectoryHelper
         var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
         matcher.AddInclude(pattern);
 
-        var result = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory)));
+        var files = RepositoryFileAccess.GetFiles(baseDirectory, baseDirectory, recursive: true);
+        var result = matcher.Match(files.Select(file => Path.GetRelativePath(baseDirectory, file)));
 
         return result.Files.Select(f => Path.Combine(baseDirectory, f.Path));
     }
 
     public static async Task CopyDirectoryAsync(string sourceDir, string targetDir)
     {
-        DirectoryInfo source = new(sourceDir);
-        DirectoryInfo target = new(targetDir);
+        await CopyDirectory(sourceDir, targetDir, sourceDir, targetDir);
+    }
+
+    private static async Task CopyDirectory(string sourceRoot, string targetRoot, string sourceDir, string targetDir)
+    {
+        DirectoryInfo target = new(RepositoryFileAccess.Validate(targetRoot, targetDir));
         if (!target.Exists)
         {
             target.Create();
         }
 
-        foreach (FileInfo file in source.GetFiles())
+        foreach (string file in RepositoryFileAccess.GetFiles(sourceRoot, sourceDir))
         {
-            File.SetAttributes(file.FullName, FileAttributes.Normal);
-
-            string targetPath = Path.Combine(target.FullName, file.Name);
-            await using FileStream sourceStream = file.OpenRead();
+            string targetPath = RepositoryFileAccess.Validate(
+                targetRoot,
+                Path.Combine(target.FullName, Path.GetFileName(file))
+            );
+            await using FileStream sourceStream = File.OpenRead(file);
             await using FileStream targetStream = File.Create(targetPath);
             await sourceStream.CopyToAsync(targetStream);
         }
 
-        foreach (DirectoryInfo subDir in source.GetDirectories())
+        foreach (string subDir in RepositoryFileAccess.GetDirectories(sourceRoot, sourceDir))
         {
-            DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
-            await CopyDirectoryAsync(subDir.FullName, nextTargetSubDir.FullName);
+            string nextTarget = RepositoryFileAccess.Validate(
+                targetRoot,
+                Path.Combine(target.FullName, Path.GetFileName(subDir))
+            );
+            await CopyDirectory(sourceRoot, targetRoot, subDir, nextTarget);
         }
     }
 }

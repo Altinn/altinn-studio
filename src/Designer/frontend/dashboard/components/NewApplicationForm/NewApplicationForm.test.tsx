@@ -126,11 +126,11 @@ describe('NewApplicationForm', () => {
     expect(screen.getByRole('button', { name: mockSubmitbuttonText })).toBeEnabled();
   });
 
-  it('should show app template selector when feature is enabled', () => {
+  it('should show app template selector', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplates], queryClient });
+    renderNewApplicationForm({}, { queryClient });
 
     expect(
       screen.getByRole('combobox', {
@@ -139,27 +139,11 @@ describe('NewApplicationForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('should not show app template selector when feature is disabled', () => {
-    const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
-
-    renderNewApplicationForm({}, { featureFlags: [], queryClient });
-
-    expect(
-      screen.queryByRole('combobox', {
-        name: textMock('dashboard.new_application_form.select_app_template'),
-      }),
-    ).not.toBeInTheDocument();
-  });
-
   it('should not show app template selector when shouldUseAppTemplate is false', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm(
-      { shouldUseAppTemplate: false },
-      { featureFlags: [FeatureFlag.AppTemplates], queryClient },
-    );
+    renderNewApplicationForm({ shouldUseAppTemplate: false }, { queryClient });
 
     expect(
       screen.queryByRole('combobox', {
@@ -168,12 +152,12 @@ describe('NewApplicationForm', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should submit the selected app template when the feature is enabled', async () => {
+  it('should submit the selected app template', async () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.AppTemplates], mockAppTemplates);
 
-    renderNewApplicationForm({}, { featureFlags: [FeatureFlag.AppTemplates], queryClient });
+    renderNewApplicationForm({}, { queryClient });
 
     await user.selectOptions(
       screen.getByRole('combobox', {

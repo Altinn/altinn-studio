@@ -184,7 +184,7 @@ public class ServiceTaskPipelineMailboxTests
 
         Assert.Equal(4, pipeline.Items.Count);
         Assert.IsType<PipelineStage.Plain>(pipeline.Items[2]);
-        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[3]);
+        Assert.IsType<PipelineConclusion.Final>(pipeline.Items[3]);
     }
 
     [Fact]
@@ -335,7 +335,7 @@ public class ServiceTaskPipelineMailboxTests
             .Finally(_ => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success()));
 
         Assert.IsType<PipelineStage.Plain>(pipeline.Items[0]);
-        Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
+        Assert.IsType<PipelineConclusion.Final>(pipeline.Items[1]);
     }
 
     [Theory]

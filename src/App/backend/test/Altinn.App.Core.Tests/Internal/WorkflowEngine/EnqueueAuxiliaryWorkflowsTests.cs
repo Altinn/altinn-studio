@@ -40,7 +40,7 @@ public class EnqueueAuxiliaryWorkflowsTests
             ],
         };
 
-    private static ProcessEngineCommandContext CreateContext() =>
+    private static WorkflowEngineCommandContext CreateContext() =>
         new()
         {
             StateCarry = new(),
@@ -102,9 +102,9 @@ public class EnqueueAuxiliaryWorkflowsTests
         var command = new EnqueueAuxiliaryWorkflows(client.Object, tokens);
         var payload = new EnqueueAuxiliaryWorkflowsPayload(CreateEmbeddedRequest());
 
-        ProcessEngineCommandResult result = await command.Execute(CreateContext(), payload);
+        WorkflowEngineCommandResult result = await command.Execute(CreateContext(), payload);
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Equal("ttd/test-app", capturedNs);
         // Deterministic per primary workflow, covering the whole sibling batch: retries of the step
         // dedup on the idempotency key.
@@ -159,9 +159,9 @@ public class EnqueueAuxiliaryWorkflowsTests
         );
         var payload = new EnqueueAuxiliaryWorkflowsPayload(CreateEmbeddedRequest());
 
-        ProcessEngineCommandResult result = await command.Execute(CreateContext(), payload);
+        WorkflowEngineCommandResult result = await command.Execute(CreateContext(), payload);
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
     }
 
@@ -178,9 +178,9 @@ public class EnqueueAuxiliaryWorkflowsTests
         );
         var payload = new EnqueueAuxiliaryWorkflowsPayload(CreateEmbeddedRequest() with { Workflows = [] });
 
-        ProcessEngineCommandResult result = await command.Execute(CreateContext(), payload);
+        WorkflowEngineCommandResult result = await command.Execute(CreateContext(), payload);
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
     }
 

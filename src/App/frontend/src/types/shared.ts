@@ -243,6 +243,11 @@ interface IProcessWorkflowProcessing {
    */
   failedAttempts?: number;
   /**
+   * When the first of the `failedAttempts` failed, on the workflow engine's clock (ISO timestamp). Compare with
+   * currentTime to tell how long the step has kept failing. Omitted with `failedAttempts`, and by older engines.
+   */
+  firstFailedAt?: string;
+  /**
    * The waiting service task's own words for what it is waiting for (e.g. "shipment sent,
    * awaiting delivery receipt") — the reason it gave with its most recent deferral. Present only
    * while the transition is parked on a deferring task that gave a reason. Purely a presentation
@@ -325,7 +330,7 @@ export const ELEMENT_TYPE = {
 
 type ElementType = (typeof ELEMENT_TYPE)[keyof typeof ELEMENT_TYPE];
 
-interface IProcessTask {
+export interface IProcessTask {
   altinnTaskType: string;
   elementId: string;
   elementType?: ElementType; // Appears in versions after https://github.com/Altinn/app-lib-dotnet/pull/745

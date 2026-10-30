@@ -17,9 +17,9 @@ public sealed record WorkflowEnqueueRequest
     public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
-    /// Opaque context passed to command handlers at execution time. Applied to all workflows in this batch. The
-    /// engine does not interpret it, but hands it to each command that declares a context type, at enqueue for
-    /// validation and at execution.
+    /// Opaque context passed to the commands at execution time. Applied to all workflows in this batch. The engine
+    /// does not interpret it, but hands it to each command that declares a context type, at enqueue for validation
+    /// and at execution.
     /// </summary>
     [JsonPropertyName("context")]
     public JsonElement? Context { get; init; }

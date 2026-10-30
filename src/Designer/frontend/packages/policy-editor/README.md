@@ -19,9 +19,9 @@ import {
 } from '@altinn/policy-editor';
 
 const exampleActions: PolicyAction[] = [
-  { actionId: 'read', actionTitle: 'Les', actionDescription: null },
-  { actionId: 'write', actionTitle: 'Skriv', actionDescription: null },
-  { actionId: 'delete', actionTitle: 'Slett', actionDescription: null },
+  { actionId: 'read', actionTitle: 'Les' },
+  { actionId: 'write', actionTitle: 'Skriv' },
+  { actionId: 'delete', actionTitle: 'Slett' },
 ];
 
 const exampleSubjects: PolicySubject[] = [

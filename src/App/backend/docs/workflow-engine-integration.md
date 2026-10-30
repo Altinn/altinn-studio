@@ -8,15 +8,16 @@ the [integration code](../src/Altinn.App.Core/Internal/WorkflowEngine/README.md)
 
 ## Workflows and steps
 
-The app enqueues workflows in its own engine namespace, `{org}/{app}`, with one collection per instance. The engine
-calls the app's callback endpoint once for each step.
+The app enqueues workflows in its own engine namespace, `{org}/{app}`, with one collection per instance. Every step
+runs the engine's `app` command, which calls the app's callback endpoint once for the step. The callback runs the app
+command that the step's command key names, such as `StartTask`.
 
 A `process/next` request authorizes the action, runs its handler, validates the task, runs the gateways and prepares
 the transition. It then enqueues an acquire workflow with a single `AcquireProcessingStatus` step. That step claims the
 instance, and its callback enqueues the transition's primary workflow before it returns, so the collection cannot
 settle between the two. Instantiation runs as one workflow that starts with the acquire step.
 
-[`WorkflowCommandSet`](../src/Altinn.App.Core/Internal/WorkflowEngine/WorkflowCommandSet.cs) decides the steps, on
+[`WorkflowStepSet`](../src/Altinn.App.Core/Internal/WorkflowEngine/WorkflowStepSet.cs) decides the steps, on
 these rules:
 
 - `CommitProcessState` is the commit boundary. The steps before it move the process state in memory, so the task-start
@@ -167,7 +168,8 @@ Storage. The chain is the workflow it enqueued and every later primary workflow.
 
 - The wait answers 504 after a fixed time.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
-  returns success after a short grace period. The transition has committed by then.
+  returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
+  request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.
 - The server logs the detail of a failure. Clients get a generic message and the kind of failure.
 
 Reads report the current task's transition: idle, processing or failed, the target task, and for a failure its kind

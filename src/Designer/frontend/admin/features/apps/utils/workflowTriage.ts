@@ -33,18 +33,19 @@ export const isActiveWorkflow = (workflow: WorkflowStatus): boolean =>
   ACTIVE_WORKFLOW_STATUSES.includes(workflow.overallStatus);
 
 /**
- * The label the app runtime puts on every workflow of one process transition: the transition's
- * own workflow, the auxiliary workflows it spawned, and a receive workflow parked on its service
- * task. The value names the target task and the flow number, so two visits to the same task differ.
+ * The labels the app runtime puts on the workflows of one process transition, all three alike: the
+ * workflow that takes the instance, the transition itself, and the auxiliary workflows it spawned.
+ * They name the task the transition left, the flow number of that visit to it (so two visits to the
+ * same task differ), and the task it enters. The app runtime defines them in
+ * `ProcessNextRequestFactory`; a rename there must be made here too.
+ *
+ * The transition that starts the process leaves no task, so it and its auxiliary workflows carry the
+ * target alone, as do the workflows a task runs after a message arrives. A transition that ends the
+ * process enters no task, so it carries the source alone.
  */
-export const TRANSITION_LABEL = 'processNextTargetId';
-
-/**
- * The label naming the task a process transition leaves, with its flow number. The app runtime puts
- * it on the workflow that takes the instance for the transition and on the transition itself, and
- * on the auxiliary workflows of a transition that ends the process, which has no target.
- */
-export const SOURCE_LABEL = 'processNextSourceId';
+export const SOURCE_TASK_LABEL = 'processNextSourceTask';
+export const SOURCE_FLOW_LABEL = 'processNextSourceFlow';
+export const TARGET_TASK_LABEL = 'processNextTargetTask';
 
 /** The one step of the workflow that takes the instance before a transition the user asked for. */
 const ACQUIRE_STEP = 'AcquireProcessingStatus';
@@ -72,16 +73,17 @@ export const isAcquireWorkflow = (workflow: WorkflowStatus): boolean =>
  * on its own, and an auxiliary workflow per piece of work beside the process — and the panel
  * shows them as one row:
  *
- * - The workflow that takes the instance opens the group, and the transition with the same source
- *   label joins it.
- * - A primary workflow with the target label of a transition already in the list and no source
- *   label of its own is a stage of the task that transition entered, and joins its group.
- * - An auxiliary workflow joins the transition with its target label, or with its source label
- *   when it has no target: the auxiliary workflows of ending the process.
+ * - The workflow that takes the instance opens the group, and the transition that left the same
+ *   visit to a task joins it.
+ * - A primary workflow with a target and no source is a stage of the task the latest transition
+ *   into that task entered, and joins its group. The transition that starts the process looks the
+ *   same, and opens a group, since no transition has entered its task yet.
+ * - An auxiliary workflow joins the transition that left the same visit to a task, or, without a
+ *   source, the latest transition into its target: the auxiliary workflows of starting the process.
  *
  * Everything else is a group of its own, including the transitions the process makes on its own
  * after a service task, since each is a transition of its own. Groups keep the order their first
- * workflow came in.
+ * workflow came in, which must be the order the workflows were created in.
  */
 export function groupTransitions(workflows: WorkflowStatus[]): WorkflowGroup[] {
   const groups: WorkflowGroup[] = [];
@@ -95,13 +97,16 @@ export function groupTransitions(workflows: WorkflowStatus[]): WorkflowGroup[] {
   };
 
   for (const workflow of workflows) {
-    const source = workflow.labels?.[SOURCE_LABEL];
-    const target = workflow.labels?.[TRANSITION_LABEL];
+    const source = sourceVisitOf(workflow);
+    const target = workflow.labels?.[TARGET_TASK_LABEL];
 
     if (!isPrimaryWorkflow(workflow)) {
       const parent =
-        (target !== undefined ? byTarget.get(target) : undefined) ??
-        (target === undefined && source !== undefined ? bySource.get(source) : undefined);
+        source !== undefined
+          ? bySource.get(source)
+          : target !== undefined
+            ? byTarget.get(target)
+            : undefined;
       if (parent) {
         parent.auxiliaryWorkflows.push(workflow);
       } else {
@@ -139,6 +144,12 @@ export function groupTransitions(workflows: WorkflowStatus[]): WorkflowGroup[] {
     }
   }
   return groups;
+}
+
+/** The visit to a task a transition left: the task and the flow number, or none at the start. */
+function sourceVisitOf(workflow: WorkflowStatus): string | undefined {
+  const task = workflow.labels?.[SOURCE_TASK_LABEL];
+  return task === undefined ? undefined : `${task}:${workflow.labels?.[SOURCE_FLOW_LABEL] ?? ''}`;
 }
 
 /**

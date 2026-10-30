@@ -6,7 +6,7 @@ using WorkflowEngine.Models.Exceptions;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Everything a command descriptor needs to execute a step.
+/// Everything a command needs to execute a step.
 /// </summary>
 public sealed record CommandExecutionContext
 {
@@ -26,12 +26,12 @@ public sealed record CommandExecutionContext
     public JsonElement? RawCommandData { get; init; }
 
     /// <summary>
-    /// The deserialized command data, typed according to the descriptor's <see cref="ICommand.CommandDataType"/>.
+    /// The deserialized command data, typed according to the command's <see cref="ICommand.CommandDataType"/>.
     /// </summary>
     public object? TypedCommandData { get; init; }
 
     /// <summary>
-    /// The deserialized workflow context, typed according to the descriptor's <see cref="ICommand.WorkflowContextType"/>.
+    /// The deserialized workflow context, typed according to the command's <see cref="ICommand.WorkflowContextType"/>.
     /// </summary>
     public object? TypedWorkflowContext { get; init; }
 

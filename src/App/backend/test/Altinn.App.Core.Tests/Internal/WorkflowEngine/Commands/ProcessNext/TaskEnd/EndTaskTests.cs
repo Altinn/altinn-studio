@@ -15,12 +15,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 
 public class EndTaskTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance)
+    private static WorkflowEngineCommandContext CreateContext(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -93,7 +93,7 @@ public class EndTaskTests
 
         var result = await command.Execute(context);
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         StageContext stage = Assert.Single(seen);
         Assert.Same(context.InstanceDataMutator, stage.InstanceDataMutator);
         Assert.Equal(context.CancellationToken, stage.CancellationToken);
@@ -107,7 +107,7 @@ public class EndTaskTests
 
         var result = await command.Execute(context);
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("End failed", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }

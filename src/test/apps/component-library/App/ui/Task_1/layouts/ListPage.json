@@ -20,7 +20,8 @@
           "type": "List",
           "pagination": { "alternatives": [5, 10], "default": 5 },
           "textResourceBindings": {
-            "title": "Personoversikt"
+            "title": "Personoversikt",
+            "help": "Hjelp til personoversikten"
           },
           "dataListId": "people",
           "tableHeaders": {

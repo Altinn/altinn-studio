@@ -38,7 +38,6 @@ import type {
   SearchRepositoryResponse,
 } from 'app-shared/types/api';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
 import {
   type IFrontEndSettings,
   type ILayoutSettings,
@@ -53,7 +52,7 @@ import type {
   StudioctlAuthCallback,
   StudioctlAuthRequest,
 } from 'app-shared/types/api/StudioctlAuth';
-import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
+import type { Policy, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
   deploymentsResponse,
@@ -200,7 +199,6 @@ export const queriesMock: ServicesContextProps = {
   getRuleConfig: vi.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
   getRuleModel: vi.fn().mockImplementation(() => Promise.resolve<string>('')),
   getStarredRepos: vi.fn().mockImplementation(() => Promise.resolve<Repository[]>([])),
-  getSubformComponents: vi.fn().mockImplementation(() => Promise.resolve<SubformComponent[]>([])),
   getTaskNavigationGroupV4: vi.fn().mockImplementation(() => Promise.resolve([])),
   getTaskNavigationGroup: vi.fn().mockImplementation(() => Promise.resolve([])),
   getTextLanguages: vi.fn().mockImplementation(() => Promise.resolve<string[]>([])),
@@ -250,7 +248,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<{ identifier?: string; policy?: Policy; resourceType: string }[]>([]),
     ),
-  getPolicyActions: vi.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: vi.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: vi.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
   getAccessPackages: vi.fn().mockImplementation(() => Promise.resolve([])),
@@ -358,9 +355,6 @@ export const queriesMock: ServicesContextProps = {
   saveFormLayoutV3: vi.fn().mockImplementation(() => Promise.resolve()),
   saveFormLayoutSettings: vi.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
   saveRuleConfig: vi.fn().mockImplementation(() => Promise.resolve<RuleConfig>(ruleConfig)),
-  saveSubformPdfComponent: vi
-    .fn()
-    .mockImplementation(() => Promise.resolve<SubformComponent[]>([])),
   setStarredRepo: vi.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroupV4: vi.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: vi.fn().mockImplementation(() => Promise.resolve()),

@@ -18,7 +18,7 @@ internal sealed record NotifyInstanceOwnerOnInstantiationPayload(InstantiationNo
 
 /// <summary>
 /// Sends a notification to the instance owner after instantiation.
-/// Runs as a post-commit command so the instance is fully persisted before sending.
+/// Runs as a post-commit step so the instance is fully persisted before sending.
 /// </summary>
 internal sealed class NotifyInstanceOwnerOnInstantiation(
     INotificationService notificationService,
@@ -29,8 +29,8 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
 
     public override string GetKey() => Key;
 
-    public override async Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public override async Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         NotifyInstanceOwnerOnInstantiationPayload payload
     )
     {
@@ -38,7 +38,7 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
 
         if (!int.TryParse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture, out int partyId))
         {
-            return FailedProcessEngineCommandResult.Permanent(
+            return FailedWorkflowEngineCommandResult.Permanent(
                 $"Invalid PartyId '{instance.InstanceOwner.PartyId}'. Instance: {instance.Id}",
                 nameof(FormatException)
             );
@@ -53,7 +53,7 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
             );
             if (party is null)
             {
-                return FailedProcessEngineCommandResult.Permanent(
+                return FailedWorkflowEngineCommandResult.Permanent(
                     $"Party not found for partyId {partyId}. Instance: {instance.Id}"
                 );
             }
@@ -65,15 +65,15 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
                 context.CancellationToken
             );
 
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
         catch (Exception ex) when (ex is InvalidOperationException or ServiceException)
         {
-            return FailedProcessEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
+            return FailedWorkflowEngineCommandResult.Permanent(ex.Message, ex.GetType().Name);
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace WorkflowEngine.Commands.Extensions;
 
 /// <summary>
-/// String helpers used by command handlers (lightweight templating and URI parsing).
+/// String helpers used by commands (lightweight templating and URI parsing).
 /// </summary>
 public static partial class StringExtensions
 {

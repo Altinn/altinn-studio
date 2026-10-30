@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { ProcessEditor } from './ProcessEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
@@ -10,6 +10,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useBpmnContext } from './contexts/BpmnContext';
+import type { BpmnContextProvider } from './contexts/BpmnContext';
 import type { BpmnApiContextProps, BpmnApiContextProvider } from './contexts/BpmnApiContext';
 import type * as React from 'react';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
@@ -18,10 +19,21 @@ import { toast } from 'react-toastify';
 
 const mockBpmnXml: string = `<?xml version="1.0" encoding="UTF-8"?></xml>`;
 
-vi.mock('./contexts/BpmnContext', async () => ({
-  ...(await vi.importActual('./contexts/BpmnContext')),
-  useBpmnContext: vi.fn(),
-}));
+const mockBpmnContextProps = vi.fn();
+vi.mock('./contexts/BpmnContext', async () => {
+  const actual = await vi.importActual<{ BpmnContextProvider: typeof BpmnContextProvider }>(
+    './contexts/BpmnContext',
+  );
+  const { createElement } = await vi.importActual<typeof React>('react');
+  return {
+    ...actual,
+    useBpmnContext: vi.fn(),
+    BpmnContextProvider: (props: React.ComponentProps<typeof BpmnContextProvider>) => {
+      mockBpmnContextProps(props);
+      return createElement(actual.BpmnContextProvider, props);
+    },
+  };
+});
 
 vi.mock('./components/Canvas', () => ({
   Canvas: () => <div></div>,
@@ -58,43 +70,62 @@ describe('ProcessEditor', () => {
     expect(screen.getByLabelText(textMock('process_editor.loading'))).toBeInTheDocument();
   });
 
-  it('shows an error when the BPMN is missing', () => {
+  it('shows an error when the BPMN is missing', async () => {
     renderProcessEditor({ queryClient: queryClientWithAppData() });
 
     expect(
-      screen.getByRole('heading', { name: textMock('process_editor.fetch_bpmn_error_title') }),
+      await screen.findByRole('heading', {
+        name: textMock('process_editor.fetch_bpmn_error_title'),
+      }),
     ).toBeInTheDocument();
   });
 
-  it('shows an error when the BPMN request fails', () => {
-    const queryClient = queryClientWithAppData();
-    queryClient.setQueryData([QueryKey.FetchBpmn, org, app], undefined);
-    queryClient
-      .getQueryCache()
-      .find({ queryKey: [QueryKey.FetchBpmn, org, app] })
-      ?.setState({
-        status: 'error',
-        error: new Error('Not found'),
-      });
+  it('shows an error when the BPMN request fails', async () => {
+    const getBpmnFile = vi.fn().mockRejectedValue(new Error('Not found'));
 
-    renderProcessEditor({ bpmnXml: undefined, queryClient });
+    renderProcessEditor({
+      bpmnXml: undefined,
+      queryClient: queryClientWithAppData(),
+      queries: { getBpmnFile },
+    });
 
     expect(
-      screen.getByRole('heading', { name: textMock('process_editor.fetch_bpmn_error_title') }),
+      await screen.findByRole('heading', {
+        name: textMock('process_editor.fetch_bpmn_error_title'),
+      }),
     ).toBeInTheDocument();
   });
 
-  it('shows the empty configuration panel when no element is selected', () => {
+  it('opens on the saved process, not on a cached copy', async () => {
+    (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: null });
+    const savedXml = '<saved></saved>';
+    const getBpmnFile = vi.fn().mockResolvedValue(savedXml);
+
+    // The cached copy predates a change Studio made to the saved process, such as a deleted subform UI folder
+    renderProcessEditor({
+      bpmnXml: mockBpmnXml,
+      queryClient: queryClientWithAppData(),
+      queries: { getBpmnFile },
+    });
+
+    expect(screen.getByLabelText(textMock('process_editor.loading'))).toBeInTheDocument();
+    await waitFor(() => expect(mockBpmnContextProps).toHaveBeenCalled());
+    const openedXml = mockBpmnContextProps.mock.calls.map(([props]) => props.bpmnXml);
+    expect(openedXml).not.toContain(mockBpmnXml);
+    expect(openedXml).toContain(savedXml);
+  });
+
+  it('shows the empty configuration panel when no element is selected', async () => {
     (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: null });
 
     renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData() });
 
     expect(
-      screen.getByText(textMock('process_editor.configuration_panel_no_task_title')),
+      await screen.findByText(textMock('process_editor.configuration_panel_no_task_title')),
     ).toBeInTheDocument();
   });
 
-  it('shows the end event configuration when an end event is selected', () => {
+  it('shows the end event configuration when an end event is selected', async () => {
     const queryClient = queryClientWithAppData({ dataTypes: [{ id: 'dataType1' }] });
     (useBpmnContext as Mock).mockReturnValue({
       bpmnDetails: { type: 'bpmn:EndEvent' },
@@ -103,19 +134,19 @@ describe('ProcessEditor', () => {
     renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient });
 
     expect(
-      screen.getByText(textMock('process_editor.configuration_panel_end_event')),
+      await screen.findByText(textMock('process_editor.configuration_panel_end_event')),
     ).toBeInTheDocument();
   });
   describe('saveBpmn', () => {
     it('resolves when the process definition is saved', async () => {
-      const { saveBpmn } = renderProcessEditorAndGetProps({
+      const { saveBpmn } = await renderProcessEditorAndGetProps({
         updateBpmnXml: vi.fn().mockResolvedValue(undefined),
       });
       await act(() => expect(saveBpmn('<xml></xml>')).resolves.toBeUndefined());
     });
 
     it('rejects and shows an error when saving the process definition fails', async () => {
-      const { saveBpmn } = renderProcessEditorAndGetProps({
+      const { saveBpmn } = await renderProcessEditorAndGetProps({
         updateBpmnXml: vi.fn().mockRejectedValue(createApiErrorMock(ServerCodes.BadRequest)),
       });
       await act(() => expect(saveBpmn('<xml></xml>')).rejects.toEqual(expect.anything()));
@@ -127,7 +158,7 @@ describe('ProcessEditor', () => {
     it('fetches the process definition from the server', async () => {
       const savedXml = '<saved></saved>';
       const getBpmnFile = vi.fn().mockResolvedValue(savedXml);
-      const { getSavedBpmn } = renderProcessEditorAndGetProps({ getBpmnFile });
+      const { getSavedBpmn } = await renderProcessEditorAndGetProps({ getBpmnFile });
       getBpmnFile.mockClear();
 
       let result: string;
@@ -147,9 +178,12 @@ const queryClientWithAppData = (appMetadata: unknown = []) => {
   return queryClient;
 };
 
-const renderProcessEditorAndGetProps = (queries: Record<string, Mock>): BpmnApiContextProps => {
+const renderProcessEditorAndGetProps = async (
+  queries: Record<string, Mock>,
+): Promise<BpmnApiContextProps> => {
   (useBpmnContext as Mock).mockReturnValue({ bpmnDetails: null, isEditAllowed: true });
   renderProcessEditor({ bpmnXml: mockBpmnXml, queryClient: queryClientWithAppData(), queries });
+  await waitFor(() => expect(mockBpmnApiContextProps).toHaveBeenCalled());
   return mockBpmnApiContextProps.mock.lastCall[0] as BpmnApiContextProps;
 };
 
@@ -162,10 +196,17 @@ const renderProcessEditor = ({
   queryClient?: ReturnType<typeof createQueryClientMock>;
   queries?: Record<string, Mock>;
 } = {}) => {
+  // The cached copy, and by default also the saved process the editor fetches when it opens
   queryClient.setQueryData([QueryKey.FetchBpmn, org, app], bpmnXml);
+  const getBpmnFile = vi.fn().mockResolvedValue(bpmnXml);
   return render(
     <TestAppRouter>
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
+      <ServicesContextProvider
+        {...queriesMock}
+        getBpmnFile={getBpmnFile}
+        {...queries}
+        client={queryClient}
+      >
         <ProcessEditor />
       </ServicesContextProvider>
     </TestAppRouter>,

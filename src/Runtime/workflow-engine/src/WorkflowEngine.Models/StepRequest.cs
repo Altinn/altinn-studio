@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Represents a single task to be processed by the process engine.
+/// A single step of a workflow, to be processed by the workflow engine.
 /// </summary>
 public sealed record StepRequest
 {
@@ -14,13 +14,13 @@ public sealed record StepRequest
     public required string OperationId { get; init; }
 
     /// <summary>
-    /// The command to be executed by the process engine.
+    /// The command the step runs.
     /// </summary>
     [JsonPropertyName("command")]
     public required CommandDefinition Command { get; init; }
 
     /// <summary>
-    /// An optional retry strategy for the task. If none given, the default strategy will be used.
+    /// An optional retry strategy for the step. If none given, the default strategy will be used.
     /// </summary>
     [JsonPropertyName("retryStrategy")]
     public RetryStrategy? RetryStrategy { get; init; }
