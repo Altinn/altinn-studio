@@ -1,3 +1,4 @@
+using Altinn.Studio.Cli.Upgrade;
 using Altinn.Studio.Cli.Upgrade.v8Tov9;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 using Microsoft.CodeAnalysis;
@@ -5,9 +6,10 @@ using Microsoft.CodeAnalysis;
 namespace Studioctl.Tests.Upgrade.v8Tov9;
 
 /// <summary>
-/// Covers the <c>IProcessTask</c> lifecycle members v9 removes. The contract is "the migrated app compiles against
-/// v9 and still runs its v8 work": each rewrite is compiled against a v9-shaped stub, and the text assertions pin the
-/// member the rewrite adds. Most cases run both with a semantic model (the app compiled against v8) and without.
+/// Covers the <c>IProcessTask</c> lifecycle members v9 removes. The contract is "no v8 work is silently lost": a
+/// member that does nothing is removed and the app compiles against a v9-shaped stub, and a member that does work
+/// gets a port stub whose only compile errors are its own, so the build stops until the work is composed as stages.
+/// Most cases run both with a semantic model (the app compiled against v8) and without.
 /// </summary>
 public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 {
@@ -147,58 +149,154 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
     private MigrationResult Migrate(bool semantic) =>
         new ProcessTaskLifecycleMigration(Scanner(semantic)).Migrate(TestContext.Current.CancellationToken);
 
-    private void AssertCompilesAgainstV9()
+    private static IReadOnlyList<string> Oks(MigrationResult result) =>
+        [.. result.Messages.Where(static m => m.Status == UpgradeMessageStatus.Ok).Select(static m => m.Text)];
+
+    private void AssertCompilesAgainstV9() => AssertCompilesAgainstV9ExceptPortStubs(0);
+
+    /// <summary>
+    /// The only errors are the port stubs' own: each stops the build with its <c>#error</c> (CS1029) and has no
+    /// return statement yet (CS0161).
+    /// </summary>
+    private void AssertCompilesAgainstV9ExceptPortStubs(int stubs)
     {
         var errors = SemanticScannerFactory.CompileErrors(AppFolder, _v9Sdk.Value);
-        Assert.True(errors.Count == 0, "Migrated app does not compile against v9:\n" + string.Join("\n", errors));
+        Assert.True(
+            errors.All(static error => error.Id is "CS1029" or "CS0161")
+                && errors.Count(static error => error.Id == "CS1029") == stubs
+                && errors.Count(static error => error.Id == "CS0161") == stubs,
+            $"Expected only the errors of {stubs} port stub(s) against v9:\n" + string.Join("\n", errors)
+        );
     }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task LegacyMembers_GetADefinitionEach_AndCompileAgainstV9(bool semantic)
+    public async Task MembersThatDoNothing_AreRemoved_AndOneThatWorks_GetsAPortStub(bool semantic)
     {
         var task = Write("logic/ParallelSigningTask.cs", Usings + "\n" + LegacyTask);
 
         var result = Migrate(semantic);
 
-        Assert.Empty(result.Todos);
-        Assert.Equal(3, result.Warnings.Count);
-        Assert.All(result.Warnings, warning => Assert.Contains("ParallelSigningTask.cs:", warning));
+        Assert.Empty(result.Warnings);
+        Assert.Equal(2, Oks(result).Count);
         Assert.Contains(
-            result.Warnings,
-            warning => warning.Contains("Added a DefineStart that runs Start as one stage")
+            Oks(result),
+            ok => ok.Contains("ParallelSigningTask.Start(string taskId, Instance instance) did nothing")
         );
-        AssertCompilesAgainstV9();
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("ParallelSigningTask.cs:", todo);
+        Assert.Contains("Added a DefineAbandon that stops the build until the work is ported to stages", todo);
+        AssertCompilesAgainstV9ExceptPortStubs(1);
 
         var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
-        // The v8 method is untouched, and the definition follows it with the same indentation, its types qualified
-        // for the final pass to simplify.
+        // Start and End are gone with their doc comment, and the v8 Abandon stays, followed by the stub with the same
+        // indentation, its types qualified for the final pass to simplify.
+        Assert.DoesNotContain("Start(", migrated);
+        Assert.DoesNotContain("End(", migrated);
+        Assert.DoesNotContain("Ends the task", migrated);
         Assert.Contains(
-            "    public Task Start(string taskId, Instance instance)\n"
+            "    public string Type => \"parallelSigning\";\n"
+                + "\n"
+                + "    public async Task Abandon(string taskId, Instance instance)\n"
                 + "    {\n"
-                + "        return Task.CompletedTask;\n"
+                + "        await Task.Yield();\n"
                 + "    }\n"
                 + "\n"
-                + "    public global::Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineStart("
-                + "global::Altinn.App.Core.Features.Process.PipelineBuilder pipeline) =>\n"
-                + "        pipeline\n"
-                + "            .Stage(async context =>\n"
-                + "            {\n"
-                + "                await Start(\n",
+                + "    public global::Altinn.App.Core.Features.Process.ProcessTaskPipeline DefineAbandon("
+                + "global::Altinn.App.Core.Features.Process.PipelineBuilder pipeline)\n"
+                + "    {\n"
+                + "        #error Port Abandon to stages in DefineAbandon as the comment below says, then remove this line.\n"
+                + "        // v9 no longer calls Abandon(string taskId, Instance instance). It runs the stages this method\n"
+                + "        // composes when the task is abandoned,",
             migrated
         );
-        Assert.Contains("return global::Altinn.App.Core.Features.Process.StageResult.Completed();", migrated);
-        Assert.Contains("DefineEnd(", migrated);
-        Assert.Contains("DefineAbandon(", migrated);
-        // The doc comment stays with the method it documents.
-        Assert.Contains("    /// <summary>Ends the task.</summary>\n    public Task End(", migrated);
+        Assert.Contains("through context.InstanceDataMutator, not through IDataClient", migrated);
+        Assert.Contains("context.StepId is the same on every retry", migrated);
+        Assert.DoesNotContain("return pipeline", migrated.Replace("// return pipeline", ""));
     }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task ExplicitLegacyMember_BecomesPrivate_AndGetsADefinition(bool semantic)
+    public async Task EveryShapeOfDoingNothing_IsRemoved(bool semantic)
+    {
+        var task = Write(
+            "logic/IdleTask.cs",
+            Usings
+                + """
+                public class IdleTask : IProcessTask
+                {
+                    public string Type => "idle";
+
+                    public async Task Start(string taskId, Instance instance)
+                    {
+                        // Nothing to do yet.
+                    }
+
+                    public Task End(string taskId, Instance instance)
+                    {
+                        return System.Threading.Tasks.Task.CompletedTask;
+                    }
+
+                    async Task IProcessTask.Abandon(string taskId, Instance instance)
+                    {
+                        await Task.CompletedTask;
+                    }
+                }
+                """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(result.Warnings);
+        Assert.Equal(3, Oks(result).Count);
+        AssertCompilesAgainstV9();
+        var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
+        Assert.DoesNotContain("Instance instance", migrated);
+        Assert.DoesNotContain("Define", migrated);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task MemberThatDoesNothing_ButTheAppCalls_IsKept(bool semantic)
+    {
+        var task = Write(
+            "logic/CalledTask.cs",
+            Usings
+                + """
+                public class CalledTask : IProcessTask
+                {
+                    public string Type => "called";
+
+                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                }
+
+                public class Caller
+                {
+                    public Task Run(CalledTask task, Instance instance) => task.Start("Task_1", instance);
+                }
+                """
+        );
+
+        var result = Migrate(semantic);
+
+        Assert.Empty(result.Todos);
+        Assert.Empty(Oks(result));
+        Assert.Contains("It was kept because the app may call or override it", Assert.Single(result.Warnings));
+        AssertCompilesAgainstV9();
+        Assert.Contains(
+            "public Task Start(string taskId, Instance instance) => Task.CompletedTask;",
+            await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ExplicitLegacyMember_BecomesPrivate_AndGetsAPortStub(bool semantic)
     {
         var task = Write(
             "logic/ExplicitTask.cs",
@@ -209,21 +307,21 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                     public string Type => "explicit";
 
                     /// <summary>Starts the task.</summary>
-                    Task IProcessTask.Start(string taskId, Instance instance) => Task.CompletedTask;
+                    Task IProcessTask.Start(string taskId, Instance instance) => Task.Delay(1);
                 }
                 """
         );
 
         var result = Migrate(semantic);
 
-        Assert.Empty(result.Todos);
-        Assert.Single(result.Warnings);
-        AssertCompilesAgainstV9();
+        Assert.Empty(result.Warnings);
+        Assert.Contains("stays as the type's own private Start to port from", Assert.Single(result.Todos));
+        AssertCompilesAgainstV9ExceptPortStubs(1);
 
         var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
         Assert.DoesNotContain("IProcessTask.Start", migrated);
         Assert.Contains(
-            "    /// <summary>Starts the task.</summary>\n    private Task Start(string taskId, Instance instance) => Task.CompletedTask;\n",
+            "    /// <summary>Starts the task.</summary>\n    private Task Start(string taskId, Instance instance) => Task.Delay(1);\n",
             migrated
         );
         Assert.Contains("DefineStart(", migrated);
@@ -244,7 +342,7 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                 {
                     public string Type => "composed";
 
-                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                    public Task Start(string taskId, Instance instance) => Task.Delay(1);
 
                     public ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
                 }
@@ -260,7 +358,7 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
         var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
         Assert.Single(migrated.Split("DefineStart(").Skip(1));
-        Assert.Contains("public Task Start(string taskId, Instance instance) => Task.CompletedTask;", migrated);
+        Assert.Contains("public Task Start(string taskId, Instance instance) => Task.Delay(1);", migrated);
     }
 
     [Fact]
@@ -282,21 +380,21 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                 + """
                 public partial class SplitTask
                 {
-                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                    public Task Start(string taskId, Instance instance) => Task.Delay(1);
                 }
                 """
         );
 
         var result = Migrate(semantic: false);
 
-        Assert.Empty(result.Todos);
-        Assert.Single(result.Warnings);
-        AssertCompilesAgainstV9();
+        Assert.Empty(result.Warnings);
+        Assert.Single(result.Todos);
+        AssertCompilesAgainstV9ExceptPortStubs(1);
         Assert.Contains("DefineStart(", await File.ReadAllTextAsync(methods, TestContext.Current.CancellationToken));
     }
 
     [Fact]
-    public async Task InheritedImplementation_GetsTheDefinitionBesideTheMethod()
+    public async Task InheritedImplementation_GetsThePortStubBesideTheMethod()
     {
         var baseFile = Write(
             "logic/BaseTask.cs",
@@ -304,7 +402,7 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                 + """
                 public abstract class BaseTask
                 {
-                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                    public Task Start(string taskId, Instance instance) => Task.Delay(1);
                 }
                 """
         );
@@ -321,12 +419,12 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
         var result = Migrate(semantic: true);
 
-        Assert.Empty(result.Todos);
-        var warning = Assert.Single(result.Warnings);
-        Assert.Contains("BaseTask.Start", warning);
-        Assert.Contains("DerivedTask implements IProcessTask through it", warning);
-        AssertCompilesAgainstV9();
-        // The definition sits beside the method, in the base class; the task inherits it.
+        Assert.Empty(result.Warnings);
+        var todo = Assert.Single(result.Todos);
+        Assert.Contains("BaseTask.Start", todo);
+        Assert.Contains("DerivedTask implements IProcessTask through it", todo);
+        AssertCompilesAgainstV9ExceptPortStubs(1);
+        // The stub sits beside the method, in the base class; the task inherits it.
         Assert.Contains("DefineStart(", await File.ReadAllTextAsync(baseFile, TestContext.Current.CancellationToken));
         Assert.DoesNotContain(
             "DefineStart(",
@@ -382,14 +480,13 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
         var result = Migrate(semantic);
 
-        Assert.Empty(result.Todos);
-        var warning = Assert.Single(result.Warnings);
-        Assert.Contains("runs RunStart as one stage", warning);
-        AssertCompilesAgainstV9();
+        Assert.Empty(result.Warnings);
+        Assert.Contains("private RunStart to port from", Assert.Single(result.Todos));
+        AssertCompilesAgainstV9ExceptPortStubs(1);
 
         var migrated = await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken);
         Assert.Contains("private Task RunStart(string taskId, Instance instance) => Task.Delay(1);", migrated);
-        Assert.Contains("await RunStart(", migrated);
+        Assert.Contains("#error Port RunStart to stages in DefineStart", migrated);
         Assert.Contains("public Task Start(string taskId, Instance instance) => Task.CompletedTask;", migrated);
     }
 
@@ -406,7 +503,7 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                 {
                     public string Type => "helper";
 
-                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                    public Task Start(string taskId, Instance instance) => Task.Delay(1);
 
                     public void DefineStart() { }
                 }
@@ -415,9 +512,9 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
         var result = Migrate(semantic);
 
-        Assert.Empty(result.Todos);
-        Assert.Contains("Added a DefineStart", Assert.Single(result.Warnings));
-        AssertCompilesAgainstV9();
+        Assert.Empty(result.Warnings);
+        Assert.Contains("Added a DefineStart", Assert.Single(result.Todos));
+        AssertCompilesAgainstV9ExceptPortStubs(1);
         Assert.Contains(
             "DefineStart(global::Altinn.App.Core.Features.Process.PipelineBuilder pipeline)",
             await File.ReadAllTextAsync(task, TestContext.Current.CancellationToken)
@@ -439,7 +536,7 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
                 {
                     public string Type => "private";
 
-                    public Task Start(string taskId, Instance instance) => Task.CompletedTask;
+                    public Task Start(string taskId, Instance instance) => Task.Delay(1);
 
                     private ProcessTaskPipeline DefineStart(PipelineBuilder pipeline) => pipeline.Build();
                 }
@@ -474,8 +571,7 @@ public sealed class ProcessTaskLifecycleMigrationTests : IDisposable
 
         var result = Migrate(semantic: false);
 
-        Assert.Empty(result.Warnings);
-        Assert.Empty(result.Todos);
+        Assert.Empty(result.Messages);
     }
 
     [Fact]

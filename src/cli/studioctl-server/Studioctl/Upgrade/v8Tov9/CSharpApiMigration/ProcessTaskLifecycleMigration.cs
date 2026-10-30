@@ -12,13 +12,16 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.CSharpApiMigration;
 /// implementation would compile and then silently do nothing when the task starts, ends or is abandoned.
 /// </summary>
 /// <remarks>
-/// <p>Each v8 method gets a <c>Define</c> member beside it that runs it as the phase's one stage, with the task id and
-/// the instance read from the stage's context. The method's body is left as it is: the rewrite gets the app
-/// behaving as before and compiling, and a warning points at the two things worth doing by hand, splitting the work
-/// into stages and reading instance data through the stage's data mutator. An explicit implementation becomes a
-/// private method, since v9 has no interface member for it to implement, under another name when the type also has
-/// an implicit method of that signature. A type that already composes the phase keeps what it has; its v8 method
-/// stays as the type's own method.</p>
+/// <p>A v8 method that does nothing, such as one that returns <c>Task.CompletedTask</c>, is removed: the v9 default
+/// composes no stages and plans no step. One the app may still call or override is kept and reported.</p>
+/// <p>A v8 method that does work is not wrapped as one stage. That would compile and keep it running, but as one
+/// stage that writes behind the stage's data mutator and repeats every call on a retry, while looking finished. It
+/// gets a <c>Define</c> member beside it instead that stops the build with <c>#error</c>, and a comment that says how
+/// to port the work: one stage per call to another service, instance data through the data mutator, and each stage
+/// safe to retry. The v8 method stays as the code to port from. An explicit implementation becomes a private
+/// method, since v9 has no interface member for it to implement, under another name when the type also has an
+/// implicit method of that signature. A type that already composes the phase keeps what it has; its v8 method stays
+/// as the type's own method.</p>
 /// <p>With a semantic model the implementations are resolved exactly, through
 /// <see cref="INamedTypeSymbol.FindImplementationForInterfaceMember"/>, so a method inherited from a base class
 /// gets the definition beside it, which the derived task then inherits, and an overload that only looks alike is
@@ -34,18 +37,40 @@ internal sealed class ProcessTaskLifecycleMigration
     private const string BuilderName = "PipelineBuilder";
     private const string PipelineTypeName = "Altinn.App.Core.Features.Process.ProcessTaskPipeline";
     private const string BuilderTypeName = "Altinn.App.Core.Features.Process." + BuilderName;
-    private const string StageResultTypeName = "Altinn.App.Core.Features.Process.StageResult";
 
     private static readonly string[] _phases = ["Start", "End", "Abandon"];
     private static readonly string[] _legacyParameterTypes = ["string", "Instance"];
 
-    /// <param name="CallName">The name the generated stage calls: the method's, or the private name it gets.</param>
+    /// <summary>What becomes of a v8 method.</summary>
+    private enum Change
+    {
+        /// <summary>It does nothing: removed.</summary>
+        Remove,
+
+        /// <summary>It does work: a <c>Define</c> stub that stops the build is added beside it.</summary>
+        AddDefinition,
+
+        /// <summary>The type composes the phase already: only made private, when it is an explicit implementation.</summary>
+        KeepAsOwnMethod,
+    }
+
+    /// <summary>Whether the type already has a member that can be the phase's v9 definition.</summary>
+    private enum ExistingDefinition
+    {
+        None,
+        Implemented,
+
+        /// <summary>A <c>Define</c> member of that signature that v9 cannot call, such as a private helper.</summary>
+        Blocked,
+    }
+
+    /// <param name="CallName">The name the v8 method keeps: its own, or the private name it gets.</param>
     private sealed record Rewrite(
         ScannedCSharpFile File,
         MethodDeclarationSyntax Method,
         string Phase,
         string CallName,
-        bool AddDefinition,
+        Change Change,
         bool ToPrivate
     );
 
@@ -72,6 +97,14 @@ internal sealed class ProcessTaskLifecycleMigration
         var appDeclaresInterface = files
             .SelectMany(static file => file.Root.DescendantNodes().OfType<InterfaceDeclarationSyntax>())
             .Any(static declaration => declaration.Identifier.ValueText == InterfaceName);
+        // Names the app calls with two arguments, as a v8 lifecycle method would be: a method that does nothing is
+        // kept when the app may call it.
+        var calledNames = files
+            .SelectMany(static file => file.Root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+            .Where(static invocation => invocation.ArgumentList.Arguments.Count == _legacyParameterTypes.Length)
+            .Select(static invocation => CalledName(invocation.Expression))
+            .OfType<string>()
+            .ToHashSet(StringComparer.Ordinal);
         // A partial type lists the interface in one declaration and may hold the methods in another.
         var partialImplementers = declarations
             .Where(static pair => pair.type.Modifiers.Any(SyntaxKind.PartialKeyword) && ListsInterface(pair.type))
@@ -91,7 +124,7 @@ internal sealed class ProcessTaskLifecycleMigration
                 )
                 {
                     rewrites.AddRange(
-                        FindSemanticRewrites(file, type, symbol, contract, filesByTree, handled, messages)
+                        FindSemanticRewrites(file, type, symbol, contract, filesByTree, calledNames, handled, messages)
                     );
                 }
 
@@ -120,7 +153,7 @@ internal sealed class ProcessTaskLifecycleMigration
                 continue;
             }
 
-            rewrites.AddRange(FindSyntacticRewrites(file, type, handled, messages));
+            rewrites.AddRange(FindSyntacticRewrites(file, type, calledNames, handled, messages));
         }
 
         foreach (var fileRewrites in rewrites.GroupBy(static rewrite => rewrite.File))
@@ -133,10 +166,19 @@ internal sealed class ProcessTaskLifecycleMigration
             {
                 var current =
                     root.GetCurrentNode(original) ?? throw new InvalidOperationException("Tracked node lost.");
+                if (rewrite.Change == Change.Remove)
+                {
+                    root =
+                        root.RemoveNode(current, SyntaxRemoveOptions.KeepDirectives)
+                        ?? throw new InvalidOperationException("Removing a member removed the file.");
+                    continue;
+                }
+
                 var method = rewrite.ToPrivate ? MakePrivate(current, rewrite.CallName) : current;
-                var replacements = rewrite.AddDefinition
-                    ? new MemberDeclarationSyntax[] { method, Definition(rewrite.Phase, rewrite.CallName, current) }
-                    : [method];
+                var replacements =
+                    rewrite.Change == Change.AddDefinition
+                        ? new MemberDeclarationSyntax[] { method, Definition(rewrite.Phase, rewrite.CallName, current) }
+                        : [method];
                 root = root.ReplaceNode(current, replacements);
             }
 
@@ -157,6 +199,7 @@ internal sealed class ProcessTaskLifecycleMigration
         INamedTypeSymbol symbol,
         INamedTypeSymbol contract,
         IReadOnlyDictionary<SyntaxTree, ScannedCSharpFile> filesByTree,
+        IReadOnlySet<string> calledNames,
         HashSet<MethodDeclarationSyntax> handled,
         List<UpgradeMessage> messages
     )
@@ -169,7 +212,7 @@ internal sealed class ProcessTaskLifecycleMigration
                 .FirstOrDefault(static member => member.Parameters.Length == _legacyParameterTypes.Length);
             if (member is null)
             {
-                foreach (var fallback in FindSyntacticRewrites(file, type, handled, messages, phase))
+                foreach (var fallback in FindSyntacticRewrites(file, type, calledNames, handled, messages, phase))
                 {
                     yield return fallback;
                 }
@@ -207,13 +250,9 @@ internal sealed class ProcessTaskLifecycleMigration
                     definition.Parameters.Length == 1 && definition.Parameters[0].Type.Name == BuilderName
                 )
                 .ToList();
-            var hasDefinition = definitions.Any(IsImplementation);
-            if (!hasDefinition && definitions.Count > 0)
-            {
-                messages.Todo(NotAnImplementation(declaringFile, method, phase));
-                continue;
-            }
+            var existing = Existing(definitions.Count, definitions.Any(IsImplementation));
             var isExplicit = implementation.ExplicitInterfaceImplementations.Length > 0;
+            var mayBeCalled = implementation.IsVirtual || implementation.IsOverride || calledNames.Contains(phase);
             var collides =
                 isExplicit
                 && implementation
@@ -233,9 +272,10 @@ internal sealed class ProcessTaskLifecycleMigration
                     declaringFile,
                     method,
                     phase,
-                    hasDefinition,
+                    existing,
                     isExplicit,
                     collides,
+                    mayBeCalled,
                     reservedNames,
                     inherited,
                     messages
@@ -255,6 +295,7 @@ internal sealed class ProcessTaskLifecycleMigration
     private static IEnumerable<Rewrite> FindSyntacticRewrites(
         ScannedCSharpFile file,
         TypeDeclarationSyntax type,
+        IReadOnlySet<string> calledNames,
         HashSet<MethodDeclarationSyntax> handled,
         List<UpgradeMessage> messages,
         string? onlyPhase = null
@@ -292,20 +333,19 @@ internal sealed class ProcessTaskLifecycleMigration
                     && SimpleName(other.ParameterList.Parameters[0].Type) == BuilderName
                 )
                 .ToList();
-            var hasDefinition = definitions.Any(IsImplementation);
-            if (!hasDefinition && definitions.Count > 0)
-            {
-                messages.Todo(NotAnImplementation(file, method, phase));
-                continue;
-            }
+            var mayBeCalled =
+                method.Modifiers.Any(SyntaxKind.VirtualKeyword)
+                || method.Modifiers.Any(SyntaxKind.OverrideKeyword)
+                || calledNames.Contains(phase);
             if (
                 Decide(
                     file,
                     method,
                     phase,
-                    hasDefinition,
+                    Existing(definitions.Count, definitions.Any(IsImplementation)),
                     isExplicit,
                     candidates.Count > 1,
+                    mayBeCalled,
                     reservedNames,
                     "",
                     messages
@@ -333,9 +373,10 @@ internal sealed class ProcessTaskLifecycleMigration
         ScannedCSharpFile file,
         MethodDeclarationSyntax method,
         string phase,
-        bool hasDefinition,
+        ExistingDefinition existing,
         bool isExplicit,
         bool collides,
+        bool mayBeCalled,
         IReadOnlySet<string> reservedNames,
         string inherited,
         List<UpgradeMessage> messages
@@ -343,6 +384,32 @@ internal sealed class ProcessTaskLifecycleMigration
     {
         var location = $"{Location(file, method)}: {MemberName(method)}";
         var definitionName = "Define" + phase;
+        if (DoesNothing(method))
+        {
+            // An explicit implementation cannot be called by name, and v9 has no member for it to implement.
+            if (isExplicit || !mayBeCalled)
+            {
+                messages.Ok(
+                    $"{location}(string taskId, Instance instance) did nothing and is no longer part of "
+                        + $"{InterfaceName}, so it was removed."
+                );
+                return new Rewrite(file, method, phase, phase, Change.Remove, ToPrivate: false);
+            }
+
+            messages.Warn(
+                $"{location}(string taskId, Instance instance) is no longer part of {InterfaceName}, and v9 does not "
+                    + "call it. It does nothing, so no work is lost. It was kept because the app may call or override "
+                    + "it. Remove it when nothing does."
+            );
+            return null;
+        }
+
+        if (existing == ExistingDefinition.Blocked)
+        {
+            messages.Todo(NotAnImplementation(file, method, phase));
+            return null;
+        }
+
         var callName = phase;
         if (collides)
         {
@@ -359,7 +426,7 @@ internal sealed class ProcessTaskLifecycleMigration
             }
         }
 
-        if (hasDefinition)
+        if (existing == ExistingDefinition.Implemented)
         {
             messages.Warn(
                 $"{location}(string taskId, Instance instance) is no longer part of {InterfaceName}, and the app "
@@ -367,42 +434,108 @@ internal sealed class ProcessTaskLifecycleMigration
                     + (isExplicit ? $" It stays as the type's own private {callName}." : "")
             );
             return isExplicit
-                ? new Rewrite(file, method, phase, callName, AddDefinition: false, ToPrivate: true)
+                ? new Rewrite(file, method, phase, callName, Change.KeepAsOwnMethod, ToPrivate: true)
                 : null;
         }
 
-        messages.Warn(
-            $"{location}(string taskId, Instance instance) is no longer part of {InterfaceName}; v9 runs the stages "
-                + $"{definitionName} composes. Added a {definitionName} that runs {callName} as one stage.{inherited} "
-                + "Split the work into stages that are saved and retried on their own, and read and change instance "
-                + "data through context.InstanceDataMutator."
+        messages.Todo(
+            $"{location}(string taskId, Instance instance) is no longer part of {InterfaceName}, and v9 does not call "
+                + $"it.{inherited} Added a {definitionName} that stops the build until the work is ported to stages. "
+                + "Its comment says how: one stage per call to another service, instance data read and changed "
+                + "through context.InstanceDataMutator, and every stage safe to retry."
+                + (isExplicit ? $" The v8 code stays as the type's own private {callName} to port from." : "")
         );
-        return new Rewrite(file, method, phase, callName, AddDefinition: true, ToPrivate: isExplicit);
+        return new Rewrite(file, method, phase, callName, Change.AddDefinition, ToPrivate: isExplicit);
+    }
+
+    private static ExistingDefinition Existing(int candidates, bool anyImplementation)
+    {
+        if (anyImplementation)
+        {
+            return ExistingDefinition.Implemented;
+        }
+
+        return candidates > 0 ? ExistingDefinition.Blocked : ExistingDefinition.None;
     }
 
     /// <summary>
-    /// The <c>Define</c> member that runs the v8 method as the phase's one stage, laid out below the method with its
-    /// indentation. The task id is the instance's current task: for a start that is the task being entered, since
-    /// the process state is moved in memory before the start stages run, and for an end or abandon the task being
-    /// left. The type references are emitted qualified for the final pass against the upgraded project to simplify.
+    /// Whether the method has no effect: it returns <c>Task.CompletedTask</c>, awaits it, or is an empty async
+    /// method. Comments in the body do not count as work.
+    /// </summary>
+    private static bool DoesNothing(MethodDeclarationSyntax method)
+    {
+        if (method.ExpressionBody is { } arrow)
+        {
+            return IsCompletedTask(arrow.Expression);
+        }
+
+        var isAsync = method.Modifiers.Any(SyntaxKind.AsyncKeyword);
+        return method.Body?.Statements switch
+        {
+            [] => isAsync,
+            [ReturnStatementSyntax { Expression: { } returned }] => !isAsync && IsCompletedTask(returned),
+            [ExpressionStatementSyntax { Expression: AwaitExpressionSyntax awaited }] => isAsync
+                && IsCompletedTask(awaited.Expression),
+            _ => false,
+        };
+    }
+
+    private static bool IsCompletedTask(ExpressionSyntax expression) =>
+        expression is MemberAccessExpressionSyntax { Name.Identifier.ValueText: "CompletedTask" } access
+        && CalledName(access.Expression) == "Task";
+
+    /// <summary>The simple name an invocation calls, or a member access ends with.</summary>
+    private static string? CalledName(ExpressionSyntax expression) =>
+        expression switch
+        {
+            IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
+            GenericNameSyntax generic => generic.Identifier.ValueText,
+            MemberAccessExpressionSyntax access => access.Name.Identifier.ValueText,
+            MemberBindingExpressionSyntax binding => binding.Name.Identifier.ValueText,
+            _ => null,
+        };
+
+    /// <summary>
+    /// The <c>Define</c> member for a v8 method that does work, laid out below it with its indentation. It stops the
+    /// build with <c>#error</c>, and has no return statement, so deleting that line alone does not make it compile:
+    /// the work must be composed first. Its comment says how, for the developer or an assistant doing the port. The
+    /// type references are emitted qualified for the final pass against the upgraded project to simplify.
     /// </summary>
     private static MemberDeclarationSyntax Definition(string phase, string callName, MethodDeclarationSyntax method)
     {
         var indent = Indentation(method);
+        var when = phase switch
+        {
+            "Start" => "when the task starts",
+            "End" => "when the task ends",
+            _ => "when the task is abandoned",
+        };
         var text = $$"""
 
-            {{indent}}public global::{{PipelineTypeName}} Define{{phase}}(global::{{BuilderTypeName}} pipeline) =>
-            {{indent}}    pipeline
-            {{indent}}        .Stage(async context =>
-            {{indent}}        {
-            {{indent}}            await {{callName}}(
-            {{indent}}                context.InstanceDataMutator.Instance.Process?.CurrentTask?.ElementId
-            {{indent}}                    ?? throw new System.InvalidOperationException("The instance has no current task."),
-            {{indent}}                context.InstanceDataMutator.Instance
-            {{indent}}            );
-            {{indent}}            return global::{{StageResultTypeName}}.Completed();
-            {{indent}}        })
-            {{indent}}        .Build();
+            {{indent}}public global::{{PipelineTypeName}} Define{{phase}}(global::{{BuilderTypeName}} pipeline)
+            {{indent}}{
+            {{indent}}    #error Port {{callName}} to stages in Define{{phase}} as the comment below says, then remove this line.
+            {{indent}}    // v9 no longer calls {{callName}}(string taskId, Instance instance). It runs the stages this method
+            {{indent}}    // composes {{when}}, inside the process transition and before it commits, and saves and
+            {{indent}}    // retries each stage on its own. Port the work in {{callName}} to stages here, then delete {{callName}}.
+            {{indent}}    // - Give each call to another service its own stage, so that a retry repeats only the stage that failed.
+            {{indent}}    // - Read and change instance data through context.InstanceDataMutator, not through IDataClient or
+            {{indent}}    //   IInstanceClient. The mutator's changes are saved when the stage completes, and later stages see them.
+            {{indent}}    // - Make each stage safe to run more than once. context.StepId is the same on every retry of a stage and
+            {{indent}}    //   works as an idempotency key for calls to other services.
+            {{indent}}    // - Report a failure with StageResult.FailedRetryable or StageResult.FailedPermanent instead of logging
+            {{indent}}    //   it and carrying on.
+            {{indent}}    // - The task id is context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId.
+            {{indent}}    // - Pass each stage as a named method. Its name becomes the step's name in the admin panel.
+            {{indent}}    //
+            {{indent}}    // return pipeline.Stage(FirstStage).Stage(SecondStage).Build();
+            {{indent}}    //
+            {{indent}}    // private async Task<StageResult> FirstStage(StageContext context)
+            {{indent}}    // {
+            {{indent}}    //     ...
+            {{indent}}    //     return StageResult.Completed();
+            {{indent}}    // }
+            {{indent}}}
 
             """;
         var member =
@@ -414,10 +547,7 @@ internal sealed class ProcessTaskLifecycleMigration
                 .OfType<NameSyntax>()
                 .Where(static name =>
                     name.Parent is not NameSyntax
-                    && name.ToString()
-                        is "global::" + PipelineTypeName
-                            or "global::" + BuilderTypeName
-                            or "global::" + StageResultTypeName
+                    && name.ToString() is "global::" + PipelineTypeName or "global::" + BuilderTypeName
                 ),
             static (original, _) =>
                 GeneratedTypeReferenceFinalizer
