@@ -236,8 +236,9 @@ app does not guard against it. Names would not help either, since a redeploy can
   runs under the step's id and each later stage under an id derived from it and the stage's position, the same on
   every attempt, so calls keyed on the step id stay apart. Only the first stage can defer, since the step cannot save
   between stages; a later stage that defers fails the step permanently with `ProcessTaskStageDeferredAfterOthers`.
-- A hook step runs the handler that matches when it runs. If a redeploy removed it, the step does nothing. If a
-  redeploy added a handler, a transition that was enqueued before it has no step for it, so it does not run.
+- A hook step runs the handler that matches when it runs, and does nothing if a redeploy removed it. A handler that a
+  redeploy adds runs only where the transition already has a step for its hook. A workflow from a version that
+  planned every hook step has one, but a transition planned without a handler does not.
 - To recover, resume the workflow on the code that enqueued it, or abandon it. An open mailbox stays open until its
   deadline or until someone closes it.
 - A reply handler finds its opening stage from the pipeline at each hop. After a reshape, concluding the exchange can
