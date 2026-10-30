@@ -23,7 +23,7 @@ describe('DeploymentEnvironment', () => {
           deploy('300', '2026-10-02T12:00:00Z'),
           deploy('100', '2026-10-01T12:00:00Z'),
         ]}
-        runningApp={{ ...runningApp, envName: 'tt02', version: '2', buildId: '100' }}
+        runningApp={{ ...runningApp, environment: 'tt02', version: '2', buildId: '100' }}
         envName='tt02'
         isProduction={false}
         orgName={org}

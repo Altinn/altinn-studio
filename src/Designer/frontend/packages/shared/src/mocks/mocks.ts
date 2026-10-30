@@ -104,7 +104,7 @@ export const deployEvent: DeployEvent = {
 };
 
 export const runningApp: RunningApp = {
-  envName: '',
+  environment: '',
   version: '',
 };
 

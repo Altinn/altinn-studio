@@ -3,9 +3,9 @@ namespace Altinn.Studio.Designer.Models;
 /// <summary>
 /// The app as it runs in an environment.
 /// </summary>
-public class RunningApp
+public sealed class RunningApp
 {
-    public required string EnvName { get; init; }
+    public required string Environment { get; init; }
 
     /// <summary>
     /// The deployed tag, or null when the runtime gateway could not tell it.

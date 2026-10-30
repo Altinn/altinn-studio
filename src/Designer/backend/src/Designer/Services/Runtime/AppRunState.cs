@@ -1,10 +1,15 @@
 namespace Altinn.Studio.Designer.Services.Runtime;
 
 /// <summary>
-/// What runs of an app in one environment.
+/// What runs of an app in one environment: <see cref="Running"/>, <see cref="NotRunning"/> or
+/// <see cref="Unavailable"/>, and nothing else.
 /// </summary>
-public abstract record AppRunState(string Environment)
+public abstract record AppRunState
 {
+    private AppRunState(string environment) => Environment = environment;
+
+    public string Environment { get; }
+
     /// <param name="Environment">The environment.</param>
     /// <param name="Version">The deployed tag, or null when the runtime could not tell it.</param>
     /// <param name="OwnBuildId">

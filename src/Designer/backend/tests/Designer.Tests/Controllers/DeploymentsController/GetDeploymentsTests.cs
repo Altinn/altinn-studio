@@ -81,11 +81,11 @@ public class GetDeployments
             {
                 new RunningApp
                 {
-                    EnvName = "tt02",
+                    Environment = "tt02",
                     Version = "8",
                     BuildId = "1234",
                 },
-                new RunningApp { EnvName = "at22", Version = "6.1" },
+                new RunningApp { Environment = "at22", Version = "6.1" },
             },
             actual.RunningAppList,
             strict: true
@@ -101,7 +101,7 @@ public class GetDeployments
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
 
-        Assert.Equal("tt02", Assert.Single(actual.RunningAppList).EnvName);
+        Assert.Equal("tt02", Assert.Single(actual.RunningAppList).Environment);
     }
 
     private async Task<DeploymentsResponse> GetDeploymentsResponse()

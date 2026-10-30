@@ -69,7 +69,7 @@ export const DeploymentContainer = () => {
           .filter((item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase())
           .filter((item, index) => index === 0 || item.build?.result !== BuildResult.none);
         const runningApp = appDeployment.runningAppList.find(
-          (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
+          (item) => item.environment.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         return (
           <DeploymentEnvironment

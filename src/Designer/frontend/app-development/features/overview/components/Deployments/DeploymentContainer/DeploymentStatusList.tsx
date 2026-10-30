@@ -32,7 +32,7 @@ export const DeploymentStatusList = ({
           (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         const runningApp = runningAppList.find(
-          (item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase(),
+          (item) => item.environment.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         const lastPipelineDeployment = pipelineDeploymentEnvList[0];
         const deploymentStatus = getDeployStatus(lastPipelineDeployment);

@@ -79,7 +79,7 @@ public class DeploymentsController : ControllerBase
                 .OfType<AppRunState.Running>()
                 .Select(running => new RunningApp
                 {
-                    EnvName = running.Environment,
+                    Environment = running.Environment,
                     Version = running.Version,
                     BuildId = running.OwnBuildId,
                 })
