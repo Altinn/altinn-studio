@@ -18,7 +18,6 @@ import type { ResourceError, ResourceTypeOption } from 'app-shared/types/Resourc
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import {
   useResourceAccessPackagesQuery,
-  useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
@@ -28,6 +27,7 @@ import classes from './Altinn2ResourcePoliciesPage.module.css';
 import { getDeprecatedAltinn2Subjects } from './altinn2ResourcePolicyUtils';
 import type { EnvId, ResourcePolicyData, TableRowData } from './altinn2ResourcePolicyUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
+import { POLICY_ACTIONS } from '@altinn/policy-editor/actions';
 
 export const LocalPolicyEditor = ({
   tableData,
@@ -53,7 +53,7 @@ export const LocalPolicyEditor = ({
   // Get the data
   const { data: publishStatusData, isPending: isPublishStatusPending } =
     useResourcePolicyPublishStatusQuery(org, app, tableData.identifier);
-  const { data: actionData, isPending: isActionPending } = useResourcePolicyActionsQuery(org, app);
+  const actionData = POLICY_ACTIONS;
 
   const { data: subjectData, isPending: isLoadingSubjects } = useResourcePolicySubjectsQuery(
     org,
@@ -130,7 +130,7 @@ export const LocalPolicyEditor = ({
     </StudioDialog.Block>
   );
 
-  if (isActionPending || isLoadingSubjects || isLoadingAccessPackages || isPublishStatusPending) {
+  if (isLoadingSubjects || isLoadingAccessPackages || isPublishStatusPending) {
     return (
       <>
         {heading}
