@@ -1,10 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -15,7 +17,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class KubernetesDeploymentsService : IKubernetesDeploymentsService
 {
     private readonly IEnvironmentsService _environmentsService;
-    private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
+    private readonly IRuntimeGatewayClient _runtimeGatewayClient;
     private readonly ILogger<KubernetesDeploymentsService> _logger;
 
     /// <summary>
@@ -23,12 +25,12 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
     /// </summary>
     public KubernetesDeploymentsService(
         IEnvironmentsService environmentsService,
-        IKubernetesWrapperClient kubernetesWrapperClient,
+        IRuntimeGatewayClient runtimeGatewayClient,
         ILogger<KubernetesDeploymentsService> logger
     )
     {
         _environmentsService = environmentsService;
-        _kubernetesWrapperClient = kubernetesWrapperClient;
+        _runtimeGatewayClient = runtimeGatewayClient;
         _logger = logger;
     }
 
@@ -41,19 +43,30 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
         {
             try
             {
-                var deployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env, ct);
+                var deployment = await _runtimeGatewayClient.GetRunningAppDeployment(
+                    org,
+                    app,
+                    AltinnEnvironment.FromName(env.Name),
+                    ct
+                );
 
                 if (deployment is null)
                 {
                     return null;
                 }
 
-                deployment.EnvName = env.Name;
-                return deployment;
+                return new KubernetesDeployment
+                {
+                    EnvName = env.Name,
+                    Release = deployment.Release,
+                    Version = deployment.ImageTag,
+                };
             }
-            catch (KubernetesWrapperResponseException e)
+            // One unreachable cluster should not hide what runs in the others, and a timeout is no reason to fail
+            // the whole request either. Only the caller's cancellation is.
+            catch (Exception e) when (!ct.IsCancellationRequested)
             {
-                _logger.LogError(e, $"Could not reach environment {env.Name} for org {org}.");
+                _logger.LogError(e, "Could not reach environment {EnvName} for org {Org}.", env.Name, org);
                 return null;
             }
         });

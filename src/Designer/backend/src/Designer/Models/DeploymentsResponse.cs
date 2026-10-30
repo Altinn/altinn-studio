@@ -1,7 +1,6 @@
 #nullable disable
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 
 namespace Altinn.Studio.Designer.Models;
 

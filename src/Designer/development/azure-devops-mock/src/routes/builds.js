@@ -87,23 +87,6 @@ export const buildRoute = async (req, res) => {
   res.json(build);
 };
 
-export const kubernetesWrapperRoute = async (req, res) => {
-  const { org, env } = req.params;
-  const release = req.query.labelSelector?.slice('release='.length);
-
-  const kubernetesWrapperDeployments = [
-    { version: '123456', release: 'kuberneteswrapper' },
-    ...deploys
-      .filter((deploy) => deploy.envName === env && deploy.org === org)
-      .map((deploy) => ({
-        version: deploy.tagName,
-        release: `${deploy.org}-${deploy.app}`,
-      })),
-  ];
-
-  res.json(kubernetesWrapperDeployments.filter((deploy) => !release || deploy.release === release));
-};
-
 /** Every app deployed through local Studio, plus the apps the studioctl environment holds. */
 async function deploymentsFor(org, env, origin) {
   const deployed = deploys
@@ -142,4 +125,20 @@ export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
   }
 
   res.json(deployment);
+};
+
+/** The app's latest deploy through local Studio is what runs in the environment. */
+export const runtimeGatewayRunningDeploymentRoute = (req, res) => {
+  const { org, env, app } = req.params;
+
+  const deploy = deploys.findLast(
+    (candidate) => candidate.org === org && candidate.envName === env && candidate.app === app,
+  );
+
+  if (!deploy) {
+    res.sendStatus(404);
+    return;
+  }
+
+  res.json({ release: `${org}-${app}`, imageTag: deploy.tagName });
 };

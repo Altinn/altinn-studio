@@ -1,132 +1,122 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
-using Microsoft.Extensions.Logging;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Designer.Tests.Services;
 
 public class KubernetesDeploymentsServiceTest
 {
-    private readonly Mock<IEnvironmentsService> _environementsService;
-    private readonly Mock<IKubernetesWrapperClient> _kubernetesWrapperClient;
-    private readonly Mock<ILogger<KubernetesDeploymentsService>> _deploymentLogger;
+    private const string Org = "ttd";
+    private const string App = "my-app";
+
+    private readonly Mock<IEnvironmentsService> _environmentsService = new();
+    private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClient = new();
+    private readonly KubernetesDeploymentsService _service;
 
     public KubernetesDeploymentsServiceTest()
     {
-        _environementsService = new Mock<IEnvironmentsService>();
-        _environementsService.Setup(req => req.GetEnvironments()).ReturnsAsync(GetEnvironments("environments.json"));
-
-        _kubernetesWrapperClient = new Mock<IKubernetesWrapperClient>();
-        _kubernetesWrapperClient
-            .Setup(req =>
-                req.GetDeploymentAsync(
-                    "ttd",
-                    It.IsAny<string>(),
-                    It.IsAny<EnvironmentModel>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(new KubernetesDeployment());
-
-        _deploymentLogger = new Mock<ILogger<KubernetesDeploymentsService>>();
-    }
-
-    [Theory]
-    [InlineData("ttd", "issue-6094")]
-    public async Task GetDeploymentAsync_OK(string org, string app)
-    {
-        // Arrange
-        var environments = GetEnvironments("environments.json");
-        _environementsService
-            .Setup(e => e.GetOrganizationEnvironments(org, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(environments);
-        var kubernetesDeployments = GetKubernetesDeployments("completedDeployments.json");
-        foreach (EnvironmentModel environment in environments)
-        {
-            _kubernetesWrapperClient
-                .Setup(req =>
-                    req.GetDeploymentAsync(
-                        org,
-                        app,
-                        It.Is<EnvironmentModel>(env => env.Name == environment.Name),
-                        It.IsAny<CancellationToken>()
-                    )
-                )
-                .ReturnsAsync(
-                    kubernetesDeployments.FirstOrDefault(deployment => deployment.EnvName == environment.Name)
-                        ?? new KubernetesDeployment { EnvName = environment.Name }
-                );
-        }
-
-        KubernetesDeploymentsService kubernetesDeploymentsService = new(
-            _environementsService.Object,
-            _kubernetesWrapperClient.Object,
-            _deploymentLogger.Object
-        );
-
-        // Act
-        List<KubernetesDeployment> kubernetesDeploymentList = await kubernetesDeploymentsService.GetAsync(
-            org,
-            app,
-            CancellationToken.None
-        );
-
-        // Assert
-        Assert.Equal(4, kubernetesDeploymentList.Count);
-    }
-
-    private static List<EnvironmentModel> GetEnvironments(string filename)
-    {
-        string unitTestFolder = Path.GetDirectoryName(
-            new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
-        );
-        string path = Path.Combine(
-            unitTestFolder,
-            "..",
-            "..",
-            "..",
-            "..",
-            "..",
-            "..",
-            "development",
-            "azure-devops-mock",
-            filename
-        );
-        if (File.Exists(path))
-        {
-            string environments = File.ReadAllText(path);
-            EnvironmentsModel environmentsList = System.Text.Json.JsonSerializer.Deserialize<EnvironmentsModel>(
-                environments
+        _environmentsService
+            .Setup(service => service.GetOrganizationEnvironments(Org, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new List<EnvironmentModel>
+                {
+                    new() { Name = "tt02" },
+                    new() { Name = "at22" },
+                    new() { Name = "production" },
+                }
             );
 
-            return environmentsList.Environments;
-        }
-
-        return null;
-    }
-
-    private static List<KubernetesDeployment> GetKubernetesDeployments(string filename)
-    {
-        string unitTestFolder = Path.GetDirectoryName(
-            new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
+        _service = new KubernetesDeploymentsService(
+            _environmentsService.Object,
+            _runtimeGatewayClient.Object,
+            NullLogger<KubernetesDeploymentsService>.Instance
         );
-        string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "KubernetesDeployments", filename);
-        if (!File.Exists(path))
-        {
-            return null;
-        }
-
-        string deployments = File.ReadAllText(path);
-        return JsonConvert.DeserializeObject<List<KubernetesDeployment>>(deployments);
     }
+
+    [Fact]
+    public async Task GetAsync_ReturnsTheVersionRunningInEachEnvironment_AndSkipsWhereTheAppDoesNotRun()
+    {
+        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8"));
+        SetupRunning("at22", new RunningAppDeployment($"{Org}-{App}", "6.1"));
+        SetupRunning("production", null);
+
+        var deployments = await _service.GetAsync(Org, App, CancellationToken.None);
+
+        Assert.Equivalent(
+            new[]
+            {
+                new KubernetesDeployment
+                {
+                    EnvName = "tt02",
+                    Release = $"{Org}-{App}",
+                    Version = "8",
+                },
+                new KubernetesDeployment
+                {
+                    EnvName = "at22",
+                    Release = $"{Org}-{App}",
+                    Version = "6.1",
+                },
+            },
+            deployments,
+            strict: true
+        );
+    }
+
+    [Fact]
+    public async Task GetAsync_WhenAnEnvironmentFails_ReturnsTheOthers()
+    {
+        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8"));
+        SetupRunning("at22", null);
+        SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
+
+        var deployments = await _service.GetAsync(Org, App, CancellationToken.None);
+
+        Assert.Equal("tt02", Assert.Single(deployments).EnvName);
+    }
+
+    [Fact]
+    public async Task GetAsync_WhenTheCallerCancels_Throws()
+    {
+        using var cancellation = new CancellationTokenSource();
+        _runtimeGatewayClient
+            .Setup(client =>
+                client.GetRunningAppDeployment(Org, App, It.IsAny<AltinnEnvironment>(), It.IsAny<CancellationToken>())
+            )
+            .Returns(
+                (string _, string _, AltinnEnvironment _, CancellationToken ct) =>
+                {
+                    cancellation.Cancel();
+                    return Task.FromCanceled<RunningAppDeployment>(ct);
+                }
+            );
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => _service.GetAsync(Org, App, cancellation.Token));
+    }
+
+    private void SetupRunning(string environment, RunningAppDeployment deployment) =>
+        SetupGatewayCall(environment).ReturnsAsync(deployment);
+
+    private Moq.Language.Flow.ISetup<IRuntimeGatewayClient, Task<RunningAppDeployment>> SetupGatewayCall(
+        string environment
+    ) =>
+        _runtimeGatewayClient.Setup(client =>
+            client.GetRunningAppDeployment(
+                Org,
+                App,
+                It.Is<AltinnEnvironment>(env => env.Name == environment),
+                It.IsAny<CancellationToken>()
+            )
+        );
 }

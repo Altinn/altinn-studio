@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Metrics;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Moq;
 using Xunit;
 
@@ -45,6 +46,90 @@ public class RuntimeGatewayClientTests
                 + $"&originEnvironment={generalSettings.OriginEnvironment}",
             requestUri.Query
         );
+    }
+
+    [Fact]
+    public async Task GetRunningAppDeployment_ReturnsTheDeploymentTheGatewayReports()
+    {
+        var expected = new RunningAppDeployment("ttd-my-app", "8");
+        using var handler = new RespondingHandler(HttpStatusCode.OK, expected);
+        var client = CreateClient(handler);
+
+        var deployment = await client.GetRunningAppDeployment(
+            "ttd",
+            "my-app",
+            AltinnEnvironment.FromName("tt02"),
+            CancellationToken.None
+        );
+
+        Assert.Equal(expected, deployment);
+        Assert.Equal(
+            "https://ttd.apps.tt02.altinn.no/runtime/gateway/api/v1/deploy/apps/my-app/running",
+            handler.RequestUri?.ToString()
+        );
+    }
+
+    [Fact]
+    public async Task GetRunningAppDeployment_WhenTheAppDoesNotRun_ReturnsNull()
+    {
+        using var handler = new RespondingHandler(HttpStatusCode.NotFound);
+        var client = CreateClient(handler);
+
+        var deployment = await client.GetRunningAppDeployment(
+            "ttd",
+            "my-app",
+            AltinnEnvironment.FromName("tt02"),
+            CancellationToken.None
+        );
+
+        Assert.Null(deployment);
+    }
+
+    [Fact]
+    public async Task GetRunningAppDeployment_WhenTheGatewayFails_Throws()
+    {
+        using var handler = new RespondingHandler(HttpStatusCode.InternalServerError);
+        var client = CreateClient(handler);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.GetRunningAppDeployment("ttd", "my-app", AltinnEnvironment.FromName("tt02"), CancellationToken.None)
+        );
+    }
+
+    private static RuntimeGatewayClient CreateClient(HttpMessageHandler handler)
+    {
+        var httpClientFactory = new Mock<IHttpClientFactory>();
+        httpClientFactory
+            .Setup(factory => factory.CreateClient("runtime-gateway"))
+            .Returns(() => new HttpClient(handler, disposeHandler: false));
+        var environmentsService = new Mock<IEnvironmentsService>();
+        environmentsService
+            .Setup(service => service.GetAppClusterUri("ttd", "tt02", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Uri("https://ttd.apps.tt02.altinn.no"));
+        return new RuntimeGatewayClient(
+            httpClientFactory.Object,
+            new GeneralSettings { HostName = "altinn.studio" },
+            environmentsService.Object
+        );
+    }
+
+    private sealed class RespondingHandler(HttpStatusCode statusCode, object body = null) : HttpMessageHandler
+    {
+        public Uri RequestUri { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
+        {
+            RequestUri = request.RequestUri;
+            var response = new HttpResponseMessage(statusCode);
+            if (body is not null)
+            {
+                response.Content = JsonContent.Create(body);
+            }
+            return Task.FromResult(response);
+        }
     }
 
     private sealed class RecordingHandler(Action<HttpRequestMessage> record) : HttpMessageHandler

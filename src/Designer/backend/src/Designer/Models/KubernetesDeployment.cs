@@ -1,5 +1,5 @@
 #nullable disable
-namespace Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
+namespace Altinn.Studio.Designer.Models;
 
 public class KubernetesDeployment
 {
