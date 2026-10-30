@@ -57,7 +57,7 @@ export function useInstanceQueryInternal<R = IInstance>(queryOptions: InstanceRe
 export function useInvalidateInstanceDataCache() {
   const queryClient = useQueryClient();
 
-  return () => queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
+  return useCallback(() => queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() }), [queryClient]);
 }
 
 export const useSelectFromInstanceData = () => {
