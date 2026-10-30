@@ -27,19 +27,21 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record ServiceTaskSegmentPlan(IReadOnlyList<PlannedStep> Steps, int? ReceiveOpeningIndex);
 
 /// <summary>
-/// The steps one process event adds to a transition, in three lists: the steps before the commit, the steps after it
-/// in the transition's primary workflow, and the steps that each get an auxiliary workflow of their own.
+/// The steps one process event adds to a transition, in three lists: its lifecycle steps, which run before the commit
+/// for a task end or abandon and after it for a task start, the steps after those in the transition's primary workflow,
+/// and the steps that each get an auxiliary workflow of their own.
 /// </summary>
 internal sealed class WorkflowStepSet
 {
-    private readonly List<PlannedStep> _preCommitSteps = [];
+    private readonly List<PlannedStep> _lifecycleSteps = [];
     private readonly List<PlannedStep> _primaryPostCommitSteps = [];
     private readonly List<PlannedStep> _auxiliarySteps = [];
 
     /// <summary>
-    /// The steps that run before the commit. The factory adds the CommitProcessState step after these.
+    /// The lifecycle steps for this event. A task end's or abandon's run before CommitProcessState, a task start's after
+    /// it.
     /// </summary>
-    public IReadOnlyList<PlannedStep> PreCommitSteps => _preCommitSteps;
+    public IReadOnlyList<PlannedStep> LifecycleSteps => _lifecycleSteps;
 
     /// <summary>
     /// The steps after the commit that must complete before the transition is considered done
@@ -148,11 +150,11 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// Adds a step that runs the command before the commit.
+    /// Adds a lifecycle step that runs the command.
     /// </summary>
     private WorkflowStepSet AddStep(string commandKey, CommandRequestPayload? payload = null)
     {
-        _preCommitSteps.Add(CreateStep(commandKey, payload));
+        _lifecycleSteps.Add(CreateStep(commandKey, payload));
         return this;
     }
 
@@ -165,7 +167,7 @@ internal sealed class WorkflowStepSet
         IReadOnlyList<PipelineStage.Plain> stages = pipeline.Stages;
         for (int index = 0; index < stages.Count; index++)
         {
-            _preCommitSteps.Add(
+            _lifecycleSteps.Add(
                 CreateStep(
                     commandKey,
                     new ProcessTaskStagePayload(index),
@@ -179,8 +181,8 @@ internal sealed class WorkflowStepSet
     }
 
     /// <summary>
-    /// Adds a step that runs the command after CommitProcessState has committed the transition to Storage, and
-    /// that must complete before the transition settles.
+    /// Adds a step that runs the command after CommitProcessState has committed the transition to Storage and after
+    /// any task-start steps, and that must complete before the transition settles.
     /// </summary>
     /// <param name="commandKey">The command's registered key.</param>
     /// <param name="payload">Optional command payload.</param>

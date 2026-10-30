@@ -13,8 +13,8 @@ namespace Altinn.App.Integration.Tests.WorkflowEngine;
 /// <summary>
 /// The recovery property of a multi-stage lifecycle pipeline, through a real engine: a transition into a task
 /// whose start pipeline has two stages. Stage A saves a data element and completes; stage B fails permanently
-/// while the scenario blocks it, then defers once and completes. Recovery must re-enter at stage B only, stage
-/// A's data must survive, and the process must commit the transition only once every stage has completed.
+/// while the scenario blocks it, then defers once and completes. Recovery must re-enter at stage B only, and stage
+/// A's data must survive.
 /// </summary>
 [Trait("Category", "Integration")]
 [Collection(WorkflowEngineTestCollection.Name)]
@@ -24,7 +24,7 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
     private const string Scenario = "lifecycle-stage-recovery";
 
     [Fact]
-    public async Task ProcessNext_LaterStartStageFailsThenRecovers_ReEntersAtThatStageAndCommitsOnlyAtTheEnd()
+    public async Task ProcessNext_LaterStartStageFailsThenRecovers_ReEntersAtThatStage()
     {
         await using var fixtureScope = await classFixture.Get(output, TestApps.Basic, scenario: Scenario);
         var fixture = fixtureScope.Fixture;
@@ -35,7 +35,7 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
         await PatchValidFormData(fixture, token, instance);
 
         // Stage A saves its record and completes as a step of its own; stage B fails permanently. The
-        // transition into Task_2 is a pre-commit workflow, so the failure leaves the instance on Task_1.
+        // transition stores Task_2 before the task starts, so the failure leaves the instance on Task_2.
         using var failedProcessNextResponse = await fixture.Instances.ProcessNext(token, instance);
         using var failedProcessNext = await failedProcessNextResponse.Read<ProblemDetails>();
         Assert.Equal(HttpStatusCode.InternalServerError, failedProcessNext.Response.StatusCode);
@@ -47,8 +47,8 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
 
         using var instanceAfterFailureResponse = await fixture.Instances.Get(token, instance);
         using var instanceAfterFailure = await instanceAfterFailureResponse.Read<Instance>();
-        Assert.Equal("Task_1", instanceAfterFailure.Data.Model!.Process.CurrentTask!.ElementId);
-        // Stage A's save committed with its own step, so its data is there although the transition is not.
+        Assert.Equal("Task_2", instanceAfterFailure.Data.Model!.Process.CurrentTask!.ElementId);
+        // Stage A's save committed with its own step, so its data is there although stage B failed.
         DataElement recordAfterFailure = Assert.Single(
             instanceAfterFailure.Data.Model.Data,
             d => d.DataType == "attachment"
@@ -58,17 +58,17 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
         using var processResponse = await fixture.Instances.GetProcess(token, instanceAfterFailure);
         using var process = await processResponse.Read<CoreProcessState>();
         Assert.Equal(HttpStatusCode.OK, process.Response.StatusCode);
-        Assert.Equal("Task_1", process.Data.Model!.CurrentTask!.ElementId);
+        Assert.Equal("Task_2", process.Data.Model!.CurrentTask!.ElementId);
         Assert.Equal(WorkflowActivityStatus.Failed, process.Data.Model.Workflow!.Status);
         Assert.Equal("Task_2", process.Data.Model.Workflow.TargetTask);
 
-        // Recovery resumes the failed step only. Stage B defers once, which parks the workflow and may release
-        // the synchronous resume wait before the transition commits, so the settled state is polled.
+        // Recovery resumes the failed step only. Stage B defers once, after the commit, so the resume answers 202
+        // if it sees the workflow parked and 200 if the stage has already completed; the settled state is polled.
         await PostScenarioEndpoint(fixture, $"/test/{Scenario}/allow-stage-b");
         using var resumeResponse = await fixture.Instances.ResumeCurrentTask(token, instanceAfterFailure);
         using var resumedProcessState = await resumeResponse.Read<CoreProcessState>();
-        Assert.Equal(HttpStatusCode.OK, resumedProcessState.Response.StatusCode);
-        await WaitForCurrentTask(fixture, token, instance, "Task_2");
+        Assert.Contains(resumedProcessState.Response.StatusCode, new[] { HttpStatusCode.OK, HttpStatusCode.Accepted });
+        await WaitForIdle(fixture, token, instance);
 
         using var instanceAfterRecoveryResponse = await fixture.Instances.Get(token, instance);
         using var instanceAfterRecovery = await instanceAfterRecoveryResponse.Read<Instance>();
@@ -139,21 +139,20 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
         Assert.Equal(HttpStatusCode.OK, readPatchResponse.Response.StatusCode);
     }
 
-    private static async Task WaitForCurrentTask(
+    private static async Task WaitForIdle(
         AppFixture fixture,
         string token,
-        AppFixture.ReadApiResponse<Instance> instance,
-        string taskId
+        AppFixture.ReadApiResponse<Instance> instance
     )
     {
         DateTimeOffset deadline = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(60);
-        string? lastSeenTask = null;
+        WorkflowActivityStatus? lastSeenStatus = null;
         while (DateTimeOffset.UtcNow < deadline)
         {
-            using var refreshedResponse = await fixture.Instances.Get(token, instance);
-            using var refreshed = await refreshedResponse.Read<Instance>();
-            lastSeenTask = refreshed.Data.Model?.Process?.CurrentTask?.ElementId;
-            if (lastSeenTask == taskId)
+            using var processResponse = await fixture.Instances.GetProcess(token, instance);
+            using var process = await processResponse.Read<CoreProcessState>();
+            lastSeenStatus = process.Data.Model?.Workflow?.Status;
+            if (lastSeenStatus == WorkflowActivityStatus.Idle)
             {
                 return;
             }
@@ -161,7 +160,7 @@ public class WorkflowEngineLifecycleStagesTests(ITestOutputHelper output, AppFix
             await Task.Delay(TimeSpan.FromMilliseconds(500));
         }
 
-        Assert.Fail($"Process did not reach {taskId} within the deadline (last seen task: {lastSeenTask}).");
+        Assert.Fail($"The transition did not settle within the deadline (last seen status: {lastSeenStatus}).");
     }
 
     private static async Task PostScenarioEndpoint(AppFixture fixture, string path)

@@ -74,7 +74,7 @@ stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take the sam
 task stage does. `Start`, `End` and `Abandon` are deprecated and removed before v9 ships; until then the defaults run
 them as a single stage. Each stage runs as its own workflow
 step that saves on its own, and a failed stage is retried without the ones before it. There is no conclusion: the
-stages run inside the transition, before it commits, and never advance the process, so the pipeline ends with
+stages run inside the transition and never advance the process, so the pipeline ends with
 `Build()`. The built-in signing task resolves, delegates and notifies its signees this way. A lifecycle stage that
 defers holds the transition: the instance stays `processing` until the stage
 completes, the way a waiting service task holds it. Stages are dispatched by position too, so the rules in
