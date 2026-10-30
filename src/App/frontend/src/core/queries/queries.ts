@@ -7,11 +7,8 @@ import { backendValidationApi } from 'src/core/api-client/backendValidation.api'
 import { instanceApi } from 'src/core/api-client/instance.api';
 import { fetchOrg, fetchPerson } from 'src/core/api-client/lookup.api';
 import { partyApi } from 'src/core/api-client/party.api';
-import {
-  fetchAuthorizedOrganizationDetails,
-  fetchSigneeList,
-  fetchSigningDocuments,
-} from 'src/core/api-client/signing.api';
+import { fetchAuthorizedOrganizationDetails, fetchSigneeList } from 'src/core/api-client/signing.api';
+import { fetchSigningDocuments } from 'src/core/api-client/signingDocuments.api';
 import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { GlobalData } from 'src/GlobalData';

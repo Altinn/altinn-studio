@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
-import type { SigningDocument } from 'src/core/api-client/signing.api';
+import type { SigningDocument } from 'src/core/api-client/signingDocuments.api';
 export type { SigningDocument };
 
 export function useDocumentList(instanceOwnerPartyId: string | undefined, instanceGuid: string | undefined) {

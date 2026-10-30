@@ -1,10 +1,8 @@
 import { z } from 'zod';
 
-import { DataTypeReference } from 'src/utils/attachmentsUtils';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 import { capitalizeName } from 'src/utils/stringHelper';
 import { appPath } from 'src/utils/urls/appUrlHelper';
-import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 
 export enum NotificationStatus {
   NotSent = 'NotSent',
@@ -45,29 +43,6 @@ export async function fetchSigneeList(partyId: string, instanceGuid: string, tas
   return parsed.signeeStates.toSorted((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
 }
 
-const signingDocumentSchema = z
-  .object({
-    id: z.string(),
-    dataType: z.string(),
-    contentType: z.string(),
-    filename: z.string().nullish(),
-    size: z.number(),
-    tags: z.array(z.string()),
-    selfLinks: z.object({
-      apps: z.string(),
-    }),
-  })
-  .transform((it) => ({
-    dataType: it.dataType,
-    filename: it.filename ?? it.dataType,
-    attachmentTypes:
-      it.dataType === DataTypeReference.RefDataAsPdf ? ['signing_document_list.attachment_type_form'] : it.tags,
-    url: makeUrlRelativeIfSameDomain(it.selfLinks.apps),
-    size: it.size,
-  }));
-
-export type SigningDocument = z.infer<typeof signingDocumentSchema>;
-
 const authorizedOrganizationDetailsSchema = z.object({
   organizations: z.array(
     z.object({
@@ -79,15 +54,6 @@ const authorizedOrganizationDetailsSchema = z.object({
 });
 
 export type AuthorizedOrganizationDetails = z.infer<typeof authorizedOrganizationDetailsSchema>;
-
-export async function fetchSigningDocuments(
-  instanceOwnerPartyId: string | undefined,
-  instanceGuid: string | undefined,
-): Promise<SigningDocument[]> {
-  const url = `${appPath}/instances/${instanceOwnerPartyId}/${instanceGuid}/signing/data-elements`;
-  const response = await httpGet(url);
-  return z.object({ dataElements: z.array(signingDocumentSchema) }).parse(response).dataElements;
-}
 
 export async function fetchAuthorizedOrganizationDetails(
   partyId: string,
