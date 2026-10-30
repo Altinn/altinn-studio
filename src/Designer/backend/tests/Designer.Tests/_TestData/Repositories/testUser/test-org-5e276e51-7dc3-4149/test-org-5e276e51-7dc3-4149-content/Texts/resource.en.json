@@ -1,9 +1,0 @@
-{
-    "language": "en",
-    "resources": [
-        {
-            "id": "someId",
-            "value": "someValue"
-        }
-    ]
-}
