@@ -3275,9 +3275,9 @@ namespace Altinn.App.Core.Internal.Pdf
     }
     public sealed class SubformPdfContext : System.IEquatable<Altinn.App.Core.Internal.Pdf.SubformPdfContext>
     {
-        public SubformPdfContext(string ComponentId, string DataElementId) { }
-        public string ComponentId { get; init; }
+        public SubformPdfContext(string UiFolder, string DataElementId) { }
         public string DataElementId { get; init; }
+        public string UiFolder { get; init; }
     }
 }
 namespace Altinn.App.Core.Internal.Prefill
@@ -3415,10 +3415,8 @@ namespace Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties
         public AltinnSubformPdfConfiguration() { }
         [System.Xml.Serialization.XmlElement("filenameTextResourceKey", Namespace="http://altinn.no/process")]
         public string? FilenameTextResourceKey { get; set; }
-        [System.Xml.Serialization.XmlElement("subformComponentId", Namespace="http://altinn.no/process")]
-        public string? SubformComponentId { get; set; }
-        [System.Xml.Serialization.XmlElement("subformDataTypeId", Namespace="http://altinn.no/process")]
-        public string? SubformDataTypeId { get; set; }
+        [System.Xml.Serialization.XmlElement("subformUiFolder", Namespace="http://altinn.no/process")]
+        public string? SubformUiFolder { get; set; }
     }
     public class AltinnTaskExtension
     {
@@ -3520,6 +3518,9 @@ namespace Altinn.App.Core.Internal.Process.Elements
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("failure")]
         public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowFailure? Failure { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("firstFailedAt")]
+        public System.DateTimeOffset? FirstFailedAt { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("progress")]
         public Altinn.App.Core.Internal.Process.Elements.AppProcessWorkflowProgress? Progress { get; init; }

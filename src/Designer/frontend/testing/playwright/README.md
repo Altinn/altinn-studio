@@ -18,8 +18,7 @@ template, set `PLAYWRIGHT_APP_TEMPLATES` to `v8` or `v9`. CI runs one job for ea
 Each suite that creates its app through the API runs for both app templates.
 [playwright.config.ts](playwright.config.ts) declares two projects over the same `testDir`. The project without a
 suffix creates a v9 app, and the `-v8` project sets `testAppTemplate` to v8. When we drop v8, we delete the `-v8`
-projects and rename nothing. The `appTemplates` feature flag only shows the template selector in the dashboard, so a
-test that creates its app through the API needs no flag.
+projects and rename nothing.
 
 - Do not hard-code the default layout set, which is `form` in a v8 app and the UI folder `Task_1` in a v9 app. Use
   the `defaultLayoutSet` fixture.

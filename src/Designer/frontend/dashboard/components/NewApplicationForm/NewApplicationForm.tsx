@@ -59,8 +59,6 @@ export const NewApplicationForm = ({
   const { t } = useTranslation();
   const selectedContext = useSelectedContext();
   const isCustomTemplatesEnabled = useFeatureFlag(FeatureFlag.CustomTemplates);
-  const isAppTemplatesEnabled = useFeatureFlag(FeatureFlag.AppTemplates);
-  const canSelectAppTemplate: boolean = isAppTemplatesEnabled && shouldUseAppTemplate;
   const { validateRepoOwnerName, validateRepoName } = useCreateAppFormValidation();
   const defaultSelectedOrgOrUser: string =
     selectedContext === SelectedContextType.Self || selectedContext === SelectedContextType.All
@@ -69,9 +67,9 @@ export const NewApplicationForm = ({
   const [currentSelectedOrg, setCurrentSelectedOrg] = useState<string>(defaultSelectedOrgOrUser);
   const [selectedTemplate, setSelectedTemplate] = useState<CustomTemplate>();
   const [selectedAppTemplate, setSelectedAppTemplate] = useState<AppTemplate>();
-  const { data: appTemplates } = useAppTemplatesQuery({ enabled: canSelectAppTemplate });
+  const { data: appTemplates } = useAppTemplatesQuery({ enabled: shouldUseAppTemplate });
   // Without a choice offered, the backend applies its configured default.
-  const effectiveAppTemplate: AppTemplate | undefined = canSelectAppTemplate
+  const effectiveAppTemplate: AppTemplate | undefined = shouldUseAppTemplate
     ? (selectedAppTemplate ?? appTemplates?.[0])
     : undefined;
   const { data: userOrgPermissions, isFetching } = useUserOrgPermissionsQuery(currentSelectedOrg, {
@@ -148,7 +146,7 @@ export const NewApplicationForm = ({
         errorMessage={formError.repoName}
         onChange={validateTextValue}
       />
-      {canSelectAppTemplate && appTemplates?.length > 0 && (
+      {shouldUseAppTemplate && appTemplates?.length > 0 && (
         <AppTemplateSelector
           appTemplates={appTemplates}
           selectedAppTemplate={effectiveAppTemplate}

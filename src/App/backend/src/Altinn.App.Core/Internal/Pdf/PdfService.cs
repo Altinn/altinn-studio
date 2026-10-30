@@ -166,28 +166,10 @@ internal sealed class PdfService : IPdfService
         // query parameters in combination with hash fragments in the url.
         string url = baseUrl + pagePath;
 
-        // Insert subform component and data element id in the url if provided
-        if (subformPdfContext is not null)
-        {
-            int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
-            if (pdfIndex > 0)
-            {
-                string beforePdf = $"{url[..pdfIndex]}/{taskId}/subform";
-                string afterPdf = url[pdfIndex..];
-                url = $"{beforePdf}/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}/{afterPdf}";
-            }
-            else
-            {
-                url += $"/{taskId}/subform/{subformPdfContext.ComponentId}/{subformPdfContext.DataElementId}";
-            }
-        }
         // Insert the task id in the url, so the frontend renders that task, also if the process has moved on by the
         // time it renders
-        else
-        {
-            int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
-            url = pdfIndex > 0 ? $"{url[..pdfIndex]}/{taskId}{url[pdfIndex..]}" : $"{url}/{taskId}";
-        }
+        int pdfIndex = url.IndexOf("?pdf=1", StringComparison.OrdinalIgnoreCase);
+        url = pdfIndex > 0 ? $"{url[..pdfIndex]}/{taskId}{url[pdfIndex..]}" : $"{url}/{taskId}";
 
         string lang = Uri.EscapeDataString(language);
         if (url.Contains('?'))
@@ -205,6 +187,13 @@ internal sealed class PdfService : IPdfService
             {
                 url += $"&{param.Key}={param.Value}";
             }
+        }
+
+        // The frontend renders one entry of the subform from the subform's own UI folder
+        if (subformPdfContext is not null)
+        {
+            url += $"&subformUiFolder={Uri.EscapeDataString(subformPdfContext.UiFolder)}";
+            url += $"&subformDataElementId={Uri.EscapeDataString(subformPdfContext.DataElementId)}";
         }
 
         return new Uri(url);
@@ -342,8 +331,8 @@ internal sealed class PdfService : IPdfService
 }
 
 /// <summary>
-/// Contains subform-specific parameters required for generating a subform PDF.
+/// The subform entry a subform PDF is generated of.
 /// </summary>
-/// <param name="ComponentId">The ID of the subform component.</param>
-/// <param name="DataElementId">The ID of the subform data element.</param>
-public sealed record SubformPdfContext(string ComponentId, string DataElementId);
+/// <param name="UiFolder">The subform's UI folder, which the entry is rendered with.</param>
+/// <param name="DataElementId">The ID of the subform entry's data element.</param>
+public sealed record SubformPdfContext(string UiFolder, string DataElementId);

@@ -139,7 +139,7 @@ describe('ConfigServiceTask', () => {
 
     expect(
       screen.getByLabelText(
-        textMock('process_editor.configuration_panel_subform_pdf_component_id_label'),
+        textMock('process_editor.configuration_panel_subform_pdf_ui_folder_label'),
       ),
     ).toBeInTheDocument();
   });

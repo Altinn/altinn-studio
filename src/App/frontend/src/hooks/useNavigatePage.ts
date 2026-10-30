@@ -15,7 +15,12 @@ import {
   replaceAndPreventResetOptions,
 } from 'src/features/navigation/navigationOptions';
 import { useOnSubformExitValidation } from 'src/features/validation/callbacks/onSubformExitValidation';
-import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
+import {
+  getLiveInstanceNavigationParams,
+  useAllNavigationParams,
+  useAllNavigationParamsAsRef,
+  useNavigationParam,
+} from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import {
@@ -150,7 +155,12 @@ export function useNavigateToTask() {
   return useCallback(
     (newTaskId: string, options?: NavigateOptions) => {
       const { instanceOwnerPartyId, instanceGuid, taskId } = navParams.current;
-      if (newTaskId === taskId) {
+      // The callback can outlive the component that rendered it, as a process/next response does when the URL moved
+      // on to the task while the call was pending. Navigating to the task the URL already shows would drop its page
+      // and remount it, so compare with the URL the browser shows.
+      const liveParams = getLiveInstanceNavigationParams();
+      const shownTaskId = liveParams ? liveParams.taskId : taskId;
+      if (newTaskId === shownTaskId) {
         return;
       }
       let realTaskId = newTaskId;
