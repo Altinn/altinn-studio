@@ -1,7 +1,0 @@
-.git/
-**/[b|B]in/
-**/[O|o]bj/
-k6/
-scripts/
-infra/
-.vscode/

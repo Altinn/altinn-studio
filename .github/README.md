@@ -18,6 +18,19 @@ See [Environments](../docs/infrastructure/environments.md) for deployment target
 [Cache warming](workflows/cache-warm.yml) populates shared dependency caches from `main` so pull requests can
 reuse them. Entries saved under one pull request cannot serve other pull requests and can evict shared entries.
 
+## Image build contexts
+
+An image's build context holds only what the image needs.
+
+- Images build from `src/`, or from their own directory when they use no shared code. Only images that need the
+  repository root, such as Designer, build from there.
+- Each image built from `src/` has a `<Dockerfile>.dockerignore` that starts with `**` and re-includes explicit paths.
+  Podman matches `**/` re-includes differently.
+- `src/.dockerignore` allows what any of them needs, for Compose and plain `podman build`, which use it instead of an
+  image's own. Regenerate it with `check-image-contexts.sh --write`.
+
+[check-image-contexts.sh](scripts/check-image-contexts.sh) checks this in CI. Add new images built from `src/` to it.
+
 ## Workflow names
 
 - `deploy-<target>-<name>.yaml` deploys a service or resource when a change to it reaches `main`. The target is the
