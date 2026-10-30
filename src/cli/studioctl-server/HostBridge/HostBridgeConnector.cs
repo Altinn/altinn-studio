@@ -28,6 +28,12 @@ internal sealed class HostBridgeConnector : BackgroundService
     )
     {
         DefaultRequestHeaders = { UserAgent = { ProductInfoHeaderValue.Parse(StudioctlUserAgent.Value) } },
+        // Each bridged request is cancelled through the tunnel (PendingRequest.Cancel), so that is the
+        // single budget for in-flight requests. HttpClient's default 100s Timeout would silently cap
+        // long-running requests — e.g. workflow-engine service-task callbacks, which carry their own
+        // per-step MaxExecutionTime budget and legitimately run for many minutes. ConnectTimeout above
+        // still bounds connection establishment.
+        Timeout = Timeout.InfiniteTimeSpan,
     };
 
     private readonly HostBridgeOptions _options;
