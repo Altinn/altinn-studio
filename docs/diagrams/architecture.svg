@@ -332,7 +332,7 @@ svg {
 <text class="h" x="527" y="570">Wrapper</text>
 <text class="s" x="527" y="590">Reports the cluster's</text>
 <text class="s" x="527" y="607">deployments, which</text>
-<text class="s" x="527" y="624">Designer reads</text>
+<text class="s" x="527" y="624">fleet tools read</text>
 
 <rect class="card card-data" x="711" y="525" width="176" height="110" rx="8"/>
 <text class="h" x="725" y="551">Gateway</text>
