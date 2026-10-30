@@ -1,4 +1,4 @@
-# Keep src/ build context minimal for localtest image.
+# Build context: src/
 **
 !Runtime/localtest/src/**
 !Runtime/localtest/testdata/**

@@ -24,13 +24,13 @@ An image's build context holds only what the image needs.
 
 - Images build from `src/`, or from their own directory when they use no shared code. Only images that need the
   repository root, such as Designer, build from there.
-- Each image built from `src/` or the root has a `<Dockerfile>.dockerignore` that starts with `**` and re-includes
-  explicit paths. Podman matches `**/` re-includes differently, and re-including a parent directory sends all of it.
+- Each image built from `src/` or the root has a `<Dockerfile>.dockerignore` whose first line is
+  `# Build context: src/` or `# Build context: repository root`. It excludes `**`, then re-includes explicit paths.
+  Podman matches `**/` re-includes differently, and re-including a parent directory sends all of it.
 - The `.dockerignore` of `src/` and of the root allows what any of their images needs, for Compose and plain
   `podman build`, which use it instead of an image's own. Regenerate both with `check-image-contexts.sh --write`.
 
-[check-image-contexts.sh](scripts/check-image-contexts.sh) checks this in CI. Add new images built from `src/` or the
-root to it.
+[check-image-contexts.sh](scripts/check-image-contexts.sh) checks this in CI, for each allowlist with that first line.
 
 ## Workflow names
 

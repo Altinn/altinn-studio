@@ -1,3 +1,4 @@
+# Build context: repository root
 **
 !Cargo.lock
 !Cargo.toml

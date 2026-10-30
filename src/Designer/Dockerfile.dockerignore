@@ -1,3 +1,4 @@
+# Build context: repository root
 # Designer's frontend build requires the repository-root Yarn workspace, so this is the deliberate
 # exception to the src/ context convention. Keep the root context as a complete narrow allowlist.
 **

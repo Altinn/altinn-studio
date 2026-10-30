@@ -9,43 +9,43 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-# The images built from each shared context, by Dockerfile relative to the context. Add an image here when you add
-# one that builds from src/ or the repository root.
-src_images=(
-  Designer/backend/Migrations.Dockerfile
-  Runtime/gateway/Dockerfile
-  Runtime/kubernetes-wrapper/src/Dockerfile
-  Runtime/localtest/Dockerfile
-  Runtime/operator/Dockerfile
-  Runtime/operator/Dockerfile.fakes
-  Runtime/pdf3/Dockerfile.proxy
-  Runtime/pdf3/Dockerfile.worker
-  Runtime/workflow-engine/Dockerfile
-  Runtime/workflow-engine-app/Dockerfile
-)
-root_images=(
-  src/AI/assistant/dockerfile
-  src/Designer/Dockerfile
-  src/ci/github-runner/Dockerfile.coordinator
-)
+# An image's allowlist names its context on its first line. The script finds the images that build from src/ and from
+# the repository root by that line.
+header_src='# Build context: src/'
+header_root='# Build context: repository root'
+
+# Prints the Dockerfiles, relative to the repository root, whose allowlist starts with the given line.
+images_with_header() {
+  find "${repo_root}/src" \( -name node_modules -o -name .git -o -name bin -o -name obj -o -name target \) -prune -o \
+    -name '*.dockerignore' -type f -print |
+    while IFS= read -r allowlist; do
+      if [ "$(head -n 1 "${allowlist}")" = "$1" ]; then
+        echo "${allowlist#"${repo_root}/"}"
+      fi
+    done | sed 's/\.dockerignore$//' | LC_ALL=C sort
+}
 
 # Sets the context's directory, prefix for display, images, size budgets, and the shared file's exclusions and the
 # paths it keeps despite them. A context above its budget likely sends more than the images need.
 load_context() {
   case "$1" in
   src)
-    context_dir="${repo_root}/src" prefix="src/" images=("${src_images[@]}")
+    context_dir="${repo_root}/src" prefix="src/" header="${header_src}"
     max_context_bytes=$((20 * 1024 * 1024)) max_shared_context_bytes=$((64 * 1024 * 1024))
     # localtest serves files from a dist/ directory, so the shared file cannot leave dist/ out here.
     excludes=("${common_excludes[@]}") keeps=()
     ;;
   root)
-    context_dir="${repo_root}" prefix="" images=("${root_images[@]}")
+    context_dir="${repo_root}" prefix="" header="${header_root}"
     max_context_bytes=$((64 * 1024 * 1024)) max_shared_context_bytes=$((96 * 1024 * 1024))
     # Rust keeps binaries' sources in src/bin/, which the .NET build output exclusion would leave out.
     excludes=("${common_excludes[@]}" '**/dist') keeps=('!src/ci/github-runner/coordinator/src/bin/**')
     ;;
   esac
+  images=()
+  while IFS= read -r dockerfile; do
+    images+=("${dockerfile#"${prefix}"}")
+  done < <(images_with_header "${header}")
 }
 contexts=(src root)
 common_excludes=(
@@ -97,44 +97,28 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# A misspelled first line would leave the image out of the check.
+while IFS= read -r allowlist; do
+  fail "${allowlist} names a build context other than '${header_src#\# Build context: }' or '${header_root#\# Build context: }'."
+done < <(grep -rlE --include='*.dockerignore' --exclude-dir=node_modules '^# Build context:' "${repo_root}/src" |
+  while IFS= read -r file; do
+    first="$(head -n 1 "${file}")"
+    if [ "${first}" != "${header_src}" ] && [ "${first}" != "${header_root}" ]; then
+      echo "${file#"${repo_root}/"}"
+    fi
+  done)
+
 for context in "${contexts[@]}"; do
   load_context "${context}"
   for image in "${images[@]}"; do
     allowlist="${context_dir}/${image}.dockerignore"
-    if [ ! -f "${allowlist}" ]; then
-      fail "${prefix}${image} has no allowlist. Add ${prefix}${image}.dockerignore."
+    if [ ! -f "${context_dir}/${image}" ]; then
+      fail "${prefix}${image}.dockerignore starts with '${header}', but ${prefix}${image} does not exist."
       continue
     fi
     # Podman does not re-include a file through **/ inside a directory that an earlier pattern excluded.
     if grep -nE '^[[:space:]]*!.*\*\*/' "${allowlist}" >"${work_dir}/reincludes"; then
       fail "${prefix}${image}.dockerignore re-includes through **/, which Podman matches differently: $(paste -sd ' ' "${work_dir}/reincludes")"
-    fi
-    # Re-including a directory sends all of it. A narrower re-include below it, with no exclusion in between that can
-    # narrow the directory, means the directory is too wide.
-    if awk '/^[[:space:]]*(#|$)/ { next }
-      /^!/ {
-        path = substr($0, 2); sub(/\/$/, "", path); sub(/\/\*\*$/, "", path)
-        n++; line[n] = NR; paths[n] = path
-        next
-      }
-      {
-        # An exclusion can only narrow directories its literal prefix, before any wildcard, overlaps.
-        prefix = $0; sub(/^\//, "", prefix); sub(/[*?[].*$/, "", prefix)
-        excluded[NR] = 1; exclusion_prefix[NR] = prefix
-      }
-      END {
-        for (i = 1; i <= n; i++) for (j = 1; j <= n; j++) {
-          if (i == j || paths[i] ~ /[*?[]/ || index(paths[j], paths[i] "/") != 1) continue
-          narrowed = 0
-          for (k = line[i] + 1; k < line[j]; k++) {
-            if (!excluded[k]) continue
-            prefix = exclusion_prefix[k]
-            if (prefix == "" || index(paths[i] "/", prefix) == 1 || index(prefix, paths[i] "/") == 1) narrowed = 1
-          }
-          if (!narrowed) { print "!" paths[i]; exit 1 }
-        }
-      }' "${allowlist}" >"${work_dir}/parents"; then :; else
-      fail "${prefix}${image}.dockerignore re-includes all of $(cat "${work_dir}/parents"). Re-include the paths below it instead."
     fi
   done
 done

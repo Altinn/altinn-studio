@@ -1,3 +1,4 @@
+# Build context: src/
 # Keep the src/ build context limited to the Designer backend and its shared dependencies.
 **
 !common/dotnet/Altinn.Studio.Common/**

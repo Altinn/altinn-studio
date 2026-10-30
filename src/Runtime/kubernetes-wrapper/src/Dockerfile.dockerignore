@@ -1,3 +1,4 @@
+# Build context: src/
 # Keep the src/ build context limited to Kubernetes Wrapper and its shared dependency.
 **
 !common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj

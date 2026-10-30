@@ -1,5 +1,4 @@
-# Keep src/ build context minimal for workflow-engine-app image.
-
+# Build context: src/
 **
 !common/dotnet/Altinn.Studio.Common/**
 !common/dotnet/Altinn.Studio.Common.Telemetry/**
