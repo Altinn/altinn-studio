@@ -13,12 +13,12 @@ import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import {
   useResourceAccessPackagesQuery,
-  useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { TabPageWrapper } from '../../TabPageWrapper';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { POLICY_ACTIONS } from '@altinn/policy-editor/actions';
 
 export function PolicyTab(): ReactElement {
   const { t } = useTranslation();
@@ -39,11 +39,6 @@ function PolicyTabContent(): ReactElement {
     error: policyError,
   } = useAppPolicyQuery(org, app);
   const {
-    status: actionStatus,
-    data: actionData,
-    error: actionError,
-  } = useResourcePolicyActionsQuery(org, app);
-  const {
     status: subjectStatus,
     data: subjectData,
     error: subjectError,
@@ -55,8 +50,9 @@ function PolicyTabContent(): ReactElement {
   } = useResourceAccessPackagesQuery(org, app);
 
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
+  const actionData = POLICY_ACTIONS;
 
-  switch (mergeQueryStatuses(policyStatus, actionStatus, subjectStatus, accessPackageStatus)) {
+  switch (mergeQueryStatuses(policyStatus, subjectStatus, accessPackageStatus)) {
     case 'pending': {
       return <LoadingTabData />;
     }
@@ -64,7 +60,6 @@ function PolicyTabContent(): ReactElement {
       return (
         <TabDataError>
           {policyError && <StudioValidationMessage>{policyError.message}</StudioValidationMessage>}
-          {actionError && <StudioValidationMessage>{actionError.message}</StudioValidationMessage>}
           {subjectError && (
             <StudioValidationMessage>{subjectError.message}</StudioValidationMessage>
           )}

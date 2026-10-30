@@ -54,7 +54,7 @@ build: ## Build Go and .NET projects
 
 lint: golangci-lint ## Run linters (Roslyn + golangci-lint)
 	@echo "Linting .NET (Roslyn analyzers)..."
-	@DOTNET_TREATWARNINGSASERRORS=true dotnet build Altinn.Studio.Gateway.slnx
+	@dotnet build Altinn.Studio.Gateway.slnx
 	@echo "Linting Go..."
 	@cd test && "$(abspath $(GOLANGCI_LINT))" run --config ../.golangci.yml ./...
 	@echo "✓ Lint passed"

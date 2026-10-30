@@ -298,6 +298,25 @@ describe('RepeatingGroupTable', () => {
       setScreenWidth(768);
     });
 
+    it.each(['rowsBefore', 'rowsAfter'] as const)('omits hidden columns from mobile %s', async (position) => {
+      const groupWithExtraRows = getFormLayoutRepeatingGroupMock({
+        id: 'mock-container-id',
+        tableHeaders: ['field1', 'field2'],
+        tableColumns: { field1: { hidden: true } },
+        [position]: [{ cells: [{ component: 'extra-hidden-column' }, { component: 'extra-visible-column' }] }],
+      });
+      await render(
+        getLayout(groupWithExtraRows, [
+          ...components,
+          { id: 'extra-hidden-column', type: 'Text', value: 'Hidden column information' },
+          { id: 'extra-visible-column', type: 'Text', value: 'Visible column information' },
+        ]),
+      );
+
+      expect(screen.getByText('Visible column information')).toBeInTheDocument();
+      expect(screen.queryByText('Hidden column information')).not.toBeInTheDocument();
+    });
+
     it('should render edit and delete buttons as icons for screens smaller thnn 786px', async () => {
       await render();
 

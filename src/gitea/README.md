@@ -4,6 +4,13 @@ The image for Studio's Git server, with our configuration, templates and locales
 [gitea-proxy](../gitea-proxy), and [deploy-repositories.yaml](../../.github/workflows/deploy-repositories.yaml) builds
 and deploys both. Locally, run `docker compose up -d --build studio_repositories` in `src/Designer` to apply a change.
 
+## Personal access tokens
+
+On the public proxy listener, `/api/v1/users/{username}/tokens` and its child routes require a Designer browser
+session. Studio API keys, native Gitea tokens, and standalone Basic authentication cannot create, list, or delete
+personal access tokens. This prevents a token from issuing another credential with an independent lifetime.
+Token authentication remains available for other permitted Git and API operations.
+
 ## Git hooks
 
 Repositories must not contain symbolic links, since the tools that check them out, such as app builds, would follow
@@ -23,7 +30,7 @@ symbolic links.
 The [upgrade routine](https://github.com/Altinn/altinnpedia/blob/main/content/altinn-3/ops/patching/containers/_index.md#gitea)
 is in Norwegian. In short:
 
-- Do not upgrade to an `x.y.0` release. Wait until the version is stable.
+- Wait for a maintenance release before upgrading to a new release series.
 - Our configuration, templates and locales can break between releases. Compare
   [app.ini](files/conf/app.ini) with Gitea's `custom/conf/app.example.ini`, and [templates](files/custom/templates)
   with Gitea's `templates`, at the version you upgrade to.

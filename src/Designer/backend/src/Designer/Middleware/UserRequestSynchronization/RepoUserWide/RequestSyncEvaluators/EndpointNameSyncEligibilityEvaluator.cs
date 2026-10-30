@@ -83,7 +83,6 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
             TrimmedControllerName(nameof(DatamodelsController)),
             GenerateFrozenSet(nameof(DatamodelsController.Get), nameof(DatamodelsController.PutDatamodel))
         },
-        { TrimmedControllerName(nameof(PreviewController)), GenerateFrozenSet(nameof(PreviewController.Datamodel)) },
         {
             TrimmedControllerName(nameof(LayoutController)),
             GenerateFrozenSet(
