@@ -24,3 +24,7 @@
   gap: var(--ds-size-4);
   margin-inline: var(--ds-size-18);
 }
+
+.disabledInfo {
+  margin-block-start: var(--ds-size-4);
+}

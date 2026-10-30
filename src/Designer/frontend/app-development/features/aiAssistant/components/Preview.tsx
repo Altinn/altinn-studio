@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
+import { PreviewDisabledInfo } from 'app-shared/components/PreviewDisabledInfo/PreviewDisabledInfo';
+import { isPreviewDisabled } from 'app-shared/utils/previewAvailability';
 import { previewPage } from 'app-shared/api/paths';
 import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 import { useUserQuery } from 'app-shared/hooks/queries';
@@ -10,6 +12,17 @@ import { usePreviewLayoutMetadata } from '../hooks/usePreviewLayoutMetadata/useP
 import classes from './Preview.module.css';
 
 export const Preview = (): ReactElement => {
+  if (isPreviewDisabled) {
+    return (
+      <StudioCenter>
+        <PreviewDisabledInfo />
+      </StudioCenter>
+    );
+  }
+  return <PreviewFrame />;
+};
+
+const PreviewFrame = (): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: user } = useUserQuery();
   const { data: currentBranchInfo } = useCurrentBranchQuery(org, app);

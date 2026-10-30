@@ -41,3 +41,8 @@
   width: 100%;
   height: 100%;
 }
+
+.alert {
+  margin: var(--ds-size-4);
+  margin-block-start: var(--ds-size-12);
+}
