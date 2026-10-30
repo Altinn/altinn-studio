@@ -3,6 +3,7 @@ import type { IRawOption } from '@app/layout-contract/generated/common.generated
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
+import { doPerformAction } from 'src/core/api-client/actions.api';
 import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
 import { instanceApi } from 'src/core/api-client/instance.api';
 import { fetchOrg, fetchPerson } from 'src/core/api-client/lookup.api';
@@ -17,7 +18,6 @@ import { httpDelete, httpGetRaw, httpPatch, httpPost } from 'src/utils/network/n
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
   appPath,
-  getActionsUrl,
   getDataElementIdUrl,
   getDataElementUrl,
   getDataModelTypeUrl,
@@ -40,7 +40,6 @@ import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { BackendValidationIssuesWithSource } from 'src/features/validation';
-import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
@@ -95,32 +94,6 @@ export const doUpdateAttachmentTags = async ({
 
   if (response.status !== 200) {
     throw new Error('Failed to update tags on attachment');
-  }
-
-  return response.data;
-};
-
-type UserActionRequest = {
-  action?: string;
-  buttonId?: string;
-  metadata?: Record<string, string>;
-  ignoredValidators?: string[];
-  onBehalfOf?: string;
-};
-
-export const doPerformAction = async (
-  partyId: string,
-  instanceGuid: string,
-  actionRequest: UserActionRequest,
-  language: string,
-): Promise<ActionResult> => {
-  const response = await httpPost<ActionResult>(
-    getActionsUrl(partyId, instanceGuid, language),
-    undefined,
-    actionRequest,
-  );
-  if (response.status < 200 || response.status >= 300) {
-    throw new Error('Failed to perform action');
   }
 
   return response.data;
@@ -248,3 +221,5 @@ export const { getPartiesAllowedToInstantiateHierarchical, setSelectedParty } = 
 export const { fetchTextResources } = textResourcesApi;
 export { fetchPerson, fetchOrg };
 export { fetchSigneeList, fetchSigningDocuments, fetchAuthorizedOrganizationDetails };
+
+export { doPerformAction };
