@@ -39,6 +39,7 @@ When asked to create or update a pull request:
 
 - Push the branch explicitly before `gh pr create`, and pass `--base`, `--head`, `--title`, and
   `--body-file` rather than relying on interactive inference.
+- Open it as a draft with `--draft`, since CI skips drafts. Mark it ready with `gh pr ready` only when the user asks.
 - Follow the repository's contributing guide and pull request template for the title and description.
 - Show visible results as the `pr-evidence` skill describes, instead of describing them.
 - For repositories without direct write access, configure or use a fork and target the upstream default branch.
