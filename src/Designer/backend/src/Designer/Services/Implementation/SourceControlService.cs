@@ -910,7 +910,9 @@ public class SourceControlService(
                 Branch upstream =
                     repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
                     ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
-                Tree headTreeBeforeRebase = repo.Head.Tip.Tree;
+                LibGit2Sharp.Commit originalTip = repo.Head.Tip;
+                string branchReference = repo.Head.CanonicalName;
+                Tree headTreeBeforeRebase = originalTip.Tree;
 
                 try
                 {
@@ -929,19 +931,15 @@ public class SourceControlService(
                     }
 
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
-                    LibGit2Sharp.Commit? replayed = HasLocalMergeCommit(repo, upstream)
-                        ? null
-                        : ReplayLocalCommits(repo, upstream, signature);
+                    LibGit2Sharp.Commit? replayed = ReplayLocalCommits(repo, upstream, signature);
                     if (replayed is null)
                     {
-                        // Replaying skips merge commits, with any change made in the merge itself, and replaying the
-                        // commits one by one can conflict where the end result would not.
                         mergedInstead = true;
                         MergeRemoteBranch(repo, upstream, signature, headTreeBeforeRebase, result);
                     }
                     else
                     {
-                        MoveHeadBranchTo(repo, replayed);
+                        MoveBranchTo(repo, branchReference, originalTip, replayed);
                         result.Status = RebaseStatus.Complete;
                         PopulateContentStatusFromCommitDiff(
                             repo,
@@ -1709,24 +1707,39 @@ public class SourceControlService(
         }
     }
 
-    // Replays the local commits onto the remote branch without touching the working directory, so that a conflict
-    // leaves nothing to undo. Unlike LibGit2Sharp's rebase, it detects renames, so a rename on one side and a deletion
-    // or another rename on the other is a conflict, as in a merge. Returns null on the first conflict.
+    // Replays the local commits onto the remote branch in memory, with rename detection, which LibGit2Sharp's rebase
+    // lacks. Returns null when Studio should merge instead, because the replay cannot keep everything a merge keeps:
+    // - a merge commit holds changes that replaying its parents would skip,
+    // - a message in another encoding than UTF-8 would be garbled,
+    // - replaying can conflict, or end with other files than merging would, when a later local commit undoes an earlier
+    //   one.
     private static LibGit2Sharp.Commit? ReplayLocalCommits(
         LibGit2Sharp.Repository repo,
         Branch upstream,
         LibGit2Sharp.Signature committer
     )
     {
+        LibGit2Sharp.Commit[] localCommits = repo
+            .Commits.QueryBy(
+                new CommitFilter
+                {
+                    IncludeReachableFrom = repo.Head,
+                    ExcludeReachableFrom = upstream,
+                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Reverse,
+                }
+            )
+            .ToArray();
+        if (localCommits.Any(commit => commit.Parents.Skip(1).Any() || !IsUtf8(commit.Encoding)))
+        {
+            return null;
+        }
+
         MergeTreeOptions options = new() { FindRenames = true };
-        IEnumerable<LibGit2Sharp.Commit> localCommits = repo.Commits.QueryBy(
-            new CommitFilter
-            {
-                IncludeReachableFrom = repo.Head,
-                ExcludeReachableFrom = upstream,
-                SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Reverse,
-            }
-        );
+        MergeTreeResult merged = repo.ObjectDatabase.MergeCommits(repo.Head.Tip, upstream.Tip, options);
+        if (merged.Status == MergeTreeStatus.Conflicts)
+        {
+            return null;
+        }
 
         LibGit2Sharp.Commit onto = upstream.Tip;
         foreach (LibGit2Sharp.Commit commit in localCommits)
@@ -1753,23 +1766,43 @@ public class SourceControlService(
             );
         }
 
-        return onto;
+        return onto.Tree.Id == merged.Tree.Id ? onto : null;
     }
 
-    // Checks out the commit before it moves the branch. The checkout refuses to overwrite a file that changed after the
-    // check for uncommitted changes, such as one saved meanwhile, and then leaves everything as it was.
-    private static void MoveHeadBranchTo(LibGit2Sharp.Repository repo, LibGit2Sharp.Commit commit)
+    private static bool IsUtf8(string? encoding) =>
+        encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
+
+    // Changes the working directory once. The checkout refuses to overwrite a file saved since the check for
+    // uncommitted changes. If a later step fails, HEAD goes back on the branch, so that later pulls and shares work.
+    private static void MoveBranchTo(
+        LibGit2Sharp.Repository repo,
+        string branchReference,
+        LibGit2Sharp.Commit originalTip,
+        LibGit2Sharp.Commit commit
+    )
     {
-        string branchReference = repo.Head.CanonicalName;
-        Commands.Checkout(repo, commit);
-        repo.Refs.UpdateTarget(repo.Refs[branchReference], commit.Id);
-        Commands.Checkout(repo, repo.Branches[branchReference]);
-    }
+        // Requests outside the repository lock, such as a branch switch, can change the clone during the replay.
+        if (repo.Head.CanonicalName != branchReference || repo.Head.Tip.Id != originalTip.Id)
+        {
+            throw new InvalidOperationException($"'{branchReference}' changed while its commits were replayed.");
+        }
 
-    private static bool HasLocalMergeCommit(LibGit2Sharp.Repository repo, Branch upstream) =>
-        repo
-            .Commits.QueryBy(new CommitFilter { IncludeReachableFrom = repo.Head, ExcludeReachableFrom = upstream })
-            .Any(commit => commit.Parents.Skip(1).Any());
+        try
+        {
+            Commands.Checkout(repo, commit);
+            repo.Refs.UpdateTarget(repo.Refs[branchReference], commit.Id);
+            repo.Refs.UpdateTarget("HEAD", branchReference);
+        }
+        catch
+        {
+            if (repo.Info.IsHeadDetached)
+            {
+                Commands.Checkout(repo, repo.Branches[branchReference]);
+            }
+
+            throw;
+        }
+    }
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
     {
