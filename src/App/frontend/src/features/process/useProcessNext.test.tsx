@@ -8,8 +8,8 @@ import { AxiosHeaders } from 'axios';
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
-import { useProcessNextOutsideFormProvider } from 'src/core/queries/process/useProcessNext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
+import { useProcessNextOutsideFormProvider } from 'src/features/process/useProcessNext';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
 import type { AppMutations } from 'src/core/queries/types';
