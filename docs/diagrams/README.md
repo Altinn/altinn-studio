@@ -1,9 +1,12 @@
 # Diagrams
 
-Diagrams that span components. [context.svg](context.svg) shows how Altinn Studio fits into Altinn 3, and
-[architecture.svg](architecture.svg) what runs inside it. New diagrams are handwritten SVG in the shared style, so they
-diff as text and anyone, person or agent, can change them in an editor. The older diagrams are Excalidraw and draw.io
-exports, which you change in those tools.
+Diagrams that span components:
+
+- [context.svg](context.svg) shows how Altinn Studio fits into Altinn 3.
+- [architecture.svg](architecture.svg) shows what runs in Core, Runtime and Platform.
+
+New diagrams are handwritten SVG in the shared style, so they diff as text and anyone can change them in an editor.
+The older diagrams are Excalidraw and draw.io exports, which you change in those tools.
 
 ## The shared style
 
