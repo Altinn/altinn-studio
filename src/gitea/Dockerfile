@@ -24,3 +24,7 @@ RUN mkdir -p /var/lib/gitea/git -p /var/lib/gitea/db -p /var/lib/gitea/avatars -
 COPY --chown=git:git ./files/conf/app.ini /etc/gitea/app.ini
 COPY --chown=git:git ./files/custom /var/lib/gitea/custom
 COPY --chown=git:git --from=locale_builder /build/locale/*.json /var/lib/gitea/custom/options/locale/
+COPY --chmod=755 ./files/git-hooks/hook /etc/gitea/git-hooks/pre-receive
+COPY --chmod=755 ./files/git-hooks/hook /etc/gitea/git-hooks/update
+COPY --chmod=755 ./files/git-hooks/hook /etc/gitea/git-hooks/post-receive
+COPY --chmod=755 ./files/git-hooks/hook /etc/gitea/git-hooks/proc-receive
