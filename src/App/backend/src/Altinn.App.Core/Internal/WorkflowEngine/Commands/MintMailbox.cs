@@ -29,8 +29,8 @@ internal sealed class MintMailbox(
 
     public override string GetKey() => Key;
 
-    public override async Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public override async Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         MintMailboxPayload payload
     )
     {
@@ -44,7 +44,7 @@ internal sealed class MintMailbox(
 
             if (pipeline.Items.ElementAtOrDefault(payload.StageIndex) is not PipelineStage.MailboxOpening declaring)
             {
-                return FailedProcessEngineCommandResult.Permanent(
+                return FailedWorkflowEngineCommandResult.Permanent(
                     $"Service task '{payload.ServiceTaskType}' opened a mailbox from the stage at index "
                         + $"{payload.StageIndex} when this workflow was enqueued, but its pipeline now composes no "
                         + "mailbox-opening stage at that index — stages were inserted, reordered or removed since "
@@ -56,7 +56,7 @@ internal sealed class MintMailbox(
 
             if (context.Payload.StepId == Guid.Empty)
             {
-                return FailedProcessEngineCommandResult.Permanent(
+                return FailedWorkflowEngineCommandResult.Permanent(
                     $"The stage at index {payload.StageIndex} opens a mailbox, but the workflow engine supplied no "
                         + "step id to key it on. A mailbox keyed on an empty id would be shared by every task in "
                         + "this application. Upgrade the workflow engine to a version that sends stepId.",
@@ -81,17 +81,17 @@ internal sealed class MintMailbox(
                     // The address must outlive this step: the declaring stage and the receiver-enqueue step
                     // read it from here, and neither can re-derive this mint's key.
                     context.StateCarry.RecordMailbox(payload.StageIndex, minted.Mailbox.Id, minted.Mailbox.Deadline);
-                    return new SuccessfulProcessEngineCommandResult();
+                    return new SuccessfulWorkflowEngineCommandResult();
 
                 case MailboxMintResult.Rejected rejected:
-                    return FailedProcessEngineCommandResult.Permanent(
+                    return FailedWorkflowEngineCommandResult.Permanent(
                         $"The workflow engine refused the mailbox opened by the stage at index "
                             + $"{payload.StageIndex}: {rejected.Detail}",
                         "MailboxRejected"
                     );
 
                 case MailboxMintResult.AtCapacity atCapacity:
-                    return FailedProcessEngineCommandResult.Retryable(
+                    return FailedWorkflowEngineCommandResult.Retryable(
                         $"The workflow engine could not open the mailbox for the stage at index "
                             + $"{payload.StageIndex} yet: {atCapacity.Detail}",
                         "MailboxAtCapacity"
@@ -104,7 +104,7 @@ internal sealed class MintMailbox(
         catch (Exception ex)
         {
             // Safe to retry: the stage after this one has not run, so nothing has been sent twice.
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 }

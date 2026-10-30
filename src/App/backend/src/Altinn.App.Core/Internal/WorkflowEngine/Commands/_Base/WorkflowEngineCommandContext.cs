@@ -5,7 +5,7 @@ using Altinn.App.Core.Models;
 
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
-internal struct ProcessEngineCommandContext
+internal struct WorkflowEngineCommandContext
 {
     public AppIdentifier AppId { get; init; }
     public InstanceIdentifier InstanceId { get; init; }

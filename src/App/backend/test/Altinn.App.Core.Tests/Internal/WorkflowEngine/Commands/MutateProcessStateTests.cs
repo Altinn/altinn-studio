@@ -12,12 +12,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 public class MutateProcessStateTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance, string? serializedPayload)
+    private static WorkflowEngineCommandContext CreateContext(Instance instance, string? serializedPayload)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -67,7 +67,7 @@ public class MutateProcessStateTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Equal("Task_2", instance.Process.CurrentTask.ElementId);
         Assert.Equal(ProcessStatus.Processing, instance.Process.Status);
     }
@@ -87,7 +87,7 @@ public class MutateProcessStateTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("ProcessStateChange.NewProcessState is null", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }
@@ -104,7 +104,7 @@ public class MutateProcessStateTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("MutateProcessState payload is missing or invalid", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
     }
@@ -121,11 +121,11 @@ public class MutateProcessStateTests
         var instance = CreateInstance();
         ProcessState originalProcess = instance.Process;
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)new MutateProcessState()).Execute(
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)new MutateProcessState()).Execute(
             CreateContext(instance, serializedPayload)
         );
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MutateProcessState payload is missing or invalid", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);

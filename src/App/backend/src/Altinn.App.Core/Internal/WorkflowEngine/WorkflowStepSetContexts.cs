@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 internal sealed record ResolvedServiceTask(string Type, ServiceTaskPipeline Pipeline);
 
 /// <summary>
-/// Context for building the task start command sequence.
+/// Context for planning the steps of a task start.
 /// Created by the factory from app configuration and request context.
 /// </summary>
 internal sealed record TaskStartContext
@@ -60,7 +60,7 @@ internal sealed record TaskStartContext
 }
 
 /// <summary>
-/// Context for building the process end command sequence.
+/// Context for planning the steps of a process end.
 /// Created by the factory from app configuration.
 /// </summary>
 internal sealed record ProcessEndContext

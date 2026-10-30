@@ -13,14 +13,14 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 public class CleanupGeneratedFromTaskTests
 {
     private static (
-        ProcessEngineCommandContext Context,
+        WorkflowEngineCommandContext Context,
         Mock<IInstanceDataMutator> MutatorMock
     ) CreateContextWithMutator(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        var context = new ProcessEngineCommandContext
+        var context = new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -96,7 +96,7 @@ public class CleanupGeneratedFromTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.RemoveDataElement(taskGeneratedElement), Times.Once);
         mutatorMock.Verify(x => x.RemoveDataElement(otherTaskElement), Times.Never);
         mutatorMock.Verify(x => x.RemoveDataElement(untaggedElement), Times.Never);
@@ -118,7 +118,7 @@ public class CleanupGeneratedFromTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 
@@ -136,7 +136,7 @@ public class CleanupGeneratedFromTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         mutatorMock.Verify(x => x.RemoveDataElement(It.IsAny<DataElementIdentifier>()), Times.Never);
     }
 }

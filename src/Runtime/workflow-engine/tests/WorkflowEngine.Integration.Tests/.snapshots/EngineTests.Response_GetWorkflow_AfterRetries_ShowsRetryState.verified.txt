@@ -29,13 +29,13 @@
       deferCount: 0,
       errorHistory: [
         {
-          timestamp: DateTimeOffset_2,
+          timestamp: DateTimeOffset_1,
           message: Webhook execution failed with status 500: <no body content>,
           httpStatusCode: 500,
           wasRetryable: true
         },
         {
-          timestamp: DateTimeOffset_3,
+          timestamp: DateTimeOffset_2,
           message: Webhook execution failed with status 500: <no body content>,
           httpStatusCode: 500,
           wasRetryable: true

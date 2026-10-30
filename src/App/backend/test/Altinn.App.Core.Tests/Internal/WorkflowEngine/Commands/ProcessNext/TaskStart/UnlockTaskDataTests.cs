@@ -19,12 +19,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 
 public class UnlockTaskDataTests
 {
-    private static ProcessEngineCommandContext CreateContext(
+    private static WorkflowEngineCommandContext CreateContext(
         IInstanceDataMutator instanceDataMutator,
         string? serializedPayload = null
     )
     {
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -161,7 +161,7 @@ public class UnlockTaskDataTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         WorkflowAggregateSaveOutcome outcome = await unitOfWork.SaveWorkflowOwnedAggregate(
             unitOfWork.GetDataElementChanges(initializeAltinnRowId: false),
             "unlock-task-data-step-id",
@@ -217,11 +217,11 @@ public class UnlockTaskDataTests
         var appMetadataMock = new Mock<IAppMetadata>(MockBehavior.Strict);
         var command = new UnlockTaskData(appMetadataMock.Object);
 
-        ProcessEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
+        WorkflowEngineCommandResult result = await ((IWorkflowEngineCommand)command).Execute(
             CreateContext(mutatorMock.Object, serializedPayload)
         );
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("UnlockTaskData payload is missing or invalid", failed.ErrorMessage);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
@@ -246,7 +246,7 @@ public class UnlockTaskDataTests
         var result = await command.Execute(context, new TaskDataLockPayload("Task_1"));
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("UnreachableException", failed.ExceptionType);
         Assert.Contains("InstanceDataUnitOfWork", failed.ErrorMessage, StringComparison.Ordinal);
@@ -268,7 +268,7 @@ public class UnlockTaskDataTests
         var result = await command.Execute(context, new TaskDataLockPayload("Task_1"));
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Unlock failed", failed.ErrorMessage);
         Assert.Equal("Exception", failed.ExceptionType);
     }

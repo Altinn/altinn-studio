@@ -602,7 +602,7 @@ internal sealed class WorkflowEngineService : IWorkflowEngineService
     }
 
     /// <summary>
-    /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary command) by the
+    /// Identifies the auxiliary workflows a transition may schedule (one per auxiliary step) by the
     /// <see cref="WorkflowStatusResponse.Role"/> the engine reports. An auxiliary workflow runs beside the
     /// process: it never blocks or moves it. The
     /// <see cref="ProcessNextRequestFactory.AuxiliaryOperationIdPrefix"/> OperationId marker is purely a

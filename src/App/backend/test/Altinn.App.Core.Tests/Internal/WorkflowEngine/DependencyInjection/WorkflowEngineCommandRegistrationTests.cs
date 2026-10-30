@@ -37,7 +37,7 @@ public class WorkflowEngineCommandRegistrationTests
         var keys = new HashSet<string>();
 
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -50,7 +50,7 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -64,7 +64,7 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -79,7 +79,7 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -93,7 +93,7 @@ public class WorkflowEngineCommandRegistrationTests
         );
         // Only a mailbox-opening pipeline names MintMailbox.
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -105,14 +105,11 @@ public class WorkflowEngineCommandRegistrationTests
             ),
             keys
         );
-        CollectCommandKeys(WorkflowCommandSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline()), keys);
-        CollectCommandKeys(WorkflowCommandSet.GetTaskAbandonSteps(CreateLifecyclePipeline()), keys);
-        CollectCommandKeys(
-            WorkflowCommandSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }),
-            keys
-        );
+        CollectCommandKeys(WorkflowStepSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline()), keys);
+        CollectCommandKeys(WorkflowStepSet.GetTaskAbandonSteps(CreateLifecyclePipeline()), keys);
+        CollectCommandKeys(WorkflowStepSet.GetProcessEndSteps(new ProcessEndContext { RegisterEvents = true }), keys);
 
-        // ProcessNextRequestFactory adds these around the command sets.
+        // ProcessNextRequestFactory adds these around the step sets.
         keys.Add(MutateProcessState.Key);
         keys.Add(CommitProcessState.Key);
         keys.Add(ReleaseProcessingStatus.Key);
@@ -143,11 +140,11 @@ public class WorkflowEngineCommandRegistrationTests
                 (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
             );
 
-    private static void CollectCommandKeys(WorkflowCommandSet commandSet, HashSet<string> keys)
+    private static void CollectCommandKeys(WorkflowStepSet stepSet, HashSet<string> keys)
     {
-        IEnumerable<PlannedStep> steps = commandSet
-            .Commands.Concat(commandSet.PrimaryPostCommitCommands)
-            .Concat(commandSet.AuxiliaryCommands);
+        IEnumerable<PlannedStep> steps = stepSet
+            .PreCommitSteps.Concat(stepSet.PrimaryPostCommitSteps)
+            .Concat(stepSet.AuxiliarySteps);
         foreach (PlannedStep step in steps)
         {
             keys.Add(step.CommandKey);

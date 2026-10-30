@@ -120,7 +120,7 @@ public class ExecuteServiceTaskMailboxTests
         return carry;
     }
 
-    private static ProcessEngineCommandContext CreateContext(
+    private static WorkflowEngineCommandContext CreateContext(
         WorkflowCallbackStateCarry? carry = null,
         AppCallbackMailbox? mailbox = null
     )
@@ -136,7 +136,7 @@ public class ExecuteServiceTaskMailboxTests
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, _instanceGuid),
@@ -185,10 +185,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
 
         ServiceTaskMailbox mailbox = Assert.IsType<ServiceTaskMailbox>(task.SentTo);
         Assert.Equal(_carriedMailboxId, mailbox.Id);
@@ -206,9 +206,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(SendStageIndex));
+        WorkflowEngineCommandResult result = await CreateCommand(task)
+            .Execute(CreateContext(), Payload(SendStageIndex));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
         Assert.Contains(
@@ -230,10 +231,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry(stageIndex: 5)), Payload(SendStageIndex));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxIdMissingFromState", failed.ExceptionType);
         Assert.Empty(task.Seen);
@@ -250,10 +251,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Contains("RecordDispatch", task.Seen);
         Assert.Null(task.SentTo);
     }
@@ -263,11 +264,11 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new PlainTask();
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(
             await CreateCommand(task).Execute(CreateContext(), Payload(SendStageIndex))
         );
         // The plain task's conclusion is its item 1, right after the one stage.
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(
             await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1))
         );
 
@@ -306,10 +307,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(ReplyHandlerIndex));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
         Assert.Empty(task.Seen);
@@ -323,10 +324,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), ReceivePayload());
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
         Assert.Empty(task.Seen);
@@ -341,10 +342,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry(), Delivered(_carriedMailboxId)), ReceivePayload());
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Contains("OnMessage", task.Seen);
         Assert.DoesNotContain("SendToArchive", task.Seen);
         Assert.Null(task.SentTo);
@@ -408,10 +409,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new SendOnlyTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
 
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
@@ -436,10 +437,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new ArchivingTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 1));
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -462,9 +463,9 @@ public class ExecuteServiceTaskMailboxTests
         var task = new SendThenTwoStagesTask();
 
         // An empty carry on purpose: a stage that starts nothing reads nothing from it.
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1));
+        WorkflowEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(itemIndex: 1));
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.MailboxContinuation);
     }
 
@@ -477,10 +478,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new SendThenTwoStagesTask();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(itemIndex: 2));
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
         );
@@ -500,10 +501,10 @@ public class ExecuteServiceTaskMailboxTests
         var task = new ArchivingTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(carry), Payload(SendStageIndex));
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
         MailboxContinuation.ContinueAfterStage continuing = Assert.IsType<MailboxContinuation.ContinueAfterStage>(
             success.MailboxContinuation
@@ -530,10 +531,10 @@ public class ExecuteServiceTaskMailboxTests
         };
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(carry), Payload(SendStageIndex));
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Equal("reject", success.ProcessNextContinuation?.Action);
 
@@ -558,10 +559,10 @@ public class ExecuteServiceTaskMailboxTests
                 ),
         };
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskFailedException", failed.ExceptionType);
         Assert.Contains("the recipient account does not exist", failed.ErrorMessage, StringComparison.Ordinal);
@@ -581,10 +582,10 @@ public class ExecuteServiceTaskMailboxTests
         var task = new MidPipelineConcluderTask();
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(carry), Payload(SendStageIndex));
 
-        SuccessfulProcessEngineCommandResult success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
 
         MailboxContinuation.Conclude conclude = Assert.IsType<MailboxContinuation.Conclude>(
@@ -639,10 +640,10 @@ public class ExecuteServiceTaskMailboxTests
                 ),
         };
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueOpeningStageResult), failed.ErrorMessage, StringComparison.Ordinal);
@@ -653,10 +654,10 @@ public class ExecuteServiceTaskMailboxTests
     {
         var task = new SendOnlyTask { OnSend = (_, _) => Task.FromResult<ServiceTaskOpeningStageResult>(null!) };
 
-        ProcessEngineCommandResult result = await CreateCommand(task)
+        WorkflowEngineCommandResult result = await CreateCommand(task)
             .Execute(CreateContext(MintedCarry()), Payload(SendStageIndex));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
@@ -667,7 +668,7 @@ public class ExecuteServiceTaskMailboxTests
     {
         WorkflowCallbackStateCarry carry = MintedCarry();
 
-        DeferredProcessEngineCommandResult deferred = Assert.IsType<DeferredProcessEngineCommandResult>(
+        DeferredWorkflowEngineCommandResult deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(
             await CreateCommand(
                     new SendOnlyTask
                     {
@@ -679,7 +680,7 @@ public class ExecuteServiceTaskMailboxTests
         );
         Assert.Equal(TimeSpan.FromMinutes(2), deferred.Delay);
 
-        FailedProcessEngineCommandResult retryable = Assert.IsType<FailedProcessEngineCommandResult>(
+        FailedWorkflowEngineCommandResult retryable = Assert.IsType<FailedWorkflowEngineCommandResult>(
             await CreateCommand(
                     new SendOnlyTask
                     {
@@ -692,7 +693,7 @@ public class ExecuteServiceTaskMailboxTests
         Assert.False(retryable.NonRetryable);
         Assert.Null(retryable.MailboxContinuation);
 
-        FailedProcessEngineCommandResult permanent = Assert.IsType<FailedProcessEngineCommandResult>(
+        FailedWorkflowEngineCommandResult permanent = Assert.IsType<FailedWorkflowEngineCommandResult>(
             await CreateCommand(
                     new SendOnlyTask
                     {

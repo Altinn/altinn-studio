@@ -17,12 +17,12 @@ internal sealed class ReleaseProcessingStatus(IAppMetadata appMetadata) : IWorkf
 
     public string GetKey() => Key;
 
-    public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+    public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
     {
         if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
+            return Task.FromResult<WorkflowEngineCommandResult>(
+                FailedWorkflowEngineCommandResult.Permanent(
                     "Workflow process status release requires callback state restored into an InstanceDataUnitOfWork.",
                     nameof(InvalidOperationException)
                 )
@@ -32,8 +32,8 @@ internal sealed class ReleaseProcessingStatus(IAppMetadata appMetadata) : IWorkf
         Instance instance = unitOfWork.Instance;
         if (instance.Process is not { } process)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Permanent(
+            return Task.FromResult<WorkflowEngineCommandResult>(
+                FailedWorkflowEngineCommandResult.Permanent(
                     "Workflow process status release requires an initialized process state.",
                     nameof(InvalidOperationException)
                 )
@@ -49,11 +49,11 @@ internal sealed class ReleaseProcessingStatus(IAppMetadata appMetadata) : IWorkf
 
             unitOfWork.ReleaseProcessingStatus();
             process.Status = ProcessStatus.Idle;
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
         catch (Exception ex)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(FailedProcessEngineCommandResult.Retryable(ex));
+            return Task.FromResult<WorkflowEngineCommandResult>(FailedWorkflowEngineCommandResult.Retryable(ex));
         }
     }
 }

@@ -647,6 +647,27 @@ public class WorkflowHandlerTests
     }
 
     [Fact]
+    public async Task Handle_RetryableError_RecordsTheFailureTimeToTheMicrosecond()
+    {
+        // A clock with sub-microsecond ticks, as on Linux. FirstFailedAt and the first error must still read as
+        // one instant after PostgreSQL drops the ticks below a microsecond.
+        var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
+        var settings = _defaultSettings with
+        {
+            DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
+        };
+        var time = new FakeTimeProvider(_t0.AddTicks(1_234_567));
+        var handler = CreateHandler(executor.Object, settings, timeProvider: time);
+        var workflow = CreateWorkflow(CreateStep());
+
+        await handler.Handle(workflow, CancellationToken.None);
+
+        var step = workflow.Steps[0];
+        Assert.Equal(_t0.AddTicks(1_234_560), step.FirstFailedAt);
+        Assert.Equal(step.FirstFailedAt, Assert.Single(step.ErrorHistory).Timestamp);
+    }
+
+    [Fact]
     public async Task Handle_Success_DoesNotAddErrorHistory()
     {
         var executor = MockExecutor(ExecutionResult.Success());

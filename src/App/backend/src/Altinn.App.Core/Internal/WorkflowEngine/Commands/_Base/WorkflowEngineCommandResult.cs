@@ -1,10 +1,10 @@
 namespace Altinn.App.Core.Internal.WorkflowEngine.Commands;
 
-internal abstract class ProcessEngineCommandResult { }
+internal abstract class WorkflowEngineCommandResult { }
 
 internal sealed record ProcessNextContinuation(string? Action);
 
-internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineCommandResult
+internal sealed class SuccessfulWorkflowEngineCommandResult : WorkflowEngineCommandResult
 {
     /// <summary>
     /// Enqueues a dependent process-next workflow after saving and re-capturing callback state.
@@ -25,7 +25,7 @@ internal sealed class SuccessfulProcessEngineCommandResult : ProcessEngineComman
 /// The command ran without error, but the outcome it awaits is not available yet. The engine runs
 /// the command again after the delay. The controller returns the incoming state without saving changes.
 /// </summary>
-internal sealed class DeferredProcessEngineCommandResult : ProcessEngineCommandResult
+internal sealed class DeferredWorkflowEngineCommandResult : WorkflowEngineCommandResult
 {
     /// <summary>
     /// How long the engine should wait before executing the command again.
@@ -38,7 +38,7 @@ internal sealed class DeferredProcessEngineCommandResult : ProcessEngineCommandR
     public string? Reason { get; init; }
 }
 
-internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandResult
+internal sealed class FailedWorkflowEngineCommandResult : WorkflowEngineCommandResult
 {
     public readonly string ErrorMessage;
     public readonly string ExceptionType;
@@ -64,7 +64,7 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
     /// <summary>
     /// Creates a retryable failure from a caught exception (likely transient — Storage down, HTTP timeout, etc.).
     /// </summary>
-    public static FailedProcessEngineCommandResult Retryable(Exception exception) =>
+    public static FailedWorkflowEngineCommandResult Retryable(Exception exception) =>
         new(
             exception.Message,
             exception.GetType().Name,
@@ -76,20 +76,20 @@ internal sealed class FailedProcessEngineCommandResult : ProcessEngineCommandRes
     /// <summary>
     /// Creates a retryable failure from a caught exception (likely transient — Storage down, HTTP timeout, etc.).
     /// </summary>
-    public static FailedProcessEngineCommandResult Retryable(string errorMessage, string? exceptionType = null) =>
+    public static FailedWorkflowEngineCommandResult Retryable(string errorMessage, string? exceptionType = null) =>
         new(errorMessage, exceptionType, nonRetryable: false, exception: null);
 
     /// <summary>
     /// Creates a non-retryable failure (validation error, business rule violation, etc.).
     /// The workflow engine will stop retrying and mark the step as permanently failed.
     /// </summary>
-    public static FailedProcessEngineCommandResult Permanent(
+    public static FailedWorkflowEngineCommandResult Permanent(
         string errorMessage,
         string? exceptionType = null,
         MailboxContinuation? mailboxContinuation = null
     ) => new(errorMessage, exceptionType, nonRetryable: true, mailboxContinuation: mailboxContinuation);
 
-    private FailedProcessEngineCommandResult(
+    private FailedWorkflowEngineCommandResult(
         string errorMessage,
         string? exceptionType,
         bool nonRetryable,
