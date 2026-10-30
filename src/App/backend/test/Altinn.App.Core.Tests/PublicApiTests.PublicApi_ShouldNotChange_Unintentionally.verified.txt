@@ -2158,20 +2158,21 @@ namespace Altinn.App.Core.Features.Process
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnProcessEndedContext context);
     }
-    public interface IOnTaskAbandoningHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    public interface IOnTaskAbandoningHandler : Altinn.App.Core.Features.Process.IOnTaskLifecycleHandler, Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskAbandoningContext context);
-        bool ShouldRunForTask(string taskId);
     }
-    public interface IOnTaskEndingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    public interface IOnTaskEndingHandler : Altinn.App.Core.Features.Process.IOnTaskLifecycleHandler, Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskEndingContext context);
+    }
+    public interface IOnTaskLifecycleHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    {
         bool ShouldRunForTask(string taskId);
     }
-    public interface IOnTaskStartingHandler : Altinn.App.Core.Features.Process.IProcessStepConfigurable
+    public interface IOnTaskStartingHandler : Altinn.App.Core.Features.Process.IOnTaskLifecycleHandler, Altinn.App.Core.Features.Process.IProcessStepConfigurable
     {
         System.Threading.Tasks.Task<Altinn.App.Core.Features.Process.HandlerResult> Execute(Altinn.App.Core.Features.Process.OnTaskStartingContext context);
-        bool ShouldRunForTask(string taskId);
     }
     public interface IProcessStepConfigurable
     {

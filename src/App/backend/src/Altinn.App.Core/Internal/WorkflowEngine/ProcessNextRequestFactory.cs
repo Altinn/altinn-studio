@@ -525,10 +525,7 @@ internal sealed class ProcessNextRequestFactory
                         TaskId = taskId,
                         StartPipeline = ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Start),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
-                        StartingHook = FindTaskHook<IOnTaskStartingHandler>(
-                            taskId,
-                            (hook, id) => hook.ShouldRunForTask(id)
-                        ),
+                        StartingHook = FindTaskHook<IOnTaskStartingHandler>(taskId),
                         IsInitialTaskStart = isInitialTaskStart,
                         IsInstantiation = isInstantiation,
                         Prefill = isInitialTaskStart ? prefill : null,
@@ -543,16 +540,13 @@ internal sealed class ProcessNextRequestFactory
                 return WorkflowCommandSet.GetTaskEndSteps(
                     taskId,
                     ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End),
-                    FindTaskHook<IOnTaskEndingHandler>(taskId, (hook, id) => hook.ShouldRunForTask(id))
+                    FindTaskHook<IOnTaskEndingHandler>(taskId)
                 );
             }
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps(
                     ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Abandon),
-                    FindTaskHook<IOnTaskAbandoningHandler>(
-                        GetRequiredEventTaskId(instanceEvent, eventType),
-                        (hook, id) => hook.ShouldRunForTask(id)
-                    )
+                    FindTaskHook<IOnTaskAbandoningHandler>(GetRequiredEventTaskId(instanceEvent, eventType))
                 );
             case InstanceEventType.process_EndEvent:
                 return WorkflowCommandSet.GetProcessEndSteps(
@@ -608,9 +602,9 @@ internal sealed class ProcessNextRequestFactory
     /// handlers this finds. When more than one runs, this takes the first and the step fails permanently: refusing
     /// the transition here would instead fail the callback that plans it, which the engine retries.
     /// </summary>
-    private THandler? FindTaskHook<THandler>(string taskId, Func<THandler, string, bool> runsForTask)
-        where THandler : class =>
-        _appImplementationFactory.GetAll<THandler>().FirstOrDefault(handler => runsForTask(handler, taskId));
+    private THandler? FindTaskHook<THandler>(string taskId)
+        where THandler : class, IOnTaskLifecycleHandler =>
+        _appImplementationFactory.GetAll<THandler>().FirstOrDefault(handler => handler.ShouldRunForTask(taskId));
 
     private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId

@@ -163,24 +163,9 @@ internal sealed class ProcessTaskConfigurationValidationService(
         }
         findings.AddRange(ValidateExclusiveGateways(processReader, gatewaysWithCode));
 
-        await AddMultipleTaskHooksFindings<IOnTaskStartingHandler>(
-            services,
-            bpmnTasks,
-            findings,
-            (hook, taskId) => hook.ShouldRunForTask(taskId)
-        );
-        await AddMultipleTaskHooksFindings<IOnTaskEndingHandler>(
-            services,
-            bpmnTasks,
-            findings,
-            (hook, taskId) => hook.ShouldRunForTask(taskId)
-        );
-        await AddMultipleTaskHooksFindings<IOnTaskAbandoningHandler>(
-            services,
-            bpmnTasks,
-            findings,
-            (hook, taskId) => hook.ShouldRunForTask(taskId)
-        );
+        await AddMultipleTaskHooksFindings<IOnTaskStartingHandler>(services, bpmnTasks, findings);
+        await AddMultipleTaskHooksFindings<IOnTaskEndingHandler>(services, bpmnTasks, findings);
+        await AddMultipleTaskHooksFindings<IOnTaskAbandoningHandler>(services, bpmnTasks, findings);
 
         List<ServiceDescriptor> processEndedHooks = HookRegistrations<IOnProcessEndedHandler>();
         if (processEndedHooks.Count > 1)
@@ -366,10 +351,9 @@ internal sealed class ProcessTaskConfigurationValidationService(
     private async Task AddMultipleTaskHooksFindings<THook>(
         IServiceProvider services,
         List<ProcessTask> bpmnTasks,
-        List<string> findings,
-        Func<THook, string, bool> runsForTask
+        List<string> findings
     )
-        where THook : class
+        where THook : class, IOnTaskLifecycleHandler
     {
         var createdHooks = new List<object>();
         try
@@ -377,7 +361,7 @@ internal sealed class ProcessTaskConfigurationValidationService(
             List<THook> hooks = CreateHooks<THook>(services, createdHooks);
             foreach (ProcessTask bpmnTask in bpmnTasks)
             {
-                List<THook> running = hooks.Where(hook => runsForTask(hook, bpmnTask.Id)).ToList();
+                List<THook> running = hooks.Where(hook => hook.ShouldRunForTask(bpmnTask.Id)).ToList();
                 if (running.Count > 1)
                 {
                     findings.Add(
