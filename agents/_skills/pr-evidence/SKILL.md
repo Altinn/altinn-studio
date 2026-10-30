@@ -15,7 +15,26 @@ and MP4 for longer sequences where playback controls help. Before/after captures
 - Capture actual behavior from the tested revision, using test data without secrets. Inspect images or representative
   clip frames for readability and faithful presentation before uploading.
 
-Read only the relevant recipe: [browser](references/browser.md) or [terminal](references/terminal.md).
+## Show what a reviewer would see
+
+A reviewer watches a recording knowing only the pull request and its issue. They should be able to tell where the
+recording starts, what each action does and what the result means.
+
+- Start from a screen the reviewer recognizes, such as the app's start page, and do setup before recording.
+- Make every change on screen follow an action the reviewer can see. Navigating by URL or reloading mid-recording
+  looks like the page changed on its own.
+- For a bug fix, reach the bug the way a user does, by following the issue's steps through the product. Do not
+  create the broken state behind the scenes, since that shows the symptom without showing it can happen. When the
+  issue's steps do not reproduce it, find the path that does, and say in the pull request how the data arose.
+- Record before and after with the same steps and input.
+- Warm up first: load each page once, so that slow first loads do not throw off the timing. Wait for the next element
+  rather than sleeping a fixed time.
+
+Before attaching, watch the whole recording once, as that reviewer.
+
+Read only the relevant recipe: [browser](references/browser.md), [desktop](references/desktop.md) or
+[terminal](references/terminal.md). The desktop recipe suits a flow with several pages or a native window, and needs an
+Agent with a graphical desktop.
 
 ## Attach
 
