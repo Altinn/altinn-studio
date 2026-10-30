@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
@@ -228,11 +229,13 @@ public class RepositoryControllerStudioOidcTests
             Assert.Contains($"{org}/{targetRepo}-local", metadataAfterConflict);
             Assert.Contains($"{org}/{targetRepo}-remote", metadataAfterConflict);
 
-            using HttpResponseMessage branchResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
-                $"repos/{org}/{targetRepo}/branches/master"
+            // Read through git refs: Gitea updates its branch list in the background after a push.
+            using HttpResponseMessage refResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/git/refs/heads/master"
             );
-            string branchJson = await branchResponse.Content.ReadAsStringAsync();
-            Assert.Contains(remoteCommitSha, branchJson);
+            Assert.Equal(HttpStatusCode.OK, refResponse.StatusCode);
+            var refNode = JsonNode.Parse(await refResponse.Content.ReadAsStringAsync());
+            Assert.Equal(remoteCommitSha, refNode![0]!["object"]!["sha"]!.ToString());
         }
         finally
         {

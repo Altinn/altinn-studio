@@ -116,7 +116,7 @@ describe('VersionControlButtonsContext', () => {
     });
   });
 
-  it('should call toast.success when commitAndPushChanges completes successfully', async () => {
+  it('should call toast.success and refresh when commitAndPushChanges completes successfully', async () => {
     const user = userEvent.setup();
     const TestComponent = () => {
       const { commitAndPushChanges } = useVersionControlButtonsContext();
@@ -131,9 +131,11 @@ describe('VersionControlButtonsContext', () => {
       );
     };
 
+    const onPullSuccess = vi.fn();
     renderVersionControlButtonsContextProvider({
       contextProviderProps: {
         children: <TestComponent />,
+        onPullSuccess,
       },
       queries: {
         getRepoPull: vi.fn().mockReturnValue({ repositoryStatus: 'Ok' }),
@@ -147,6 +149,7 @@ describe('VersionControlButtonsContext', () => {
       screen.findByText(textMock('sync_header.sharing_changes_completed')),
     );
     expect(successText).toBeInTheDocument();
+    await waitFor(() => expect(onPullSuccess).toHaveBeenCalledTimes(1));
   });
 
   it('should handle errors during commit and push', async () => {

@@ -183,7 +183,7 @@ public class SourceControlService(
                     );
                     mergeStatus = mergeResult.Status.ToString();
 
-                    PopulateContentStatusFromCommitDiff(repo, head, mergeResult.Commit?.Tree, status);
+                    PopulateContentStatusFromCommitDiff(repo, head, mergeResult.Commit?.Tree, status.ContentStatus);
                 }
                 catch (CheckoutConflictException ex)
                 {
@@ -903,13 +903,9 @@ public class SourceControlService(
             {
                 self.FetchRemoteChanges(ctx.authenticatedContext);
                 using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
-                RemoteRebaseResult result = new() { Status = default };
-                bool conflictsAborted = false;
-                bool stopAborted = false;
+                RemoteRebaseResult result = new();
+                RebaseStatus? status = null;
                 bool mergedInstead = false;
-
-                Identity identity = GetDefaultIdentity(ctx.authenticatedContext.Developer);
-                RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
 
                 Branch upstream =
                     repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
@@ -918,6 +914,11 @@ public class SourceControlService(
 
                 try
                 {
+                    if (repo.Head.FriendlyName != ctx.branchName)
+                    {
+                        throw new InvalidOperationException($"Branch '{ctx.branchName}' is not checked out.");
+                    }
+
                     Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     if (repo.RetrieveStatus(new StatusOptions()).IsDirty)
                     {
@@ -928,42 +929,29 @@ public class SourceControlService(
                     }
 
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
-                    if (HasLocalMergeCommit(repo, upstream))
+                    LibGit2Sharp.Commit? replayed = HasLocalMergeCommit(repo, upstream)
+                        ? null
+                        : ReplayLocalCommits(repo, upstream, signature);
+                    if (replayed is null)
                     {
-                        // Rebasing skips merge commits, and with them any change made in the merge itself.
-                        mergedInstead = true;
-                        MergeRemoteBranch(repo, upstream, signature, headTreeBeforeRebase, result);
-                        return result;
-                    }
-
-                    RebaseResult rebaseResult = repo.Rebase.Start(repo.Head, upstream, null, identity, rebaseOptions);
-                    result.Status = rebaseResult.Status;
-
-                    if (rebaseResult.Status == RebaseStatus.Complete)
-                    {
-                        PopulateContentStatusFromCommitDiff(repo, headTreeBeforeRebase, repo.Head.Tip.Tree, result);
-                    }
-
-                    if (rebaseResult.Status == RebaseStatus.Conflicts)
-                    {
-                        repo.Rebase.Abort();
-                        conflictsAborted = true;
-                        // Replaying the commits one by one can conflict where the end result would not, such as when
-                        // a later commit undoes an earlier one.
+                        // Replaying skips merge commits, with any change made in the merge itself, and replaying the
+                        // commits one by one can conflict where the end result would not.
                         mergedInstead = true;
                         MergeRemoteBranch(repo, upstream, signature, headTreeBeforeRebase, result);
                     }
-
-                    if (rebaseResult.Status == RebaseStatus.Stop)
+                    else
                     {
-                        repo.Rebase.Abort();
-                        stopAborted = true;
-                        SetErrorStatus(ctx.activity, "rebase_stopped");
-                        throw new InvalidOperationException(
-                            $"Rebase onto remote branch '{ctx.branchName}' was stopped by user."
+                        MoveHeadBranchTo(repo, replayed);
+                        result.Status = RebaseStatus.Complete;
+                        PopulateContentStatusFromCommitDiff(
+                            repo,
+                            headTreeBeforeRebase,
+                            replayed.Tree,
+                            result.ContentStatus
                         );
                     }
 
+                    status = result.Status;
                     if (result.Status == RebaseStatus.Conflicts)
                     {
                         SetErrorStatus(ctx.activity, "rebase_conflicts");
@@ -971,17 +959,9 @@ public class SourceControlService(
 
                     return result;
                 }
-                catch (Exception) when (IsRebaseInProgress(repo))
-                {
-                    // An unfinished rebase leaves HEAD detached, and every later pull would fail.
-                    repo.Rebase.Abort();
-                    throw;
-                }
                 finally
                 {
-                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStatus, result.Status.ToString());
-                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseConflictsAborted, conflictsAborted);
-                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStopAborted, stopAborted);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStatus, status?.ToString() ?? "failed");
                     ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseMergedInstead, mergedInstead);
                     ctx.activity?.SetTag(
                         ServiceTelemetry.Attributes.Git.ContentStatusCount,
@@ -1654,14 +1634,8 @@ public class SourceControlService(
         }
 
         result.Status = RebaseStatus.Complete;
-        PopulateContentStatusFromCommitDiff(repo, headTreeBeforeMerge, repo.Head.Tip.Tree, result);
+        PopulateContentStatusFromCommitDiff(repo, headTreeBeforeMerge, repo.Head.Tip.Tree, result.ContentStatus);
     }
-
-    private static bool IsRebaseInProgress(LibGit2Sharp.Repository repo) =>
-        repo.Info.CurrentOperation
-            is CurrentOperation.Rebase
-                or CurrentOperation.RebaseInteractive
-                or CurrentOperation.RebaseMerge;
 
     private static void EnsureUnbornHeadPointsToBranch(LibGit2Sharp.Repository repo, string branchName)
     {
@@ -1689,7 +1663,7 @@ public class SourceControlService(
         LibGit2Sharp.Repository repo,
         Tree oldTree,
         Tree? newTree,
-        RemoteRebaseResult result
+        ICollection<RepositoryContent> contentStatus
     )
     {
         if (newTree is null)
@@ -1697,24 +1671,8 @@ public class SourceControlService(
             return;
         }
 
-        TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
-        AddTreeChangesToContentStatus(result.ContentStatus, treeChanges);
-    }
-
-    private static void PopulateContentStatusFromCommitDiff(
-        LibGit2Sharp.Repository repo,
-        Tree oldTree,
-        Tree? newTree,
-        RepoStatus status
-    )
-    {
-        if (newTree is null)
-        {
-            return;
-        }
-
-        TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
-        AddTreeChangesToContentStatus(status.ContentStatus, treeChanges);
+        using TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
+        AddTreeChangesToContentStatus(contentStatus, treeChanges);
     }
 
     private static void AddTreeChangesToContentStatus(
@@ -1749,6 +1707,63 @@ public class SourceControlService(
                 new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.RenamedInWorkdir }
             );
         }
+    }
+
+    // Replays the local commits onto the remote branch without touching the working directory, so that a conflict
+    // leaves nothing to undo. Unlike LibGit2Sharp's rebase, it detects renames, so a rename on one side and a deletion
+    // or another rename on the other is a conflict, as in a merge. Returns null on the first conflict.
+    private static LibGit2Sharp.Commit? ReplayLocalCommits(
+        LibGit2Sharp.Repository repo,
+        Branch upstream,
+        LibGit2Sharp.Signature committer
+    )
+    {
+        MergeTreeOptions options = new() { FindRenames = true };
+        IEnumerable<LibGit2Sharp.Commit> localCommits = repo.Commits.QueryBy(
+            new CommitFilter
+            {
+                IncludeReachableFrom = repo.Head,
+                ExcludeReachableFrom = upstream,
+                SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Reverse,
+            }
+        );
+
+        LibGit2Sharp.Commit onto = upstream.Tip;
+        foreach (LibGit2Sharp.Commit commit in localCommits)
+        {
+            MergeTreeResult picked = repo.ObjectDatabase.CherryPickCommit(commit, onto, 0, options);
+            if (picked.Status == MergeTreeStatus.Conflicts)
+            {
+                return null;
+            }
+
+            if (picked.Tree.Id == onto.Tree.Id)
+            {
+                // The remote branch already has this change.
+                continue;
+            }
+
+            onto = repo.ObjectDatabase.CreateCommit(
+                commit.Author,
+                committer,
+                commit.Message,
+                picked.Tree,
+                [onto],
+                prettifyMessage: false
+            );
+        }
+
+        return onto;
+    }
+
+    // Checks out the commit before it moves the branch. The checkout refuses to overwrite a file that changed after the
+    // check for uncommitted changes, such as one saved meanwhile, and then leaves everything as it was.
+    private static void MoveHeadBranchTo(LibGit2Sharp.Repository repo, LibGit2Sharp.Commit commit)
+    {
+        string branchReference = repo.Head.CanonicalName;
+        Commands.Checkout(repo, commit);
+        repo.Refs.UpdateTarget(repo.Refs[branchReference], commit.Id);
+        Commands.Checkout(repo, repo.Branches[branchReference]);
     }
 
     private static bool HasLocalMergeCommit(LibGit2Sharp.Repository repo, Branch upstream) =>

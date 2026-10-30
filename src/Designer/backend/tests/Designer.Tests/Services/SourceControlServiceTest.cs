@@ -717,6 +717,116 @@ public class SourceControlServiceTest : IDisposable
         Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
     }
 
+    [Theory]
+    [InlineData("delete", "rename:nations.txt")]
+    [InlineData("rename:nations.txt", "delete")]
+    [InlineData("rename:nations.txt", "rename:lands.txt")]
+    public void RebaseOntoRemoteBranch_WhenARenameMeetsADeleteOrAnotherRename_LeavesAConflict(
+        string localOperation,
+        string remoteOperation
+    )
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        CommitChange(collaboratorRepoPath, root => ChangeTestFile(root, remoteOperation), "remote change", push: true);
+        CommitChange(localRepoPath, root => ChangeTestFile(root, localOperation), "local change");
+
+        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+            authenticatedContext,
+            General.DefaultBranch
+        );
+
+        Assert.Equal(RebaseStatus.Conflicts, result.Status);
+        using Repository localRepo = new(localRepoPath);
+        Assert.NotEmpty(localRepo.Index.Conflicts);
+    }
+
+    [Theory]
+    [InlineData("rename:renamed.txt", "edit")]
+    [InlineData("edit", "rename:renamed.txt")]
+    public void RebaseOntoRemoteBranch_WhenARenameMeetsAnEdit_KeepsBothOnALinearHistory(
+        string localOperation,
+        string remoteOperation
+    )
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        CommitChange(collaboratorRepoPath, root => ChangeTestFile(root, remoteOperation), "remote change", push: true);
+        CommitChange(localRepoPath, root => ChangeTestFile(root, localOperation), "local change");
+
+        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+            authenticatedContext,
+            General.DefaultBranch
+        );
+
+        Assert.Equal(RebaseStatus.Complete, result.Status);
+        using Repository localRepo = new(localRepoPath);
+        Assert.Equal("local change", localRepo.Head.Tip.MessageShort);
+        Assert.Single(localRepo.Head.Tip.Parents);
+        Assert.False(File.Exists(Path.Join(localRepoPath, "test.txt")));
+        Assert.Contains("edited line two", File.ReadAllText(Path.Join(localRepoPath, "renamed.txt")));
+    }
+
+    [Theory]
+    [InlineData("foo", "foo/bar.json")]
+    [InlineData("foo/bar.json", "foo")]
+    public void RebaseOntoRemoteBranch_WhenAFileMeetsAFolderWithTheSameName_LeavesAConflict(
+        string localPath,
+        string remotePath
+    )
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        CommitChange(collaboratorRepoPath, root => WriteFile(root, remotePath, "remote"), "remote change", push: true);
+        CommitChange(localRepoPath, root => WriteFile(root, localPath, "local"), "local change");
+
+        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+            authenticatedContext,
+            General.DefaultBranch
+        );
+
+        Assert.Equal(RebaseStatus.Conflicts, result.Status);
+        Assert.Equal(
+            DesignerRepositoryStatus.MergeConflict,
+            _sourceControlService.RepositoryStatus(authenticatedContext).RepositoryStatus
+        );
+    }
+
+    [Fact]
+    public void RebaseOntoRemoteBranch_ForABranchThatIsNotCheckedOut_Throws()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        using (Repository collaboratorRepo = new(collaboratorRepoPath))
+        {
+            collaboratorRepo.Network.Push(
+                collaboratorRepo.Network.Remotes["origin"],
+                $"refs/heads/{General.DefaultBranch}:refs/heads/other",
+                new PushOptions()
+            );
+        }
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _sourceControlService.RebaseOntoRemoteBranch(authenticatedContext, "other")
+        );
+    }
+
     [Fact]
     public void PullRemoteChanges_RepoInitializedFromEmptyRemote_PullsRemoteChanges()
     {
@@ -1132,6 +1242,43 @@ public class SourceControlServiceTest : IDisposable
         Commands.Stage(repo, filePath);
         var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@{emailDomain}", DateTimeOffset.Now);
         return repo.Commit(commitMessage, signature, signature).Sha;
+    }
+
+    private static void CommitChange(string repoPath, Action<string> change, string commitMessage, bool push = false)
+    {
+        change(repoPath);
+        using var repo = new Repository(repoPath);
+        Commands.Stage(repo, "*");
+        var signature = new LibGit2Sharp.Signature("someone", "someone@test.com", DateTimeOffset.Now);
+        repo.Commit(commitMessage, signature, signature);
+        if (push)
+        {
+            repo.Network.Push(repo.Head, new PushOptions());
+        }
+    }
+
+    private static void ChangeTestFile(string repoPath, string operation)
+    {
+        string testFile = Path.Join(repoPath, "test.txt");
+        if (operation == "delete")
+        {
+            File.Delete(testFile);
+        }
+        else if (operation == "edit")
+        {
+            File.WriteAllText(testFile, File.ReadAllText(testFile).Replace("line two", "edited line two"));
+        }
+        else
+        {
+            File.Move(testFile, Path.Join(repoPath, operation["rename:".Length..]));
+        }
+    }
+
+    private static void WriteFile(string repoPath, string filePath, string content)
+    {
+        string fullPath = Path.Join(repoPath, filePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+        File.WriteAllText(fullPath, content);
     }
 
     private void AddFileToRepo(string filename = null)

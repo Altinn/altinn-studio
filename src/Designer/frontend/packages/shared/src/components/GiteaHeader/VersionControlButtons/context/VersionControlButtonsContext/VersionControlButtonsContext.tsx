@@ -64,7 +64,7 @@ export const VersionControlButtonsContextProvider = ({
     setHasMergeConflict(true);
   };
 
-  // The pull may have brought in other people's changes, which the open editors should show.
+  // A share or a pull may have brought in other people's changes, which the open editors should show.
   const refreshAfterPull = async () => {
     onPullSuccess?.();
     await queryClient.invalidateQueries({
@@ -104,6 +104,7 @@ export const VersionControlButtonsContextProvider = ({
     const { data: result } = await fetchPullData();
     if (result?.repositoryStatus === 'Ok') {
       toast.success(t('sync_header.sharing_changes_completed'));
+      await refreshAfterPull();
     }
   };
 
