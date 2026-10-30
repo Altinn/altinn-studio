@@ -32,9 +32,6 @@ public class GetDeployments
     private const string Org = "ttd";
     private const string App = "issue-6094";
 
-    // The test host's appsettings.json names studio.localhost, which is the prod Studio environment.
-    private const string ThisStudioEnvironment = "prod";
-
     private readonly Mock<IEnvironmentsService> _environmentsServiceMock = new();
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock = new();
 
@@ -63,9 +60,9 @@ public class GetDeployments
     {
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234", ThisStudioEnvironment));
-        SetupRunning("at22", new RunningAppDeployment("6.1", "5678", "staging"));
-        SetupRunning("production", new RunningAppDeployment("6", null, null));
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234"));
+        SetupRunning("at22", new RunningAppDeployment("6.1", null));
+        SetupRunning("production", null);
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
 
@@ -83,16 +80,9 @@ public class GetDeployments
                 {
                     Environment = "tt02",
                     Version = "8",
-                    DeployedFromThisStudio = true,
                     BuildId = "1234",
                 },
-                new RunningApp
-                {
-                    Environment = "at22",
-                    Version = "6.1",
-                    DeployedFromThisStudio = false,
-                },
-                new RunningApp { Environment = "production", Version = "6" },
+                new RunningApp { Environment = "at22", Version = "6.1" },
             },
             actual.RunningAppList,
             strict: true
@@ -102,7 +92,7 @@ public class GetDeployments
     [Fact]
     public async Task GetDeployments_LeavesOutEnvironmentsWhereTheAppIsNotKnownToRun()
     {
-        SetupRunning("tt02", new RunningAppDeployment("8", null, null));
+        SetupRunning("tt02", new RunningAppDeployment("8", null));
         SetupRunning("at22", null);
         SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
 
@@ -114,7 +104,7 @@ public class GetDeployments
     [Fact]
     public async Task GetDeployments_StillServesWhatOlderFrontendsRead()
     {
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234", ThisStudioEnvironment));
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234"));
         SetupRunning("at22", null);
         SetupRunning("production", null);
 

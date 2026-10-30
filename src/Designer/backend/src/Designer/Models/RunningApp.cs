@@ -15,14 +15,9 @@ public sealed class RunningApp
     public string? Version { get; init; }
 
     /// <summary>
-    /// Whether this Studio environment deployed what runs. Null when the app has not been deployed since the deploy
-    /// pipeline began recording it.
-    /// </summary>
-    public bool? DeployedFromThisStudio { get; init; }
-
-    /// <summary>
-    /// The build of this Studio environment's deploy that runs, which matches its <see cref="Repository.Models.BuildEntity.Id"/>.
-    /// Set only when <see cref="DeployedFromThisStudio"/> is true.
+    /// The build of the deploy that runs, or null when the app has not been deployed since the deploy pipeline began
+    /// recording it. It matches the deploy's <see cref="Repository.Models.BuildEntity.Id"/> when this Studio
+    /// environment deployed it.
     /// </summary>
     public string? BuildId { get; init; }
 
@@ -31,12 +26,6 @@ public sealed class RunningApp
         {
             Environment = running.Environment,
             Version = running.Version,
-            DeployedFromThisStudio = running.DeployedBy switch
-            {
-                StudioDeploy.ThisStudio => true,
-                StudioDeploy.AnotherStudio => false,
-                _ => null,
-            },
-            BuildId = (running.DeployedBy as StudioDeploy.ThisStudio)?.BuildId,
+            BuildId = running.BuildId,
         };
 }

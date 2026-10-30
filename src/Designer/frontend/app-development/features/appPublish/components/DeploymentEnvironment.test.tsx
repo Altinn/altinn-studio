@@ -27,7 +27,6 @@ describe('DeploymentEnvironment', () => {
           ...runningApp,
           environment: 'tt02',
           version: '2',
-          deployedFromThisStudio: true,
           buildId: '100',
         }}
         envName='tt02'

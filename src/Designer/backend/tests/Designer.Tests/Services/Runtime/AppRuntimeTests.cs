@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -35,46 +34,19 @@ public class AppRuntimeTests
         _appRuntime = new AppRuntime(
             _environmentsService.Object,
             _runtimeGatewayClient.Object,
-            new GeneralSettings { HostName = "altinn.studio" },
             NullLogger<AppRuntime>.Instance
         );
     }
 
-    [Fact]
-    public async Task GetAll_WhenThisStudioDeployed_ReturnsRunningWithItsBuild()
-    {
-        SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", "1234", "prod"));
-
-        Assert.Equal(
-            [new AppRunState.Running("tt02", "8", new StudioDeploy.ThisStudio("1234"))],
-            await _appRuntime.GetAll(Org, App, CancellationToken.None)
-        );
-    }
-
-    [Fact]
-    public async Task GetAll_WhenAnotherStudioDeployed_ReturnsRunningWithoutItsBuild()
-    {
-        SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", "1234", "staging"));
-
-        Assert.Equal(
-            [new AppRunState.Running("tt02", "8", new StudioDeploy.AnotherStudio())],
-            await _appRuntime.GetAll(Org, App, CancellationToken.None)
-        );
-    }
-
     [Theory]
-    [InlineData(null, null)]
-    [InlineData("prod", null)]
-    [InlineData(null, "1234")]
-    public async Task GetAll_WhenTheDeployIsNotRecorded_ReturnsRunningFromAnUnknownStudio(
-        string sourceEnvironment,
-        string buildId
-    )
+    [InlineData("1234")]
+    [InlineData(null)]
+    public async Task GetAll_WhenTheAppRuns_ReturnsItsVersionAndBuild(string buildId)
     {
-        SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", buildId, sourceEnvironment));
+        SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", buildId));
 
         Assert.Equal(
-            [new AppRunState.Running("tt02", "8", new StudioDeploy.Unknown())],
+            [new AppRunState.Running("tt02", "8", buildId)],
             await _appRuntime.GetAll(Org, App, CancellationToken.None)
         );
     }

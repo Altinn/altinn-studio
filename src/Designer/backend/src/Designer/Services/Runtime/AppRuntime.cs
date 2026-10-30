@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
-using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Runtime;
@@ -19,7 +17,6 @@ namespace Altinn.Studio.Designer.Services.Runtime;
 public sealed class AppRuntime(
     IEnvironmentsService environmentsService,
     IRuntimeGatewayClient runtimeGatewayClient,
-    GeneralSettings generalSettings,
     ILogger<AppRuntime> logger
 )
 {
@@ -48,7 +45,7 @@ public sealed class AppRuntime(
                 return new AppRunState.NotRunning(environment);
             }
 
-            return new AppRunState.Running(environment, deployment.ImageTag, DeployedBy(deployment));
+            return new AppRunState.Running(environment, deployment.ImageTag, deployment.BuildId);
         }
         // A timeout is the environment's failure, so only the caller's cancellation propagates.
         catch (Exception e) when (!ct.IsCancellationRequested)
@@ -63,14 +60,4 @@ public sealed class AppRuntime(
             return new AppRunState.Unavailable(environment);
         }
     }
-
-    private StudioDeploy DeployedBy(RunningAppDeployment deployment) =>
-        (deployment.SourceEnvironment, deployment.BuildId) switch
-        {
-            (null, _) or (_, null) => new StudioDeploy.Unknown(),
-            var (source, buildId) when source == generalSettings.OriginEnvironment => new StudioDeploy.ThisStudio(
-                buildId
-            ),
-            _ => new StudioDeploy.AnotherStudio(),
-        };
 }

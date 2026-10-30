@@ -114,20 +114,16 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
 };
 
 /**
- * The deploy whose build runs in the environment. Another Studio's deploy is not in this Studio's history. When it
- * is unknown which Studio deployed what runs, the tag is the best match there is, though the same tag can have been
- * deployed more than once.
+ * The deploy whose build runs in the environment. Every Studio environment queues its deploys in the same Azure
+ * DevOps organization, whose build ids are unique, so another Studio environment's deploy matches none. Without a
+ * build id, the tag is the best match there is, though the same tag can have been deployed more than once.
  */
 export const findRunningPipelineDeployment = (
   pipelineDeployments: PipelineDeployment[],
   runningApp: RunningApp | undefined,
 ): PipelineDeployment | undefined => {
-  switch (runningApp?.deployedFromThisStudio) {
-    case true:
-      return pipelineDeployments.find((item) => item.build?.id === runningApp.buildId);
-    case false:
-      return undefined;
-    default:
-      return pipelineDeployments.find((item) => item.tagName === runningApp?.version);
+  if (runningApp?.buildId) {
+    return pipelineDeployments.find((item) => item.build?.id === runningApp.buildId);
   }
+  return pipelineDeployments.find((item) => item.tagName === runningApp?.version);
 };

@@ -106,7 +106,6 @@ export const deployEvent: DeployEvent = {
 export const runningApp: RunningApp = {
   environment: '',
   version: '',
-  deployedFromThisStudio: null,
   buildId: null,
 };
 

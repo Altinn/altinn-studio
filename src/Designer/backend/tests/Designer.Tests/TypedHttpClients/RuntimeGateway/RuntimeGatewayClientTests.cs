@@ -72,7 +72,7 @@ public class RuntimeGatewayClientTests
             CancellationToken.None
         );
 
-        Assert.Equal(new RunningAppDeployment("8", "1234", "prod"), deployment);
+        Assert.Equal(new RunningAppDeployment("8", "1234"), deployment);
         Assert.Equal(
             "https://ttd.apps.tt02.altinn.no/runtime/gateway/api/v1/deploy/apps/my-app/running",
             handler.RequestUri?.ToString()
