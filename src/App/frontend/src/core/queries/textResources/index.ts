@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { resourcesAsMap, textResourcesQuery } from 'src/core/queries/textResources/textResources.queries';
 import type { TextResourcesApi } from 'src/core/api-client/textResources.api';
 import type { ITextResourceResult, TextResourceMap } from 'src/features/language/textResources';
@@ -11,7 +11,7 @@ export interface UseTextResourcesQueryParams {
 }
 
 function useTextResourcesQuery(params: UseTextResourcesQueryParams) {
-  const textResourcesApi = useTextResourcesApi();
+  const textResourcesApi = useAppQueries();
   const { data, error } = useQuery(textResourcesQuery({ ...params, textResourcesApi }));
   return { data, error };
 }

@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query';
 
-import { useExternalApiClient } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { getExternalApiQueryDef } from 'src/core/queries/externalApi/externalApi.queries';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 
@@ -19,7 +19,7 @@ export interface ExternalApiQueries {
 
 export function useExternalApis(ids: string[]): ExternalApisResult {
   const instanceId = useLaxInstanceId();
-  const api = useExternalApiClient();
+  const api = useAppQueries();
   const queries = ids.map((externalApiId) => ({
     ...getExternalApiQueryDef({ externalApiId, instanceId, api }),
   }));

@@ -1,6 +1,6 @@
 import { skipToken, useQueries } from '@tanstack/react-query';
 
-import { useResourcesApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { getUiConfig } from 'src/features/form/ui';
 
 const pdfPreviewQueryKeys = {
@@ -12,7 +12,7 @@ const pdfPreviewQueryKeys = {
  * layouts load. Any other folder, such as a task's, CustomReceipt or a stateless one, holds no subform entries.
  */
 export function useSubformUiFolders(enabled: boolean): string[] | undefined {
-  const { fetchLayouts } = useResourcesApi();
+  const { fetchLayouts } = useAppQueries();
   const folders = Object.keys(getUiConfig().folders);
 
   return useQueries({

@@ -1,14 +1,14 @@
 import { skipToken } from '@tanstack/react-query';
 import type { QueryClient, UseQueryOptions } from '@tanstack/react-query';
 
-import type { ExternalApiClient } from 'src/core/api-client/app.api';
 import type { ExternalApiQueries } from 'src/core/queries/externalApi';
+import type { AppQueries } from 'src/core/queries/types';
 export function getExternalApiQueryDef({
   externalApiId,
   instanceId,
   api,
 }: {
-  api: ExternalApiClient;
+  api: Pick<AppQueries, 'fetchExternalApi'>;
   externalApiId: string;
   instanceId: string | undefined;
 }): UseQueryOptions<unknown, Error> {
@@ -19,7 +19,10 @@ export function getExternalApiQueryDef({
   };
 }
 
-export function createExternalApiQueries(queryClient: QueryClient, api: ExternalApiClient): ExternalApiQueries {
+export function createExternalApiQueries(
+  queryClient: QueryClient,
+  api: Pick<AppQueries, 'fetchExternalApi'>,
+): ExternalApiQueries {
   const snapshots = new WeakMap<object, object>();
   return {
     ensureLoaded: (instanceId, externalApiIds) => {

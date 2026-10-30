@@ -1,6 +1,6 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 
-import { useFormBootstrapApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { formBootstrapQueryKeys } from 'src/core/queries/formBootstrap/formBootstrap.queries';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
@@ -34,7 +34,7 @@ export interface FormBootstrapQueryResponse extends Omit<FormBootstrapResponse, 
 }
 
 export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
-  const { fetchFormBootstrapForStateless, fetchFormBootstrapForInstance } = useFormBootstrapApi();
+  const { fetchFormBootstrapForStateless, fetchFormBootstrapForInstance } = useAppQueries();
   const isStateless = useIsStateless();
   const instanceId = useLaxInstanceId();
   const language = useCurrentLanguage();

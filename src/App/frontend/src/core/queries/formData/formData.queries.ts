@@ -2,13 +2,13 @@ import { skipToken } from '@tanstack/react-query';
 import type { QueryClient, UseQueryOptions } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
-import { useFormDataApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 
 export function useFormDataQueryDef(url: string | undefined): UseQueryOptions<unknown> {
-  const { fetchFormData } = useFormDataApi();
+  const { fetchFormData } = useAppQueries();
   const queryKey = useFormDataQueryKey(url);
   const options = useFormDataQueryOptions();
   const queryFn = url ? () => fetchFormData(url, options) : skipToken;

@@ -3,9 +3,10 @@ import { useCallback } from 'react';
 import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { NotificationStatus } from 'src/core/api-client/signing.api';
-import { useSigningApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { signingQueryKeys } from 'src/core/queries/signeeList/signing.queries';
-import type { SigneeState, SigningApi } from 'src/core/api-client/signing.api';
+import type { SigneeState } from 'src/core/api-client/signing.api';
+import type { AppQueries } from 'src/core/queries/types';
 export { NotificationStatus };
 export type { SigneeState };
 
@@ -15,7 +16,7 @@ const signingQueries = {
     partyId: string | undefined,
     instanceGuid: string | undefined,
     taskId: string | undefined,
-    api: SigningApi,
+    api: Pick<AppQueries, 'fetchSigneeList'>,
   ) =>
     queryOptions({
       queryKey: [...signingQueries.all, 'signeeList', partyId, instanceGuid, taskId],
@@ -30,7 +31,7 @@ export function useSigneeList(
   instanceGuid: string | undefined,
   taskId: string | undefined,
 ) {
-  const api = useSigningApi();
+  const api = useAppQueries();
   const { data, error, isLoading, isFetching } = useQuery(
     signingQueries.signeeList(partyId, instanceGuid, taskId, api),
   );

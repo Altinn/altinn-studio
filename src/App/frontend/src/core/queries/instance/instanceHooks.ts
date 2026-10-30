@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useInstanceApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { instanceDataQuery, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
 import { useNavigationParam } from 'src/hooks/navigation';
 import type { IInstance } from 'src/types/shared';
@@ -36,7 +36,7 @@ interface InstanceReadOptions<R> {
 }
 
 export function useInstanceQueryInternal<R = IInstance>(queryOptions: InstanceReadOptions<R> = {}) {
-  const instanceApi = useInstanceApi();
+  const instanceApi = useAppQueries();
   const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
   const hasParams = !!instanceOwnerPartyId && !!instanceGuid;
 

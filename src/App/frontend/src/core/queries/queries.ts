@@ -3,6 +3,16 @@ import type { IRawOption } from '@app/layout-contract/generated/common.generated
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
+import { backendValidationApi } from 'src/core/api-client/backendValidation.api';
+import { instanceApi } from 'src/core/api-client/instance.api';
+import { fetchOrg, fetchPerson } from 'src/core/api-client/lookup.api';
+import { partyApi } from 'src/core/api-client/party.api';
+import {
+  fetchAuthorizedOrganizationDetails,
+  fetchSigneeList,
+  fetchSigningDocuments,
+} from 'src/core/api-client/signing.api';
+import { textResourcesApi } from 'src/core/api-client/textResources.api';
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { GlobalData } from 'src/GlobalData';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
@@ -37,12 +47,12 @@ import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IActionType, IData, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
-const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
+export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IInstanceWithProcess>(getProcessNextUrl(instanceId, language, true), action ? { action } : null);
 
-const doProcessResume = async (instanceId: string) => httpPost<IProcess>(getProcessResumeUrl(instanceId));
+export const doProcessResume = async (instanceId: string) => httpPost<IProcess>(getProcessResumeUrl(instanceId));
 
-const doAttachmentUpload = async (
+export const doAttachmentUpload = async (
   instanceId: string,
   dataTypeId: string,
   language: string,
@@ -70,7 +80,7 @@ type UpdateTagsResponse = {
   validationIssues?: BackendValidationIssuesWithSource[];
 };
 
-const doUpdateAttachmentTags = async ({
+export const doUpdateAttachmentTags = async ({
   instanceId,
   dataElementId,
   setTagsRequest,
@@ -101,7 +111,7 @@ type UserActionRequest = {
   onBehalfOf?: string;
 };
 
-const doPerformAction = async (
+export const doPerformAction = async (
   partyId: string,
   instanceGuid: string,
   actionRequest: UserActionRequest,
@@ -119,14 +129,18 @@ const doPerformAction = async (
   return response.data;
 };
 
-const doAttachmentRemove = async (instanceId: string, dataElementId: string, language: string): Promise<void> => {
+export const doAttachmentRemove = async (
+  instanceId: string,
+  dataElementId: string,
+  language: string,
+): Promise<void> => {
   const response = await httpDelete(getDataElementUrl(instanceId, dataElementId, language));
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to remove attachment');
   }
 };
 
-const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
+export const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
   const response = await httpPost<DataPostResponse>(getDataModelTypeUrl(instanceId, dataType), undefined, data);
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to add sub form');
@@ -138,7 +152,7 @@ const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unk
   return newDataElement;
 };
 
-const doSubformEntryDelete = async (instanceId: string, dataElementId: string): Promise<void> => {
+export const doSubformEntryDelete = async (instanceId: string, dataElementId: string): Promise<void> => {
   const response = await httpDelete(getDataElementIdUrl(instanceId, dataElementId));
   if (response.status < 200 || response.status >= 300) {
     throw new Error('Failed to delete sub form');
@@ -146,39 +160,42 @@ const doSubformEntryDelete = async (instanceId: string, dataElementId: string): 
 };
 
 // New multi-patch endpoint for stateful apps
-const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
+export const doPatchMultipleFormData = (url: string, data: IDataModelMultiPatchRequest) =>
   httpPatch<IDataModelMultiPatchResponse>(url, data);
 
 // When saving data for stateless apps
-const doPostStatelessFormData = async (url: string, data: object, options?: AxiosRequestConfig): Promise<object> =>
-  (await httpPost<object>(url, options, data)).data;
+export const doPostStatelessFormData = async (
+  url: string,
+  data: object,
+  options?: AxiosRequestConfig,
+): Promise<object> => (await httpPost<object>(url, options, data)).data;
 
-const fetchLogo = async (): Promise<string> =>
+export const fetchLogo = async (): Promise<string> =>
   (await axios.get(GlobalData.platformFrontendSettings.altinnLogoUrl)).data;
 
 export type OptionsResponse = Pick<AxiosResponse<IRawOption[]>, 'data' | 'headers'>;
 
-const fetchOptions = (url: string): Promise<OptionsResponse | null> => httpGetRaw<IRawOption[]>(url);
+export const fetchOptions = (url: string): Promise<OptionsResponse | null> => httpGetRaw<IRawOption[]>(url);
 
-const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
+export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 
-const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
+export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
+export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);
 
-const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
+export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
 
-const fetchPaymentInformationForTask = (
+export const fetchPaymentInformationForTask = (
   instanceId: string,
   language?: string,
   taskId?: string,
 ): Promise<PaymentResponsePayload> => httpGet(getPaymentInformationForTaskUrl(instanceId, language, taskId));
 
-const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
+export const fetchOrderDetails = (instanceId: string, language?: string): Promise<OrderDetails> =>
   httpGet(getOrderDetailsUrl(instanceId, language));
 
-const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
+export const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
   // Hacky (and only) way to get the correct CDN url
   const schemaBaseUrl = document
     .querySelector('script[src$="altinn-app-frontend.js"]')
@@ -192,7 +209,7 @@ const fetchLayoutSchema = async (): Promise<JSONSchema7 | null> => {
   return (await axios.get(`${schemaBaseUrl}${LAYOUT_SCHEMA_NAME}`)).data ?? null;
 };
 
-function fetchExternalApi({
+export function fetchExternalApi({
   instanceId,
   externalApiId,
 }: {
@@ -203,12 +220,12 @@ function fetchExternalApi({
   return httpGet(externalApiUrl);
 }
 
-const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
+export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => {
   const postalCodesUrl: string = GlobalData.platformFrontendSettings.postalCodesUrl;
   return (await axios.get(postalCodesUrl)).data;
 };
 
-const fetchFormBootstrapForInstance = (options: {
+export const fetchFormBootstrapForInstance = (options: {
   instanceId: string;
   uiFolder: string;
   dataElementId?: string;
@@ -219,7 +236,7 @@ const fetchFormBootstrapForInstance = (options: {
   return httpGet<FormBootstrapResponse>(url);
 };
 
-const fetchFormBootstrapForStateless = (options: {
+export const fetchFormBootstrapForStateless = (options: {
   uiFolder: string;
   language?: string;
   prefill?: string;
@@ -228,38 +245,9 @@ const fetchFormBootstrapForStateless = (options: {
   return httpGet<FormBootstrapResponse>(url);
 };
 
-export const processApi = { doProcessNext, doProcessResume };
-export type ProcessApi = typeof processApi;
-
-export const attachmentsApi = { doAttachmentUpload, doUpdateAttachmentTags, doAttachmentRemove };
-export type AttachmentsApi = typeof attachmentsApi;
-
-export const actionsApi = { doPerformAction };
-export type ActionsApi = typeof actionsApi;
-
-export const subformApi = { doSubformEntryAdd, doSubformEntryDelete };
-export type SubformApi = typeof subformApi;
-
-export const formDataApi = { doPatchMultipleFormData, doPostStatelessFormData, fetchFormData };
-export type FormDataApi = typeof formDataApi;
-
-export const resourcesApi = { fetchLogo, fetchLayoutSchema, fetchPostalCodes, fetchLayouts };
-export type ResourcesApi = typeof resourcesApi;
-
-export const authApi = { fetchRefreshJwtToken };
-export type AuthApi = typeof authApi;
-
-export const optionsApi = { fetchOptions };
-export type OptionsApi = typeof optionsApi;
-
-export const dataListsApi = { fetchDataList };
-export type DataListsApi = typeof dataListsApi;
-
-export const paymentApi = { fetchPaymentInformationForTask, fetchOrderDetails };
-export type PaymentApi = typeof paymentApi;
-
-export const formBootstrapApi = { fetchFormBootstrapForInstance, fetchFormBootstrapForStateless };
-export type FormBootstrapApi = typeof formBootstrapApi;
-
-export const externalApi = { fetchExternalApi };
-export type ExternalApiClient = typeof externalApi;
+export const { fetchBackendValidations } = backendValidationApi;
+export const { getInstance, getActiveInstances, create, createWithPrefill } = instanceApi;
+export const { getPartiesAllowedToInstantiateHierarchical, setSelectedParty } = partyApi;
+export const { fetchTextResources } = textResourcesApi;
+export { fetchPerson, fetchOrg };
+export { fetchSigneeList, fetchSigningDocuments, fetchAuthorizedOrganizationDetails };

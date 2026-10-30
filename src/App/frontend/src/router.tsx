@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-rout
 import type { RouteObject } from 'react-router';
 
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import * as appRoute from 'src/routes/app/app.route';
 import * as componentRoute from 'src/routes/component/component.route';
@@ -20,8 +20,8 @@ import { convertRouteModule } from 'src/routes/routeModule';
 import * as taskRoute from 'src/routes/task/task.route';
 import * as taskIndexRoute from 'src/routes/task/task-index.route';
 import { buildPartySelectionUrl, routes, TaskKeys } from 'src/routesBuilder';
-import type { ApiClients } from 'src/core/api-client/ApiClients';
 import type { AppQueryClient } from 'src/core/queries/queryClient';
+import type { AppQueriesContext } from 'src/core/queries/types';
 
 /**
  * The instance route and the routes below it. Tests route through them with `InstanceRoutesRouter`.
@@ -49,7 +49,7 @@ export const instanceRoutes: RouteObject = {
   ],
 };
 
-export function createRouter({ queryClient, apiClients }: { queryClient: AppQueryClient; apiClients: ApiClients }) {
+export function createRouter({ queryClient, queries }: { queryClient: AppQueryClient; queries: AppQueriesContext }) {
   return createBrowserRouter(
     [
       {
@@ -88,7 +88,7 @@ export function createRouter({ queryClient, apiClients }: { queryClient: AppQuer
       getContext() {
         const context = new RouterContextProvider();
         context.set(queryClientContext, queryClient);
-        context.set(apiClientsContext, apiClients);
+        context.set(appQueriesContext, queries);
         return context;
       },
     },

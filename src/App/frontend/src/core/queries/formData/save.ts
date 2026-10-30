@@ -4,7 +4,7 @@ import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-quer
 import deepEqual from 'fast-deep-equal';
 import type { AxiosRequestConfig } from 'axios';
 
-import { useFormDataApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { getFormDataQueryKey } from 'src/core/queries/formData/formData.queries';
 import { mutationResult } from 'src/core/queries/mutationResult';
 import { useIsStateless } from 'src/features/applicationMetadata';
@@ -26,7 +26,7 @@ import type { IPatchListItem } from 'src/features/formData/types';
 const saveFormDataMutationKey = ['saveFormData'] as const;
 
 export function useFormDataSaveMutation() {
-  const { doPostStatelessFormData, doPatchMultipleFormData } = useFormDataApi();
+  const { doPostStatelessFormData, doPatchMultipleFormData } = useAppMutations();
   const getDataModelUrl = useGetDataModelUrl();
   const instanceId = useLaxInstanceId();
   const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;

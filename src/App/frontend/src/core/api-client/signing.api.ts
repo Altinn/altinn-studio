@@ -32,7 +32,7 @@ const signeeStateSchema = z
 
 export type SigneeState = z.infer<typeof signeeStateSchema>;
 
-async function fetchSigneeList(partyId: string, instanceGuid: string, taskId?: string): Promise<SigneeState[]> {
+export async function fetchSigneeList(partyId: string, instanceGuid: string, taskId?: string): Promise<SigneeState[]> {
   let url = `${appPath}/instances/${partyId}/${instanceGuid}/signing`;
 
   if (taskId) {
@@ -80,7 +80,7 @@ const authorizedOrganizationDetailsSchema = z.object({
 
 export type AuthorizedOrganizationDetails = z.infer<typeof authorizedOrganizationDetailsSchema>;
 
-async function fetchSigningDocuments(
+export async function fetchSigningDocuments(
   instanceOwnerPartyId: string | undefined,
   instanceGuid: string | undefined,
 ): Promise<SigningDocument[]> {
@@ -89,13 +89,10 @@ async function fetchSigningDocuments(
   return z.object({ dataElements: z.array(signingDocumentSchema) }).parse(response).dataElements;
 }
 
-async function fetchAuthorizedOrganizationDetails(
+export async function fetchAuthorizedOrganizationDetails(
   partyId: string,
   instanceGuid: string,
 ): Promise<AuthorizedOrganizationDetails> {
   const url = `${appPath}/instances/${partyId}/${instanceGuid}/signing/organizations`;
   return authorizedOrganizationDetailsSchema.parse(await httpGet(url));
 }
-
-export const signingApi = { fetchSigneeList, fetchSigningDocuments, fetchAuthorizedOrganizationDetails };
-export type SigningApi = typeof signingApi;

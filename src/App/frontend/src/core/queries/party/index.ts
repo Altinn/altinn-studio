@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { usePartyApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations, useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { partiesAllowedToInstantiateQuery, selectedPartyMutation } from 'src/core/queries/party/party.queries';
 import { PartyPrefetcher } from 'src/core/queries/party/PartyPrefetcher';
 import { getQueryClient } from 'src/core/queries/queryClient.queries';
@@ -15,12 +15,12 @@ interface UsePartiesAllowedToInstantiateResult extends BaseQueryResult {
 }
 
 function usePartiesAllowedToInstantiate(options?: { enabled?: boolean }): UsePartiesAllowedToInstantiateResult {
-  const query = useQuery(partiesAllowedToInstantiateQuery(usePartyApi(), options));
+  const query = useQuery(partiesAllowedToInstantiateQuery(useAppQueries(), options));
   return { parties: query.data, isLoading: query.isLoading, error: query.error, isPending: query.isPending };
 }
 
 function useSetSelectedParty() {
-  const mutation = useMutation(selectedPartyMutation(usePartyApi()));
+  const mutation = useMutation(selectedPartyMutation(useAppMutations()));
   const setSelectedParty: (args: { partyId: number | string }) => void = mutation.mutate;
   const setSelectedPartyAsync: (args: {
     partyId: number | string;
@@ -39,7 +39,7 @@ function prefetchPartiesAllowedToInstantiate({
   partyApi,
 }: {
   queryClient: AppQueryClient;
-  partyApi: PartyApi;
+  partyApi: Pick<PartyApi, 'getPartiesAllowedToInstantiateHierarchical'>;
 }) {
   return getQueryClient(queryClient).prefetchQuery(partiesAllowedToInstantiateQuery(partyApi));
 }

@@ -5,7 +5,7 @@ import { parseInstanceId, prefetchActiveInstances } from 'src/core/queries/insta
 import { getInstantiationClosedReason, isInstantiationClosedError } from 'src/features/instantiate/instantiationClosed';
 import { isInstantiationValidationResult } from 'src/features/instantiate/InstantiationValidation';
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { isStateless } from 'src/routes/index/isStateless';
 import { buildInstanceUrl, buildPartySelectionUrl } from 'src/routesBuilder';
@@ -25,7 +25,7 @@ export type IndexLoaderResult = null | IndexLoaderError;
 
 export async function clientLoader({ context }: LoaderFunctionArgs): Promise<IndexLoaderResult | Response> {
   const queryClient = context.get(queryClientContext);
-  const { instanceApi } = context.get(apiClientsContext);
+  const instanceApi = context.get(appQueriesContext);
   if (isStateless()) {
     // redirect is handled by routes/index/stateless-index.route.tsx
     return null;

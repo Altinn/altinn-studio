@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { queryOptions, replaceEqualDeep, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
-import { useInstanceApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { parseInstanceId } from 'src/core/queries/instance';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 import type { InstanceApi, Instantiation } from 'src/core/api-client/instance.api';
@@ -18,12 +18,12 @@ interface InstanceQueryKeys {
 }
 
 interface InstanceQueryParams extends InstanceQueryKeys {
-  instanceApi: InstanceApi;
+  instanceApi: Pick<InstanceApi, 'getInstance'>;
 }
 
 interface ActiveInstancesQueryParams {
   partyId: string;
-  instanceApi: InstanceApi;
+  instanceApi: Pick<InstanceApi, 'getActiveInstances'>;
 }
 
 export const instanceQueryKeys = {
@@ -91,7 +91,7 @@ export function useGetCachedInstanceData() {
 
 export function useCreateInstance(language: string) {
   const queryClient = useQueryClient();
-  const instanceApi = useInstanceApi();
+  const instanceApi = useAppMutations();
 
   return useMutation({
     mutationKey: ['instantiate'],

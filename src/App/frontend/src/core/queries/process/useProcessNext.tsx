@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { useProcessApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
 import { invalidateFormBootstrapQueries } from 'src/core/queries/formBootstrap/formBootstrap.queries';
 import { invalidateFormDataQueries } from 'src/core/queries/formData/formData.queries';
@@ -39,7 +39,7 @@ interface ProcessNextInternalProps extends ProcessNextProps {
 }
 
 function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
-  const { doProcessNext } = useProcessApi();
+  const { doProcessNext } = useAppMutations();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const refreshProcess = useRefreshProcess();
   const language = useCurrentLanguage();
@@ -171,7 +171,7 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
 
 // Resume shares the process/next scope, but its separate key keeps the failed task mounted until polling sees progress.
 export function useProcessResume() {
-  const { doProcessResume } = useProcessApi();
+  const { doProcessResume } = useAppMutations();
   const refreshProcess = useRefreshProcess();
   const instanceId = useLaxInstanceId();
   const queryClient = useQueryClient();

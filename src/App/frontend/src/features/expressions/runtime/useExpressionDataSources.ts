@@ -4,8 +4,8 @@ import dot from 'dot-object';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 import type { StoreApi } from 'zustand';
 
-import { useTextResourcesApi } from 'src/core/contexts/ApiProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { useExpressionQueryReaders } from 'src/core/queries/expressionQueryReaders';
 import { type ExternalApisResult } from 'src/core/queries/externalApi';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
@@ -116,7 +116,7 @@ type SnapshotInputs = {
   externalApiIds: string[];
   instanceId: string | undefined;
   store: StoreApi<FormStoreState> | typeof ContextNotProvided;
-  textResourcesApi: ReturnType<typeof useTextResourcesApi>;
+  textResourcesApi: ReturnType<typeof useAppQueries>;
   dataModelReaders: DataModelReaders;
   instanceQueries: ReturnType<typeof useExpressionQueryReaders>['instanceQueries'];
   queryCacheObserver: ReturnType<typeof useExpressionQueryReaders>['queryCacheObserver'];
@@ -232,7 +232,7 @@ function useExpressionDataSourcesRuntime(
   const { pageKey: currentPage, instanceOwnerPartyId, instanceGuid } = useAllNavigationParams();
   const currentDataModelPath = useCurrentDataModelLocation();
   const store = FormStore.raw.useLaxStore();
-  const textResourcesApi = useTextResourcesApi();
+  const textResourcesApi = useAppQueries();
   const dataModelReaders = useDataModelReaders();
   const { instanceQueries, queryCacheObserver, externalApiQueries, textResourceQueries } = useExpressionQueryReaders();
 

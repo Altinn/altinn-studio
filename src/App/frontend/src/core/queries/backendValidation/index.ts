@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useBackendValidationApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import {
   backendValidationQuery,
   backendValidationQueryKeys,
@@ -52,7 +52,7 @@ export function useIsUpdatingInitialValidations() {
 }
 
 function useBackendValidationQueryOptions(onlyIncrementalValidators: boolean) {
-  const backendValidationApi = useBackendValidationApi();
+  const backendValidationApi = useAppQueries();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage()).current;
 

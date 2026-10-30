@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useSigningApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import type { SigningDocument } from 'src/core/api-client/signing.api';
 export type { SigningDocument };
 
 export function useDocumentList(instanceOwnerPartyId: string | undefined, instanceGuid: string | undefined) {
-  const { fetchSigningDocuments } = useSigningApi();
+  const { fetchSigningDocuments } = useAppQueries();
   const { data, error, isLoading, isFetching } = useQuery({
     queryKey: ['signingDocumentList', instanceOwnerPartyId, instanceGuid],
     queryFn: () => fetchSigningDocuments(instanceOwnerPartyId, instanceGuid),

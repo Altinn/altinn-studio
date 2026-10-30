@@ -3,24 +3,29 @@ import { useParams } from 'react-router';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useActionsApi, useSigningApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations, useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { useBackendValidationQuery } from 'src/core/queries/backendValidation';
 import { mutationResult } from 'src/core/queries/mutationResult';
 import { useSigneeList } from 'src/core/queries/signeeList';
 import { signingQueryKeys } from 'src/core/queries/signeeList/signing.queries';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
-import type { AuthorizedOrganizationDetails, SigningApi } from 'src/core/api-client/signing.api';
+import type { AuthorizedOrganizationDetails } from 'src/core/api-client/signing.api';
+import type { AppQueries } from 'src/core/queries/types';
 
 export type { AuthorizedOrganizationDetails };
 
-const authorizedOrganizationDetailsQuery = (partyId: string, instanceGuid: string, api: SigningApi) => ({
+const authorizedOrganizationDetailsQuery = (
+  partyId: string,
+  instanceGuid: string,
+  api: Pick<AppQueries, 'fetchAuthorizedOrganizationDetails'>,
+) => ({
   queryKey: ['authorizedOrganizationDetails', partyId, instanceGuid],
   queryFn: () => api.fetchAuthorizedOrganizationDetails(partyId, instanceGuid),
 });
 
 export function useAuthorizedOrganizationDetails(partyId: string | undefined, instanceGuid: string | undefined) {
-  const api = useSigningApi();
+  const api = useAppQueries();
   const { data, error, isLoading, isFetching } = useQuery(
     authorizedOrganizationDetailsQuery(partyId!, instanceGuid!, api),
   );
@@ -70,7 +75,7 @@ export function useUserSigneeParties() {
 }
 
 export function useSigningMutation() {
-  const { doPerformAction } = useActionsApi();
+  const { doPerformAction } = useAppMutations();
   const { instanceOwnerPartyId, instanceGuid } = useParams();
   const selectedLanguage = useCurrentLanguage();
   const queryClient = useQueryClient();

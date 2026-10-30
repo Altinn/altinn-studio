@@ -12,10 +12,9 @@ import 'src/features/styleInjection';
 import 'src/features/toggles';
 
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
-import { apiClients } from 'src/core/api-client';
-import { ApiProvider } from 'src/core/contexts/ApiProvider';
+import { AppQueriesProvider } from 'src/core/queries/AppQueriesProvider';
+import * as queries from 'src/core/queries/queries';
 import { createAppQueryClient } from 'src/core/queries/queryClient';
-import { AppQueryProvider } from 'src/core/queries/QueryProvider';
 import { applyFontFromUrl } from 'src/features/devtools/utils/devFont';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
 import { createRouter } from 'src/router';
@@ -45,13 +44,14 @@ function renderApp() {
   const container = document.getElementById('root');
   const root = container && createRoot(container);
   root?.render(
-    <AppQueryProvider queryClient={queryClient}>
-      <ApiProvider apis={apiClients}>
-        <ErrorBoundary>
-          <RouterProvider router={createRouter({ queryClient, apiClients })} />
-        </ErrorBoundary>
-      </ApiProvider>
-    </AppQueryProvider>,
+    <AppQueriesProvider
+      {...queries}
+      queryClient={queryClient}
+    >
+      <ErrorBoundary>
+        <RouterProvider router={createRouter({ queryClient, queries })} />
+      </ErrorBoundary>
+    </AppQueriesProvider>,
   );
 }
 

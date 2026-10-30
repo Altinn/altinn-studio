@@ -1,6 +1,6 @@
 import { isCancelledError, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { useInstanceApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { useActiveInstancesQuery } from 'src/core/queries/instance/activeInstances';
 import {
   activeInstancesQuery,
@@ -29,7 +29,7 @@ interface UseActiveInstancesResult extends BaseQueryResult {
 }
 
 export function useActiveInstances(partyId: string): UseActiveInstancesResult {
-  const instanceApi = useInstanceApi();
+  const instanceApi = useAppQueries();
   const query = useQuery(activeInstancesQuery({ partyId, instanceApi }));
   return { instances: query.data, isLoading: query.isLoading, error: query.error };
 }
@@ -58,14 +58,22 @@ export function useCreateInstance(language: string) {
   };
 }
 
-export function prefetchActiveInstances(client: AppQueryClient, partyId: string, instanceApi: InstanceApi) {
+export function prefetchActiveInstances(
+  client: AppQueryClient,
+  partyId: string,
+  instanceApi: Pick<InstanceApi, 'getActiveInstances'>,
+) {
   const queryClient = getQueryClient(client);
   return queryClient.ensureQueryData(activeInstancesQuery({ partyId, instanceApi }));
 }
 
 export function prefetchInstanceData(
   client: AppQueryClient,
-  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+  params: {
+    instanceOwnerPartyId: string;
+    instanceGuid: string;
+    instanceApi: Pick<InstanceApi, 'getInstance'>;
+  },
 ) {
   const queryClient = getQueryClient(client);
   return queryClient.prefetchQuery(instanceDataQuery(params));
@@ -73,7 +81,11 @@ export function prefetchInstanceData(
 
 export function ensureInstanceData(
   client: AppQueryClient,
-  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+  params: {
+    instanceOwnerPartyId: string;
+    instanceGuid: string;
+    instanceApi: Pick<InstanceApi, 'getInstance'>;
+  },
 ) {
   const queryClient = getQueryClient(client);
   return queryClient.ensureQueryData(instanceDataQuery(params));
@@ -83,7 +95,11 @@ const maxJoinedReads = 5;
 
 export async function fetchFreshInstanceData(
   client: AppQueryClient,
-  params: { instanceOwnerPartyId: string; instanceGuid: string; instanceApi: InstanceApi },
+  params: {
+    instanceOwnerPartyId: string;
+    instanceGuid: string;
+    instanceApi: Pick<InstanceApi, 'getInstance'>;
+  },
 ): Promise<IInstance> {
   const queryClient = getQueryClient(client);
   // fetchQuery joins a read already in flight, such as a poll's. When a refetch cancels that read to start a newer one,

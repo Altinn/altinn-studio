@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useResourcesApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import type { PostalCodesRegistry } from 'src/types/shared';
 
 const __default__ = '';
@@ -22,7 +22,7 @@ function lookupPostPlace(data: PostalCodesRegistry, zip: string): string {
  * This hook was designed primarily for use in the Address component.
  */
 export function usePostPlace(zipCode: string | undefined, enabled: boolean) {
-  const { fetchPostalCodes } = useResourcesApi();
+  const { fetchPostalCodes } = useAppQueries();
   const _enabled = enabled && Boolean(zipCode?.length) && zipCode !== __default__ && zipCode !== '0';
 
   const { data } = useQuery({

@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { useMutation } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 
-import { useSubformApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { useInvalidateInstanceDataCache } from 'src/core/queries/instance';
 import { mutationResult } from 'src/core/queries/mutationResult';
 import {
@@ -16,7 +16,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 export const useAddEntryMutation = (dataType: string) => {
   const instanceId = useStrictInstanceId();
   const { langAsString } = useLanguage();
-  const { doSubformEntryAdd } = useSubformApi();
+  const { doSubformEntryAdd } = useAppMutations();
   const invalidateInstanceData = useInvalidateInstanceDataCache();
   const optimisticallyAppendDataElements = useOptimisticallyAppendDataElements();
 
@@ -43,7 +43,7 @@ export const useAddEntryMutation = (dataType: string) => {
 export const useDeleteEntryMutation = () => {
   const instanceId = useStrictInstanceId();
   const { langAsString } = useLanguage();
-  const { doSubformEntryDelete } = useSubformApi();
+  const { doSubformEntryDelete } = useAppMutations();
   const invalidateInstanceDataCache = useInvalidateInstanceDataCache();
   const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
 

@@ -73,7 +73,7 @@ const organizationLookupResponseSchema: JSONSchemaType<OrganizationLookupRespons
 
 const validateOrganizationLookupResponse = ajv.compile(organizationLookupResponseSchema);
 
-async function fetchPerson(ssn: string, name: string): Promise<PersonLookupResult> {
+export async function fetchPerson(ssn: string, name: string): Promise<PersonLookupResult> {
   if (!ssn || !name) {
     throw new Error('Missing ssn or name');
   }
@@ -105,7 +105,7 @@ async function fetchPerson(ssn: string, name: string): Promise<PersonLookupResul
   }
 }
 
-async function fetchOrg(orgNr: string): Promise<OrganizationLookupResult> {
+export async function fetchOrg(orgNr: string): Promise<OrganizationLookupResult> {
   if (!orgNr) {
     throw new Error('orgNr is required');
   }
@@ -127,6 +127,3 @@ async function fetchOrg(orgNr: string): Promise<OrganizationLookupResult> {
     return { org: null, error: 'organization_lookup.unknown_error' };
   }
 }
-
-export const lookupApi = { fetchPerson, fetchOrg };
-export type LookupApi = typeof lookupApi;

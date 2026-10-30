@@ -2,13 +2,13 @@ import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { useInstanceApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { activeInstancesQuery } from 'src/core/queries/instance/instance.queries';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
 export const useActiveInstancesQuery = () => {
   const selectedParty = useSelectedParty();
-  const instanceApi = useInstanceApi();
+  const instanceApi = useAppQueries();
   const partyId = String(selectedParty?.partyId ?? '');
 
   const utils = useQuery({

@@ -1,8 +1,8 @@
 import { queryOptions } from '@tanstack/react-query';
 
-import type { LookupApi } from 'src/core/api-client/lookup.api';
+import type { AppQueries } from 'src/core/queries/types';
 
-export const personLookupQuery = (ssn: string, name: string, api: LookupApi) =>
+export const personLookupQuery = (ssn: string, name: string, api: Pick<AppQueries, 'fetchPerson'>) =>
   queryOptions({
     queryKey: [{ scope: 'personLookup', ssn, name }],
     queryFn: () => api.fetchPerson(ssn, name),
@@ -10,7 +10,7 @@ export const personLookupQuery = (ssn: string, name: string, api: LookupApi) =>
     gcTime: 0,
   });
 
-export const organizationLookupQuery = (orgNr: string, api: LookupApi) =>
+export const organizationLookupQuery = (orgNr: string, api: Pick<AppQueries, 'fetchOrg'>) =>
   queryOptions({
     queryKey: [{ scope: 'organizationLookup', orgNr }],
     queryFn: () => api.fetchOrg(orgNr),

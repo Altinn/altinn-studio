@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { useResourcesApi } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 
 export function useLogoSvg() {
-  const { fetchLogo } = useResourcesApi();
+  const { fetchLogo } = useAppQueries();
   const { data, error } = useQuery({
     queryKey: ['logoSvg'],
     queryFn: fetchLogo,

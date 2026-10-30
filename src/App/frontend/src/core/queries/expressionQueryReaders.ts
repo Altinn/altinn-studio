@@ -1,20 +1,23 @@
 import { useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
-import { useExternalApiClient } from 'src/core/contexts/ApiProvider';
+import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { createQueryCacheObserver } from 'src/core/queries/expressionQueryReaders.queries';
 import { createExternalApiQueries } from 'src/core/queries/externalApi/externalApi.queries';
 import { createCachedInstanceQueries } from 'src/core/queries/instance/instance.queries';
 import { createTextResourcesQueries } from 'src/core/queries/textResources/textResources.queries';
-import type { ExternalApiClient } from 'src/core/api-client/app.api';
+import type { AppQueries } from 'src/core/queries/types';
 
 export type ExpressionQueryReaders = ReturnType<typeof createExpressionQueryReaders>;
 
-const readersByClient = new WeakMap<QueryClient, WeakMap<ExternalApiClient, ExpressionQueryReaders>>();
+const readersByClient = new WeakMap<
+  QueryClient,
+  WeakMap<Pick<AppQueries, 'fetchExternalApi'>, ExpressionQueryReaders>
+>();
 
 export function useExpressionQueryReaders(): ExpressionQueryReaders {
   const queryClient = useQueryClient();
-  const api = useExternalApiClient();
+  const api = useAppQueries();
   let byApi = readersByClient.get(queryClient);
   if (!byApi) {
     byApi = new WeakMap();
@@ -30,7 +33,7 @@ export function useExpressionQueryReaders(): ExpressionQueryReaders {
   return readers;
 }
 
-function createExpressionQueryReaders(queryClient: QueryClient, api: ExternalApiClient) {
+function createExpressionQueryReaders(queryClient: QueryClient, api: Pick<AppQueries, 'fetchExternalApi'>) {
   return {
     instanceQueries: createCachedInstanceQueries(queryClient),
     queryCacheObserver: createQueryCacheObserver(queryClient),

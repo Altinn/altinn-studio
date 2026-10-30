@@ -4,7 +4,7 @@ import { useIsMutating, useMutation, useMutationState, useQueryClient } from '@t
 import type { AxiosError } from 'axios';
 import type { StoreApi } from 'zustand';
 
-import { useAttachmentsApi } from 'src/core/contexts/ApiProvider';
+import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { attachmentMutationKeys } from 'src/core/queries/attachments/attachment.queries';
 import {
   hasPendingAttachments,
@@ -19,7 +19,7 @@ import { useLaxInstanceId, useOptimisticallyRemoveDataElement } from 'src/featur
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { backendValidationIssueGroupListToObject } from 'src/features/validation';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
-import type { SetTagsRequest } from 'src/core/api-client/app.api';
+import type { SetTagsRequest } from 'src/core/queries/queries';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { FormStoreState } from 'src/features/form/FormContext';
 import type { IData } from 'src/types/shared';
@@ -61,7 +61,7 @@ export const AttachmentMutations = {
   },
 
   useAttachmentsUploadMutation() {
-    const { doAttachmentUpload } = useAttachmentsApi();
+    const { doAttachmentUpload } = useAppMutations();
     const instanceId = useLaxInstanceId();
     const language = useCurrentLanguage();
 
@@ -83,7 +83,7 @@ export const AttachmentMutations = {
   },
 
   useAttachmentsRemoveMutation() {
-    const { doAttachmentRemove } = useAttachmentsApi();
+    const { doAttachmentRemove } = useAppMutations();
     const instanceId = useLaxInstanceId();
     const language = useCurrentLanguage();
     const optimisticallyRemoveDataElement = useOptimisticallyRemoveDataElement();
@@ -103,7 +103,7 @@ export const AttachmentMutations = {
   },
 
   useAttachmentUpdateTagsMutation() {
-    const { doUpdateAttachmentTags } = useAttachmentsApi();
+    const { doUpdateAttachmentTags } = useAppMutations();
     const instanceId = useLaxInstanceId();
     const updateIncrementalValidations = useUpdateIncrementalValidations();
 
