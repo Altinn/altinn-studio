@@ -5,6 +5,7 @@ using Altinn.Studio.Designer.Models.ContactPoints;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
+using Quartz.Impl;
 
 namespace Altinn.Studio.Designer.Scheduling;
 
@@ -120,6 +121,9 @@ public static class SchedulingDependencyInjectionExtensions
                 PostgreSQLSettings postgresSettings = configuration
                     .GetSection(nameof(PostgreSQLSettings))
                     .Get<PostgreSQLSettings>();
+                // Every start gets a new instance id, as a killed scheduler's jobs are recovered only once its id
+                // stops checking in. Quartz warns that node affinity needs a stable id; it is not used here.
+                configure.SchedulerId = StdSchedulerFactory.AutoGenerateInstanceId;
                 configure.UsePersistentStore(s =>
                 {
                     s.UseSystemTextJsonSerializer();
