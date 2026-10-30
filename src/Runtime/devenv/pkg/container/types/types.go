@@ -125,8 +125,9 @@ func (p ContainerPlatform) PushArgs(image string) []string {
 // Podman not at all for a Dockerfile outside the context, so the arguments pass it explicitly.
 func PodmanBuildArgs(contextPath, dockerfile, tag string) []string {
 	args := []string{"build", "-t", tag, "-f", dockerfile}
+	// Podman reads a relative Dockerfile from the working directory, and from the context when it is not there.
 	ignoreFile := dockerfile
-	if !filepath.IsAbs(ignoreFile) {
+	if _, err := os.Stat(ignoreFile); err != nil && !filepath.IsAbs(ignoreFile) {
 		ignoreFile = filepath.Join(contextPath, ignoreFile)
 	}
 	ignoreFile += ".dockerignore"

@@ -154,10 +154,20 @@ func TestContainerPlatformPushArgs(t *testing.T) {
 }
 
 func TestPodmanBuildArgs(t *testing.T) {
+	workDir := t.TempDir()
+	t.Chdir(workDir)
+	for _, name := range []string{"Dockerfile", "Dockerfile.dockerignore"} {
+		if err := os.WriteFile(filepath.Join(workDir, name), []byte("**\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
 	contextDir := t.TempDir()
 	dockerfileDir := t.TempDir()
 	withIgnore := filepath.Join(dockerfileDir, "app.Dockerfile")
 	if err := os.WriteFile(withIgnore+".dockerignore", []byte("**\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(contextDir, "Dockerfile.dockerignore"), []byte("**\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(
@@ -187,6 +197,14 @@ func TestPodmanBuildArgs(t *testing.T) {
 			want: []string{
 				"build", "-t", "app:dev", "-f", "Dockerfile.proxy",
 				"--ignorefile", filepath.Join(contextDir, "Dockerfile.proxy.dockerignore"), contextDir,
+			},
+		},
+		{
+			name:       "relative Dockerfile in the working directory uses the ignore file next to it",
+			dockerfile: "Dockerfile",
+			want: []string{
+				"build", "-t", "app:dev", "-f", "Dockerfile",
+				"--ignorefile", "Dockerfile.dockerignore", contextDir,
 			},
 		},
 		{

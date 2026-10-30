@@ -60,7 +60,17 @@ fail() {
 work_dir="$(mktemp -d)"
 # The probe must be inside the context, since remote Podman reads a Dockerfile's ignore file only there.
 probe_dir="$(mktemp -d "${context_dir}/.image-context-probe.XXXXXX")"
-trap 'rm -rf "${work_dir}" "${probe_dir}"' EXIT
+probe_tool="" probe_container="" probe_tag=""
+cleanup() {
+  if [ -n "${probe_container}" ]; then
+    "${probe_tool}" rm --force "${probe_container}" >/dev/null 2>&1 || true
+  fi
+  if [ -n "${probe_tag}" ]; then
+    "${probe_tool}" rmi --force "${probe_tag}" >/dev/null 2>&1 || true
+  fi
+  rm -rf "${work_dir}" "${probe_dir}"
+}
+trap cleanup EXIT
 printf 'FROM scratch\nCOPY . /ctx/\n' >"${probe_dir}/Dockerfile"
 
 for image in "${images[@]}"; do
@@ -94,7 +104,7 @@ is_podman() {
 # Writes the files that a tool sends as the context, as "<size> <path>" lines, to the given file. With an allowlist,
 # the tool builds the way Docker and devenv do. Without one, it builds the way Compose and plain podman builds do.
 list_context() {
-  local tool="$1" output="$2" allowlist="${3:-}" tag container
+  local tool="$1" output="$2" allowlist="${3:-}"
   local args=(build --quiet --file "${probe_dir}/Dockerfile")
   rm -f "${probe_dir}/Dockerfile.dockerignore"
   if [ -n "${allowlist}" ]; then
@@ -103,18 +113,17 @@ list_context() {
       args+=(--ignorefile "${allowlist}")
     fi
   fi
-  tag="image-context-probe:$$"
-  "${tool}" "${args[@]}" --tag "${tag}" "${context_dir}" >/dev/null
-  container="$("${tool}" create "${tag}" probe)"
+  probe_tool="${tool}" probe_tag="image-context-probe:$$"
+  "${tool}" "${args[@]}" --tag "${probe_tag}" "${context_dir}" >/dev/null
+  probe_container="$("${tool}" create "${probe_tag}" probe)"
   mkdir -p "${work_dir}/export"
-  "${tool}" export "${container}" | tar -xf - -C "${work_dir}/export" ctx 2>/dev/null || true
-  "${tool}" rm "${container}" >/dev/null
-  "${tool}" rmi "${tag}" >/dev/null
-  if [ -d "${work_dir}/export/ctx" ]; then
-    (cd "${work_dir}/export/ctx" && find . ! -type d -printf '%s %P\n' | LC_ALL=C sort -k2) >"${output}"
-  else
-    : >"${output}"
-  fi
+  # A failed export must fail the check, rather than pass as an empty context.
+  "${tool}" export "${probe_container}" | tar -xf - -C "${work_dir}/export" ctx
+  "${tool}" rm "${probe_container}" >/dev/null
+  probe_container=""
+  "${tool}" rmi "${probe_tag}" >/dev/null
+  probe_tag=""
+  (cd "${work_dir}/export/ctx" && find . ! -type d -printf '%s %P\n' | LC_ALL=C sort -k2) >"${output}"
   rm -rf "${work_dir}/export"
 }
 
