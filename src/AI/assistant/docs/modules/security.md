@@ -1,6 +1,6 @@
 # Security controls
 
-Code: `src/AI/assistant/agents/prompts/intent_security.md`, `src/AI/assistant/agents/core/tools/`, `src/AI/assistant/shared/utils/spotlight.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/infra/kustomize/networkpolicy.yaml`
+Code: `src/AI/assistant/agents/prompts/intent_security.md`, `src/AI/assistant/agents/core/tools/`, `src/AI/assistant/shared/utils/spotlight.py`, `src/AI/assistant/agents/services/llm/llm_client.py`, `src/AI/assistant/agents/core/context.py`, `src/AI/assistant/infra/kustomize/networkpolicy.yaml`, `src/AI/assistant/agents/core/runner_k8s.py`, `src/AI/assistant-runner/infra/kustomize/`
 
 The security model has four layers. Each layer covers a risk that the other layers do not cover.
 
@@ -12,6 +12,8 @@ The security model has four layers. Each layer covers a risk that the other laye
 
 - In chat mode, the loop refuses the write tools until the user gives permission.
 - The file tools stay in the app repository.
+- App code does not run in the assistant pod. The v9 upgrade runs MSBuild, which runs code from the app, so it runs in a runner Job, in a microVM without secrets (`src/AI/assistant-runner`).
+- The token of the assistant pod can only start, follow and delete runner Jobs in the namespace `assistant-runners`. An admission policy refuses a Job with a different pod.
 - `web_fetch` can only get pages from an allowlist of Altinn hosts. This also applies to each redirect.
 - Each change goes to a session branch. A person examines the branch before the merge.
 - The prompts that Langfuse serves are published by CI after the merge to main, so each served prompt has a reviewed commit.
