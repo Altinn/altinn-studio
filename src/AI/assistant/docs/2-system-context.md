@@ -16,6 +16,7 @@ flowchart LR
   B["Browser: Designer frontend"] -->|SignalR| D["Designer backend"]
   D -->|HTTP and WebSocket| A["Assistant service"]
   A -->|git clone and push| G["Gitea"]
+  A -->|generate data model files| D
   A -->|model calls| L["Azure AI models"]
 ```
 
@@ -52,7 +53,7 @@ _Connection setup. The assistant service sends events by developer, not by tab._
 
 ## Start a run
 
-Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. The service has no Gitea token of its own.
+Designer makes a short-lived API key for each run. The key expires after 20 minutes. The assistant service uses this key to clone and push through the Gitea proxy. It also uses the key to let the Designer API generate data model files. The service has no Gitea token of its own.
 
 Attachments go to Designer first. Designer accepts eight file types up to 20 MB each and keeps them in memory for a maximum of 30 minutes. Then it sends them as base64 in the start request.
 

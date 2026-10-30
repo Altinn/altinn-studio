@@ -163,6 +163,86 @@ public class CsharpNamespaceTests
 
     [Theory]
     [InlineData(
+        "Model/XmlSchema/Gitea/krt-3221-42265.xsd",
+        "Model/XmlSchema/Gitea/aal-vedlegg.xsd",
+        "ttd",
+        "empty-app",
+        "testUser",
+        DataModelingErrorCodes.ModelWithTheSameTypeNameExists
+    )]
+    public async Task Given_TwoXsdsUploaded_When_OneIsReplacedWithTheOtherModelName_ShouldReturn_422(
+        string setupXsdPath,
+        string replacedXsdPath,
+        string org,
+        string repo,
+        string developer,
+        string expectedErrorCode
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/upload";
+
+        using var setupResponse = await UploadNewXsdSchema(setupXsdPath, url);
+        Assert.Equal(HttpStatusCode.Created, setupResponse.StatusCode);
+        using var replacedResponse = await UploadNewXsdSchema(replacedXsdPath, url);
+        Assert.Equal(HttpStatusCode.Created, replacedResponse.StatusCode);
+
+        using var response = await UploadNewXsdSchema(setupXsdPath, Path.GetFileName(replacedXsdPath), url);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
+        Assert.NotNull(problemDetails);
+
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(expectedErrorCode, errorCode.ToString());
+    }
+
+    [Theory]
+    [InlineData(
+        "Model/XmlSchema/Gitea/krt-3221-42265.xsd",
+        "Model/XmlSchema/Gitea/aal-vedlegg.xsd",
+        "ttd",
+        "empty-app",
+        "testUser",
+        DataModelingErrorCodes.ModelWithTheSameTypeNameExists
+    )]
+    public async Task Given_TwoXsdsUploaded_When_OneIsReplacedWithTheOtherXsd_ShouldReturn_422(
+        string setupXsdPath,
+        string replacedXsdPath,
+        string org,
+        string repo,
+        string developer,
+        string expectedErrorCode
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/upload";
+
+        using var setupResponse = await UploadNewXsdSchema(setupXsdPath, url);
+        Assert.Equal(HttpStatusCode.Created, setupResponse.StatusCode);
+        using var replacedResponse = await UploadNewXsdSchema(replacedXsdPath, url);
+        Assert.Equal(HttpStatusCode.Created, replacedResponse.StatusCode);
+
+        string replacedModelPath = $"App/models/{Path.GetFileNameWithoutExtension(replacedXsdPath)}.schema.json";
+        using var response = await ReplaceXsdSchema(
+            setupXsdPath,
+            $"{VersionPrefix(org, targetRepository)}/datamodel/xsd?modelPath={replacedModelPath}"
+        );
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
+        Assert.NotNull(problemDetails);
+
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(expectedErrorCode, errorCode.ToString());
+    }
+
+    [Theory]
+    [InlineData(
         "App/models/Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.schema.json",
         "ttd",
         "hvem-er-hvem",
@@ -269,6 +349,82 @@ public class CsharpNamespaceTests
         Assert.Equal(expectedErrorCode, errorCode.ToString());
     }
 
+    // The class name drops the hyphens of the model name, and the Altinn 2 template's root type adds a suffix to it.
+    [Theory]
+    [InlineData("mymodel", "my-model", false, "ttd", "empty-app", "testUser")]
+    [InlineData("my-model", "mymodel", false, "ttd", "empty-app", "testUser")]
+    [InlineData("my-model", "my-model", false, "ttd", "empty-app", "testUser")]
+    [InlineData("xmodell", "x", true, "ttd", "empty-app", "testUser")]
+    public async Task Given_JsonSchemaCreated_When_JsonSchemaCreated_WithTheSameClassName_ShouldReturn_422(
+        string setupModelName,
+        string modelName,
+        bool altinn2Compatible,
+        string org,
+        string repo,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+        string url = $"{VersionPrefix(org, targetRepository)}/new";
+
+        using var setupResponse = await GenerateNewJsonSchema(setupModelName, url);
+        Assert.Equal(HttpStatusCode.Created, setupResponse.StatusCode);
+
+        using var response = await GenerateNewJsonSchema(modelName, url, altinn2Compatible);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
+        Assert.NotNull(problemDetails);
+
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(DataModelingErrorCodes.ModelWithTheSameTypeNameExists, errorCode.ToString());
+    }
+
+    [Theory]
+    [InlineData(
+        "Model/XmlSchema/Gitea/krt-3221-42265.xsd",
+        "KRT1011_M",
+        "ttd",
+        "empty-app",
+        "testUser",
+        DataModelingErrorCodes.ModelWithTheSameTypeNameExists
+    )]
+    public async Task Given_RepoPreparedWithXsd_When_JsonSchemaSavedWithTheXsdRootType_ShouldReturn_422(
+        string xsdPath,
+        string xsdRootTypeName,
+        string org,
+        string repo,
+        string developer,
+        string expectedErrorCode
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, repo, developer, targetRepository);
+
+        using var setupResponse = await UploadNewXsdSchema(xsdPath, $"{VersionPrefix(org, targetRepository)}/upload");
+        Assert.Equal(HttpStatusCode.Created, setupResponse.StatusCode);
+        using var newJsonSchemaResponse = await GenerateNewJsonSchema(
+            "othermodel",
+            $"{VersionPrefix(org, targetRepository)}/new"
+        );
+        Assert.Equal(HttpStatusCode.Created, newJsonSchemaResponse.StatusCode);
+
+        using var response = await GenerateModels(
+            xsdRootTypeName,
+            $"{VersionPrefix(org, targetRepository)}/datamodel?modelPath=App/models/othermodel.schema.json"
+        );
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
+        Assert.NotNull(problemDetails);
+
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(expectedErrorCode, errorCode.ToString());
+    }
+
     [Theory]
     [InlineData("ttd", "empty-app", "testUser", "App/models/initmodel.schema.json", "newmodel")]
     public async Task WhenClassRefIsChanged_ShouldUpdateApplicationMetadata(
@@ -335,14 +491,29 @@ public class CsharpNamespaceTests
         );
     }
 
-    private async Task<HttpResponseMessage> UploadNewXsdSchema(string xsdPath, string url)
+    private Task<HttpResponseMessage> UploadNewXsdSchema(string xsdPath, string url) =>
+        UploadNewXsdSchema(xsdPath, Path.GetFileName(xsdPath), url);
+
+    private Task<HttpResponseMessage> UploadNewXsdSchema(string xsdPath, string fileName, string url) =>
+        SendXsdSchema(HttpMethod.Post, xsdPath, fileName, url);
+
+    private Task<HttpResponseMessage> ReplaceXsdSchema(string xsdPath, string url) =>
+        SendXsdSchema(HttpMethod.Put, xsdPath, Path.GetFileName(xsdPath), url);
+
+    private async Task<HttpResponseMessage> SendXsdSchema(
+        HttpMethod method,
+        string xsdPath,
+        string fileName,
+        string url
+    )
     {
         await using var fileStream = SharedResourcesHelper.LoadTestData(xsdPath);
         using var formData = new MultipartFormDataContent();
         using var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-        formData.Add(streamContent, "file", Path.GetFileName(xsdPath));
-        return await HttpClient.PostAsync(url, formData);
+        formData.Add(streamContent, "file", fileName);
+        using var request = new HttpRequestMessage(method, url) { Content = formData };
+        return await HttpClient.SendAsync(request);
     }
 
     private async Task<HttpResponseMessage> GenerateModels(string modelName, string url)
@@ -352,13 +523,17 @@ public class CsharpNamespaceTests
         return await HttpClient.PutAsync(url, content);
     }
 
-    private async Task<HttpResponseMessage> GenerateNewJsonSchema(string modelName, string url)
+    private async Task<HttpResponseMessage> GenerateNewJsonSchema(
+        string modelName,
+        string url,
+        bool altinn2Compatible = false
+    )
     {
         CreateModelViewModel createModel = new()
         {
             ModelName = modelName,
             RelativeDirectory = "App/models",
-            Altinn2Compatible = false,
+            Altinn2Compatible = altinn2Compatible,
         };
         string schema = JsonSerializer.Serialize(createModel, JsonSerializerOptions);
         using var content = new StringContent(schema, Encoding.UTF8, MediaTypeNames.Application.Json);

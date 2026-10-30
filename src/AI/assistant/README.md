@@ -3,8 +3,8 @@
 Studio Assistant is an agent service that changes Altinn apps from instructions in natural language, or answers
 questions about Altinn without changing the app. [Designer](../../Designer/README.md) forwards its users' requests to
 it. The assistant clones and pushes app repositories through the [gitea-proxy](../../gitea-proxy) with an API key
-that Designer makes for each run. The [architecture guide](docs/README.md) explains how it works and how it connects
-to other services.
+that Designer makes for each run. It also uses the key to generate data model files with the Designer API. The
+[architecture guide](docs/README.md) explains how it works and how it connects to other services.
 
 ## Prerequisites
 

@@ -186,7 +186,6 @@ public static class ServiceRegistration
         services.AddTransient<IModelMetadataToCsharpConverter, JsonMetadataToCsharpConverter>();
         services.RegisterSettings<CSharpGenerationSettings>(configuration);
         services.AddTransient<IJsonSchemaValidator, AltinnJsonSchemaValidator>();
-        services.AddTransient<IModelNameValidator, ModelNameValidator>();
         RegisterXsdKeywords();
         return services;
     }

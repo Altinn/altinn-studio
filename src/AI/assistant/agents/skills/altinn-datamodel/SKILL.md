@@ -8,23 +8,28 @@ docs_url: https://docs.altinn.studio/nb/altinn-studio/v8/concepts/data-model/
 
 ## CRITICAL REQUIREMENT
 
-When working with Altinn datamodels, you **MUST** maintain **ALL THREE files** (`.cs`, `.schema.json`, `.xsd`) as a synchronized set.
+A data model is three files with the same name: `model.schema.json`, `model.cs` and `model.xsd`. The JSON schema is the source. **Change only the `.schema.json` file**, then call `altinn_datamodel_sync` with its path. Altinn Studio Designer then generates the `.cs` and `.xsd` files and adds or updates the model's data type in `App/config/applicationmetadata.json`, exactly as "Generate model" in Studio does. **Never write or edit the `.cs` or `.xsd` file yourself**, and do not change the generated namespace or class name.
 
-**IMPORTANT:** There is always exactly **ONE** data model per Altinn app, and all files must be named `model`:
+**Keep the C# class name and the XML root element of an existing model.** The JSON schema sets them in two different ways:
 
-- `model.cs`
-- `model.schema.json`
-- `model.xsd`
+- The C# class name is the root type name. If the root refers to a type in `$defs` or `definitions` with `$ref`, also through a `oneOf` with one `$ref`, the root type name is the name of that type. If the root has its own `properties`, the root type name is the `@xsdRootElement` value.
+- The XML root element is the `@xsdRootElement` value.
 
-The root element is always called `model` and represents the single survey/form response for the entire app.
+A new class name breaks the app's C# code. A new root element changes the XML of the data the app stores. So in an existing model, do not change `@xsdRootElement`, do not rename the type that the root refers to, and do not move the root properties into or out of a `$defs` type.
+
+A new app made in Studio has one data model called `model`. Its root has its own `properties` and `@xsdRootElement` is `model`, so the C# class is also `model`.
+
+A new data model needs a root type name that no other data model in the app uses. If another data type already has the class, `altinn_datamodel_sync` reports an error.
 
 ## FILE STRUCTURES
 
 ### 1. C# MODEL FILE (model.cs)
 
+Designer generates this file. Read it to learn the class and property names; never write it.
+
 **Structure:**
 
-- Namespace: `Altinn.App.Models.[ModelName]`
+- Namespace: `Altinn.App.Models.[ClassName]`, or `Altinn.App.Models` when the model's data type already has the class reference `Altinn.App.Models.[ClassName]`. `[ClassName]` is the root type name.
 - Class declaration with `[XmlRoot]` attribute
 - Properties with serialization attributes:
   - `[XmlElement]` with name and order
@@ -60,7 +65,7 @@ namespace Altinn.App.Models.ModelName
 
 - `$schema` and `$id` declarations
 - `@xsdNamespaces` and `@xsdSchemaAttributes` sections
-- `@xsdRootElement` matching the model name
+- `@xsdRootElement`, the XML root element, matching the model name for a new model
 - `"required"` array listing mandatory properties
 - `"properties"` object defining each property with its type
 - `"$defs"` section for reusable data type definitions
@@ -111,6 +116,8 @@ namespace Altinn.App.Models.ModelName
 ```
 
 ### 3. XML SCHEMA FILE (model.xsd)
+
+Designer generates this file too; never write it.
 
 **Structure:**
 
@@ -310,7 +317,7 @@ Use `$ref` to reference types defined in the `$defs` section following standard 
 
 ### 3. Root Model Definition with oneOf
 
-The root data model is always called `model` and represents the single survey/form response. Use `oneOf` at the root level to reference the main data structure:
+Some data models use `oneOf` at the root level to reference the main data structure:
 
 ```json
 "@xsdRootElement": "model",
@@ -335,7 +342,7 @@ The root data model is always called `model` and represents the single survey/fo
 }
 ```
 
-This ensures there is only one instance of the main `model` object representing the entire app's data.
+With this shape, the C# class is the referenced type, `MainDataModel`, and the XML root element is `model`. A new app made in Studio puts the properties on the root instead, so its class is `model`. Do not change an existing model from one shape to the other, because that renames the C# class.
 
 ### 4. Common Data Type Patterns
 
@@ -383,15 +390,14 @@ This ensures there is only one instance of the main `model` object representing 
 
 ### 1. Model Names:
 
-- Use PascalCase (e.g., "TaxReport")
-- Must be consistent across all three files
-- Used as class name in C#, root element in XSD, and xsdRootElement in JSON schema
+- `@xsdRootElement` in the JSON schema becomes the root element in XSD and in the XML that the app stores
+- The root type name becomes the class name in C#: the `$defs` type that the root refers to with `$ref`, or `@xsdRootElement` when the root has its own `properties`
+- Keep both names of an existing model; for a new model, use the same name as its file (e.g., "model") and a root type name that no other data model uses
 
 ### 2. Property Names:
 
 - Use camelCase (e.g., "firstName")
-- Must be consistent across all three files
-- Used as property name in C#, property key in JSON schema, and element name in XSD
+- The property key in the JSON schema becomes the property name in C# and the element name in XSD
 
 ### 3. Data Type Names in $defs:
 
@@ -400,6 +406,8 @@ This ensures there is only one instance of the main `model` object representing 
 - Avoid generic names like "Type1" or "Data"
 
 ## VALIDATION RULES
+
+You write the JSON schema part of each rule. The generated C# and XSD files follow from it.
 
 ### 1. Required Properties:
 
@@ -427,31 +435,25 @@ This ensures there is only one instance of the main `model` object representing 
 
 ## EDITING GUIDELINES
 
+Make each of these changes in the JSON schema only, then call `altinn_datamodel_sync`.
+
 ### 1. Adding a Data Type:
 
 - Add new definition in `$defs` section of JSON schema
-- Create corresponding C# class if it represents a complex object
-- Add corresponding XSD complex type definition
-- Use consistent naming across all files
 
 ### 2. Adding a Property:
 
-- Add to ALL THREE files with consistent naming and types
 - Use `$ref` in JSON schema if referencing a defined type
-- Assign a unique order number in the C# file
-- Add to "required" array in JSON schema if mandatory
-- Set minOccurs appropriately in XSD
+- Add to "required" array in JSON schema if mandatory, or set `"@xsdMinOccurs": 0` if optional
 
 ### 3. Removing a Property:
 
-- Remove from ALL THREE files
 - Update "required" array in JSON schema if it was mandatory
 - Remove unused type definitions from `$defs` if no longer referenced
 
 ### 4. Modifying a Property:
 
-- Update type in ALL THREE files using the type mapping table
-- Update requirement status consistently across files
+- Change its type using the type mapping table
 - If changing from simple type to complex type, create new `$defs` entry and use `$ref`
 
 ### 5. Working with References:
@@ -460,7 +462,7 @@ This ensures there is only one instance of the main `model` object representing 
 - Keep `$defs` section organized and avoid duplicate type definitions
 - Use descriptive names for reusable types to improve maintainability
 
-**REMEMBER:** All three files must be kept synchronized at all times. Any change to one file requires corresponding changes to the other two files. **ALWAYS:** update all three if not told otherwise. The standard is to update all three files (.xsd, .cs, .schema.json). The `$defs` section promotes reusability and consistency across your data model.
+**REMEMBER:** Change the `.schema.json` file, then call `altinn_datamodel_sync`. If it reports an error, such as a C# compiler error, fix the JSON schema and call it again. Never change the `.cs` or `.xsd` file to make the error go away.
 
 ## MANDATORY VALIDATION CHECKLIST
 
@@ -473,12 +475,9 @@ Before finalizing any Altinn datamodel generation, **VERIFY ALL** of the followi
 - [ ] Arrays have `@xsdMaxOccurs: "unbounded"`
 - [ ] Enums have `@xsdStructure: "XmlSchemaSimpleTypeRestriction"`
 - [ ] All `$ref` references point to valid `$defs` entries
-- [ ] `@xsdRootElement` matches the model name exactly
+- [ ] `@xsdRootElement` and the root type name of an existing model are unchanged
 
-### Cross-File Consistency:
+### Generated Files:
 
-- [ ] Property names identical across all three files
-- [ ] Required properties match in all files
-- [ ] Data types correspond according to mapping table
-- [ ] Property order in C# matches XSD sequence
-- [ ] Complex types exist in all relevant files
+- [ ] `altinn_datamodel_sync` reported success after the last change to the JSON schema
+- [ ] The `.cs` and `.xsd` files were changed only by `altinn_datamodel_sync`

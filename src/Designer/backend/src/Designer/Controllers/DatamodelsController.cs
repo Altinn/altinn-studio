@@ -10,8 +10,10 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Authorization;
@@ -33,23 +35,16 @@ public class DatamodelsController : ControllerBase
 {
     private readonly ISchemaModelService _schemaModelService;
     private readonly IJsonSchemaValidator _jsonSchemaValidator;
-    private readonly IModelNameValidator _modelNameValidator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
     /// </summary>
     /// <param name="schemaModelService">Interface for working with models.</param>
     /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
-    /// <param name="modelNameValidator">Interface for validating that the model name does not already belong to a data type</param>
-    public DatamodelsController(
-        ISchemaModelService schemaModelService,
-        IJsonSchemaValidator jsonSchemaValidator,
-        IModelNameValidator modelNameValidator
-    )
+    public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator)
     {
         _schemaModelService = schemaModelService;
         _jsonSchemaValidator = jsonSchemaValidator;
-        _modelNameValidator = modelNameValidator;
     }
 
     /// <summary>
@@ -144,6 +139,35 @@ public class DatamodelsController : ControllerBase
     }
 
     /// <summary>
+    /// Generates the files that saving a data model writes, from app files in the request instead of
+    /// from the developer's repository. Nothing is saved. This lets a caller that edits the app in its
+    /// own clone, such as Studio Assistant, write the same files as Designer.
+    /// </summary>
+    /// <param name="request">The data model's JSON schema and the app files that the generation reads.</param>
+    [HttpPost]
+    [AllowApiKey]
+    // The order of the controller's AutoValidateAntiforgeryToken, so that this filter is the antiforgery
+    // policy that applies and an API key caller needs no antiforgery token.
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter), Order = 1000)]
+    [UseSystemTextJson]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [Route("datamodel/generate")]
+    public async Task<ActionResult<GeneratedDatamodel>> GenerateDatamodel([FromBody] GenerateDatamodelRequest request)
+    {
+        GeneratedDatamodel generatedDatamodel = await _schemaModelService.GenerateDatamodel(
+            request.ModelName,
+            request.Schema.ToJsonString(),
+            request.ApplicationMetadata.ToJsonString(),
+            request.UseNullableReferenceTypes,
+            request.IsV9OrNewer
+        );
+
+        return Ok(generatedDatamodel);
+    }
+
+    /// <summary>
     /// Deletes the specified datamodel in the git repository.
     /// </summary>
     /// <param name="org">The org owning the repository.</param>
@@ -232,16 +256,10 @@ public class DatamodelsController : ControllerBase
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-        var fileStream = theFile!.OpenReadStream();
-        await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(
-            fileStream,
-            fileNameWithExtension,
-            editingContext
-        );
         string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(
             editingContext,
             fileNameWithExtension,
-            theFile.OpenReadStream(),
+            theFile!.OpenReadStream(),
             cancellationToken
         );
 
@@ -311,7 +329,6 @@ public class DatamodelsController : ControllerBase
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
-        await _modelNameValidator.ValidateModelNameForNewJsonSchemaAsync(createModel.ModelName, editingContext);
         var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(
             editingContext,
             createModel.ModelName,
