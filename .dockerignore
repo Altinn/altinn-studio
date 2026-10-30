@@ -14,8 +14,15 @@
 !src/App/template/v8/src/**
 !src/App/template/v9/src
 !src/App/template/v9/src/**
-!src/Designer/backend
-!src/Designer/backend/**
+!src/Designer/backend/.config/**
+!src/Designer/backend/.csharpierignore
+!src/Designer/backend/.csharpierrc.yaml
+!src/Designer/backend/.editorconfig
+!src/Designer/backend/Directory.Build.props
+!src/Designer/backend/Directory.Packages.props
+!src/Designer/backend/PolicyAdmin/**
+!src/Designer/backend/global.json
+!src/Designer/backend/src/**
 !src/Designer/development/azure-devops-mock/package.json
 !src/Designer/frontend
 !src/Designer/frontend/**
