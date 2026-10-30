@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
@@ -48,6 +49,23 @@ public interface IDeploymentRepository
     /// Gets app names with a recent deploy in the given environment.
     /// </summary>
     Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(string org, string environment, DateTimeOffset sinceUtc);
+
+    /// <summary>
+    /// Counts the apps deployed to each service owner's environments: those whose latest successful deployment in
+    /// the environment is a deploy rather than a decommission.
+    /// </summary>
+    Task<IReadOnlyList<DeployedAppCount>> CountDeployedApps(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Whether the app was deployed to the environment successfully before the given deployment.
+    /// </summary>
+    Task<bool> HasSucceededDeployBefore(
+        string org,
+        string app,
+        string environment,
+        long sequenceNo,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Calls a function to update deployment entity

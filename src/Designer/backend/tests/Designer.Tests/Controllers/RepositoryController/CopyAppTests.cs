@@ -6,8 +6,10 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
+using Designer.Tests.Telemetry;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -20,6 +22,7 @@ public class CopyAppTests(WebApplicationFactory<Program> factory)
         IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IRepository> _repositoryMock = new();
+    private readonly MetricsRecorder<AppMetrics> _appMetrics = new(meterFactory => new AppMetrics(meterFactory));
     private const string UrlPrefix = "/designer/api/repos/repo/ttd";
     private const string ValidSourceRepo = "apps-test";
     private const string ValidTargetRepo = "cloned-app";
@@ -29,6 +32,16 @@ public class CopyAppTests(WebApplicationFactory<Program> factory)
         services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_ => _repositoryMock.Object);
+        services.AddSingleton(_appMetrics.Metrics);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _appMetrics.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     [Fact]
@@ -59,6 +72,9 @@ public class CopyAppTests(WebApplicationFactory<Program> factory)
         // Assert
         _repositoryMock.VerifyAll();
         Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+        RecordedMeasurement creation = Assert.Single(_appMetrics.Measurements(AppMetrics.CreationsMetricName));
+        Assert.Equal("ttd", creation.Tags["altinn.service_owner"]);
+        Assert.Equal("copy", creation.Tags["altinn.designer.app.creation.source"]);
     }
 
     [Fact]
@@ -105,6 +121,7 @@ public class CopyAppTests(WebApplicationFactory<Program> factory)
         // Assert
         _repositoryMock.VerifyAll();
         Assert.Equal(HttpStatusCode.GatewayTimeout, res.StatusCode);
+        Assert.Empty(_appMetrics.Measurements(AppMetrics.CreationsMetricName));
     }
 
     [Fact]

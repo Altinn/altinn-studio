@@ -22,9 +22,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/appinventory"
 	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/operatorcontext"
 )
+
+const appReleaseLabelKey = "release"
 
 var errSimulatedConfigMapReadFailure = errors.New("simulated configmap read failure")
 var errSimulatedConflict = errors.New("simulated conflict")
@@ -540,7 +543,7 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 	}
 	appDeploymentNames := map[string]struct{}{}
 	for i := range deployments.Items {
-		if !isAppDeployment(serviceOwner, &deployments.Items[i]) {
+		if !appinventory.IsAppDeployment(serviceOwner, &deployments.Items[i]) {
 			continue
 		}
 		d := &deployments.Items[i]

@@ -22,7 +22,9 @@ public class PeriodicReportJobTests : IDisposable
     private readonly Mock<IContactPointsRepository> _contactPointsRepository = new();
     private readonly Mock<IReportService> _reportService = new();
     private readonly Mock<ILogger<PeriodicReportJob>> _logger = new();
-    private readonly NotificationMetricsRecorder _metrics = new();
+    private readonly MetricsRecorder<NotificationMetrics> _metrics = new(meterFactory => new NotificationMetrics(
+        meterFactory
+    ));
 
     public void Dispose() => _metrics.Dispose();
 

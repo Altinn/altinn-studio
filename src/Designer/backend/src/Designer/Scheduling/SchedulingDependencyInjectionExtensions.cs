@@ -2,6 +2,7 @@
 using System;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.ContactPoints;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
@@ -131,6 +132,8 @@ public static class SchedulingDependencyInjectionExtensions
         if (schedulingSettings.AddHostedService)
         {
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+            // Outside Quartz, since every replica counts on its own (see AppInventoryCollector).
+            services.AddHostedService<AppInventoryCollector>();
         }
         return services;
     }

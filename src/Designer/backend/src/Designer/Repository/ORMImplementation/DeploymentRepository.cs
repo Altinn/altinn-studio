@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -16,6 +18,26 @@ namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
 public class DeploymentRepository : IDeploymentRepository
 {
+    private const string SucceededBuildResult = "succeeded";
+
+    private static readonly string[] s_succeededFinalEventTypes = DeploymentEntity
+        .SucceededFinalEventTypes.Select(eventType => eventType.ToString())
+        .ToArray();
+
+    private static readonly string[] s_failedFinalEventTypes = DeploymentEntity
+        .FailedFinalEventTypes.Select(eventType => eventType.ToString())
+        .ToArray();
+
+    // The runtime cluster reports a final event for a deployment, but not for those from before it did, and a
+    // webhook can get lost. A succeeded pipeline that no failed final event followed counts as a success too.
+    private static readonly Expression<Func<DeploymentDbModel, bool>> s_succeeded = d =>
+        d.Events.Any(e => s_succeededFinalEventTypes.Contains(e.EventType))
+        || (
+            d.Build != null
+            && d.Build.Result.ToLower() == SucceededBuildResult
+            && !d.Events.Any(e => s_failedFinalEventTypes.Contains(e.EventType))
+        );
+
     private readonly DesignerdbContext _dbContext;
 
     public DeploymentRepository(DesignerdbContext dbContext)
@@ -128,6 +150,47 @@ public class DeploymentRepository : IDeploymentRepository
             .Select(d => d.App)
             .Distinct()
             .ToArrayAsync();
+    }
+
+    public async Task<IReadOnlyList<DeployedAppCount>> CountDeployedApps(CancellationToken cancellationToken)
+    {
+        IQueryable<DeploymentDbModel> succeeded = _dbContext.Deployments.AsNoTracking().Where(s_succeeded);
+
+        return await succeeded
+            .Where(d =>
+                d.DeploymentType == Models.DeploymentType.Deploy
+                && !succeeded.Any(later =>
+                    later.Org == d.Org
+                    && later.App == d.App
+                    && later.EnvName == d.EnvName
+                    && later.Sequenceno > d.Sequenceno
+                )
+            )
+            .GroupBy(d => new { d.Org, d.EnvName })
+            .Select(group => new DeployedAppCount(group.Key.Org, group.Key.EnvName, group.Count()))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> HasSucceededDeployBefore(
+        string org,
+        string app,
+        string environment,
+        long sequenceNo,
+        CancellationToken cancellationToken
+    )
+    {
+        return await _dbContext
+            .Deployments.AsNoTracking()
+            .Where(s_succeeded)
+            .AnyAsync(
+                d =>
+                    d.Org == org
+                    && d.App == app
+                    && d.EnvName == environment
+                    && d.DeploymentType == Models.DeploymentType.Deploy
+                    && d.Sequenceno < sequenceNo,
+                cancellationToken
+            );
     }
 
     public async Task Update(DeploymentEntity deploymentEntity)

@@ -30,18 +30,21 @@ public class DeploymentWebhooksController : ControllerBase
     private readonly IHubContext<EntityUpdatedHub, IEntityUpdateClient> _entityUpdatedHubContext;
     private readonly IDeploymentService _deploymentService;
     private readonly IDeploymentRepository _deploymentRepository;
+    private readonly AppMetrics _appMetrics;
 
     public DeploymentWebhooksController(
         IDeployEventRepository deployEventRepository,
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IDeploymentService deploymentService,
-        IDeploymentRepository deploymentRepository
+        IDeploymentRepository deploymentRepository,
+        AppMetrics appMetrics
     )
     {
         _deployEventRepository = deployEventRepository;
         _entityUpdatedHubContext = entityUpdatedHubContext;
         _deploymentService = deploymentService;
         _deploymentRepository = deploymentRepository;
+        _appMetrics = appMetrics;
     }
 
     /// <summary>
@@ -83,6 +86,7 @@ public class DeploymentWebhooksController : ControllerBase
         var deployEvent = CreateDeployEvent(eventType, request);
 
         await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
+        await RecordOutcome(deployment, eventType, cancellationToken);
 
         await _deploymentService.SendToSlackAsync(
             org,
@@ -97,6 +101,36 @@ public class DeploymentWebhooksController : ControllerBase
         await PublishEntityUpdatedAsync(deployment);
 
         return Ok();
+    }
+
+    // A final event is the deployment's outcome, unless its pipeline failed and the polling job counted that.
+    private async Task RecordOutcome(
+        DeploymentEntity deployment,
+        DeployEventType eventType,
+        CancellationToken cancellationToken
+    )
+    {
+        bool succeeded = DeploymentEntity.SucceededFinalEventTypes.Contains(eventType);
+        if (
+            (!succeeded && !DeploymentEntity.FailedFinalEventTypes.Contains(eventType))
+            || deployment.Events.Any(e => e.EventType == DeployEventType.PipelineFailed)
+        )
+        {
+            return;
+        }
+
+        bool? first = null;
+        if (succeeded && deployment.DeploymentType == DeploymentType.Deploy)
+        {
+            first = !await _deploymentRepository.HasSucceededDeployBefore(
+                deployment.Org,
+                deployment.App,
+                deployment.EnvName,
+                deployment.SequenceNo,
+                cancellationToken
+            );
+        }
+        _appMetrics.RecordDeployment(deployment.Org, deployment.EnvName, deployment.DeploymentType, eventType, first);
     }
 
     private static bool TryParseEventType(string eventTypeString, out DeployEventType eventType)

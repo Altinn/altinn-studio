@@ -8,10 +8,13 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Telemetry;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Controllers.ControlPlaneController.Base;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
+using Designer.Tests.Telemetry;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -31,6 +34,8 @@ public class ReceiveDeployEventTests
 {
     private const string MaskinportenTestScheme = "MaskinportenTest";
     private const string RequiredScope = "altinn:studio/designer";
+
+    private readonly MetricsRecorder<AppMetrics> _appMetrics = new(meterFactory => new AppMetrics(meterFactory));
 
     private static string WebhookUrl(string org, string app) =>
         $"/designer/api/v1/{org}/{app}/deployments/webhooks/events";
@@ -76,6 +81,8 @@ public class ReceiveDeployEventTests
                 builder.ConfigureTestServices(ConfigureTestServices);
                 builder.ConfigureTestServices(services =>
                 {
+                    services.AddSingleton(_appMetrics.Metrics);
+
                     // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
                     ServiceDescriptor initializerDescriptor = services.FirstOrDefault(d =>
                         d.ImplementationType == typeof(IssuerSchemeCacheInitializer)
@@ -232,6 +239,175 @@ public class ReceiveDeployEventTests
         Assert.Single(events);
         Assert.Equal(eventType, events[0].EventType);
         Assert.Equal(message, events[0].Message);
+    }
+
+    [Theory]
+    [InlineData("InstallSucceeded")]
+    [InlineData("UpgradeSucceeded")]
+    public async Task ReceiveDeployEvent_FirstSuccessfulDeploy_RecordsItAsFirst(string eventType)
+    {
+        string app = TestDataHelper.GenerateTestRepoName();
+        var failedBefore = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+            "ttd",
+            app,
+            buildResult: BuildResult.Failed,
+            envName: "production"
+        );
+        await DesignerDbFixture.PrepareEntityInDatabase(failedBefore);
+        var deployment = EntityGenerationUtils.Deployment.GenerateDeploymentEntity("ttd", app, envName: "production");
+        await DesignerDbFixture.PrepareEntityInDatabase(deployment);
+
+        using var response = await SendDeployEvent("ttd", app, deployment.Build.Id, eventType, "prod");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        RecordedMeasurement recorded = Assert.Single(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+        Assert.Equal("ttd", recorded.Tags["altinn.service_owner"]);
+        Assert.Equal("prod", recorded.Tags["altinn.environment"]);
+        Assert.Equal("deploy", recorded.Tags["altinn.designer.app.deployment.type"]);
+        Assert.Equal(true, recorded.Tags["altinn.designer.app.deployment.first"]);
+        Assert.False(recorded.Tags.ContainsKey("error.type"));
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_RedeployAfterDecommission_IsNotFirst()
+    {
+        string app = TestDataHelper.GenerateTestRepoName();
+        await DesignerDbFixture.PrepareEntityInDatabase(
+            EntityGenerationUtils.Deployment.GenerateDeploymentEntity("ttd", app, envName: "at22")
+        );
+        await DesignerDbFixture.PrepareEntityInDatabase(
+            EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+                "ttd",
+                app,
+                envName: "at22",
+                deploymentType: DeploymentType.Decommission
+            )
+        );
+        var deployment = EntityGenerationUtils.Deployment.GenerateDeploymentEntity("ttd", app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deployment);
+
+        using var response = await SendDeployEvent("ttd", app, deployment.Build.Id, "InstallSucceeded", "at22");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        RecordedMeasurement recorded = Assert.Single(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+        Assert.Equal(false, recorded.Tags["altinn.designer.app.deployment.first"]);
+    }
+
+    [Theory]
+    [InlineData("InstallFailed", "install_failed")]
+    [InlineData("UpgradeFailed", "upgrade_failed")]
+    public async Task ReceiveDeployEvent_FailedDeploy_RecordsTheFailure(string eventType, string errorType)
+    {
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deployment = EntityGenerationUtils.Deployment.GenerateDeploymentEntity("ttd", app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deployment);
+
+        using var response = await SendDeployEvent("ttd", app, deployment.Build.Id, eventType, "at22");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        RecordedMeasurement recorded = Assert.Single(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+        Assert.Equal(errorType, recorded.Tags["error.type"]);
+        Assert.False(recorded.Tags.ContainsKey("altinn.designer.app.deployment.first"));
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_UninstallSucceeded_RecordsTheDecommission()
+    {
+        string app = TestDataHelper.GenerateTestRepoName();
+        await DesignerDbFixture.PrepareEntityInDatabase(
+            EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+                "ttd",
+                app,
+                envName: "at22",
+                deploymentType: DeploymentType.Decommission
+            )
+        );
+
+        using var response = await SendDeployEvent("ttd", app, buildId: null, "UninstallSucceeded", "at22");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        RecordedMeasurement recorded = Assert.Single(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+        Assert.Equal("decommission", recorded.Tags["altinn.designer.app.deployment.type"]);
+        Assert.False(recorded.Tags.ContainsKey("error.type"));
+        Assert.False(recorded.Tags.ContainsKey("altinn.designer.app.deployment.first"));
+    }
+
+    [Theory]
+    [InlineData("PipelineScheduled")]
+    [InlineData("PipelineSucceeded")]
+    public async Task ReceiveDeployEvent_EventBeforeTheOutcome_RecordsNoDeployment(string eventType)
+    {
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deployment = EntityGenerationUtils.Deployment.GenerateDeploymentEntity("ttd", app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deployment);
+
+        using var response = await SendDeployEvent("ttd", app, deployment.Build.Id, eventType, "at22");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_AfterAFailedPipeline_RecordsNoSecondOutcome()
+    {
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deployment = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
+            "ttd",
+            app,
+            buildResult: BuildResult.Failed,
+            envName: "at22"
+        );
+        await DesignerDbFixture.PrepareEntityInDatabase(deployment);
+        await DesignerDbFixture.PrepareDeployEventInDatabase(
+            "ttd",
+            deployment.Build.Id,
+            new DeployEvent
+            {
+                EventType = DeployEventType.PipelineFailed,
+                Message = "Pipeline failed",
+                Timestamp = DateTimeOffset.UtcNow,
+                Created = DateTimeOffset.UtcNow,
+                Origin = DeployEventOrigin.PollingJob,
+            }
+        );
+
+        using var response = await SendDeployEvent("ttd", app, deployment.Build.Id, "InstallFailed", "at22");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+    }
+
+    private async Task<HttpResponseMessage> SendDeployEvent(
+        string org,
+        string app,
+        string buildId,
+        string eventType,
+        string environment
+    )
+    {
+        var request = new DeployEventRequest
+        {
+            BuildId = buildId,
+            EventType = eventType,
+            Message = eventType,
+            Timestamp = DateTimeOffset.UtcNow,
+            Environment = environment,
+        };
+        using var client = CreateClientWithMaskinportenAuth(shouldAuthenticate: true, scope: RequiredScope);
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, WebhookUrl(org, app))
+        {
+            Content = JsonContent.Create(request),
+        };
+        return await client.SendAsync(httpRequestMessage);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _appMetrics.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     [Fact]

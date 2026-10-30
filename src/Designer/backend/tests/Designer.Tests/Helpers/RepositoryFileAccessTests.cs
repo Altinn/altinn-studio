@@ -137,7 +137,7 @@ public sealed class RepositoryFileAccessTests : IDisposable
         Directory.CreateDirectory(Path.Join(_repositoryPath, ".git"));
         File.WriteAllText(Path.Join(_repositoryPath, ".git/config"), "private metadata");
         File.WriteAllText(Path.Join(_repositoryPath, "app.txt"), "normal content");
-        var controller = new RepositoryController(null, null, _service, null, null, null, null)
+        var controller = new RepositoryController(null, null, _service, null, null, null, null, null)
         {
             ControllerContext = new ControllerContext { HttpContext = _http },
         };
@@ -176,7 +176,7 @@ public sealed class RepositoryFileAccessTests : IDisposable
         sourceControl
             .Setup(service => service.Status(It.IsAny<AltinnRepoEditingContext>()))
             .Returns([new RepositoryContent { FilePath = "link.txt" }]);
-        var controller = new RepositoryController(null, sourceControl.Object, _service, null, null, null, null)
+        var controller = new RepositoryController(null, sourceControl.Object, _service, null, null, null, null, null)
         {
             ControllerContext = new ControllerContext { HttpContext = _http },
         };
