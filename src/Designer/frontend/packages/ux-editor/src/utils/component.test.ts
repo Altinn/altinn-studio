@@ -5,7 +5,13 @@ import { containerComponentTypes, isContainerComponentType } from '../data/conta
 import { componentPresetConfigs } from '../data/formItemConfig';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormComponent } from '../types/FormComponent';
-import { generateFormItem, isComponentDeprecated, setComponentProperty } from './component';
+import { componentMocks } from '../testing/componentMocks';
+import {
+  generateFormItem,
+  validateNumberOfAttachments,
+  isComponentDeprecated,
+  setComponentProperty,
+} from './component';
 
 describe('generateFormItem', () => {
   it.each(
@@ -64,5 +70,84 @@ describe('isComponentDeprecated', () => {
     expect(isComponentDeprecated(ComponentType.Summary)).toBe(true);
     expect(isComponentDeprecated(ComponentType.PrintButton)).toBe(true);
     expect(isComponentDeprecated(ComponentType.Input)).toBe(false);
+  });
+});
+
+describe('validateNumberOfAttachments', () => {
+  it.each([
+    {
+      propertyKey: 'minNumberOfAttachments',
+      value: 2,
+      minNumberOfAttachments: 1,
+      maxNumberOfAttachments: 1,
+      expected: 'minNumberOfAttachments_above_max',
+    },
+    {
+      propertyKey: 'minNumberOfAttachments',
+      value: 1,
+      minNumberOfAttachments: 0,
+      maxNumberOfAttachments: 0,
+      expected: 'minNumberOfAttachments_above_max',
+    },
+    {
+      propertyKey: 'minNumberOfAttachments',
+      value: 1,
+      minNumberOfAttachments: 0,
+      maxNumberOfAttachments: 1,
+      expected: '',
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      value: 1,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 3,
+      expected: 'maxNumberOfAttachments_below_min',
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      value: 2,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 3,
+      expected: '',
+    },
+    {
+      propertyKey: 'minNumberOfAttachments',
+      value: 5,
+      minNumberOfAttachments: 1,
+      maxNumberOfAttachments: undefined,
+      expected: '',
+    },
+    {
+      propertyKey: 'maxNumberOfAttachments',
+      value: undefined,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 3,
+      expected: '',
+    },
+    {
+      propertyKey: 'maxFileSizeInMB',
+      value: 5,
+      minNumberOfAttachments: 2,
+      maxNumberOfAttachments: 1,
+      expected: '',
+    },
+  ])(
+    'returns "$expected" for $propertyKey $value when the minimum is $minNumberOfAttachments and the maximum is $maxNumberOfAttachments',
+    ({ propertyKey, value, minNumberOfAttachments, maxNumberOfAttachments, expected }) => {
+      const component = {
+        ...componentMocks[ComponentType.FileUpload],
+        minNumberOfAttachments,
+        maxNumberOfAttachments,
+      };
+      expect(validateNumberOfAttachments(component, propertyKey, value)).toBe(expected);
+    },
+  );
+
+  it('accepts any minimum when the maximum is an expression', () => {
+    const component = {
+      ...componentMocks[ComponentType.FileUpload],
+      maxNumberOfAttachments: ['if', true, 3, 1],
+    } satisfies FormComponent<ComponentType.FileUpload>;
+    expect(validateNumberOfAttachments(component, 'minNumberOfAttachments', 5)).toBe('');
   });
 });

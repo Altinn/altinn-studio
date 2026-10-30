@@ -8,6 +8,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
 import { appContextMock } from '../../../testing/appContextMock';
 import { useMutation } from '@tanstack/react-query';
+import { componentMocks } from '../../../testing/componentMocks';
+import type { FormItem } from '../../../types/FormItem';
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithProviders(() => useLayoutSchemaQuery()).result;
@@ -156,4 +158,110 @@ describe('EditNumberValue', () => {
       propertyPath: 'definitions/inputComponent',
     });
   });
+
+  describe('for the number of attachments', () => {
+    it.each([
+      {
+        propertyKey: 'minNumberOfAttachments' as const,
+        value: '2',
+        numberOfAttachments: { minNumberOfAttachments: 1, maxNumberOfAttachments: 1 },
+        errorCode: 'minNumberOfAttachments_above_max',
+      },
+      {
+        propertyKey: 'maxNumberOfAttachments' as const,
+        value: '1',
+        numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 2 },
+        errorCode: 'maxNumberOfAttachments_below_min',
+      },
+    ])(
+      'shows an error and does not save $propertyKey $value when it breaks the other count',
+      async ({ propertyKey, value, numberOfAttachments, errorCode }) => {
+        const user = userEvent.setup();
+        const handleComponentChange = vi.fn();
+        await renderNumberOfAttachments({
+          propertyKey,
+          numberOfAttachments,
+          handleComponentChange,
+        });
+
+        await user.clear(screen.getByRole('textbox'));
+        await user.type(screen.getByRole('textbox'), value);
+
+        expect(
+          screen.getByText(textMock(`ux_editor.component_properties.${errorCode}`)),
+        ).toBeInTheDocument();
+        expect(handleComponentChange).not.toHaveBeenCalledWith(
+          expect.objectContaining({ [propertyKey]: Number(value) }),
+          expect.anything(),
+        );
+      },
+    );
+
+    it.each([
+      {
+        propertyKey: 'minNumberOfAttachments' as const,
+        value: '2',
+        numberOfAttachments: { minNumberOfAttachments: 1, maxNumberOfAttachments: 2 },
+      },
+      {
+        propertyKey: 'maxNumberOfAttachments' as const,
+        value: '2',
+        numberOfAttachments: { minNumberOfAttachments: 2, maxNumberOfAttachments: 3 },
+      },
+    ])(
+      'saves $propertyKey $value when it does not break the other count',
+      async ({ propertyKey, value, numberOfAttachments }) => {
+        const user = userEvent.setup();
+        const handleComponentChange = vi.fn();
+        await renderNumberOfAttachments({
+          propertyKey,
+          numberOfAttachments,
+          handleComponentChange,
+        });
+
+        await user.clear(screen.getByRole('textbox'));
+        await user.type(screen.getByRole('textbox'), value);
+
+        expect(handleComponentChange).toHaveBeenCalledWith(
+          expect.objectContaining({ [propertyKey]: Number(value) }),
+          expect.anything(),
+        );
+      },
+    );
+
+    it('keeps the default message for other errors', async () => {
+      const user = userEvent.setup();
+      await renderNumberOfAttachments({
+        propertyKey: 'minNumberOfAttachments',
+        numberOfAttachments: { propertyPath: 'definitions/fileUploadComponent' },
+        handleComponentChange: vi.fn(),
+      });
+
+      await user.clear(screen.getByRole('textbox'));
+
+      expect(screen.getByText(textMock('validation_errors.required'))).toBeInTheDocument();
+    });
+  });
 });
+
+type RenderNumberOfAttachmentsProps = {
+  propertyKey: 'minNumberOfAttachments' | 'maxNumberOfAttachments';
+  numberOfAttachments: Partial<FormItem<ComponentType.FileUpload>>;
+  handleComponentChange: () => void;
+};
+
+const renderNumberOfAttachments = async ({
+  propertyKey,
+  numberOfAttachments,
+  handleComponentChange,
+}: RenderNumberOfAttachmentsProps) => {
+  await waitForData();
+
+  return renderWithProviders(
+    <EditNumberValue
+      handleComponentChange={handleComponentChange}
+      propertyKey={propertyKey}
+      component={{ ...componentMocks[ComponentType.FileUpload], ...numberOfAttachments }}
+    />,
+  );
+};
