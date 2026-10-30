@@ -87,6 +87,10 @@ public class PrefillController : ControllerBase
     {
         var decodedPath = Uri.UnescapeDataString(modelPath);
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        if (payload is not JsonObject)
+        {
+            return BadRequest("Prefill configuration must be a JSON object.");
+        }
         string content = payload.ToString();
 
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);

@@ -169,7 +169,7 @@ public class RepositoryService : IRepository
     /// <returns>A string containing the path</returns>
     public string GetAppPath(string org, string app)
     {
-        return _settings.GetServicePath(
+        return GetSafeRepositoryPath(
             org,
             app,
             AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
@@ -232,11 +232,17 @@ public class RepositoryService : IRepository
     /// <inheritdoc/>
     public string GetWidgetSettings(AltinnRepoEditingContext altinnRepoEditingContext)
     {
+        string repositoryPath = GetSafeRepositoryPath(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
         string filePath = _settings.GetWidgetSettingsPath(
             altinnRepoEditingContext.Org,
             altinnRepoEditingContext.Repo,
             altinnRepoEditingContext.Developer
         );
+        filePath = RepositoryFileAccess.Validate(repositoryPath, filePath);
         string fileData = null;
         if (File.Exists(filePath))
         {
@@ -254,6 +260,14 @@ public class RepositoryService : IRepository
                 altinnRepoEditingContext.Repo,
                 altinnRepoEditingContext.Developer
             ) + $"resource.{id.AsFileName()}.json";
+        filename = RepositoryFileAccess.Validate(
+            GetSafeRepositoryPath(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            ),
+            filename
+        );
         bool deleted = false;
 
         if (File.Exists(filename))
@@ -418,11 +432,19 @@ public class RepositoryService : IRepository
             developer
         );
 
-        await targetAppRepository.SearchAndReplaceInFile(
-            ".git/config",
-            $"repos/{org}/{sourceRepository}.git",
-            $"repos/{targetOrg}/{targetRepository}.git"
-        );
+        // Git metadata must not be writable through the working-tree file API.
+        string gitConfigPath = Path.Join(targetRepositoryPath, ".git", "config");
+        if (SymbolicLinkHelper.PassesThroughLink(targetRepositoryPath, gitConfigPath))
+        {
+            throw new ArgumentException("Git configuration must not be a symbolic link.");
+        }
+        using (var configuration = LibGit2Sharp.Configuration.BuildFrom(gitConfigPath))
+        {
+            string remoteUrl = configuration
+                .Get<string>("remote.origin.url")
+                .Value.Replace($"repos/{org}/{sourceRepository}.git", $"repos/{targetOrg}/{targetRepository}.git");
+            configuration.Set("remote.origin.url", remoteUrl, LibGit2Sharp.ConfigurationLevel.Local);
+        }
 
         ApplicationMetadata appMetadata = await targetAppRepository.GetApplicationMetadata();
         appMetadata.Id = $"{targetOrg}/{targetRepository}";
@@ -491,14 +513,8 @@ public class RepositoryService : IRepository
 
     private void CopyFolderToApp(string org, string app, string sourcePath, string path)
     {
-        string targetPath = Path.Combine(
-            _settings.GetServicePath(
-                org,
-                app,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
-            ),
-            path
-        );
+        string appPath = GetAppPath(org, app);
+        string targetPath = RepositoryFileAccess.Validate(appPath, Path.Combine(appPath, path));
 
         // Create the app deployment folder
         Directory.CreateDirectory(targetPath);
@@ -506,30 +522,41 @@ public class RepositoryService : IRepository
         // Create all of the directories
         foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
         {
-            Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+            Directory.CreateDirectory(
+                RepositoryFileAccess.Validate(
+                    appPath,
+                    Path.Combine(targetPath, Path.GetRelativePath(sourcePath, dirPath))
+                )
+            );
         }
 
         // Copy all the files & Replaces any files with the same name
         foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
         {
-            File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
+            File.Copy(
+                newPath,
+                RepositoryFileAccess.Validate(
+                    appPath,
+                    Path.Combine(targetPath, Path.GetRelativePath(sourcePath, newPath))
+                ),
+                true
+            );
         }
     }
 
     private void CopyFileToApp(string org, string app, AppTemplate appTemplate, string fileName)
     {
-        string appPath = _settings.GetServicePath(
-            org,
-            app,
-            AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+        string appPath = GetAppPath(org, app);
+        File.Copy(
+            Path.Combine(appTemplate.RootPath, fileName),
+            RepositoryFileAccess.Validate(appPath, Path.Combine(appPath, fileName))
         );
-        File.Copy(Path.Combine(appTemplate.RootPath, fileName), Path.Combine(appPath, fileName));
     }
 
     /// <inheritdoc/>
     public List<FileSystemObject> GetContents(string org, string repository, string path = "")
     {
-        string repositoryPath = _settings.GetServicePath(
+        string repositoryPath = GetSafeRepositoryPath(
             org,
             repository,
             AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
@@ -546,7 +573,7 @@ public class RepositoryService : IRepository
             return null;
         }
 
-        List<FileSystemObject> contents = GetFileSystemObjects(contentPath);
+        List<FileSystemObject> contents = GetFileSystemObjects(repositoryPath, contentPath);
 
         string repositoryFullPath = Path.GetFullPath(repositoryPath);
         contents.ForEach(c => c.Path = Path.GetRelativePath(repositoryFullPath, c.Path).Replace("\\", "/"));
@@ -560,46 +587,33 @@ public class RepositoryService : IRepository
     /// </summary>
     private static string ResolvePathWithinParentDirectory(string parentDirectory, string relativePath)
     {
-        string fullParent = Path.GetFullPath(parentDirectory);
-
-        if (string.IsNullOrEmpty(relativePath))
+        try
         {
-            return fullParent;
+            return RepositoryFileAccess.Validate(parentDirectory, Path.Join(parentDirectory, relativePath));
         }
-
-        string resolvedPath = Path.GetFullPath(Path.Join(fullParent, relativePath));
-        string parentWithSeparator =
-            fullParent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            + Path.DirectorySeparatorChar;
-
-        if (
-            !resolvedPath.StartsWith(parentWithSeparator, StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(resolvedPath, fullParent, StringComparison.OrdinalIgnoreCase)
-        )
+        catch (ArgumentException)
         {
             return null;
         }
-
-        return resolvedPath;
     }
 
-    private List<FileSystemObject> GetFileSystemObjects(string contentPath)
+    private List<FileSystemObject> GetFileSystemObjects(string repositoryPath, string contentPath)
     {
         List<FileSystemObject> contents = new();
 
         if (File.Exists(contentPath))
         {
-            contents.Add(GetFileSystemObjectForFile(contentPath, includeContent: true));
+            contents.Add(GetFileSystemObjectForFile(repositoryPath, contentPath, includeContent: true));
         }
         else if (Directory.Exists(contentPath))
         {
-            foreach (string directoryPath in Directory.GetDirectories(contentPath))
+            foreach (string directoryPath in RepositoryFileAccess.GetDirectories(repositoryPath, contentPath))
             {
                 contents.Add(GetFileSystemObjectForDirectory(directoryPath));
             }
-            foreach (string filePath in Directory.GetFiles(contentPath))
+            foreach (string filePath in RepositoryFileAccess.GetFiles(repositoryPath, contentPath))
             {
-                contents.Add(GetFileSystemObjectForFile(filePath));
+                contents.Add(GetFileSystemObjectForFile(repositoryPath, filePath));
             }
         }
 
@@ -628,6 +642,7 @@ public class RepositoryService : IRepository
             try
             {
                 string fullPath = Path.Combine(repopath, resourceFile.Path);
+                fullPath = RepositoryFileAccess.Validate(repopath, fullPath);
 
                 var sw = Stopwatch.StartNew();
                 try
@@ -699,7 +714,11 @@ public class RepositoryService : IRepository
                         updatedResource,
                         _serializerOptions
                     );
-                    File.WriteAllText($"{repopath}/{resourceFile.Path}", updatedResourceString);
+                    string resourcePath = RepositoryFileAccess.Validate(
+                        repopath,
+                        Path.Join(repopath, resourceFile.Path)
+                    );
+                    File.WriteAllText(resourcePath, updatedResourceString);
                     return new StatusCodeResult(201);
                 }
             }
@@ -750,6 +769,7 @@ public class RepositoryService : IRepository
                     GetResourceFileName(resourceFileStructureName)
                 );
                 string newResourceJson = System.Text.Json.JsonSerializer.Serialize(newResource, _serializerOptions);
+                fullPathOfNewResource = RepositoryFileAccess.Validate(repopath, fullPathOfNewResource);
                 Directory.CreateDirectory(Path.Combine(repopath, resourceFileStructureName));
                 File.WriteAllText(fullPathOfNewResource, newResourceJson);
 
@@ -817,11 +837,16 @@ public class RepositoryService : IRepository
 
             try
             {
-                string canonicalPolicyPath = Path.GetFullPath(policyPath);
+                string repositoryPath = GetSafeRepositoryPath(
+                    org,
+                    repository,
+                    AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
+                );
+                string canonicalPolicyPath = RepositoryFileAccess.Validate(repositoryPath, policyPath);
 
                 if (canonicalPolicyPath.EndsWith(".xml"))
                 {
-                    byte[] policyFileContentBytes = File.ReadAllBytes(policyPath);
+                    byte[] policyFileContentBytes = File.ReadAllBytes(canonicalPolicyPath);
                     string policyFileContent = Encoding.UTF8.GetString(policyFileContentBytes);
                     // replace [org] with orgcode before publishing resource
                     policyFileContent = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(
@@ -849,7 +874,7 @@ public class RepositoryService : IRepository
     private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")
     {
         string repositoryPath = Path.GetFullPath(
-            _settings.GetServicePath(
+            GetSafeRepositoryPath(
                 org,
                 repository,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
@@ -861,9 +886,11 @@ public class RepositoryService : IRepository
             return [];
         }
 
-        ConcurrentBag<string> resourceFilePaths = new(Directory.EnumerateFiles(searchPath, ResourceFileSearchPattern));
-        IEnumerable<string> resourceFolders = Directory
-            .EnumerateDirectories(searchPath)
+        ConcurrentBag<string> resourceFilePaths = new(
+            RepositoryFileAccess.GetFiles(repositoryPath, searchPath, ResourceFileSearchPattern)
+        );
+        IEnumerable<string> resourceFolders = RepositoryFileAccess
+            .GetDirectories(repositoryPath, searchPath)
             .Where(folder => !Path.GetFileName(folder).StartsWith('.'));
 
         // Each folder listing is a round trip to the repository storage, which is a network share in production.
@@ -872,7 +899,13 @@ public class RepositoryService : IRepository
             new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrentResourceFileOperations },
             folder =>
             {
-                foreach (string resourceFilePath in Directory.EnumerateFiles(folder, ResourceFileSearchPattern))
+                foreach (
+                    string resourceFilePath in RepositoryFileAccess.GetFiles(
+                        repositoryPath,
+                        folder,
+                        ResourceFileSearchPattern
+                    )
+                )
                 {
                     resourceFilePaths.Add(resourceFilePath);
                 }
@@ -895,8 +928,9 @@ public class RepositoryService : IRepository
         return string.Format("{0}_resource.json", identifier);
     }
 
-    private FileSystemObject GetFileSystemObjectForFile(string path, bool includeContent = false)
+    private FileSystemObject GetFileSystemObjectForFile(string repositoryPath, string path, bool includeContent = false)
     {
+        path = RepositoryFileAccess.Validate(repositoryPath, path);
         FileInfo fi = new(path);
         string encoding;
 
@@ -989,7 +1023,7 @@ public class RepositoryService : IRepository
 
     public string GetPolicyPath(string org, string repo, string resourceId)
     {
-        string localRepoPath = _settings.GetServicePath(
+        string localRepoPath = GetSafeRepositoryPath(
             org,
             repo,
             AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)
@@ -1000,7 +1034,15 @@ public class RepositoryService : IRepository
             policyPath = Path.Combine(localRepoPath, resourceId, resourceId + "_policy.xml");
         }
 
-        return policyPath;
+        return RepositoryFileAccess.Validate(localRepoPath, policyPath);
+    }
+
+    private string GetSafeRepositoryPath(string org, string repository, string developer)
+    {
+        return RepositoryFileAccess.Validate(
+            _settings.RepositoryLocation,
+            _settings.GetServicePath(org, repository, developer)
+        );
     }
 
     private static async Task WriteTextAsync(string absoluteFilePath, string text)
