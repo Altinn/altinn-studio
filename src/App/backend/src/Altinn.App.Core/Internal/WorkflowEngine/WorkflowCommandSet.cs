@@ -71,7 +71,7 @@ internal sealed class WorkflowCommandSet
         var group = new WorkflowCommandSet()
             .AddCommand(UnlockTaskData.Key, new TaskDataLockPayload(context.TaskId))
             .AddCommand(CleanupGeneratedFromTask.Key)
-            .AddHookCommand(OnTaskStartingHook.Key, context.HasStartingHook)
+            .AddHookCommand(OnTaskStartingHook.Key, context.StartingHook)
             .AddCommand(CommonTaskInitialization.Key, new CommonTaskInitializationPayload(context.Prefill))
             .AddProcessTaskStages(StartTask.Key, context.StartPipeline);
 
@@ -110,23 +110,30 @@ internal sealed class WorkflowCommandSet
     /// <summary>
     /// Creates command group for task end events.
     /// </summary>
-    public static WorkflowCommandSet GetTaskEndSteps(string taskId, ProcessTaskPipeline endPipeline, bool hasEndingHook)
+    public static WorkflowCommandSet GetTaskEndSteps(
+        string taskId,
+        ProcessTaskPipeline endPipeline,
+        IOnTaskEndingHandler? endingHook
+    )
     {
         return new WorkflowCommandSet()
             .AddProcessTaskStages(EndTask.Key, endPipeline)
             .AddCommand(CommonTaskFinalization.Key)
-            .AddHookCommand(OnTaskEndingHook.Key, hasEndingHook)
+            .AddHookCommand(OnTaskEndingHook.Key, endingHook)
             .AddCommand(LockTaskData.Key, new TaskDataLockPayload(taskId));
     }
 
     /// <summary>
     /// Creates command group for task abandon events.
     /// </summary>
-    public static WorkflowCommandSet GetTaskAbandonSteps(ProcessTaskPipeline abandonPipeline, bool hasAbandonHook)
+    public static WorkflowCommandSet GetTaskAbandonSteps(
+        ProcessTaskPipeline abandonPipeline,
+        IOnTaskAbandoningHandler? abandonHook
+    )
     {
         return new WorkflowCommandSet()
             .AddProcessTaskStages(AbandonTask.Key, abandonPipeline)
-            .AddHookCommand(OnTaskAbandonHook.Key, hasAbandonHook);
+            .AddHookCommand(OnTaskAbandonHook.Key, abandonHook);
     }
 
     /// <summary>
@@ -134,12 +141,9 @@ internal sealed class WorkflowCommandSet
     /// </summary>
     public static WorkflowCommandSet GetProcessEndSteps(ProcessEndContext context)
     {
-        var group = new WorkflowCommandSet();
-        if (context.HasProcessEndedHook)
-        {
-            group.AddPrimaryPostCommitCommand(OnProcessEndedHook.Key);
-        }
-        group.AddPrimaryPostCommitCommand(DeleteDataOnProcessEnd.Key);
+        var group = new WorkflowCommandSet()
+            .AddPrimaryPostCommitHook(OnProcessEndedHook.Key, context.ProcessEndedHook)
+            .AddPrimaryPostCommitCommand(DeleteDataOnProcessEnd.Key);
 
         if (context.RegisterEvents)
         {
@@ -159,11 +163,17 @@ internal sealed class WorkflowCommandSet
     }
 
     /// <summary>
-    /// Adds a hook's command to the pre-commit sequence when an app handler runs for it. Without a handler the step
-    /// would have nothing to run.
+    /// Adds a hook's step to the pre-commit sequence when an app handler runs for it, with the handler's own step
+    /// options. Without a handler the step would have nothing to run.
     /// </summary>
-    private WorkflowCommandSet AddHookCommand(string commandKey, bool hasHandler) =>
-        hasHandler ? AddCommand(commandKey) : this;
+    private WorkflowCommandSet AddHookCommand(string commandKey, IProcessStepConfigurable? handler)
+    {
+        if (handler is not null)
+        {
+            _commands.Add(CreateCommand(commandKey, declaredOptions: handler.StepOptions));
+        }
+        return this;
+    }
 
     /// <summary>
     /// Adds one step per stage of a process task's lifecycle pipeline, dispatched by position like service task
@@ -196,6 +206,18 @@ internal sealed class WorkflowCommandSet
     private WorkflowCommandSet AddPrimaryPostCommitCommand(string commandKey, CommandRequestPayload? payload = null)
     {
         _primaryPostCommitCommands.Add(CreateCommand(commandKey, payload));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a hook's step after the commit, on the same terms as <see cref="AddHookCommand"/>.
+    /// </summary>
+    private WorkflowCommandSet AddPrimaryPostCommitHook(string commandKey, IProcessStepConfigurable? handler)
+    {
+        if (handler is not null)
+        {
+            _primaryPostCommitCommands.Add(CreateCommand(commandKey, declaredOptions: handler.StepOptions));
+        }
         return this;
     }
 

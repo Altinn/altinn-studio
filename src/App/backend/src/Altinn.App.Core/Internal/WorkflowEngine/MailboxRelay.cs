@@ -549,7 +549,7 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> receiveSteps = [.. steps.ToStepRequests(_stepOptionsResolver, taskId)];
+        List<StepRequest> receiveSteps = [.. steps.ToStepRequests(_stepOptionsResolver)];
 
         var receiveWorkflow = new WorkflowRequest
         {
@@ -609,7 +609,7 @@ internal sealed class MailboxRelay
     {
         string? taskId = request.DataAccessor.Instance.Process?.CurrentTask?.ElementId;
 
-        List<StepRequest> steps = [.. handover.Plan.Steps.ToStepRequests(_stepOptionsResolver, taskId)];
+        List<StepRequest> steps = [.. handover.Plan.Steps.ToStepRequests(_stepOptionsResolver)];
 
         var continuationWorkflow = new WorkflowRequest
         {

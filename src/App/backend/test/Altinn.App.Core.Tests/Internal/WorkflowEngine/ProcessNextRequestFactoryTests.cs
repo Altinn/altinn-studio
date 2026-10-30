@@ -72,10 +72,9 @@ public class ProcessNextRequestFactoryTests
 
         // Only ExecuteServiceTask declares a per-command default (tier 2) today; the rest fall back to
         // the engine's global defaults, so this minimal set is enough to exercise resolution in tests.
-        var stepOptionsResolver = new ProcessStepOptionsResolver(
-            [new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create())],
-            appImplFactory
-        );
+        var stepOptionsResolver = new ProcessStepOptionsResolver([
+            new ExecuteServiceTask(appImplFactory, TestMailboxDeliveryEnvelope.Create()),
+        ]);
 
         var authContextMock = new Mock<IAuthenticationContext>();
         authContextMock.Setup(x => x.Current).Returns(authentication ?? TestAuthentication.GetUserAuthentication());
@@ -109,13 +108,14 @@ public class ProcessNextRequestFactoryTests
             });
 
     /// <summary>
-    /// Registers a handler of the hook kind, a task hook running for the tasks <paramref name="runsForTask"/>
-    /// accepts (every task when null).
+    /// Registers a handler of the hook kind with <paramref name="stepOptions"/>, a task hook running for the tasks
+    /// <paramref name="runsForTask"/> accepts (every task when null).
     /// </summary>
     private static void AddHookHandler(
         IServiceCollection services,
         Type handlerType,
-        Func<string, bool>? runsForTask = null
+        Func<string, bool>? runsForTask = null,
+        ProcessStepOptions? stepOptions = null
     )
     {
         Func<string, bool> runs = runsForTask ?? (_ => true);
@@ -123,23 +123,28 @@ public class ProcessNextRequestFactoryTests
         {
             var handler = new Mock<IOnTaskStartingHandler>();
             handler.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns((string taskId) => runs(taskId));
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
             services.AddSingleton(handler.Object);
         }
         else if (handlerType == typeof(IOnTaskEndingHandler))
         {
             var handler = new Mock<IOnTaskEndingHandler>();
             handler.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns((string taskId) => runs(taskId));
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
             services.AddSingleton(handler.Object);
         }
         else if (handlerType == typeof(IOnTaskAbandoningHandler))
         {
             var handler = new Mock<IOnTaskAbandoningHandler>();
             handler.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns((string taskId) => runs(taskId));
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
             services.AddSingleton(handler.Object);
         }
         else if (handlerType == typeof(IOnProcessEndedHandler))
         {
-            services.AddSingleton(new Mock<IOnProcessEndedHandler>().Object);
+            var handler = new Mock<IOnProcessEndedHandler>();
+            handler.Setup(h => h.StepOptions).Returns(stepOptions);
+            services.AddSingleton(handler.Object);
         }
         else
         {
@@ -156,6 +161,13 @@ public class ProcessNextRequestFactoryTests
     ];
 
     public static TheoryData<Type> HookHandlerTypes => new(_hookHandlerTypes);
+
+    /// <summary>A transition that plans the hook kind's step, and that step's command key.</summary>
+    private static (ProcessStateChange StateChange, string HookKey) TransitionPlanning(Type handlerType) =>
+        handlerType == typeof(IOnTaskStartingHandler) ? (CreateTaskToTaskTransition(), OnTaskStartingHook.Key)
+        : handlerType == typeof(IOnTaskEndingHandler) ? (CreateTaskToTaskTransition(), OnTaskEndingHook.Key)
+        : handlerType == typeof(IOnTaskAbandoningHandler) ? (CreateTaskAbandonToNextTask(), OnTaskAbandonHook.Key)
+        : (CreateTaskToEndTransition(), OnProcessEndedHook.Key);
 
     /// <summary>One handler of every hook kind, the task hooks running for every task, so every hook step is planned.</summary>
     private static void AddEveryHookHandler(IServiceCollection services)
@@ -1271,6 +1283,39 @@ public class ProcessNextRequestFactoryTests
         Assert.DoesNotContain(OnTaskEndingHook.Key, keys);
     }
 
+    public static TheoryData<Type, string, bool> LeavingHookMatches =>
+        new()
+        {
+            { typeof(IOnTaskEndingHandler), "Task_1", true },
+            { typeof(IOnTaskEndingHandler), "Task_2", false },
+            { typeof(IOnTaskAbandoningHandler), "Task_1", true },
+            { typeof(IOnTaskAbandoningHandler), "Task_2", false },
+        };
+
+    [Theory]
+    [MemberData(nameof(LeavingHookMatches))]
+    public async Task Create_EndingAndAbandonHooks_AreMatchedAgainstTheTaskBeingLeft(
+        Type handlerType,
+        string handlerTask,
+        bool planned
+    )
+    {
+        var factory = CreateFactory(configureServices: services =>
+            AddHookHandler(services, handlerType, taskId => taskId == handlerTask)
+        );
+        (ProcessStateChange stateChange, string hookKey) = TransitionPlanning(handlerType);
+
+        var bundle = await factory.CreateChainInitiating(
+            TestInstance,
+            stateChange,
+            "test-process-next-idempotency-key",
+            SignedTestState
+        );
+
+        // Both transitions leave Task_1 for Task_2.
+        Assert.Equal(planned, ExtractCommandKeys(bundle).Contains(hookKey));
+    }
+
     [Theory]
     [MemberData(nameof(HookHandlerTypes))]
     public async Task Create_TwoHandlersOfAKindRunForTheTask_PlansTheHookStepToRefuseThem(Type handlerType)
@@ -1280,11 +1325,7 @@ public class ProcessNextRequestFactoryTests
             AddHookHandler(services, handlerType);
             AddHookHandler(services, handlerType);
         });
-        (ProcessStateChange stateChange, string hookKey) =
-            handlerType == typeof(IOnTaskStartingHandler) ? (CreateTaskToTaskTransition(), OnTaskStartingHook.Key)
-            : handlerType == typeof(IOnTaskEndingHandler) ? (CreateTaskToTaskTransition(), OnTaskEndingHook.Key)
-            : handlerType == typeof(IOnTaskAbandoningHandler) ? (CreateTaskAbandonToNextTask(), OnTaskAbandonHook.Key)
-            : (CreateTaskToEndTransition(), OnProcessEndedHook.Key);
+        (ProcessStateChange stateChange, string hookKey) = TransitionPlanning(handlerType);
 
         // Planning succeeds: the step fails permanently when it runs, where refusing here would fail the callback
         // that plans the transition, which the engine retries.
@@ -1298,11 +1339,10 @@ public class ProcessNextRequestFactoryTests
         Assert.Single(ExtractCommandKeys(bundle), key => key == hookKey);
     }
 
+    /// <summary>A registered task type, which composes no abandon stages unless it defines them.</summary>
     private sealed class NoAbandonWorkTask : IProcessTask
     {
         public string Type => "data";
-
-        public ProcessTaskPipeline DefineAbandon(PipelineBuilder pipeline) => pipeline.Build();
     }
 
     [Fact]
@@ -2613,19 +2653,19 @@ public class ProcessNextRequestFactoryTests
         Assert.Equal(0, step.RetryStrategy.MaxRetries);
     }
 
-    [Fact]
-    public async Task StepOptions_TaskStartingHook_ImplementationOverride_IsApplied()
+    [Theory]
+    [MemberData(nameof(HookHandlerTypes))]
+    public async Task StepOptions_HookStep_CarriesItsHandlersOptions(Type handlerType)
     {
-        // Arrange - tier 3 on a lifecycle hook (not just service tasks)
-        var hookMock = new Mock<IOnTaskStartingHandler>();
-        hookMock.Setup(h => h.ShouldRunForTask(It.IsAny<string>())).Returns(true);
-        hookMock
-            .Setup(h => h.StepOptions)
-            .Returns(new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) });
-        var factory = CreateFactory(configureServices: s => s.AddSingleton(hookMock.Object));
-        var stateChange = CreateTaskToTaskTransition();
+        var factory = CreateFactory(configureServices: services =>
+            AddHookHandler(
+                services,
+                handlerType,
+                stepOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(3) }
+            )
+        );
+        (ProcessStateChange stateChange, string hookKey) = TransitionPlanning(handlerType);
 
-        // Act
         var bundle = await factory.CreateChainInitiating(
             TestInstance,
             stateChange,
@@ -2633,9 +2673,32 @@ public class ProcessNextRequestFactoryTests
             SignedTestState
         );
 
-        // Assert
-        var step = GetStep(bundle, OnTaskStartingHook.Key);
-        Assert.Equal(TimeSpan.FromMinutes(3), step.Command.MaxExecutionTime);
+        Assert.Equal(TimeSpan.FromMinutes(3), GetStep(bundle, hookKey).Command.MaxExecutionTime);
+    }
+
+    [Theory]
+    [MemberData(nameof(HookHandlerTypes))]
+    public async Task StepOptions_HookHandlerWithInvalidOptions_ThrowsAtEnqueue(Type handlerType)
+    {
+        var factory = CreateFactory(configureServices: services =>
+            AddHookHandler(
+                services,
+                handlerType,
+                stepOptions: new ProcessStepOptions { MaxExecutionTime = TimeSpan.FromMinutes(-1) }
+            )
+        );
+        (ProcessStateChange stateChange, _) = TransitionPlanning(handlerType);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            factory.CreateChainInitiating(
+                TestInstance,
+                stateChange,
+                "test-process-next-idempotency-key",
+                SignedTestState
+            )
+        );
+
+        Assert.Contains(nameof(ProcessStepOptions.MaxExecutionTime), exception.Message);
     }
 
     private sealed class StagedStartTask : IProcessTask

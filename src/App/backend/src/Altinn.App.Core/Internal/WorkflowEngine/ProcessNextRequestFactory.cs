@@ -442,16 +442,11 @@ internal sealed class ProcessNextRequestFactory
                     serviceTaskFollowsCommit = true;
                 }
 
-                // The task this event's commands run against (start hooks/service task read the entering
-                // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
-                // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
-                string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
-
                 // The BPMN element these commands run for, which is the task for every event that has one
                 // and the end event for process end — where CurrentTask is deliberately null, the ended
-                // state having no current task. Options resolution stays keyed on the task alone: an end
-                // event is not a task and configures none of the per-task step options.
-                string? eventElementId = eventTaskId ?? instanceEvent.ProcessInfo?.EndEvent;
+                // state having no current task.
+                string? eventElementId =
+                    instanceEvent.ProcessInfo?.CurrentTask?.ElementId ?? instanceEvent.ProcessInfo?.EndEvent;
 
                 // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
                 // Task-start and process-end commands go in the second group (they need NEW CurrentTask).
@@ -461,7 +456,7 @@ internal sealed class ProcessNextRequestFactory
                     leavesTask = true;
                     taskEndSteps.AddRange(
                         workflowCommands
-                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
+                            .Commands.ToStepRequests(_stepOptionsResolver)
                             .WithProcessElement(eventElementId)
                     );
                 }
@@ -469,17 +464,15 @@ internal sealed class ProcessNextRequestFactory
                 {
                     taskStartSteps.AddRange(
                         workflowCommands
-                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
+                            .Commands.ToStepRequests(_stepOptionsResolver)
                             .WithProcessElement(eventElementId)
                     );
                 }
 
                 primaryPostCommitSteps.AddRange(
-                    workflowCommands.PrimaryPostCommitCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
+                    workflowCommands.PrimaryPostCommitCommands.ToStepRequests(_stepOptionsResolver)
                 );
-                auxiliarySteps.AddRange(
-                    workflowCommands.AuxiliaryCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
-                );
+                auxiliarySteps.AddRange(workflowCommands.AuxiliaryCommands.ToStepRequests(_stepOptionsResolver));
             }
         }
 
@@ -532,7 +525,7 @@ internal sealed class ProcessNextRequestFactory
                         TaskId = taskId,
                         StartPipeline = ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Start),
                         ServiceTask = ResolveServiceTask(serviceTaskType),
-                        HasStartingHook = HasTaskHook<IOnTaskStartingHandler>(
+                        StartingHook = FindTaskHook<IOnTaskStartingHandler>(
                             taskId,
                             (hook, id) => hook.ShouldRunForTask(id)
                         ),
@@ -550,13 +543,13 @@ internal sealed class ProcessNextRequestFactory
                 return WorkflowCommandSet.GetTaskEndSteps(
                     taskId,
                     ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End),
-                    HasTaskHook<IOnTaskEndingHandler>(taskId, (hook, id) => hook.ShouldRunForTask(id))
+                    FindTaskHook<IOnTaskEndingHandler>(taskId, (hook, id) => hook.ShouldRunForTask(id))
                 );
             }
             case InstanceEventType.process_AbandonTask:
                 return WorkflowCommandSet.GetTaskAbandonSteps(
                     ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Abandon),
-                    HasTaskHook<IOnTaskAbandoningHandler>(
+                    FindTaskHook<IOnTaskAbandoningHandler>(
                         GetRequiredEventTaskId(instanceEvent, eventType),
                         (hook, id) => hook.ShouldRunForTask(id)
                     )
@@ -565,7 +558,7 @@ internal sealed class ProcessNextRequestFactory
                 return WorkflowCommandSet.GetProcessEndSteps(
                     new ProcessEndContext
                     {
-                        HasProcessEndedHook = HasProcessEndedHook(),
+                        ProcessEndedHook = _appImplementationFactory.GetAll<IOnProcessEndedHandler>().FirstOrDefault(),
                         RegisterEvents = _appSettings.RegisterEventsWithEventsComponent,
                     }
                 );
@@ -610,19 +603,14 @@ internal sealed class ProcessNextRequestFactory
         .Build();
 
     /// <summary>
-    /// Whether a <typeparamref name="THandler"/> runs for the task, which plans the task's hook step. The step runs
-    /// against the same task id, so it finds the handlers this finds. More than one still plans the step, which then
-    /// fails permanently. Refusing here would fail the callback that plans the transition, and the engine retries a
-    /// failed callback for up to a day.
+    /// The <typeparamref name="THandler"/> that runs for the task, which plans the task's hook step with the
+    /// handler's own step options, or null when none does. The step runs against the same task id, so it finds the
+    /// handlers this finds. When more than one runs, this takes the first and the step fails permanently: refusing
+    /// the transition here would instead fail the callback that plans it, which the engine retries.
     /// </summary>
-    private bool HasTaskHook<THandler>(string taskId, Func<THandler, string, bool> runsForTask)
+    private THandler? FindTaskHook<THandler>(string taskId, Func<THandler, string, bool> runsForTask)
         where THandler : class =>
-        _appImplementationFactory.GetAll<THandler>().Any(handler => runsForTask(handler, taskId));
-
-    /// <summary>
-    /// Whether the app registers an <see cref="IOnProcessEndedHandler"/>, which plans the process end's hook step.
-    /// </summary>
-    private bool HasProcessEndedHook() => _appImplementationFactory.GetAll<IOnProcessEndedHandler>().Any();
+        _appImplementationFactory.GetAll<THandler>().FirstOrDefault(handler => runsForTask(handler, taskId));
 
     private static string GetRequiredEventTaskId(InstanceEvent instanceEvent, InstanceEventType eventType) =>
         instanceEvent.ProcessInfo?.CurrentTask?.ElementId
@@ -694,5 +682,5 @@ internal sealed class ProcessNextRequestFactory
             CommandKey = commandKey,
             OperationId = commandKey,
             Payload = payload,
-        }.ToStepRequest(_stepOptionsResolver, taskId: null);
+        }.ToStepRequest(_stepOptionsResolver);
 }

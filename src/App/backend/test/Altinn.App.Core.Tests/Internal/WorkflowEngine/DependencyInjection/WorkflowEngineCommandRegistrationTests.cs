@@ -8,6 +8,7 @@ using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
 using Altinn.App.Core.Models.Notifications.Future;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.DependencyInjection;
 
@@ -43,7 +44,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
-                    HasStartingHook = true,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -57,7 +58,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
-                    HasStartingHook = true,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     RegisterEvents = true,
@@ -72,7 +73,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = null,
-                    HasStartingHook = true,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = true,
                     IsInstantiation = true,
                     Notification = new InstantiationNotification(),
@@ -88,7 +89,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("simple", CreatePipeline()),
-                    HasStartingHook = true,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -103,7 +104,7 @@ public class WorkflowEngineCommandRegistrationTests
                     TaskId = "Task_1",
                     StartPipeline = CreateLifecyclePipeline(),
                     ServiceTask = new ResolvedServiceTask("mailbox", CreateMailboxPipeline()),
-                    HasStartingHook = true,
+                    StartingHook = Mock.Of<IOnTaskStartingHandler>(),
                     IsInitialTaskStart = false,
                     RegisterEvents = true,
                 }
@@ -111,16 +112,23 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline(), hasEndingHook: true),
+            WorkflowCommandSet.GetTaskEndSteps(
+                "Task_1",
+                CreateLifecyclePipeline(),
+                endingHook: Mock.Of<IOnTaskEndingHandler>()
+            ),
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskAbandonSteps(CreateLifecyclePipeline(), hasAbandonHook: true),
+            WorkflowCommandSet.GetTaskAbandonSteps(
+                CreateLifecyclePipeline(),
+                abandonHook: Mock.Of<IOnTaskAbandoningHandler>()
+            ),
             keys
         );
         CollectCommandKeys(
             WorkflowCommandSet.GetProcessEndSteps(
-                new ProcessEndContext { HasProcessEndedHook = true, RegisterEvents = true }
+                new ProcessEndContext { ProcessEndedHook = Mock.Of<IOnProcessEndedHandler>(), RegisterEvents = true }
             ),
             keys
         );
