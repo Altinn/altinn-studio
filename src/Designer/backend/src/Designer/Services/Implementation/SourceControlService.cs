@@ -950,7 +950,7 @@ public class SourceControlService(
                             localCommits.Length == 0 || merged.Tree.Id == upstream.Tip.Tree.Id
                                 ? upstream.Tip
                                 : CombineLocalCommits(repo, upstream.Tip, merged.Tree, localCommits, signature);
-                        MoveBranchTo(repo, branchReference, originalTip, target);
+                        MoveBranchTo(repo, branchReference, target);
                         result.Status = RebaseStatus.Complete;
                         PopulateContentStatusFromCommitDiff(
                             repo,
@@ -1762,82 +1762,32 @@ public class SourceControlService(
     private static bool IsUtf8(string? encoding) =>
         encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
 
-    // Changes the working directory once. Uncommitted changes to a file the update changes are in the way, even when
-    // they match it, so that Git's checkout can put back exactly those files if a later step fails.
-    private static void MoveBranchTo(
-        LibGit2Sharp.Repository repo,
-        string branchReference,
-        LibGit2Sharp.Commit originalTip,
-        LibGit2Sharp.Commit commit
-    )
+    // Changes the working directory once. The safe checkout keeps uncommitted changes and refuses to overwrite them.
+    // If a lock or I/O error stops a later step, HEAD goes back on the branch and no file is touched: the files the
+    // checkout wrote then show as local changes, which sharing or deleting the local changes resolves.
+    private static void MoveBranchTo(LibGit2Sharp.Repository repo, string branchReference, LibGit2Sharp.Commit commit)
     {
-        string[] changedPaths = GetChangedPaths(repo, originalTip.Tree, commit.Tree).ToArray();
-        if (repo.RetrieveStatus(new StatusOptions()).Any(entry => changedPaths.Contains(entry.FilePath)))
-        {
-            throw new CheckoutConflictException("Uncommitted changes are in the way of the remote changes.");
-        }
-
         try
         {
             Commands.Checkout(repo, commit);
             repo.Refs.UpdateTarget(repo.Refs[branchReference], commit.Id);
             repo.Refs.UpdateTarget("HEAD", branchReference);
         }
-        catch (Exception exception)
-            when (exception is not CheckoutConflictException
-                && exception is LibGit2SharpException or IOException or UnauthorizedAccessException
-            )
-        {
-            // A checkout conflict changes nothing. Any other failure can stop the update partway.
-            PutBackOnBranch(repo, branchReference, originalTip, changedPaths);
-            throw;
-        }
-    }
-
-    // Puts HEAD back on the branch and, unless the branch already moved, puts back the files the update changed. Each
-    // step runs on its own, because a lock or I/O error can stop any of them.
-    private static void PutBackOnBranch(
-        LibGit2Sharp.Repository repo,
-        string branchReference,
-        LibGit2Sharp.Commit originalTip,
-        string[] changedPaths
-    )
-    {
-        TryIgnoringFailure(() =>
+        catch (Exception exception) when (exception is not CheckoutConflictException)
         {
             if (repo.Info.IsHeadDetached)
             {
-                repo.Refs.UpdateTarget("HEAD", branchReference);
+                try
+                {
+                    repo.Refs.UpdateTarget("HEAD", branchReference);
+                }
+                catch (LibGit2SharpException)
+                {
+                    // The original failure is the one the caller reports.
+                }
             }
-        });
-        if (repo.Head.Tip?.Id == originalTip.Id && changedPaths.Length > 0)
-        {
-            TryIgnoringFailure(() =>
-                repo.CheckoutPaths(
-                    originalTip.Sha,
-                    changedPaths,
-                    new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force }
-                )
-            );
-        }
-    }
 
-    private static HashSet<string> GetChangedPaths(LibGit2Sharp.Repository repo, Tree oldTree, Tree newTree)
-    {
-        using TreeChanges changes = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
-        return changes.SelectMany(change => new[] { change.Path, change.OldPath }).ToHashSet();
-    }
-
-    private static void TryIgnoringFailure(Action action)
-    {
-        try
-        {
-            action();
-        }
-        catch (Exception exception)
-            when (exception is LibGit2SharpException or IOException or UnauthorizedAccessException)
-        {
-            // The original failure is the one the caller reports.
+            throw;
         }
     }
 
