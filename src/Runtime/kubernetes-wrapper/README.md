@@ -6,7 +6,7 @@ each Studio cluster. [`deploy-runtime-kubernetes-wrapper.yaml`](../../../.github
 publishes it for both.
 
 Tools in [`src/tools`](../../tools) read it to list the apps deployed to an environment. Keep the responses compatible
-with them. Designer reads running apps through the [gateway](../gateway) instead.
+with them.
 
 ## Development
 
