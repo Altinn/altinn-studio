@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { relative, styleBlock, styledDiagrams, UNICODES, withStyle } from './style.mjs';
+import { hasStyle, relative, styleBlock, styledDiagrams, UNICODES, withStyle } from './style.mjs';
 
 function findChrome() {
   if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
@@ -68,7 +68,8 @@ function render(chrome, svg) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'diagram-check-'));
   try {
     const page = path.join(dir, 'page.html');
-    const script = `document.fonts.ready.then(() => {
+    // A browser loads a font weight only when text uses it, so load every embedded weight before checking them.
+    const script = `Promise.all([...document.fonts].map((face) => face.load().catch(() => null))).then(() => {
       const problems = (${inspect})(${JSON.stringify(UNICODES)});
       document.getElementById('result').textContent = btoa(unescape(encodeURIComponent(JSON.stringify(problems))));
     });`;
@@ -99,7 +100,7 @@ function render(chrome, svg) {
 
 const diagrams = styledDiagrams();
 if (diagrams.length === 0) {
-  console.error('no diagram uses the shared style, so nothing was checked');
+  console.error('no diagram in docs/diagrams uses the shared style, so nothing was checked');
   process.exit(1);
 }
 
@@ -109,9 +110,13 @@ let failed = false;
 for (const file of diagrams) {
   const svg = fs.readFileSync(file, 'utf8');
   const problems = [];
-  if (withStyle(svg, block) !== svg)
-    problems.push('the style is out of date; run yarn diagrams:sync');
-  problems.push(...render(chrome, svg));
+  if (!hasStyle(svg)) {
+    problems.push('no diagram-style markers; copy them from docs/diagrams/architecture.svg');
+  } else {
+    if (withStyle(svg, block) !== svg)
+      problems.push('the style is out of date; run yarn diagrams:sync');
+    problems.push(...render(chrome, svg));
+  }
   if (problems.length === 0) {
     console.log(`ok   ${relative(file)}`);
   } else {

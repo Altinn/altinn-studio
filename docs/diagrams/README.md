@@ -1,7 +1,7 @@
 # Diagrams
 
 Diagrams that span components. [architecture.svg](architecture.svg) shows how Altinn Studio fits together. New
-diagrams are hand-written SVG in the shared style, so they diff as text and anyone, person or agent, can change them in
+diagrams are handwritten SVG in the shared style, so they diff as text and anyone, person or agent, can change them in
 an editor. The older diagrams are Excalidraw and draw.io exports, which you change in those tools.
 
 ## The shared style
@@ -31,9 +31,9 @@ each diagram carries its own copy of both, between its `diagram-style` markers.
 ## The font
 
 The diagrams use [Inter](https://github.com/rsms/inter) under the [SIL Open Font License](style/fonts/OFL.txt), which
-lets us subset and embed it. The files are subset to the characters [style.mjs](../../scripts/diagrams/style.mjs)
-lists, which keeps a diagram near 100 KB. To add characters, extend that list and subset the Regular, Medium and
-SemiBold TTFs from an Inter release again with fonttools:
+lets us subset and embed it. The files are subset to the character ranges in
+[style.mjs](../../scripts/diagrams/style.mjs), which keeps a diagram near 100 KB. To add characters, extend the ranges
+and subset the Regular, Medium and SemiBold TTFs from an Inter release again with fonttools:
 
 ```sh
 pyftsubset Inter-Regular.ttf --unicodes="$(node scripts/diagrams/style.mjs unicodes)" \

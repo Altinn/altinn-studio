@@ -42,13 +42,16 @@ export function styleBlock() {
   ].join('\n');
 }
 
-// The diagrams that use the shared style. Older diagrams, such as Excalidraw exports, do not.
+// The diagrams in the shared style: every SVG here except the Excalidraw and draw.io exports, which those tools style.
 export function styledDiagrams() {
   return fs
     .readdirSync(DIAGRAMS_DIR)
-    .filter((name) => name.endsWith('.svg'))
-    .map((name) => path.join(DIAGRAMS_DIR, name))
-    .filter((file) => fs.readFileSync(file, 'utf8').includes(START));
+    .filter((name) => name.endsWith('.svg') && !/\.(excalidraw|drawio)\.svg$/.test(name))
+    .map((name) => path.join(DIAGRAMS_DIR, name));
+}
+
+export function hasStyle(svg) {
+  return svg.includes(START);
 }
 
 export function withStyle(svg, block) {
