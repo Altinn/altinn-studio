@@ -310,8 +310,8 @@ svg {
 <!-- Altinn Inbox -->
 <rect class="card card-platform" x="280" y="472" width="320" height="90" rx="8"/>
 <text class="h" x="294" y="498">Arbeidsflate</text>
-<text class="s" x="294" y="518">Altinn Inbox, where users find their</text>
-<text class="s" x="294" y="535">instances and open the apps</text>
+<text class="s" x="294" y="518">Altinn Inbox, where users can also</text>
+<text class="s" x="294" y="535">find their instances and open them</text>
 
 <rect class="card card-platform" x="640" y="472" width="470" height="90" rx="8"/>
 <text class="h" x="654" y="498">Dialogporten</text>

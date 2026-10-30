@@ -13,7 +13,7 @@ for developing Altinn Studio itself. [CONTRIBUTING.md](CONTRIBUTING.md) says how
 
 ## How it fits together
 
-![Service owners build apps in Designer, in Core, and deploy them to Runtime, and their systems call the apps and Platform. Users open the apps from Arbeidsflate, and systems call them. The apps call Platform and services outside Altinn, and Storage syncs app instances to Dialogporten, which Arbeidsflate shows.](docs/diagrams/context.svg)
+![Service owners build apps in Designer, in Core, and deploy them to Runtime, and their systems call the apps and Platform. Users open the apps directly or from Arbeidsflate, and systems call them. The apps call Platform and services outside Altinn, and Storage syncs app instances to Dialogporten, which Arbeidsflate shows.](docs/diagrams/context.svg)
 
 Altinn Studio spans Core, Runtime and Platform:
 

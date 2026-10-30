@@ -245,10 +245,10 @@ svg {
 
 <rect class="card card-data" x="40" y="710" width="210" height="135" rx="8"/>
 <text class="h" x="54" y="736">Users and systems</text>
-<text class="s" x="54" y="756">People open apps from</text>
-<text class="s" x="54" y="773">Arbeidsflate and log in with</text>
-<text class="s" x="54" y="790">ID-porten, systems with</text>
-<text class="s" x="54" y="807">Maskinporten</text>
+<text class="s" x="54" y="756">People log in with ID-porten,</text>
+<text class="s" x="54" y="773">systems with Maskinporten.</text>
+<text class="s" x="54" y="790">People also find their</text>
+<text class="s" x="54" y="807">instances in Arbeidsflate</text>
 <text class="code" x="54" y="831">&lt;org&gt;.apps.altinn.no</text>
 
 <!-- Core: a stack, one Studio cluster per environment -->
