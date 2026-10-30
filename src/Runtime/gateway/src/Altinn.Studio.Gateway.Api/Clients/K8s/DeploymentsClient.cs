@@ -1,5 +1,6 @@
 using Altinn.Studio.Gateway.Contracts.Deploy;
 using k8s;
+using k8s.Models;
 
 namespace Altinn.Studio.Gateway.Api.Clients.K8s;
 
@@ -26,12 +27,28 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes)
             cancellationToken: cancellationToken
         );
 
-        if (deployments.Items is not [var deployment, ..])
-        {
-            return null;
-        }
-
-        var image = deployment.Spec?.Template?.Spec?.Containers is [var container, ..] ? container.Image : null;
-        return new RunningAppDeployment(release, ContainerImage.TagOf(image));
+        return deployments.Items is [var deployment, ..] ? ToRunningAppDeployment(release, deployment) : null;
     }
+
+    /// <summary>
+    /// The deploy pipeline annotates the pod template rather than the Deployment, because the app chart passes only
+    /// pod annotations through. A Helm rollback restores the template, annotations included.
+    /// </summary>
+    internal static RunningAppDeployment ToRunningAppDeployment(string release, V1Deployment deployment)
+    {
+        var template = deployment.Spec?.Template;
+        var image = template?.Spec?.Containers is [var container, ..] ? container.Image : null;
+        var annotations = template?.Metadata?.Annotations;
+
+        return new RunningAppDeployment(
+            release,
+            ContainerImage.TagOf(image),
+            Annotation(annotations, StudioLabels.BuildId),
+            Annotation(annotations, StudioLabels.SourceEnvironment),
+            Annotation(annotations, StudioLabels.DeploymentId)
+        );
+    }
+
+    private static string? Annotation(IDictionary<string, string>? annotations, string key) =>
+        annotations is not null && annotations.TryGetValue(key, out var value) && value.Length > 0 ? value : null;
 }

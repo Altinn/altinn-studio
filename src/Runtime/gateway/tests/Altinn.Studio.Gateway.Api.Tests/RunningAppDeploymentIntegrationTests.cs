@@ -48,17 +48,27 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetRunning_WhenDeploymentExists_ReturnsReleaseAndImageTag()
+    public async Task GetRunning_WhenDeploymentExists_ReturnsTheStudioDeploy()
     {
         var ct = TestContext.Current.CancellationToken;
         var app = "running-" + Guid.NewGuid().ToString("N")[..5];
-        await CreateDeploymentAsync(app, $"registry:5000/{Org}/{app}:9cf6fc1", ct);
+        await CreateDeploymentAsync(
+            app,
+            $"registry:5000/{Org}/{app}:9cf6fc1",
+            new Dictionary<string, string>
+            {
+                ["altinn.studio/build-id"] = "1234",
+                ["altinn.studio/source-environment"] = "prod",
+                ["altinn.studio/deployment-id"] = "42",
+            },
+            ct
+        );
 
         var response = await _httpClient.GetAsync(RunningUri(app), ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var deployment = await response.Content.ReadFromJsonAsync<RunningAppDeployment>(ct);
-        Assert.Equal(new RunningAppDeployment($"{Org}-{app}", "9cf6fc1"), deployment);
+        Assert.Equal(new RunningAppDeployment($"{Org}-{app}", "9cf6fc1", "1234", "prod", "42"), deployment);
     }
 
     [Fact]
@@ -85,7 +95,12 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     private static Uri RunningUri(string app) =>
         new($"/runtime/gateway/api/v1/deploy/apps/{Uri.EscapeDataString(app)}/running", UriKind.Relative);
 
-    private async Task CreateDeploymentAsync(string app, string image, CancellationToken ct)
+    private async Task CreateDeploymentAsync(
+        string app,
+        string image,
+        Dictionary<string, string> annotations,
+        CancellationToken ct
+    )
     {
         var name = $"{Org}-{app}-deployment-v2";
         _deploymentsToCleanup.Add(name);
@@ -102,7 +117,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
                     Selector = new V1LabelSelector { MatchLabels = labels },
                     Template = new V1PodTemplateSpec
                     {
-                        Metadata = new V1ObjectMeta { Labels = labels },
+                        Metadata = new V1ObjectMeta { Labels = labels, Annotations = annotations },
                         Spec = new V1PodSpec { Containers = [new V1Container { Name = app, Image = image }] },
                     },
                 },
