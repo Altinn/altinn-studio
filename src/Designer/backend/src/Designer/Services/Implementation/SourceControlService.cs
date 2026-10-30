@@ -928,9 +928,7 @@ public class SourceControlService(
                     }
 
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
-                    bool hasLocalMergeCommit = GetLocalOnlyCommits(repo, repo.Head, upstream)
-                        .Any(commit => commit.Parents.Skip(1).Any());
-                    if (hasLocalMergeCommit)
+                    if (HasLocalMergeCommit(repo, upstream))
                     {
                         // Rebasing skips merge commits, and with them any change made in the merge itself.
                         mergedInstead = true;
@@ -1753,24 +1751,10 @@ public class SourceControlService(
         }
     }
 
-    private static IReadOnlyList<LibGit2Sharp.Commit> GetLocalOnlyCommits(
-        LibGit2Sharp.Repository repo,
-        Branch branch,
-        Branch upstream
-    )
-    {
-        return repo
-            .Commits.QueryBy(
-                new CommitFilter
-                {
-                    IncludeReachableFrom = branch,
-                    ExcludeReachableFrom = upstream,
-                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
-                }
-            )
-            .Reverse()
-            .ToArray();
-    }
+    private static bool HasLocalMergeCommit(LibGit2Sharp.Repository repo, Branch upstream) =>
+        repo
+            .Commits.QueryBy(new CommitFilter { IncludeReachableFrom = repo.Head, ExcludeReachableFrom = upstream })
+            .Any(commit => commit.Parents.Skip(1).Any());
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
     {

@@ -630,11 +630,12 @@ public class SourceControlServiceTest : IDisposable
             out string collaboratorRepoPath
         );
 
-        string localCommitSha = CommitStudioChange(
+        string localCommitSha = CommitLocalChange(
             localRepoPath,
             "local-only.txt",
             "local content",
-            "local studio update"
+            "local studio update",
+            General.StudioCommitEmailDomain
         );
         CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
 
@@ -644,7 +645,7 @@ public class SourceControlServiceTest : IDisposable
         using Repository localRepoAfterPull = new(localRepoPath);
         Assert.NotEqual(localCommitSha, localRepoAfterPull.Head.Tip.Sha);
         Assert.Equal("local studio update", localRepoAfterPull.Head.Tip.MessageShort);
-        Assert.Equal($"{_developer}@noreply.altinn.studio", localRepoAfterPull.Head.Tip.Author.Email);
+        Assert.Equal($"{_developer}@{General.StudioCommitEmailDomain}", localRepoAfterPull.Head.Tip.Author.Email);
     }
 
     [Fact]
@@ -1118,26 +1119,19 @@ public class SourceControlServiceTest : IDisposable
         return commit.Sha;
     }
 
-    private string CommitStudioChange(string repoPath, string filePath, string content, string commitMessage)
+    private string CommitLocalChange(
+        string repoPath,
+        string filePath,
+        string content,
+        string commitMessage,
+        string emailDomain = "test.com"
+    )
     {
         using var repo = new Repository(repoPath);
         File.WriteAllText(Path.Join(repoPath, filePath), content);
         Commands.Stage(repo, filePath);
-        var signature = new LibGit2Sharp.Signature(
-            _developer,
-            $"{_developer}@noreply.altinn.studio",
-            DateTimeOffset.Now
-        );
+        var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@{emailDomain}", DateTimeOffset.Now);
         return repo.Commit(commitMessage, signature, signature).Sha;
-    }
-
-    private void CommitLocalChange(string repoPath, string filePath, string content, string commitMessage)
-    {
-        using var repo = new Repository(repoPath);
-        File.WriteAllText(Path.Join(repoPath, filePath), content);
-        Commands.Stage(repo, filePath);
-        var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
-        repo.Commit(commitMessage, signature, signature);
     }
 
     private void AddFileToRepo(string filename = null)
