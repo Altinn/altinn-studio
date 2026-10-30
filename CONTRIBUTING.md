@@ -15,7 +15,7 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 - Start with the README of the component you change. The [root README](README.md) says how the parts fit
   together.
 - Follow the [coding standards](docs/coding-standards.md) and the [documentation rules](docs/documentation.md).
-  Workflows, builds and deployments follow the conventions in [.github/README.md](.github/README.md).
+  Workflows, builds and deployments follow the conventions in [docs/cicd.md](docs/cicd.md).
 - Before you push, run the checks of the component you changed with its Makefile or package scripts, which run the
   same checks as CI. Also run `yarn spell:quick`, and `yarn docs:validate` when you changed docs.
 - Update the docs your change affects in the same pull request. When service owners or app developers will notice the

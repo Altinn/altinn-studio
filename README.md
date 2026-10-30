@@ -29,7 +29,7 @@ deployment and a user's request travel between them.
 
 App developers run apps on their own machines with [studioctl](src/cli), which runs
 [localtest](src/Runtime/localtest) in place of Runtime and Platform. The code is in [src/](src), the cluster
-configuration in [infra/](infra) and [charts/](charts), and the workflows in [.github/](.github/README.md).
+configuration in [infra/](infra) and [charts/](charts), and the workflows in [.github/](.github), with their conventions in [docs/cicd.md](docs/cicd.md).
 
 ## License
 

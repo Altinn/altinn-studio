@@ -1,21 +1,21 @@
 # GitHub Actions
 
-[Workflows](workflows) define the repository's checks, builds, releases, and deployments.
-Shared steps live in [composite actions](actions). Start a new workflow from an existing one for the same kind of
+[Workflows](../.github/workflows) define the repository's checks, builds, releases, and deployments.
+Shared steps live in [composite actions](../.github/actions). Start a new workflow from an existing one for the same kind of
 task, and reuse its actions and templates.
 
 Use the component's Makefile targets or package scripts for builds and tests so developers can run the same
-checks locally. The [operator checks](workflows/runtime-operator-build.yml) show this approach.
+checks locally. The [operator checks](../.github/workflows/runtime-operator-build.yml) show this approach.
 
 Use `self-hosted-ubuntu` for builds and tests that benefit from the
 [runner image's installed tools](../src/ci/github-runner/Dockerfile) and caches.
 Use `ubuntu-latest` for short checks that do not need them.
 
 Reuse deployment templates for environment selection and artifact publishing.
-The [Designer deployment](workflows/deploy-designer.yaml) shows how to combine them.
-See [Environments](../docs/infrastructure/environments.md) for deployment targets and configuration sources.
+The [Designer deployment](../.github/workflows/deploy-designer.yaml) shows how to combine them.
+See [Environments](infrastructure/environments.md) for deployment targets and configuration sources.
 
-[Cache warming](workflows/cache-warm.yml) populates shared dependency caches from `main` so pull requests can
+[Cache warming](../.github/workflows/cache-warm.yml) populates shared dependency caches from `main` so pull requests can
 reuse them. Entries saved under one pull request cannot serve other pull requests and can evict shared entries.
 
 ## Image build contexts
@@ -30,7 +30,7 @@ An image's build context holds only what the image needs.
 - The `.dockerignore` of `src/` and of the root allows what any of their images needs, for Compose and plain
   `podman build`, which use it instead of an image's own. Regenerate both with `check-image-contexts.sh --write`.
 
-[check-image-contexts.sh](scripts/check-image-contexts.sh) checks this in CI, for each allowlist with that first line.
+[check-image-contexts.sh](../.github/scripts/check-image-contexts.sh) checks this in CI, for each allowlist with that first line.
 
 ## Workflow names
 
