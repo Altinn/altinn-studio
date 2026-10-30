@@ -511,7 +511,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiController]
     public class PdfController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
+        public PdfController(Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Pdf.IPdfService pdfService, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Altinn.App.Core.Internal.App.IAppResources appResources) { }
         [Microsoft.AspNetCore.Mvc.HttpGet("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/pdf/preview")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.FileContentResult), 200, "application/pdf", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
@@ -528,12 +528,6 @@ namespace Altinn.App.Api.Controllers
     public class ProcessController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
         public ProcessController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ProcessController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessClient processClient, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.ProcessStateEnricher processStateEnricher) { }
-        [Microsoft.AspNetCore.Mvc.HttpPut("completeProcess")]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[] {
-                "application/json"})]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> CompleteProcess([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.HttpGet("history")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
@@ -546,13 +540,16 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.HttpPut("next")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.EnrichedInstanceResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Api.Models.EnrichedInstanceResponse), 202)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Internal.Process.Elements.AppProcessState), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Internal.Process.Elements.AppProcessState), 202)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409, "application/problem+json", new string[] {
                 "application/json"})]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult> NextElement([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken cancellationToken, [Microsoft.AspNetCore.Mvc.FromQuery] string? elementId = null, [Microsoft.AspNetCore.Mvc.FromQuery] string? language = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool returnInstance = false, [Microsoft.AspNetCore.Mvc.FromBody] Altinn.App.Api.Models.ProcessNext? processNext = null) { }
         [Microsoft.AspNetCore.Mvc.HttpPost("resume")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Internal.Process.Elements.AppProcessState), 202)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 409)]
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Internal.Process.Elements.AppProcessState>> ResumeCurrentTask([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, System.Threading.CancellationToken cancellationToken) { }
     }
@@ -900,11 +897,6 @@ namespace Altinn.App.Api.Mappers
 }
 namespace Altinn.App.Api.Models
 {
-    public class AppProcessState : Altinn.Platform.Storage.Interface.Models.ProcessState
-    {
-        public AppProcessState() { }
-        public System.Collections.Generic.Dictionary<string, bool>? Actions { get; set; }
-    }
     public class AuthorizedOrganizationDetails : System.IEquatable<Altinn.App.Api.Models.AuthorizedOrganizationDetails>
     {
         public AuthorizedOrganizationDetails() { }

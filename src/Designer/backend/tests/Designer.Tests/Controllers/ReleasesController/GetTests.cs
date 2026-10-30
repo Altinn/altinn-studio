@@ -27,6 +27,7 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
     private readonly JsonSerializerOptions _options;
 
     private readonly Mock<IReleaseService> _releaseServiceMock;
+    private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
     private readonly string _org = "udi";
     private readonly string _app = "kjaerestebesok";
 
@@ -36,12 +37,14 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         _options.Converters.Add(new JsonStringEnumConverter());
         _releaseServiceMock = new Mock<IReleaseService>();
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(_org)).ReturnsAsync(true);
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_releaseServiceMock.Object);
+        services.AddSingleton(_userOrganizationServiceMock.Object);
     }
 
     [Fact]
@@ -106,6 +109,47 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
         _releaseServiceMock.Verify(p => p.UpdateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         _releaseServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetReleases_AnonymousCaller_ReturnsUnauthorized()
+    {
+        using HttpClient anonymousClient = CreateTestClientWithAuthHandler<UnauthenticatedTestAuthHandler>();
+
+        using HttpResponseMessage res = await anonymousClient.GetAsync($"{_versionPrefix}/{_org}/{_app}/releases");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+        _releaseServiceMock.Verify(
+            rs => rs.GetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentQueryModel>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task GetReleases_UserNotMemberOfOrg_ReturnsForbidden()
+    {
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(_org)).ReturnsAsync(false);
+
+        using HttpResponseMessage res = await HttpClient.GetAsync($"{_versionPrefix}/{_org}/{_app}/releases");
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+        _releaseServiceMock.Verify(
+            rs => rs.GetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DocumentQueryModel>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task GetReleases_ApiKeyCaller_ReturnsOk()
+    {
+        _releaseServiceMock
+            .Setup(rs => rs.GetAsync(_org, _app, It.IsAny<DocumentQueryModel>()))
+            .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = [] });
+        using HttpClient apiKeyClient = CreateTestClientWithAuthHandler<ApiKeyTestAuthHandler>();
+
+        using HttpResponseMessage res = await apiKeyClient.GetAsync($"{_versionPrefix}/{_org}/{_app}/releases");
+
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
     }
 
     private List<ReleaseEntity> GetReleasesList(string filename)

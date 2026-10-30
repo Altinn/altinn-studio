@@ -4,11 +4,11 @@ import type { PropsWithChildren } from 'react';
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+import { useIsServiceTaskPage } from 'src/components/process/serviceTaskPage';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useGetCachedInitialValidations } from 'src/core/queries/backendValidation';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { AttachmentEffects } from 'src/features/attachments/AttachmentEffects';
 import { createAttachmentsSlice } from 'src/features/attachments/AttachmentsStore';
@@ -40,7 +40,6 @@ import { FormDataWriteEffects } from 'src/features/formData/FormDataWrite';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteSlice } from 'src/features/formData/FormDataWriteStateMachine';
 import {
-  useInstanceDataQuery,
   useOptimisticallyUpdateCachedInstance,
   useSelectFromInstanceData,
 } from 'src/features/instance/InstanceContext';
@@ -75,10 +74,12 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
   const parent = parentFromContext === ContextNotProvided ? undefined : parentFromContext;
   const hasProcess = useHasProcess();
   const isPdfOfOtherTask = useIsPdfOfOtherTask();
+  const isServiceTaskPage = useIsServiceTaskPage();
   const { error, bootstrap, enabled } = useBootstrapQuery(props);
   const previousBootstrap = useRef<FormBootstrapBase | null>(bootstrap);
 
-  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask);
+  // A service task's page is always read-only: the task owns the instance until the process moves on
+  const dataSliceProps = useFormDataSliceProps(bootstrap, isPdfOfOtherTask || isServiceTaskPage);
   const storeRef = useRef<FormStoreApi | undefined>(undefined);
 
   if (enabled && bootstrap && dataSliceProps && (!storeRef.current || previousBootstrap.current !== bootstrap)) {
@@ -87,7 +88,8 @@ export function FormProvider({ children, readOnly = false, ...props }: React.Pro
     // layouts can change without all of this being reset, however.
     storeRef.current = createFormStore({
       parent,
-      readOnly: readOnly || isPdfOfOtherTask,
+      readOnly: readOnly || isPdfOfOtherTask || isServiceTaskPage,
+      instanceLocked: isServiceTaskPage,
       data: dataSliceProps,
       bootstrap,
     });
@@ -194,21 +196,6 @@ function useIsPdfOfOtherTask(): boolean {
   return isPdf && taskId !== undefined && currentTaskId !== undefined && taskId !== currentTaskId;
 }
 
-/**
- * A subform PDF service task renders its subform through its own UI folder, which uses the subform data type. There
- * is one such data element per subform, so loading that folder needs the id of the subform being rendered.
- */
-function usePdfSubformDataElementId(uiFolder: string | undefined): string | undefined {
-  const isPdf = useIsPdf();
-  const dataElementId = useNavigationParam('dataElementId');
-  const dataType = useInstanceDataQuery({
-    select: (instance) => instance.data.find((element) => element.id === dataElementId)?.dataType,
-  }).data;
-
-  const isSubformOfFolder = dataType !== undefined && dataType === getUiFolderSettings(uiFolder)?.defaultDataType;
-  return isPdf && isSubformOfFolder ? dataElementId : undefined;
-}
-
 function useHasProcess() {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -221,8 +208,7 @@ function useBootstrapQuery({ uiFolderOverride, dataElementIdOverride }: FormProv
   const isStateless = useIsStateless();
 
   const uiFolder = uiFolderOverride ?? folderNameFromUrl ?? undefined;
-  const pdfSubformDataElementId = usePdfSubformDataElementId(uiFolder);
-  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? pdfSubformDataElementId;
+  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId;
 
   const prefillRef = useRef<string | undefined>(
     isStateless && uiFolder ? getPrefillFromSessionStorage(uiFolder) : undefined,
@@ -267,11 +253,13 @@ function createFormStore({
   parent,
   data,
   readOnly,
+  instanceLocked,
   bootstrap,
 }: {
   parent: FormStoreApi | undefined;
   data: FormDataSliceProps;
   readOnly: boolean;
+  instanceLocked: boolean;
   bootstrap: FormBootstrapBase;
 }): FormStoreApi {
   const store = createStore<FormStoreState>()(
@@ -279,6 +267,7 @@ function createFormStore({
       parent,
       nestedFormStatus: { unsaved: 0, unloadWarnings: 0 },
       readOnly,
+      instanceLocked,
       data: createFormDataWriteSlice(data, set),
       attachments: createAttachmentsSlice(set),
       validation: createValidationSlice(processBootstrap(bootstrap), set),
@@ -299,7 +288,6 @@ export function useFormDataSliceProps(
   const selectFromInstance = useSelectFromInstanceData();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
-  const getCachedInitialValidations = useGetCachedInitialValidations();
   const calculationDataSources = useAsRef(useExpressionDataSourcesBaseForStoreSelector());
 
   if (!bootstrap) {
@@ -313,7 +301,6 @@ export function useFormDataSliceProps(
     proxies,
     changeInstance,
     selectFromInstance,
-    getCachedInitialValidations,
     getCalculationDataSources: () => calculationDataSources.current,
   };
 }

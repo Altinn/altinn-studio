@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using Altinn.Studio.Common.Telemetry;
+using Altinn.Studio.Gateway.Api.Endpoints.Public;
 using Altinn.Studio.Gateway.Api.Telemetry;
 using OpenTelemetry;
+using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 namespace Altinn.Studio.Gateway.Api.Hosting;
@@ -11,46 +13,29 @@ internal static class OpenTelemetryExtensions
 {
     public static WebApplicationBuilder AddOpenTelemetry(this WebApplicationBuilder builder)
     {
-        builder
-            .Services.AddOpenTelemetry()
-            .WithTracing(tracing =>
-            {
-                tracing
-                    .AddSource(ServiceTelemetry.Source.Name)
-                    .AddProcessor(new AlwaysSampleTagProcessor())
-                    .AddAspNetCoreInstrumentation(options =>
-                    {
-                        options.RecordException = true;
-                        options.Filter = ctx => !ctx.Request.Path.StartsWithSegments("/health");
-                    })
-                    .AddHttpClientInstrumentation(options => options.RecordException = true)
-                    .AddOtlpExporter();
-            })
-            .WithMetrics(metrics =>
-            {
-                metrics
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation()
-                    .AddOtlpExporter();
-            });
-
-        builder.Logging.AddOpenTelemetry(logging =>
+        builder.Services.Configure<AspNetCoreTraceInstrumentationOptions>(options =>
         {
-            logging.IncludeFormattedMessage = true;
-            logging.IncludeScopes = true;
-            logging.ParseStateValues = true;
-            logging.AddOtlpExporter();
+            options.Filter = static context => !HealthEndpoints.IsHealthCheck(context.Request);
+            options.EnrichWithHttpResponse = RequestTelemetry.EnrichWithHttpResponse;
         });
+        builder.Services.Configure<OpenTelemetryLoggerOptions>(options => options.IncludeScopes = true);
+
+        builder
+            .Services.AddAltinnStudioOpenTelemetry(builder.Configuration, typeof(OpenTelemetryExtensions).Assembly)
+            .WithTracing(tracing =>
+                tracing.AddSource(ServiceTelemetry.Source.Name).AddProcessor(new AlwaysSampleProcessor())
+            )
+            .WithMetrics(metrics => metrics.AddMeter(ServiceTelemetry.Name));
 
         return builder;
     }
 
-    private sealed class AlwaysSampleTagProcessor : BaseProcessor<Activity>
+    /// <summary>
+    /// Keeps every trace the gateway takes part in. Its callers are Designer, Flux and Grafana, at a low rate, and a
+    /// trace often continues one of Designer's, such as a deploy, which this cluster's sampler can't see.
+    /// </summary>
+    private sealed class AlwaysSampleProcessor : BaseProcessor<Activity>
     {
-        public override void OnStart(Activity data)
-        {
-            data.SetAlwaysSample();
-        }
+        public override void OnStart(Activity data) => data.SetAlwaysSample();
     }
 }

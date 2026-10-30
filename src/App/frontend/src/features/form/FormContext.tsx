@@ -46,6 +46,9 @@ export const FormStore = {
   useIsReadOnly() {
     return FormStore.raw.useSelector((state) => state.readOnly);
   },
+  useIsInstanceLocked() {
+    return FormStore.raw.useLaxSelector((state) => state.instanceLocked) === true;
+  },
   raw: {
     ...raw,
     useRawDelayedSelector: (): FormStoreRawDelayedSelector =>
@@ -76,6 +79,11 @@ export interface FormStoreState {
   // prevent any write operations from happening in case components inside try to write new form data, but it will
   // prevent automatic effects from happening.
   readOnly: boolean;
+
+  // True on a service task's own page. The task owns the instance until the process moves on, and the server rejects
+  // every change until then, so the form is read-only and locked: components render as read-only and buttons that
+  // change the instance are disabled. Never set in PDF mode.
+  instanceLocked: boolean;
 
   data: FormDataSliceState & FormDataMethods;
   attachments: AttachmentsSliceState;

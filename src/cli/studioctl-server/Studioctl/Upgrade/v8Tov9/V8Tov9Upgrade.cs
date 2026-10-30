@@ -276,11 +276,22 @@ internal static class V8Tov9Upgrade
             );
         }
 
+        // After the layout-set conversion, so a subform PDF task's folder is ui/<taskId> and the subform's folder is
+        // named after its layout set, and before the service task page step, which deals with what the task's folder
+        // holds once the Subform component copy is gone.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateSubformPdfConfig(projectFolder));
+
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateInvalidValidationMasks(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateIndexCshtml(projectFolder));
+
+        // After the layout migrations and the layout-set conversion, so a service task's folder is ui/<taskId> and
+        // holds v9 layouts.
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateServiceTaskPages(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigratePdfServiceTasks(projectFolder));
@@ -290,6 +301,9 @@ internal static class V8Tov9Upgrade
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await MigrateEFormidlingServiceTasks(projectFolder));
+
+        options.CancellationToken.ThrowIfCancellationRequested();
+        returnCode = CombineExitCodes(returnCode, await MigrateInsertedServiceTaskPolicy(projectFolder));
 
         options.CancellationToken.ThrowIfCancellationRequested();
         returnCode = CombineExitCodes(returnCode, await WarnFeedbackTasksBehindServiceTasks(projectFolder));
@@ -1858,6 +1872,28 @@ internal static class V8Tov9Upgrade
         }
     }
 
+    /// <summary>
+    /// Rewrites each subform PDF task to name the subform's UI folder in subformUiFolder, and removes the Subform
+    /// component copy from the task's own UI folder.
+    /// </summary>
+    static async Task<int> MigrateSubformPdfConfig(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Subform PDF tasks");
+        try
+        {
+            var result = await SubformPdfConfigMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No subform PDF tasks to migrate",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error migrating subform PDF tasks", ex);
+        }
+    }
+
     static async Task<int> MigrateInvalidValidationMasks(string projectFolder)
     {
         UpgradeConsole.BeginStep("Invalid input validation lists");
@@ -1885,6 +1921,29 @@ internal static class V8Tov9Upgrade
         catch (Exception ex)
         {
             return Fail("Error migrating Index.cshtml", ex);
+        }
+    }
+
+    /// <summary>
+    /// Removes the page Altinn Studio generated and empty pages from each service task's UI folder, and a folder
+    /// left with nothing the app reads, and reports the other pages the folders list, which v9 shows while the task
+    /// runs.
+    /// </summary>
+    static async Task<int> MigrateServiceTaskPages(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("Service task pages");
+        try
+        {
+            var result = await ServiceTaskPageMigration.Migrate(projectFolder);
+            return ReportMigrationResult(
+                result,
+                cleanText: "No service task lists a page",
+                cleanStatus: UpgradeMessageStatus.Skip
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error checking the pages of service tasks", ex);
         }
     }
 
@@ -1951,7 +2010,30 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 11: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
+    /// Job 11: give users read/write on the PDF and eFormidling service tasks jobs 8 and 10 insert, where
+    /// the policy grants them those actions only in the task each service task follows. Runs after both,
+    /// so it sees every service task they insert.
+    /// </summary>
+    static async Task<int> MigrateInsertedServiceTaskPolicy(string projectFolder)
+    {
+        UpgradeConsole.BeginStep("User access to inserted service tasks");
+        try
+        {
+            var migrator = new PolicyMigration.InsertedServiceTaskPolicyMigrator(projectFolder);
+            var result = await migrator.Migrate();
+            return ReportMigrationResult(
+                result,
+                cleanText: "No user rule needs extending to the inserted service tasks"
+            );
+        }
+        catch (Exception ex)
+        {
+            return Fail("Error extending user rules to the inserted service tasks", ex);
+        }
+    }
+
+    /// <summary>
+    /// Job 12: warn about feedback tasks sitting behind service tasks - a v8 waiting pattern the v9
     /// implicit waiting step makes redundant. Advisory only (never rewrites the process); runs after
     /// the PDF/eFormidling migrations so service tasks they insert are included in the analysis.
     /// </summary>
@@ -1975,7 +2057,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 12: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
+    /// Job 13: remove the Fiks Arkiv moveToNextTask settings v9 no longer has (a concluded Fiks Arkiv task
     /// always moves the process on), say what changes where they were false, and point out a Fiks Arkiv task
     /// not followed by the exclusive gateway the v9 app requires at startup.
     /// </summary>
@@ -1999,7 +2081,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 13: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
+    /// Job 14: rename the misspelled allowedContributers property on the data types in applicationmetadata.json
     /// to allowedContributors, the only spelling the application metadata schema accepts.
     /// </summary>
     static async Task<int> MigrateAllowedContributors(string projectFolder)
@@ -2021,7 +2103,7 @@ internal static class V8Tov9Upgrade
     }
 
     /// <summary>
-    /// Job 14: let the data types the v9 app stores generated files in (a payment receipt, a signing PDF, signee
+    /// Job 15: let the data types the v9 app stores generated files in (a payment receipt, a signing PDF, signee
     /// states, ref-data-as-pdf) accept the content types of those files. v9 refuses a file whose content type a
     /// data type's allowedContentTypes leaves out; v8 did not check.
     /// </summary>

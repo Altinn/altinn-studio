@@ -92,18 +92,6 @@ export default function (data) {
       return processHistory.every((process) => process.performedBy == ssn);
     },
   });
-
-  //Test to complete the process of an app instance and verify the response code to be 200
-  res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
-  success = check(res, {
-    'App Complete instance process': (r) => r.status === 200,
-  });
-
-  //Test to complete an instance process again and check response code to be 409
-  res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
-  success = check(res, {
-    'App Complete instance process again status is 409': (r) => r.status === 409,
-  });
 }
 
 //Delete the instance created

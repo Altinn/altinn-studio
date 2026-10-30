@@ -205,6 +205,7 @@ public class WorkflowEngineCallbackControllerTests
             OperationId = requests[0].Workflows[0].OperationId,
             CreatedAt = referenceTime,
             OverallStatus = PersistentItemStatus.Enqueued,
+            Role = WorkflowRole.Primary,
             Dependencies = new Dictionary<Guid, PersistentItemStatus>
             {
                 [setup.WorkflowId] = PersistentItemStatus.Processing,
@@ -454,6 +455,7 @@ public class WorkflowEngineCallbackControllerTests
             .Callback<Uri, string?, StorageAuthenticationMethod?, CancellationToken>((uri, _, _, _) => pdfUri = uri)
             .ReturnsAsync(() => "%PDF"u8.ToArray());
         var processReader = new Mock<IProcessReader>();
+        processReader.Setup(r => r.GetProcessTasks()).Returns([]);
         processReader
             .Setup(r => r.GetAltinnTaskExtension("PdfTask_1"))
             .Returns(
@@ -1246,6 +1248,8 @@ public class WorkflowEngineCallbackControllerTests
                 MaxCount = 10,
             }
         );
+        // Callback state capture reads the process for the signee-state data types it carries.
+        services.Mock<IProcessReader>().Setup(reader => reader.GetProcessTasks()).Returns([]);
         configureServices(services);
         services.Mock<IWorkflowEngineService>();
         services.Services.AddSingleton<WorkflowCallbackStateService>();
@@ -1376,7 +1380,9 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public async Task<ServiceTaskResult> Execute(StageContext context)
         {
             await context.InstanceDataMutator.GetBinaryData(new DataElementIdentifier(dataElementId));
             return ServiceTaskResult.Success();
@@ -1389,9 +1395,11 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public ServiceTaskContext? ReceivedContext { get; private set; }
+        public StageContext? ReceivedContext { get; private set; }
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ReceivedContext = context;
             if (stageMutation)
@@ -1414,7 +1422,9 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             context.InstanceDataMutator.AddBinaryDataElement(
                 DataTypeId,
@@ -1432,7 +1442,9 @@ public class WorkflowEngineCallbackControllerTests
 
         public string Type => ServiceTaskType;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) =>
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) =>
             Task.FromResult<ServiceTaskResult>(ServiceTaskResult.FailedRetryable("Expected failure"));
     }
 

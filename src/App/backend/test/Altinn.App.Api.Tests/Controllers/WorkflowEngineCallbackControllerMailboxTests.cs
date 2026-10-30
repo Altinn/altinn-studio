@@ -58,15 +58,15 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// receiver.
     /// </param>
     private sealed class RelayProbeTask(
-        Func<ServiceTaskContext, ServiceTaskReply, ServiceTaskExchangeResult> onMessage,
-        Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult> onClosed,
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null,
+        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult> onMessage,
+        Func<StageContext, MailboxClosedReason, ServiceTaskResult> onClosed,
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend = null,
         bool trailingStage = false
-    ) : IPipelineServiceTask
+    ) : IServiceTask
     {
         public string Type => ServiceTaskType;
 
-        public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline)
         {
             pipeline.Stage(
                 (context, mailbox) =>
@@ -79,7 +79,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
 
             if (trailingStage)
             {
-                pipeline.Stage(_ => Task.FromResult(ServiceTaskStageResult.Completed()));
+                pipeline.Stage(_ => Task.FromResult(StageResult.Completed()));
             }
 
             return pipeline.ConcludeOnReplies(
@@ -209,8 +209,8 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// </summary>
     private Task<CallbackOutcome> RunReceiveCallback(
         AppCallbackMailbox mailbox,
-        Func<ServiceTaskContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage = null,
-        Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult>? onClosed = null
+        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage = null,
+        Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed = null
     ) =>
         RunCallback(
             mailbox,
@@ -226,7 +226,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// right after it, so its completion starts that exchange's receive leg; nothing in its payload says so.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallback(
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
     ) =>
         RunCallback(
             mailbox: null,
@@ -241,7 +241,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     /// same payload, and its completion starts the workflow carrying that stage instead.
     /// </summary>
     private Task<CallbackOutcome> RunSendStageCallbackWithTrailingStage(
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult> onSend
     ) =>
         RunCallback(
             mailbox: null,
@@ -255,9 +255,9 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
     private async Task<CallbackOutcome> RunCallback(
         AppCallbackMailbox? mailbox,
         ExecuteServiceTaskPayload stepPayload,
-        Func<ServiceTaskContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage,
-        Func<ServiceTaskContext, MailboxClosedReason, ServiceTaskResult>? onClosed,
-        Func<ServiceTaskContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
+        Func<StageContext, ServiceTaskReply, ServiceTaskExchangeResult>? onMessage,
+        Func<StageContext, MailboxClosedReason, ServiceTaskResult>? onClosed,
+        Func<StageContext, ServiceTaskMailbox, ServiceTaskOpeningStageResult>? onSend,
         Exception? engineThrowsOnEnqueue = null,
         CallRecorder? recorder = null,
         bool trailingStage = false
@@ -272,7 +272,7 @@ public class WorkflowEngineCallbackControllerMailboxTests : ApiTestBase, IClassF
             App,
             configureServices: services =>
             {
-                services.AddSingleton<IPipelineServiceTask>(
+                services.AddSingleton<IServiceTask>(
                     new RelayProbeTask(
                         onMessage ?? ((_, _) => throw new InvalidOperationException("Unexpected message handler")),
                         onClosed ?? ((_, _) => throw new InvalidOperationException("Unexpected closure handler")),

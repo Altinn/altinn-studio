@@ -15,6 +15,7 @@ public sealed class TaskConfigurationAnalyzer : DiagnosticAnalyzer
             Diagnostics.Process.TaskSettingInvalid,
             Diagnostics.Process.TaskConfigurationElementIgnored,
             Diagnostics.Process.UnusableEnvironmentAttribute,
+            Diagnostics.Deprecations.SubformPdfComponentSettings,
         ];
 
     public override void Initialize(AnalysisContext context)

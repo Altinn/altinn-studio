@@ -16,6 +16,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using AppProcessState = Altinn.App.Core.Internal.Process.Elements.AppProcessState;
 using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
 namespace Altinn.App.Api.Controllers;

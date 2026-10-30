@@ -273,6 +273,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
             UPDATE engine.steps
             SET status = {(int)PersistentItemStatus.Failed},
                 requeue_count = 2,
+                first_failed_at = {deferredAt},
                 defer_count = 3,
                 first_deferred_at = {deferredAt},
                 last_deferred_at = {deferredAt},
@@ -298,6 +299,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
         Assert.Equal(0, step.RequeueCount);
+        Assert.Null(step.FirstFailedAt);
         Assert.Equal(0, step.DeferCount);
         Assert.Null(step.FirstDeferredAt);
         Assert.Null(step.LastDeferredAt);

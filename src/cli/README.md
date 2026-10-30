@@ -1,192 +1,56 @@
 # studioctl
 
-`studioctl` is the CLI for local development of Altinn Studio apps.
+`studioctl` is the CLI for local development of Altinn Studio apps. It clones an app from Studio, starts the local
+environment the app runs against, and runs the app. It installs with `studioctl-server`, a .NET process that commands
+start when they need it, and the resources for [localtest](../Runtime/localtest/README.md).
 
-Designer is the easiest path for app development in Altinn Studio, but some work still requires local code changes.
-Historically, that local setup has required manual cloning, separate localtest setup, and container tooling details.
-`studioctl` is intended to remove that friction and give app developers one entrypoint.
-
-## Goals
-
-- Keep local development closer to the Designer developer experience
-- Hide Docker/Podman and localtest setup details as much as possible
-- Reduce copy/paste setup guides and environment-specific manual steps
-
-## Quick start (app developers)
-
-Install `studioctl`:
-
-```sh
-curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh
-```
-
-Windows (PowerShell):
-
-```powershell
-iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
-```
-
-The install flow also installs `studioctl-server` and localtest resources by default.
-If no terminal prompt is available, the installer uses the recommended writable user location.
-It stops running apps, localtest, and `studioctl-server` before replacement.
-`studioctl-server` starts later when a command needs it.
-
-Pin to a specific version:
-
-```sh
-curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh -s -- --version v0.1.0-preview.1
-```
-
-Log in, clone, start localtest, and run the app:
-
-```sh
-studioctl auth login --env dev
-studioctl app clone --env dev <org>/<repo>
-cd <repo>
-studioctl env up
-studioctl app run
-```
-
-`studioctl auth login` opens Designer for Ansattporten login and stores a Designer API key locally.
-`studioctl app clone` also accepts Studio repository URLs, with or without the `.git` extension, and
-selects the environment from the URL (for example `https://dev.altinn.studio/repos/<org>/<repo>.git`).
-For agents and automations, pass an existing Studio/Designer API key on standard input:
-
-```sh
-studioctl auth login --env dev --with-token < token.txt
-```
-
-`studioctl app run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
-`studioctl run` is a short alias for the same operation.
-`studioctl app env --json` prints the local harness environment used by v9 app startup when running from an IDE.
-`studioctl app maskinporten set` stores the Maskinporten client an app uses for local runs - to send a
-Fiks Arkiv test shipment, say - asking for the environment, client id and key, or reading the client as JSON
-from `--file` or a pipe. studioctl provisions it to the app the way Studio does when
-the app is deployed, so the app never reads Maskinporten credentials from its own configuration; a running
-app picks up a stored client without a restart. A section pasted out of a v8 app's appsettings file, name
-and all, is accepted as input.
-
-## Core commands
-
-- `studioctl auth login`: login with Ansattporten or `--with-token` for `prod`, `dev`, `staging`, or `local`
-- `studioctl apps search`: search app repositories in Altinn Studio
-- `studioctl app clone`: clone `org/repo` or a Studio repository URL from the selected or inferred environment
-- `studioctl app run`: run app locally
-- `studioctl app env`: print local app harness environment as KEY=value text (`--json` for JSON output)
-- `studioctl app maskinporten`: store the Maskinporten client the app uses for local runs (`set`, `show`, `remove`)
-- `studioctl agent skills`: list, locate, and install Agent Skills distributed with studioctl
-- `studioctl env up`: start localtest
-- `studioctl env down`: stop localtest
-- `studioctl env status`: show runtime/container status
-- `studioctl env logs`: stream logs from localtest containers
-- `studioctl run`: alias for `studioctl app run`
-- `studioctl doctor`: diagnose prerequisites and environment issues
+App developers install and use it as
+[docs.altinn.studio](https://docs.altinn.studio/en/altinn-studio/v8/guides/development/local-dev/) describes.
+`studioctl --help` lists the commands. The App backend and App frontend test workflows run their test apps through the
+[setup-studioctl action](../../.github/actions/setup-studioctl/action.yaml).
 
 ## Which images the environment runs
 
-`studioctl env up` keeps the local environment close to the real thing: the newest localtest
-build, and the PDF and workflow engine builds deployed to tt02. It checks all three for a
-newer build every time it starts the environment; a running environment keeps what it started
-with until `env down` and `env up`. If the registry cannot be reached, it starts on the images
-already on your machine.
+`studioctl env up` runs the newest localtest build from `main`, and the pdf3 and workflow engine builds that tt02 runs.
+It checks for newer builds each time it starts the environment, and starts with the images already on the machine
+when it cannot reach the registry. [images.go](internal/config/images.go) pins the other images and names the
+variable that overrides each one, such as `STUDIOCTL_IMAGE_WORKFLOW_ENGINE`.
 
-`studioctl env status` shows each container's image and the build it is running — worth quoting in
-a bug report, since the tags that follow tt02 move whenever a new build is deployed.
+`studioctl env status` shows the build each container runs. Quote it in a bug report, since the tags that follow tt02
+move with each deployment.
 
-To run a specific build instead, set the matching variable for the session:
+studioctl supplies the configuration of the containers it starts, so a change to that configuration must keep working
+with the previous studioctl release. [Runtime's README](../Runtime/README.md#images-the-local-environment-runs) has
+the rule.
 
-```sh
-STUDIOCTL_IMAGE_WORKFLOW_ENGINE=ghcr.io/altinn/altinn-studio/runtime-workflow-engine-app:a45a743b78 \
-  studioctl env up
-```
+## Development
 
-## Install from source (for contributors)
+`make user-install` installs studioctl, `studioctl-server` and the localtest resources from source, the same way the
+install scripts do. `make dev-install` installs them into `build/dev-home` instead, and `make dev-run CMD="env up"`
+runs that installation.
 
-```sh
-cd src/cli
-make user-install
-```
+- `make dev-install` publishes `studioctl-server` in Release configuration, which CI builds with warnings as errors.
+  It can fail where `make test` passed. Before you push .NET changes, run `dotnet clean studioctl.slnx`,
+  `CI=true make test` and `make dev-install`.
+- On macOS, `make dev-run` in a deeply nested checkout, such as a worktree, fails with `connect: invalid argument`,
+  because the socket path for `studioctl-server` is too long. Set `STUDIOCTL_SOCKET_DIR` to a short directory.
+- The top level of `internal/cmd` parses commands, orchestrates and renders output. The work lives in its subpackages
+  and the rest of `internal`.
+- Output states facts in a line: what is configured or wrong, and the command that changes it. It gives no advice
+  prose, and no paths to files that studioctl manages.
+- The [app-development skill](../../agents/_skills/app-development/SKILL.md) ships with studioctl, for the app
+  developers who use it. Update it in the pull request that changes studioctl's flags, output or behavior.
+- The .NET libraries in [common](common/README.md) belong to `studioctl.slnx`, so `make test` tests them.
+- [Releasing](../../docs/releasing.md) says how to create the release pull request. Merging it runs
+  [release-studioctl.yaml](../../.github/workflows/release-studioctl.yaml).
 
-That installs `studioctl`, `studioctl-server`, and localtest resources into your user setup.
-It uses the same upgrade-safe flow as the release install scripts.
+## Run against local builds
 
-Development loop:
+`STUDIOCTL_INTERNAL_DEV=true studioctl env up`, run inside the altinn-studio checkout, builds the localtest, pdf3 and
+workflow engine images from the checkout instead of pulling releases. CI sets the same variable, so a local run tests
+the app against the services the way CI does. `env up --dev-workflow-engine` routes the workflow engine to a process
+on the host.
 
-```sh
-make build
-make lint-fix
-make fmt
-make lint
-make test
-```
-
-## Running a fully local build (contributors)
-
-By default `studioctl env up` pulls pre-built release images from GHCR and
-`studioctl run` serves the released app frontend bundled into the app image. When you
-are changing the runtime/platform services or the app frontend themselves, you can build
-and serve everything from your local checkout instead.
-
-### Build the environment images from local source
-
-Set `STUDIOCTL_INTERNAL_DEV=true` and run `env up` from **inside your altinn-studio
-checkout**:
-
-```sh
-cd altinn-studio          # anywhere inside the monorepo working tree
-STUDIOCTL_INTERNAL_DEV=true studioctl env up
-```
-
-In this mode studioctl builds the `localtest`, `pdf3`, and `workflow-engine` images from
-the Dockerfiles in your working tree instead of pulling release images. It confirms this
-with a `Building and starting localtest environment (dev mode)...` message, and the first
-run is slower because the images are built locally.
-
-Requirements and behavior:
-
-- The current directory must be within a Studio repo checkout. studioctl detects the repo
-  root and expects `src/Runtime/localtest/Dockerfile` to exist.
-- If `STUDIOCTL_INTERNAL_DEV` is set but no Studio repo is detected (or the Dockerfile is
-  missing), studioctl prints a warning and falls back to release images.
-- Truthy values are `1` and `true` (case-insensitive); anything else is treated as unset.
-- This is the same switch CI uses to build the engine/platform services from the PR source,
-  so a local dev-mode run exercises the same app⇄services contract as CI.
-
-To go back to release images, simply run `studioctl env up` again without the variable
-(after `studioctl env down`).
-
-### Serve the app against the frontend dev server
-
-To run your app against a locally served **app frontend** (`src/App/frontend`) instead of
-the released bundle, start the frontend dev server and pass `--dev-frontend`:
-
-```sh
-# 1. Start the app frontend dev server (listens on host port 8080)
-cd src/App/frontend
-yarn                       # only when dependencies changed
-yarn start
-
-# 2. In another terminal, run your app pointed at that dev server
-cd <your-app-repo>
-studioctl run --dev-frontend
-```
-
-`--dev-frontend` sets `AppSettings__AppFrontendAssetBaseUrl` to
-`http://app-frontend.local.altinn.cloud:8000`, which the localtest ingress host-bridges to
-the dev server on host port `8080`. The `app-frontend.local.altinn.cloud` hostname must
-resolve on your machine — ensure the studioctl-managed hosts entries are present with:
-
-```sh
-studioctl env hosts add      # env up does not modify the hosts file for you
-```
-
-The same flag works on `studioctl app run --dev-frontend` and on
-`studioctl app env --dev-frontend --json`, the latter being useful to feed the environment
-into an IDE run configuration.
-
-> Related: `studioctl env up --dev-workflow-engine` routes the workflow-engine component to
-> a host process instead of a container, for the equivalent loop on that service.
-
-The two switches are independent and compose: run `STUDIOCTL_INTERNAL_DEV=true studioctl
-env up` for locally built services and `studioctl run --dev-frontend` for a locally served
-frontend, together or separately.
+`studioctl run --dev-frontend` points the app at the App frontend's `yarn start` dev server on port 8080. Run
+`studioctl env hosts add` first, since the app loads the frontend from `app-frontend.local.altinn.cloud`.
+`app env --dev-frontend` prints the same environment for an IDE.

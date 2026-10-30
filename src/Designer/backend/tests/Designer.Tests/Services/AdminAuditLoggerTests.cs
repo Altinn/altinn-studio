@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,6 +71,53 @@ public class AdminAuditLoggerTests
 
         _repositoryMock.Verify(
             r => r.UpdateStatusAsync(EntryId, AdminAuditStatuses.Failed, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task LogWorkflowActionRequestedAsync_WritesRequestedEntryWithTheWorkflowAndReturnsEntryId()
+    {
+        var workflowId = Guid.NewGuid();
+        AdminAuditLogEntry capturedEntry = null;
+        _repositoryMock
+            .Setup(r => r.AddAsync(It.IsAny<AdminAuditLogEntry>(), It.IsAny<CancellationToken>()))
+            .Callback<AdminAuditLogEntry, CancellationToken>((entry, _) => capturedEntry = entry)
+            .ReturnsAsync(EntryId);
+        var auditLogger = CreateAuditLogger();
+
+        long entryId = await auditLogger.LogWorkflowActionRequestedAsync(
+            Org,
+            Env,
+            App,
+            InstanceId,
+            workflowId,
+            AdminAuditActions.FailWorkflow
+        );
+
+        Assert.Equal(EntryId, entryId);
+        Assert.NotNull(capturedEntry);
+        Assert.Equal(InstanceId, capturedEntry.InstanceId);
+        Assert.Equal(workflowId, capturedEntry.WorkflowId);
+        Assert.Equal(AdminAuditActions.FailWorkflow, capturedEntry.Action);
+        Assert.Equal(AdminAuditStatuses.Requested, capturedEntry.Status);
+        Assert.Equal(UserName, capturedEntry.UserName);
+    }
+
+    [Fact]
+    public async Task LogWorkflowActionCompletedAndFailedAsync_UpdateTheEntryStatus()
+    {
+        var auditLogger = CreateAuditLogger();
+
+        await auditLogger.LogWorkflowActionCompletedAsync(EntryId);
+        await auditLogger.LogWorkflowActionFailedAsync(EntryId + 1);
+
+        _repositoryMock.Verify(
+            r => r.UpdateStatusAsync(EntryId, AdminAuditStatuses.Completed, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
+        _repositoryMock.Verify(
+            r => r.UpdateStatusAsync(EntryId + 1, AdminAuditStatuses.Failed, It.IsAny<CancellationToken>()),
             Times.Once
         );
     }

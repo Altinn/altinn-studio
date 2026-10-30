@@ -28,12 +28,14 @@ public class SubformPdfServiceTaskTests
     private readonly Mock<ITranslationService> _translationServiceMock = new();
     private readonly Mock<ILogger<SubformPdfServiceTask>> _loggerMock = new();
     private readonly Mock<IProcessReader> _processReaderMock = new();
+    private readonly Mock<IAppResources> _appResourcesMock = new();
     private readonly SubformPdfServiceTask _serviceTask;
 
     private const string DataElementId1 = "bb09a8ef-ec2e-484e-acd7-f821b73908cb";
     private const string DataElementId2 = "369b633c-405d-4f3e-8e64-7c2d67d785a9";
     private const string DataElementId3 = "174245e1-fd83-418a-9f2e-0941eb5271c8";
-    private const string SubformComponentId = "subform-mopeder";
+    private const string OtherDataElementId = "5d0f6c4e-2b8a-4f1e-9c3d-7a6b5e4d3c2b";
+    private const string SubformUiFolder = "Subform";
     private const string SubformDataTypeId = "subform-data-type";
     private const string FileName = "customFilenameTextResourceKey";
 
@@ -63,8 +65,11 @@ public class SubformPdfServiceTaskTests
             )
             .ReturnsAsync("subform.pdf");
 
+        SetupSubformFolder();
+
         _serviceTask = new SubformPdfServiceTask(
             _processReaderMock.Object,
+            _appResourcesMock.Object,
             _pdfServiceMock.Object,
             _translationServiceMock.Object,
             _loggerMock.Object
@@ -83,7 +88,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
 
         // Verify that GenerateSubformPdf was called for each data element
         _pdfServiceMock.Verify(
@@ -91,7 +96,7 @@ public class SubformPdfServiceTaskTests
                 x.GenerateSubformPdf(
                     It.IsAny<Instance>(),
                     "taskId",
-                    It.Is<SubformPdfContext>(ctx => ctx.ComponentId == SubformComponentId),
+                    It.Is<SubformPdfContext>(ctx => ctx.UiFolder == SubformUiFolder),
                     "en",
                     false,
                     It.Is<StorageAuthenticationMethod?>(auth => auth == StorageAuthenticationMethod.ServiceOwner()),
@@ -117,7 +122,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
 
         // Verify that GenerateSubformPdf was not called
         _pdfServiceMock.Verify(
@@ -199,7 +204,7 @@ public class SubformPdfServiceTaskTests
                     It.IsAny<Instance>(),
                     It.IsAny<string>(),
                     It.Is<SubformPdfContext>(subform =>
-                        subform.ComponentId == SubformComponentId
+                        subform.UiFolder == SubformUiFolder
                         && (subform.DataElementId == DataElementId1 || subform.DataElementId == DataElementId2)
                     ),
                     It.IsAny<string>(),
@@ -249,9 +254,7 @@ public class SubformPdfServiceTaskTests
                         It.Is<List<KeyValueEntry>?>(metadata =>
                             metadata != null
                             && metadata.Count == 2
-                            && metadata.Any(entry =>
-                                entry.Key == "subformComponentId" && entry.Value == SubformComponentId
-                            )
+                            && metadata.Any(entry => entry.Key == "subformUiFolder" && entry.Value == SubformUiFolder)
                             && metadata.Any(entry =>
                                 entry.Key == "subformDataElementId" && entry.Value == dataElementId
                             )
@@ -265,22 +268,10 @@ public class SubformPdfServiceTaskTests
     // ===== CONFIGURATION VALIDATION TESTS =====
 
     [Fact]
-    public async Task Execute_WithMissingSubformComponentId_Should_ThrowApplicationConfigException()
+    public async Task Execute_WithMissingSubformUiFolder_Should_ThrowApplicationConfigException()
     {
         // Arrange
-        _processReaderMock
-            .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
-            .Returns(
-                new AltinnTaskExtension
-                {
-                    TaskType = "subformPdf",
-                    SubformPdfConfiguration = new AltinnSubformPdfConfiguration
-                    {
-                        SubformComponentId = null, // Missing
-                        SubformDataTypeId = SubformDataTypeId,
-                    },
-                }
-            );
+        SetupProcessReader(subformUiFolder: null);
 
         var instance = CreateInstanceWithSubformData();
         var context = CreateServiceTaskContext(instance);
@@ -289,35 +280,51 @@ public class SubformPdfServiceTaskTests
         var exception = await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
             await _serviceTask.Execute(context)
         );
-        Assert.Contains("SubformComponentId", exception.Message);
+        Assert.Contains("SubformUiFolder is missing", exception.Message);
     }
 
     [Fact]
-    public async Task Execute_WithMissingSubformDataTypeId_Should_ThrowApplicationConfigException()
+    public async Task Execute_Selects_The_Entries_By_The_Data_Type_Of_The_Subform_Folder()
     {
-        // Arrange
-        _processReaderMock
-            .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
-            .Returns(
-                new AltinnTaskExtension
-                {
-                    TaskType = "subformPdf",
-                    SubformPdfConfiguration = new AltinnSubformPdfConfiguration
-                    {
-                        SubformComponentId = SubformComponentId,
-                        SubformDataTypeId = null, // Missing
-                    },
-                }
-            );
-
+        // Arrange - the folder's defaultDataType decides which data elements are entries
+        SetupSubformFolder("other-type");
+        SetupProcessReader();
         var instance = CreateInstanceWithSubformData();
         var context = CreateServiceTaskContext(instance);
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ApplicationConfigException>(async () =>
-            await _serviceTask.Execute(context)
+        // Act
+        var result = await _serviceTask.Execute(context);
+
+        // Assert
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
+        _pdfServiceMock.Verify(
+            x =>
+                x.GenerateSubformPdf(
+                    It.IsAny<Instance>(),
+                    "taskId",
+                    It.Is<SubformPdfContext>(ctx =>
+                        ctx.UiFolder == SubformUiFolder && ctx.DataElementId == OtherDataElementId
+                    ),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
         );
-        Assert.Contains("SubformDataTypeId", exception.Message);
+        _pdfServiceMock.Verify(
+            x =>
+                x.GenerateSubformPdf(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<SubformPdfContext>(),
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -332,8 +339,7 @@ public class SubformPdfServiceTaskTests
                     TaskType = "subformPdf",
                     SubformPdfConfiguration = new AltinnSubformPdfConfiguration
                     {
-                        SubformComponentId = SubformComponentId,
-                        SubformDataTypeId = SubformDataTypeId,
+                        SubformUiFolder = SubformUiFolder,
                         FilenameTextResourceKey = "   ", // Whitespace only
                     },
                 }
@@ -528,7 +534,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
@@ -556,7 +562,7 @@ public class SubformPdfServiceTaskTests
         var result = await _serviceTask.Execute(context);
 
         // Assert
-        result.Should().BeOfType<ServiceTaskSuccessResult>();
+        result.Should().BeOfType<SuccessfulServiceTaskResult>();
         _pdfServiceMock.Verify(
             x =>
                 x.GenerateSubformPdf(
@@ -623,21 +629,48 @@ public class SubformPdfServiceTaskTests
     }
 
     [Theory]
-    [InlineData(null, SubformDataTypeId, nameof(AltinnSubformPdfConfiguration.SubformComponentId))]
-    [InlineData(" ", SubformDataTypeId, nameof(AltinnSubformPdfConfiguration.SubformComponentId))]
-    [InlineData(SubformComponentId, null, nameof(AltinnSubformPdfConfiguration.SubformDataTypeId))]
-    [InlineData(SubformComponentId, "", nameof(AltinnSubformPdfConfiguration.SubformDataTypeId))]
-    public void ValidateConfiguration_MissingRequiredField_ReturnsFinding(
-        string? subformComponentId,
-        string? subformDataTypeId,
-        string field
-    )
+    [InlineData(null)]
+    [InlineData(" ")]
+    public void ValidateConfiguration_MissingSubformUiFolder_ReturnsFinding(string? subformUiFolder)
     {
-        SetupProcessReader(subformComponentId, subformDataTypeId);
+        SetupProcessReader(subformUiFolder);
 
         string finding = Assert.Single(_serviceTask.ValidateConfiguration(ValidationContext()));
 
-        Assert.Contains($"{field} is missing", finding);
+        Assert.Contains($"{nameof(AltinnSubformPdfConfiguration.SubformUiFolder)} is missing", finding);
+    }
+
+    [Fact]
+    public void ValidateConfiguration_UnknownSubformUiFolder_ReturnsFinding()
+    {
+        SetupProcessReader("Unknown");
+
+        string finding = Assert.Single(_serviceTask.ValidateConfiguration(ValidationContext()));
+
+        Assert.Contains("the app has no UI folder 'ui/Unknown' with a Settings.json", finding);
+    }
+
+    [Fact]
+    public void ValidateConfiguration_SubformUiFolderOfATask_ReturnsFinding()
+    {
+        // The task's folder holds the main form, so its entries would be the main form's data
+        SetupProcessReader("Task_1");
+        _processReaderMock.Setup(x => x.IsProcessTask("Task_1")).Returns(true);
+
+        string finding = Assert.Single(_serviceTask.ValidateConfiguration(ValidationContext()));
+
+        Assert.Contains("'ui/Task_1' is the UI folder of the task 'Task_1', not of a subform", finding);
+    }
+
+    [Fact]
+    public void ValidateConfiguration_SubformUiFolderWithoutDefaultDataType_ReturnsFinding()
+    {
+        SetupProcessReader();
+        SetupSubformFolder(defaultDataType: null);
+
+        string finding = Assert.Single(_serviceTask.ValidateConfiguration(ValidationContext()));
+
+        Assert.Contains("'ui/Subform/Settings.json' has no defaultDataType", finding);
     }
 
     [Theory]
@@ -652,7 +685,7 @@ public class SubformPdfServiceTaskTests
             _serviceTask.ValidateConfiguration(ValidationContext([new DataType { Id = declaredDataTypeId }]))
         );
 
-        Assert.Contains($"subform data type '{SubformDataTypeId}'", finding);
+        Assert.Contains($"defaultDataType '{SubformDataTypeId}' does not exist", finding);
         Assert.Contains("applicationmetadata.json", finding);
     }
 
@@ -663,7 +696,7 @@ public class SubformPdfServiceTaskTests
 
         string message = exception.Message;
         Assert.Contains("Task 'Task_SubformPdf': ", message);
-        Assert.Contains($"subform data type '{SubformDataTypeId}'", message);
+        Assert.Contains($"defaultDataType '{SubformDataTypeId}' does not exist", message);
     }
 
     [Fact]
@@ -697,8 +730,7 @@ public class SubformPdfServiceTaskTests
                         TaskType = "subformPdf",
                         SubformPdfConfiguration = new AltinnSubformPdfConfiguration
                         {
-                            SubformComponentId = SubformComponentId,
-                            SubformDataTypeId = SubformDataTypeId,
+                            SubformUiFolder = SubformUiFolder,
                             FilenameTextResourceKey = FileName,
                         },
                     },
@@ -721,6 +753,7 @@ public class SubformPdfServiceTaskTests
         services.AddLogging();
         services.AddAppImplementationFactory();
         services.AddSingleton(_processReaderMock.Object);
+        services.AddSingleton(_appResourcesMock.Object);
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
         services.AddSingleton(_pdfServiceMock.Object);
@@ -738,10 +771,12 @@ public class SubformPdfServiceTaskTests
         await validationService.StartAsync(CancellationToken.None);
     }
 
-    private void SetupProcessReader(
-        string? subformComponentId = SubformComponentId,
-        string? subformDataTypeId = SubformDataTypeId
-    )
+    private void SetupSubformFolder(string? defaultDataType = SubformDataTypeId) =>
+        _appResourcesMock
+            .Setup(x => x.GetLayoutSettingsForFolder(SubformUiFolder))
+            .Returns(new LayoutSettings { DefaultDataType = defaultDataType });
+
+    private void SetupProcessReader(string? subformUiFolder = SubformUiFolder)
     {
         _processReaderMock
             .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
@@ -751,8 +786,7 @@ public class SubformPdfServiceTaskTests
                     TaskType = "subformPdf",
                     SubformPdfConfiguration = new AltinnSubformPdfConfiguration
                     {
-                        SubformComponentId = subformComponentId,
-                        SubformDataTypeId = subformDataTypeId,
+                        SubformUiFolder = subformUiFolder,
                         FilenameTextResourceKey = FileName,
                     },
                 }
@@ -768,7 +802,7 @@ public class SubformPdfServiceTaskTests
             {
                 new() { Id = DataElementId1, DataType = SubformDataTypeId },
                 new() { Id = DataElementId2, DataType = SubformDataTypeId },
-                new() { Id = "other-data-element", DataType = "other-type" }, // Should be filtered out
+                new() { Id = OtherDataElementId, DataType = "other-type" }, // Should be filtered out
             },
         };
     }
@@ -785,7 +819,7 @@ public class SubformPdfServiceTaskTests
         };
     }
 
-    private static ServiceTaskContext CreateServiceTaskContext(
+    private static StageContext CreateServiceTaskContext(
         Instance instance,
         CancellationToken cancellationToken = default
     )
@@ -793,7 +827,7 @@ public class SubformPdfServiceTaskTests
         var instanceMutatorMock = new Mock<IInstanceDataMutator>();
         instanceMutatorMock.Setup(x => x.Instance).Returns(instance);
         instanceMutatorMock.Setup(x => x.Language).Returns("en");
-        return new ServiceTaskContext
+        return new StageContext
         {
             InstanceDataMutator = instanceMutatorMock.Object,
             WorkflowId = Guid.NewGuid(),

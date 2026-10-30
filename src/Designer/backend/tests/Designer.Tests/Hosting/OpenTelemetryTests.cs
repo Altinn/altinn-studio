@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Filters.IO;
 using Altinn.Studio.Designer.Hosting;
 using Altinn.Studio.Designer.Models.ContactPoints;
@@ -16,6 +18,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -38,15 +41,17 @@ using NotificationKind = Altinn.Studio.Designer.Models.NotificationKind;
 
 namespace Designer.Tests.Hosting;
 
+[Collection(nameof(OpenTelemetryTestsCollection))]
 public class OpenTelemetryTests
     : DesignerEndpointsTestsBase<OpenTelemetryTests>,
         IClassFixture<WebApplicationFactory<Program>>
 {
-    private const string ServiceVersion = "0123456789";
+    // The project's InformationalVersion, which the image build replaces with DESIGNER_VERSION.
+    private const string ServiceVersion = "dev";
 
-    private readonly List<Activity> _spans = [];
-    private readonly List<Metric> _metrics = [];
-    private readonly List<LogRecord> _logs = [];
+    private readonly ExportedItems<Activity> _spans = new();
+    private readonly ExportedItems<Metric> _metrics = new();
+    private readonly ExportedItems<LogRecord> _logs = new();
     private IServiceProvider? _services;
     private Exception? _environmentsException;
     private Exception? _releasesException;
@@ -56,7 +61,6 @@ public class OpenTelemetryTests
     public OpenTelemetryTests(WebApplicationFactory<Program> factory)
         : base(factory)
     {
-        JsonConfigOverrides.Add($$"""{ "DESIGNER_VERSION": "{{ServiceVersion}}" }""");
         ConfigureTestServicesForSpecificTest = services =>
         {
             services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddInMemoryExporter(_spans));
@@ -82,6 +86,11 @@ public class OpenTelemetryTests
                     )
                     .ThrowsAsync(_releasesException);
                 services.AddSingleton(releaseService.Object);
+                var userOrganizationService = new Mock<IUserOrganizationService>();
+                userOrganizationService
+                    .Setup(service => service.UserIsMemberOfOrganization(It.IsAny<string>()))
+                    .ReturnsAsync(true);
+                services.AddSingleton(userOrganizationService.Object);
             }
         };
     }
@@ -95,7 +104,7 @@ public class OpenTelemetryTests
 
         Assert.Contains(
             resource.Attributes,
-            attribute => attribute is { Key: "service.version", Value: ServiceVersion }
+            attribute => attribute.Key == "service.version" && Equals(attribute.Value, ServiceVersion)
         );
     }
 
@@ -113,12 +122,10 @@ public class OpenTelemetryTests
         {
             Assert.Contains(
                 resource.Attributes,
-                attribute =>
-                    attribute is { Key: "service.instance.id" }
-                    && Equals(attribute.Value, InstanceTelemetry.ServiceInstanceId)
+                attribute => attribute is { Key: "service.instance.id" } && Equals(attribute.Value, Workload.InstanceId)
             );
         }
-        Assert.True(Guid.TryParse(InstanceTelemetry.ServiceInstanceId, out _));
+        Assert.True(Guid.TryParse(Workload.InstanceId, out _));
     }
 
     [Fact]
@@ -137,7 +144,7 @@ public class OpenTelemetryTests
         );
         Assert.Contains(
             resource.Attributes,
-            attribute => attribute is { Key: "service.version", Value: ServiceVersion }
+            attribute => attribute.Key == "service.version" && Equals(attribute.Value, ServiceVersion)
         );
     }
 
@@ -260,7 +267,7 @@ public class OpenTelemetryTests
         using HttpResponseMessage response = await HttpClient.GetAsync(EnvironmentsPath);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Activity rootSpan = RootSpan(EnvironmentsPath);
+        Activity rootSpan = await RootSpanAsync(EnvironmentsPath);
         Assert.Equal(
             typeof(FileNotFoundException).FullName,
             rootSpan.GetTagItem(ServiceTelemetry.Attributes.Error.ExceptionType)
@@ -280,7 +287,7 @@ public class OpenTelemetryTests
         using HttpResponseMessage response = await HttpClient.GetAsync(EnvironmentsPath);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        Activity rootSpan = RootSpan(EnvironmentsPath);
+        Activity rootSpan = await RootSpanAsync(EnvironmentsPath);
         Assert.Equal(
             typeof(HttpRequestWithStatusException).FullName,
             rootSpan.GetTagItem(ServiceTelemetry.Attributes.Error.ExceptionType)
@@ -298,7 +305,9 @@ public class OpenTelemetryTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         LogRecord record = Assert.Single(_logs, record => record.LogLevel == LogLevel.Error);
         Assert.IsType<InvalidOperationException>(record.Exception);
-        Assert.Null(RootSpan(EnvironmentsPath).GetTagItem(ServiceTelemetry.Attributes.Error.ExceptionType));
+        Assert.Null(
+            (await RootSpanAsync(EnvironmentsPath)).GetTagItem(ServiceTelemetry.Attributes.Error.ExceptionType)
+        );
     }
 
     [Fact]
@@ -310,7 +319,7 @@ public class OpenTelemetryTests
         using HttpResponseMessage response = await HttpClient.GetAsync(ReleasesPath);
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        Activity rootSpan = RootSpan(ReleasesPath);
+        Activity rootSpan = await RootSpanAsync(ReleasesPath);
         Assert.Equal("ttd", rootSpan.GetTagItem(ServiceTelemetry.Attributes.ServiceOwner));
         Assert.Equal("my-app", rootSpan.GetTagItem(ServiceTelemetry.Attributes.App));
     }
@@ -324,7 +333,7 @@ public class OpenTelemetryTests
         Services.GetRequiredService<MeterProvider>().ForceFlush();
 
         const string Route = "/designer/api/{org}/{app}/validation";
-        Activity rootSpan = RootSpan("/designer/api/ttd/my-app/validation");
+        Activity rootSpan = await RootSpanAsync("/designer/api/ttd/my-app/validation");
         Assert.Equal($"GET {Route}", rootSpan.DisplayName);
         Assert.Equal(Route, rootSpan.GetTagItem("http.route"));
         Assert.Contains(MetricPoints("http.server.request.duration"), point => Tag(point, "http.route") == Route);
@@ -397,7 +406,9 @@ public class OpenTelemetryTests
 
         foreach (string method in new[] { "OnConnectedAsync", "SendMessage", "OnDisconnectedAsync" })
         {
-            Activity span = await SingleSpanAsync($"Altinn.Studio.Designer.Hubs.Preview.PreviewHub/{method}");
+            Activity span = await SingleSpanAsync(span =>
+                span.DisplayName == $"Altinn.Studio.Designer.Hubs.Preview.PreviewHub/{method}"
+            );
             Assert.Equal(default, span.ParentSpanId);
             Assert.Equal("testUser", span.GetTagItem(ServiceTelemetry.Attributes.EndUserId));
             Assert.Equal(connectionId, span.GetTagItem(ServiceTelemetry.Attributes.SignalR.ConnectionId));
@@ -417,14 +428,14 @@ public class OpenTelemetryTests
         );
     }
 
-    // A span is exported when it ends, which can be just after the hub call's response.
-    private async Task<Activity> SingleSpanAsync(string displayName)
+    // A span is exported when it ends, which can be just after the response.
+    private async Task<Activity> SingleSpanAsync(Func<Activity, bool> match)
     {
-        for (int attempt = 0; attempt < 50 && !_spans.Exists(span => span.DisplayName == displayName); attempt++)
+        for (int attempt = 0; attempt < 50 && !_spans.Any(match); attempt++)
         {
             await Task.Delay(100);
         }
-        return Assert.Single(_spans, span => span.DisplayName == displayName);
+        return Assert.Single(_spans, span => match(span));
     }
 
     // The test server's handler, which the SignalR client needs to reach the in-memory server.
@@ -436,11 +447,8 @@ public class OpenTelemetryTests
 
     private const string EnvironmentsPath = "/designer/api/environments";
 
-    private Activity RootSpan(string path) =>
-        Assert.Single(
-            _spans,
-            span => span.Kind == ActivityKind.Server && span.GetTagItem("url.path") as string == path
-        );
+    private Task<Activity> RootSpanAsync(string path) =>
+        SingleSpanAsync(span => span.Kind == ActivityKind.Server && span.GetTagItem("url.path") as string == path);
 
     private IServiceProvider Services =>
         _services ?? throw new InvalidOperationException("The test server has not started.");
@@ -479,6 +487,75 @@ public class OpenTelemetryTests
             }
         }
         return null;
+    }
+
+    // The exporters add items on the threads that end spans and collect metrics, so reads enumerate a snapshot.
+    private sealed class ExportedItems<T> : ICollection<T>
+    {
+        private readonly List<T> _items = [];
+
+        public int Count
+        {
+            get
+            {
+                lock (_items)
+                {
+                    return _items.Count;
+                }
+            }
+        }
+
+        public bool IsReadOnly => false;
+
+        public void Add(T item)
+        {
+            lock (_items)
+            {
+                _items.Add(item);
+            }
+        }
+
+        public void Clear()
+        {
+            lock (_items)
+            {
+                _items.Clear();
+            }
+        }
+
+        public bool Contains(T item)
+        {
+            lock (_items)
+            {
+                return _items.Contains(item);
+            }
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            lock (_items)
+            {
+                _items.CopyTo(array, arrayIndex);
+            }
+        }
+
+        public bool Remove(T item)
+        {
+            lock (_items)
+            {
+                return _items.Remove(item);
+            }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            lock (_items)
+            {
+                return _items.ToList().GetEnumerator();
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     private sealed class ServicesCapture(Action<IServiceProvider> capture) : IStartupFilter

@@ -47,7 +47,9 @@ const bpmnXmlWithGatewayExtension = `<?xml version="1.0" encoding="UTF-8"?>
   </bpmn:process>
 </bpmn:definitions>`;
 
-const bpmnXmlWithSubformPdfConfig = `<?xml version="1.0" encoding="UTF-8"?>
+const createBpmnXmlWithSubformPdfConfig = (
+  settings: string,
+): string => `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Altinn_SingleDataTask_Process_Definition" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="SingleDataTask" isExecutable="false">
     <bpmn:serviceTask id="Task_subformPdf" name="Subform PDF">
@@ -56,8 +58,7 @@ const bpmnXmlWithSubformPdfConfig = `<?xml version="1.0" encoding="UTF-8"?>
           <altinn:taskType>subformPdf</altinn:taskType>
           <altinn:subformPdfConfig>
             <altinn:filenameTextResourceKey>subform.pdf.filename</altinn:filenameTextResourceKey>
-            <altinn:subformComponentId>SubformComponent</altinn:subformComponentId>
-            <altinn:subformDataTypeId>subform-model</altinn:subformDataTypeId>
+            ${settings}
           </altinn:subformPdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
@@ -125,12 +126,27 @@ describe('altinnCustomTasks', () => {
   });
 
   it('preserves the subformPdfConfig section when the BPMN is parsed and serialized again', async () => {
-    const savedXml = await roundTrip(bpmnXmlWithSubformPdfConfig);
+    const savedXml = await roundTrip(
+      createBpmnXmlWithSubformPdfConfig(
+        '<altinn:subformUiFolder>vehicleSubform</altinn:subformUiFolder>',
+      ),
+    );
 
     expect(savedXml).toContain('<altinn:subformPdfConfig>');
     expect(savedXml).toContain(
       '<altinn:filenameTextResourceKey>subform.pdf.filename</altinn:filenameTextResourceKey>',
     );
+    expect(savedXml).toContain('<altinn:subformUiFolder>vehicleSubform</altinn:subformUiFolder>');
+  });
+
+  it('keeps the settings that subformUiFolder replaces, for the upgrade to read', async () => {
+    const savedXml = await roundTrip(
+      createBpmnXmlWithSubformPdfConfig(
+        `<altinn:subformComponentId>SubformComponent</altinn:subformComponentId>
+            <altinn:subformDataTypeId>subform-model</altinn:subformDataTypeId>`,
+      ),
+    );
+
     expect(savedXml).toContain(
       '<altinn:subformComponentId>SubformComponent</altinn:subformComponentId>',
     );

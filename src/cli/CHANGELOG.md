@@ -9,14 +9,17 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+## [0.1.0-preview.30] - 2026-10-29
+
 ### Added
 
 - `studioctl app upgrade v9` reports classes that implement the removed `IProcessEnd`, and their registrations, and points to `IOnProcessEndedHandler` instead. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `studioctl app upgrade v9` removes the `JsonObjectInDataResponse` feature flag from the appsettings files, and points out when it was off, since clients of the data API then get validation issues as JSON instead of text. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
 - Localtest has a _Messages_ page that shows the messages apps have sent, with their attachments, and the emails and SMS messages that would have gone out. A button clears them without resetting the rest of your data. ([#21224](https://github.com/Altinn/altinn-studio/pull/21224))
 - Localtest answers the Correspondence API, so apps that send messages, such as the signing call to action and the receipt with the signed documents, work locally. Messages are published at once, and their email and SMS notifications are recorded, not sent. Localtest checks requests against selected rules of the real API, with the same error codes. ([#21177](https://github.com/Altinn/altinn-studio/pull/21177))
-- `studioctl env up --monitoring` shows the workflow engine's traces, metrics and logs, as service `workflow-engine-app`, and adds a Workflow Engine dashboard to Grafana.
+- `studioctl env up --monitoring` shows the workflow engine's traces, metrics and logs, as service `workflow-engine-app`, and adds a Workflow Engine dashboard to Grafana. ([#21189](https://github.com/Altinn/altinn-studio/pull/21189))
 - `studioctl doctor` shows how much disk space studioctl uses for logs, localtest data and the studioctl server, and in total. `studioctl env reset` deletes the localtest data. ([#21447](https://github.com/Altinn/altinn-studio/pull/21447))
+- `studioctl app upgrade v9` moves subform PDF tasks to `subformUiFolder`, which names the subform's UI folder, and removes the Subform component copy from the task's own UI folder, along with the folder when nothing else in it is used. The PDFs carry the metadata key `subformUiFolder` instead of `subformComponentId`. ([#17467](https://github.com/Altinn/altinn-studio/issues/17467))
 
 ### Changed
 
@@ -30,16 +33,24 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: `studioctl doctor --json` names the studioctl server checks `server_binary` and `server_state` instead of `appmgr_binary` and `appmgr_state`. Update scripts that look for the old names. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - `studioctl doctor` shows the _Disk_ checks by name, such as _Home_ and _Server state_, without their paths. `studioctl doctor --json` still has the paths, and `studioctl -v doctor` shows those of failing checks. ([#21463](https://github.com/Altinn/altinn-studio/pull/21463))
 - studioctl keeps 30 days of logs, so they no longer grow without limit on disk: the studioctl server deletes its older log files when it starts and once a day, and `studioctl run` deletes app logs not written to for 30 days, for all your apps. ([#21435](https://github.com/Altinn/altinn-studio/pull/21435), [#21438](https://github.com/Altinn/altinn-studio/pull/21438))
+- `studioctl app upgrade v9` names `HandlerResult` instead of `HookResult` in its to-dos for v8 process hooks, to match the renamed type. ([#21554](https://github.com/Altinn/altinn-studio/pull/21554))
+- `studioctl app upgrade v9` cleans up service task UI folders, which v9 shows while the task runs: ([#21563](https://github.com/Altinn/altinn-studio/pull/21563))
+    - removes the "Noe gikk galt" page Altinn Studio generated, and the pages of subform PDF tasks and of PDF tasks with a `pdfLayoutName`, which v8 showed only when the task failed
+    - adds a to-do for any other page
+    - removes a folder left with nothing the app reads
+    - gives the PDF tasks it adds no page
 
 ### Fixed
 
-- `studioctl app upgrade v9` moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`. Before, the app did not build until they were changed by hand. The method reads the instance from the accessor, so the rest of its body is unchanged. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
-- `studioctl app upgrade v9` also reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed as well. ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+- `studioctl app upgrade v9` handles the eFormidling APIs that v9 changed: ([#21009](https://github.com/Altinn/altinn-studio/pull/21009))
+    - moves app implementations of `IEFormidlingMetadata` and `IEFormidlingReceivers` to the v9 signatures, which take `IInstanceDataAccessor` instead of `Instance`, so the app builds without changing them by hand
+    - reports implementations of and calls to `SendEFormidlingShipment(Instance, ValidAltinnEFormidlingConfiguration)`, which v9 removed
 - `studioctl app upgrade v9` lists `using Altinn.App.Core.Internal.Maskinporten` directives among the removed Maskinporten APIs to replace. ([#19188](https://github.com/Altinn/altinn-studio/issues/19188))
 - `studioctl app upgrade v9` quotes the `dotnet restore` error when restore fails, instead of a line of dashes or the "Failed to restore" summary. ([#21404](https://github.com/Altinn/altinn-studio/pull/21404))
 - Running `studioctl app upgrade v9` again no longer adds a PDF service task, such as `PdfTask_Task_1`, for a data type that had `enablePdfCreation: false`. If 0.1.0-preview.28 or 0.1.0-preview.29 added one, remove it. ([#21518](https://github.com/Altinn/altinn-studio/pull/21518))
 - Localtest accepts delegating or revoking the same instance rights more than once, as Access Management does, so a delegated signing task that retries its delegation no longer fails locally. ([#21176](https://github.com/Altinn/altinn-studio/pull/21176))
 - Payment, signing and PDF tasks no longer fail to store the file they generate, such as the receipt after the user has paid, in apps upgraded with `studioctl app upgrade v9`. Run it again to fix an upgraded app. ([#21119](https://github.com/Altinn/altinn-studio/pull/21119))
+- After `studioctl app upgrade v9`, users could not open an instance, or retry a failed service task, while it was in a PDF or eFormidling service task the upgrade added, if `policy.xml` gave them read or write only in specific tasks. The upgrade now extends those rules. ([#21207](https://github.com/Altinn/altinn-studio/pull/21207))
 
 ## [0.1.0-preview.29] - 2026-10-14
 

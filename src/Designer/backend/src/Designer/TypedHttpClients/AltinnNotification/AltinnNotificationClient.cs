@@ -23,6 +23,9 @@ public class AltinnNotificationClient(
     // Either a phone number with country code prefix (no `x` or spaces), or up to 11 alphanumeric characters, see https://wiki.pswin.com/Gateway%20HTTP%20API.ashx#Sender_Number_SND_15
     private const string AltinnSmsSender = "Altinn";
 
+    // Notifications' validation errors are short, but the body is unbounded
+    private const int MaxErrorBodyLength = 1000;
+
     private readonly Lazy<Task<Uri>> _notificationOrderUri = new(async () =>
     {
         var baseUrl = hostEnvironment.IsProduction()
@@ -57,10 +60,10 @@ public class AltinnNotificationClient(
             ),
             cancellationToken
         );
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessAsync(response, cancellationToken);
     }
 
-    // Phone number with country code prefix (no `+` or spaces), see https://wiki.pswin.com/Gateway%20HTTP%20API.ashx#Receiver_Number_RCV_14
+    // Phone number in E.164 format with a `+` country code prefix and no spaces, see PhoneNumber.TryNormalize
     public async Task SendSmsNotification(
         string idempotencyId,
         string phoneNumber,
@@ -77,6 +80,27 @@ public class AltinnNotificationClient(
             ),
             cancellationToken
         );
-        response.EnsureSuccessStatusCode();
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    // The response body explains a rejected order, such as a recipient that is not a valid mobile number.
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        string body = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (body.Length > MaxErrorBodyLength)
+        {
+            body = body[..MaxErrorBodyLength];
+        }
+
+        throw new HttpRequestException(
+            $"Notification order failed with status code {(int)response.StatusCode}: {body}",
+            inner: null,
+            response.StatusCode
+        );
     }
 }

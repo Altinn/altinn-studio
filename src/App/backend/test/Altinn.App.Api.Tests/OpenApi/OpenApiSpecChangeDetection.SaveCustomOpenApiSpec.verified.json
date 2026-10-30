@@ -3331,6 +3331,219 @@
         },
         "additionalProperties": false
       },
+      "ActionType": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "UserAction": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "authorized": {
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ActionType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessElementInfo": {
+        "type": "object",
+        "properties": {
+          "flow": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "started": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "elementId": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "altinnTaskType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ended": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "validated": {
+            "$ref": "#/components/schemas/ValidationStatus"
+          },
+          "flowType": {
+            "type": "string",
+            "nullable": true
+          },
+          "actions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "nullable": true
+          },
+          "userActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserAction"
+            }
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "write": {
+            "type": "boolean"
+          },
+          "elementType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessTaskTypeInfo": {
+        "type": "object",
+        "properties": {
+          "altinnTaskType": {
+            "type": "string",
+            "nullable": true
+          },
+          "elementId": {
+            "type": "string",
+            "nullable": true
+          },
+          "elementType": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowActivityStatus": {
+        "enum": [
+          "idle",
+          "processing",
+          "failed"
+        ],
+        "type": "string"
+      },
+      "AppProcessWorkflowProgress": {
+        "required": [
+          "completed",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowFailureKind": {
+        "enum": [
+          "stepFailed",
+          "dependencyFailed",
+          "engineFault",
+          "timeout"
+        ],
+        "type": "string"
+      },
+      "AppProcessWorkflowFailure": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/WorkflowFailureKind"
+          },
+          "workflowId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "AppProcessWorkflowStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/WorkflowActivityStatus"
+          },
+          "targetTask": {
+            "type": "string",
+            "nullable": true
+          },
+          "retrying": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "failedAttempts": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "firstFailedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "waitingReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "progress": {
+            "$ref": "#/components/schemas/AppProcessWorkflowProgress"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resumedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "currentTime": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failure": {
+            "$ref": "#/components/schemas/AppProcessWorkflowFailure"
+          }
+        },
+        "additionalProperties": false
+      },
       "AppProcessState": {
         "type": "object",
         "properties": {
@@ -3347,7 +3560,7 @@
             "nullable": true
           },
           "currentTask": {
-            "$ref": "#/components/schemas/ProcessElementInfo"
+            "$ref": "#/components/schemas/AppProcessElementInfo"
           },
           "ended": {
             "type": "string",
@@ -3358,12 +3571,15 @@
             "type": "string",
             "nullable": true
           },
-          "actions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "boolean"
+          "processTasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppProcessTaskTypeInfo"
             },
             "nullable": true
+          },
+          "workflow": {
+            "$ref": "#/components/schemas/AppProcessWorkflowStatus"
           }
         },
         "additionalProperties": false
