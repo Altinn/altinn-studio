@@ -21,6 +21,14 @@ internal static class DeployEndpoints
             .WithDescription("Endpoint to get a single app deployment.");
 
         deployApi
+            .MapGet("/apps/{app}/running", HandleGetRunningAppDeployment.Handler)
+            .WithName("GetRunningAppDeployment")
+            .WithSummary("Get the running App deployment.")
+            .WithDescription(
+                "Endpoint to get the version of an app that runs in the cluster, whichever Studio environment deployed it."
+            );
+
+        deployApi
             .MapGet("/apps/{app}/{originEnvironment}/deployed", HandleIsAppDeployed.IsAppDeployedHandler)
             .WithName("IsAppDeployed")
             .WithSummary("Check if App is deployed.")
