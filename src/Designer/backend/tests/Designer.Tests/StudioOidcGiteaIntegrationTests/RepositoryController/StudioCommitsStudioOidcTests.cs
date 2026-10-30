@@ -108,7 +108,7 @@ public class StudioCommitsStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
         await File.WriteAllTextAsync($"{CreatedFolderPath}/newFile.txt", "I am a new file");
 
         using var commitAndPushContent2 = new StringContent(
-            GetCommitInfoJson("test commit", org, targetRepo),
+            GetCommitInfoJson("test commit after reset", org, targetRepo),
             Encoding.UTF8,
             MediaTypeNames.Application.Json
         );
@@ -118,7 +118,7 @@ public class StudioCommitsStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
         );
         Assert.Equal(HttpStatusCode.OK, commitAndPushResponse2.StatusCode);
 
-        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit");
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit after reset");
     }
 
     [Theory]
