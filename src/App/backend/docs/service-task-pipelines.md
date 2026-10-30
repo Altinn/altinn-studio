@@ -1,18 +1,25 @@
 # Service task pipelines and mailboxes
 
-Authoring guide for service tasks built on `IPipelineServiceTask` — durable multi-step tasks, waiting,
+Authoring guide for service tasks built on `IServiceTask` — durable multi-step tasks, waiting,
 and message-answered (mailbox) exchanges. This is the app-developer companion to
 [workflow engine integration](workflow-engine-integration.md); until it lands on docs.altinn.studio,
 this file is the reference the API docs point to.
 
 ## The shape of a pipeline
 
-Every service task is a pipeline. A task that does one thing implements `IServiceTask` and only writes
-`Execute`; a task with more than one durable step implements `IPipelineServiceTask` and composes its
-pipeline in `Define`:
+Every service task is a pipeline, composed in `IServiceTask.DefineExecute`. A task that does one thing is a
+pipeline of just the conclusion:
 
 ```csharp
-public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+private async Task<ServiceTaskResult> Execute(StageContext context) { ... }
+```
+
+A task with more than one durable step gives each its own stage ahead of the conclusion:
+
+```csharp
+public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
     pipeline
         .Stage(SendToArchive, new MailboxOptions { Timeout = TimeSpan.FromDays(14) }, out MailboxHandle archive)
         .ConcludeOnReplies(archive, onMessage: HandleArchiveMessage, onClosed: HandleArchiveClosed);
@@ -21,9 +28,9 @@ public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
 A composition is zero or more `Stage(...)` calls and `HandleReplies(...)` handlers, in any order, ended by
 exactly one terminal — `Finally(...)` for work that finishes by itself or by polling, or
 `ConcludeOnReplies(...)` for work answered by a message. The terminal is the only way to obtain the
-`ServiceTaskPipeline` that `Define` must return, so a pipeline cannot be left unfinished.
+`ServiceTaskPipeline` that `DefineExecute` must return, so a pipeline cannot be left unfinished.
 
-`Define` runs when a transition is enqueued (fixing the pipeline's shape for that workflow's lifetime), on
+`DefineExecute` runs when a transition is enqueued (fixing the pipeline's shape for that workflow's lifetime), on
 every callback (to dispatch), and at app startup (to validate). It must be cheap, deterministic and
 side-effect free — the work happens inside the stages when the engine runs them.
 
@@ -35,7 +42,7 @@ App startup also checks the other side of the same invariant, in `process.bpmn`.
 carry a non-blank `<altinn:taskType>`, and that type must name something the app resolves: one of the
 built-in types (`data`, `confirmation`, `feedback`, `signing`, `payment`, `pdf`, `subformPdf`,
 `eFormidling`), a built-in you enabled with its own call (`fiksArkiv`, from `services.AddFiksArkiv()`), or
-an `IServiceTask` / `IPipelineServiceTask` / `IProcessTask` your app registered. A type that resolves to
+an `IServiceTask` or `IProcessTask` your app registered. A type that resolves to
 nothing would otherwise deploy quietly and strand the first instance to reach it — no work is scheduled,
 the process comes to rest on the task, and the advance that follows fails with an unexplained internal
 error — so the app refuses to start instead, naming every offending task, the type it declares, and the
@@ -61,6 +68,18 @@ all tasks have been validated.
 The built-in eFormidling task uses this hook for its environment-specific BPMN configuration, data
 types, and required service registrations.
 
+The work any task type does when a task starts, ends or is abandoned composes the same way, from the same
+stages. `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon` take the same `PipelineBuilder` and compose
+`Stage(work, options?)` calls, where `work` takes a `StageContext` and returns a `StageResult`, exactly as a service
+task stage does. `Start`, `End` and `Abandon` are deprecated and removed before v9 ships; until then the defaults run
+them as a single stage. Each stage runs as its own workflow
+step that saves on its own, and a failed stage is retried without the ones before it. There is no conclusion: the
+stages run inside the transition, before it commits, and never advance the process, so the pipeline ends with
+`Build()`. The built-in signing task resolves, delegates and notifies its signees this way. A lifecycle stage that
+defers holds the transition: the instance stays `processing` until the stage
+completes, the way a waiting service task holds it. Stages are dispatched by position too, so the rules in
+[Redeploys and in-flight workflows](#redeploys-and-in-flight-workflows) apply to them as well.
+
 ## Stages: durability and idempotency
 
 Each stage runs as its own workflow-engine step, with its own retry budget, timeout, wait budget and
@@ -69,18 +88,18 @@ pipeline at the failed stage, not at the beginning. That step ledger — not any
 is the durable guard for send-then-poll and send-then-receive work: give the send its own stage.
 
 - **Every stage may be retried on failure, so its work MUST be idempotent.** Use
-  `ServiceTaskContext.StepId` as the idempotency key for an outbound call the stage must not repeat — it
+  `StageContext.StepId` as the idempotency key for an outbound call the stage must not repeat — it
   is stable across retries of the same step and covers the crash window between sending and completing.
-- **Never** branch on anything under `ServiceTaskContext.Attempt` or `ServiceTaskContext.Wait` to guard a
+- **Never** branch on anything under `StageContext.Attempt` or `StageContext.Wait` to guard a
   side effect: an attempt that sends and then crashes re-runs with all of those unchanged.
-- Stages share state through `ServiceTaskContext.InstanceDataMutator` and nothing else: a completed
+- Stages share state through `StageContext.InstanceDataMutator` and nothing else: a completed
   stage's data changes are saved into the workflow state and visible to every stage after it.
 - A failed attempt saves nothing — the retry starts from exactly the state the attempt received. A handler
   that must _record_ something records it and returns success.
 
 ### Stage results
 
-`ServiceTaskStageResult` is the stage vocabulary: `Completed()`, `Defer(delay, reason?)`,
+`StageResult` is the stage vocabulary: `Completed()`, `Defer(delay, reason?)`,
 `FailedRetryable(msg)`, `FailedPermanent(msg)`. A plain stage cannot conclude the task or advance the
 process — that is reserved for the pipeline's conclusion, and for a mailbox-opening stage's `Conclude`
 (see below). The concluding step returns `ServiceTaskResult`. Returning `Success(action?)` completes
@@ -97,9 +116,8 @@ process on this step — no worker held, no error recorded, retry counter reset 
   rejected as a contract violation. Work that produces something durable belongs before the wait, in its
   own stage.
 - The total wait is bounded by `ProcessStepOptions.WaitBudget` (or the engine default); expiry fails the
-  step. Declare a polling pipeline's wait budget on `Finally`, not on the task — task-level options are
-  inherited by every stage, including stages that never wait.
-- Read `ServiceTaskContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
+  step. Declare a polling pipeline's wait budget on `Finally`, the step that waits.
+- Read `StageContext.Wait` (`DeferCount`, `StartedAt`, `Deadline`, `Remaining` and `IsFinalCheck`)
   to pace the wait, and give up on `IsFinalCheck` with a message that names what never arrived.
   `EFormidlingServiceTask` is the worked example in-tree: a send stage, a polling `Finally` that owns the
   wait budget, a backoff ladder driven by `Wait.DeferCount`, and a `FailedPermanent` on
@@ -110,10 +128,21 @@ process on this step — no worker held, no error recorded, retry counter reset 
 
 ### Step options
 
-A step's own options — a stage's from `Stage`, a reply handler's from its own `HandleReplies`, the
-conclusion's from the terminal — win field-wise over the task's `StepOptions`, which are the fallback for
-every step. The three sources are alternatives, never a chain: what one step leaves unset falls back to
-the task's options, never to another step's.
+A step's options — its timeout, retry strategy and wait budget — are declared where the step is composed: a
+stage's on `Stage`, a reply handler's on its `HandleReplies`, the conclusion's on the terminal. Each step
+carries exactly what its own call declared; a field left unset falls back to the command's default and then
+the engine's, never to another step's. A task that wants the same options on several steps passes the same
+object to each call.
+
+### Step names
+
+Where people follow a task's progress, such as Studio's admin panel, a step goes by the name of the method you
+passed as its work, written out as words: `SendToArchive` reads "Send to archive", `GeneratePDFReceipt` reads
+"Generate PDF receipt". A reply handler runs one of two methods depending on what arrives, so it goes by both,
+`OnDecision / OnClosed`. A lambda leaves the step unnamed, and so does a one-step task's own `Execute`, which says
+nothing the task type does not. The name travels as the step label `stepName`, on lifecycle stages and service task
+steps alike; the step that mints a mailbox carries none. Names are display only: renaming a method changes nothing
+about how the step runs, in-flight workflows included, because a step's identity is its index.
 
 ## Mailboxes: work answered by a message
 
@@ -167,7 +196,7 @@ Exactly one handler answers each mailbox, named by the handle the opening `Stage
   returns `ServiceTaskExchangeResult`: any `ServiceTaskResult` (concluding the task), or
   `AwaitNextReply()` to be called again on the next message.
 - `HandleReplies(handle, onMessage, onClosed)` — an exchange the pipeline **carries on past**. `onMessage`
-  returns `ServiceTaskStageExchangeResult`: any `ServiceTaskStageResult`, or `AwaitNextReply()`.
+  returns `StageExchangeResult`: any `StageResult`, or `AwaitNextReply()`.
   `Completed()` here means _this exchange is concluded, run the pipeline's next segment_ — concluding the
   task and advancing the process are deliberately not in this vocabulary.
 

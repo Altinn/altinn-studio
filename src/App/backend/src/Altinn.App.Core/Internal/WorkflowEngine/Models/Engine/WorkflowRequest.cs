@@ -73,6 +73,9 @@ internal sealed record WorkflowRequest
     ///         existing heads. This is what makes a workflow auxiliary; <c>true</c> and <c>null</c> make it
     ///         primary.</item>
     /// </list>
+    /// This directive is the encoding of the workflow's role: <c>false</c> makes it an auxiliary workflow,
+    /// <c>true</c> or <c>null</c> a primary one. Status responses report the result as
+    /// <see cref="WorkflowStatusResponse.Role"/>.
     /// </summary>
     [JsonPropertyName("isHead")]
     public bool? IsHead { get; init; }

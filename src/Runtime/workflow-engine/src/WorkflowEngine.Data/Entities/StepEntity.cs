@@ -31,6 +31,8 @@ internal sealed class StepEntity
 
     public int RequeueCount { get; set; }
 
+    public DateTimeOffset? FirstFailedAt { get; set; }
+
     public int DeferCount { get; set; }
 
     public DateTimeOffset? FirstDeferredAt { get; set; }
@@ -72,6 +74,7 @@ internal sealed class StepEntity
             ExecutionStartedAt = step.ExecutionStartedAt,
             ProcessingOrder = step.ProcessingOrder,
             RequeueCount = step.RequeueCount,
+            FirstFailedAt = step.FirstFailedAt,
             DeferCount = step.DeferCount,
             FirstDeferredAt = step.FirstDeferredAt,
             LastDeferredAt = step.LastDeferredAt,
@@ -106,6 +109,7 @@ internal sealed class StepEntity
             UpdatedAt = UpdatedAt,
             ExecutionStartedAt = ExecutionStartedAt,
             RequeueCount = RequeueCount,
+            FirstFailedAt = FirstFailedAt,
             DeferCount = DeferCount,
             FirstDeferredAt = FirstDeferredAt,
             LastDeferredAt = LastDeferredAt,

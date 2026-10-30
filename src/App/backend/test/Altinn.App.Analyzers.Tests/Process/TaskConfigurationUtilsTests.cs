@@ -27,6 +27,7 @@ public class TaskConfigurationUtilsTests
     private const string SettingInvalid = "ALTINNAPP1020";
     private const string ElementIgnored = "ALTINNAPP1021";
     private const string UnusableEnvironmentAttribute = "ALTINNAPP1022";
+    private const string SubformPdfComponentSettings = "ALTINNAPP0602";
 
     private const string SignatureConfig = """
         <altinn:signatureConfig>
@@ -103,8 +104,7 @@ public class TaskConfigurationUtilsTests
                 """
                 <altinn:subformPdfConfig>
                   <altinn:filenameTextResourceKey>subform.name</altinn:filenameTextResourceKey>
-                  <altinn:subformComponentId>Subform</altinn:subformComponentId>
-                  <altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>
+                  <altinn:subformUiFolder>Subform</altinn:subformUiFolder>
                 </altinn:subformPdfConfig>
                 """,
                 element: "bpmn:serviceTask"
@@ -432,16 +432,16 @@ public class TaskConfigurationUtilsTests
     [Theory]
     [InlineData("", "has no <altinn:subformPdfConfig>", "bpmn:serviceTask")]
     [InlineData(
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId></altinn:subformPdfConfig>",
-        "has no <altinn:subformPdfConfig><altinn:subformComponentId>",
+        "<altinn:subformPdfConfig><altinn:filenameTextResourceKey>a</altinn:filenameTextResourceKey></altinn:subformPdfConfig>",
+        "has no <altinn:subformPdfConfig><altinn:subformUiFolder>",
         "altinn:subformPdfConfig"
     )]
     [InlineData(
-        "<altinn:subformPdfConfig><altinn:subformComponentId>Subform</altinn:subformComponentId><altinn:subformDataTypeId /></altinn:subformPdfConfig>",
-        "has an empty <altinn:subformPdfConfig><altinn:subformDataTypeId>",
-        "altinn:subformDataTypeId"
+        "<altinn:subformPdfConfig><altinn:subformUiFolder> </altinn:subformUiFolder></altinn:subformPdfConfig>",
+        "has an empty <altinn:subformPdfConfig><altinn:subformUiFolder>",
+        "altinn:subformUiFolder"
     )]
-    public void A_Subform_Pdf_Task_Needs_Its_Component_And_Data_Type(string config, string expected, string anchor)
+    public void A_Subform_Pdf_Task_Needs_Its_Ui_Folder(string config, string expected, string anchor)
     {
         var process = Process(Task("Task_SubformPdf", "subformPdf", config, element: "bpmn:serviceTask"));
 
@@ -450,6 +450,56 @@ public class TaskConfigurationUtilsTests
         Assert.Equal(SettingInvalid, diagnostic.Id);
         Assert.StartsWith($"Task 'Task_SubformPdf' {expected}, so the app does not start.", diagnostic.GetMessage());
         Assert.Equal($"<{anchor}", Text(process, diagnostic));
+    }
+
+    [Theory]
+    [InlineData("subformPdf", "subformComponentId")]
+    [InlineData("subformPdf", "subformDataTypeId")]
+    // The app's own task types read the same configuration.
+    [InlineData("myTask", "subformComponentId")]
+    public void The_Settings_The_Ui_Folder_Replaced_Are_Reported_As_No_Longer_Supported(string taskType, string setting)
+    {
+        // Reported once, instead of an ignored element and a missing subformUiFolder
+        var config = $"<altinn:subformPdfConfig><altinn:{setting}>Subform</altinn:{setting}></altinn:subformPdfConfig>";
+        var process = Process(Task("Task_SubformPdf", taskType, config, element: "bpmn:serviceTask"));
+
+        var diagnostic = Assert.Single(Collect(process));
+
+        Assert.Equal(SubformPdfComponentSettings, diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.StartsWith(
+            $"Task 'Task_SubformPdf' has <altinn:{setting}> in <altinn:subformPdfConfig>, which is no longer supported",
+            diagnostic.GetMessage()
+        );
+        Assert.Contains("<altinn:subformUiFolder>", diagnostic.GetMessage());
+        Assert.Contains("studioctl app upgrade v9", diagnostic.GetMessage());
+        Assert.Equal($"<altinn:{setting}", Text(process, diagnostic));
+    }
+
+    [Fact]
+    public void Both_Settings_The_Ui_Folder_Replaced_Are_Reported()
+    {
+        var process = Process(
+            Task(
+                "Task_SubformPdf",
+                "subformPdf",
+                """
+                <altinn:subformPdfConfig>
+                  <altinn:subformComponentId>Subform</altinn:subformComponentId>
+                  <altinn:subformDataTypeId>vehicle</altinn:subformDataTypeId>
+                </altinn:subformPdfConfig>
+                """,
+                element: "bpmn:serviceTask"
+            )
+        );
+
+        var diagnostics = Collect(process);
+
+        Assert.Equal([SubformPdfComponentSettings, SubformPdfComponentSettings], diagnostics.Select(d => d.Id));
+        Assert.Equal(
+            ["<altinn:subformComponentId", "<altinn:subformDataTypeId"],
+            diagnostics.Select(d => Text(process, d))
+        );
     }
 
     [Fact]
@@ -618,13 +668,10 @@ public class TaskConfigurationUtilsTests
         "<altinn:paymentConfig><altinn:paymentDataType>a</altinn:paymentDataType><altinn:paymentReceiptPdfDataType>b</altinn:paymentReceiptPdfDataType></altinn:paymentConfig>"
     )]
     [InlineData("subformPdf", "<altinn:subformPdfConfig />")]
+    [InlineData("subformPdf", "<altinn:subformPdfConfig><altinn:subformUiFolder /></altinn:subformPdfConfig>")]
     [InlineData(
         "subformPdf",
-        "<altinn:subformPdfConfig><altinn:subformComponentId>c</altinn:subformComponentId><altinn:subformDataTypeId /></altinn:subformPdfConfig>"
-    )]
-    [InlineData(
-        "subformPdf",
-        "<altinn:subformPdfConfig><altinn:subformComponentId>c</altinn:subformComponentId><altinn:subformDataTypeId>d</altinn:subformDataTypeId></altinn:subformPdfConfig>"
+        "<altinn:subformPdfConfig><altinn:subformUiFolder>s</altinn:subformUiFolder></altinn:subformPdfConfig>"
     )]
     public void Payment_And_Subform_Pdf_Settings_Fail_Where_The_Runtime_Fails(string taskType, string config)
     {
@@ -698,7 +745,6 @@ public class TaskConfigurationUtilsTests
             processReader,
             services.BuildServiceProvider(),
             NullLogger<SigningProcessTask>.Instance,
-            null!,
             null!
         );
         var metadata = new ApplicationMetadata("ttd/app")
@@ -842,8 +888,8 @@ public class TaskConfigurationUtilsTests
         "has <filenameTextResourceKey> in <altinn:pdfConfig>, which the app ignores, since it reads it only in the namespace 'http://altinn.no/process'. Write it as <altinn:filenameTextResourceKey>."
     )]
     [InlineData(
-        "<altinn:subformPdfConfig><bpmn:subformComponentId>Subform</bpmn:subformComponentId></altinn:subformPdfConfig>",
-        "has <bpmn:subformComponentId> in <altinn:subformPdfConfig>, which the app ignores, since it reads it only in the namespace 'http://altinn.no/process'. Write it as <altinn:subformComponentId>."
+        "<altinn:subformPdfConfig><bpmn:subformUiFolder>Subform</bpmn:subformUiFolder></altinn:subformPdfConfig>",
+        "has <bpmn:subformUiFolder> in <altinn:subformPdfConfig>, which the app ignores, since it reads it only in the namespace 'http://altinn.no/process'. Write it as <altinn:subformUiFolder>."
     )]
     [InlineData(
         "<altinn:signatureConfig><altinn:signatureDataType>a</altinn:signatureDataType><altinn:signatureDataType>b</altinn:signatureDataType></altinn:signatureConfig>",

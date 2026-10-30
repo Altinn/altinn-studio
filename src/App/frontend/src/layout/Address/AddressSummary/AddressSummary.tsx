@@ -82,6 +82,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
               displayData={careOf}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
+              showLabelMetadata={false}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
@@ -99,6 +100,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
               displayData={zipCode}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
+              showLabelMetadata={false}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
@@ -114,6 +116,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
               displayData={postPlace}
               targetBaseComponentId={targetBaseComponentId}
               hideEditButton={true}
+              showLabelMetadata={false}
               isCompact={isCompact}
               emptyFieldText={emptyFieldText}
             />
@@ -129,6 +132,7 @@ export function AddressSummary({ targetBaseComponentId }: Summary2Props) {
                 displayData={houseNumber}
                 targetBaseComponentId={targetBaseComponentId}
                 hideEditButton={true}
+                showLabelMetadata={false}
                 isCompact={isCompact}
                 emptyFieldText={emptyFieldText}
               />

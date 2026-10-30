@@ -1,10 +1,8 @@
 using System.Text.Json;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Features.Payment.Exceptions;
 using Altinn.App.Core.Features.Payment.Models;
 using Altinn.App.Core.Features.Payment.Processors;
-using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
@@ -13,6 +11,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -107,7 +106,6 @@ public class PaymentProcessTaskTests
 
     private readonly Mock<IPdfService> _pdfServiceMock;
     private readonly Mock<IProcessReader> _processReaderMock;
-    private readonly Mock<IPaymentService> _paymentServiceMock;
     private readonly Mock<IPaymentProcessor> _paymentProcessorMock;
     private readonly PaymentProcessTask _paymentProcessTask;
 
@@ -115,7 +113,6 @@ public class PaymentProcessTaskTests
     {
         _pdfServiceMock = new Mock<IPdfService>();
         _processReaderMock = new Mock<IProcessReader>();
-        _paymentServiceMock = new Mock<IPaymentService>();
         _paymentProcessorMock = new Mock<IPaymentProcessor>();
         _paymentProcessorMock.Setup(x => x.PaymentProcessorId).Returns("paymentProcessorId");
 
@@ -126,7 +123,6 @@ public class PaymentProcessTaskTests
         _paymentProcessTask = new PaymentProcessTask(
             _pdfServiceMock.Object,
             _processReaderMock.Object,
-            _paymentServiceMock.Object,
             appImplementationFactory
         );
     }
@@ -157,7 +153,8 @@ public class PaymentProcessTaskTests
             )
             .ReturnsAsync(true);
 
-        await _paymentProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
+        StageResult result = await RunStart(dataMutator.Object);
+        Assert.IsType<CompletedStageResult>(result);
 
         _paymentProcessorMock.Verify(x =>
             x.TerminatePayment(
@@ -185,7 +182,8 @@ public class PaymentProcessTaskTests
         var altinnTaskExtension = new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() };
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
 
-        await _paymentProcessTask.Start(CreateProcessTaskContext(dataMutator.Object));
+        StageResult result = await RunStart(dataMutator.Object);
+        Assert.IsType<CompletedStageResult>(result);
 
         _paymentProcessorMock.Verify(
             x =>
@@ -212,7 +210,8 @@ public class PaymentProcessTaskTests
             .Setup(x => x.GeneratePdf(instance, taskId, "nb", null, false, null, CancellationToken.None))
             .ReturnsAsync(new byte[] { 1, 2, 3 });
 
-        await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+        StageResult result = await RunEnd(dataMutator.Object);
+        Assert.IsType<CompletedStageResult>(result);
 
         _pdfServiceMock.Verify(x => x.GeneratePdf(instance, taskId, "nb", null, false, null, CancellationToken.None));
         dataMutator.Verify(x =>
@@ -241,7 +240,8 @@ public class PaymentProcessTaskTests
         _processReaderMock.Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>())).Returns(altinnTaskExtension);
         SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Skipped);
 
-        await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+        StageResult result = await RunEnd(dataMutator.Object);
+        Assert.IsType<CompletedStageResult>(result);
 
         _pdfServiceMock.Verify(
             x => x.GeneratePdf(instance, taskId, "nb", null, false, null, CancellationToken.None),
@@ -262,7 +262,52 @@ public class PaymentProcessTaskTests
     }
 
     [Fact]
-    public async Task End_PaymentNotCompleted_ShouldThrowException()
+    public async Task End_ReceiptAlreadyStoredByThisTask_KeepsItInsteadOfStoringAnother()
+    {
+        // The ending step committed the receipt, then ran again: the stage must be idempotent.
+        DataElement paymentDataElement = CreatePaymentDataElement();
+        DataElement receipt = new()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = "paymentReceiptPdfDataType",
+            References =
+            [
+                new Reference
+                {
+                    Relation = RelationType.GeneratedFrom,
+                    ValueType = ReferenceType.Task,
+                    Value = "Task_1",
+                },
+            ],
+        };
+        Instance instance = CreateInstance(paymentDataElement, receipt);
+        var dataMutator = CreateDataMutator(instance);
+
+        _processReaderMock
+            .Setup(x => x.GetAltinnTaskExtension(It.IsAny<string>()))
+            .Returns(new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() });
+        SetupPaymentInformation(dataMutator, paymentDataElement, PaymentStatus.Paid);
+
+        StageResult result = await RunEnd(dataMutator.Object);
+
+        Assert.IsType<CompletedStageResult>(result);
+        _pdfServiceMock.VerifyNoOtherCalls();
+        dataMutator.Verify(
+            x =>
+                x.AddBinaryDataElement(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<ReadOnlyMemory<byte>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<List<KeyValueEntry>?>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task End_PaymentNotCompleted_FailsRetryably()
     {
         DataElement paymentDataElement = CreatePaymentDataElement();
         Instance instance = CreateInstance(paymentDataElement);
@@ -292,9 +337,9 @@ public class PaymentProcessTaskTests
             Times.Never
         );
 
-        await Assert.ThrowsAsync<PaymentException>(async () =>
-            await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object))
-        );
+        var failed = Assert.IsType<FailedStageResult>(await RunEnd(dataMutator.Object));
+        Assert.Equal(FailureKind.Retryable, failed.Kind);
+        Assert.Equal("The payment is not completed.", failed.ErrorMessage);
     }
 
     [Fact]
@@ -323,7 +368,8 @@ public class PaymentProcessTaskTests
             )
             .ReturnsAsync(true);
 
-        await _paymentProcessTask.Abandon(CreateProcessTaskContext(dataMutator.Object));
+        StageResult result = await RunAbandon(dataMutator.Object);
+        Assert.IsType<CompletedStageResult>(result);
 
         _paymentProcessorMock.Verify(x =>
             x.TerminatePayment(
@@ -344,8 +390,7 @@ public class PaymentProcessTaskTests
             .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns((AltinnTaskExtension?)null);
 
-        Func<Task> act = async () =>
-            await _paymentProcessTask.End(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
+        Func<Task> act = () => RunEnd(CreateDataMutator(CreateInstance()).Object);
 
         await act.Should().ThrowAsync<ApplicationConfigException>().WithMessage("*PaymentConfig is missing*");
     }
@@ -362,8 +407,7 @@ public class PaymentProcessTaskTests
                 }
             );
 
-        Func<Task> act = async () =>
-            await _paymentProcessTask.End(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
+        Func<Task> act = () => RunEnd(CreateDataMutator(CreateInstance()).Object);
 
         await act.Should().ThrowAsync<ApplicationConfigException>().WithMessage("*PaymentDataType is missing*");
     }
@@ -394,7 +438,7 @@ public class PaymentProcessTaskTests
             )
             .ReturnsAsync(new byte[] { 1, 2, 3 });
 
-        Func<Task> act = async () => await _paymentProcessTask.End(CreateProcessTaskContext(dataMutator.Object));
+        Func<Task> act = () => RunEnd(dataMutator.Object);
 
         await act.Should().NotThrowAsync();
     }
@@ -406,8 +450,7 @@ public class PaymentProcessTaskTests
             .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns((AltinnTaskExtension?)null);
 
-        Func<Task> act = async () =>
-            await _paymentProcessTask.Abandon(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
+        Func<Task> act = () => RunAbandon(CreateDataMutator(CreateInstance()).Object);
 
         await act.Should().ThrowAsync<ApplicationConfigException>().WithMessage("*PaymentConfig is missing*");
     }
@@ -419,8 +462,7 @@ public class PaymentProcessTaskTests
             .Setup(pr => pr.GetAltinnTaskExtension(It.IsAny<string>()))
             .Returns(new AltinnTaskExtension { PaymentConfiguration = CreatePaymentConfiguration() });
 
-        Func<Task> act = async () =>
-            await _paymentProcessTask.Abandon(CreateProcessTaskContext(CreateDataMutator(CreateInstance()).Object));
+        Func<Task> act = () => RunAbandon(CreateDataMutator(CreateInstance()).Object);
 
         await act.Should().NotThrowAsync();
     }
@@ -443,8 +485,34 @@ public class PaymentProcessTaskTests
             .ReturnsAsync(JsonSerializer.SerializeToUtf8Bytes(CreatePaymentInformation(status)));
     }
 
-    private static ProcessTaskContext CreateProcessTaskContext(IInstanceDataMutator dataMutator) =>
-        new() { InstanceDataMutator = dataMutator };
+    private Task<StageResult> RunStart(IInstanceDataMutator dataMutator) =>
+        Run(_paymentProcessTask.DefineStart(new PipelineBuilder()), dataMutator);
+
+    private Task<StageResult> RunEnd(IInstanceDataMutator dataMutator) =>
+        Run(_paymentProcessTask.DefineEnd(new PipelineBuilder()), dataMutator);
+
+    private Task<StageResult> RunAbandon(IInstanceDataMutator dataMutator) =>
+        Run(_paymentProcessTask.DefineAbandon(new PipelineBuilder()), dataMutator);
+
+    /// <summary>Runs the stages in order, as the engine would, stopping at the first that does not complete.</summary>
+    private static async Task<StageResult> Run(ProcessTaskPipeline pipeline, IInstanceDataMutator dataMutator)
+    {
+        var context = new StageContext
+        {
+            InstanceDataMutator = dataMutator,
+            WorkflowId = Guid.NewGuid(),
+            StepId = Guid.NewGuid(),
+        };
+        foreach (PipelineStage.Plain stage in pipeline.Stages)
+        {
+            StageResult result = await stage.Work(context);
+            if (result is not CompletedStageResult)
+            {
+                return result;
+            }
+        }
+        return StageResult.Completed();
+    }
 
     private static Instance CreateInstance(params DataElement[] dataElements)
     {

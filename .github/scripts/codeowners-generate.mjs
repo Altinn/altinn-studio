@@ -84,6 +84,7 @@ const GROUPS = [
       'src/Runtime/common',
       'src/Runtime/devenv',
       'src/common/dotnet',
+      'src/common/go',
       'src/Designer/development/fake-ansattporten',
       'src/test/K6',
       'src/tools/health',
@@ -95,6 +96,7 @@ const GROUPS = [
     ],
     extraPaths: [
       '.github/workflows/cli-build-test.yaml',
+      '.github/workflows/common-go-build.yaml',
       '.github/workflows/construct-environments-script-test.yaml',
       '.github/workflows/deploy-gitea-runners.yaml',
       '.github/workflows/deploy-github-runners.yaml',

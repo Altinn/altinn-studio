@@ -530,6 +530,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         _binaryCache.Set(id, data);
     }
 
+    /// <summary>
+    /// The element's bytes if they are already cached, matching its current blob version, without reading Storage.
+    /// </summary>
+    internal bool TryGetCachedBinaryData(DataElementIdentifier id, out ReadOnlyMemory<byte> data) =>
+        _binaryCache.TryGetCachedValue(id, out data);
+
     internal void UpdateProcessState(ProcessStateChange processStateChange)
     {
         ArgumentNullException.ThrowIfNull(processStateChange);
@@ -796,6 +802,14 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
         if (outcome == WorkflowAggregateSaveOutcome.Saved)
         {
+            // The cache still holds an updated binary element's previous bytes, kept for post-save validation of
+            // user saves. Once the change is committed and cleared, the cache must hold what was written, since
+            // the state captured next may carry it.
+            foreach (BinaryDataChange change in changes.BinaryDataChanges.Where(c => c.Type == ChangeType.Updated))
+            {
+                _binaryCache.Set(change.DataElementIdentifier, change.CurrentBinaryData);
+            }
+
             // The updated state blob is captured from this unit of work after the save; committed
             // changes must not linger as pending or the next callback would recommit them. User
             // saves deliberately do NOT clear: the validation flow re-derives the changes after
@@ -1016,6 +1030,15 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                             ContentPartName = contentPartName,
                             ExpectedCurrentBlobVersion = GetDataElementBlobVersionId(change.DataElementIdentifier),
                             ContentType = change.ContentType,
+                            // A content update replaces the element's refs and task reference, so send the
+                            // current ones back or the update would drop them.
+                            Refs = change.DataElement.Refs,
+                            GeneratedFromTask = change
+                                .DataElement.References?.Find(reference =>
+                                    reference.Relation == RelationType.GeneratedFrom
+                                    && reference.ValueType == ReferenceType.Task
+                                )
+                                ?.Value,
                             Filename = change switch
                             {
                                 BinaryDataChange binaryDataChange => binaryDataChange.FileName,

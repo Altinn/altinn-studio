@@ -436,16 +436,21 @@ public class PdfServiceTests
         await target.GenerateSubformPdf(
             instance,
             "Task_1",
-            new SubformPdfContext("subform-component", "subform-data-element"),
+            new SubformPdfContext("Sub form", "subform-data-element"),
             LanguageConst.Nb
         );
 
+        // The subform is passed as query parameters, the way autoPdfTaskIds are, so the frontend renders the entry
+        // from the subform's UI folder whatever UI folder the task has
         _pdfGeneratorClient.Verify(
             s =>
                 s.GeneratePdf(
                     It.Is<Uri>(u =>
-                        u.AbsoluteUri.Contains(instance.Id)
-                        && u.AbsoluteUri.Contains("/Task_1/subform/subform-component/subform-data-element")
+                        u.AbsoluteUri.EndsWith(
+                            $"instance/{instance.Id}/Task_1?pdf=1&lang=nb"
+                                + "&subformUiFolder=Sub%20form&subformDataElementId=subform-data-element",
+                            StringComparison.Ordinal
+                        )
                     ),
                     It.IsAny<string?>(),
                     It.IsAny<StorageAuthenticationMethod?>(),

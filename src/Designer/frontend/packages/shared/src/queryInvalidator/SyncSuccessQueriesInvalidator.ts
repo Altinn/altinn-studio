@@ -35,12 +35,10 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     'process.bpmn': [
       [QueryKey.FetchBpmn, '[org]', '[app]'],
       [QueryKey.AppValidation, '[org]', '[app]'],
-      [QueryKey.SubformComponents, '[org]', '[app]'],
     ],
     'Settings.json': [
       [QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]'],
       [QueryKey.AppValidation, '[org]', '[app]'],
-      [QueryKey.SubformComponents, '[org]', '[app]'],
     ],
   };
 
@@ -51,7 +49,6 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     layouts: [
       [QueryKey.FormLayouts, '[org]', '[app]'],
       [QueryKey.Pages, '[org]', '[app]', '[layoutSetName]'],
-      [QueryKey.SubformComponents, '[org]', '[app]'],
     ],
   };
 

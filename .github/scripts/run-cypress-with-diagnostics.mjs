@@ -31,6 +31,9 @@ const deadline = Math.min(
   setting('CYPRESS_JOB_DEADLINE_MS', Number.MAX_SAFE_INTEGER),
 );
 const summary = { startedAt: Date.now(), completed: {}, stalls: [] };
+const inactivityReason = 'no output/command/spec progress; renderer hang could not be confirmed';
+let captureNumber = 0;
+let capturedStop = false;
 let interrupted;
 process.on('SIGTERM', () => {
   interrupted = 'SIGTERM';
@@ -120,6 +123,16 @@ async function capture(browser, event) {
   }
 }
 
+async function captureStop() {
+  summary.atStop = { at: Date.now(), state: readState(), lastOutput, lastBrowserProgress };
+  markDiagnostics();
+  const event = { number: ++captureNumber };
+  summary.finalCapture = event;
+  save();
+  await capture(browser, event);
+  capturedStop = true;
+}
+
 // Refuse stale state instead of reading results left by a previous invocation.
 const runDirectory = path.join(directory, 'run');
 mkdirSync(runDirectory);
@@ -131,10 +144,20 @@ const child = spawn(command, args, {
 });
 let finished = false;
 let lastOutput = Date.now();
+let lastBrowserProgress = 0;
 let nextProbe = 0;
 let connectionNumber = 0;
 let browser;
 let continuation;
+function latestProgress() {
+  return Math.max(lastOutput, lastBrowserProgress, readState().updatedAt || summary.startedAt);
+}
+function observeProbe(probe) {
+  for (const target of probe.targets) {
+    lastBrowserProgress = Math.max(lastBrowserProgress, target.progressAt || 0);
+  }
+  return probe;
+}
 const completion = new Promise((resolve) => {
   child.once('error', (error) => {
     summary.launchError = error.message;
@@ -179,7 +202,7 @@ try {
         continue;
       }
     }
-    const lastProgress = Math.max(lastOutput, state.updatedAt || summary.startedAt);
+    const lastProgress = latestProgress();
     if (
       state.debugPort &&
       browser?.socket?.readyState !== WebSocket.OPEN &&
@@ -208,21 +231,20 @@ try {
       Date.now() >= nextProbe &&
       browser?.socket?.readyState === WebSocket.OPEN
     ) {
-      const first = await browser.probe();
+      const first = observeProbe(await browser.probe());
       if (first.blockedTargets.length) {
         markDiagnostics();
         // Freeze pre-hang scheduler history before more events overwrite it.
         await browser.saveTrace();
         await delay(confirmMs);
-        const second = await browser.probe();
-        const progressed = () =>
-          finished || readState().updatedAt > (state.updatedAt || 0) || lastOutput > lastProgress;
+        const second = observeProbe(await browser.probe());
+        const progressed = () => finished || latestProgress() > lastProgress;
         if (
           !progressed() &&
           first.blockedTargets.some((id) => second.blockedTargets.includes(id))
         ) {
           const event = {
-            number: summary.stalls.length + 1,
+            number: ++captureNumber,
             at: Date.now(),
             spec: state.currentSpec,
             probes: [first, second],
@@ -234,6 +256,7 @@ try {
             'Cypress diagnostics: confirmed renderer stall; capturing before stopping Chrome.',
           );
           await capture(browser, event);
+          observeProbe(await browser.probe());
           // Debugger attachment can unblock a transient pause. Never stop a
           // browser that progressed to another test or spec during capture.
           if (!progressed() && !interrupted && Date.now() < deadline) {
@@ -268,20 +291,30 @@ try {
       }
       nextProbe = Date.now() + 30_000;
     }
-    if (Date.now() - lastProgress >= fallbackMs) {
-      summary.stopReason = 'no output/spec progress; renderer hang could not be confirmed';
+    if (Date.now() - latestProgress() >= fallbackMs) {
+      summary.stopReason = inactivityReason;
+      await captureStop();
+      if (browser?.socket?.readyState === WebSocket.OPEN) observeProbe(await browser.probe());
+      // A long spec may finish while diagnostics are collected. Resume watching
+      // when actual work progressed, without abandoning the overall deadline.
+      if (
+        !interrupted &&
+        (finished || (Date.now() < deadline && Date.now() - latestProgress() < fallbackMs))
+      ) {
+        summary.finalCapture.progressedDuringCapture = true;
+        summary.stopReason = null;
+        capturedStop = false;
+        browser?.close();
+        save();
+        continue;
+      }
       break;
     }
     save();
     await Promise.race([completion, delay(1000)]);
   }
   if (summary.stopReason) {
-    summary.atStop = { at: Date.now(), state: readState(), lastOutput };
-    save();
-    markDiagnostics();
-    const event = { number: summary.stalls.length + 1 };
-    summary.finalCapture = event;
-    await capture(browser, event);
+    if (!capturedStop) await captureStop();
     await terminate(child, completion);
     exitCode = 124;
   } else exitCode = await completion;

@@ -194,6 +194,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const performProcess = useProcessingMutation('custom-action');
   const isThisProcessing = useIsThisProcessing('custom-action');
   const isAnyProcessing = useIsAnyProcessing();
+  const instanceLocked = FormStore.useIsInstanceLocked();
   const layoutLookups = FormStore.bootstrap.useLayoutLookups();
   const { getPageValidation } = usePageValidation(baseComponentId);
   const getNavigationIsPrevented = useGetNavigationIsPrevented();
@@ -208,7 +209,13 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const isPreventedByIntermediatePage = config.actions.some(
     (action) => isSpecificClientAction('navigateToPage', action) && getNavigationIsPrevented(action.metadata.page),
   );
-  const disabled = !isPermittedToPerformActions || isAnyProcessing || isPreventedByIntermediatePage;
+  // Client actions only navigate, so a button without server actions keeps working while the instance is locked
+  const hasServerActions = config.actions.some(isServerAction);
+  const disabled =
+    !isPermittedToPerformActions ||
+    isAnyProcessing ||
+    isPreventedByIntermediatePage ||
+    (instanceLocked && hasServerActions);
   const isSubformCloseButton = config.actions.filter((action) => action.id === 'closeSubform').length > 0;
   let interceptedButtonStyle = config.buttonStyle ?? 'secondary';
   if (isSubformCloseButton && !config.buttonStyle) {

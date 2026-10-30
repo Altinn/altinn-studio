@@ -11,7 +11,7 @@ ALTINNAPP9999 | General | Warning | Unknown error
 ALTINNAPP0500 | CodeSmells | Warning | CodeSmells
 ALTINNAPP0600 | Deprecation | Error | enablePdfCreation is not supported
 ALTINNAPP0601 | Deprecation | Error | Legacy eFormidling config is not supported
-ALTINNAPP0700 | Contracts | Error | Sealed default implementation replaced
+ALTINNAPP0602 | Deprecation | Error | subformComponentId and subformDataTypeId are not supported
 ALTINNAPP0701 | Contracts | Error | Incomplete registration discarded
 ALTINNAPP0702 | Contracts | Error | Mailbox handle answered twice
 ALTINNAPP0703 | Contracts | Error | Mailbox opened but never answered
@@ -21,8 +21,7 @@ ALTINNAPP0900 | Metadata | Error | Duplicate presentationFields/dataFields id
 ALTINNAPP0901 | Metadata | Warning | presentationFields/dataFields entry references an unknown data type
 ALTINNAPP0902 | Metadata | Error | autoDeleteOnProcessEnd combined with preventInstanceDeletionForDays
 ALTINNAPP1000 | Process | Error | PDF service task has nothing to render
-ALTINNAPP1001 | Process | Error | PDF service task has a UI folder without pdfLayoutName
-ALTINNAPP1002 | Process | Warning | PDF service task includes a task without a UI folder
+ALTINNAPP1002 | Process | Warning | PDF service task lists an entry that adds nothing to its PDF
 ALTINNAPP1003 | Process | Error | Task uses the wrong BPMN element
 ALTINNAPP1004 | Process | Error | Sequence flow leads to an element the app cannot move to
 ALTINNAPP1005 | Process | Error | Exclusive gateway's outgoing list does not match its sequence flows
@@ -44,3 +43,5 @@ ALTINNAPP1020 | Process | Error | Task configuration is missing a required setti
 ALTINNAPP1021 | Process | Warning | Task configuration contains an element the app ignores
 ALTINNAPP1022 | Process | Warning | Task configuration has an env attribute the app cannot use
 ALTINNAPP1023 | Process | Error | Exclusive gateway's default flow has a condition
+ALTINNAPP1024 | Process | Error | Subform PDF service task names a UI folder it cannot render
+ALTINNAPP1026 | Process | Error | PDF service task's pdfLayoutName names a layout that does not exist

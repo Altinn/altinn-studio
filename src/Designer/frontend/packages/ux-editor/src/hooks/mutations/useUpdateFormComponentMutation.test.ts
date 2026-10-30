@@ -171,6 +171,77 @@ describe('useUpdateFormComponentMutation', () => {
   describe('Update FileUpload components', () => {
     const componentTypes = [ComponentType.FileUpload];
 
+    it.each([false, true])(
+      'preserves expression limits and metadata when renaming is %s',
+      async (rename) => {
+        renderAndWaitForData();
+        const oldId = fileUploadDataType.id;
+        const newId = rename ? 'renamed-upload' : oldId;
+        const component: FormFileUploaderComponent = {
+          ...componentMocks[ComponentType.FileUpload],
+          id: newId,
+          maxNumberOfAttachments: ['if', true, 3, 1],
+          minNumberOfAttachments: ['if', true, 1, 0],
+        };
+        const { result } = renderHookWithProviders(() =>
+          useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+        );
+
+        await result.current.mutateAsync({ id: oldId, updatedComponent: component });
+
+        const metadataQuery = rename
+          ? queriesMock.addAppAttachmentMetadata
+          : queriesMock.updateAppAttachmentMetadata;
+        expect(metadataQuery).toHaveBeenCalledWith(
+          org,
+          app,
+          expect.objectContaining({
+            id: newId,
+            maxCount: fileUploadDataType.maxCount,
+            minCount: fileUploadDataType.minCount,
+          }),
+        );
+        expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+          org,
+          app,
+          selectedLayoutName,
+          selectedLayoutSet,
+          expect.objectContaining({
+            layout: expect.objectContaining({
+              data: expect.objectContaining({ layout: expect.arrayContaining([component]) }),
+            }),
+          }),
+        );
+        if (rename) {
+          expect(queriesMock.deleteAppAttachmentMetadata).toHaveBeenCalledWith(org, app, oldId);
+          expect(queriesMock.updateBpmnXml).toHaveBeenCalledTimes(1);
+        }
+      },
+    );
+
+    it('rejects an expression without static metadata before saving the layout', async () => {
+      renderAndWaitForData();
+      queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], { dataTypes: [] });
+      const { result } = renderHookWithProviders(() =>
+        useUpdateFormComponentMutation(org, app, selectedLayoutName, selectedLayoutSet),
+      );
+
+      await expect(
+        result.current.mutateAsync({
+          id: fileUploadDataType.id,
+          updatedComponent: {
+            ...componentMocks[ComponentType.FileUpload],
+            id: 'renamed-upload',
+            maxNumberOfAttachments: ['if', true, 3, 1],
+          },
+        }),
+      ).rejects.toThrow('maxNumberOfAttachments must be a static number');
+
+      expect(queriesMock.saveFormLayout).not.toHaveBeenCalled();
+      expect(queriesMock.addAppAttachmentMetadata).not.toHaveBeenCalled();
+      expect(queriesMock.deleteAppAttachmentMetadata).not.toHaveBeenCalled();
+    });
+
     it.each(componentTypes)(
       `Updates the layout and the bpmn file when updating the id of a %s component`,
       async (componentType) => {

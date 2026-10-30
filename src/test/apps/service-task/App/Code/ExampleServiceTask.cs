@@ -9,7 +9,9 @@ public class ExampleServiceTask : IServiceTask
 {
     public string Type => "exampleServiceTask";
 
-    public async Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+    public async Task<ServiceTaskResult> Execute(StageContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         DataElement dataElement =

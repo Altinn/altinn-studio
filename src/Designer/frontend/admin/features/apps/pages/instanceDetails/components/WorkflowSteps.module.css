@@ -1,0 +1,75 @@
+/* A heading inside the steps table: no rule under it, as it belongs with the rows under it. The
+   design system draws the rule from this variable. */
+.groupHeadingRow {
+  --dsc-table-border-width: 0;
+}
+
+.groupHeading {
+  padding-block: var(--ds-size-3) 0;
+  font-weight: 500;
+}
+
+/* A row under a heading, set in from the left edge by a step. */
+.groupedCell {
+  padding-inline-start: calc(var(--ds-size-3) + var(--ds-size-5));
+}
+
+/* Each auxiliary workflow heads its own expandable group without changing the table columns. */
+.steps .auxiliaryWorkflowRow > td {
+  vertical-align: middle;
+}
+
+.auxiliaryWorkflowName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-size-1) var(--ds-size-3);
+}
+
+.steps .auxiliaryWorkflowToggle {
+  --dsc-button-background--hover: transparent;
+
+  min-height: var(--ds-size-8);
+  padding: var(--ds-size-1);
+  text-align: start;
+}
+
+.auxiliaryWorkflowProgress {
+  color: var(--ds-color-neutral-text-subtle);
+  font-size: var(--ds-font-size-2);
+}
+
+.auxiliaryWorkflowStep {
+  padding-inline-start: calc(var(--ds-size-3) + var(--ds-size-5) + var(--ds-size-6));
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-2);
+  overflow-x: auto;
+  /* Full width inside the open row, whose items otherwise keep to their own width. */
+  align-self: stretch;
+}
+
+/* Every cell of a step row starts at its top-left corner, so a tall error cell does not float the
+   step's name and status down to its middle. */
+.steps td {
+  vertical-align: top;
+}
+
+/* A step with details continues on the next row, so no rule between the two. The design system
+   draws the rule from this variable, which the cells inherit. */
+.stepRowWithDetails {
+  --dsc-table-border-width: 0;
+}
+
+.stepDetailsCell {
+  padding-top: 0;
+}
+
+.numberCell,
+.timeCell {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

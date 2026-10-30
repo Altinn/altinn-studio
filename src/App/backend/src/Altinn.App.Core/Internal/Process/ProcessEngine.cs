@@ -342,6 +342,7 @@ internal class ProcessEngine : IProcessEngine
                 NewProcessState = workflowResult.Instance.Process,
                 Events = [],
             },
+            WorkflowParked = workflowResult.Parked,
         };
 
         activity?.SetProcessChangeResult(changeResult);
@@ -570,6 +571,7 @@ internal class ProcessEngine : IProcessEngine
                 OldProcessState = instance.Process,
                 NewProcessState = newProcessState,
             },
+            WorkflowParked = workflowResult.Parked,
         };
 
         activity?.SetProcessChangeResult(changeResult);
@@ -1150,7 +1152,7 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    private IPipelineServiceTask? CheckIfServiceTask(string? altinnTaskType)
+    private IServiceTask? CheckIfServiceTask(string? altinnTaskType)
     {
         if (altinnTaskType is null)
             return null;

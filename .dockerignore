@@ -16,6 +16,7 @@
 !src/App/template/v9/src
 !src/common/ts
 !src/common/dotnet/Altinn.Studio.Common
+!src/common/dotnet/Altinn.Studio.Common.Telemetry
 
 # Test-apps are built in its own container, so they need to be included
 !src/App/backend

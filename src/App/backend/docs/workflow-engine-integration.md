@@ -23,6 +23,12 @@ these rules:
   steps already read the target task.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
+- `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
+  (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
+  stage retries without the ones before it. The default composes no stages, so a task type with nothing to do at a
+  phase, as the built-in `data` task at every phase, gets no step. Each stage step carries its method's name as the `stepName` label, for the people following the
+  task in Studio's admin panel; see [Step names](service-task-pipelines.md#step-names).
+  A stage is named by position, like a service task item, so [in-flight workflows](#in-flight-workflows) applies.
 - A service task runs its steps after the commit. When it concludes, its last step enqueues the next transition as a
   dependent workflow, which does not acquire the instance again.
 
@@ -161,7 +167,8 @@ Storage. The chain is the workflow it enqueued and every later primary workflow.
 
 - The wait answers 504 after a fixed time.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
-  returns success after a short grace period. The transition has committed by then.
+  returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
+  request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.
 - The server logs the detail of a failure. Clients get a generic message and the kind of failure.
 
 Reads report the current task's transition: idle, processing or failed, the target task, and for a failure its kind
@@ -221,6 +228,11 @@ app does not guard against it. Names would not help either, since a redeploy can
 
 - A step whose item no longer fits fails permanently with a code that names the index. It never moves to a neighboring
   item, which could read another exchange's message.
+- A lifecycle step enqueued by a version from before lifecycle stages carries no stage index. It runs every stage of
+  the task type's pipeline in that one step, as the version that enqueued it ran the whole lifecycle. The first stage
+  runs under the step's id and each later stage under an id derived from it and the stage's position, the same on
+  every attempt, so calls keyed on the step id stay apart. Only the first stage can defer, since the step cannot save
+  between stages; a later stage that defers fails the step permanently with `ProcessTaskStageDeferredAfterOthers`.
 - To recover, resume the workflow on the code that enqueued it, or abandon it. An open mailbox stays open until its
   deadline or until someone closes it.
 - A reply handler finds its opening stage from the pipeline at each hop. After a reshape, concluding the exchange can
@@ -230,8 +242,12 @@ app does not guard against it. Names would not help either, since a redeploy can
 ## Known gaps
 
 - A retried step that reads a binary data element again, after the lost attempt updated it, gets a 409, and so does a
-  resume. No built-in command does this, but an app's service task can. A fix would send an empty mutation with the
-  same idempotency key, and treat a replay as proof that the step had committed.
+  resume. Signing's delegate and notify stages do this with the signee-state element, so the callback state carries
+  the bytes of signee-state elements the unit of work already holds (`WorkflowCallbackState.BinaryData`), and
+  `RestoreState` preloads them while the blob version still matches; the retried stage then reads its input from the
+  state and its save reaches replay. No other built-in command does this, but an app's service task can. A general
+  fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
+  committed.
 - An ended process reports `idle` without asking the engine. A failure after the commit of the final transition
   therefore shows only in the failure alert.
 - The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox

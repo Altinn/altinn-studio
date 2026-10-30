@@ -4,7 +4,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import type { CompInputExternal } from '@app/layout-contract/generated/components/Input/config.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultMockDataElementId, getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
@@ -101,11 +101,18 @@ describe('SummaryComponent', () => {
     });
   });
 
+  test("should not show the change button on a service task's page", async () => {
+    await render({ componentRef: 'Input', onServiceTaskPage: true });
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
   type IRenderProps = {
     componentRef: string;
     currentPageId?: string;
     layout?: ILayoutCollection;
     validationIssues?: BackendValidationIssue[];
+    onServiceTaskPage?: boolean;
   };
 
   const render = async ({
@@ -113,6 +120,7 @@ describe('SummaryComponent', () => {
     currentPageId,
     layout = layoutMock(),
     validationIssues = [],
+    onServiceTaskPage = false,
   }: IRenderProps) => {
     const layoutPage = layout.FormLayout.data.layout;
     layoutPage?.push({
@@ -140,6 +148,13 @@ describe('SummaryComponent', () => {
             obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
           }),
       },
+      apis: onServiceTaskPage
+        ? {
+            instanceApi: {
+              getInstance: async () => getInstanceAtServiceTaskMock(),
+            },
+          }
+        : undefined,
     });
   };
 });
