@@ -36,6 +36,7 @@ export const Caption = ({
 }: CaptionProps) => (
   <caption
     {...rest}
+    id={id}
     className={cn(classes.tableCaption, className)}
   >
     <div className={classes.titleAndHelpWrapper}>

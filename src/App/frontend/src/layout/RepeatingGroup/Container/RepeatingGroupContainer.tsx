@@ -211,6 +211,7 @@ function AddButton() {
   const { triggerFocus, registerAddButton } = useRepeatingGroupsFocusContext();
   const baseComponentId = useRepeatingGroupComponentId();
   const addRow = RepGroupContext.useAddRow();
+  const instanceLocked = FormStore.useIsInstanceLocked();
   const { visibleRows } = useRepeatingGroupRowState();
   const { editingAll, editingNone, isEditingAnyRow, currentlyAddingRow } = useRepeatingGroupSelector((state) => ({
     editingAll: state.editingAll,
@@ -267,7 +268,7 @@ function AddButton() {
         newRow.index !== undefined && triggerFocus(newRow.index);
       }}
       variant='secondary'
-      disabled={currentlyAddingRow}
+      disabled={currentlyAddingRow || instanceLocked}
     >
       <PlusIcon
         fontSize='1.5rem'

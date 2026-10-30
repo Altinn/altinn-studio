@@ -167,7 +167,8 @@ Storage. The chain is the workflow it enqueued and every later primary workflow.
 
 - The wait answers 504 after a fixed time.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
-  returns success after a short grace period. The transition has committed by then.
+  returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
+  request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.
 - The server logs the detail of a failure. Clients get a generic message and the kind of failure.
 
 Reads report the current task's transition: idle, processing or failed, the target task, and for a failure its kind

@@ -21,6 +21,7 @@ public class ProcessModelingService : IProcessModelingService
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IAppDevelopmentService _appDevelopmentService;
     private readonly IAppVersionService _appVersionService;
+    private static readonly XNamespace AltinnProcessNamespace = "http://altinn.no/process";
 
     public ProcessModelingService(
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
@@ -108,6 +109,63 @@ public class ProcessModelingService : IProcessModelingService
         await processDefinition.SaveAsync(outputStream, SaveOptions.DisableFormatting, cancellationToken);
         outputStream.Position = 0;
         await altinnAppGitRepository.SaveProcessDefinitionFileAsync(outputStream, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> UpdateSubformUiFolder(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string uiFolder,
+        string? newUiFolder,
+        CancellationToken cancellationToken = default
+    )
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
+
+        XDocument processDefinition;
+        await using (Stream processDefinitionStream = altinnAppGitRepository.GetProcessDefinitionFile())
+        {
+            processDefinition = await XDocument.LoadAsync(
+                processDefinitionStream,
+                LoadOptions.PreserveWhitespace,
+                cancellationToken
+            );
+        }
+
+        List<XElement> references =
+        [
+            .. processDefinition
+                .Descendants(AltinnProcessNamespace + "subformUiFolder")
+                .Where(element => element.Value.Trim() == uiFolder),
+        ];
+        if (references.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (XElement reference in references)
+        {
+            if (newUiFolder is not null)
+            {
+                reference.Value = newUiFolder;
+                continue;
+            }
+            if (reference.PreviousNode is XText indentation && string.IsNullOrWhiteSpace(indentation.Value))
+            {
+                indentation.Remove();
+            }
+            reference.Remove();
+        }
+
+        await using MemoryStream outputStream = new();
+        await processDefinition.SaveAsync(outputStream, SaveOptions.DisableFormatting, cancellationToken);
+        outputStream.Position = 0;
+        await altinnAppGitRepository.SaveProcessDefinitionFileAsync(outputStream, cancellationToken);
+        return true;
     }
 
     /// <inheritdoc/>

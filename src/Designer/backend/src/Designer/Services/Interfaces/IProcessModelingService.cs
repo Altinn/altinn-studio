@@ -36,6 +36,22 @@ public interface IProcessModelingService
     );
 
     /// <summary>
+    /// Points every subform PDF task that names a UI folder in <c>subformUiFolder</c> to the folder's new name, or
+    /// removes the reference when the folder is deleted, so the task asks for a folder instead of naming a missing one.
+    /// </summary>
+    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="uiFolder">The UI folder that was renamed or deleted.</param>
+    /// <param name="newUiFolder">The folder's new name, or null when it was deleted.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>Whether the process definition changed.</returns>
+    Task<bool> UpdateSubformUiFolder(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string uiFolder,
+        string newUiFolder,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets the process definition file stream for a given app.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>

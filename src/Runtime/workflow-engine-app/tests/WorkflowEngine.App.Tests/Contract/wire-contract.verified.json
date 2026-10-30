@@ -308,6 +308,11 @@
         "Nullable": true
       },
       {
+        "Name": "firstFailedAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
         "Name": "labels",
         "Kind": "map<string,string>",
         "Nullable": true
@@ -759,6 +764,11 @@
       },
       {
         "Name": "firstDeferredAt",
+        "Kind": "datetimeoffset",
+        "Nullable": true
+      },
+      {
+        "Name": "firstFailedAt",
         "Kind": "datetimeoffset",
         "Nullable": true
       },

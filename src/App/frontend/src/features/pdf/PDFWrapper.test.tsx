@@ -5,14 +5,18 @@ import { screen, waitFor } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
-import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getInstanceDataMock, getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { FormProvider } from 'src/features/form/FormProvider';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
+import { getPdfSource, PdfWrapper } from 'src/features/pdf/PdfWrapper';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
+import { ELEMENT_TYPE } from 'src/types/shared';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
+import type { IProcess } from 'src/types/shared';
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 const exampleInstanceId = `512345/${exampleGuid}`;
@@ -22,7 +26,17 @@ enum RenderAs {
   ServiceOwner,
 }
 
-const render = async (renderAs: RenderAs) => {
+interface RenderOptions {
+  taskId?: string;
+  query?: string;
+  mutateProcess?: (process: IProcess) => void;
+  layouts?: FormBootstrapResponse['layouts'];
+}
+
+const render = async (
+  renderAs: RenderAs,
+  { taskId = 'Task_1', query = 'pdf=1', mutateProcess, layouts = {} }: RenderOptions = {},
+) => {
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((m) => {
     m.org = 'brg';
     m.partyTypesAllowed.person = true;
@@ -38,7 +52,7 @@ const render = async (renderAs: RenderAs) => {
         instanceOwnerParty.orgNumber,
         instanceOwnerParty,
       ),
-      process: getProcessDataMock(),
+      process: getProcessDataMock(mutateProcess),
     };
   });
 
@@ -57,9 +71,9 @@ const render = async (renderAs: RenderAs) => {
     router: ({ children }) => (
       <InstanceRouter
         instanceId={exampleInstanceId}
-        taskId='Task_1'
+        taskId={taskId}
         initialPage=''
-        query='pdf=1'
+        query={query}
       >
         {children}
       </InstanceRouter>
@@ -67,7 +81,7 @@ const render = async (renderAs: RenderAs) => {
     queries: {
       fetchFormBootstrapForInstance: async () =>
         getFormBootstrapMock((obj) => {
-          obj.layouts = {};
+          obj.layouts = layouts;
         }),
     },
     apis: {
@@ -124,5 +138,233 @@ describe('PDFWrapper', () => {
 
       expect(screen.queryByRole('heading', { name: 'Test App' })).toBeNull();
     });
+  });
+
+  describe('PDF service task', () => {
+    const pdfTaskId = 'Task_PDF';
+    const designedLayouts: FormBootstrapResponse['layouts'] = {
+      PdfLayout: {
+        data: {
+          layout: [{ id: 'designed-pdf', type: 'Paragraph', textResourceBindings: { title: 'Designed PDF' } }],
+        },
+      },
+    };
+
+    function asPdfTask(process: IProcess) {
+      const pdfTask = { elementId: pdfTaskId, elementType: ELEMENT_TYPE.SERVICE_TASK, altinnTaskType: 'pdf' };
+      process.currentTask = { ...getProcessDataMock().currentTask, ...pdfTask, flow: 2, started: '', name: pdfTaskId };
+      process.processTasks = [...(process.processTasks ?? []), pdfTask];
+    }
+
+    function setPdfTaskFolder(pdfLayoutName?: string) {
+      window.altinnAppGlobalData.ui.folders[pdfTaskId] = getLayoutSettingsMock({
+        defaultDataType: defaultDataTypeMock,
+        pages: { order: ['WaitingPage'], pdfLayoutName },
+      });
+    }
+
+    it('draws the automatic PDF of autoPdfTaskIds when its UI folder has no pdfLayoutName', async () => {
+      setPdfTaskFolder(undefined);
+
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query: 'pdf=1&task=Task_1',
+        mutateProcess: asPdfTask,
+        layouts: designedLayouts,
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.queryByText('Avsender:')).not.toBeNull();
+      expect(screen.queryByText('Designed PDF')).toBeNull();
+    });
+
+    it('draws the automatic PDF of autoPdfTaskIds when it has no UI folder', async () => {
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query: 'pdf=1&task=Task_1',
+        mutateProcess: asPdfTask,
+        layouts: designedLayouts,
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.queryByText('Avsender:')).not.toBeNull();
+      expect(screen.queryByText('Designed PDF')).toBeNull();
+    });
+
+    it('draws nothing for autoPdfTaskIds entries without a UI folder of their own', async () => {
+      setPdfTaskFolder(undefined);
+
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query: `pdf=1&task=&task=Task_Typo&task=${pdfTaskId}&task=Task_1`,
+        mutateProcess: asPdfTask,
+        layouts: {
+          WaitingPage: {
+            data: { layout: [{ id: 'waiting', type: 'Paragraph', textResourceBindings: { title: 'Waiting' } }] },
+          },
+          page1: {
+            data: { layout: [{ id: 'task-1', type: 'Paragraph', textResourceBindings: { title: 'Task 1' } }] },
+          },
+        },
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.getByText('Task 1')).toBeInTheDocument();
+      expect(screen.queryByText('Waiting')).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['with', 'pdf=1&task=Task_1'],
+      ['without', 'pdf=1'],
+    ])('draws the pdfLayoutName page %s task search params', async (_, query) => {
+      setPdfTaskFolder('PdfLayout');
+
+      const result = await render(RenderAs.User, {
+        taskId: pdfTaskId,
+        query,
+        mutateProcess: asPdfTask,
+        layouts: designedLayouts,
+      });
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(screen.queryByText('Designed PDF')).not.toBeNull();
+      expect(screen.queryByText('Avsender:')).toBeNull();
+    });
+  });
+
+  describe('subform entry', () => {
+    const subformId = 'aaaaaaaa-1111-2222-3333-444444444444';
+
+    class ErrorCatcher extends React.Component<React.PropsWithChildren, { error?: Error }> {
+      state: { error?: Error } = {};
+      static getDerivedStateFromError(error: Error) {
+        return { error };
+      }
+      render() {
+        return this.state.error ? <div role='alert'>{this.state.error.message}</div> : this.props.children;
+      }
+    }
+
+    // A subform PDF service task has no UI folder of its own, so nothing loads a form around the PdfWrapper
+    const renderSubform = async (query: string) => {
+      const instance = getInstanceWithProcessMock();
+      instance.data.push({ ...instance.data[0], id: subformId, dataType: 'subform' });
+      window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
+      window.altinnAppGlobalData.ui.folders.NoDataType = { pages: { order: ['Side1'] } };
+      const fetchFormBootstrapForInstance = vi.fn(async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {};
+        }),
+      );
+
+      const result = await renderWithoutInstanceAndLayout({
+        renderer: () => (
+          <ErrorCatcher>
+            <InstanceProvider>
+              <PdfWrapper>
+                <div>Not a PDF</div>
+              </PdfWrapper>
+            </InstanceProvider>
+          </ErrorCatcher>
+        ),
+        router: ({ children }) => (
+          <InstanceRouter
+            instanceId={instance.id}
+            taskId='Task_SubformPdf'
+            initialPage=''
+            query={`pdf=1&${query}`}
+          >
+            {children}
+          </InstanceRouter>
+        ),
+        waitUntilLoaded: false,
+        queries: { fetchFormBootstrapForInstance },
+        apis: { instanceApi: { getInstance: async () => instance } },
+      });
+      return { result, fetchFormBootstrapForInstance };
+    };
+
+    it('renders the entry from the subform UI folder, with the entry as its data', async () => {
+      const { result, fetchFormBootstrapForInstance } = await renderSubform(
+        `subformUiFolder=Subform&subformDataElementId=${subformId}`,
+      );
+
+      await waitFor(() => expect(result.container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });
+      expect(fetchFormBootstrapForInstance).toHaveBeenCalledWith(
+        expect.objectContaining({ uiFolder: 'Subform', dataElementId: subformId, pdf: true }),
+      );
+      expect(screen.queryByText('Not a PDF')).toBeNull();
+    });
+
+    it.each([
+      [`subformUiFolder=Unknown&subformDataElementId=${subformId}`, `the app has no UI folder 'Unknown'`],
+      [
+        `subformUiFolder=NoDataType&subformDataElementId=${subformId}`,
+        `the subform UI folder 'NoDataType' has no defaultDataType`,
+      ],
+      ['subformUiFolder=Subform', 'A subform PDF requires both subformUiFolder and subformDataElementId'],
+      [`subformDataElementId=${subformId}`, 'A subform PDF requires both subformUiFolder and subformDataElementId'],
+    ])('explains why it cannot render the entry with %s', async (query, message) => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { fetchFormBootstrapForInstance } = await renderSubform(query);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(message);
+      expect(fetchFormBootstrapForInstance).not.toHaveBeenCalled();
+      vi.restoreAllMocks();
+    });
+  });
+});
+
+describe('getPdfSource', () => {
+  const noParams = new URLSearchParams();
+  const pdfTask = getProcessDataMock((process) => {
+    process.processTasks = [
+      { elementId: 'Task_1', altinnTaskType: 'data', elementType: ELEMENT_TYPE.TASK },
+      { elementId: 'Task_PDF', altinnTaskType: 'pdf', elementType: ELEMENT_TYPE.SERVICE_TASK },
+      { elementId: 'Task_Subform', altinnTaskType: 'subformPdf', elementType: ELEMENT_TYPE.SERVICE_TASK },
+    ];
+  });
+
+  function setFolder(taskId: string, pdfLayoutName?: string) {
+    window.altinnAppGlobalData.ui.folders[taskId] = getLayoutSettingsMock({
+      pages: { order: ['Page1'], pdfLayoutName },
+    });
+  }
+
+  it("decides a PDF service task by its folder's pdfLayoutName", () => {
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('automatic');
+
+    setFolder('Task_PDF');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('automatic');
+
+    setFolder('Task_PDF', ' ');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('automatic');
+
+    setFolder('Task_PDF', 'PdfLayout');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, noParams)).toBe('layout');
+  });
+
+  it('gives other service tasks the automatic PDF only without a UI folder', () => {
+    expect(getPdfSource(pdfTask, { taskId: 'Task_Subform' }, noParams)).toBe('automatic');
+    setFolder('Task_Subform');
+    expect(getPdfSource(pdfTask, { taskId: 'Task_Subform' }, noParams)).toBe('layout');
+  });
+
+  it('draws any other task from its UI folder, and leaves one without a folder to its own view', () => {
+    expect(getPdfSource(pdfTask, { taskId: 'Task_1' }, noParams)).toBe('layout');
+    delete window.altinnAppGlobalData.ui.folders.Task_1;
+    expect(getPdfSource(pdfTask, { taskId: 'Task_1' }, noParams)).toBeUndefined();
+  });
+
+  it.each(['subformUiFolder=Subform', 'subformDataElementId=abc'])(
+    'draws a subform entry whatever the task, when the search params name one: %s',
+    (query) => {
+      expect(getPdfSource(pdfTask, { taskId: 'Task_PDF' }, new URLSearchParams(query))).toBe('subform');
+      expect(getPdfSource(pdfTask, { taskId: 'Task_1' }, new URLSearchParams(query))).toBe('subform');
+    },
+  );
+
+  it("leaves a subform entry's own route to render the entry's PDF", () => {
+    expect(getPdfSource(pdfTask, { taskId: 'Task_1', dataElementId: 'abc' }, noParams)).toBeUndefined();
   });
 });
