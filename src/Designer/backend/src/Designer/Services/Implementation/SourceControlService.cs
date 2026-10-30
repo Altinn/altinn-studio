@@ -916,32 +916,46 @@ public class SourceControlService(
                     Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     // Uncommitted changes stay in the working directory, where the checkout refuses to overwrite them.
                     // Staged changes would end up in a merge commit, so they count as being in the way.
-                    RepositoryStatus worktreeStatus = repo.RetrieveStatus(new StatusOptions());
-                    if (
-                        worktreeStatus.Added.Any()
-                        || worktreeStatus.Staged.Any()
-                        || worktreeStatus.Removed.Any()
-                        || worktreeStatus.RenamedInIndex.Any()
-                    )
+                    if (repo.RetrieveStatus(new StatusOptions()).Any(entry => (entry.State & StagedStates) != 0))
                     {
                         throw new CheckoutConflictException("Staged changes are in the way of the remote changes.");
                     }
 
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
-                    LibGit2Sharp.Commit? replayed = ReplayLocalCommits(repo, upstream, signature);
-                    if (replayed is null)
+                    LibGit2Sharp.Commit[] localCommits = GetLocalCommits(repo, upstream);
+                    MergeTreeResult merged = repo.ObjectDatabase.MergeCommits(
+                        originalTip,
+                        upstream.Tip,
+                        new MergeTreeOptions { FindRenames = true }
+                    );
+                    // Requests outside the repository lock, such as a branch switch, can change the clone meanwhile.
+                    if (repo.Head.CanonicalName != branchReference || repo.Head.Tip.Id != originalTip.Id)
                     {
+                        throw new InvalidOperationException($"'{branchReference}' changed while Studio merged it.");
+                    }
+
+                    if (
+                        merged.Status == MergeTreeStatus.Conflicts
+                        || localCommits.Any(commit => !IsUtf8(commit.Encoding))
+                    )
+                    {
+                        // A merge leaves the conflicts in the working directory for the conflict screen. A message in
+                        // another encoding than UTF-8 would be garbled in a combined commit.
                         mergedInstead = true;
                         MergeRemoteBranch(repo, upstream, signature, headTreeBeforeRebase, result);
                     }
                     else
                     {
-                        MoveBranchTo(repo, branchReference, originalTip, replayed);
+                        LibGit2Sharp.Commit target =
+                            localCommits.Length == 0 || merged.Tree.Id == upstream.Tip.Tree.Id
+                                ? upstream.Tip
+                                : CombineLocalCommits(repo, upstream.Tip, merged.Tree, localCommits, signature);
+                        MoveBranchTo(repo, branchReference, originalTip, target);
                         result.Status = RebaseStatus.Complete;
                         PopulateContentStatusFromCommitDiff(
                             repo,
                             headTreeBeforeRebase,
-                            replayed.Tree,
+                            target.Tree,
                             result.ContentStatus
                         );
                     }
@@ -1704,19 +1718,15 @@ public class SourceControlService(
         }
     }
 
-    // Replays the local commits onto the remote branch in memory, with rename detection, which LibGit2Sharp's rebase
-    // lacks. Returns null when Studio should merge instead, because the replay cannot keep everything a merge keeps:
-    // - a merge commit holds changes that replaying its parents would skip,
-    // - a message in another encoding than UTF-8 would be garbled,
-    // - replaying can conflict, or end with other files than merging would, when a later local commit undoes an earlier
-    //   one.
-    private static LibGit2Sharp.Commit? ReplayLocalCommits(
-        LibGit2Sharp.Repository repo,
-        Branch upstream,
-        LibGit2Sharp.Signature committer
-    )
-    {
-        LibGit2Sharp.Commit[] localCommits = repo
+    private const FileStatus StagedStates =
+        FileStatus.NewInIndex
+        | FileStatus.ModifiedInIndex
+        | FileStatus.DeletedFromIndex
+        | FileStatus.RenamedInIndex
+        | FileStatus.TypeChangeInIndex;
+
+    private static LibGit2Sharp.Commit[] GetLocalCommits(LibGit2Sharp.Repository repo, Branch upstream) =>
+        repo
             .Commits.QueryBy(
                 new CommitFilter
                 {
@@ -1726,51 +1736,34 @@ public class SourceControlService(
                 }
             )
             .ToArray();
-        if (localCommits.Any(commit => commit.Parents.Skip(1).Any() || !IsUtf8(commit.Encoding)))
-        {
-            return null;
-        }
 
-        MergeTreeOptions options = new() { FindRenames = true };
-        MergeTreeResult merged = repo.ObjectDatabase.MergeCommits(repo.Head.Tip, upstream.Tip, options);
-        if (merged.Status == MergeTreeStatus.Conflicts)
-        {
-            return null;
-        }
-
-        LibGit2Sharp.Commit onto = upstream.Tip;
-        foreach (LibGit2Sharp.Commit commit in localCommits)
-        {
-            MergeTreeResult picked = repo.ObjectDatabase.CherryPickCommit(commit, onto, 0, options);
-            if (picked.Status == MergeTreeStatus.Conflicts)
-            {
-                return null;
-            }
-
-            if (picked.Tree.Id == onto.Tree.Id)
-            {
-                // The remote branch already has this change.
-                continue;
-            }
-
-            onto = repo.ObjectDatabase.CreateCommit(
-                commit.Author,
-                committer,
-                commit.Message,
-                picked.Tree,
-                [onto],
-                prettifyMessage: false
-            );
-        }
-
-        return onto.Tree.Id == merged.Tree.Id ? onto : null;
+    // Puts the local changes on top of the remote branch as one commit with the merged files, so that the history
+    // stays linear and the files are exactly what a merge gives. A share has one local commit; several are left only by
+    // shares that failed, and they become one.
+    private static LibGit2Sharp.Commit CombineLocalCommits(
+        LibGit2Sharp.Repository repo,
+        LibGit2Sharp.Commit onto,
+        Tree mergedTree,
+        LibGit2Sharp.Commit[] localCommits,
+        LibGit2Sharp.Signature committer
+    )
+    {
+        string message = string.Join("\n\n", localCommits.Select(commit => commit.Message.TrimEnd())) + "\n";
+        return repo.ObjectDatabase.CreateCommit(
+            localCommits[^1].Author,
+            committer,
+            message,
+            mergedTree,
+            [onto],
+            prettifyMessage: false
+        );
     }
 
     private static bool IsUtf8(string? encoding) =>
         encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
 
     // Changes the working directory once. Uncommitted changes to a file the update changes are in the way, even when
-    // they match it, so that undoing a failed update never touches changes that were there before.
+    // they match it, so that Git's checkout can put back exactly those files if a later step fails.
     private static void MoveBranchTo(
         LibGit2Sharp.Repository repo,
         string branchReference,
@@ -1778,13 +1771,7 @@ public class SourceControlService(
         LibGit2Sharp.Commit commit
     )
     {
-        // Requests outside the repository lock, such as a branch switch, can change the clone during the replay.
-        if (repo.Head.CanonicalName != branchReference || repo.Head.Tip.Id != originalTip.Id)
-        {
-            throw new InvalidOperationException($"'{branchReference}' changed while its commits were replayed.");
-        }
-
-        HashSet<string> changedPaths = GetChangedPaths(repo, originalTip.Tree, commit.Tree);
+        string[] changedPaths = GetChangedPaths(repo, originalTip.Tree, commit.Tree).ToArray();
         if (repo.RetrieveStatus(new StatusOptions()).Any(entry => changedPaths.Contains(entry.FilePath)))
         {
             throw new CheckoutConflictException("Uncommitted changes are in the way of the remote changes.");
@@ -1796,22 +1783,24 @@ public class SourceControlService(
             repo.Refs.UpdateTarget(repo.Refs[branchReference], commit.Id);
             repo.Refs.UpdateTarget("HEAD", branchReference);
         }
-        catch
+        catch (Exception exception)
+            when (exception is not CheckoutConflictException
+                && exception is LibGit2SharpException or IOException or UnauthorizedAccessException
+            )
         {
-            UndoMoveBranch(repo, branchReference, originalTip, commit, changedPaths);
+            // A checkout conflict changes nothing. Any other failure can stop the update partway.
+            PutBackOnBranch(repo, branchReference, originalTip, changedPaths);
             throw;
         }
     }
 
-    // Puts HEAD back on the branch. Unless the branch already moved, it also puts back the files and index entries that
-    // the update changed, so that later pulls and shares work. A file that differs from what the update wrote was saved
-    // meanwhile, and stays. Each step is attempted on its own, because a lock or I/O error can stop any of them.
-    private static void UndoMoveBranch(
+    // Puts HEAD back on the branch and, unless the branch already moved, puts back the files the update changed. Each
+    // step runs on its own, because a lock or I/O error can stop any of them.
+    private static void PutBackOnBranch(
         LibGit2Sharp.Repository repo,
         string branchReference,
         LibGit2Sharp.Commit originalTip,
-        LibGit2Sharp.Commit commit,
-        HashSet<string> changedPaths
+        string[] changedPaths
     )
     {
         TryIgnoringFailure(() =>
@@ -1821,65 +1810,16 @@ public class SourceControlService(
                 repo.Refs.UpdateTarget("HEAD", branchReference);
             }
         });
-        if (repo.Refs[branchReference].ResolveToDirectReference().TargetIdentifier != originalTip.Sha)
+        if (repo.Head.Tip?.Id == originalTip.Id && changedPaths.Length > 0)
         {
-            return;
+            TryIgnoringFailure(() =>
+                repo.CheckoutPaths(
+                    originalTip.Sha,
+                    changedPaths,
+                    new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force }
+                )
+            );
         }
-
-        foreach (string path in changedPaths)
-        {
-            TryIgnoringFailure(() => RestoreFileIfUnchangedSinceUpdate(repo, path, originalTip, commit));
-        }
-
-        TryIgnoringFailure(() =>
-        {
-            repo.Index.Replace(originalTip.Tree);
-            repo.Index.Write();
-        });
-    }
-
-    private static void RestoreFileIfUnchangedSinceUpdate(
-        LibGit2Sharp.Repository repo,
-        string path,
-        LibGit2Sharp.Commit originalTip,
-        LibGit2Sharp.Commit commit
-    )
-    {
-        string fullPath = Path.Join(repo.Info.WorkingDirectory, path);
-        if (!FileMatchesBlob(fullPath, commit[path]?.Target as Blob))
-        {
-            return;
-        }
-
-        if (originalTip[path]?.Target is Blob originalBlob)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
-            using Stream content = originalBlob.GetContentStream();
-            using FileStream file = File.Create(fullPath);
-            content.CopyTo(file);
-        }
-        else
-        {
-            File.Delete(fullPath);
-        }
-    }
-
-    private static bool FileMatchesBlob(string fullPath, Blob? blob)
-    {
-        if (blob is null)
-        {
-            return !File.Exists(fullPath);
-        }
-
-        if (!File.Exists(fullPath))
-        {
-            return false;
-        }
-
-        using Stream expected = blob.GetContentStream();
-        using MemoryStream expectedBytes = new();
-        expected.CopyTo(expectedBytes);
-        return expectedBytes.ToArray().AsSpan().SequenceEqual(File.ReadAllBytes(fullPath));
     }
 
     private static HashSet<string> GetChangedPaths(LibGit2Sharp.Repository repo, Tree oldTree, Tree newTree)
