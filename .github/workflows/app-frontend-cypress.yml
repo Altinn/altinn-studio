@@ -268,7 +268,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Reserve time for diagnostics and cleanup
+      - name: Reserve time for Cypress cleanup
         shell: bash
         run: echo "CYPRESS_JOB_DEADLINE_MS=$(( $(date +%s%3N) + 100 * 60 * 1000 ))" >> "$GITHUB_ENV"
 
@@ -309,11 +309,6 @@ jobs:
         shell: bash
         run: npx cypress install
 
-      - name: Prepare native Cypress diagnostics
-        timeout-minutes: 5
-        shell: bash
-        run: bash ../../../.github/scripts/prepare-cypress-diagnostics.sh test/logs/cypress-diagnostics
-
       - name: Cypress run
         id: cypress
         shell: bash
@@ -349,15 +344,6 @@ jobs:
             node ../../../.github/scripts/run-cypress-with-diagnostics.mjs npx cypress "${cypress_args[@]}"
           fi
 
-      - name: Upload Cypress stall diagnostics
-        if: ${{ always() && (steps.cypress.outputs.diagnostics == 'true' || steps.cypress.outcome != 'success') }}
-        timeout-minutes: 5
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: cypress-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.containers }}
-          path: src/App/frontend/test/logs/cypress-diagnostics/**
-          if-no-files-found: ignore
-
       - name: Stop localtest
         if: always()
         timeout-minutes: 10
@@ -369,13 +355,12 @@ jobs:
         if: ${{ always() && steps.cypress.outcome != 'success' }}
         timeout-minutes: 5
         with:
-          name: app-frontend-logs-${{ matrix.containers }}
+          name: app-frontend-logs-${{ matrix.containers }}-${{ github.run_attempt }}
           path: |
             src/App/frontend/frontend-server.log
             src/App/frontend/local-env-diagnostics.log
             src/App/frontend/localtest-container.log
-            src/App/frontend/test/logs/*
-            !src/App/frontend/test/logs/cypress-diagnostics/**
+            src/App/frontend/test/logs/**
             src/App/frontend/test/screenshots/**
             ${{ env.STUDIOCTL_HOME }}/logs/**
 
