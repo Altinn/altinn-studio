@@ -1915,6 +1915,7 @@
   "shared.header_user_for_org": "{{user}}\n for {{org}}",
   "shared.main_configuration": "Hovedinnstillinger",
   "sync_header.changes_to_share": "Del dine endringer",
+  "sync_header.checkout_conflict_blocked_action": "Du må dele eller slette endringene dine før du kan hente andres endringer.",
   "sync_header.clone": "Klone",
   "sync_header.clone_https": "Klone med HTTPS",
   "sync_header.clone_https_button": "Kopier lenke",

@@ -12,7 +12,12 @@ import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import { toast } from 'react-toastify';
+import {
+  hasCheckoutConflict,
+  hasRepoMergeConflict,
+  toMergeConflictRepoStatus,
+} from '../../utils/repoStatus';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -44,9 +49,12 @@ export const FetchChangesPopover = (): React.ReactElement => {
     setPopoverOpen(true);
 
     setIsLoading(true);
-    const { data: result } = await fetchPullData();
+    const { data: result, isError } = await fetchPullData();
 
-    if (result.repositoryStatus === 'Ok') {
+    if (isError) {
+      // The default error message explains the failure, and a failed refetch keeps the previous result.
+      setPopoverOpen(false);
+    } else if (result.repositoryStatus === 'Ok') {
       onPullSuccess?.();
       await queryClient.invalidateQueries({
         predicate: (q) => {
@@ -54,14 +62,15 @@ export const FetchChangesPopover = (): React.ReactElement => {
           return queryKey.includes(owner) && queryKey.includes(repoName);
         },
       });
-    } else if (
-      result.hasMergeConflict ||
-      result.repositoryStatus === 'MergeConflict' ||
-      result.repositoryStatus === 'CheckoutConflict'
-    ) {
-      const conflictStatus: RepoStatus = { ...result, hasMergeConflict: true };
-      queryClient.setQueryData([QueryKey.RepoStatus, owner, repoName], conflictStatus);
+    } else if (hasRepoMergeConflict(result)) {
+      queryClient.setQueryData(
+        [QueryKey.RepoStatus, owner, repoName],
+        toMergeConflictRepoStatus(result),
+      );
       setHasMergeConflict?.(true);
+      setPopoverOpen(false);
+    } else if (hasCheckoutConflict(result)) {
+      toast.error(t('sync_header.checkout_conflict_blocked_action'));
       setPopoverOpen(false);
     }
     setIsLoading(false);

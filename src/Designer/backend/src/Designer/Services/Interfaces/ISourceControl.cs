@@ -185,6 +185,17 @@ public interface ISourceControl
     RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
 
     /// <summary>
+    /// Rebases the local commits on a branch onto the same branch on origin, so that pushing them does not need a
+    /// merge commit. On conflicts it leaves them in the working directory, as pulling does.
+    /// </summary>
+    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+    /// <param name="branchName">The branch on origin to rebase onto</param>
+    RemoteRebaseResult RebaseOntoRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    );
+
+    /// <summary>
     /// Deletes a local branch based on the specified name.
     /// </summary>
     /// <param name="editingContext">The altinn repo editing context</param>

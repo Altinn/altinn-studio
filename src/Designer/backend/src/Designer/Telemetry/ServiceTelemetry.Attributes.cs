@@ -108,6 +108,7 @@ internal static partial class ServiceTelemetry
             public const string PushRemoteUrlUpdated = Prefix + "push.remote_url_updated";
             public const string PushSuccess = Prefix + "push.success";
             public const string RebaseConflictsAborted = Prefix + "rebase.conflicts_aborted";
+            public const string RebaseMergedInstead = Prefix + "rebase.merged_instead";
             public const string RebaseStatus = Prefix + "rebase.status";
             public const string RebaseStopAborted = Prefix + "rebase.stop_aborted";
 

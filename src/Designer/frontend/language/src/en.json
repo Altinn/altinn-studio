@@ -580,6 +580,7 @@
   "shared.header_logout": "Log out",
   "shared.header_user_for_org": "{{user}} for {{org}}",
   "sync_header.changes_to_share": "Share changes",
+  "sync_header.checkout_conflict_blocked_action": "Share or delete your changes before you fetch other people's changes.",
   "sync_header.clone": "Clone",
   "sync_header.clone_https": "Clone using HTTPS",
   "sync_header.clone_https_button": "Copy link",

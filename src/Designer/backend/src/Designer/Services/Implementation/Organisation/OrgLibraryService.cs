@@ -136,7 +136,14 @@ public class OrgLibraryService(
         );
 
         sourceControl.CheckoutRepoOnBranch(authenticatedContext.RepoEditingContext, General.DefaultBranch);
-        sourceControl.PullRemoteChanges(authenticatedContext);
+        RepoStatus pullStatus = sourceControl.PullRemoteChanges(authenticatedContext);
+        if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
+        {
+            // Committing now would build on an outdated clone, or commit conflict markers.
+            throw new NonFastForwardException(
+                $"Could not update {authenticatedContext.Org}/{authenticatedContext.Repo} from Gitea: {pullStatus.RepositoryStatus}."
+            );
+        }
 
         if (latestCommitSha == request.BaseCommitSha)
         {

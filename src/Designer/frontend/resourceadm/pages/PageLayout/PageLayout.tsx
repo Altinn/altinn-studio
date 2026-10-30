@@ -4,7 +4,6 @@ import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import postMessages from 'app-shared/utils/postMessages';
 import { MergeConflict } from '../../components/MergeConflict';
 import { ResourceAdmHeader } from '../../components/ResourceAdmHeader';
 
@@ -40,22 +39,6 @@ export const PageLayout = (): React.JSX.Element => {
       setHasMergeConflict(true);
     }
   }, [repoStatus?.hasMergeConflict]);
-
-  useEffect(() => {
-    const windowEventReceived = async (event: any) => {
-      if (
-        event.origin === window.location.origin &&
-        event.data === postMessages.forceRepoStatusCheck
-      ) {
-        setHasMergeConflict(true);
-      }
-    };
-
-    window.addEventListener('message', windowEventReceived);
-    return function cleanup() {
-      window.removeEventListener('message', windowEventReceived);
-    };
-  }, []);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMediaQuery } from '@studio/hooks';
 import { StudioBadge, StudioPopover } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
@@ -26,6 +26,12 @@ export const ShareChangesPopover = () => {
 
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [hasChangesToPush, setHasChangesToPush] = useState(true);
+
+  useEffect(() => {
+    if (hasMergeConflict) {
+      setPopoverOpen(false);
+    }
+  }, [hasMergeConflict]);
 
   const displayNotification: boolean =
     repoStatus?.contentStatus && repoStatus?.contentStatus?.length > 0 && !hasMergeConflict;

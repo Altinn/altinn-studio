@@ -112,44 +112,78 @@ public class SourceControlService(
                 bool checkoutConflict = false;
                 int mergeConflictCount = 0;
                 string mergeStatus = "unknown";
-                PullOptions pullOptions = new()
-                {
-                    MergeOptions = new MergeOptions() { FastForwardStrategy = FastForwardStrategy.Default },
-                    FetchOptions = new FetchOptions(),
-                };
-                pullOptions.FetchOptions.CredentialsProvider = self.GetCredentialsHandler(ctx.authenticatedContext);
-                pullOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext);
 
                 try
                 {
                     Tree head = repo.Head.Tip.Tree;
-                    Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
-                    MergeResult mergeResult = Commands.Pull(
-                        repo,
-                        self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
-                        pullOptions
-                    );
-                    mergeStatus = mergeResult.Status.ToString();
-
-                    TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
-                    foreach (TreeEntryChanges change in treeChanges.Modified)
+                    if (conflictCountBefore > 0)
                     {
-                        status.ContentStatus.Add(
-                            new RepositoryContent
-                            {
-                                FilePath = change.Path,
-                                FileStatus = Enums.FileStatus.ModifiedInWorkdir,
-                            }
-                        );
-                    }
-
-                    if (mergeResult.Status == MergeStatus.Conflicts)
-                    {
+                        // A share or pull that met conflicts left them in the working directory for the user.
                         status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
                         SetErrorStatus(ctx.activity, "merge_conflict");
                         mergeConflict = true;
-                        mergeConflictCount = repo.Index.Conflicts.Count();
+                        mergeConflictCount = conflictCountBefore;
+                        return status;
                     }
+
+                    Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
+                    self.FetchRemoteChanges(repo, ctx.authenticatedContext);
+                    Branch upstream =
+                        repo.Branches[$"refs/remotes/origin/{headBranchBefore}"]
+                        ?? throw new BranchNotFoundException(
+                            $"Remote branch 'origin/{headBranchBefore}' not found locally."
+                        );
+                    HistoryDivergence? divergence = repo.ObjectDatabase.CalculateHistoryDivergence(
+                        repo.Head.Tip,
+                        upstream.Tip
+                    );
+                    int behindBy = divergence?.BehindBy ?? 0;
+                    int aheadBy = divergence?.AheadBy ?? 0;
+
+                    if (behindBy == 0)
+                    {
+                        mergeStatus = MergeStatus.UpToDate.ToString();
+                        return status;
+                    }
+
+                    if (aheadBy > 0)
+                    {
+                        if (isDirtyBefore)
+                        {
+                            status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                            SetErrorStatus(ctx.activity, "checkout_conflict");
+                            checkoutConflict = true;
+                            return status;
+                        }
+
+                        RemoteRebaseResult rebaseResult = self.RebaseOntoRemoteBranch(
+                            ctx.authenticatedContext,
+                            headBranchBefore
+                        );
+                        mergeStatus = rebaseResult.Status.ToString();
+
+                        if (rebaseResult.Status == RebaseStatus.Conflicts)
+                        {
+                            status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+                            SetErrorStatus(ctx.activity, "merge_conflict");
+                            mergeConflict = true;
+                            return status;
+                        }
+
+                        status.ContentStatus.AddRange(rebaseResult.ContentStatus);
+                        return status;
+                    }
+
+                    // Fast-forwards to the commit the divergence was computed from. Pulling would fetch again, and a
+                    // push to origin in between would turn this into a merge commit.
+                    MergeResult mergeResult = repo.Merge(
+                        upstream.Tip,
+                        self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
+                        new MergeOptions { FastForwardStrategy = FastForwardStrategy.FastForwardOnly }
+                    );
+                    mergeStatus = mergeResult.Status.ToString();
+
+                    PopulateContentStatusFromCommitDiff(repo, head, mergeResult.Commit?.Tree, status);
                 }
                 catch (CheckoutConflictException ex)
                 {
@@ -190,17 +224,7 @@ public class SourceControlService(
             {
                 string logMessage = string.Empty;
                 using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(authenticatedContext));
-                FetchOptions fetchOptions = new()
-                {
-                    CredentialsProvider = self.GetCredentialsHandler(authenticatedContext),
-                    CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext),
-                };
-
-                foreach (Remote remote in repo.Network.Remotes)
-                {
-                    IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                    Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
-                }
+                self.FetchRemoteChanges(repo, authenticatedContext, logMessage);
             }
         );
     }
@@ -255,7 +279,7 @@ public class SourceControlService(
                     if (!branchSupplied)
                     {
                         using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
-                        branchName = repo.Head.FriendlyName;
+                        branchName = repo.Head.Tip is null ? DefaultBranch : repo.Head.FriendlyName;
                     }
 
                     self.CommitAndPushToBranch(
@@ -676,8 +700,7 @@ public class SourceControlService(
         using LibGit2Sharp.Repository repo = new(localPath);
         // Restrict users from empty commit
         var status = repo.RetrieveStatus();
-        bool pushedDefaultBranch = false;
-        bool pushedFeatureBranch = false;
+        string pushedBranchName = string.Empty;
         bool commitCreated = false;
         bool isDirty = status.IsDirty;
         string createdCommitSha = string.Empty;
@@ -685,6 +708,7 @@ public class SourceControlService(
         {
             if (isDirty)
             {
+                EnsureUnbornHeadPointsToBranch(repo, branchName);
                 string remoteUrl = FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
                 Remote remote = repo.Network.Remotes["origin"];
 
@@ -708,17 +732,14 @@ public class SourceControlService(
                     CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
                 };
 
-                if (branchName == DefaultBranch)
-                {
-                    repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    pushedDefaultBranch = true;
-                }
-                else
-                {
-                    Branch b = repo.Branches[branchName];
-                    repo.Network.Push(b, options);
-                    pushedFeatureBranch = true;
-                }
+                Branch branch =
+                    repo.Branches[branchName]
+                    ?? throw new BranchNotFoundException(
+                        $"Branch '{branchName}' not found in local repository. Cannot push non-existing branch."
+                    );
+                branch = EnsureLocalBranchTracksOrigin(repo, branch);
+                repo.Network.Push(branch, options);
+                pushedBranchName = branch.FriendlyName;
             }
         }
         finally
@@ -727,9 +748,9 @@ public class SourceControlService(
             activity?.SetTag(ServiceTelemetry.Attributes.Git.CommitCreated, commitCreated);
             activity?.SetTag(
                 ServiceTelemetry.Attributes.Git.CommitPushTarget,
-                pushedDefaultBranch ? "default"
-                    : pushedFeatureBranch ? "feature"
-                    : "none"
+                pushedBranchName.Length == 0 ? "none"
+                    : pushedBranchName == DefaultBranch ? "default"
+                    : "feature"
             );
             if (createdCommitSha.Length > 0)
             {
@@ -862,6 +883,112 @@ public class SourceControlService(
                     ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStatus, rebaseStatus.ToString());
                     ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseConflictsAborted, conflictsAborted);
                     ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStopAborted, stopAborted);
+                }
+            }
+        );
+    }
+
+    /// <inheritdoc/>
+    public RemoteRebaseResult RebaseOntoRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    )
+    {
+        using var activity = StartActivity(authenticatedContext);
+        activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
+        return ExecuteWithTelemetry(
+            activity,
+            (activity, authenticatedContext, branchName),
+            static (self, ctx) =>
+            {
+                self.FetchRemoteChanges(ctx.authenticatedContext);
+                using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
+                RemoteRebaseResult result = new() { Status = default };
+                bool conflictsAborted = false;
+                bool stopAborted = false;
+                bool mergedInstead = false;
+
+                Identity identity = GetDefaultIdentity(ctx.authenticatedContext.Developer);
+                RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
+
+                Branch upstream =
+                    repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
+                    ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
+                Tree headTreeBeforeRebase = repo.Head.Tip.Tree;
+
+                try
+                {
+                    Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
+                    if (repo.RetrieveStatus(new StatusOptions()).IsDirty)
+                    {
+                        SetErrorStatus(ctx.activity, "rebase_dirty_worktree");
+                        throw new InvalidOperationException(
+                            "Cannot rebase onto remote branch with uncommitted changes."
+                        );
+                    }
+
+                    LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
+                    bool hasLocalMergeCommit = GetLocalOnlyCommits(repo, repo.Head, upstream)
+                        .Any(commit => commit.Parents.Skip(1).Any());
+                    if (hasLocalMergeCommit)
+                    {
+                        // Rebasing skips merge commits, and with them any change made in the merge itself.
+                        mergedInstead = true;
+                        MergeRemoteBranch(repo, upstream, signature, headTreeBeforeRebase, result);
+                        return result;
+                    }
+
+                    RebaseResult rebaseResult = repo.Rebase.Start(repo.Head, upstream, null, identity, rebaseOptions);
+                    result.Status = rebaseResult.Status;
+
+                    if (rebaseResult.Status == RebaseStatus.Complete)
+                    {
+                        PopulateContentStatusFromCommitDiff(repo, headTreeBeforeRebase, repo.Head.Tip.Tree, result);
+                    }
+
+                    if (rebaseResult.Status == RebaseStatus.Conflicts)
+                    {
+                        repo.Rebase.Abort();
+                        conflictsAborted = true;
+                        // Replaying the commits one by one can conflict where the end result would not, such as when
+                        // a later commit undoes an earlier one.
+                        mergedInstead = true;
+                        MergeRemoteBranch(repo, upstream, signature, headTreeBeforeRebase, result);
+                    }
+
+                    if (rebaseResult.Status == RebaseStatus.Stop)
+                    {
+                        repo.Rebase.Abort();
+                        stopAborted = true;
+                        SetErrorStatus(ctx.activity, "rebase_stopped");
+                        throw new InvalidOperationException(
+                            $"Rebase onto remote branch '{ctx.branchName}' was stopped by user."
+                        );
+                    }
+
+                    if (result.Status == RebaseStatus.Conflicts)
+                    {
+                        SetErrorStatus(ctx.activity, "rebase_conflicts");
+                    }
+
+                    return result;
+                }
+                catch (Exception) when (IsRebaseInProgress(repo))
+                {
+                    // An unfinished rebase leaves HEAD detached, and every later pull would fail.
+                    repo.Rebase.Abort();
+                    throw;
+                }
+                finally
+                {
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStatus, result.Status.ToString());
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseConflictsAborted, conflictsAborted);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStopAborted, stopAborted);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseMergedInstead, mergedInstead);
+                    ctx.activity?.SetTag(
+                        ServiceTelemetry.Attributes.Git.ContentStatusCount,
+                        result.ContentStatus.Count
+                    );
                 }
             }
         );
@@ -1486,6 +1613,163 @@ public class SourceControlService(
                 Username = authenticatedContext.DeveloperAppToken,
                 Password = string.Empty,
             };
+    }
+
+    private void FetchRemoteChanges(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string logMessage = ""
+    )
+    {
+        FetchOptions fetchOptions = new()
+        {
+            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+            CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
+        };
+
+        foreach (Remote remote in repo.Network.Remotes)
+        {
+            IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
+            Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+        }
+    }
+
+    // A clean merge is committed, as pulling did before rebasing. Conflicts stay in the working directory, so the
+    // repository status reports them and the user can download their changes.
+    private static void MergeRemoteBranch(
+        LibGit2Sharp.Repository repo,
+        Branch upstream,
+        LibGit2Sharp.Signature signature,
+        Tree headTreeBeforeMerge,
+        RemoteRebaseResult result
+    )
+    {
+        MergeResult mergeResult = repo.Merge(
+            upstream.Tip,
+            signature,
+            new MergeOptions { FastForwardStrategy = FastForwardStrategy.NoFastForward }
+        );
+        if (mergeResult.Status == MergeStatus.Conflicts)
+        {
+            result.Status = RebaseStatus.Conflicts;
+            return;
+        }
+
+        result.Status = RebaseStatus.Complete;
+        PopulateContentStatusFromCommitDiff(repo, headTreeBeforeMerge, repo.Head.Tip.Tree, result);
+    }
+
+    private static bool IsRebaseInProgress(LibGit2Sharp.Repository repo) =>
+        repo.Info.CurrentOperation
+            is CurrentOperation.Rebase
+                or CurrentOperation.RebaseInteractive
+                or CurrentOperation.RebaseMerge;
+
+    private static void EnsureUnbornHeadPointsToBranch(LibGit2Sharp.Repository repo, string branchName)
+    {
+        if (repo.Head.Tip is not null || repo.Head.FriendlyName == branchName)
+        {
+            return;
+        }
+
+        repo.Refs.UpdateTarget("HEAD", $"refs/heads/{branchName}");
+    }
+
+    private static Branch EnsureLocalBranchTracksOrigin(LibGit2Sharp.Repository repo, Branch branch)
+    {
+        return repo.Branches.Update(
+            branch,
+            updater =>
+            {
+                updater.Remote = "origin";
+                updater.UpstreamBranch = $"refs/heads/{branch.FriendlyName}";
+            }
+        );
+    }
+
+    private static void PopulateContentStatusFromCommitDiff(
+        LibGit2Sharp.Repository repo,
+        Tree oldTree,
+        Tree? newTree,
+        RemoteRebaseResult result
+    )
+    {
+        if (newTree is null)
+        {
+            return;
+        }
+
+        TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
+        AddTreeChangesToContentStatus(result.ContentStatus, treeChanges);
+    }
+
+    private static void PopulateContentStatusFromCommitDiff(
+        LibGit2Sharp.Repository repo,
+        Tree oldTree,
+        Tree? newTree,
+        RepoStatus status
+    )
+    {
+        if (newTree is null)
+        {
+            return;
+        }
+
+        TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
+        AddTreeChangesToContentStatus(status.ContentStatus, treeChanges);
+    }
+
+    private static void AddTreeChangesToContentStatus(
+        ICollection<RepositoryContent> contentStatus,
+        TreeChanges treeChanges
+    )
+    {
+        foreach (TreeEntryChanges change in treeChanges.Added)
+        {
+            contentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.NewInWorkdir }
+            );
+        }
+
+        foreach (TreeEntryChanges change in treeChanges.Modified)
+        {
+            contentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.ModifiedInWorkdir }
+            );
+        }
+
+        foreach (TreeEntryChanges change in treeChanges.Deleted)
+        {
+            contentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.DeletedFromWorkdir }
+            );
+        }
+
+        foreach (TreeEntryChanges change in treeChanges.Renamed)
+        {
+            contentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.RenamedInWorkdir }
+            );
+        }
+    }
+
+    private static IReadOnlyList<LibGit2Sharp.Commit> GetLocalOnlyCommits(
+        LibGit2Sharp.Repository repo,
+        Branch branch,
+        Branch upstream
+    )
+    {
+        return repo
+            .Commits.QueryBy(
+                new CommitFilter
+                {
+                    IncludeReachableFrom = branch,
+                    ExcludeReachableFrom = upstream,
+                    SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
+                }
+            )
+            .Reverse()
+            .ToArray();
     }
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
