@@ -178,20 +178,6 @@
           instance.guid: Guid_2
         },
         {
-          process.callback.command: OnTaskStartingHook
-        }
-      ],
-      HasParent: true
-    },
-    {
-      Name: Process.Callback,
-      IdFormat: W3C,
-      Status: Ok,
-      Tags: [
-        {
-          instance.guid: Guid_2
-        },
-        {
           process.callback.command: CommonTaskInitialization
         }
       ],
