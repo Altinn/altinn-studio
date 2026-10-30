@@ -25,19 +25,14 @@ export const AppQueriesProvider = ({
   ...allQueries
 }: React.PropsWithChildren<AppQueriesProps>) => {
   const client = getQueryClient(queryClient);
-  // Expression readers cache against this object; keep its identity until a request function changes.
-  const queries = useShallowMemo(
-    Object.fromEntries(
-      Object.entries(allQueries).filter(([key]) => key.startsWith('fetch') || key.startsWith('get')),
-    ) as AppQueries,
-  );
-  const mutations = useShallowMemo(
-    Object.fromEntries(
-      Object.entries(allQueries).filter(
-        ([key]) => key.startsWith('do') || key.startsWith('create') || key.startsWith('set'),
-      ),
-    ) as AppMutations,
-  );
+  const queries = Object.fromEntries(
+    Object.entries(allQueries).filter(([key]) => key.startsWith('fetch') || key.startsWith('get')),
+  ) as AppQueries;
+  const mutations = Object.fromEntries(
+    Object.entries(allQueries).filter(
+      ([key]) => key.startsWith('do') || key.startsWith('create') || key.startsWith('set'),
+    ),
+  ) as AppMutations;
 
   // Lets us access the query client from the console, and inject data into the cache (for example for use in
   // Cypress tests)
@@ -45,7 +40,11 @@ export const AppQueriesProvider = ({
     window.queryClient = client;
   }, [client]);
 
-  const value = useShallowMemo({ queries, mutations });
+  // Expression readers cache against the request records; preserve their identity until a function changes.
+  const value = useShallowMemo({
+    queries: useShallowMemo(queries),
+    mutations: useShallowMemo(mutations),
+  });
 
   return (
     <QueryClientProvider client={client}>

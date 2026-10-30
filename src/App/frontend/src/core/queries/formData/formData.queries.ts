@@ -1,4 +1,6 @@
-import { skipToken } from '@tanstack/react-query';
+import { useEffect } from 'react';
+
+import { skipToken, useQuery } from '@tanstack/react-query';
 import type { QueryClient, UseQueryOptions } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
@@ -6,6 +8,8 @@ import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { isAxiosError } from 'src/utils/isAxiosError';
+import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
 
 export function useFormDataQueryDef(url: string | undefined): UseQueryOptions<unknown> {
   const { fetchFormData } = useAppQueries();
@@ -40,6 +44,13 @@ export function getFormDataQueryKey(url: string | undefined) {
   return formDataQueryKeys.withUrl(url);
 }
 
+export async function invalidateFormDataQueries(queryClient: QueryClient) {
+  // Inactive queries can still contain data cached by a previous form save. A new
+  // reader must not initialize from that snapshot after backend task processing.
+  queryClient.removeQueries({ queryKey: formDataQueryKeys.all, type: 'inactive' });
+  await queryClient.invalidateQueries({ queryKey: formDataQueryKeys.all });
+}
+
 function useFormDataQueryOptions() {
   const selectedPartyId = useSelectedParty()?.partyId;
   const isStateless = useIsStateless();
@@ -64,8 +75,21 @@ function getFormDataCacheKeyUrl(url: string | undefined) {
   return `${urlObj.pathname}?${searchParams.toString()}`;
 }
 
-export async function invalidateFormDataQueries(queryClient: QueryClient) {
-  // Discard inactive snapshots so a new form reads the data produced by backend task processing.
-  queryClient.removeQueries({ queryKey: formDataQueryKeys.all, type: 'inactive' });
-  await queryClient.invalidateQueries({ queryKey: formDataQueryKeys.all });
+export function useFormDataQuery(url: string | undefined) {
+  const def = useFormDataQueryDef(url);
+  const utils = useQuery(def);
+
+  useEffect(() => {
+    if (utils.error && isAxiosError(utils.error)) {
+      if (utils.error.message?.includes('403')) {
+        window.logInfo('Current party is missing roles');
+      } else {
+        window.logError('Fetching form data failed:\n', utils.error);
+      }
+
+      maybeAuthenticationRedirect(utils.error).then();
+    }
+  }, [url, utils.error]);
+
+  return { data: utils.data, error: utils.error, isFetching: utils.isFetching };
 }
