@@ -1769,8 +1769,8 @@ public class SourceControlService(
     private static bool IsUtf8(string? encoding) =>
         encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
 
-    // Changes the working directory once. The checkout refuses to overwrite a file saved since the check for
-    // uncommitted changes. If a later step fails, HEAD goes back on the branch, so that later pulls and shares work.
+    // Changes the working directory once. Uncommitted changes to a file the update changes are in the way, even when
+    // they match it, so that undoing a failed update never touches changes that were there before.
     private static void MoveBranchTo(
         LibGit2Sharp.Repository repo,
         string branchReference,
@@ -1784,6 +1784,12 @@ public class SourceControlService(
             throw new InvalidOperationException($"'{branchReference}' changed while its commits were replayed.");
         }
 
+        HashSet<string> changedPaths = GetChangedPaths(repo, originalTip.Tree, commit.Tree);
+        if (repo.RetrieveStatus(new StatusOptions()).Any(entry => changedPaths.Contains(entry.FilePath)))
+        {
+            throw new CheckoutConflictException("Uncommitted changes are in the way of the remote changes.");
+        }
+
         try
         {
             Commands.Checkout(repo, commit);
@@ -1792,12 +1798,106 @@ public class SourceControlService(
         }
         catch
         {
+            UndoMoveBranch(repo, branchReference, originalTip, commit, changedPaths);
+            throw;
+        }
+    }
+
+    // Puts HEAD back on the branch. Unless the branch already moved, it also puts back the files and index entries that
+    // the update changed, so that later pulls and shares work. A file that differs from what the update wrote was saved
+    // meanwhile, and stays. Each step is attempted on its own, because a lock or I/O error can stop any of them.
+    private static void UndoMoveBranch(
+        LibGit2Sharp.Repository repo,
+        string branchReference,
+        LibGit2Sharp.Commit originalTip,
+        LibGit2Sharp.Commit commit,
+        HashSet<string> changedPaths
+    )
+    {
+        TryIgnoringFailure(() =>
+        {
             if (repo.Info.IsHeadDetached)
             {
-                Commands.Checkout(repo, repo.Branches[branchReference]);
+                repo.Refs.UpdateTarget("HEAD", branchReference);
             }
+        });
+        if (repo.Refs[branchReference].ResolveToDirectReference().TargetIdentifier != originalTip.Sha)
+        {
+            return;
+        }
 
-            throw;
+        foreach (string path in changedPaths)
+        {
+            TryIgnoringFailure(() => RestoreFileIfUnchangedSinceUpdate(repo, path, originalTip, commit));
+        }
+
+        TryIgnoringFailure(() =>
+        {
+            repo.Index.Replace(originalTip.Tree);
+            repo.Index.Write();
+        });
+    }
+
+    private static void RestoreFileIfUnchangedSinceUpdate(
+        LibGit2Sharp.Repository repo,
+        string path,
+        LibGit2Sharp.Commit originalTip,
+        LibGit2Sharp.Commit commit
+    )
+    {
+        string fullPath = Path.Join(repo.Info.WorkingDirectory, path);
+        if (!FileMatchesBlob(fullPath, commit[path]?.Target as Blob))
+        {
+            return;
+        }
+
+        if (originalTip[path]?.Target is Blob originalBlob)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+            using Stream content = originalBlob.GetContentStream();
+            using FileStream file = File.Create(fullPath);
+            content.CopyTo(file);
+        }
+        else
+        {
+            File.Delete(fullPath);
+        }
+    }
+
+    private static bool FileMatchesBlob(string fullPath, Blob? blob)
+    {
+        if (blob is null)
+        {
+            return !File.Exists(fullPath);
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            return false;
+        }
+
+        using Stream expected = blob.GetContentStream();
+        using MemoryStream expectedBytes = new();
+        expected.CopyTo(expectedBytes);
+        return expectedBytes.ToArray().AsSpan().SequenceEqual(File.ReadAllBytes(fullPath));
+    }
+
+    private static HashSet<string> GetChangedPaths(LibGit2Sharp.Repository repo, Tree oldTree, Tree newTree)
+    {
+        using TreeChanges changes = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
+        return changes.SelectMany(change => new[] { change.Path, change.OldPath }).ToHashSet();
+    }
+
+    private static void TryIgnoringFailure(Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception exception)
+            when (exception is LibGit2SharpException or IOException or UnauthorizedAccessException)
+        {
+            // The original failure is the one the caller reports.
         }
     }
 
