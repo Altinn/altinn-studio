@@ -27,6 +27,7 @@ using Altinn.Studio.Designer.Services.Interfaces.Assistant;
 using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces.Validation;
+using Altinn.Studio.Designer.Services.Runtime;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
@@ -113,6 +114,7 @@ public static class ServiceRegistration
         services.AddScoped<ICanUseAiAssistantEvaluator, CanUseAiAssistantEvaluator>();
         services.AddTransient<IReleaseService, ReleaseService>();
         services.AddTransient<IDeploymentService, DeploymentService>();
+        services.AddTransient<AppRuntime>();
         services.AddTransient<IAppScopesService, AppScopesService>();
         services.AddTransient<IAppSettingsService, AppSettingsService>();
         services.AddTransient<IContactPointsService, ContactPointsService>();

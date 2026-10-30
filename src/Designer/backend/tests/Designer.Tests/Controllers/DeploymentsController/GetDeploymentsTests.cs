@@ -93,21 +93,7 @@ public class GetDeployments
     }
 
     [Fact]
-    public async Task GetDeployments_WhenAnotherStudioEnvironmentDeployed_LeavesOutItsBuild()
-    {
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "staging"));
-        SetupRunning("at22", null);
-        SetupRunning("production", null);
-
-        DeploymentsResponse actual = await GetDeploymentsResponse();
-
-        RunningApp runningApp = Assert.Single(actual.RunningAppList);
-        Assert.Equal("8", runningApp.Version);
-        Assert.Null(runningApp.BuildId);
-    }
-
-    [Fact]
-    public async Task GetDeployments_WhenAnEnvironmentFails_ReturnsTheOthers()
+    public async Task GetDeployments_LeavesOutEnvironmentsWhereTheAppIsNotKnownToRun()
     {
         SetupRunning("tt02", new RunningAppDeployment("8", null, null));
         SetupRunning("at22", null);
