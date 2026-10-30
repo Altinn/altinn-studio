@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Api.Controllers;
 
 /// <summary>
-/// Controller for handling process engine callbacks. Authenticated via the WorkflowEngineCallback scheme:
+/// Controller for handling workflow engine callbacks. Authenticated via the WorkflowEngineCallback scheme:
 /// the engine replays the app-minted JWT (bound to this instance) in the Authorization: Bearer header.
 /// </summary>
 [ApiController]
@@ -66,7 +66,7 @@ public class WorkflowEngineCallbackController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        using Activity? activity = _telemetry?.StartProcessEngineCallbackActivity(instanceGuid, commandKey);
+        using Activity? activity = _telemetry?.StartWorkflowEngineCallbackActivity(instanceGuid, commandKey);
 
         var appId = new AppIdentifier(org, app);
         var instanceId = new InstanceIdentifier(instanceOwnerPartyId, instanceGuid);
@@ -157,8 +157,8 @@ public class WorkflowEngineCallbackController : ControllerBase
         }
 
         string? currentTaskId = instanceDataUnitOfWork.Instance.Process?.CurrentTask?.ElementId;
-        ProcessEngineCommandResult result = await command.Execute(
-            new ProcessEngineCommandContext
+        WorkflowEngineCommandResult result = await command.Execute(
+            new WorkflowEngineCommandContext
             {
                 AppId = appId,
                 InstanceId = instanceId,
@@ -171,9 +171,9 @@ public class WorkflowEngineCallbackController : ControllerBase
 
         switch (result)
         {
-            case SuccessfulProcessEngineCommandResult success:
+            case SuccessfulWorkflowEngineCommandResult success:
             {
-                //TODO: Consider rewriting IInstanceDataMutator so that we can construct one that doesn't allow abandonment in this scenario. Don't think it makes sense when the process engine is the caller.
+                //TODO: Consider rewriting IInstanceDataMutator so that we can construct one that doesn't allow abandonment in this scenario. Don't think it makes sense when the workflow engine is the caller.
                 if (instanceDataUnitOfWork.HasAbandonIssues)
                 {
                     _logger.LogError(
@@ -287,7 +287,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                 return Ok(new AppCallbackResponse { State = updatedState });
             }
 
-            case DeferredProcessEngineCommandResult deferred:
+            case DeferredWorkflowEngineCommandResult deferred:
                 // Deferrals echo the incoming state, so staged writes would be lost.
                 DataElementChanges deferredChanges = instanceDataUnitOfWork.GetDataElementChanges(false);
                 if (deferredChanges.AllChanges.Count > 0)
@@ -328,7 +328,7 @@ public class WorkflowEngineCallbackController : ControllerBase
                     }
                 );
 
-            case FailedProcessEngineCommandResult failed:
+            case FailedWorkflowEngineCommandResult failed:
                 // A permanent failure still concludes the exchange — the mailbox must stop accepting messages.
                 // Before the response, so a retried step repeats it.
                 if (failed.MailboxContinuation is { } failedContinuation)

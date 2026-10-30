@@ -92,7 +92,7 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartProcessEngineCallbackActivity(Guid instanceGuid, string commandKey)
+    internal Activity? StartWorkflowEngineCallbackActivity(Guid instanceGuid, string commandKey)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.Callback");
         activity?.SetInstanceId(instanceGuid);

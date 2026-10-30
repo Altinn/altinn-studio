@@ -278,7 +278,7 @@ internal sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     }
 }
 
-internal static partial class AppCommandDescriptorLogs
+internal static partial class AppCommandLogs
 {
     // Routing fields only. Never log the AppCallbackPayload: it carries actor identifiers (incl. national
     // identity number), command key and payload body, workflow/execution metadata, and the unencrypted

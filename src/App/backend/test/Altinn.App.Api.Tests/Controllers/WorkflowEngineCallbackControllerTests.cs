@@ -1348,11 +1348,11 @@ public class WorkflowEngineCallbackControllerTests
 
         public string GetKey() => "NoOpForCallbackTest";
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
             Executed = true;
             Language = context.InstanceDataMutator.Language;
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
     }
 
@@ -1362,7 +1362,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string GetKey() => Key;
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
             context.InstanceDataMutator.AddBinaryDataElement(
                 DataTypeId,
@@ -1370,7 +1370,7 @@ public class WorkflowEngineCallbackControllerTests
                 "created.json",
                 Encoding.UTF8.GetBytes("""{"status":"created"}""")
             );
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
     }
 
@@ -1454,7 +1454,7 @@ public class WorkflowEngineCallbackControllerTests
 
         public string GetKey() => Key;
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
             var unitOfWork = Assert.IsType<InstanceDataUnitOfWork>(context.InstanceDataMutator);
             var endedProcessState = new ProcessState { Ended = ended, EndEvent = "EndEvent_1" };
@@ -1466,7 +1466,7 @@ public class WorkflowEngineCallbackControllerTests
             };
             unitOfWork.Instance.Process = endedProcessState;
             unitOfWork.UpdateProcessState(processStateChange);
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
     }
 

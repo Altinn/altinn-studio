@@ -5,7 +5,7 @@
   [in-flight workflows](../../../../docs/workflow-engine-integration.md#in-flight-workflows) explains.
 - Some types here and in `Features/Process` look redundant and are deliberate, such as the enums that come in pairs.
   Do not merge them in passing.
-- After you change a command sequence, the callbacks or the mailbox relay, run the
+- After you change the steps a transition plans, the callbacks or the mailbox relay, run the
   [integration tests](README.md).
 
 ## Mailboxes

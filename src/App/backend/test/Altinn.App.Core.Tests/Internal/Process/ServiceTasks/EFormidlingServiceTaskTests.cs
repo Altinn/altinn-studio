@@ -69,7 +69,7 @@ public class EFormidlingServiceTaskTests
     }
 
     private static Task<ServiceTaskResult> AwaitDelivery(EFormidlingServiceTask task, StageContext context) =>
-        Assert.IsType<PipelineConclusion.FinalStep>(task.ResolvePipeline().Items[^1]).Work(context);
+        Assert.IsType<PipelineConclusion.Final>(task.ResolvePipeline().Items[^1]).Work(context);
 
     private void SetupShipmentStatus(
         EFormidlingDeliveryState state,
@@ -109,7 +109,7 @@ public class EFormidlingServiceTaskTests
 
         Assert.Equal(2, pipeline.Items.Count);
         Assert.IsType<PipelineStage.Plain>(pipeline.Items[0]);
-        PipelineConclusion conclusion = Assert.IsType<PipelineConclusion.FinalStep>(pipeline.Items[1]);
+        PipelineConclusion conclusion = Assert.IsType<PipelineConclusion.Final>(pipeline.Items[1]);
         // The wait budget belongs to the conclusion alone — the send stage must not be handed a
         // budget it can never use. Deliberately longer than the two-hour lifetime the shipment
         // carries in its own SBD, so the integrasjonspunkt's expiry verdict reaches the instance

@@ -13,12 +13,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 
 public class OnTaskStartingHookTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance)
+    private static WorkflowEngineCommandContext CreateContext(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -70,7 +70,7 @@ public class OnTaskStartingHookTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class OnTaskStartingHookTests
         var result = await command.Execute(context);
 
         // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         handler.Verify(
             x =>
                 x.Execute(
@@ -115,7 +115,7 @@ public class OnTaskStartingHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
         Assert.Contains("Multiple", failed.ErrorMessage);
@@ -139,7 +139,7 @@ public class OnTaskStartingHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Hook failed", failed.ErrorMessage);
         Assert.True(failed.NonRetryable);
     }
@@ -160,7 +160,7 @@ public class OnTaskStartingHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Transient error", failed.ErrorMessage);
         Assert.False(failed.NonRetryable);
     }
@@ -181,7 +181,7 @@ public class OnTaskStartingHookTests
         var result = await command.Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Handler exploded", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }

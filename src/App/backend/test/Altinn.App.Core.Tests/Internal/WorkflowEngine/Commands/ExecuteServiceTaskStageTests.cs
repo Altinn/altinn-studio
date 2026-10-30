@@ -51,7 +51,7 @@ public class ExecuteServiceTaskStageTests
         );
     }
 
-    private static ProcessEngineCommandContext CreateContext()
+    private static WorkflowEngineCommandContext CreateContext()
     {
         var instance = new Instance
         {
@@ -64,7 +64,7 @@ public class ExecuteServiceTaskStageTests
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -112,9 +112,9 @@ public class ExecuteServiceTaskStageTests
             OnSend = _ => Task.FromResult<StageResult>(new RogueStageResult(StageResult.Completed())),
         };
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
+        WorkflowEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueStageResult), failed.ErrorMessage, StringComparison.Ordinal);
@@ -125,9 +125,9 @@ public class ExecuteServiceTaskStageTests
     {
         var task = new ShippingTask { OnSend = _ => Task.FromResult<StageResult>(null!) };
 
-        ProcessEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
+        WorkflowEngineCommandResult result = await CreateCommand(task).Execute(CreateContext(), Payload(0));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
@@ -140,7 +140,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(0));
 
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.Null(success.ProcessNextContinuation);
     }
 
@@ -156,7 +156,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(0));
 
-        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        var deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromSeconds(30), deferred.Delay);
         Assert.Equal("queue is saturated", deferred.Reason);
     }
@@ -179,7 +179,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(0));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal(permanent, failed.NonRetryable);
         Assert.Contains("Service task 'shipping' failed", failed.ErrorMessage);
     }
@@ -191,7 +191,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Null(success.ProcessNextContinuation?.Action);
     }
@@ -207,7 +207,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Equal("reject", success.ProcessNextContinuation?.Action);
     }
@@ -227,7 +227,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
-        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        var deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
         Assert.Equal("awaiting receipt", deferred.Reason);
     }
@@ -240,7 +240,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(0));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Equal("shipping exploded", failed.ErrorMessage);
     }
@@ -252,7 +252,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(2));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("PipelineItemNotFound", failed.ExceptionType);
         Assert.Contains("no pipeline item at index 2", failed.ErrorMessage, StringComparison.Ordinal);
@@ -265,7 +265,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(itemIndex: null));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
         Assert.Contains("names no pipeline item", failed.ErrorMessage, StringComparison.Ordinal);
@@ -297,7 +297,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(ConclusionIndex));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("PipelineItemNotFound", failed.ExceptionType);
         Assert.False(simple.Executed);
@@ -314,7 +314,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(0));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Contains("DefineExecute returned null", failed.ErrorMessage);
     }
@@ -350,7 +350,7 @@ public class ExecuteServiceTaskStageTests
 
         var result = await command.Execute(CreateContext(), Payload(1));
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxReceiptMissing", failed.ExceptionType);
     }
