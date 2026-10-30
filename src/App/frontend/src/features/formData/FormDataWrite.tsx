@@ -1,24 +1,35 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 
 import dot from 'dot-object';
+import deepEqual from 'fast-deep-equal';
 import { useStore } from 'zustand';
 import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useIsUpdatingInitialValidations } from 'src/core/queries/backendValidation';
 import { useFormDataSaveMutation, useIsSavingFormData, useIsSavingFormDataNow } from 'src/core/queries/formData';
+import { useIsStateless } from 'src/features/applicationMetadata';
+import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { FormStore, getRootFormStore } from 'src/features/form/FormContext';
 import { createBatchedFormDataSetter } from 'src/features/formData/FormDataWriteBatch';
+import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { type BackendValidationIssueGroups } from 'src/features/validation';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
+import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
+import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
+import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
+import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 import type { FormBootstrapQueryResponse } from 'src/core/queries/formBootstrap';
+import type { FormDataSaveRequest } from 'src/core/queries/formData';
 import type { ExpressionDataSources } from 'src/features/expressions/runtime/useExpressionDataSources';
 import type { FormStoreApi, FormStoreState } from 'src/features/form/FormContext';
 import type { FDBatchedValue } from 'src/features/formData/FormDataWriteBatch';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type { FDActionResult } from 'src/features/formData/FormDataWriteStateMachine';
-import type { DebounceReason } from 'src/features/formData/types';
+import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
 import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -73,6 +84,89 @@ export function FormDataWriteEffects() {
   );
 }
 
+function useFormDataSave() {
+  const getDataModelUrl = useGetDataModelUrl();
+  const instanceId = useLaxInstanceId();
+  const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
+  const currentLanguage = useAsRef(useCurrentLanguage());
+  const dataModelsRef = useAsRef(FormStore.raw.useSelector((state) => state.data.models));
+  const saveFinished = FormStore.raw.useSelector((s) => s.data.saveFinished);
+  const cancelSave = FormStore.raw.useSelector((s) => s.data.cancelSave);
+  const isStateless = useIsStateless();
+  const debounce = FormStore.raw.useSelector((s) => s.data.debounce);
+  const selectedPartyId = useSelectedParty()?.partyId;
+  const waitFor = useWaitForState<{ prev: Record<string, object>; next: Record<string, object> }, FormStoreState>(
+    FormStore.raw.useStore(),
+  );
+
+  return useFormDataSaveMutation({
+    prepareSave: async (): Promise<FormDataSaveRequest | undefined> => {
+      // Read after debounce and after any earlier save has completed.
+      debounce('beforeSave');
+      const { prev, next } = await waitFor((state, setReturnValue) => {
+        const dataModels = state.data.models;
+        const hasUnDebouncedChanges = Object.values(dataModels).some(
+          ({ debouncedCurrentData, currentData }) => debouncedCurrentData !== currentData,
+        );
+        if (!hasUnDebouncedChanges) {
+          const next = Object.fromEntries(
+            Object.entries(dataModels).map(([dataType, model]) => [dataType, model.debouncedCurrentData]),
+          );
+          const prev = Object.fromEntries(
+            Object.entries(dataModels).map(([dataType, model]) => [dataType, model.lastSavedData]),
+          );
+          setReturnValue({ prev, next });
+          return true;
+        }
+        return false;
+      });
+      if (deepEqual(prev, next)) {
+        return;
+      }
+      const models = Object.entries(dataModelsRef.current).map(([dataType, { dataElementId }]) => ({
+        dataType,
+        dataElementId: dataElementId ?? undefined,
+        url: getDataModelUrl({ dataType, dataElementId: dataElementId ?? undefined }),
+      }));
+      if (isStateless) {
+        const changedModels = models.filter(({ dataType }) => next[dataType] !== prev[dataType]);
+        return changedModels.length
+          ? { mode: 'stateless', models: changedModels, savedData: next, partyId: selectedPartyId }
+          : undefined;
+      }
+      if (!multiPatchUrl) {
+        throw new Error('Cannot patch data, multipatch url could not be determined');
+      }
+      const patches: IPatchListItem[] = [];
+      for (const { dataType, dataElementId } of models) {
+        if (dataElementId && next[dataType] !== prev[dataType]) {
+          const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
+          if (patch.length > 0) {
+            patches.push({ dataElementId, patch });
+          }
+        }
+      }
+      return patches.length
+        ? {
+            mode: 'instance',
+            models,
+            savedData: next,
+            url: getUrlWithLanguage(multiPatchUrl, currentLanguage.current),
+            body: { patches, ignoredValidators: IgnoredValidators },
+          }
+        : undefined;
+    },
+    onSaved: (result) => {
+      if (result) {
+        saveFinished(result);
+      } else {
+        cancelSave();
+      }
+    },
+    onError: cancelSave,
+  });
+}
+
 function FormDataEffects() {
   const store = FormStore.raw.useStore();
   const parent = store.getState().parent;
@@ -94,7 +188,7 @@ function FormDataEffects() {
   const publishedStatus = useRef({ unsaved: 0, unloadWarnings: 0 });
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const { mutate: performSave, error } = useFormDataSaveMutation();
+  const { mutate: performSave, error } = useFormDataSave();
   const isSaving = useIsSavingFormData();
   const isUpdatingInitialValidations = useIsUpdatingInitialValidations();
   const debounce = useDebounceImmediately();
