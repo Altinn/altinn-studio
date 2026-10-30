@@ -156,10 +156,11 @@ public class DeploymentRepository : IDeploymentRepository
     {
         IQueryable<DeploymentDbModel> succeeded = _dbContext.Deployments.AsNoTracking().Where(s_succeeded);
 
+        // Counted over every service owner and environment with a successful deployment, so that one whose last app
+        // was decommissioned reports zero rather than nothing.
         return await succeeded
             .Where(d =>
-                d.DeploymentType == Models.DeploymentType.Deploy
-                && !succeeded.Any(later =>
+                !succeeded.Any(later =>
                     later.Org == d.Org
                     && later.App == d.App
                     && later.EnvName == d.EnvName
@@ -167,7 +168,11 @@ public class DeploymentRepository : IDeploymentRepository
                 )
             )
             .GroupBy(d => new { d.Org, d.EnvName })
-            .Select(group => new DeployedAppCount(group.Key.Org, group.Key.EnvName, group.Count()))
+            .Select(group => new DeployedAppCount(
+                group.Key.Org,
+                group.Key.EnvName,
+                group.Count(d => d.DeploymentType == Models.DeploymentType.Deploy)
+            ))
             .ToListAsync(cancellationToken);
     }
 

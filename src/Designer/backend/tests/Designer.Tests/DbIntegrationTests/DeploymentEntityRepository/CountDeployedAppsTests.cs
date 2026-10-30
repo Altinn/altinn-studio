@@ -31,13 +31,20 @@ public class CountDeployedAppsTests : DbIntegrationTestsBase
         await Deploy("uninstall-failed", "tt02", DeploymentType.Decommission, DeployEventType.UninstallFailed);
         await Deploy("in-production", "tt02");
         await Deploy("in-production", "production", finalEvent: DeployEventType.InstallSucceeded);
+        await Deploy("gone", "at22");
+        await Deploy("gone", "at22", DeploymentType.Decommission, DeployEventType.UninstallSucceeded);
 
         IReadOnlyList<DeployedAppCount> counts = await new DeploymentRepository(DbFixture.DbContext).CountDeployedApps(
             CancellationToken.None
         );
 
         Assert.Equal(
-            new Dictionary<string, int> { ["tt02"] = 4, ["production"] = 1 },
+            new Dictionary<string, int>
+            {
+                ["tt02"] = 4,
+                ["production"] = 1,
+                ["at22"] = 0,
+            },
             counts.Where(count => count.Org == _org).ToDictionary(count => count.Environment, count => count.Count)
         );
     }

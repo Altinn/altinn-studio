@@ -3,11 +3,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Designer.Tests.Controllers.ApiTests;
@@ -24,6 +27,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentWebhooksController;
@@ -36,6 +40,7 @@ public class ReceiveDeployEventTests
     private const string RequiredScope = "altinn:studio/designer";
 
     private readonly MetricsRecorder<AppMetrics> _appMetrics = new(meterFactory => new AppMetrics(meterFactory));
+    private bool _deploymentHistoryFails;
 
     private static string WebhookUrl(string org, string app) =>
         $"/designer/api/v1/{org}/{app}/deployments/webhooks/events";
@@ -82,6 +87,10 @@ public class ReceiveDeployEventTests
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton(_appMetrics.Metrics);
+                    if (_deploymentHistoryFails)
+                    {
+                        services.AddSingleton(DeploymentRepositoryWithFailingHistory());
+                    }
 
                     // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
                     ServiceDescriptor initializerDescriptor = services.FirstOrDefault(d =>
@@ -375,6 +384,46 @@ public class ReceiveDeployEventTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Empty(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+    }
+
+    [Fact]
+    public async Task ReceiveDeployEvent_WhenTheDeploymentHistoryFails_StoresNoEventSoARetryIsHandled()
+    {
+        _deploymentHistoryFails = true;
+        string app = TestDataHelper.GenerateTestRepoName();
+        var deployment = EntityGenerationUtils.Deployment.GenerateDeploymentEntity("ttd", app, envName: "at22");
+        await DesignerDbFixture.PrepareEntityInDatabase(deployment);
+
+        using var response = await SendDeployEvent("ttd", app, deployment.Build.Id, "InstallSucceeded", "at22");
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.False(
+            await DesignerDbFixture
+                .DbContext.DeployEvents.AsNoTracking()
+                .AnyAsync(e => e.Deployment.Buildid == deployment.Build.Id)
+        );
+        Assert.Empty(_appMetrics.Measurements(AppMetrics.DeploymentsMetricName));
+    }
+
+    private IDeploymentRepository DeploymentRepositoryWithFailingHistory()
+    {
+        var repository = new DeploymentRepository(DesignerDbFixture.DbContext);
+        var failing = new Mock<IDeploymentRepository>();
+        failing
+            .Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string org, string buildId) => repository.Get(org, buildId));
+        failing
+            .Setup(r =>
+                r.HasSucceededDeployBefore(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<long>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new TimeoutException("The deployment history timed out."));
+        return failing.Object;
     }
 
     private async Task<HttpResponseMessage> SendDeployEvent(

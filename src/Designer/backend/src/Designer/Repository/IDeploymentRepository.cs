@@ -52,7 +52,8 @@ public interface IDeploymentRepository
 
     /// <summary>
     /// Counts the apps deployed to each service owner's environments: those whose latest successful deployment in
-    /// the environment is a deploy rather than a decommission.
+    /// the environment is a deploy rather than a decommission. An environment where every app was decommissioned
+    /// counts zero.
     /// </summary>
     Task<IReadOnlyList<DeployedAppCount>> CountDeployedApps(CancellationToken cancellationToken);
 
