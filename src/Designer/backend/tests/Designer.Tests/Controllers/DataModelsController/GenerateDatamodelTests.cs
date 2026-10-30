@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -84,14 +86,7 @@ public class GenerateDatamodelTests
             JsonSerializerOptions
         );
 
-        using var saveRequest = new HttpRequestMessage(
-            HttpMethod.Put,
-            $"/designer/api/{Org}/{TargetTestRepository}/datamodels/datamodel?modelPath={modelPath}"
-        )
-        {
-            Content = new StringContent(jsonSchema, Encoding.UTF8, MediaTypeNames.Application.Json),
-        };
-        using HttpResponseMessage saveResponse = await HttpClient.SendAsync(saveRequest);
+        using HttpResponseMessage saveResponse = await SaveDatamodel(modelPath, jsonSchema);
         Assert.Equal(HttpStatusCode.NoContent, saveResponse.StatusCode);
 
         Assert.NotNull(generatedDatamodel);
@@ -127,6 +122,41 @@ public class GenerateDatamodelTests
             ?["dataTypes"]?.AsArray()
             .SingleOrDefault(dataType => dataType?["id"]?.GetValue<string>() == NewModelName);
         Assert.Equal("Altinn.App.Models.model.model", newDataType?["appLogic"]?["classRef"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task GenerateDatamodel_NewModelWithTheClassOfAnotherDataType_ReturnsUnprocessableEntity()
+    {
+        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
+
+        // The root element of the existing model, so the new model would declare its class again.
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            GenerateUrl,
+            CreateRequest("kunde", ExistingModelJsonSchema, false, false),
+            JsonSerializerOptions
+        );
+
+        await AssertModelWithTheSameTypeNameExists(response);
+    }
+
+    [Fact]
+    public async Task GenerateDatamodel_ExistingModelWithTheClassOfAnotherDataType_ReturnsUnprocessableEntity()
+    {
+        await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
+        using HttpResponseMessage saveResponse = await SaveDatamodel(
+            $"App/models/{NewModelName}.schema.json",
+            NewModelJsonSchema
+        );
+        Assert.Equal(HttpStatusCode.NoContent, saveResponse.StatusCode);
+
+        // The root element of the other existing model, so this model would declare that model's class again.
+        using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            GenerateUrl,
+            CreateRequest(NewModelName, ExistingModelJsonSchema, false, false),
+            JsonSerializerOptions
+        );
+
+        await AssertModelWithTheSameTypeNameExists(response);
     }
 
     [Fact]
@@ -176,6 +206,29 @@ public class GenerateDatamodelTests
         );
         Assert.NotNull(problemDetails);
         Assert.Contains("customErrorMessages", problemDetails.Extensions.Keys);
+    }
+
+    private async Task<HttpResponseMessage> SaveDatamodel(string modelPath, string jsonSchema)
+    {
+        using var saveRequest = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"/designer/api/{Org}/{TargetTestRepository}/datamodels/datamodel?modelPath={modelPath}"
+        )
+        {
+            Content = new StringContent(jsonSchema, Encoding.UTF8, MediaTypeNames.Application.Json),
+        };
+        return await HttpClient.SendAsync(saveRequest);
+    }
+
+    private static async Task AssertModelWithTheSameTypeNameExists(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        ProblemDetails problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
+            await response.Content.ReadAsStringAsync()
+        );
+        Assert.NotNull(problemDetails);
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        Assert.Equal(DataModelingErrorCodes.ModelWithTheSameTypeNameExists, errorCode.ToString());
     }
 
     private object CreateRequest(
