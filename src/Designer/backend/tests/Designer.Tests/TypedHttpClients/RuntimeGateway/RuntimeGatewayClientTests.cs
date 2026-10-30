@@ -51,7 +51,7 @@ public class RuntimeGatewayClientTests
     [Fact]
     public async Task GetRunningAppDeployment_ReturnsTheDeploymentTheGatewayReports()
     {
-        var expected = new RunningAppDeployment("ttd-my-app", "8");
+        var expected = new RunningAppDeployment("ttd-my-app", "8", "1234", "prod", "42");
         using var handler = new RespondingHandler(HttpStatusCode.OK, expected);
         var client = CreateClient(handler);
 

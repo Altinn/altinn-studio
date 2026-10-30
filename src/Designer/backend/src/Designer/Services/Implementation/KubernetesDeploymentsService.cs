@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -18,6 +19,7 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
 {
     private readonly IEnvironmentsService _environmentsService;
     private readonly IRuntimeGatewayClient _runtimeGatewayClient;
+    private readonly GeneralSettings _generalSettings;
     private readonly ILogger<KubernetesDeploymentsService> _logger;
 
     /// <summary>
@@ -26,11 +28,13 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
     public KubernetesDeploymentsService(
         IEnvironmentsService environmentsService,
         IRuntimeGatewayClient runtimeGatewayClient,
+        GeneralSettings generalSettings,
         ILogger<KubernetesDeploymentsService> logger
     )
     {
         _environmentsService = environmentsService;
         _runtimeGatewayClient = runtimeGatewayClient;
+        _generalSettings = generalSettings;
         _logger = logger;
     }
 
@@ -60,6 +64,9 @@ public class KubernetesDeploymentsService : IKubernetesDeploymentsService
                     EnvName = env.Name,
                     Release = deployment.Release,
                     Version = deployment.ImageTag,
+                    // Several Studio environments share a runtime cluster. Only a deploy from this one is in its history.
+                    BuildId =
+                        deployment.SourceEnvironment == _generalSettings.OriginEnvironment ? deployment.BuildId : null,
                 };
             }
             // One unreachable cluster should not hide what runs in the others, and a timeout is no reason to fail

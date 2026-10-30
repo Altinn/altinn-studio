@@ -1,4 +1,5 @@
 import { BuildResult, type Build } from '../Build';
+import type { KubernetesDeployment } from './KubernetesDeployment';
 
 export interface PipelineDeployment {
   id: string;
@@ -110,4 +111,18 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
   } else {
     return deployment?.build?.result;
   }
+};
+
+/**
+ * The deploy whose build runs in the environment. Without a build id, the tag is the best match there is, though
+ * the same tag can have been deployed more than once.
+ */
+export const findRunningPipelineDeployment = (
+  pipelineDeployments: PipelineDeployment[],
+  kubernetesDeployment: KubernetesDeployment | undefined,
+): PipelineDeployment | undefined => {
+  if (kubernetesDeployment?.buildId) {
+    return pipelineDeployments.find((item) => item.build?.id === kubernetesDeployment.buildId);
+  }
+  return pipelineDeployments.find((item) => item.tagName === kubernetesDeployment?.version);
 };

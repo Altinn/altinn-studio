@@ -2,7 +2,11 @@ import classes from './DeploymentEnvironment.module.css';
 import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { Deploy } from './Deploy';
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
-import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import {
+  findRunningPipelineDeployment,
+  getDeployStatus,
+  type PipelineDeployment,
+} from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 
@@ -33,8 +37,8 @@ export const DeploymentEnvironment = ({
           kubernetesDeployment={kubernetesDeployment}
           isDeploymentInProgress={isDeploymentInProgress}
           lastPublishedDate={
-            pipelineDeploymentList.find((item) => item.tagName === kubernetesDeployment?.version)
-              ?.build?.finished
+            findRunningPipelineDeployment(pipelineDeploymentList, kubernetesDeployment)?.build
+              ?.finished
           }
           envName={envName}
           isProduction={isProduction}

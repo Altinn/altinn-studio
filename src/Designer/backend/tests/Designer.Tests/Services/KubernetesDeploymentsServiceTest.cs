@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -40,6 +41,7 @@ public class KubernetesDeploymentsServiceTest
         _service = new KubernetesDeploymentsService(
             _environmentsService.Object,
             _runtimeGatewayClient.Object,
+            new GeneralSettings { HostName = "altinn.studio" },
             NullLogger<KubernetesDeploymentsService>.Instance
         );
     }
@@ -47,8 +49,8 @@ public class KubernetesDeploymentsServiceTest
     [Fact]
     public async Task GetAsync_ReturnsTheVersionRunningInEachEnvironment_AndSkipsWhereTheAppDoesNotRun()
     {
-        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8"));
-        SetupRunning("at22", new RunningAppDeployment($"{Org}-{App}", "6.1"));
+        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8", "1234", "prod", "42"));
+        SetupRunning("at22", new RunningAppDeployment($"{Org}-{App}", "6.1", null, null, null));
         SetupRunning("production", null);
 
         var deployments = await _service.GetAsync(Org, App, CancellationToken.None);
@@ -61,6 +63,7 @@ public class KubernetesDeploymentsServiceTest
                     EnvName = "tt02",
                     Release = $"{Org}-{App}",
                     Version = "8",
+                    BuildId = "1234",
                 },
                 new KubernetesDeployment
                 {
@@ -75,9 +78,23 @@ public class KubernetesDeploymentsServiceTest
     }
 
     [Fact]
+    public async Task GetAsync_WhenAnotherStudioEnvironmentDeployed_LeavesOutItsBuild()
+    {
+        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8", "1234", "staging", "42"));
+        SetupRunning("at22", null);
+        SetupRunning("production", null);
+
+        var deployments = await _service.GetAsync(Org, App, CancellationToken.None);
+
+        var deployment = Assert.Single(deployments);
+        Assert.Equal("8", deployment.Version);
+        Assert.Null(deployment.BuildId);
+    }
+
+    [Fact]
     public async Task GetAsync_WhenAnEnvironmentFails_ReturnsTheOthers()
     {
-        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8"));
+        SetupRunning("tt02", new RunningAppDeployment($"{Org}-{App}", "8", null, null, null));
         SetupRunning("at22", null);
         SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
 

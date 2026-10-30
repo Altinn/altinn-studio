@@ -35,6 +35,8 @@ export const buildsRoute = async (req, res) => {
         envName: params.APP_ENVIRONMENT,
         tagName: params.TAGNAME,
         buildNumber: BuildNumber,
+        deploymentId: params.DEPLOYMENT_ID,
+        sourceEnvironment: studioEnvironment(params.ALTINN_STUDIO_HOSTNAME),
         time: new Date(),
       },
     ];
@@ -127,6 +129,13 @@ export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
   res.json(deployment);
 };
 
+/** What the deploy pipeline sets STUDIO_ENVIRONMENT to, with Designer's fallback for local hosts. */
+function studioEnvironment(studioHostname = '') {
+  if (studioHostname.startsWith('dev.')) return 'dev';
+  if (studioHostname.startsWith('staging.')) return 'staging';
+  return 'prod';
+}
+
 /** The app's latest deploy through local Studio is what runs in the environment. */
 export const runtimeGatewayRunningDeploymentRoute = (req, res) => {
   const { org, env, app } = req.params;
@@ -140,5 +149,11 @@ export const runtimeGatewayRunningDeploymentRoute = (req, res) => {
     return;
   }
 
-  res.json({ release: `${org}-${app}`, imageTag: deploy.tagName });
+  res.json({
+    release: `${org}-${app}`,
+    imageTag: deploy.tagName,
+    buildId: deploy.buildNumber.toString(),
+    sourceEnvironment: deploy.sourceEnvironment,
+    deploymentId: deploy.deploymentId,
+  });
 };

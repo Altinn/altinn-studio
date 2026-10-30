@@ -5,7 +5,11 @@ import classes from './DeploymentStatusList.module.css';
 import { getAppLink } from 'app-shared/ext-urls';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
-import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
+import {
+  findRunningPipelineDeployment,
+  getDeployStatus,
+  type PipelineDeployment,
+} from 'app-shared/types/api/PipelineDeployment';
 import { BuildResult } from 'app-shared/types/Build';
 
 export interface DeploymentStatusListProps {
@@ -41,9 +45,8 @@ export const DeploymentStatusList = ({
             kubernetesDeployment={kubernetesDeployment}
             isDeploymentInProgress={isDeploymentInProgress}
             lastPublishedDate={
-              pipelineDeploymentEnvList.find(
-                (item) => item.tagName === kubernetesDeployment?.version,
-              )?.build?.finished
+              findRunningPipelineDeployment(pipelineDeploymentEnvList, kubernetesDeployment)?.build
+                ?.finished
             }
             envName={orgEnvironment.name}
             isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}
