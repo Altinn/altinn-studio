@@ -56,6 +56,24 @@ public interface ISchemaModelService
     );
 
     /// <summary>
+    /// Generates the files that <see cref="UpdateSchema"/> writes for a data model in an app repository,
+    /// from app files the caller sends instead of from a repository. Nothing is saved.
+    /// </summary>
+    /// <param name="modelName">The name of the data model's JSON schema file without <c>.schema.json</c>, which is also the id of its data type.</param>
+    /// <param name="jsonContent">The JSON schema of the data model.</param>
+    /// <param name="applicationMetadataJson">The contents of the app's application metadata file.</param>
+    /// <param name="useNullableReferenceTypes">The app's setting for nullable reference types in the generated C# classes.</param>
+    /// <param name="isV9OrNewer">Whether the app uses the v9 app backend or newer.</param>
+    /// <returns>The JSON schema, C# classes, XSD and application metadata as they would be saved.</returns>
+    Task<GeneratedDatamodel> GenerateDatamodel(
+        string modelName,
+        string jsonContent,
+        string applicationMetadataJson,
+        bool useNullableReferenceTypes,
+        bool isV9OrNewer
+    );
+
+    /// <summary>
     /// Builds a JSON schema based on the uploaded XSD.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
