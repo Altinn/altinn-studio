@@ -11,8 +11,6 @@ Request functions stay separate from query policy. The flat [AppQueriesProvider]
 [queries.ts](queries.ts). Existing HTTP clients in [core/api-client](../api-client) remain React-free. Query
 definitions, mutations, and cache operations belong here.
 
-- Expose domain hooks and operations through `index.ts`. Keep query definitions and key factories in internal
-  files such as `*.queries.ts`.
 - Check inferred return types after moving a hook. Select plain application values and give callbacks explicit
   argument and return types so TanStack results and options stay private. Renaming or wrapping a generic TanStack
   hook still exposes its API.
@@ -23,6 +21,30 @@ definitions, mutations, and cache operations belong here.
 
 When moving queries, preserve cache keys, retries, polling, cancellation, mutation ordering, and callback identity
 unless the task calls for a behavior change. These can affect form saving and process transitions.
+
+## Naming
+
+Name functions for their domain and their role. Use these patterns for new code, and preserve existing names when
+moving code so the move stays easy to review.
+
+| Role                                            | Pattern                                          | Examples                                                               |
+| ----------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------- |
+| Read request function                           | `fetch<Resource>` or `get<Resource>`             | `fetchTextResources`, `getInstance`                                    |
+| Write request function                          | `do<Action>`, `create<Domain>`, or `set<Domain>` | `doProcessNext`, `createWithPrefill`, `setSelectedParty`               |
+| Read hook exposing request state                | `use<Resource>Query`                             | `useInstanceDataQuery`                                                 |
+| Write hook exposing request state and execution | `use<Action>Mutation`                            | `useFormDataSaveMutation`                                              |
+| Domain operation or derived-value hook          | `use<DomainActionOrValue>`                       | `usePersonLookup`, `useCreateInstance`, `usePostPlace`                 |
+| Internal query or mutation definition           | `<resource>Query` or `<action>Mutation`          | `textResourcesQuery`, `selectedPartyMutation`                          |
+| Internal key factory                            | `<domain>QueryKeys` or `<domain>MutationKeys`    | `instanceQueryKeys`, `attachmentMutationKeys`                          |
+| Imperative cache operation                      | `<verb><Domain>`                                 | `prefetchInstanceData`, `ensureInstanceData`, `invalidateInstanceData` |
+
+Request prefixes are required by [the request types](types.ts) and [the provider](AppQueriesProvider.tsx), which
+classify functions by name. Tests override those same request names through the flat `queries` and `mutations`
+interfaces. Choose a descriptive name within the matching prefix.
+
+Reserve `use` for React hooks. Keep plain definition and key factories in `<domain>.queries.ts`, and expose public
+hooks and domain operations through the domain's `index.ts`. A public name includes the domain. Generic names such
+as `useQuery` and `useMutation` belong to the private implementation.
 
 ## Testing
 
