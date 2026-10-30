@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
-import { vi } from 'vitest';
 import type { IRawOption } from '@app/layout-contract/generated/common.generated';
 import type { CompLikertExternal } from '@app/layout-contract/generated/components/Likert/config.generated';
 import type { CompLikertItemExternal } from '@app/layout-contract/generated/components/LikertItem/config.generated';
@@ -10,22 +9,12 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { resourcesAsMap } from 'src/features/language/textResources/TextResourcesProvider';
 import { BackendValidationSeverity } from 'src/features/validation';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources';
+import type { IRawTextResource } from 'src/features/language/textResources';
 import type { BackendValidationIssue } from 'src/features/validation';
-
-let mockTextResourcesValue: TextResourceMap = {};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-vi.mock('src/features/language/textResources/TextResourcesProvider', async () => ({
-  ...(await vi.importActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider')),
-  useTextResources: vi.fn(() => mockTextResourcesValue),
-}));
 
 const groupBinding = 'Questions';
 const answerBinding = 'Answer';
@@ -128,8 +117,7 @@ export const render = async ({
 }: IRenderProps) => {
   const mockLikertLayout = createLikertLayout(likertProps);
 
-  // Set the mutable mock value before rendering
-  mockTextResourcesValue = resourcesAsMap(createTextResource(mockQuestions, extraTextResources));
+  window.altinnAppGlobalData.textResources!.resources = createTextResource(mockQuestions, extraTextResources);
 
   window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
     ui.folders.Task_1 = {
