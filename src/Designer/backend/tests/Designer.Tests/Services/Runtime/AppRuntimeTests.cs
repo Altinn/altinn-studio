@@ -46,15 +46,27 @@ public class AppRuntimeTests
         SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", "1234", "prod"));
 
         Assert.Equal(
-            [new AppRunState.Running("tt02", "8", "1234")],
+            [new AppRunState.Running("tt02", "8", new StudioDeploy.ThisStudio("1234"))],
+            await _appRuntime.GetAll(Org, App, CancellationToken.None)
+        );
+    }
+
+    [Fact]
+    public async Task GetAll_WhenAnotherStudioDeployed_ReturnsRunningWithoutItsBuild()
+    {
+        SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", "1234", "staging"));
+
+        Assert.Equal(
+            [new AppRunState.Running("tt02", "8", new StudioDeploy.AnotherStudio())],
             await _appRuntime.GetAll(Org, App, CancellationToken.None)
         );
     }
 
     [Theory]
-    [InlineData("staging", "1234")]
     [InlineData(null, null)]
-    public async Task GetAll_WhenTheBuildIsNotThisStudios_ReturnsRunningWithoutABuild(
+    [InlineData("prod", null)]
+    [InlineData(null, "1234")]
+    public async Task GetAll_WhenTheDeployIsNotRecorded_ReturnsRunningFromAnUnknownStudio(
         string sourceEnvironment,
         string buildId
     )
@@ -62,7 +74,7 @@ public class AppRuntimeTests
         SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", buildId, sourceEnvironment));
 
         Assert.Equal(
-            [new AppRunState.Running("tt02", "8", null)],
+            [new AppRunState.Running("tt02", "8", new StudioDeploy.Unknown())],
             await _appRuntime.GetAll(Org, App, CancellationToken.None)
         );
     }

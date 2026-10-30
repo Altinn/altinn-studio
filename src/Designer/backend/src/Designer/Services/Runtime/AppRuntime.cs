@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Runtime;
@@ -47,10 +48,7 @@ public sealed class AppRuntime(
                 return new AppRunState.NotRunning(environment);
             }
 
-            // Several Studio environments share a runtime cluster. Only a deploy from this one is in its history.
-            var ownBuildId =
-                deployment.SourceEnvironment == generalSettings.OriginEnvironment ? deployment.BuildId : null;
-            return new AppRunState.Running(environment, deployment.ImageTag, ownBuildId);
+            return new AppRunState.Running(environment, deployment.ImageTag, DeployedBy(deployment));
         }
         // A timeout is the environment's failure, so only the caller's cancellation propagates.
         catch (Exception e) when (!ct.IsCancellationRequested)
@@ -65,4 +63,14 @@ public sealed class AppRuntime(
             return new AppRunState.Unavailable(environment);
         }
     }
+
+    private StudioDeploy DeployedBy(RunningAppDeployment deployment) =>
+        (deployment.SourceEnvironment, deployment.BuildId) switch
+        {
+            (null, _) or (_, null) => new StudioDeploy.Unknown(),
+            var (source, buildId) when source == generalSettings.OriginEnvironment => new StudioDeploy.ThisStudio(
+                buildId
+            ),
+            _ => new StudioDeploy.AnotherStudio(),
+        };
 }

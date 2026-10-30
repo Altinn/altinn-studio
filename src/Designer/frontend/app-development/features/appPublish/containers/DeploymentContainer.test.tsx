@@ -59,6 +59,30 @@ describe('DeploymentContainer', () => {
     expect(screen.getByText(envName.toUpperCase())).toBeInTheDocument();
   });
 
+  it('renders org environments when the backend is older and sends no running apps', async () => {
+    const envName = 'tt02';
+    render({
+      getEnvironments: vi
+        .fn()
+        .mockImplementation(() => Promise.resolve([{ ...environment, name: envName }])),
+      getOrgList: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve({ orgs: { [org]: { name: { nb: org }, environments: [envName] } } }),
+        ),
+      getDeployments: vi
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve<DeploymentsResponse>({ pipelineDeploymentList: [] }),
+        ),
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
+
+    expect(screen.getByText(envName.toUpperCase())).toBeInTheDocument();
+  });
+
   it('filters out deployments with build result none except the first one', async () => {
     const envName = 'tt02';
     const firstDeployment: PipelineDeployment = {

@@ -9,10 +9,18 @@ const deploy = (buildId: string, tagName: string): PipelineDeployment => ({
   build: { ...build, id: buildId },
 });
 
-const running = (version: string, buildId?: string | null): RunningApp => ({
+const fromThisStudio = (version: string, buildId: string): RunningApp => ({
   ...runningApp,
   version,
+  deployedFromThisStudio: true,
   buildId,
+});
+
+const fromStudio = (version: string, deployedFromThisStudio: false | null): RunningApp => ({
+  ...runningApp,
+  version,
+  deployedFromThisStudio,
+  buildId: null,
 });
 
 describe('findRunningPipelineDeployment', () => {
@@ -22,23 +30,28 @@ describe('findRunningPipelineDeployment', () => {
   const pipelineDeployments = [redeploy, deploy('200', '1'), firstDeploy];
 
   it('finds the deploy whose build runs, even when its tag was deployed again', () => {
-    expect(findRunningPipelineDeployment(pipelineDeployments, running('2', '100'))).toBe(
+    expect(findRunningPipelineDeployment(pipelineDeployments, fromThisStudio('2', '100'))).toBe(
       firstDeploy,
     );
   });
 
   it('finds nothing when the running build is not in the list', () => {
-    expect(findRunningPipelineDeployment(pipelineDeployments, running('2', '999'))).toBeUndefined();
+    expect(
+      findRunningPipelineDeployment(pipelineDeployments, fromThisStudio('2', '999')),
+    ).toBeUndefined();
   });
 
-  it.each([null, undefined])(
-    'falls back to the newest deploy of the tag when the build id is %s',
-    (buildId) => {
-      expect(findRunningPipelineDeployment(pipelineDeployments, running('2', buildId))).toBe(
-        redeploy,
-      );
-    },
-  );
+  it('finds nothing when another Studio deployed what runs, though this Studio deployed the same tag', () => {
+    expect(
+      findRunningPipelineDeployment(pipelineDeployments, fromStudio('2', false)),
+    ).toBeUndefined();
+  });
+
+  it('falls back to the newest deploy of the tag when it is unknown which Studio deployed it', () => {
+    expect(findRunningPipelineDeployment(pipelineDeployments, fromStudio('2', null))).toBe(
+      redeploy,
+    );
+  });
 
   it('finds nothing when nothing runs', () => {
     expect(findRunningPipelineDeployment(pipelineDeployments, undefined)).toBeUndefined();

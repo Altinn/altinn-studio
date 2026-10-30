@@ -64,8 +64,8 @@ public class GetDeployments
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
         SetupRunning("tt02", new RunningAppDeployment("8", "1234", ThisStudioEnvironment));
-        SetupRunning("at22", new RunningAppDeployment("6.1", null, null));
-        SetupRunning("production", null);
+        SetupRunning("at22", new RunningAppDeployment("6.1", "5678", "staging"));
+        SetupRunning("production", new RunningAppDeployment("6", null, null));
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
 
@@ -83,9 +83,16 @@ public class GetDeployments
                 {
                     Environment = "tt02",
                     Version = "8",
+                    DeployedFromThisStudio = true,
                     BuildId = "1234",
                 },
-                new RunningApp { Environment = "at22", Version = "6.1" },
+                new RunningApp
+                {
+                    Environment = "at22",
+                    Version = "6.1",
+                    DeployedFromThisStudio = false,
+                },
+                new RunningApp { Environment = "production", Version = "6" },
             },
             actual.RunningAppList,
             strict: true
@@ -104,7 +111,27 @@ public class GetDeployments
         Assert.Equal("tt02", Assert.Single(actual.RunningAppList).Environment);
     }
 
-    private async Task<DeploymentsResponse> GetDeploymentsResponse()
+    [Fact]
+    public async Task GetDeployments_StillServesWhatOlderFrontendsRead()
+    {
+        SetupRunning("tt02", new RunningAppDeployment("8", "1234", ThisStudioEnvironment));
+        SetupRunning("at22", null);
+        SetupRunning("production", null);
+
+        using JsonDocument response = JsonDocument.Parse(await GetDeploymentsJson());
+
+        // A frontend loaded before runningAppList existed reads kubernetesDeploymentList, and fails without it.
+        JsonElement legacy = Assert.Single(
+            response.RootElement.GetProperty("kubernetesDeploymentList").EnumerateArray()
+        );
+        Assert.Equal("tt02", legacy.GetProperty("envName").GetString());
+        Assert.Equal("8", legacy.GetProperty("version").GetString());
+    }
+
+    private async Task<DeploymentsResponse> GetDeploymentsResponse() =>
+        JsonSerializer.Deserialize<DeploymentsResponse>(await GetDeploymentsJson(), JsonSerializerOptions);
+
+    private async Task<string> GetDeploymentsJson()
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -112,10 +139,7 @@ public class GetDeployments
         );
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return JsonSerializer.Deserialize<DeploymentsResponse>(
-            await response.Content.ReadAsStringAsync(),
-            JsonSerializerOptions
-        );
+        return await response.Content.ReadAsStringAsync();
     }
 
     private void SetupRunning(string environment, RunningAppDeployment deployment) =>

@@ -75,15 +75,7 @@ public class DeploymentsController : ControllerBase
         return new DeploymentsResponse
         {
             PipelineDeploymentList = deployments.Results.ToList(),
-            RunningAppList = runStates
-                .OfType<AppRunState.Running>()
-                .Select(running => new RunningApp
-                {
-                    Environment = running.Environment,
-                    Version = running.Version,
-                    BuildId = running.OwnBuildId,
-                })
-                .ToList(),
+            RunningAppList = runStates.OfType<AppRunState.Running>().Select(RunningApp.From).ToList(),
         };
     }
 
