@@ -12,7 +12,7 @@ import {
   WorkflowProcessing,
 } from 'src/components/process/WorkflowEngine';
 import { Loader } from 'src/core/loading/Loader';
-import { getTargetTaskFromProcess, useIsProcessNextPending, useIsRunningProcessNext } from 'src/core/queries/process';
+import { useIsProcessNextPending, useIsRunningProcessNext } from 'src/core/queries/process';
 import { useWaitForQueries } from 'src/core/queries/useWaitForQueries';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
@@ -29,6 +29,7 @@ import { Confirm } from 'src/features/process/confirm/containers/Confirm';
 import { Feedback } from 'src/features/process/feedback/Feedback';
 import { ServiceTaskFailed } from 'src/features/process/service/ServiceTaskFailed';
 import { useFollowProcess } from 'src/features/process/useFollowProcess';
+import { getTargetTaskFromProcess } from 'src/features/process/useProcessNext';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useIsValidTaskId, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { TaskKeys } from 'src/routesBuilder';

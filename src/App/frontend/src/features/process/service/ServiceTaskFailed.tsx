@@ -4,12 +4,13 @@ import { Button } from '@app/form-component';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useIsProcessResumePending, useProcessResume } from 'src/core/queries/process';
+import { useIsProcessResumePending } from 'src/core/queries/process';
 import { useAppOwner } from 'src/core/texts/appTexts';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/process/service/ServiceTaskFailed.module.css';
+import { useProcessResume } from 'src/features/process/useProcessNext';
 import { getPageTitle } from 'src/utils/getPageTitle';
 
 /**

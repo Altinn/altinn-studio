@@ -1,16 +1,14 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-
-import { useAppMutations } from 'src/core/queries/AppQueriesProvider';
 import { useUpdateInitialValidations } from 'src/core/queries/backendValidation';
-import { invalidateFormBootstrapQueries } from 'src/core/queries/formBootstrap/formBootstrap.queries';
-import { invalidateFormDataQueries } from 'src/core/queries/formData/formData.queries';
-import { useInstanceDataQuery, useInstanceDataQueryArgs } from 'src/core/queries/instance';
-import { instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
-import { mutationResult } from 'src/core/queries/mutationResult';
-import { getProcessNextMutationKey, PROCESS_RESUME_MUTATION_KEY } from 'src/core/queries/process/process.queries';
+import { useInstanceDataQuery } from 'src/core/queries/instance';
+import {
+  useCommitProcessTransition,
+  useInvalidateProcessFormData,
+  useProcessNextMutation,
+  useProcessResumeMutation,
+} from 'src/core/queries/process';
 import { FormStore } from 'src/features/form/FormContext';
 import { useHasPendingScans, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -19,15 +17,10 @@ import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { TaskKeys } from 'src/routesBuilder';
+import type { ProcessNextProblemDetails } from 'src/core/api-client/process.types';
 import type { BackendValidationIssue } from 'src/features/validation';
-import type { IActionType, IInstance, IProcess, IProcessWorkflowFailure, ProblemDetails } from 'src/types/shared';
+import type { IActionType, IInstance, IProcess } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
-
-type ProcessNextProblemDetails = ProblemDetails & {
-  validationIssues?: BackendValidationIssue[] | null;
-  processNextState?: 'retrying' | 'resumeRequired' | 'instanceChanged' | 'concurrentTransition';
-  workflowFailure?: IProcessWorkflowFailure;
-};
 
 interface ProcessNextProps {
   action?: IActionType;
@@ -39,54 +32,31 @@ interface ProcessNextInternalProps extends ProcessNextProps {
 }
 
 function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues }: ProcessNextInternalProps = {}) {
-  const { doProcessNext } = useAppMutations();
   const reFetchInstanceData = useInstanceDataQuery({ enabled: false }).refetch;
   const refreshProcess = useRefreshProcess();
   const language = useCurrentLanguage();
   const navigateToTask = useNavigateToTask();
   const instanceId = useLaxInstanceId();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
-  const queryClient = useQueryClient();
+  const commitTransition = useCommitProcessTransition();
+  const invalidateFormData = useInvalidateProcessFormData();
   const hasPendingScans = useHasPendingScans();
   const isPdfMode = usePdfModeActive();
 
-  const mutation = useMutation({
-    scope: { id: 'process/next' },
-    mutationKey: getProcessNextMutationKey(action),
-    mutationFn: async () => {
+  return useProcessNextMutation({
+    instanceId,
+    language,
+    action,
+    beforeProcessNext: async () => {
       if (hasPendingScans) {
         await reFetchInstanceData();
       }
-
-      if (await beforeProcessNext?.()) {
-        return [null, null];
+      return await beforeProcessNext?.();
+    },
+    onWorkflowFailure: async () => {
+      const result = await refreshProcess();
+      if (result.error) {
+        throw result.error;
       }
-
-      if (!instanceId) {
-        throw new Error('Missing instance ID. Cannot perform process/next.');
-      }
-
-      return doProcessNext(instanceId, language, action)
-        .then(({ data: instance }) => [instance, null] as const)
-        .catch(async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
-          const validationIssues = error.response?.data?.validationIssues;
-          if (error.response?.status === 409 && validationIssues?.length) {
-            return [null, validationIssues] as const;
-          }
-
-          // Refetched workflow status drives the same recovery screens as polling.
-          const processNextState = error.response?.data?.processNextState;
-          const workflowFailure = error.response?.data?.workflowFailure;
-          if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
-            const refetchResult = await refreshProcess();
-            if (refetchResult.error) {
-              throw refetchResult.error;
-            }
-            return [null, null] as const;
-          }
-
-          throw error;
-        });
     },
     onSuccess: async ([newInstance, validationIssues]) => {
       if (newInstance) {
@@ -95,22 +65,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
           throw new Error('Missing task in process data. Cannot navigate to task.');
         }
 
-        // Older reads can overwrite the transition result.
-        if (instanceOwnerPartyId && instanceGuid) {
-          await queryClient.cancelQueries({
-            queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
-          });
-        }
-
-        // Batch the cache update with navigation so the old task does not render against the new process.
-        if (instanceOwnerPartyId && instanceGuid) {
-          queryClient.setQueryData<IInstance>(
-            instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
-            newInstance,
-          );
-        }
-        navigateToTask(task);
-        await invalidateFormDataQueries(queryClient);
+        await commitTransition(newInstance, () => navigateToTask(task));
       } else if (validationIssues) {
         if (!onValidationIssues) {
           throw new Error(
@@ -129,7 +84,7 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
       const instanceChanged = error.response?.data?.processNextState === 'instanceChanged';
       if (instanceChanged) {
         // Bootstrap initializes FormStore; form data queries alone cannot refresh editable fields.
-        await Promise.all([invalidateFormBootstrapQueries(queryClient), invalidateFormDataQueries(queryClient)]);
+        await invalidateFormData(true);
       }
 
       if (!isPdfMode && isRenderedByWorkflowStateMachine(newInstance)) {
@@ -143,7 +98,6 @@ function useProcessNextInternal({ action, beforeProcessNext, onValidationIssues 
       });
     },
   });
-  return mutationResult(mutation);
 }
 
 export function useProcessNext({ action }: ProcessNextProps = {}) {
@@ -171,35 +125,18 @@ export function useProcessNextOutsideFormProvider({ action }: ProcessNextProps =
 
 // Resume shares the process/next scope, but its separate key keeps the failed task mounted until polling sees progress.
 export function useProcessResume() {
-  const { doProcessResume } = useAppMutations();
   const refreshProcess = useRefreshProcess();
   const instanceId = useLaxInstanceId();
-  const queryClient = useQueryClient();
+  const invalidateFormData = useInvalidateProcessFormData();
   const isPdfMode = usePdfModeActive();
 
-  const mutation = useMutation({
-    scope: { id: 'process/next' },
-    mutationKey: PROCESS_RESUME_MUTATION_KEY,
-    mutationFn: async () => {
-      if (!instanceId) {
-        throw new Error('Missing instance ID. Cannot perform process/resume.');
+  return useProcessResumeMutation({
+    instanceId,
+    onWorkflowFailure: async () => {
+      const result = await refreshProcess();
+      if (result.error) {
+        throw result.error;
       }
-
-      return doProcessResume(instanceId)
-        .then(() => true)
-        .catch(async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
-          const processNextState = error.response?.data?.processNextState;
-          const workflowFailure = error.response?.data?.workflowFailure;
-          if (processNextState === 'retrying' || processNextState === 'resumeRequired' || workflowFailure) {
-            const refetchResult = await refreshProcess();
-            if (refetchResult.error) {
-              throw refetchResult.error;
-            }
-            return false;
-          }
-
-          throw error;
-        });
     },
     onSuccess: async (resumed) => {
       if (!resumed) {
@@ -208,7 +145,7 @@ export function useProcessResume() {
 
       // Failed workflows are not polled, and resume returns no instance.
       await refreshProcess();
-      await invalidateFormDataQueries(queryClient);
+      await invalidateFormData();
     },
     onError: async (error: HttpClientError<ProcessNextProblemDetails | undefined>) => {
       window.logError('Process resume failed:\n', error);
@@ -226,7 +163,6 @@ export function useProcessResume() {
       });
     },
   });
-  return mutationResult(mutation);
 }
 
 function useRefreshProcess() {

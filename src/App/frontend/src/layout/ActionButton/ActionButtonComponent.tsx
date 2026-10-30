@@ -5,9 +5,9 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 
 import type { PropsFromGenericComponent } from '..';
 
-import { useProcessNext } from 'src/core/queries/process';
 import { FormStore } from 'src/features/form/FormContext';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
+import { useProcessNext } from 'src/features/process/useProcessNext';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';

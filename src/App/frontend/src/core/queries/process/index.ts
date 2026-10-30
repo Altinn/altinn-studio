@@ -4,16 +4,17 @@ import {
   useIsRunningProcessNext,
 } from 'src/core/queries/process/mutationState';
 import {
-  getTargetTaskFromProcess,
-  useProcessNext,
-  useProcessNextOutsideFormProvider,
-  useProcessResume,
-} from 'src/core/queries/process/useProcessNext';
+  useCommitProcessTransition,
+  useInvalidateProcessFormData,
+  useProcessNextMutation,
+  useProcessResumeMutation,
+} from 'src/core/queries/process/processMutations';
+
 export {
-  useProcessNext,
-  useProcessNextOutsideFormProvider,
-  useProcessResume,
-  getTargetTaskFromProcess,
+  useProcessNextMutation,
+  useProcessResumeMutation,
+  useCommitProcessTransition,
+  useInvalidateProcessFormData,
   useIsProcessNextPending,
   useIsProcessResumePending,
   useIsRunningProcessNext,

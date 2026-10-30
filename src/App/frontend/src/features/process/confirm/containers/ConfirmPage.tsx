@@ -4,12 +4,12 @@ import { Button } from '@app/form-component';
 
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useProcessNextOutsideFormProvider } from 'src/core/queries/process';
 import { useAppOwner } from 'src/core/texts/appTexts';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { returnConfirmSummaryObject } from 'src/features/process/confirm/helpers/returnConfirmSummaryObject';
+import { useProcessNextOutsideFormProvider } from 'src/features/process/useProcessNext';
 import {
   filterOutDataModelRefDataAsPdfAndAppOwnedDataTypes,
   getAttachmentsWithDataType,

@@ -3,10 +3,10 @@ import React, { useEffect } from 'react';
 import { Button } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 
-import { useProcessNext } from 'src/core/queries/process';
 import { useInvalidateSigningQueries } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useProcessNext } from 'src/features/process/useProcessNext';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 

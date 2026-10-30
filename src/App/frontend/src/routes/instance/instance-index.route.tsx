@@ -3,10 +3,10 @@ import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
 import { fetchFreshInstanceData } from 'src/core/queries/instance';
-import { getTargetTaskFromProcess } from 'src/core/queries/process';
 import { getUiConfig } from 'src/features/form/ui';
 import { getTaskTypeById } from 'src/features/instance/useProcessQuery';
 import { UnknownError } from 'src/features/instantiate/containers/UnknownError';
+import { getTargetTaskFromProcess } from 'src/features/process/useProcessNext';
 import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { computeStartUrl, getRawFirstPage } from 'src/utils/computeStartUrl';

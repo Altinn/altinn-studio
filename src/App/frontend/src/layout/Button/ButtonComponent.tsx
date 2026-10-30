@@ -4,11 +4,11 @@ import { ButtonLayout } from '@app/form-component';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import type { ValidLanguageKey } from '@app/language';
 
-import { useProcessNext } from 'src/core/queries/process';
 import { AttachmentReadModel } from 'src/features/attachments/hooks/attachmentReadModel';
 import { FormStore } from 'src/features/form/FormContext';
 import { getUiConfig } from 'src/features/form/ui';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
+import { useProcessNext } from 'src/features/process/useProcessNext';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { ProcessTaskType } from 'src/types';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';

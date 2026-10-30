@@ -6,7 +6,6 @@ import { Alert } from '@digdir/designsystemet-react';
 
 import { useInstanceDataQuery } from 'src/core/queries/instance';
 import { usePaymentInformation } from 'src/core/queries/payment';
-import { useProcessNext } from 'src/core/queries/process';
 import { useIsAnyProcessing } from 'src/core/queries/processing';
 import { usePollingWithBackoff } from 'src/core/queries/usePollingWithBackoff';
 import { useOptimisticallyUpdateProcess, useProcessQuery } from 'src/features/instance/useProcessQuery';
@@ -14,6 +13,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePayment } from 'src/features/payment/PaymentProvider';
 import { PaymentStatus } from 'src/features/payment/types';
+import { useProcessNext } from 'src/features/process/useProcessNext';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
