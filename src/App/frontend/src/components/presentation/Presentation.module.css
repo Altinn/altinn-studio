@@ -1,4 +1,5 @@
 @value mediaOnlyScreenSmUp, mediaOnlyScreenMdUp from '@app/form-component/styles/breakpoints.module.css';
+@value standardPageMaxWidth from '../../styles/pageLayout.module.css';
 
 .container {
   --modal-padding-x: 24px;
@@ -44,8 +45,7 @@
 
 @media only screen and (min-width: 1200px) {
   .container:not(.with-navigation) {
-    /* --page-max-width must match InstantiationContainer.module.css, so the header and footer stay in place between pages. */
-    --page-max-width: 1152px;
+    --page-max-width: standardPageMaxWidth;
     --page-padding-x: 0;
     --expand-width-button-display: flex;
   }

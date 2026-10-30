@@ -1,6 +1,7 @@
+@value standardPageMaxWidth from '../../../styles/pageLayout.module.css';
+
 .container {
-  /* --page-max-width must match Presentation.module.css, so the header and footer stay in place between pages. */
-  --page-max-width: 1152px;
+  --page-max-width: standardPageMaxWidth;
   --page-padding-x: 24px;
   --footer-padding: var(--page-padding-x);
 
