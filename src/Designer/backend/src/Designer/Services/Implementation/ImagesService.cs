@@ -51,6 +51,10 @@ public class ImagesService : IImagesService
         bool overrideExisting
     )
     {
+        if (!Guard.IsSafePathSegment(imageName))
+        {
+            throw new System.ArgumentException("An image name must be a single file name.", nameof(imageName));
+        }
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             altinnRepoEditingContext.Org,
             altinnRepoEditingContext.Repo,

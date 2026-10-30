@@ -76,6 +76,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
     - if the default has a condition, which the app never evaluates; remove it
     - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
 - Long text in Paragraph, Alert and Panel components and in field descriptions now wraps at about 70 characters per line, so it is easier to read on wide screens. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
+- Forms are about 100px wider on screens 1200px and wider, so fields have more room and labels wrap less. A form also no longer gets narrower as the window is widened past 1200px. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 - Breaking: process handler and service task result types are renamed. Change the type names in your code; factories such as `HandlerResult.Success()` work as before: ([#21554](https://github.com/Altinn/altinn-studio/pull/21554))
     - `HookResult` is `HandlerResult`, with `SuccessfulHandlerResult` and `FailedHandlerResult`
     - `IOnTaskAbandonHandler` is `IOnTaskAbandoningHandler`, with `OnTaskAbandoningContext`
