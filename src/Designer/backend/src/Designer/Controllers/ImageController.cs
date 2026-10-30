@@ -39,24 +39,6 @@ public class ImageController : ControllerBase
     }
 
     /// <summary>
-    /// Endpoint for getting a specific image
-    /// </summary>
-    /// <param name="org">Unique identifier of the organization responsible for the app.</param>
-    /// <param name="app">Application identifier which is unique within an organization.</param>
-    /// <param name="encodedImagePath">Relative encoded path of image to fetch</param>
-    /// <returns>Image</returns>
-    [HttpGet("{encodedImagePath}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public FileStreamResult GetImageByName(string org, string app, [FromRoute] string encodedImagePath)
-    {
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
-        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-
-        return _imagesService.GetImage(editingContext, decodedImagePath);
-    }
-
-    /// <summary>
     /// Endpoint for getting all image file names in application
     /// </summary>
     /// <param name="org">Unique identifier of the organization responsible for the app.</param>
