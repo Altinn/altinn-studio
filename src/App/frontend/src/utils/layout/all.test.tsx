@@ -171,31 +171,27 @@ describe('All known UI folders should render successfully', () => {
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       alwaysRouteToChildren: true,
-      apis: {
-        instanceApi: {
-          getInstance: async () => ({ ...uiFolder.simulateInstance(), process: mainFolder.simulateProcessData() }),
-        },
-        formDataApi: { fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel() },
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async (options) =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
-              obj.staticOptions = uiFolder.app.getStaticOptions();
-              const models = uiFolder.app.getDataModelsFromMetaData();
-              obj.dataModels = Object.fromEntries(
-                models.map((model) => [
-                  model.getName(),
-                  getDataModelBootstrapMock((obj) => {
-                    obj.schema = model.getSchema();
-                    obj.initialData = uiFolder.getModel({ name: model.getName() }).simulateDataModel();
-                    obj.dataElementId = `fakeUuid:${model.getName()}:end`;
-                    obj.expressionValidationConfig = null;
-                  }),
-                ]),
-              );
-            }),
-        },
-        resourcesApi: { fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7 },
+      queries: {
+        getInstance: async () => ({ ...uiFolder.simulateInstance(), process: mainFolder.simulateProcessData() }),
+        fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel(),
+        fetchFormBootstrapForInstance: async (options) =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
+            obj.staticOptions = uiFolder.app.getStaticOptions();
+            const models = uiFolder.app.getDataModelsFromMetaData();
+            obj.dataModels = Object.fromEntries(
+              models.map((model) => [
+                model.getName(),
+                getDataModelBootstrapMock((obj) => {
+                  obj.schema = model.getSchema();
+                  obj.initialData = uiFolder.getModel({ name: model.getName() }).simulateDataModel();
+                  obj.dataElementId = `fakeUuid:${model.getName()}:end`;
+                  obj.expressionValidationConfig = null;
+                }),
+              ]),
+            );
+          }),
+        fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
       },
     });
 

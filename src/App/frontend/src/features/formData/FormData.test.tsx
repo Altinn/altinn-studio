@@ -23,8 +23,8 @@ import {
   IDataModelMultiPatchResponse,
 } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { httpResponse } from 'src/test/apiMocks';
 import {
+  httpResponse,
   makeFormDataMethodProxies,
   renderWithInstanceAndLayout,
   renderWithMinimalProviders,
@@ -140,21 +140,17 @@ async function statelessRender(props: RenderProps) {
           </FormDataWriteProxyProvider>
         </GlobalFormDataReadersProvider>
       ),
-      apis: {
-        ...props.apis,
-        formBootstrapApi: {
-          ...props.apis?.formBootstrapApi,
-          fetchFormBootstrapForStateless: async (...args) => {
-            const obj =
-              (await props.apis?.formBootstrapApi?.fetchFormBootstrapForStateless?.(...args)) ?? getFormBootstrapMock();
-            if (!obj.dataModels[statelessDataTypeMock]) {
-              obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
-            }
-            obj.dataModels[statelessDataTypeMock].dataElementId = null;
-            obj.dataModels[statelessDataTypeMock].schema = mockSchema;
-            obj.layouts = {};
-            return obj;
-          },
+      queries: {
+        ...props.queries,
+        fetchFormBootstrapForStateless: async (...args) => {
+          const obj = (await props.queries?.fetchFormBootstrapForStateless?.(...args)) ?? getFormBootstrapMock();
+          if (!obj.dataModels[statelessDataTypeMock]) {
+            obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+          }
+          obj.dataModels[statelessDataTypeMock].dataElementId = null;
+          obj.dataModels[statelessDataTypeMock].schema = mockSchema;
+          obj.layouts = {};
+          return obj;
         },
       },
     })),
@@ -166,19 +162,16 @@ async function statefulRender(props: RenderProps) {
   return await renderWithInstanceAndLayout({
     ...props,
     alwaysRouteToChildren: true,
-    apis: {
-      ...props.apis,
-      formBootstrapApi: {
-        ...props.apis?.formBootstrapApi,
-        fetchFormBootstrapForInstance: async (...args) => {
-          const defaults = getFormBootstrapMock();
-          const obj = (await props.apis?.formBootstrapApi?.fetchFormBootstrapForInstance?.(...args)) ?? defaults;
-          if (obj.dataModels[defaultDataTypeMock].schema === defaults.dataModels[defaultDataTypeMock].schema) {
-            obj.dataModels[defaultDataTypeMock].schema = mockSchema;
-          }
-          obj.layouts = {};
-          return obj;
-        },
+    queries: {
+      ...props.queries,
+      fetchFormBootstrapForInstance: async (...args) => {
+        const defaults = getFormBootstrapMock();
+        const obj = (await props.queries?.fetchFormBootstrapForInstance?.(...args)) ?? defaults;
+        if (obj.dataModels[defaultDataTypeMock].schema === defaults.dataModels[defaultDataTypeMock].schema) {
+          obj.dataModels[defaultDataTypeMock].schema = mockSchema;
+        }
+        obj.layouts = {};
+        return obj;
       },
     },
   });
@@ -353,24 +346,21 @@ describe('FormData', () => {
           </>
         ),
         ...props,
-        apis: {
-          ...props.apis,
-          formBootstrapApi: {
-            ...props.apis?.formBootstrapApi,
-            fetchFormBootstrapForStateless: async () =>
-              getFormBootstrapMock((obj) => {
-                obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
-                obj.dataModels[statelessDataTypeMock].initialData = {
-                  obj1: {
-                    prop1: 'value1',
-                    prop2: 'value2',
-                  },
-                  obj2: {
-                    prop1: 'value3',
-                  },
-                };
-              }),
-          },
+        queries: {
+          ...props.queries,
+          fetchFormBootstrapForStateless: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+              obj.dataModels[statelessDataTypeMock].initialData = {
+                obj1: {
+                  prop1: 'value1',
+                  prop2: 'value2',
+                },
+                obj2: {
+                  prop1: 'value3',
+                },
+              };
+            }),
         },
       });
 
@@ -505,19 +495,16 @@ describe('FormData', () => {
           </>
         ),
         ...props,
-        apis: {
-          ...props.apis,
-          formBootstrapApi: {
-            ...props.apis?.formBootstrapApi,
-            fetchFormBootstrapForInstance: async () => {
-              const obj = getFormBootstrapMock();
-              obj.dataModels[defaultDataTypeMock].initialData = {
-                obj1: {
-                  prop1: 'value1',
-                },
-              };
-              return obj;
-            },
+        queries: {
+          ...props.queries,
+          fetchFormBootstrapForInstance: async () => {
+            const obj = getFormBootstrapMock();
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              obj1: {
+                prop1: 'value1',
+              },
+            };
+            return obj;
           },
         },
       });
@@ -533,7 +520,7 @@ describe('FormData', () => {
 
     it('Locking should allow changes to the form data, but some values may be overwritten', async () => {
       const user = userEvent.setup({ delay: null });
-      const { apis } = await render();
+      const { mutations } = await render();
       expect(screen.getAllByTestId(/^obj\d+.prop\d+$/).length).toBe(3);
       expect(screen.getByTestId('obj1.prop1')).toHaveValue('value1');
 
@@ -546,9 +533,9 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj1.prop2')).toHaveValue('b');
 
       // Locking prevents saving
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       act(() => vi.advanceTimersByTime(5000));
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       // Unlock the form
       await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
@@ -560,10 +547,9 @@ describe('FormData', () => {
       // Saving is now allowed, so the form data we saved earlier is sent. The one value
       // we changed that was overwritten is now lost.
       act(() => vi.advanceTimersByTime(5000));
-      await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-      const patchReq = (apis.formDataApi.doPatchMultipleFormData as Mock).mock
-        .calls[0][1] as IDataModelMultiPatchRequest;
+      const patchReq = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0][1] as IDataModelMultiPatchRequest;
       expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj1/prop2', value: 'b' }]);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -571,15 +557,15 @@ describe('FormData', () => {
 
     it('Locking will not trigger a save if no values have changed', async () => {
       const user = userEvent.setup({ delay: null });
-      const { apis } = await render();
+      const { mutations } = await render();
       expect(screen.getAllByTestId(/^obj\d+.prop\d+$/).length).toBe(3);
 
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
 
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       act(() => vi.advanceTimersByTime(5000));
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       await user.click(await screen.findByRole('button', { name: 'Unlock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('false'));
@@ -589,27 +575,26 @@ describe('FormData', () => {
 
       act(() => vi.advanceTimersByTime(5000));
       await waitFor(() => expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false'));
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
     });
 
     it('Unsaved changes should be saved before locking', async () => {
       const user = userEvent.setup({ delay: null });
-      const { apis } = await render();
+      const { mutations } = await render();
 
       // Change a value
       await user.type(screen.getByTestId('obj2.prop1'), 'a');
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('true');
 
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
-      await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
       expect(screen.getByTestId('isLocked')).toHaveTextContent('false'); // The save has not finished yet
 
-      const patchReq = (apis.formDataApi.doPatchMultipleFormData as Mock).mock
-        .calls[0][1] as IDataModelMultiPatchRequest;
+      const patchReq = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0][1] as IDataModelMultiPatchRequest;
       expect(patchReq.patches[0].patch).toEqual([{ op: 'add', path: '/obj2', value: { prop1: 'a' } }]);
 
       const response: IDataModelMultiPatchResponse = {
@@ -624,7 +609,7 @@ describe('FormData', () => {
         validationIssues: [],
         instance: getInstanceDataMock(),
       };
-      apis.formDataApi.doPatchMultipleFormData.resolve(httpResponse(response));
+      mutations.doPatchMultipleFormData.resolve(httpResponse(response));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
@@ -632,13 +617,13 @@ describe('FormData', () => {
 
     it('Locking should queue up when requested multiple times', async () => {
       const user = userEvent.setup({ delay: null });
-      const { apis } = await render();
+      const { mutations } = await render();
 
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       expect(screen.getByTestId('lockedBy')).toHaveTextContent('myLockId');
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
       expect(window.logError).toHaveBeenCalledTimes(0);
       expect(window.logWarn).toHaveBeenCalledTimes(0);
 
@@ -663,11 +648,11 @@ describe('FormData', () => {
 
     it('When multiple locks are scheduled, form data should be saved in between locks', async () => {
       const user = userEvent.setup({ delay: null });
-      const { apis } = await render();
+      const { mutations } = await render();
 
       await user.click(screen.getByRole('button', { name: 'Lock myLockId' }));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(0);
 
       // Schedule another lock that will be scheduled after the first one
       await user.click(screen.getByRole('button', { name: 'Lock myOtherLockId' }));
@@ -678,7 +663,7 @@ describe('FormData', () => {
 
       // Unlock the first lock
       await user.click(screen.getByRole('button', { name: 'Unlock myLockId' }));
-      await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
       const response: IDataModelMultiPatchResponse = {
         newDataModels: [
@@ -690,13 +675,13 @@ describe('FormData', () => {
         validationIssues: [],
         instance: getInstanceDataMock(),
       };
-      apis.formDataApi.doPatchMultipleFormData.resolve(httpResponse(response));
+      mutations.doPatchMultipleFormData.resolve(httpResponse(response));
 
       await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('myOtherLockId'));
       await waitFor(() => expect(screen.getByTestId('isLocked')).toHaveTextContent('true'));
       await user.click(screen.getByRole('button', { name: 'Unlock myOtherLockId' }));
       await waitFor(() => expect(screen.getByTestId('lockedBy')).toHaveTextContent('undefined'));
-      expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1);
+      expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -726,16 +711,13 @@ describe('FormData', () => {
           </>
         ),
         ...props,
-        apis: {
-          ...props.apis,
-          formBootstrapApi: {
-            ...props.apis?.formBootstrapApi,
-            fetchFormBootstrapForStateless: async () => {
-              const obj = getFormBootstrapMock();
-              obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
-              obj.dataModels[statelessDataTypeMock].initialData = {};
-              return obj;
-            },
+        queries: {
+          ...props.queries,
+          fetchFormBootstrapForStateless: async () => {
+            const obj = getFormBootstrapMock();
+            obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+            obj.dataModels[statelessDataTypeMock].initialData = {};
+            return obj;
           },
         },
       });
@@ -751,49 +733,49 @@ describe('FormData', () => {
 
     it('Unsaved changes should be saved before navigating', async () => {
       const user = userEvent.setup({ delay: null });
-      const { apis } = await render();
+      const { mutations } = await render();
 
       await user.type(screen.getByTestId('obj2.prop1'), 'a');
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('true');
 
-      expect(apis.formDataApi.doPostStatelessFormData).toHaveBeenCalledTimes(0);
+      expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(0);
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
-      expect(apis.formDataApi.doPostStatelessFormData).toHaveBeenCalledTimes(1);
+      expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
 
-      const dataModel = (apis.formDataApi.doPostStatelessFormData as Mock).mock.calls[0][1];
+      const dataModel = (mutations.doPostStatelessFormData.mock as Mock).mock.calls[0][1];
       expect(dataModel).toEqual({
         obj2: { prop1: 'a' },
       });
 
-      apis.formDataApi.doPostStatelessFormData.resolve({});
+      mutations.doPostStatelessFormData.resolve({});
       await screen.findByText('something different');
     });
 
     it('Navigating away and back again should restore the form data', async () => {
       const user = userEvent.setup({ delay: null });
-      const { apis } = await render();
+      const { queries, mutations } = await render();
 
       await user.type(screen.getByTestId('obj2.prop1'), 'a');
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('true');
 
-      expect(apis.formBootstrapApi.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(1);
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(1);
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       await screen.findByText('something different');
 
       // We have to resolve the save operation, as otherwise 'hasUnsavedChanges' will be 'true' when we navigate back
       // as otherwise it would still be working on saving the form data (and form data is marked as unsaved until the
       // save operation is finished).
-      expect(apis.formDataApi.doPostStatelessFormData).toHaveBeenCalledTimes(1);
-      apis.formDataApi.doPostStatelessFormData.resolve({});
+      expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
+      mutations.doPostStatelessFormData.resolve({});
 
       await user.click(screen.getByRole('button', { name: 'Navigate back' }));
       await screen.findByTestId('obj2.prop1');
 
       // We tried to cache the form data, however that broke back button functionality for some apps.
       // See this issue: https://github.com/Altinn/app-frontend-react/issues/2564
-      expect(apis.formBootstrapApi.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(2);
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(2);
 
       // Our mock fetchFormData returns an empty object, so the form data should be reset. Realistically, the form data
       // would be restored when fetching it from the server, as we asserted that it was saved before navigating away.
@@ -817,15 +799,15 @@ describe('FormData', () => {
         ]),
       );
 
-      const { apis } = await render();
-      const fetchBootstrapMock = apis.formBootstrapApi.fetchFormBootstrapForStateless;
+      const { queries } = await render();
+      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless;
       const fetchBootstrapCalls = fetchBootstrapMock.mock.calls;
       const firstPrefill = JSON.parse(fetchBootstrapCalls[0][0].prefill as string) as Record<
         string,
         Record<string, string>
       >;
 
-      expect(apis.formBootstrapApi.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(1);
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(1);
       expect(firstPrefill).toEqual({
         [statelessDataTypeMock]: { JobTitle: 'designer' },
       });
@@ -840,7 +822,7 @@ describe('FormData', () => {
         Record<string, string>
       >;
 
-      expect(apis.formBootstrapApi.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(2);
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(2);
       expect(secondPrefill).toEqual({
         [statelessDataTypeMock]: { JobTitle: 'designer' },
       });
@@ -891,20 +873,17 @@ describe('FormData', () => {
       return await statelessRender({
         renderer: <InvalidReadWrite path='obj3.prop1' />,
         ...props,
-        apis: {
-          ...props.apis,
-          formBootstrapApi: {
-            ...props.apis?.formBootstrapApi,
-            fetchFormBootstrapForStateless: async () =>
-              getFormBootstrapMock((obj) => {
-                obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
-                obj.dataModels[statelessDataTypeMock].initialData = {
-                  obj3: {
-                    prop1: null,
-                  },
-                };
-              }),
-          },
+        queries: {
+          ...props.queries,
+          fetchFormBootstrapForStateless: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
+              obj.dataModels[statelessDataTypeMock].initialData = {
+                obj3: {
+                  prop1: null,
+                },
+              };
+            }),
         },
       });
     }
@@ -967,16 +946,14 @@ describe('FormData', () => {
     async function render() {
       return statefulRender({
         renderer: <ListWriter />,
-        apis: {
-          formBootstrapApi: {
-            fetchFormBootstrapForInstance: async () =>
-              getFormBootstrapMock((obj) => {
-                obj.dataModels[defaultDataTypeMock].schema = listSchema;
-                obj.dataModels[defaultDataTypeMock].initialData = {
-                  designs: [{ attachmentId: ['id-1', 'id-2'] }],
-                };
-              }),
-          },
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema = listSchema;
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                designs: [{ attachmentId: ['id-1', 'id-2'] }],
+              };
+            }),
         },
       });
     }
@@ -1035,21 +1012,19 @@ describe('FormData', () => {
     async function render() {
       return statefulRender({
         renderer: <RowWriter />,
-        apis: {
-          formBootstrapApi: {
-            fetchFormBootstrapForInstance: async () =>
-              getFormBootstrapMock((bootstrap) => {
-                bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
-                  schema: rowsSchema,
-                  initialData: {
-                    rows: [
-                      { [ALTINN_ROW_ID]: 'row1', value: 'one' },
-                      { [ALTINN_ROW_ID]: 'row2', value: 'two' },
-                    ],
-                  },
-                });
-              }),
-          },
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((bootstrap) => {
+              bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
+                schema: rowsSchema,
+                initialData: {
+                  rows: [
+                    { [ALTINN_ROW_ID]: 'row1', value: 'one' },
+                    { [ALTINN_ROW_ID]: 'row2', value: 'two' },
+                  ],
+                },
+              });
+            }),
         },
       });
     }

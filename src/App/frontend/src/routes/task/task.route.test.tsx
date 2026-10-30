@@ -10,7 +10,7 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { InstanceRoutesRouter } from 'src/test/routerUtils';
 import { ELEMENT_TYPE } from 'src/types/shared';
-import type { ApiClients } from 'src/core/api-client/ApiClients';
+import type { AppQueriesContext } from 'src/core/queries/types';
 
 const subformPdfTaskId = 'Task_SubformPdf';
 const subformIds = ['aaaaaaaa-1111-2222-3333-444444444444', 'bbbbbbbb-1111-2222-3333-444444444444'];
@@ -34,7 +34,7 @@ async function renderSubformPdf(ownFolder: ILayoutSettings) {
   window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
 
   // Like the app backend, which cannot tell which entry to load without a data element id
-  const fetchFormBootstrap = vi.fn<ApiClients['formBootstrapApi']['fetchFormBootstrapForInstance']>(async (args) => {
+  const fetchFormBootstrap = vi.fn<AppQueriesContext['fetchFormBootstrapForInstance']>(async (args) => {
     if (args.uiFolder !== 'Subform' || args.dataElementId !== subformIds[1]) {
       throw new Error(`Unexpected form load of UI folder ${args.uiFolder}`);
     }
@@ -55,14 +55,7 @@ async function renderSubformPdf(ownFolder: ILayoutSettings) {
         {children}
       </InstanceRoutesRouter>
     ),
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: fetchFormBootstrap,
-      },
-      instanceApi: {
-        getInstance: async () => instanceWithProcess,
-      },
-    },
+    queries: { fetchFormBootstrapForInstance: fetchFormBootstrap, getInstance: async () => instanceWithProcess },
   });
 
   return { ...result, fetchFormBootstrap };
@@ -91,7 +84,7 @@ describe("a subform entry's own route", () => {
     const instanceWithProcess = { ...instance, process: getProcessDataMock() };
     window.altinnAppGlobalData.ui.folders.Subform = { defaultDataType: 'subform', pages: { order: ['Side1'] } };
 
-    const fetchFormBootstrap = vi.fn<ApiClients['formBootstrapApi']['fetchFormBootstrapForInstance']>(async (args) =>
+    const fetchFormBootstrap = vi.fn<AppQueriesContext['fetchFormBootstrapForInstance']>(async (args) =>
       getFormBootstrapMock((obj) => {
         obj.layouts =
           args.uiFolder === 'Subform'
@@ -119,14 +112,7 @@ describe("a subform entry's own route", () => {
     const { container } = await renderWithoutInstanceAndLayout({
       renderer: () => <Outlet />,
       router: ({ children }) => <InstanceRoutesRouter path={path}>{children}</InstanceRoutesRouter>,
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: fetchFormBootstrap,
-        },
-        instanceApi: {
-          getInstance: async () => instanceWithProcess,
-        },
-      },
+      queries: { fetchFormBootstrapForInstance: fetchFormBootstrap, getInstance: async () => instanceWithProcess },
     });
 
     await waitFor(() => expect(container.querySelector('#readyForPrint')).not.toBeNull(), { timeout: 5000 });

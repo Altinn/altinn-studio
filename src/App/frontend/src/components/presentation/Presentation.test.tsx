@@ -12,7 +12,7 @@ import { AltinnPalette } from 'src/theme/altinnAppTheme';
 import { ProcessTaskType } from 'src/types';
 import { getMessageBoxUrl } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
-import type { ApiOverrides } from 'src/test/apiMocks';
+import type { AppQueries } from 'src/core/queries/types';
 
 vi.mock('src/core/routing/useIsReceiptPage', () => ({
   useIsReceiptPage: vi.fn(),
@@ -116,7 +116,7 @@ describe('Presentation', () => {
   });
 });
 
-const render = async (props: Partial<IPresentationProvidedProps> = {}, apis: ApiOverrides = {}) => {
+const render = async (props: Partial<IPresentationProvidedProps> = {}, queries: Partial<AppQueries> = {}) => {
   const allProps = {
     header: 'Header text',
     type: ProcessTaskType.Unknown,
@@ -126,6 +126,6 @@ const render = async (props: Partial<IPresentationProvidedProps> = {}, apis: Api
   await renderWithInstanceAndLayout({
     renderer: () => <PresentationComponent {...allProps} />,
     taskId: 'Task_1',
-    apis: { ...apis },
+    queries: { ...queries },
   });
 };

@@ -149,24 +149,20 @@ export const render = async ({
         containerDivRef={{ current: null }}
       />
     ),
-    apis: {
-      optionsApi: {
-        fetchOptions: async () => ({ data: mockOptions, headers: {} }),
-      },
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = generateMockFormData(mockQuestions);
-            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [mockLikertLayout],
-                },
+    queries: {
+      fetchOptions: async () => ({ data: mockOptions, headers: {} }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = generateMockFormData(mockQuestions);
+          obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [mockLikertLayout],
               },
-            };
-          }),
-      },
+            },
+          };
+        }),
     },
   });
 };

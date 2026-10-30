@@ -107,46 +107,44 @@ describe('GridComponent', () => {
           },
         ],
       } as CompExternalExact<'Grid'>,
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = {
-                FormLayout: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'my-test-component-id',
-                        type: 'Grid',
-                        rows: [
-                          {
-                            header: false,
-                            readOnly: false,
-                            cells: [
-                              {
-                                component: 'grid-text',
-                                cellStyle: {
-                                  colSpan: 3,
-                                },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [
+                    {
+                      id: 'my-test-component-id',
+                      type: 'Grid',
+                      rows: [
+                        {
+                          header: false,
+                          readOnly: false,
+                          cells: [
+                            {
+                              component: 'grid-text',
+                              cellStyle: {
+                                colSpan: 3,
                               },
-                            ],
-                          },
-                        ],
-                      },
-                      {
-                        id: 'grid-text',
-                        type: 'Text',
-                        value: '',
-                        textResourceBindings: {
-                          title: 'accordion.title',
+                            },
+                          ],
                         },
+                      ],
+                    },
+                    {
+                      id: 'grid-text',
+                      type: 'Text',
+                      value: '',
+                      textResourceBindings: {
+                        title: 'accordion.title',
                       },
-                    ],
-                  },
+                    },
+                  ],
                 },
-              };
-            }),
-        },
+              },
+            };
+          }),
       },
     });
 

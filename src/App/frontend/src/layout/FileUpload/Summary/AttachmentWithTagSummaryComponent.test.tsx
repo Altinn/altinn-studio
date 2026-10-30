@@ -138,33 +138,27 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
         }}
       />
     ),
-    apis: {
-      instanceApi: {
-        getInstance: async () => ({
-          ...getInstanceDataMock((i) => {
-            addAttachment && i.data.push(attachment);
-          }),
-          process: getProcessDataMock(),
+    queries: {
+      getInstance: async () => ({
+        ...getInstanceDataMock((i) => {
+          addAttachment && i.data.push(attachment);
         }),
-      },
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [component],
-                },
+        process: getProcessDataMock(),
+      }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [component],
               },
-            };
-          }),
-      },
-      optionsApi: {
-        fetchOptions: (url) =>
-          availableOptions[url]
-            ? Promise.resolve(availableOptions[url])
-            : Promise.reject(new Error(`No options available for ${url}`)),
-      },
+            },
+          };
+        }),
+      fetchOptions: (url) =>
+        availableOptions[url]
+          ? Promise.resolve(availableOptions[url])
+          : Promise.reject(new Error(`No options available for ${url}`)),
     },
   });
 };

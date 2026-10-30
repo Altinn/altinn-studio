@@ -4,15 +4,16 @@ import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadata
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { clientLoader } from 'src/routes/index/index.loader';
-import { createApiMocks } from 'src/test/apiMocks';
+import { setupFakeApp } from 'src/test/renderWithProviders';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
 
-let apis: ReturnType<typeof createApiMocks>;
+let queries: ReturnType<typeof setupFakeApp>['queries'];
+let mutations: ReturnType<typeof setupFakeApp>['mutations'];
 beforeEach(() => {
-  apis = createApiMocks();
+  ({ queries, mutations } = setupFakeApp());
 });
 
 vi.mock('react-router', async () => ({
@@ -24,7 +25,7 @@ function createLoaderArgs(): LoaderFunctionArgs {
   const queryClient = createTestQueryClient();
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
-  context.set(apiClientsContext, apis);
+  context.set(appQueriesContext, queries);
   return createLoaderFunctionArgs({ context });
 }
 
@@ -47,11 +48,11 @@ describe('index clientLoader', () => {
         lastChangedBy: 'Sophie Salt',
       },
     ];
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue(activeInstances);
 
     await clientLoader(createLoaderArgs());
 
-    expect(apis.instanceApi.create).not.toHaveBeenCalled();
+    expect(mutations.create.mock).not.toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith('/instance-selection');
   });
   it('does not create an instance when the service is closed', async () => {
@@ -60,12 +61,12 @@ describe('index clientLoader', () => {
       onEntry: { show: 'new-instance' },
       validTo: '2020-01-01T00:00:00Z',
     });
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
 
     const result = await clientLoader(createLoaderArgs());
 
     expect(result).toEqual({ error: 'instantiation-closed', reason: { reason: 'closed' } });
-    expect(apis.instanceApi.create).not.toHaveBeenCalled();
+    expect(mutations.create.mock).not.toHaveBeenCalled();
   });
 
   it('reports a closed service when the backend rejects creation with 410', async () => {
@@ -73,8 +74,8 @@ describe('index clientLoader', () => {
     window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
       onEntry: { show: 'new-instance' },
     });
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(apis.instanceApi.create).mockRejectedValue(
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(mutations.create.mock).mockRejectedValue(
       Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
     );
 

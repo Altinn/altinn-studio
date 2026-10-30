@@ -3,12 +3,11 @@ import React from 'react';
 import { screen } from '@testing-library/dom';
 import { act, render as renderRtl } from '@testing-library/react';
 
-import { apiClients } from 'src/core/api-client';
 import { type SigningDocument } from 'src/core/queries/signingDocuments';
 import { ITextResourceBindings } from 'src/layout/layout';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
-import { apiMock } from 'src/test/apiMocks';
 import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+import { queryPromiseMock } from 'src/test/renderWithProviders';
 
 let queryTest: ReturnType<typeof createQueryTestWrapper>;
 
@@ -41,7 +40,8 @@ vi.mock('src/utils/layout/DataModelLocation', () => ({
   useIndexedId: (baseId: string) => baseId,
 }));
 
-vi.mock('react-router', () => ({
+vi.mock('react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('react-router')>()),
   useParams: vi.fn(() => ({
     instanceOwnerPartyId: 'partyId',
     instanceGuid: randomUUID(),
@@ -76,7 +76,7 @@ describe('SigningDocumentList', () => {
     vi.clearAllMocks();
     queryTest = createQueryTestWrapper();
 
-    queryTest.apis.signingApi.fetchSigningDocuments.mockResolvedValue(mockDocumentList);
+    queryTest.queries.fetchSigningDocuments.mockResolvedValue(mockDocumentList);
   });
 
   it('should render correctly', async () => {
@@ -108,7 +108,7 @@ describe('SigningDocumentList', () => {
   });
 
   it('should render error message when API call fails', async () => {
-    queryTest.apis.signingApi.fetchSigningDocuments.mockRejectedValue(new Error('API error'));
+    queryTest.queries.fetchSigningDocuments.mockRejectedValue(new Error('API error'));
 
     await render(
       <SigningDocumentListComponent
@@ -121,9 +121,7 @@ describe('SigningDocumentList', () => {
   });
 
   it('should render spinner when loading', async () => {
-    queryTest.apis.signingApi.fetchSigningDocuments.mockImplementation(
-      apiMock(apiClients.signingApi.fetchSigningDocuments),
-    );
+    queryTest.queries.fetchSigningDocuments.mockImplementation(queryPromiseMock('fetchSigningDocuments').mock);
 
     await render(
       <SigningDocumentListComponent

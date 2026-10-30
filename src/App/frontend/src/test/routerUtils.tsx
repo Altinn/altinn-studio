@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { createMemoryRouter, LoaderFunctionArgs, RouterContextProvider, RouterProvider } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { useApiClients } from 'src/core/contexts/ApiProvider';
+import { useAppMutations, useAppQueries } from 'src/core/queries/AppQueriesProvider';
 import { useAppQueryClient } from 'src/core/queries/queryClient';
 import { instanceRoutes } from 'src/router';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 
 export const PageNavigationRouter =
@@ -47,7 +47,7 @@ export function createLoaderFunctionArgs(partialArgs: Partial<LoaderFunctionArgs
  */
 export function InstanceRoutesRouter({ children, path }: PropsWithChildren<{ path: string }>) {
   const queryClient = useAppQueryClient();
-  const apiClients = useApiClients();
+  const queries = { ...useAppQueries(), ...useAppMutations() };
 
   // Created once, so a re-render does not run the loaders again
   const [router] = useState(() =>
@@ -57,7 +57,7 @@ export function InstanceRoutesRouter({ children, path }: PropsWithChildren<{ pat
       getContext() {
         const context = new RouterContextProvider();
         context.set(queryClientContext, queryClient);
-        context.set(apiClientsContext, apiClients);
+        context.set(appQueriesContext, queries);
         return context;
       },
     }),

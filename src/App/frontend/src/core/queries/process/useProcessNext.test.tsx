@@ -11,11 +11,11 @@ import { ProcessWrapper } from 'src/components/process/ProcessWrapper';
 import { useProcessNextOutsideFormProvider } from 'src/core/queries/process/useProcessNext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { InstanceRouter, renderWithDefaultProviders, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { ProcessApi } from 'src/core/api-client/app.api';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { AppMutations } from 'src/core/queries/types';
 import type { IProcessWorkflow } from 'src/types/shared';
 
-const doProcessNext = vi.fn<ProcessApi['doProcessNext']>();
+const doProcessNext = vi.fn<AppMutations['doProcessNext']>();
 
 vi.mock('react-toastify', async () => {
   const actual = await vi.importActual<typeof import('react-toastify')>('react-toastify');
@@ -66,10 +66,8 @@ async function renderFailingProcessNext(
       </ProcessWrapper>
     ),
     query,
-    apis: {
-      instanceApi: { getInstance: async () => getInstanceWithWorkflow(transitionAttempted ? after : undefined) },
-      processApi: { doProcessNext },
-    },
+    queries: { getInstance: async () => getInstanceWithWorkflow(transitionAttempted ? after : undefined) },
+    mutations: { doProcessNext },
   });
 }
 
@@ -261,13 +259,11 @@ async function renderPendingProcessNext() {
     ),
     router: ({ children }) => <InstanceRouter routerRef={routerRef}>{children}</InstanceRouter>,
     waitUntilLoaded: false,
-    apis: {
-      instanceApi: {
-        getInstance: async () =>
-          getInstanceWithWorkflow(requestStarted ? { status: 'processing', targetTask: 'Task_2' } : undefined),
-      },
-      processApi: { doProcessNext },
+    queries: {
+      getInstance: async () =>
+        getInstanceWithWorkflow(requestStarted ? { status: 'processing', targetTask: 'Task_2' } : undefined),
     },
+    mutations: { doProcessNext },
   });
 
   expect(await screen.findByRole('button', { name: 'submit-probe' })).toBeInTheDocument();

@@ -31,14 +31,12 @@ it('keeps resolved query parameters stable across rerenders and data changes wit
   const { formDataMethods } = await renderGenericComponentTest({
     type: 'PaymentDetails',
     renderer: () => <Probe />,
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].schema = { type: 'object', properties: { amount: { type: 'number' } } };
-            obj.dataModels[defaultDataTypeMock].initialData = { amount: 150 };
-          }),
-      },
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].schema = { type: 'object', properties: { amount: { type: 'number' } } };
+          obj.dataModels[defaultDataTypeMock].initialData = { amount: 150 };
+        }),
     },
   });
   const initial = onRender.mock.lastCall?.[0];

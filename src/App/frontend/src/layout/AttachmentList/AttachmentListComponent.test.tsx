@@ -291,14 +291,14 @@ describe('AttachmentListComponent', () => {
 });
 
 async function render(ui: React.ReactNode) {
-  const { wrapper, queryClient, apis } = createQueryTestWrapper(
-    { instanceApi: { getInstance: async () => ({ ...getInstanceWithProcessMock(), data: instanceData }) } },
+  const { wrapper, queryClient, queries } = createQueryTestWrapper(
+    { queries: { getInstance: async () => ({ ...getInstanceWithProcessMock(), data: instanceData }) } },
     '/instance/123/instance/Task_1',
   );
   await ensureInstanceData(queryClient, {
     instanceOwnerPartyId: '123',
     instanceGuid: 'instance',
-    instanceApi: apis.instanceApi,
+    instanceApi: queries,
   });
   return act(async () => rtlRender(ui, { wrapper }));
 }

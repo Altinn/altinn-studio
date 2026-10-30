@@ -1,13 +1,14 @@
 import path from 'node:path';
 
-/** Keep the real query/cache lifecycle in tests; inject typed API client fakes instead. */
+/** Keep the real query/cache lifecycle in tests; inject typed request fakes instead. */
 export const noQueryMocks = {
   meta: {
     type: 'problem',
     schema: [],
     messages: {
-      boundary: 'Inject API method fakes with apis or createQueryTestWrapper. Keep query hooks and providers real.',
-      transport: 'Inject typed API method fakes in feature tests. Mock HTTP only when testing the API client itself.',
+      boundary:
+        'Inject request fakes with queries/mutations or createQueryTestWrapper. Keep query hooks and providers real.',
+      transport: 'Inject typed request fakes in feature tests. Mock HTTP only when testing the API client itself.',
     },
   },
   create(context) {
@@ -28,7 +29,6 @@ export const noQueryMocks = {
       if (
         /^@tanstack\/(react-query(?:-devtools)?|query-core)(\/|$)/.test(target) ||
         /^src\/core\/queries(\/|$)/.test(target) ||
-        /^src\/core\/contexts\/ApiProvider(?:\.[jt]sx?)?$/.test(target) ||
         /^src\/features\/instance\/(useProcessQuery|InstanceContext)(?:\.[jt]sx?)?$/.test(target) ||
         /^src\/core\/api-client(\/|$)/.test(target)
       ) {

@@ -9,7 +9,7 @@ import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepG
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { ApiOverrides } from 'src/test/apiMocks';
+import type { AppQueries } from 'src/core/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const threeOptions: IRawOption[] = [
@@ -32,10 +32,16 @@ interface Props extends Partial<RenderGenericComponentTestProps<'RadioButtons'>>
   formData?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   groupData?: any;
-  apis?: ApiOverrides;
+  queries?: Partial<AppQueries>;
 }
 
-const render = async ({ component, options, formData, groupData = getFormDataMockForRepGroup(), apis }: Props = {}) =>
+const render = async ({
+  component,
+  options,
+  formData,
+  groupData = getFormDataMockForRepGroup(),
+  queries,
+}: Props = {}) =>
   await renderGenericComponentTest({
     type: 'RadioButtons',
     renderer: (props) => <ControlledRadioGroup {...props} />,
@@ -48,24 +54,18 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
       },
       ...component,
     },
-    apis: {
-      ...apis,
-      optionsApi: {
-        fetchOptions: () =>
-          options
-            ? Promise.resolve({ data: options, headers: {} })
-            : Promise.reject(new Error('No options provided to render()')),
-        ...apis?.optionsApi,
-      },
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = formData
-              ? { myRadio: formData, ...groupData }
-              : { ...groupData };
-          }),
-        ...apis?.formBootstrapApi,
-      },
+    queries: {
+      fetchOptions: () =>
+        options
+          ? Promise.resolve({ data: options, headers: {} })
+          : Promise.reject(new Error('No options provided to render()')),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = formData
+            ? { myRadio: formData, ...groupData }
+            : { ...groupData };
+        }),
+      ...queries,
     },
   });
 
@@ -267,7 +267,7 @@ describe('RadioButtonsContainerComponent', () => {
         },
       },
       options: [],
-      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) } },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

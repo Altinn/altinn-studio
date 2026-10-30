@@ -9,7 +9,7 @@ import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepG
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { ApiOverrides } from 'src/test/apiMocks';
+import type { AppQueries } from 'src/core/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const threeOptions: IRawOption[] = [
@@ -31,10 +31,16 @@ interface Props extends Partial<RenderGenericComponentTestProps<'Checkboxes'>> {
   options?: IRawOption[];
   formData?: string;
   groupData?: object;
-  apis?: ApiOverrides;
+  queries?: Partial<AppQueries>;
 }
 
-const render = async ({ component, options, formData, groupData = getFormDataMockForRepGroup(), apis }: Props = {}) =>
+const render = async ({
+  component,
+  options,
+  formData,
+  groupData = getFormDataMockForRepGroup(),
+  queries,
+}: Props = {}) =>
   await renderGenericComponentTest({
     type: 'Checkboxes',
     renderer: (props) => <CheckboxContainerComponent {...props} />,
@@ -48,24 +54,18 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
       },
       ...component,
     },
-    apis: {
-      ...apis,
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = formData
-              ? { selectedValues: formData, ...groupData }
-              : { ...groupData };
-          }),
-        ...apis?.formBootstrapApi,
-      },
-      optionsApi: {
-        fetchOptions: () =>
-          options
-            ? Promise.resolve({ data: options, headers: {} })
-            : Promise.reject(new Error('No options provided to render()')),
-        ...apis?.optionsApi,
-      },
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = formData
+            ? { selectedValues: formData, ...groupData }
+            : { ...groupData };
+        }),
+      fetchOptions: () =>
+        options
+          ? Promise.resolve({ data: options, headers: {} })
+          : Promise.reject(new Error('No options provided to render()')),
+      ...queries,
     },
   });
 
@@ -308,7 +308,7 @@ describe('CheckboxesContainerComponent', () => {
         },
       },
       options: [],
-      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) } },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
@@ -329,13 +329,11 @@ describe('CheckboxesContainerComponent', () => {
         { value: 'norway', label: 'Norway' },
         { value: 'sweden', label: 'Sweden' },
       ],
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = { value: 'norway,sweden', label: ['Norway', 'Sweden'] };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { value: 'norway,sweden', label: ['Norway', 'Sweden'] };
+          }),
       },
     });
 
@@ -356,7 +354,7 @@ describe('CheckboxesContainerComponent', () => {
         deletionStrategy: 'hard',
       },
       options: [],
-      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ simpleBinding: '', group: [] }) } },
+      queries: { fetchFormData: () => Promise.resolve({ simpleBinding: '', group: [] }) },
     });
 
     expect(screen.getAllByRole('listitem')).toHaveLength(1);

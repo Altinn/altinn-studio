@@ -119,28 +119,26 @@ async function render({ container, numRows = 3, validationIssues = [], onService
         </RepeatingGroupsFocusProvider>
       </RepeatingGroupProvider>
     ),
-    apis: {
-      ...(onServiceTaskPage ? { instanceApi: { getInstance: getInstanceAtServiceTask } } : undefined),
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [group, ...mockComponents],
-                },
+    queries: {
+      ...(onServiceTaskPage ? { getInstance: getInstanceAtServiceTask } : undefined),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [group, ...mockComponents],
               },
-            };
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              Group: Array.from({ length: numRows }).map((_, index) => ({
-                [ALTINN_ROW_ID]: uuidv4(),
-                prop1: `value${index + 1}`,
-                checkboxBinding: ['option.value'],
-              })),
-            };
-            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
-          }),
-      },
+            },
+          };
+          obj.dataModels[defaultDataTypeMock].initialData = {
+            Group: Array.from({ length: numRows }).map((_, index) => ({
+              [ALTINN_ROW_ID]: uuidv4(),
+              prop1: `value${index + 1}`,
+              checkboxBinding: ['option.value'],
+            })),
+          };
+          obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+        }),
     },
   });
 }

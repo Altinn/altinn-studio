@@ -6,16 +6,17 @@ import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { GlobalData } from 'src/GlobalData';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { clientLoader } from 'src/routes/instance-selection/instance-selection.loader';
-import { createApiMocks } from 'src/test/apiMocks';
+import { setupFakeApp } from 'src/test/renderWithProviders';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
 import type { InstanceSelectionLoaderResult } from 'src/routes/instance-selection/instance-selection.loader';
 
-let apis: ReturnType<typeof createApiMocks>;
+let queries: ReturnType<typeof setupFakeApp>['queries'];
+let mutations: ReturnType<typeof setupFakeApp>['mutations'];
 beforeEach(() => {
-  apis = createApiMocks();
+  ({ queries, mutations } = setupFakeApp());
 });
 
 // react-router's redirect() requires the Fetch API Response class, which jsdom doesn't provide.
@@ -39,7 +40,7 @@ function createLoaderArgs(): LoaderFunctionArgs {
   const queryClient = createTestQueryClient();
   const context = new RouterContextProvider();
   context.set(queryClientContext, queryClient);
-  context.set(apiClientsContext, apis);
+  context.set(appQueriesContext, queries);
   return createLoaderFunctionArgs({ context });
 }
 
@@ -59,21 +60,21 @@ describe('instance-selection clientLoader', () => {
       { id: '12345/guid-1', lastChanged: '2021-10-05T07:51:57Z', lastChangedBy: 'Test User' },
       { id: '12345/guid-2', lastChanged: '2021-05-13T07:51:57Z', lastChangedBy: 'Other User' },
     ];
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue(activeInstances);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue(activeInstances);
 
     const result = await clientLoader(createLoaderArgs());
 
     expect(result).toBeNull();
-    expect(apis.instanceApi.create).not.toHaveBeenCalled();
+    expect(mutations.create.mock).not.toHaveBeenCalled();
   });
 
   it('should create instance and redirect when no active instances exist', async () => {
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(apis.instanceApi.create).mockResolvedValue(mockInstance);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(mutations.create.mock).mockResolvedValue(mockInstance);
 
     await clientLoader(createLoaderArgs());
 
-    expect(apis.instanceApi.create).toHaveBeenCalledWith({ instanceOwnerPartyId: mockParty.partyId });
+    expect(mutations.create.mock).toHaveBeenCalledWith({ instanceOwnerPartyId: mockParty.partyId });
     expect(redirect).toHaveBeenCalledWith(expect.stringContaining('some-instance-guid'));
   });
 
@@ -88,8 +89,8 @@ describe('instance-selection clientLoader', () => {
       response: { status: 403, data: validationResult },
     });
 
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(apis.instanceApi.create).mockRejectedValue(error);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(mutations.create.mock).mockRejectedValue(error);
 
     const result = (await clientLoader(createLoaderArgs())) as InstanceSelectionLoaderResult;
 
@@ -106,8 +107,8 @@ describe('instance-selection clientLoader', () => {
       response: { status: 403, data: {} },
     });
 
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(apis.instanceApi.create).mockRejectedValue(error);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(mutations.create.mock).mockRejectedValue(error);
 
     const result = await clientLoader(createLoaderArgs());
 
@@ -118,8 +119,8 @@ describe('instance-selection clientLoader', () => {
   it('should return instantiation-failed error when instantiation fails with non-403 error', async () => {
     const error = new Error('Server error');
 
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(apis.instanceApi.create).mockRejectedValue(error);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(mutations.create.mock).mockRejectedValue(error);
 
     const result = await clientLoader(createLoaderArgs());
 
@@ -140,7 +141,7 @@ describe('instance-selection clientLoader', () => {
     window.altinnAppGlobalData.selectedParty = originalSelectedParty;
 
     expect(redirect).toHaveBeenCalledWith('/party-selection');
-    expect(apis.instanceApi.getActiveInstances).not.toHaveBeenCalled();
+    expect(queries.getActiveInstances).not.toHaveBeenCalled();
   });
   it('does not create an instance when the service is closed', async () => {
     GlobalData.setSelectedParty(getPartyMock());
@@ -148,12 +149,12 @@ describe('instance-selection clientLoader', () => {
       onEntry: { show: 'new-instance' },
       validTo: '2020-01-01T00:00:00Z',
     });
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
 
     const result = await clientLoader(createLoaderArgs());
 
     expect(result).toEqual({ error: 'instantiation-closed', reason: { reason: 'closed' } });
-    expect(apis.instanceApi.create).not.toHaveBeenCalled();
+    expect(mutations.create.mock).not.toHaveBeenCalled();
   });
 
   it('reports a closed service when the backend rejects creation with 410', async () => {
@@ -161,8 +162,8 @@ describe('instance-selection clientLoader', () => {
     window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
       onEntry: { show: 'new-instance' },
     });
-    vi.mocked(apis.instanceApi.getActiveInstances).mockResolvedValue([]);
-    vi.mocked(apis.instanceApi.create).mockRejectedValue(
+    vi.mocked(queries.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(mutations.create.mock).mockRejectedValue(
       Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
     );
 

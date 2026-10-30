@@ -4,14 +4,13 @@ import { useParams } from 'react-router';
 import { screen } from '@testing-library/dom';
 import { act, render as renderRtl, RenderOptions } from '@testing-library/react';
 
-import { apiClients } from 'src/core/api-client';
 import { NotificationStatus } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
-import { apiMock } from 'src/test/apiMocks';
 import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+import { queryPromiseMock } from 'src/test/renderWithProviders';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { SigneeState } from 'src/core/queries/signeeList';
 
@@ -98,7 +97,7 @@ describe('SigneeListComponent', () => {
   });
 
   it('should render correctly', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue(mockSigneeStates);
+    queryTest.queries.fetchSigneeList.mockResolvedValue(mockSigneeStates);
 
     await render(
       <SigneeListComponent
@@ -127,7 +126,7 @@ describe('SigneeListComponent', () => {
   });
 
   it('should render error message when API call fails', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockRejectedValue(new Error('API error'));
+    queryTest.queries.fetchSigneeList.mockRejectedValue(new Error('API error'));
 
     await render(
       <SigneeListComponent
@@ -140,7 +139,7 @@ describe('SigneeListComponent', () => {
   });
 
   it('should render spinner when loading', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockImplementation(apiMock(apiClients.signingApi.fetchSigneeList));
+    queryTest.queries.fetchSigneeList.mockImplementation(queryPromiseMock('fetchSigneeList').mock);
 
     await render(
       <SigneeListComponent

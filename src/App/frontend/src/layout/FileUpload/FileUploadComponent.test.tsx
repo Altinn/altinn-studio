@@ -15,12 +15,12 @@ import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { renderGenericComponentTest, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IGetAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
-import type { AttachmentsApi } from 'src/core/api-client/app.api';
+import type { AppMutations } from 'src/core/queries/types';
 import type { CompExternalExact } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 import type { IData } from 'src/types/shared';
 
-const doUpdateAttachmentTags = vi.fn<AttachmentsApi['doUpdateAttachmentTags']>(async ({ setTagsRequest }) => ({
+const doUpdateAttachmentTags = vi.fn<AppMutations['doUpdateAttachmentTags']>(async ({ setTagsRequest }) => ({
   tags: setTagsRequest.tags,
 }));
 
@@ -64,9 +64,9 @@ describe('File uploading components', () => {
 
     describe('file status', () => {
       it('should show loading when file uploaded=false', async () => {
-        const { apis, id } = await render({ attachments: () => [] });
+        const { mutations, id } = await render({ attachments: () => [] });
         const attachment = getDataElements({ count: 1, dataType: id })[0];
-        expect(apis.attachmentsApi.doAttachmentUpload).not.toHaveBeenCalled();
+        expect(mutations.doAttachmentUpload.mock).not.toHaveBeenCalled();
 
         const file = new File(['(⌐□_□)'], attachment?.filename || '', { type: attachment.contentType });
 
@@ -79,13 +79,13 @@ describe('File uploading components', () => {
           expect(screen.getByText('Laster innhold')).toBeInTheDocument();
         });
 
-        apis.attachmentsApi.doAttachmentUpload.resolve(mockUploadResponse(attachment));
+        mutations.doAttachmentUpload.resolve(mockUploadResponse(attachment));
 
         await waitFor(() => {
           expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
         });
 
-        expect(apis.attachmentsApi.doAttachmentUpload).toHaveBeenCalledTimes(1);
+        expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1);
       });
 
       it('should not show loading when file uploaded=true', async () => {
@@ -95,7 +95,7 @@ describe('File uploading components', () => {
       });
 
       it('should show loading when file deleting=true', async () => {
-        const { apis } = await render({
+        const { mutations } = await render({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
         });
 
@@ -109,13 +109,13 @@ describe('File uploading components', () => {
           expect(screen.getByText('Laster innhold')).toBeInTheDocument();
         });
 
-        apis.attachmentsApi.doAttachmentRemove.resolve();
+        mutations.doAttachmentRemove.resolve();
 
         await waitFor(() => {
           expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
         });
 
-        expect(apis.attachmentsApi.doAttachmentRemove).toHaveBeenCalledTimes(1);
+        expect(mutations.doAttachmentRemove.mock).toHaveBeenCalledTimes(1);
         expect(screen.queryByRole('button', { name: 'Slett vedlegg' })).not.toBeInTheDocument();
       });
     });
@@ -161,48 +161,46 @@ describe('File uploading components', () => {
 
       await renderWithInstanceAndLayout({
         renderer: () => <GenericComponent baseComponentId='FileUpload1' />,
-        apis: {
-          resourcesApi: { fetchLayoutSchema: async () => null },
-          formBootstrapApi: {
-            fetchFormBootstrapForInstance: async () =>
-              getFormBootstrapMock((obj) => {
-                obj.dataModels[defaultDataTypeMock].schema.properties = {
-                  ...obj.dataModels[defaultDataTypeMock].schema.properties,
-                  test: {
-                    type: 'array',
-                    items: { type: 'string' },
+        queries: {
+          fetchLayoutSchema: async () => null,
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema.properties = {
+                ...obj.dataModels[defaultDataTypeMock].schema.properties,
+                test: {
+                  type: 'array',
+                  items: { type: 'string' },
+                },
+              };
+              obj.layouts = {
+                page1: {
+                  data: {
+                    layout: [
+                      {
+                        id: 'FileUpload1',
+                        type: 'FileUpload',
+                        dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
+                        minNumberOfAttachments: 1,
+                        maxNumberOfAttachments: 5,
+                        maxFileSizeInMB: 2,
+                        displayMode: 'list',
+                      },
+                      {
+                        id: 'FileUpload2',
+                        type: 'FileUpload',
+                        dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
+                        minNumberOfAttachments: 1,
+                        maxNumberOfAttachments: 5,
+                        maxFileSizeInMB: 2,
+                        displayMode: 'list',
+                      },
+                    ],
                   },
-                };
-                obj.layouts = {
-                  page1: {
-                    data: {
-                      layout: [
-                        {
-                          id: 'FileUpload1',
-                          type: 'FileUpload',
-                          dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
-                          minNumberOfAttachments: 1,
-                          maxNumberOfAttachments: 5,
-                          maxFileSizeInMB: 2,
-                          displayMode: 'list',
-                        },
-                        {
-                          id: 'FileUpload2',
-                          type: 'FileUpload',
-                          dataModelBindings: { list: { dataType: defaultDataTypeMock, field: 'test' } },
-                          minNumberOfAttachments: 1,
-                          maxNumberOfAttachments: 5,
-                          maxFileSizeInMB: 2,
-                          displayMode: 'list',
-                        },
-                      ],
-                    },
-                  },
-                };
-              }),
-          },
-          attachmentsApi: { doUpdateAttachmentTags },
+                },
+              };
+            }),
         },
+        mutations: { doUpdateAttachmentTags },
       });
 
       expect(
@@ -236,13 +234,11 @@ describe('File uploading components', () => {
             displayMode: 'list',
           },
           attachments: (dataType) => getDataElements({ count: 2, dataType }),
-          apis: {
-            formBootstrapApi: {
-              fetchFormBootstrapForInstance: async () =>
-                getFormBootstrapMock((obj) => {
-                  obj.dataModels[defaultDataTypeMock].initialData = { user: { type: 'admin' } };
-                }),
-            },
+          queries: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { user: { type: 'admin' } };
+              }),
           },
         });
 
@@ -258,13 +254,11 @@ describe('File uploading components', () => {
             displayMode: 'list',
           },
           attachments: (dataType) => getDataElements({ count: 3, dataType }),
-          apis: {
-            formBootstrapApi: {
-              fetchFormBootstrapForInstance: async () =>
-                getFormBootstrapMock((obj) => {
-                  obj.dataModels[defaultDataTypeMock].initialData = { user: { type: 'regular' } };
-                }),
-            },
+          queries: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { user: { type: 'regular' } };
+              }),
           },
         });
 
@@ -282,13 +276,11 @@ describe('File uploading components', () => {
             showValidations: ['Required'],
           },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: {
-            formBootstrapApi: {
-              fetchFormBootstrapForInstance: async () =>
-                getFormBootstrapMock((obj) => {
-                  obj.dataModels[defaultDataTypeMock].initialData = { form: { requiredFiles: 3 } };
-                }),
-            },
+          queries: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: { requiredFiles: 3 } };
+              }),
           },
         });
 
@@ -307,13 +299,11 @@ describe('File uploading components', () => {
             showValidations: ['Required'],
           },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: {
-            formBootstrapApi: {
-              fetchFormBootstrapForInstance: async () =>
-                getFormBootstrapMock((obj) => {
-                  obj.dataModels[defaultDataTypeMock].initialData = { form: { priority: 8 } };
-                }),
-            },
+          queries: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: { priority: 8 } };
+              }),
           },
         });
 
@@ -331,13 +321,11 @@ describe('File uploading components', () => {
             displayMode: 'list',
           },
           attachments: (dataType) => getDataElements({ count: 0, dataType }),
-          apis: {
-            formBootstrapApi: {
-              fetchFormBootstrapForInstance: async () =>
-                getFormBootstrapMock((obj) => {
-                  obj.dataModels[defaultDataTypeMock].initialData = { form: { optionalFiles: 0 } };
-                }),
-            },
+          queries: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: { optionalFiles: 0 } };
+              }),
           },
         });
 
@@ -353,13 +341,11 @@ describe('File uploading components', () => {
             displayMode: 'list',
           },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: {
-            formBootstrapApi: {
-              fetchFormBootstrapForInstance: async () =>
-                getFormBootstrapMock((obj) => {
-                  obj.dataModels[defaultDataTypeMock].initialData = { form: {} };
-                }),
-            },
+          queries: {
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.dataModels[defaultDataTypeMock].initialData = { form: {} };
+              }),
           },
         });
 
@@ -404,7 +390,7 @@ describe('File uploading components', () => {
       it('should show spinner when file status has uploaded=false', async () => {
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 0, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
 
         const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
@@ -420,7 +406,7 @@ describe('File uploading components', () => {
       it('should not show spinner when file status has uploaded=true', async () => {
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
       });
@@ -432,7 +418,7 @@ describe('File uploading components', () => {
 
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         await selectTag();
 
@@ -448,7 +434,7 @@ describe('File uploading components', () => {
       it('should not show spinner in edit mode when file status has updating=false', async () => {
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         await openEdit();
 
@@ -462,7 +448,7 @@ describe('File uploading components', () => {
 
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         await selectTag();
 
@@ -479,7 +465,7 @@ describe('File uploading components', () => {
       it('should not disable dropdown in edit mode when not updating', async () => {
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         await openEdit();
 
@@ -489,7 +475,7 @@ describe('File uploading components', () => {
       it('should not disable save button', async () => {
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         await openEdit();
 
@@ -503,7 +489,7 @@ describe('File uploading components', () => {
             out[0].tags = [];
             return out;
           },
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
 
         await userEvent.click(screen.getByRole('button', { name: 'Lagre' }));
@@ -515,15 +501,15 @@ describe('File uploading components', () => {
         await renderWithTag({
           component: { readOnly: true },
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         expect(screen.queryByRole('button', { name: 'Rediger' })).not.toBeInTheDocument();
       });
 
       it('should not show save button when attachment.uploaded=false', async () => {
-        const { apis } = await renderWithTag({
+        const { mutations } = await renderWithTag({
           attachments: () => [],
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
 
         const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
@@ -533,7 +519,7 @@ describe('File uploading components', () => {
           .querySelector('input') as HTMLInputElement;
         await userEvent.upload(dropZone, file);
 
-        await waitFor(() => expect(apis.attachmentsApi.doAttachmentUpload).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1));
         expect(screen.getByText('Laster innhold')).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Lagre' })).not.toBeInTheDocument();
       });
@@ -543,7 +529,7 @@ describe('File uploading components', () => {
 
         await renderWithTag({
           attachments: (dataType) => getDataElements({ count: 1, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         await selectTag();
 
@@ -563,7 +549,7 @@ describe('File uploading components', () => {
             out[0].tags = [];
             return out;
           },
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
 
         expect(screen.getByRole('button', { name: 'Lagre' })).toBeInTheDocument();
@@ -576,7 +562,7 @@ describe('File uploading components', () => {
             out[0].tags = ['tag1'];
             return out;
           },
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
         expect(screen.queryByRole('button', { name: 'Lagre' })).not.toBeInTheDocument();
       });
@@ -587,7 +573,7 @@ describe('File uploading components', () => {
         await renderWithTag({
           component: { maxNumberOfAttachments: 3 },
           attachments: (dataType) => getDataElements({ count: 2, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
 
         expect(screen.getByRole('presentation', { name: /attachment-title/i }).textContent).toMatch(
@@ -599,7 +585,7 @@ describe('File uploading components', () => {
         await renderWithTag({
           component: { maxNumberOfAttachments: 3 },
           attachments: (dataType) => getDataElements({ count: 3, dataType }),
-          apis: { attachmentsApi: { doUpdateAttachmentTags } },
+          mutations: { doUpdateAttachmentTags },
         });
 
         expect(screen.queryByRole('presentation', { name: /attachment-title/i })).not.toBeInTheDocument();
@@ -616,7 +602,8 @@ describe('File uploading components', () => {
     component,
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     withTag,
-    apis,
+    queries,
+    mutations,
   }: Props) {
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
@@ -656,31 +643,25 @@ describe('File uploading components', () => {
         }),
         ...component,
       } as CompExternalExact<'FileUpload'>,
-      apis: {
-        ...apis,
-        instanceApi: {
-          getInstance: async () => ({
-            ...getInstanceDataMock((i) => {
-              i.data.push(...attachments);
-            }),
-            process: getProcessDataMock(),
+      queries: {
+        getInstance: async () => ({
+          ...getInstanceDataMock((i) => {
+            i.data.push(...attachments);
           }),
-          ...apis?.instanceApi,
-        },
-        optionsApi: {
-          fetchOptions: () =>
-            Promise.resolve({
-              data: [
-                { value: 'tag1', label: 'Tag 1' },
-                { value: 'tag2', label: 'Tag 2' },
-                { value: 'tag3', label: 'Tag 3' },
-              ],
-              headers: {},
-            }),
-          ...apis?.optionsApi,
-        },
-        attachmentsApi: { ...apis?.attachmentsApi, doUpdateAttachmentTags },
+          process: getProcessDataMock(),
+        }),
+        fetchOptions: () =>
+          Promise.resolve({
+            data: [
+              { value: 'tag1', label: 'Tag 1' },
+              { value: 'tag2', label: 'Tag 2' },
+              { value: 'tag3', label: 'Tag 3' },
+            ],
+            headers: {},
+          }),
+        ...queries,
       },
+      mutations: { ...mutations, doUpdateAttachmentTags },
     });
 
     return { ...utils, id, attachments };

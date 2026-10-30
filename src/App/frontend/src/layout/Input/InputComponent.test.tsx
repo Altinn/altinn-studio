@@ -24,22 +24,20 @@ describe('InputComponent', () => {
         component: {
           textResourceBindings: { title: 'Input label' },
         },
-        apis: {
-          formBootstrapApi: {
-            fetchFormBootstrapForInstance: async () =>
-              getFormBootstrapMock((obj) => {
-                obj.dataModels[defaultDataTypeMock].initialData = { some: { field: 'value' } };
-                obj.dataModels[defaultDataTypeMock].initialValidationIssues = [
-                  {
-                    customTextKey: 'Backend validation message',
-                    field: 'some.field',
-                    dataElementId: defaultMockDataElementId,
-                    severity,
-                    source: 'Custom',
-                  },
-                ];
-              }),
-          },
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].initialData = { some: { field: 'value' } };
+              obj.dataModels[defaultDataTypeMock].initialValidationIssues = [
+                {
+                  customTextKey: 'Backend validation message',
+                  field: 'some.field',
+                  dataElementId: defaultMockDataElementId,
+                  severity,
+                  source: 'Custom',
+                },
+              ];
+            }),
         },
       });
 
@@ -101,21 +99,19 @@ describe('InputComponent', () => {
           <ShowBackendValidations />
         </>
       ),
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialValidationIssues = [
-                {
-                  customTextKey: 'Backend validation message',
-                  field: 'some.field',
-                  dataElementId: defaultMockDataElementId,
-                  severity: BackendValidationSeverity.Error,
-                  source: 'Custom',
-                },
-              ];
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = [
+              {
+                customTextKey: 'Backend validation message',
+                field: 'some.field',
+                dataElementId: defaultMockDataElementId,
+                severity: BackendValidationSeverity.Error,
+                source: 'Custom',
+              },
+            ];
+          }),
       },
     });
 
@@ -140,13 +136,11 @@ describe('InputComponent', () => {
 
   it('should have correct value with specified form data', async () => {
     await render({
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = { some: { field: 'some value' } };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { some: { field: 'some value' } };
+          }),
       },
     });
     const inputComponent = screen.getByRole('textbox') as HTMLInputElement;
@@ -194,13 +188,11 @@ describe('InputComponent', () => {
           },
         },
       },
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = { some: { field: inputValuePlainText } };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { some: { field: inputValuePlainText } };
+          }),
       },
     });
     const inputComponent = screen.getByRole('textbox');
@@ -307,13 +299,11 @@ describe('InputComponent', () => {
       component: {
         readOnly: true,
       },
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = { some: { field: initialValue } };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { some: { field: initialValue } };
+          }),
       },
     });
 
@@ -333,7 +323,7 @@ describe('InputComponent', () => {
       component: {
         autocomplete: 'name',
       },
-      apis: { formDataApi: { fetchFormData: () => Promise.resolve({ some: { field: initialValue } }) } },
+      queries: { fetchFormData: () => Promise.resolve({ some: { field: initialValue } }) },
     });
 
     const inputComponent = screen.getByRole('textbox') as HTMLInputElement;

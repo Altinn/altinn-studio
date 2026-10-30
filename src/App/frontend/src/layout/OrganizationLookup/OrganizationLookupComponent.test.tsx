@@ -8,13 +8,12 @@ import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { OrganizationLookupComponent } from 'src/layout/OrganizationLookup/OrganizationLookupComponent';
-import { httpResponse } from 'src/test/apiMocks';
-import { renderGenericComponentTest } from 'src/test/renderWithProviders';
-import type { LookupApi } from 'src/core/api-client/lookup.api';
+import { httpResponse, renderGenericComponentTest } from 'src/test/renderWithProviders';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
-const fetchOrg = vi.fn<LookupApi['fetchOrg']>();
+const fetchOrg = vi.fn<Pick<AppQueries, 'fetchPerson' | 'fetchOrg'>['fetchOrg']>();
 
 const validOrgNr = '043871668';
 const orgName = 'Skog og Fjell Consulting';
@@ -28,7 +27,7 @@ const defaultBindings = {
 
 const render = async ({
   component,
-  apis,
+  queries,
   ...rest
 }: Partial<RenderGenericComponentTestProps<'OrganizationLookup'>> = {}) =>
   await renderGenericComponentTest({
@@ -43,20 +42,17 @@ const render = async ({
       ...component,
     },
     ...rest,
-    apis: {
-      ...apis,
-      lookupApi: { fetchOrg, ...apis?.lookupApi },
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].initialData = {
-              orgNr: '',
-              orgName: '',
-              address: { name: '', street: '' },
-            };
-          }),
-        ...apis?.formBootstrapApi,
-      },
+    queries: {
+      fetchOrg,
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = {
+            orgNr: '',
+            orgName: '',
+            address: { name: '', street: '' },
+          };
+        }),
+      ...queries,
     },
   });
 
@@ -131,19 +127,17 @@ describe('OrganizationLookupComponent', () => {
       error: null,
     });
 
-    const { apis } = await render({
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = layoutWithSiblingText;
-              obj.dataModels[defaultDataTypeMock].initialData = {
-                orgNr: '',
-                orgName: '',
-                address: { name: 'Sibling Name', street: 'Street 1' },
-              };
-            }),
-        },
+    const { mutations } = await render({
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layoutWithSiblingText;
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              orgNr: '',
+              orgName: '',
+              address: { name: 'Sibling Name', street: 'Street 1' },
+            };
+          }),
       },
     });
 
@@ -151,8 +145,8 @@ describe('OrganizationLookupComponent', () => {
     await userEvent.click(screen.getByRole('button', { name: /Hent opplysninger/i }));
 
     await waitFor(() => expect(fetchOrg).toHaveBeenCalled());
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalled());
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalled());
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse({
         validationIssues: [],
         newDataModels: [

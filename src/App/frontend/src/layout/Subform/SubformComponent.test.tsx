@@ -22,16 +22,12 @@ const render = async ({ component, onServiceTaskPage = false }: RenderProps = {}
       textResourceBindings: { title: 'The subform title' },
       ...component,
     },
-    apis: {
-      formDataApi: {
-        fetchFormData: async () => ({}),
-      },
-      instanceApi: {
-        getInstance: async () => {
-          const instance = onServiceTaskPage ? getInstanceAtServiceTaskMock() : getInstanceWithProcessMock();
-          instance.data.push({ ...instance.data[0], id: 'subform-entry', dataType: 'subform-data' });
-          return instance;
-        },
+    queries: {
+      fetchFormData: async () => ({}),
+      getInstance: async () => {
+        const instance = onServiceTaskPage ? getInstanceAtServiceTaskMock() : getInstanceWithProcessMock();
+        instance.data.push({ ...instance.data[0], id: 'subform-entry', dataType: 'subform-data' });
+        return instance;
       },
     },
   });
@@ -49,7 +45,7 @@ describe('SubformComponent', () => {
   });
 
   it("disables adding, editing and deleting entries on a service task's page", async () => {
-    const { apis } = await render({
+    const { mutations } = await render({
       component: { textResourceBindings: { title: 'The subform title', addButton: 'Add entry' } },
       onServiceTaskPage: true,
     });
@@ -59,18 +55,18 @@ describe('SubformComponent', () => {
     for (const button of buttons) {
       await userEvent.click(button);
     }
-    expect(apis.subformApi.doSubformEntryAdd).not.toHaveBeenCalled();
-    expect(apis.subformApi.doSubformEntryDelete).not.toHaveBeenCalled();
+    expect(mutations.doSubformEntryAdd.mock).not.toHaveBeenCalled();
+    expect(mutations.doSubformEntryDelete.mock).not.toHaveBeenCalled();
   });
 
   it('adds and deletes entries otherwise', async () => {
-    const { apis } = await render({
+    const { mutations } = await render({
       component: { textResourceBindings: { title: 'The subform title', addButton: 'Add entry' } },
     });
 
     await userEvent.click(screen.getByRole('button', { name: 'Slett' }));
-    expect(apis.subformApi.doSubformEntryDelete).toHaveBeenCalledWith(expect.any(String), 'subform-entry');
+    expect(mutations.doSubformEntryDelete.mock).toHaveBeenCalledWith(expect.any(String), 'subform-entry');
     await userEvent.click(screen.getByRole('button', { name: 'Add entry' }));
-    expect(apis.subformApi.doSubformEntryAdd).toHaveBeenCalled();
+    expect(mutations.doSubformEntryAdd.mock).toHaveBeenCalled();
   });
 });

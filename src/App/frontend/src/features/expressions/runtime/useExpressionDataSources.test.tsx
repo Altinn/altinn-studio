@@ -208,7 +208,7 @@ it('uses descriptor fallbacks for callback evaluation failures', () => {
 it('advances the validation cache revision when an external text-variable reader loads, with a stable runtime', async () => {
   const resourceKey: string = 'external';
   mockInputs.currentLanguage = 'en';
-  queryTest.apis.textResourcesApi.fetchTextResources.mockResolvedValue({
+  queryTest.queries.fetchTextResources.mockResolvedValue({
     language: 'en',
     resources: [
       { id: resourceKey, value: 'Value {0}', variables: [{ key: 'TextField', dataSource: 'dataModel.external' }] },

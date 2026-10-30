@@ -1,6 +1,6 @@
 import { ZodError } from 'zod';
 
-import { NotificationStatus, SigneeState, signingApi } from 'src/core/api-client/signing.api';
+import { fetchSigneeList, NotificationStatus, SigneeState } from 'src/core/api-client/signing.api';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 
 const randomUUID = () => '00000000-0000-4000-8000-000000000000';
@@ -38,7 +38,7 @@ describe('fetchSigneeList', () => {
       ] satisfies SigneeState[],
     });
 
-    const result = await signingApi.fetchSigneeList(partyId, instanceGuid);
+    const result = await fetchSigneeList(partyId, instanceGuid);
 
     expect(result).toEqual([
       {
@@ -73,7 +73,7 @@ describe('fetchSigneeList', () => {
     });
 
     expect.assertions(1);
-    return signingApi.fetchSigneeList(partyId, instanceGuid).catch((error) => expect(error).toBeInstanceOf(ZodError));
+    return fetchSigneeList(partyId, instanceGuid).catch((error) => expect(error).toBeInstanceOf(ZodError));
   });
 
   it('should throw error if name and organization is missing/empty', async () => {
@@ -92,14 +92,14 @@ describe('fetchSigneeList', () => {
     });
 
     expect.assertions(1);
-    return signingApi.fetchSigneeList(partyId, instanceGuid).catch((error) => expect(error).toBeInstanceOf(ZodError));
+    return fetchSigneeList(partyId, instanceGuid).catch((error) => expect(error).toBeInstanceOf(ZodError));
   });
 
   it('should throw if httpGet fails', async () => {
     mockedGet.mockRejectedValue(new Error('Network error'));
 
     expect.assertions(1);
-    return signingApi.fetchSigneeList(partyId, instanceGuid).catch((error) => expect(error).toBeInstanceOf(Error));
+    return fetchSigneeList(partyId, instanceGuid).catch((error) => expect(error).toBeInstanceOf(Error));
   });
 
   it('should sort signee list by name', async () => {
@@ -128,7 +128,7 @@ describe('fetchSigneeList', () => {
       ] satisfies SigneeState[],
     });
 
-    const result = await signingApi.fetchSigneeList(partyId, instanceGuid);
+    const result = await fetchSigneeList(partyId, instanceGuid);
     expect(result).toEqual([
       {
         name: 'Mary Jane',
@@ -155,7 +155,7 @@ describe('fetchSigneeList', () => {
     const taskId = 'MyTask';
     mockedGet.mockResolvedValue({ signeeStates: [] });
 
-    await signingApi.fetchSigneeList(partyId, instanceGuid, taskId);
+    await fetchSigneeList(partyId, instanceGuid, taskId);
 
     expect(mockedGet).toHaveBeenCalledWith(expect.stringContaining(`?taskId=${taskId}`));
   });
@@ -163,7 +163,7 @@ describe('fetchSigneeList', () => {
   it('should not append taskId query parameter when undefined', async () => {
     mockedGet.mockResolvedValue({ signeeStates: [] });
 
-    await signingApi.fetchSigneeList(partyId, instanceGuid, undefined);
+    await fetchSigneeList(partyId, instanceGuid, undefined);
 
     expect(mockedGet).toHaveBeenCalledWith(expect.not.stringContaining('?taskId'));
   });

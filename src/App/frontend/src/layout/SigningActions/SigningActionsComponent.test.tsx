@@ -5,7 +5,6 @@ import { act, render as renderRtl, RenderOptions } from '@testing-library/react'
 
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { apiClients } from 'src/core/api-client';
 import { NotificationStatus, SigneeState } from 'src/core/queries/signeeList';
 import { Lang } from 'src/features/language/Lang';
 import { CurrentLanguageProvider } from 'src/features/language/LanguageProvider';
@@ -18,8 +17,8 @@ import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { SubmitPanel } from 'src/layout/SigningActions/PanelSubmit';
 import { SigningActionsComponent } from 'src/layout/SigningActions/SigningActionsComponent';
 import { CurrentUserStatus, getCurrentUserStatus } from 'src/layout/SigningActions/utils';
-import { apiMock } from 'src/test/apiMocks';
 import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+import { queryPromiseMock } from 'src/test/renderWithProviders';
 
 let queryTest: ReturnType<typeof createQueryTestWrapper>;
 
@@ -71,7 +70,7 @@ describe('SigningActionsComponent', () => {
     vi.resetAllMocks();
     queryTest = createQueryTestWrapper({}, `/instance/${partyId}/${instanceGuid}/${taskId}`);
 
-    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
+    queryTest.queries.getInstance.mockResolvedValue(authorizedInstance(true));
 
     vi.mocked(useLanguage).mockReturnValue({
       langAsString: (inputString: string) => inputString,
@@ -80,9 +79,9 @@ describe('SigningActionsComponent', () => {
 
     vi.mocked(useProfile).mockReturnValue(getProfileMock());
 
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([]);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([]);
 
-    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([]);
+    queryTest.queries.fetchBackendValidations.mockResolvedValue([]);
 
     vi.mocked(AwaitingCurrentUserSignaturePanel).mockImplementation(({ hasMissingSignatures }) => (
       <div data-testid='awaiting-current-user-signature-panel'>
@@ -121,7 +120,7 @@ describe('SigningActionsComponent', () => {
   });
 
   it('should render loading spinner when loading is true', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockImplementation(apiMock(apiClients.signingApi.fetchSigneeList));
+    queryTest.queries.fetchSigneeList.mockImplementation(queryPromiseMock('fetchSigneeList').mock);
 
     await render(
       <SigningActionsComponent
@@ -134,7 +133,7 @@ describe('SigningActionsComponent', () => {
   });
 
   it('should render ErrorPanel on API error', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockRejectedValue(new Error('API error'));
+    queryTest.queries.fetchSigneeList.mockRejectedValue(new Error('API error'));
 
     await render(
       <SigningActionsComponent
@@ -148,7 +147,7 @@ describe('SigningActionsComponent', () => {
   });
 
   it('should render ErrorPanel when any signee has delegation failed', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([failedDelegationSignee, failedNotificationSignee]);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([failedDelegationSignee, failedNotificationSignee]);
 
     await render(
       <SigningActionsComponent
@@ -163,7 +162,7 @@ describe('SigningActionsComponent', () => {
 
   it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are missing signatures', async () => {
     mockedGetCurrentUserStatus.mockReturnValue('awaitingSignature');
-    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([
+    queryTest.queries.fetchBackendValidations.mockResolvedValue([
       { code: 'MissingSignatures', source: 'test', severity: 1, dataElementId: 'data' },
     ]);
 
@@ -180,7 +179,7 @@ describe('SigningActionsComponent', () => {
 
   it('should render AwaitingCurrentUserSignaturePanel with correct text when user is awaiting signature and there are no missing signatures', async () => {
     mockedGetCurrentUserStatus.mockReturnValue('awaitingSignature');
-    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([]);
+    queryTest.queries.fetchBackendValidations.mockResolvedValue([]);
 
     await render(
       <SigningActionsComponent
@@ -195,7 +194,7 @@ describe('SigningActionsComponent', () => {
 
   it('should render NoActionRequiredPanel with correct text when user does not have write access and has signed', async () => {
     mockedGetCurrentUserStatus.mockReturnValue('signed');
-    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(false));
+    queryTest.queries.getInstance.mockResolvedValue(authorizedInstance(false));
 
     await render(
       <SigningActionsComponent
@@ -209,7 +208,7 @@ describe('SigningActionsComponent', () => {
   });
 
   it('should render NoActionRequiredPanel with correct text when user does not have write access and is not signing', async () => {
-    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(false));
+    queryTest.queries.getInstance.mockResolvedValue(authorizedInstance(false));
     mockedGetCurrentUserStatus.mockReturnValue('notSigning');
 
     await render(
@@ -224,9 +223,9 @@ describe('SigningActionsComponent', () => {
   });
 
   it('should render AwaitingOtherSignaturesPanel with correct text when user has write access, has signed, and there are missing signatures', async () => {
-    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
+    queryTest.queries.getInstance.mockResolvedValue(authorizedInstance(true));
     mockedGetCurrentUserStatus.mockReturnValue('signed');
-    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([
+    queryTest.queries.fetchBackendValidations.mockResolvedValue([
       { code: 'MissingSignatures', source: 'test', severity: 1, dataElementId: 'data' },
     ]);
 
@@ -242,9 +241,9 @@ describe('SigningActionsComponent', () => {
   });
 
   it('should render AwaitingOtherSignaturesPanel with correct text when user has write access, is not signing, and there are missing signatures', async () => {
-    queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
+    queryTest.queries.getInstance.mockResolvedValue(authorizedInstance(true));
     mockedGetCurrentUserStatus.mockReturnValue('notSigning');
-    queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([
+    queryTest.queries.fetchBackendValidations.mockResolvedValue([
       { code: 'MissingSignatures', source: 'test', severity: 1, dataElementId: 'data' },
     ]);
 
@@ -262,9 +261,9 @@ describe('SigningActionsComponent', () => {
   it.each<Extract<CurrentUserStatus, 'notSigning' | 'signed'>>(['notSigning', 'signed'])(
     'should render SubmitPanel when user has write access and there are no missing signatures',
     async (currentUserStatus) => {
-      queryTest.apis.instanceApi.getInstance.mockResolvedValue(authorizedInstance(true));
+      queryTest.queries.getInstance.mockResolvedValue(authorizedInstance(true));
       mockedGetCurrentUserStatus.mockReturnValue(currentUserStatus);
-      queryTest.apis.backendValidationApi.fetchBackendValidations.mockResolvedValue([]);
+      queryTest.queries.fetchBackendValidations.mockResolvedValue([]);
 
       await render(
         <SigningActionsComponent

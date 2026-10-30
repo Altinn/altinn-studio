@@ -9,8 +9,7 @@ import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { useUpdateIncrementalValidations } from 'src/features/validation/backendValidation/useUpdateIncrementalValidations';
-import { httpResponse } from 'src/test/apiMocks';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { httpResponse, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
 function makeIssue(field: string, text: string, source: string): BackendValidationIssue {
@@ -59,39 +58,37 @@ describe('BackendValidation', () => {
           <SaveAttachmentTags />
         </>
       ),
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialValidationIssues = initialIssues;
-              obj.layouts = {
-                FormLayout: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'phoneNumber',
-                        type: 'Input',
-                        textResourceBindings: { title: 'Phone number' },
-                        dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'PhoneNumber' } },
-                      },
-                      {
-                        id: 'email',
-                        type: 'Input',
-                        textResourceBindings: { title: 'Email' },
-                        dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Email' } },
-                      },
-                    ],
-                  },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = initialIssues;
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [
+                    {
+                      id: 'phoneNumber',
+                      type: 'Input',
+                      textResourceBindings: { title: 'Phone number' },
+                      dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'PhoneNumber' } },
+                    },
+                    {
+                      id: 'email',
+                      type: 'Input',
+                      textResourceBindings: { title: 'Email' },
+                      dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'Email' } },
+                    },
+                  ],
                 },
-              };
-            }),
-        },
+              },
+            };
+          }),
       },
     });
 
   it('keeps bootstrap field and component issues through unrelated saves and clears them when their validator runs', async () => {
     const user = userEvent.setup();
-    const { apis } = await render([
+    const { mutations } = await render([
       makeIssue('PhoneNumber', 'Bootstrap field error', 'PhoneNumberValidator'),
       {
         ...makeIssue('PhoneNumber', 'Bootstrap component error', 'PhoneNumberValidator'),
@@ -101,8 +98,8 @@ describe('BackendValidation', () => {
     ]);
     await user.type(screen.getByRole('textbox', { name: 'Email' }), 'ola');
     await user.tab();
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse(makeSaveResponse({ Email: 'ola' }, [{ source: 'EmailValidator', issues: [] }])),
     );
     await user.click(screen.getByRole('button', { name: 'Save attachment tags' }));
@@ -112,8 +109,8 @@ describe('BackendValidation', () => {
 
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '12345678');
     await user.tab();
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(2));
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse(
         makeSaveResponse({ PhoneNumber: '12345678', Email: 'ola' }, [{ source: 'PhoneNumberValidator', issues: [] }]),
       ),
@@ -124,12 +121,12 @@ describe('BackendValidation', () => {
 
   it('should keep errors from a validator that did not run on the last save', async () => {
     const user = userEvent.setup();
-    const { apis } = await render();
+    const { mutations } = await render();
 
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '123');
     await user.tab();
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse(
         makeSaveResponse({ PhoneNumber: '123' }, [
           {
@@ -144,8 +141,8 @@ describe('BackendValidation', () => {
     // Only the email validator runs when the email changes
     await user.type(screen.getByRole('textbox', { name: 'Email' }), 'ola');
     await user.tab();
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(2));
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse(
         makeSaveResponse({ PhoneNumber: '123', Email: 'ola' }, [
           { source: 'EmailValidator', issues: [makeIssue('Email', 'Invalid email', 'EmailValidator')] },
@@ -160,12 +157,12 @@ describe('BackendValidation', () => {
 
   it('should keep errors from earlier saves when attachment tags are saved', async () => {
     const user = userEvent.setup();
-    const { apis } = await render();
+    const { mutations } = await render();
 
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '123');
     await user.tab();
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse(
         makeSaveResponse({ PhoneNumber: '123' }, [
           {
@@ -186,12 +183,12 @@ describe('BackendValidation', () => {
 
   it('should remove errors from a validator that ran on the last save and found none', async () => {
     const user = userEvent.setup();
-    const { apis } = await render();
+    const { mutations } = await render();
 
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '123');
     await user.tab();
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse(
         makeSaveResponse({ PhoneNumber: '123' }, [
           {
@@ -205,8 +202,8 @@ describe('BackendValidation', () => {
 
     await user.type(screen.getByRole('textbox', { name: 'Phone number' }), '45678');
     await user.tab();
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(2));
-    apis.formDataApi.doPatchMultipleFormData.resolve(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+    mutations.doPatchMultipleFormData.resolve(
       httpResponse(makeSaveResponse({ PhoneNumber: '12345678' }, [{ source: 'PhoneNumberValidator', issues: [] }])),
     );
 

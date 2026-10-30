@@ -21,16 +21,15 @@ import {
 } from 'src/test/renderWithProviders';
 import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
-import type { ExternalApiClient } from 'src/core/api-client/app.api';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { RepeatingComponents } from 'src/features/form/layout/utils/repeating';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
-import type { ApiOverrides } from 'src/test/apiMocks';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
-const fetchExternalApi = vi.fn<ExternalApiClient['fetchExternalApi']>();
+const fetchExternalApi = vi.fn<Pick<AppQueries, 'fetchExternalApi'>['fetchExternalApi']>();
 
 interface Props {
   context: SharedTestFunctionContext | undefined;
@@ -295,7 +294,7 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
       valueArguments={valueArguments}
     />
   );
-  const apis = createQueries(test, expression);
+  const queries = createQueries(test, expression);
   if (stateless) {
     await renderWithoutInstanceAndLayout({
       withFormProvider: true,
@@ -303,27 +302,25 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
         <StatelessRouter initialPage={context?.currentLayout ?? 'FormLayout'}>{children}</StatelessRouter>
       ),
       renderer,
-      apis: { ...apis, externalApi: { fetchExternalApi } },
+      queries: { ...queries, fetchExternalApi },
     });
   } else {
     await renderWithInstanceAndLayout({
       initialPage: context?.currentLayout ?? 'FormLayout',
       renderer,
-      apis: {
-        ...apis,
-        instanceApi: {
-          getInstance: async () => ({
-            ...createInstanceData(test),
-            process: createProcess(test) ?? getProcessDataMock(),
-          }),
-        },
-        externalApi: { fetchExternalApi },
+      queries: {
+        ...queries,
+        getInstance: async () => ({
+          ...createInstanceData(test),
+          process: createProcess(test) ?? getProcessDataMock(),
+        }),
+        fetchExternalApi,
       },
     });
   }
 }
 
-function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>): ApiOverrides {
+function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>): Partial<AppQueries> {
   const { codeLists } = test;
   const bootstrapFn = async () =>
     getFormBootstrapMock((obj) => {
@@ -345,7 +342,8 @@ function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<Exp
       }
     });
   return {
-    formBootstrapApi: { fetchFormBootstrapForInstance: bootstrapFn, fetchFormBootstrapForStateless: bootstrapFn },
+    fetchFormBootstrapForInstance: bootstrapFn,
+    fetchFormBootstrapForStateless: bootstrapFn,
   };
 }
 

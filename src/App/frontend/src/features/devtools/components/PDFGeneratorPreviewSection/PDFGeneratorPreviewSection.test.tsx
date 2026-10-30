@@ -58,14 +58,7 @@ async function render({ otherSubform = false }: { otherSubform?: boolean } = {})
   return await renderWithoutInstanceAndLayout({
     renderer: () => <PDFGeneratorPreviewSection />,
     router: ({ children }) => <InstanceRouter initialPage=''>{children}</InstanceRouter>,
-    apis: {
-      resourcesApi: {
-        fetchLayouts,
-      },
-      instanceApi: {
-        getInstance: async () => instance,
-      },
-    },
+    queries: { fetchLayouts, getInstance: async () => instance },
   });
 }
 

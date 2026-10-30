@@ -18,7 +18,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { useComponentConfig } from 'src/utils/layout/hooks';
-import type { OptionsApi } from 'src/core/api-client/app.api';
+import type { AppQueries } from 'src/core/queries/types';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { ILayout } from 'src/layout/layout';
@@ -31,7 +31,7 @@ interface RenderProps {
   queryParameters?: IQueryParameters;
   selected?: string;
   preselectedOptionIndex?: number;
-  fetchOptions?: Mock<OptionsApi['fetchOptions']>;
+  fetchOptions?: Mock<AppQueries['fetchOptions']>;
   extraLayout?: ILayout;
   staticOptions?: Record<string, StaticOptionSet>;
 }
@@ -93,54 +93,50 @@ async function render(props: RenderProps) {
         <TestOptions baseComponentId='myComponent' />
       </ErrorBoundary>
     ),
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock]!.initialData = {
-              Group: structuredClone(props.options ?? []).map((option, index) => ({
-                [ALTINN_ROW_ID]: `row-${index}`,
-                ...option,
-              })),
-              result: props.selected ?? '',
-              someOther: 'value',
-            };
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [
-                    ...(props.extraLayout ?? []),
-                    {
-                      type: props.type === 'single' ? 'Dropdown' : 'MultipleSelect',
-                      id: 'myComponent',
-                      dataModelBindings: {
-                        simpleBinding: { dataType: defaultDataTypeMock, field: 'result' },
-                      },
-                      textResourceBindings: {
-                        title: 'mockTitle',
-                      },
-                      ...layoutConfig,
-                    },
-                  ],
-                },
-              },
-            };
-            obj.staticOptions = props.staticOptions ?? {};
-          }),
-      },
-      optionsApi: {
-        fetchOptions:
-          props.fetchOptions ??
-          (async () => ({
-            data: (props.options ?? []).map((option) => ({
-              value: option.value,
-              label: option.label,
-              description: option.description,
-              helpText: option.helpText,
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock]!.initialData = {
+            Group: structuredClone(props.options ?? []).map((option, index) => ({
+              [ALTINN_ROW_ID]: `row-${index}`,
+              ...option,
             })),
-            headers: {},
+            result: props.selected ?? '',
+            someOther: 'value',
+          };
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [
+                  ...(props.extraLayout ?? []),
+                  {
+                    type: props.type === 'single' ? 'Dropdown' : 'MultipleSelect',
+                    id: 'myComponent',
+                    dataModelBindings: {
+                      simpleBinding: { dataType: defaultDataTypeMock, field: 'result' },
+                    },
+                    textResourceBindings: {
+                      title: 'mockTitle',
+                    },
+                    ...layoutConfig,
+                  },
+                ],
+              },
+            },
+          };
+          obj.staticOptions = props.staticOptions ?? {};
+        }),
+      fetchOptions:
+        props.fetchOptions ??
+        (async () => ({
+          data: (props.options ?? []).map((option) => ({
+            value: option.value,
+            label: option.label,
+            description: option.description,
+            helpText: option.helpText,
           })),
-      },
+          headers: {},
+        })),
     },
   });
 }
@@ -232,7 +228,7 @@ describe('useGetOptions', () => {
   });
 
   it('should include the query parameters in the api request', async () => {
-    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockImplementation(async (_url: string) => ({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockImplementation(async (_url: string) => ({
       data: [] as IRawOption[],
       headers: {},
     }));
@@ -250,7 +246,7 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options and does not fetch options', async () => {
-    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
     });
@@ -271,7 +267,7 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are dynamic', async () => {
-    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
     });
@@ -293,7 +289,7 @@ describe('useGetOptions', () => {
   });
 
   it('fetches options from the API when query parameters are static but non-empty', async () => {
-    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
     });
@@ -315,7 +311,7 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options when query parameters are empty', async () => {
-    const fetchOptionsMock = vi.fn<OptionsApi['fetchOptions']>().mockResolvedValue({
+    const fetchOptionsMock = vi.fn<AppQueries['fetchOptions']>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
     });

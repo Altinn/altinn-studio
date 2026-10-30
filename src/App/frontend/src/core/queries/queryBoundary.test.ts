@@ -94,15 +94,15 @@ it.each([
   "vi.mock('src/core/queries/options');",
   "vi.doMock('src/core/queries/payment');",
   "vi.mock(import('src/core/queries/signeeList'));",
-  "vi.mock('src/core/contexts/ApiProvider');",
+  "vi.mock('src/core/queries/AppQueriesProvider');",
   "vi.mock('src/features/instance/useProcessQuery');",
   "vi.mock('src/features/instance/InstanceContext');",
-  "vi.mock('src/core/api-client/app.api');",
+  "vi.mock('src/core/queries/queries');",
   "vi.mock('../../core/queries/options');",
   "import * as queries from 'src/core/queries/options'; vi.spyOn(queries, 'useOptionsQuery');",
   "vi.mock('axios');",
   "vi.mock('src/utils/network/networking');",
-])('rejects bypassing API injection in a feature test: %s', async (code) => {
+])('rejects bypassing request injection in a feature test: %s', async (code) => {
   expect(await boundaryErrors(code, 'src/layout/Dropdown/example.test.tsx')).toContainEqual(
     expect.objectContaining({ ruleId: 'local/no-query-mocks', severity: 2 }),
   );
@@ -114,10 +114,10 @@ it('rejects replacing TanStack itself in query tests', async () => {
   );
 });
 
-it('allows typed API injection in feature tests and transport mocks in API client tests', async () => {
+it('allows typed request injection in feature tests and transport mocks in API client tests', async () => {
   expect(
     await boundaryErrors(
-      'renderWithProviders({ apis: { optionsApi: { fetchOptions: async () => ({ data: [], headers: {} }) } } });',
+      'renderWithProviders({ queries: { fetchOptions: async () => ({ data: [], headers: {} }) } });',
       'src/layout/Dropdown/example.test.tsx',
     ),
   ).toEqual([]);

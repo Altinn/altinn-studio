@@ -32,12 +32,8 @@ const render = async (instances = mockActiveInstances) => {
   }));
   const renderResult = await renderWithInstanceAndLayout({
     renderer: () => <InstanceSelectionWrapper />,
-    apis: {
-      instanceApi: {
-        getActiveInstances: async () => instances || [],
-        create: instanceCreateMock,
-      },
-    },
+    queries: { getActiveInstances: async () => instances || [] },
+    mutations: { create: instanceCreateMock },
   });
   return {
     ...renderResult,
@@ -95,12 +91,10 @@ describe('InstanceSelection', () => {
     vi.spyOn(window, 'logError').mockImplementation(() => {});
     await renderWithoutInstanceAndLayout({
       renderer: () => <InstanceSelectionWrapper />,
-      apis: {
-        instanceApi: {
-          getActiveInstances: async () => mockActiveInstances,
-          create: async () => {
-            throw Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } });
-          },
+      queries: { getActiveInstances: async () => mockActiveInstances },
+      mutations: {
+        create: async () => {
+          throw Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } });
         },
       },
     });

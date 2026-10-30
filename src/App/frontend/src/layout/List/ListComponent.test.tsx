@@ -13,7 +13,7 @@ import { useDataModelBindings } from 'src/features/formData/useDataModelBindings
 import { ListComponent } from 'src/layout/List/ListComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import type { FormDataApi } from 'src/core/api-client/app.api';
+import type { AppMutations } from 'src/core/queries/types';
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
@@ -87,7 +87,6 @@ function RenderCounter({ baseComponentId }: { baseComponentId: string }) {
 
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'List'>> = {}) =>
   await renderGenericComponentTest({
-    ...rest,
     type: 'List',
     renderer: (props) => (
       <>
@@ -114,28 +113,24 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       ...component,
     },
     ...rest,
-    apis: {
-      ...rest.apis,
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[defaultDataTypeMock].schema = countrySchema;
-          }),
-        ...rest.apis?.formBootstrapApi,
-      },
-      dataListsApi: {
-        fetchDataList: async () => ({
-          listItems: countries,
-          _metaData: {
-            page: 0,
-            pageCount: 1,
-            pageSize: 5,
-            totaltItemsCount: 6,
-            links: [],
-          },
+    queries: {
+      ...rest.queries,
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].schema = countrySchema;
         }),
-        ...rest.apis?.dataListsApi,
-      },
+      ...rest.queries,
+      fetchDataList: async () => ({
+        listItems: countries,
+        _metaData: {
+          page: 0,
+          pageCount: 1,
+          pageSize: 5,
+          totaltItemsCount: 6,
+          links: [],
+        },
+      }),
+      ...rest.queries,
     },
   });
 
@@ -161,7 +156,7 @@ describe('ListComponent', () => {
   it('should save all field values in dataModelBindings atomically', async () => {
     vi.useFakeTimers();
     const user = userEvent.setup({ delay: null });
-    const { formDataMethods, apis } = await render();
+    const { formDataMethods, mutations } = await render();
 
     // There should be one radio for each country, but none of them should be checked
     await waitFor(() => expect(screen.getAllByRole('radio')).toHaveLength(6));
@@ -199,10 +194,10 @@ describe('ListComponent', () => {
     // Wait until the debounce timeout has definitely passed, then expect the form data to be saved. It should only
     // be saved once (even though we changed the value twice) because the debouncing happens globally.
     act(() => vi.advanceTimersByTime(2000));
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
 
-    const mockedArgs = (apis.formDataApi.doPatchMultipleFormData as Mock).mock.calls[0] as unknown as Parameters<
-      FormDataApi['doPatchMultipleFormData']
+    const mockedArgs = (mutations.doPatchMultipleFormData.mock as Mock).mock.calls[0] as unknown as Parameters<
+      AppMutations['doPatchMultipleFormData']
     >;
     const patch: JsonPatch = mockedArgs[1].patches[0].patch;
     expect(patch).toEqual([
@@ -243,21 +238,17 @@ describe('ListComponent', () => {
   describe("on a service task's page", () => {
     const renderOnServiceTaskPage = () =>
       render({
-        apis: {
-          instanceApi: {
-            getInstance: async () => getInstanceAtServiceTaskMock(),
-          },
-          formBootstrapApi: {
-            fetchFormBootstrapForInstance: async () =>
-              getFormBootstrapMock((obj) => {
-                obj.dataModels[defaultDataTypeMock].schema = countrySchema;
-                obj.dataModels[defaultDataTypeMock].initialData = {
-                  CountryName: 'Sweden',
-                  CountryPopulation: 10,
-                  CountryHighestMountain: 1738,
-                };
-              }),
-          },
+        queries: {
+          getInstance: async () => getInstanceAtServiceTaskMock(),
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.dataModels[defaultDataTypeMock].schema = countrySchema;
+              obj.dataModels[defaultDataTypeMock].initialData = {
+                CountryName: 'Sweden',
+                CountryPopulation: 10,
+                CountryHighestMountain: 1738,
+              };
+            }),
         },
       });
 

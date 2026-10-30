@@ -4,7 +4,6 @@ import { useLocation, useParams } from 'react-router';
 import { screen } from '@testing-library/dom';
 import { act, render as renderRtl } from '@testing-library/react';
 
-import { apiClients } from 'src/core/api-client';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { NotificationStatus, SigneeState } from 'src/core/queries/signeeList';
 import { FormStore } from 'src/features/form/FormContext';
@@ -13,8 +12,8 @@ import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { CompExternal } from 'src/layout/layout';
 import { SigneeListSummary } from 'src/layout/SigneeList/SigneeListSummary';
-import { apiMock } from 'src/test/apiMocks';
 import { createQueryTestWrapper } from 'src/test/queryTestUtils';
+import { queryPromiseMock } from 'src/test/renderWithProviders';
 import { useIsHidden } from 'src/utils/layout/hidden';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import type { ExprResolved } from 'src/features/expressions/types';
@@ -109,7 +108,7 @@ describe('SigneeListSummary', () => {
   });
 
   it('should render loading state', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockImplementation(apiMock(apiClients.signingApi.fetchSigneeList));
+    queryTest.queries.fetchSigneeList.mockImplementation(queryPromiseMock('fetchSigneeList').mock);
 
     // Test case
     await render(
@@ -125,7 +124,7 @@ describe('SigneeListSummary', () => {
   });
 
   it('should render error state', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockRejectedValue(new Error('error'));
+    queryTest.queries.fetchSigneeList.mockRejectedValue(new Error('error'));
 
     // Test case
     await render(
@@ -157,7 +156,7 @@ describe('SigneeListSummary', () => {
   });
 
   it('should render no signatures state when loading is false, error is null and data is an empty array', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([]);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([]);
 
     // Test case
     await render(
@@ -176,7 +175,7 @@ describe('SigneeListSummary', () => {
     const signedTime1 = new Date().toISOString();
     const signedTime2 = new Date().toISOString();
 
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([
+    queryTest.queries.fetchSigneeList.mockResolvedValue([
       {
         name: 'Signee 1',
         organization: null,
@@ -223,7 +222,7 @@ describe('SigneeListSummary', () => {
   });
 
   it('should render original title if summary override title is undefined', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
 
     mockNodeItem({ textResourceBindings: { title: 'originalTitle' } });
 
@@ -241,7 +240,7 @@ describe('SigneeListSummary', () => {
   });
 
   it('should not render title if originalTitle and overrideTitle are not set', async () => {
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
 
     mockNodeItem({ textResourceBindings: {} });
 
@@ -262,7 +261,7 @@ describe('SigneeListSummary', () => {
   it.each([null, ''])(
     'should not render title if summary title override is null or empty string',
     async (titleOverride) => {
-      queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
+      queryTest.queries.fetchSigneeList.mockResolvedValue([] satisfies SigneeState[]);
 
       // Test case
       await render(
@@ -281,7 +280,7 @@ describe('SigneeListSummary', () => {
 
   it('should use taskId from TaskOverrides when available', async () => {
     mockedUseTaskOverrides.mockReturnValue({ taskId: 'overrideTaskId' });
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([]);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([]);
 
     // Test case
     await render(
@@ -292,7 +291,7 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(queryTest.apis.signingApi.fetchSigneeList).toHaveBeenCalledWith(
+    expect(queryTest.queries.fetchSigneeList).toHaveBeenCalledWith(
       'instanceOwnerPartyId',
       'instanceGuid',
       'overrideTaskId',
@@ -301,7 +300,7 @@ describe('SigneeListSummary', () => {
 
   it('should fall back to taskId from URL params when TaskOverrides is empty', async () => {
     mockedUseTaskOverrides.mockReturnValue({});
-    queryTest.apis.signingApi.fetchSigneeList.mockResolvedValue([]);
+    queryTest.queries.fetchSigneeList.mockResolvedValue([]);
 
     // Test case
     await render(
@@ -312,11 +311,7 @@ describe('SigneeListSummary', () => {
     );
 
     // Assertion
-    expect(queryTest.apis.signingApi.fetchSigneeList).toHaveBeenCalledWith(
-      'instanceOwnerPartyId',
-      'instanceGuid',
-      'taskId',
-    );
+    expect(queryTest.queries.fetchSigneeList).toHaveBeenCalledWith('instanceOwnerPartyId', 'instanceGuid', 'taskId');
   });
 });
 

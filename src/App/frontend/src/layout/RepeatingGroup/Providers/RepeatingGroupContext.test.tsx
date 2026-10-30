@@ -69,15 +69,13 @@ async function render(rows: { altinnRowId: string; name: string }[], { onService
         <Navigation />
       </RepeatingGroupProvider>
     ),
-    apis: {
-      ...(onServiceTaskPage ? { instanceApi: { getInstance: getInstanceAtServiceTask } } : undefined),
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = { FormLayout: { data: { layout } } };
-            obj.dataModels[defaultDataTypeMock].initialData = { rows };
-          }),
-      },
+    queries: {
+      ...(onServiceTaskPage ? { getInstance: getInstanceAtServiceTask } : undefined),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = { FormLayout: { data: { layout } } };
+          obj.dataModels[defaultDataTypeMock].initialData = { rows };
+        }),
     },
   });
 }

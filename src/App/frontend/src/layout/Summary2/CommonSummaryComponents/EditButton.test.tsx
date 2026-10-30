@@ -29,13 +29,11 @@ describe('EditButton', () => {
   test('should return null when component is readOnly', async () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestInput' />,
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = layoutMock(true);
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layoutMock(true);
+          }),
       },
     });
 
@@ -45,13 +43,11 @@ describe('EditButton', () => {
   test('should render edit button when component is not readOnly', async () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestInput' />,
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = layoutMock(false);
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layoutMock(false);
+          }),
       },
     });
 
@@ -61,29 +57,25 @@ describe('EditButton', () => {
   test("should return null on a service task's page, also for components without readOnly", async () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestGroup' />,
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = {
-                FormLayout: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'TestGroup',
-                        type: 'RepeatingGroup',
-                        dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'group' } },
-                        children: [],
-                      },
-                    ],
-                  },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              FormLayout: {
+                data: {
+                  layout: [
+                    {
+                      id: 'TestGroup',
+                      type: 'RepeatingGroup',
+                      dataModelBindings: { group: { dataType: defaultDataTypeMock, field: 'group' } },
+                      children: [],
+                    },
+                  ],
                 },
-              };
-            }),
-        },
-        instanceApi: {
-          getInstance: async () => getInstanceAtServiceTaskMock(),
-        },
+              },
+            };
+          }),
+        getInstance: async () => getInstanceAtServiceTaskMock(),
       },
     });
 
@@ -106,26 +98,24 @@ it('remounts the fallback when its component id changes', async () => {
   }
   await renderWithInstanceAndLayout({
     renderer: <ChangingFallback />,
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [
-                    {
-                      id: 'TestInput',
-                      type: 'Input',
-                      dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
-                      textResourceBindings: {},
-                    },
-                  ],
-                },
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [
+                  {
+                    id: 'TestInput',
+                    type: 'Input',
+                    dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'field' } },
+                    textResourceBindings: {},
+                  },
+                ],
               },
-            };
-          }),
-      },
+            },
+          };
+        }),
     },
   });
   fireEvent.click(screen.getByRole('button', { name: 'Toggle fallback' }));

@@ -53,11 +53,7 @@ async function renderInstanceProvider(getInstance: () => Promise<IInstanceWithPr
     ),
     router: ({ children }) => <InstanceRouter>{children}</InstanceRouter>,
     waitUntilLoaded: false,
-    apis: {
-      instanceApi: {
-        getInstance,
-      },
-    },
+    queries: { getInstance },
   });
 }
 

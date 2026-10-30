@@ -8,12 +8,9 @@ import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
-import { createApiMocks } from 'src/test/apiMocks';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { queryPromiseMock, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
-const {
-  processApi: { doProcessNext },
-} = createApiMocks();
+const { mock: doProcessNext } = queryPromiseMock('doProcessNext');
 
 describe('ErrorReport', () => {
   const render = async (validationIssues: BackendValidationIssue[] = []) => {
@@ -30,43 +27,41 @@ describe('ErrorReport', () => {
     return await renderWithInstanceAndLayout({
       initialPage: 'submit',
       renderer: () => <Form />,
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
-              obj.layouts = {
-                form: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'input',
-                        type: 'Input',
-                        dataModelBindings: {
-                          simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
-                        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+            obj.layouts = {
+              form: {
+                data: {
+                  layout: [
+                    {
+                      id: 'input',
+                      type: 'Input',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
                       },
-                    ],
-                  },
+                    },
+                  ],
                 },
-                submit: {
-                  data: {
-                    layout: [
-                      {
-                        id: 'submit',
-                        type: 'Button',
-                        textResourceBindings: {
-                          title: 'Submit',
-                        },
+              },
+              submit: {
+                data: {
+                  layout: [
+                    {
+                      id: 'submit',
+                      type: 'Button',
+                      textResourceBindings: {
+                        title: 'Submit',
                       },
-                    ],
-                  },
+                    },
+                  ],
                 },
-              };
-            }),
-        },
-        processApi: { doProcessNext },
+              },
+            };
+          }),
       },
+      mutations: { doProcessNext },
     });
   };
 

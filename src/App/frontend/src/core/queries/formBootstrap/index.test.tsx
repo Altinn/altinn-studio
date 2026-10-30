@@ -27,7 +27,7 @@ describe('useFormBootstrapQuery', () => {
     { mode: 'PDF', query: 'pdf=1', expectedRequests: 1 },
     { mode: 'form', query: '', expectedRequests: 2 },
   ])('handles another bootstrap consumer in $mode mode', async ({ query, expectedRequests }) => {
-    const { apis } = await renderWithMinimalProviders({
+    const { queries } = await renderWithMinimalProviders({
       renderer: () => <Summaries />,
       router: ({ children }) => <InstanceRouter query={query}>{children}</InstanceRouter>,
     });
@@ -36,6 +36,6 @@ describe('useFormBootstrapQuery', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add another summary' }));
 
     expect(screen.getAllByText('Summary loaded')).toHaveLength(2);
-    expect(apis.formBootstrapApi.fetchFormBootstrapForInstance).toHaveBeenCalledTimes(expectedRequests);
+    expect(queries.fetchFormBootstrapForInstance).toHaveBeenCalledTimes(expectedRequests);
   });
 });

@@ -12,13 +12,11 @@ import type { RenderGenericComponentTestProps } from 'src/test/renderWithProvide
 describe('TextAreaComponent', () => {
   it('should render with initial text value', async () => {
     await render({
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: 'initial text content' };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: 'initial text content' };
+          }),
       },
     });
 
@@ -32,13 +30,11 @@ describe('TextAreaComponent', () => {
     const addedText = ' + added content';
 
     const { formDataMethods } = await render({
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: initialText };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: initialText };
+          }),
       },
     });
 
@@ -59,13 +55,11 @@ describe('TextAreaComponent', () => {
       component: {
         readOnly: true,
       },
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: initialText };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: initialText };
+          }),
       },
     });
 

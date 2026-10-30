@@ -4,9 +4,9 @@ Keep TanStack Query private to this folder. Features use domain hooks and plain 
 to query keys, cache lifetimes, or TanStack itself do not spread into UI code. Hooks, route loaders, prefetching,
 and invalidation share query definitions to keep their behavior consistent.
 
-Separate HTTP transport from query policy. Put HTTP calls, URL construction, and response decoding in React-free
-domain clients in `src/core/api-client/`. Put query definitions, mutations, and cache operations here. Use the
-existing typed API client injection.
+Keep request functions separate from query policy. Reuse the flat `AppQueriesProvider`, `useAppQueries`, and
+`useAppMutations` interfaces for request injection. Register request functions in `queries.ts`; existing HTTP clients
+in `src/core/api-client/` remain React-free. Keep query definitions, mutations, and cache operations here.
 
 - When adapting exports, expose domain hooks and operations through `index.ts`. Keep query definitions and key
   factories in internal files such as `*.queries.ts`.
@@ -19,9 +19,9 @@ existing typed API client injection.
   existing `window.queryClient` contract used by Studio preview and Cypress.
 - During a move, preserve cache keys, retries, polling, cancellation, mutation ordering, and callback identity unless
   the task calls for a behavior change. These can affect form saving and process transitions.
-- When migrating a test, inject typed API method fakes through `apis` in
+- When migrating a test, inject typed request fakes through `queries` and `mutations` in
   [renderWithProviders](../../test/renderWithProviders.tsx), or use
   [createQueryTestWrapper](../../test/queryTestUtils.tsx) for a focused hook test. Keep the hooks, providers, and cache
-  running. These helpers supply an isolated cache and typed API clients for each render. Mocking hooks would hide
+  running. These helpers supply an isolated cache and flat typed request mocks for each render. Mocking hooks would hide
   problems with query keys, enabled conditions, invalidation, cancellation, and loading or error behavior. Keep tests
   that inspect TanStack behavior in this folder. Mock HTTP only in API client implementation tests.

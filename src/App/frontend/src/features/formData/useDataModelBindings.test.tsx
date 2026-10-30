@@ -10,8 +10,7 @@ import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FormStore } from 'src/features/form/FormContext';
 import { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { httpResponse } from 'src/test/apiMocks';
-import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
+import { httpResponse, renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('useDataModelBindings', () => {
   beforeAll(() => {
@@ -97,29 +96,27 @@ describe('useDataModelBindings', () => {
   async function render({ formData = {} }: { formData?: object } = {}) {
     return await renderWithInstanceAndLayout({
       renderer: <DummyComponent />,
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.dataModels[defaultDataTypeMock].initialData = formData;
-              obj.dataModels[defaultDataTypeMock].schema = {
-                type: 'object',
-                properties: {
-                  stringyField: { type: 'string' },
-                  decimalField: { type: 'number' },
-                  integerField: { type: 'integer' },
-                  booleanField: { type: 'boolean' },
-                },
-              };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = formData;
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: {
+                stringyField: { type: 'string' },
+                decimalField: { type: 'number' },
+                integerField: { type: 'integer' },
+                booleanField: { type: 'boolean' },
+              },
+            };
+          }),
       },
     });
   }
 
   it('should work as expected', async () => {
     const user = userEvent.setup({ delay: null });
-    const { formDataMethods, apis } = await render();
+    const { formDataMethods, mutations } = await render();
 
     expect(screen.getByTestId('value-stringy')).toHaveTextContent('""');
     expect(screen.getByTestId('value-decimal')).toHaveTextContent('""');
@@ -154,8 +151,8 @@ describe('useDataModelBindings', () => {
 
     // When we simulate a save to server, the invalid value should not be saved
     vi.advanceTimersByTime(1000);
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(1));
-    expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledWith(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(1));
+    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
       expect.stringMatching('local.altinn.cloud'),
       expect.objectContaining({
         patches: [expect.objectContaining({ patch: [{ op: 'add', path: '/stringyField', value: 'foo bar' }] })],
@@ -173,7 +170,7 @@ describe('useDataModelBindings', () => {
       validationIssues: [],
       instance: getInstanceDataMock(),
     };
-    apis.formDataApi.doPatchMultipleFormData.resolve(httpResponse(response));
+    mutations.doPatchMultipleFormData.resolve(httpResponse(response));
 
     const fullDecimal = '-1.53';
     await user.type(screen.getByTestId('input-decimal'), fullDecimal.slice(1));
@@ -202,8 +199,8 @@ describe('useDataModelBindings', () => {
 
     // When we simulate a save to server, the invalid value should not be saved
     vi.advanceTimersByTime(1000);
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(2));
-    expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledWith(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(2));
+    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
       expect.stringMatching('local.altinn.cloud'),
       expect.objectContaining({
         // But now we expect the decimal value we typed earlier to be saved
@@ -223,7 +220,7 @@ describe('useDataModelBindings', () => {
       validationIssues: [],
       instance: getInstanceDataMock(),
     };
-    apis.formDataApi.doPatchMultipleFormData.resolve(httpResponse(response2));
+    mutations.doPatchMultipleFormData.resolve(httpResponse(response2));
 
     const fullInteger = '-15 3';
     await user.type(screen.getByTestId('input-integer'), fullInteger.slice(1));
@@ -255,8 +252,8 @@ describe('useDataModelBindings', () => {
     });
     expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(4);
 
-    await waitFor(() => expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledTimes(3));
-    expect(apis.formDataApi.doPatchMultipleFormData).toHaveBeenCalledWith(
+    await waitFor(() => expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledTimes(3));
+    expect(mutations.doPatchMultipleFormData.mock).toHaveBeenCalledWith(
       expect.stringMatching('local.altinn.cloud'),
       expect.objectContaining({
         // Now we expect the integer and boolean values to be saved

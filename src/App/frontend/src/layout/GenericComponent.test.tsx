@@ -16,45 +16,43 @@ const render = async (
   await renderWithInstanceAndLayout({
     renderer: <GenericComponent baseComponentId={requestedId} />,
     waitUntilLoaded,
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: [
-                    {
-                      type: 'Input',
-                      id: 'mockId',
-                      dataModelBindings: {
-                        simpleBinding: 'mockDataBinding',
-                      },
-                      readOnly: false,
-                      required: false,
-                      disabled: false,
-                      textResourceBindings: {},
-                      grid: {
-                        xs: 12,
-                        sm: 10,
-                        md: 8,
-                        lg: 6,
-                        innerGrid: {
-                          xs: 11,
-                          sm: 9,
-                          md: 7,
-                          lg: 5,
-                        },
-                      },
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      ...(component as any),
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [
+                  {
+                    type: 'Input',
+                    id: 'mockId',
+                    dataModelBindings: {
+                      simpleBinding: 'mockDataBinding',
                     },
-                  ],
-                },
+                    readOnly: false,
+                    required: false,
+                    disabled: false,
+                    textResourceBindings: {},
+                    grid: {
+                      xs: 12,
+                      sm: 10,
+                      md: 8,
+                      lg: 6,
+                      innerGrid: {
+                        xs: 11,
+                        sm: 9,
+                        md: 7,
+                        lg: 5,
+                      },
+                    },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ...(component as any),
+                  },
+                ],
               },
-            };
-          }),
-      },
+            },
+          };
+        }),
     },
   });
 

@@ -2,32 +2,30 @@ import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { ApiProvider } from 'src/core/contexts/ApiProvider';
-import { createTestQueryClient } from 'src/core/queries/queryClient';
-import { AppQueryProvider } from 'src/core/queries/QueryProvider';
-import { createApiMocks } from 'src/test/apiMocks';
-import type { ApiOverrides } from 'src/test/apiMocks';
+import { AppQueriesProvider } from 'src/core/queries/AppQueriesProvider';
+import { setupFakeApp } from 'src/test/renderWithProviders';
+import type { QueryOverrides } from 'src/test/renderWithProviders';
 
-export function createQueryTestWrapper(overrides: ApiOverrides = {}, initialPath?: string) {
-  const apis = createApiMocks(overrides);
-  const queryClient = createTestQueryClient();
+export function createQueryTestWrapper(overrides: QueryOverrides = {}, initialPath?: string) {
+  const { queryClient, queries, queriesOnly, mutations } = setupFakeApp(overrides);
   const Wrapper = ({ children }: PropsWithChildren) => (
-    <ApiProvider apis={apis}>
-      <AppQueryProvider queryClient={queryClient}>
-        {initialPath ? (
-          <MemoryRouter initialEntries={[initialPath]}>
-            <Routes>
-              <Route
-                path='/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/*'
-                element={children}
-              />
-            </Routes>
-          </MemoryRouter>
-        ) : (
-          children
-        )}
-      </AppQueryProvider>
-    </ApiProvider>
+    <AppQueriesProvider
+      {...queries}
+      queryClient={queryClient}
+    >
+      {initialPath ? (
+        <MemoryRouter initialEntries={[initialPath]}>
+          <Routes>
+            <Route
+              path='/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/*'
+              element={children}
+            />
+          </Routes>
+        </MemoryRouter>
+      ) : (
+        children
+      )}
+    </AppQueriesProvider>
   );
-  return { wrapper: Wrapper, apis, queryClient };
+  return { wrapper: Wrapper, queries: queriesOnly, mutations, queryClient };
 }

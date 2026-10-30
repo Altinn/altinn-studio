@@ -64,65 +64,63 @@ describe('AppNavigation', () => {
     return renderWithInstanceAndLayout({
       renderer: () => <AppNavigation />,
       initialPage: initialPage ?? order?.[0] ?? groups?.[0].order[0],
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = Object.fromEntries(
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = Object.fromEntries(
+              rawOrder.map((page) => [
+                page,
+                {
+                  data: {
+                    hidden: !!hiddenPages?.includes(page),
+                    layout: [
+                      {
+                        id: `page-title-${page}`,
+                        type: 'Heading',
+                        textResourceBindings: {
+                          title: `Title for ${page}`,
+                        },
+                        size: 'L',
+                      },
+                      {
+                        id: `input-${page}`,
+                        type: 'Input',
+                        textResourceBindings: {
+                          title: `Input for ${page}`,
+                        },
+                        dataModelBindings: {
+                          simpleBinding: `field-${page}`,
+                        },
+                        showValidations: ['All'],
+                      },
+                    ],
+                  },
+                } as ILayoutFile,
+              ]),
+            );
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: Object.fromEntries(
                 rawOrder.map((page) => [
-                  page,
+                  `field-${page}`,
                   {
-                    data: {
-                      hidden: !!hiddenPages?.includes(page),
-                      layout: [
-                        {
-                          id: `page-title-${page}`,
-                          type: 'Heading',
-                          textResourceBindings: {
-                            title: `Title for ${page}`,
-                          },
-                          size: 'L',
-                        },
-                        {
-                          id: `input-${page}`,
-                          type: 'Input',
-                          textResourceBindings: {
-                            title: `Input for ${page}`,
-                          },
-                          dataModelBindings: {
-                            simpleBinding: `field-${page}`,
-                          },
-                          showValidations: ['All'],
-                        },
-                      ],
-                    },
-                  } as ILayoutFile,
+                    type: 'string',
+                  },
                 ]),
-              );
-              obj.dataModels[defaultDataTypeMock].schema = {
-                type: 'object',
-                properties: Object.fromEntries(
-                  rawOrder.map((page) => [
-                    `field-${page}`,
-                    {
-                      type: 'string',
-                    },
-                  ]),
-                ),
-              };
-              obj.dataModels[defaultDataTypeMock].initialValidationIssues =
-                pagesWithError?.map((page) => ({
-                  code: 'wrong format',
-                  severity: BackendValidationSeverity.Error,
-                  source: 'SomeCustomValidator',
-                  field: `field-${page}`,
-                  dataElementId: defaultMockDataElementId,
-                })) ?? [];
-              obj.dataModels[defaultDataTypeMock].initialData = Object.fromEntries(
-                rawOrder.map((page) => [`field-${page}`, 'some value']),
-              );
-            }),
-        },
+              ),
+            };
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues =
+              pagesWithError?.map((page) => ({
+                code: 'wrong format',
+                severity: BackendValidationSeverity.Error,
+                source: 'SomeCustomValidator',
+                field: `field-${page}`,
+                dataElementId: defaultMockDataElementId,
+              })) ?? [];
+            obj.dataModels[defaultDataTypeMock].initialData = Object.fromEntries(
+              rawOrder.map((page) => [`field-${page}`, 'some value']),
+            );
+          }),
       },
     });
   }
@@ -462,15 +460,13 @@ describe('AppNavigation', () => {
       return renderWithInstanceAndLayout({
         renderer: () => <AppNavigationHeading />,
         initialPage: 'page1',
-        apis: {
-          formBootstrapApi: {
-            fetchFormBootstrapForInstance: async () =>
-              getFormBootstrapMock((obj) => {
-                obj.layouts = {
-                  page1: { data: { layout: [] } },
-                };
-              }),
-          },
+        queries: {
+          fetchFormBootstrapForInstance: async () =>
+            getFormBootstrapMock((obj) => {
+              obj.layouts = {
+                page1: { data: { layout: [] } },
+              };
+            }),
         },
       });
     }

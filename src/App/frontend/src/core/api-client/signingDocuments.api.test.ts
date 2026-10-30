@@ -1,4 +1,4 @@
-import { signingApi } from 'src/core/api-client/signing.api';
+import { fetchSigningDocuments } from 'src/core/api-client/signing.api';
 import { httpGet } from 'src/utils/network/sharedNetworking';
 vi.mock('src/utils/network/sharedNetworking');
 describe('fetchSigningDocuments', () => {
@@ -31,7 +31,7 @@ describe('fetchSigningDocuments', () => {
 
   it('preserves backend order', async () => {
     vi.mocked(httpGet).mockResolvedValue(response);
-    const documents = await signingApi.fetchSigningDocuments('party-id', 'instance-guid');
+    const documents = await fetchSigningDocuments('party-id', 'instance-guid');
     expect(documents.map((doc) => doc.filename)).toEqual(['zeta.pdf', 'alpha.pdf']);
   });
 });

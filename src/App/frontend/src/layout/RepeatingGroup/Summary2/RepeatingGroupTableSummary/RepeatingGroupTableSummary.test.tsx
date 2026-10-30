@@ -391,18 +391,16 @@ describe('RepeatingGroupTableSummary', () => {
         </RepeatingGroupProvider>
       ),
       initialPage: 'FormPage2',
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = layout;
-              obj.dataModels[defaultDataTypeMock].initialData = {
-                group: [
-                  { field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' },
-                ],
-              };
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              group: [
+                { field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' },
+              ],
+            };
+          }),
       },
     });
   };

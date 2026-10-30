@@ -116,21 +116,17 @@ describe('Expressions shared context tests', () => {
 
         await renderWithInstanceAndLayout({
           renderer: () => <TestContexts />,
-          apis: {
+          queries: {
             ...(instance
               ? {
-                  instanceApi: {
-                    getInstance: async () => ({ ...instance, process: instance.process ?? getProcessDataMock() }),
-                  },
+                  getInstance: async () => ({ ...instance, process: instance.process ?? getProcessDataMock() }),
                 }
               : {}),
-            formBootstrapApi: {
-              fetchFormBootstrapForInstance: async () =>
-                getFormBootstrapMock((obj) => {
-                  obj.layouts = layouts!;
-                  obj.dataModels[defaultDataTypeMock].initialData = dataModel ?? {};
-                }),
-            },
+            fetchFormBootstrapForInstance: async () =>
+              getFormBootstrapMock((obj) => {
+                obj.layouts = layouts!;
+                obj.dataModels[defaultDataTypeMock].initialData = dataModel ?? {};
+              }),
           },
         });
 

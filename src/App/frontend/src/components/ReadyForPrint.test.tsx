@@ -16,7 +16,7 @@ function QueryResult({ attribute }: { attribute?: string }) {
 }
 
 function renderWithQueries(children: React.ReactNode, load?: () => Promise<string>) {
-  const queryTest = createQueryTestWrapper({ resourcesApi: { fetchLogo: load } });
+  const queryTest = createQueryTestWrapper({ queries: { fetchLogo: load } });
   return render(children, { wrapper: queryTest.wrapper });
 }
 

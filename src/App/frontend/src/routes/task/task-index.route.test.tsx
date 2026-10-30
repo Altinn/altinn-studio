@@ -30,28 +30,24 @@ async function renderPdfTask(query: string) {
     router: ({ children }) => (
       <InstanceRoutesRouter path={`${instancePath}/${pdfTaskId}?${query}`}>{children}</InstanceRoutesRouter>
     ),
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              WaitingPage: {
-                data: { layout: [{ id: 'waiting', type: 'Paragraph', textResourceBindings: { title: 'Waiting' } }] },
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            WaitingPage: {
+              data: { layout: [{ id: 'waiting', type: 'Paragraph', textResourceBindings: { title: 'Waiting' } }] },
+            },
+            Page1: {
+              data: { layout: [{ id: 'page1-text', type: 'Paragraph', textResourceBindings: { title: 'Task 1' } }] },
+            },
+            PdfLayout: {
+              data: {
+                layout: [{ id: 'designed-pdf', type: 'Paragraph', textResourceBindings: { title: 'Designed' } }],
               },
-              Page1: {
-                data: { layout: [{ id: 'page1-text', type: 'Paragraph', textResourceBindings: { title: 'Task 1' } }] },
-              },
-              PdfLayout: {
-                data: {
-                  layout: [{ id: 'designed-pdf', type: 'Paragraph', textResourceBindings: { title: 'Designed' } }],
-                },
-              },
-            };
-          }),
-      },
-      instanceApi: {
-        getInstance: async () => instance,
-      },
+            },
+          };
+        }),
+      getInstance: async () => instance,
     },
   });
 }

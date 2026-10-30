@@ -6,11 +6,11 @@ import { getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfi
 import { instanceDataQuery } from 'src/core/queries/instance/instance.queries';
 import { createTestQueryClient } from 'src/core/queries/queryClient';
 import { getQueryClient } from 'src/core/queries/queryClient.queries';
-import { apiClientsContext } from 'src/routerContexts/apiClientRouterContext';
+import { appQueriesContext } from 'src/routerContexts/appQueriesRouterContext';
 import { queryClientContext } from 'src/routerContexts/reactQueryRouterContext';
 import { clientLoader as instanceIndexLoader } from 'src/routes/instance/instance-index.route';
 import { clientLoader as taskIndexLoader } from 'src/routes/task/task-index.route';
-import { createApiMocks } from 'src/test/apiMocks';
+import { setupFakeApp } from 'src/test/renderWithProviders';
 import { createLoaderFunctionArgs } from 'src/test/routerUtils';
 
 // react-router's redirect() requires the Fetch API Response class, which jsdom doesn't provide.
@@ -19,9 +19,9 @@ vi.mock('react-router', async () => ({
   redirect: vi.fn((url: string) => ({ status: 302, headers: new Map([['Location', url]]) })),
 }));
 
-let apis: ReturnType<typeof createApiMocks>;
+let queries: ReturnType<typeof setupFakeApp>['queries'];
 beforeEach(() => {
-  apis = createApiMocks();
+  ({ queries } = setupFakeApp());
 });
 
 const instanceOwnerPartyId = '512345';
@@ -30,7 +30,7 @@ const instanceGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
 function createLoaderArgs(params: Params) {
   const context = new RouterContextProvider();
   context.set(queryClientContext, createTestQueryClient());
-  context.set(apiClientsContext, apis);
+  context.set(appQueriesContext, queries);
   return createLoaderFunctionArgs({ context, params, request: new Request('http://localhost/') });
 }
 
@@ -52,7 +52,7 @@ describe('instance-index clientLoader', () => {
       elementType: 'ServiceTask',
     };
     instance.process.workflow = { status: 'processing', targetTask: 'Task_Service' };
-    vi.mocked(apis.instanceApi.getInstance).mockResolvedValue(instance);
+    vi.mocked(queries.getInstance).mockResolvedValue(instance);
 
     await instanceIndexLoader(createLoaderArgs({ instanceOwnerPartyId, instanceGuid }));
     expect(redirect).toHaveBeenLastCalledWith(`/instance/${instanceOwnerPartyId}/${instanceGuid}/Task_Service`);
@@ -64,12 +64,12 @@ describe('instance-index clientLoader', () => {
   it("redirects when a refetch cancels the read it joined, as the instance poll's next tick does", async () => {
     window.altinnAppGlobalData.ui = getUiConfigMock();
     const instance = getInstanceWithProcessMock();
-    vi.mocked(apis.instanceApi.getInstance).mockImplementation(
+    vi.mocked(queries.getInstance).mockImplementation(
       () => new Promise((resolve) => setTimeout(() => resolve(instance), 10)),
     );
     const args = createLoaderArgs({ instanceOwnerPartyId, instanceGuid, taskId: 'Task_1' });
     const queryClient = getQueryClient(args.context.get(queryClientContext));
-    const { queryKey } = instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi: apis.instanceApi });
+    const { queryKey } = instanceDataQuery({ instanceOwnerPartyId, instanceGuid, instanceApi: queries });
     queryClient.setQueryData(queryKey, instance);
 
     // A poll's read is in flight when the loader starts, so the loader joins it

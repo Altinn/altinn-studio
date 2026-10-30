@@ -10,10 +10,10 @@ import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMoc
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/process/confirm/containers/ConfirmPage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { maskSsn } from 'src/utils/maskSsn';
-import type { ProcessApi } from 'src/core/api-client/app.api';
 import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { AppMutations } from 'src/core/queries/types';
 
-const doProcessNext = vi.fn<ProcessApi['doProcessNext']>();
+const doProcessNext = vi.fn<AppMutations['doProcessNext']>();
 
 describe('ConfirmPage', () => {
   const personParty = getPartyMock();
@@ -101,15 +101,13 @@ describe('ConfirmPage', () => {
 function render(props: IConfirmPageProps) {
   return renderWithInstanceAndLayout({
     renderer: () => <ConfirmPage {...props} />,
-    apis: {
-      processApi: { doProcessNext },
-      instanceApi: {
-        getInstance: async () => {
-          const instance = getInstanceWithProcessMock();
-          instance.process.currentTask!.userActions = [{ id: 'confirm', authorized: true, type: 'ProcessAction' }];
-          return instance;
-        },
+    queries: {
+      getInstance: async () => {
+        const instance = getInstanceWithProcessMock();
+        instance.process.currentTask!.userActions = [{ id: 'confirm', authorized: true, type: 'ProcessAction' }];
+        return instance;
       },
     },
+    mutations: { doProcessNext },
   });
 }

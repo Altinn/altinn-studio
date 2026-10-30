@@ -58,24 +58,22 @@ async function renderCalculations(
     renderer: () => <Snapshot />,
     taskId: previewOtherTask ? 'Task_Pdf' : undefined,
     query: previewOtherTask ? 'pdf=1' : undefined,
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((bootstrap) => {
-            bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((bootstrap) => {
+          bootstrap.dataModels[defaultDataTypeMock] = getDataModelBootstrapMock({
+            schema,
+            initialData,
+            calculationConfig: config,
+          });
+          if (otherModel) {
+            bootstrap.dataModels.other = getDataModelBootstrapMock({
               schema,
-              initialData,
-              calculationConfig: config,
+              initialData: { quantity: 3 },
+              dataElementId: null,
             });
-            if (otherModel) {
-              bootstrap.dataModels.other = getDataModelBootstrapMock({
-                schema,
-                initialData: { quantity: 3 },
-                dataElementId: null,
-              });
-            }
-          }),
-      },
+          }
+        }),
     },
   });
   await waitFor(() => expect(store).toBeDefined());

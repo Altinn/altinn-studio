@@ -428,14 +428,12 @@ describe('RepeatingGroupTable', () => {
           <RepeatingGroupTable />
         </RepeatingGroupProvider>
       ),
-      apis: {
-        formBootstrapApi: {
-          fetchFormBootstrapForInstance: async () =>
-            getFormBootstrapMock((obj) => {
-              obj.layouts = layout;
-              obj.dataModels[defaultDataTypeMock].initialData = formData;
-            }),
-        },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialData = formData;
+          }),
       },
     });
   };

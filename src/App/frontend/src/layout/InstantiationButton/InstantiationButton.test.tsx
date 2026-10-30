@@ -58,15 +58,13 @@ const render = async (
         <InstantiationButtonComponent {...props} />
       </FormProvider>
     ),
-    apis: {
-      instanceApi: { createWithPrefill },
-      formBootstrapApi: {
-        fetchFormBootstrapForStateless: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock({ initialData: { name: 'Ada' } });
-          }),
-      },
+    queries: {
+      fetchFormBootstrapForStateless: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock({ initialData: { name: 'Ada' } });
+        }),
     },
+    mutations: { createWithPrefill },
   });
 };
 

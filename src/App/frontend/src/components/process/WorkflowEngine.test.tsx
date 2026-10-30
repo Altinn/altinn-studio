@@ -24,12 +24,12 @@ beforeEach(() => {
 async function setWorkflow(workflow: IProcessWorkflow | undefined) {
   const instance = onServiceTaskPage ? getInstanceAtServiceTaskMock() : getInstanceWithProcessMock();
   instance.process.workflow = workflow;
-  queryTest.apis.instanceApi.getInstance.mockResolvedValue(instance);
+  queryTest.queries.getInstance.mockResolvedValue(instance);
   await act(async () => {
     await fetchFreshInstanceData(queryTest.queryClient, {
       instanceOwnerPartyId: '123',
       instanceGuid: 'instance',
-      instanceApi: queryTest.apis.instanceApi,
+      instanceApi: queryTest.queries,
     });
     await vi.advanceTimersByTimeAsync(0);
   });

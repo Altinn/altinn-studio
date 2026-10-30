@@ -1,4 +1,4 @@
-import { lookupApi } from 'src/core/api-client/lookup.api';
+import { fetchOrg } from 'src/core/api-client/lookup.api';
 import { httpGet } from 'src/utils/network/networking';
 
 vi.mock('src/utils/network/networking');
@@ -18,11 +18,11 @@ it.each([
   },
 ])('decodes an organization lookup response: $response', async ({ response, expected }) => {
   vi.mocked(httpGet).mockResolvedValue(response);
-  expect(await lookupApi.fetchOrg('043871668')).toEqual(expected);
+  expect(await fetchOrg('043871668')).toEqual(expected);
   expect(httpGet).toHaveBeenCalledWith(expect.stringContaining('/api/v1/lookup/organisation/043871668'));
 });
 
 it('translates a failed organization lookup request into a domain error', async () => {
   vi.mocked(httpGet).mockRejectedValue(new Error('network error'));
-  expect(await lookupApi.fetchOrg('043871668')).toEqual({ org: null, error: 'organization_lookup.unknown_error' });
+  expect(await fetchOrg('043871668')).toEqual({ org: null, error: 'organization_lookup.unknown_error' });
 });

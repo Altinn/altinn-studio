@@ -23,23 +23,21 @@ function Links({ links }: { links: LinkSpec[] }) {
 const render = (element: React.ReactElement) =>
   renderWithInstanceAndLayout({
     renderer: element,
-    apis: {
-      formBootstrapApi: {
-        fetchFormBootstrapForInstance: async () =>
-          getFormBootstrapMock((obj) => {
-            obj.layouts = {
-              FormLayout: {
-                data: {
-                  layout: ['paragraph1', 'paragraph2', 'paragraph3'].map((id) => ({
-                    id,
-                    type: 'Paragraph' as const,
-                    textResourceBindings: { title: id },
-                  })),
-                },
+    queries: {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: ['paragraph1', 'paragraph2', 'paragraph3'].map((id) => ({
+                  id,
+                  type: 'Paragraph' as const,
+                  textResourceBindings: { title: id },
+                })),
               },
-            };
-          }),
-      },
+            },
+          };
+        }),
     },
   });
 
