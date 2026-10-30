@@ -4,6 +4,7 @@ import type {
   WorkflowStepStatus,
 } from 'admin/features/apps/types/workflows/WorkflowStatus';
 import { PROCESS_ELEMENT_LABEL } from 'admin/features/apps/utils/workflowPhases';
+import { TARGET_TASK_LABEL } from 'admin/features/apps/utils/workflowTriage';
 
 /** The name of the method a pipeline step runs, sent by the app libraries as a step label. */
 export const STEP_NAME_LABEL = 'stepName';
@@ -12,7 +13,6 @@ const SERVICE_TASK_STEP = /^ExecuteServiceTask: (\d+)$/;
 const MINT_MAILBOX_STEP = /^MintMailbox: (\d+)$/;
 const LIFECYCLE_STEP = /^(StartTask|EndTask|AbandonTask): (\d+)$/;
 const RECEIVE_WORKFLOW_PREFIX = 'Mailbox receive:';
-const TARGET_TASK_LABEL = 'processNextTargetTask';
 
 const LIFECYCLE_TEXT: Record<string, string> = {
   StartTask: 'admin.workflows.step.position.task_start',

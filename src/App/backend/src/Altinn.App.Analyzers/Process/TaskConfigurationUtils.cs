@@ -27,6 +27,12 @@ internal static class TaskConfigurationUtils
     /// </summary>
     internal static readonly ImmutableArray<string> ActionTypes = ["processAction", "serverAction"];
 
+    /// <summary>
+    /// The subform PDF settings that <c>subformUiFolder</c> replaced in v9, reported as such
+    /// (ALTINNAPP0602) instead of as elements the app ignores.
+    /// </summary>
+    private static readonly string[] _removedSubformPdfSettings = ["subformComponentId", "subformDataTypeId"];
+
     /// <summary>The environments where delegated signing needs a correspondence resource (SigningProcessTask).</summary>
     private static readonly string[] _correspondenceEnvironments =
     [
@@ -330,13 +336,15 @@ internal static class TaskConfigurationUtils
 
     /// <summary>
     /// Mirrors the startup check <c>SubformPdfServiceTask.ValidateConfiguration</c>, which requires
-    /// <c>altinn:subformPdfConfig</c> and runs <c>AltinnSubformPdfConfiguration.Validate</c> on it, but reports both
-    /// settings where it stops at the first. ALTINNAPP1013 reports a data type id that names no data type.
+    /// <c>altinn:subformPdfConfig</c> and runs <c>AltinnSubformPdfConfiguration.Validate</c> on it. A configuration
+    /// that still has the settings <c>subformUiFolder</c> replaced is reported by ALTINNAPP0602 instead.
+    /// ALTINNAPP1024 reports a UI folder the app cannot render.
     /// </summary>
     private static void CheckSubformPdf(Context context, XElement task, string taskId, XElement taskExtension)
     {
         const string configName = "subformPdfConfig";
         const string consequence = "the app does not start";
+        const string fix = "Set it to the UI folder of the subform to render";
         var config = taskExtension.Element(ProcessFile.Altinn + configName);
         if (config is null)
         {
@@ -346,33 +354,17 @@ internal static class TaskConfigurationUtils
                 taskId,
                 $"has no {Tag(configName)}",
                 consequence,
-                $"Add it, with {Tag("subformComponentId")} and {Tag("subformDataTypeId")}"
+                $"Add it, with {Tag("subformUiFolder")}"
             );
             return;
         }
 
-        RequireValue(
-            context,
-            config,
-            taskId,
-            config,
-            configName,
-            "subformComponentId",
-            consequence,
-            consequence,
-            "Set it to the id of the Subform component to render"
-        );
-        RequireValue(
-            context,
-            config,
-            taskId,
-            config,
-            configName,
-            "subformDataTypeId",
-            consequence,
-            consequence,
-            "Set it to the data type the subform stores its entries in"
-        );
+        if (Array.Exists(_removedSubformPdfSettings, name => config.Element(ProcessFile.Altinn + name) is not null))
+        {
+            return;
+        }
+
+        RequireValue(context, config, taskId, config, configName, "subformUiFolder", consequence, consequence, fix);
     }
 
     /// <summary>
@@ -683,7 +675,11 @@ internal static class TaskConfigurationUtils
                 continue;
             }
 
-            if (known is null)
+            if (known is null && schema.Name == "subformPdfConfig" && _removedSubformPdfSettings.Contains(name))
+            {
+                context.Report(Diagnostics.Deprecations.SubformPdfComponentSettings, element, taskId, name);
+            }
+            else if (known is null)
             {
                 var match = schema.Children.FirstOrDefault(c =>
                     string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase)

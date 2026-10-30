@@ -235,12 +235,16 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         );
         Assert.NotNull(fresh);
         Assert.Equal(0, Assert.Single(fresh.Heads).FailedAttempts);
+        Assert.Null(Assert.Single(fresh.Heads).FirstFailedAt);
 
+        var firstStepFailedAt = new DateTimeOffset(2026, 10, 28, 8, 0, 0, TimeSpan.Zero);
+        var secondStepFailedAt = firstStepFailedAt.AddMinutes(10);
         var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
         Assert.NotNull(workflow);
         var steps = workflow.Steps.OrderBy(s => s.ProcessingOrder).ToList();
         steps[0].Status = PersistentItemStatus.Requeued;
         steps[0].RequeueCount = 2;
+        steps[0].FirstFailedAt = firstStepFailedAt;
         await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
 
         var failing = await repo.GetCollection(
@@ -250,6 +254,7 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         );
         Assert.NotNull(failing);
         Assert.Equal(2, Assert.Single(failing.Heads).FailedAttempts);
+        Assert.Equal(firstStepFailedAt, Assert.Single(failing.Heads).FirstFailedAt);
 
         steps[0].Status = PersistentItemStatus.Processing;
         await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
@@ -261,11 +266,13 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         );
         Assert.NotNull(retrying);
         Assert.Equal(2, Assert.Single(retrying.Heads).FailedAttempts);
+        Assert.Equal(firstStepFailedAt, Assert.Single(retrying.Heads).FirstFailedAt);
 
         steps[0].Status = PersistentItemStatus.Completed;
         await repo.UpdateStep(steps[0], cancellationToken: TestContext.Current.CancellationToken);
         steps[1].Status = PersistentItemStatus.Requeued;
         steps[1].RequeueCount = 1;
+        steps[1].FirstFailedAt = secondStepFailedAt;
         await repo.UpdateStep(steps[1], cancellationToken: TestContext.Current.CancellationToken);
 
         var next = await repo.GetCollection(
@@ -275,6 +282,63 @@ public sealed class WorkflowCollectionTests(PostgresFixture fixture) : IAsyncLif
         );
         Assert.NotNull(next);
         Assert.Equal(1, Assert.Single(next.Heads).FailedAttempts);
+        Assert.Equal(secondStepFailedAt, Assert.Single(next.Heads).FirstFailedAt);
+    }
+
+    [Fact]
+    public async Task GetCollection_FirstFailedAt_FollowsTheWriteBack()
+    {
+        // The handler stamps the start of a run of failures in memory; a collection read only sees it if the
+        // write-back carries it, and must see it go when a deferral resets the run.
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository();
+        var results = await EnqueueWithCollection(repo, "first-failed-at-collection", [CreateWorkflowRequest("a")]);
+        var workflowId = Assert.Single(Assert.Single(results).WorkflowIds!);
+        var workflow = await repo.GetWorkflow(workflowId, "test-ns", TestContext.Current.CancellationToken);
+        Assert.NotNull(workflow);
+        var step = Assert.Single(workflow.Steps);
+
+        var failedAt = new DateTimeOffset(2026, 10, 28, 8, 0, 0, TimeSpan.Zero);
+        await WorkflowTestHelper.AssignLeaseToken(context, workflow);
+        workflow.Status = PersistentItemStatus.Requeued;
+        step.Status = PersistentItemStatus.Requeued;
+        step.RequeueCount = 1;
+        step.FirstFailedAt = failedAt;
+        var failed = await repo.BatchUpdateWorkflowsAndSteps(
+            [new BatchWorkflowStatusUpdate(workflow, [step])],
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal([workflowId], failed.Accepted);
+
+        var failing = await repo.GetCollection(
+            "first-failed-at-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(failing);
+        Assert.Equal(failedAt, Assert.Single(failing.Heads).FirstFailedAt);
+        Assert.Equal(failedAt, (await fixture.GetStep(step.DatabaseId))?.FirstFailedAt);
+
+        // Leaving Processing cleared the lease, so the next write-back needs a fresh one, as after a fetch.
+        await WorkflowTestHelper.AssignLeaseToken(context, workflow);
+        workflow.Status = PersistentItemStatus.Waiting;
+        step.Status = PersistentItemStatus.Waiting;
+        step.RequeueCount = 0;
+        step.FirstFailedAt = null;
+        var deferred = await repo.BatchUpdateWorkflowsAndSteps(
+            [new BatchWorkflowStatusUpdate(workflow, [step])],
+            TestContext.Current.CancellationToken
+        );
+        Assert.Equal([workflowId], deferred.Accepted);
+
+        var waiting = await repo.GetCollection(
+            "first-failed-at-collection",
+            "test-ns",
+            TestContext.Current.CancellationToken
+        );
+        Assert.NotNull(waiting);
+        Assert.Equal(0, Assert.Single(waiting.Heads).FailedAttempts);
+        Assert.Null(Assert.Single(waiting.Heads).FirstFailedAt);
     }
 
     [Fact]

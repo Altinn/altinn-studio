@@ -229,11 +229,20 @@
       "automerge": true
     },
     {
-      "description": "Keep the v8 app template's .NET SDK on 8.x: it targets net8.0 and its Dockerfile builds with the 8.0 SDK image",
-      "matchManagers": ["nuget"],
-      "matchFileNames": ["src/App/template/v8/global.json"],
-      "matchPackageNames": ["dotnet-sdk"],
-      "allowedVersions": "<9"
+      "description": "Keep the v8 app template on .NET 10: it targets net10.0, so its SDK and both Dockerfile images stay on 10.x. The src/App/** rule further down excludes the v8 template, since it would hold them at 8",
+      "matchFileNames": ["src/App/template/v8/global.json", "src/App/template/v8/src/Dockerfile"],
+      "matchPackageNames": [
+        "dotnet-sdk",
+        "mcr.microsoft.com/dotnet/sdk",
+        "mcr.microsoft.com/dotnet/aspnet"
+      ],
+      "allowedVersions": "<11"
+    },
+    {
+      "description": "Don't pin digests in the app templates' Dockerfiles: Designer copies the Dockerfile into each new app once, so a pinned digest would keep that app on the base image from the day it was created",
+      "matchManagers": ["dockerfile"],
+      "matchFileNames": ["src/App/template/*/src/Dockerfile"],
+      "pinDigests": false
     },
     {
       "description": "Automerge agentctl base image updates into the Agent images: the base carries the harness versions agentctl is tested with and is tested where it is built, and the image build, agent-image-check and smoke test gate the update",
@@ -264,7 +273,7 @@
       "commitMessageSuffix": ""
     },
     {
-      "matchFileNames": ["src/App/**"],
+      "matchFileNames": ["src/App/**", "!src/App/template/v8/**"],
       "matchPackageNames": [
         "/dotnet(-|\\/)sdk/",
         "/^Microsoft\\.AspNetCore/",

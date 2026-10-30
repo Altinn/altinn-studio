@@ -91,7 +91,6 @@ import {
   botAccountsPath,
   botAccountApiKeysPath,
   layoutSetsExtendedPath,
-  subformComponentsPath,
   validationOnNavigationLayoutSetsPath,
   taskNavigationGroupPath,
 } from './paths';
@@ -132,7 +131,6 @@ import type { OptionListsResponse } from 'app-shared/types/api/OptionListsRespon
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
 import type { UiFolderLayoutSetModel } from '../types/api/dto/UiFolderLayoutSetModel';
-import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
 import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import type { DataType } from '../types/DataType';
 import type { CodeListsResponse } from '../types/api/CodeListsResponse';
@@ -187,7 +185,6 @@ export const getLayoutNames = (owner: string, app: string) => get<string[]>(layo
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtendedV4 = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedV4Path(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<UiFolderLayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
-export const getSubformComponents = (org: string, app: string) => get<SubformComponent[]>(subformComponentsPath(org, app));
 export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(validationOnNavigationLayoutSetsPath(owner, app));
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));

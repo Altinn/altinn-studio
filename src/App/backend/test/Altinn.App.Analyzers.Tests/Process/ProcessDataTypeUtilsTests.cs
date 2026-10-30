@@ -64,8 +64,7 @@ public class ProcessDataTypeUtilsTests
                 "subformPdf",
                 """
                 <altinn:subformPdfConfig>
-                  <altinn:subformComponentId>Subform</altinn:subformComponentId>
-                  <altinn:subformDataTypeId>model</altinn:subformDataTypeId>
+                  <altinn:subformUiFolder>Subform</altinn:subformUiFolder>
                 </altinn:subformPdfConfig>
                 """,
                 element: "bpmn:serviceTask"
@@ -144,19 +143,6 @@ public class ProcessDataTypeUtilsTests
         "<altinn:paymentConfig><altinn:paymentReceiptPdfDataType>X</altinn:paymentReceiptPdfDataType></altinn:paymentConfig>",
         "<altinn:paymentConfig><altinn:paymentReceiptPdfDataType>",
         UnknownDataType
-    )]
-    // A subformPdf task's startup check fails on it; another task type finds no data elements of the type.
-    [InlineData(
-        "subformPdf",
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>X</altinn:subformDataTypeId></altinn:subformPdfConfig>",
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>",
-        UnknownDataType
-    )]
-    [InlineData(
-        "myTask",
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>X</altinn:subformDataTypeId></altinn:subformPdfConfig>",
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>",
-        Skipped
     )]
     [InlineData(
         "eFormidling",
@@ -459,7 +445,6 @@ public class ProcessDataTypeUtilsTests
     // The runtime rejects these as missing itself.
     [InlineData("<altinn:paymentConfig><altinn:paymentDataType /></altinn:paymentConfig>", null)]
     [InlineData("<altinn:paymentConfig><altinn:paymentReceiptPdfDataType /></altinn:paymentConfig>", null)]
-    [InlineData("<altinn:subformPdfConfig><altinn:subformDataTypeId /></altinn:subformPdfConfig>", null)]
     public void Blank_Data_Type_Ids_Are_Reported_Where_The_Runtime_Looks_Them_Up(string config, string? expectedId)
     {
         var process = Process(Task("Task_2", "myTask", config, actions: ["sign"]));
@@ -493,12 +478,6 @@ public class ProcessDataTypeUtilsTests
     )]
     [InlineData(
         "<altinn:paymentConfig /><altinn:paymentConfig><altinn:paymentReceiptPdfDataType>X</altinn:paymentReceiptPdfDataType></altinn:paymentConfig>"
-    )]
-    [InlineData(
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>model</altinn:subformDataTypeId><altinn:subformDataTypeId>X</altinn:subformDataTypeId></altinn:subformPdfConfig>"
-    )]
-    [InlineData(
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>model</altinn:subformDataTypeId></altinn:subformPdfConfig><altinn:subformPdfConfig><altinn:subformDataTypeId>X</altinn:subformDataTypeId></altinn:subformPdfConfig>"
     )]
     [InlineData(
         "<altinn:eFormidlingConfig /><altinn:eFormidlingConfig><altinn:dataTypes><altinn:dataType>X</altinn:dataType></altinn:dataTypes></altinn:eFormidlingConfig>"
@@ -554,13 +533,15 @@ public class ProcessDataTypeUtilsTests
 
     [Theory]
     [InlineData("pdf", "bpmn:serviceTask", "", "every time the task runs")]
-    // A subformPdf task stores a PDF for each subform of its data type.
+    // A subformPdf task stores a PDF for each entry of its subform.
     [InlineData(
         "subformPdf",
         "bpmn:serviceTask",
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>model</altinn:subformDataTypeId></altinn:subformPdfConfig>",
+        "<altinn:subformPdfConfig><altinn:subformUiFolder>Subform</altinn:subformUiFolder></altinn:subformPdfConfig>",
         "whenever an instance has a subform to print"
     )]
+    // Its data type is the subform folder's, which ALTINNAPP1024 checks, so the setting does not matter here.
+    [InlineData("subformPdf", "bpmn:serviceTask", "", "whenever an instance has a subform to print")]
     // ALTINNAPP1003 reports the element; checking the data type as well means changing it uncovers nothing new.
     [InlineData("pdf", "bpmn:task", "", "every time the task runs")]
     public void A_Pdf_Task_Needs_The_Ref_Data_As_Pdf_Data_Type(
@@ -581,26 +562,6 @@ public class ProcessDataTypeUtilsTests
         Assert.Equal($"<{element}", Text(process, diagnostic));
     }
 
-    [Theory]
-    // Without a subform data type the app declares, the task stores no PDFs; ALTINNAPP1013 reports the unknown id,
-    // and its startup check fails on a missing or blank one.
-    [InlineData("")]
-    [InlineData("<altinn:subformPdfConfig><altinn:subformDataTypeId /></altinn:subformPdfConfig>")]
-    [InlineData(
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>X</altinn:subformDataTypeId></altinn:subformPdfConfig>"
-    )]
-    public void A_Subform_Pdf_Task_Without_A_Known_Subform_Data_Type_Does_Not_Need_The_Ref_Data_As_Pdf_Data_Type(
-        string config
-    )
-    {
-        var process = Process(Task("Task_Pdf", "subformPdf", config, element: "bpmn:serviceTask"));
-
-        var unfit = """{ "id": "ref-data-as-pdf", "allowedContentTypes": ["image/png"] }""";
-
-        Assert.DoesNotContain(Collect(process, Metadata(Model)), d => d.Id == PdfDataTypeMissing);
-        Assert.DoesNotContain(Collect(process, Metadata(Model, unfit)), d => d.Id == CannotHold);
-    }
-
     [Fact]
     public void A_Subform_Pdf_Task_Fails_To_Store_Only_When_An_Instance_Has_A_Subform_To_Print()
     {
@@ -608,7 +569,7 @@ public class ProcessDataTypeUtilsTests
             Task(
                 "Task_Pdf",
                 "subformPdf",
-                "<altinn:subformPdfConfig><altinn:subformDataTypeId>model</altinn:subformDataTypeId></altinn:subformPdfConfig>",
+                "<altinn:subformPdfConfig><altinn:subformUiFolder>Subform</altinn:subformUiFolder></altinn:subformPdfConfig>",
                 element: "bpmn:serviceTask"
             )
         );
@@ -979,7 +940,7 @@ public class ProcessDataTypeUtilsTests
     [InlineData(
         "subformPdf",
         "bpmn:serviceTask",
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>model</altinn:subformDataTypeId></altinn:subformPdfConfig>",
+        "<altinn:subformPdfConfig><altinn:subformUiFolder>Subform</altinn:subformUiFolder></altinn:subformPdfConfig>",
         """{ "id": "ref-data-as-pdf", "allowedContentTypes": ["image/png"] }""",
         new[] { CannotHold }
     )]
@@ -988,12 +949,9 @@ public class ProcessDataTypeUtilsTests
     [InlineData(
         "myTask",
         "bpmn:task",
-        """
-            <altinn:subformPdfConfig><altinn:subformDataTypeId>X</altinn:subformDataTypeId></altinn:subformPdfConfig>
-            <altinn:eFormidlingConfig><altinn:dataTypes><altinn:dataType>X</altinn:dataType></altinn:dataTypes></altinn:eFormidlingConfig>
-            """,
+        "<altinn:eFormidlingConfig><altinn:dataTypes><altinn:dataType>X</altinn:dataType></altinn:dataTypes></altinn:eFormidlingConfig>",
         null,
-        new[] { UnknownDataType, Skipped }
+        new[] { UnknownDataType }
     )]
     public void A_Task_No_Instance_Reaches_Is_Not_Checked_For_What_Fails_When_It_Is_Used(
         string taskType,
@@ -1017,12 +975,6 @@ public class ProcessDataTypeUtilsTests
         "eFormidling",
         "bpmn:serviceTask",
         "<altinn:eFormidlingConfig><altinn:dataTypes><altinn:dataType>X</altinn:dataType></altinn:dataTypes></altinn:eFormidlingConfig>",
-        UnknownDataType
-    )]
-    [InlineData(
-        "subformPdf",
-        "bpmn:serviceTask",
-        "<altinn:subformPdfConfig><altinn:subformDataTypeId>X</altinn:subformDataTypeId></altinn:subformPdfConfig>",
         UnknownDataType
     )]
     // In the Development environment only.

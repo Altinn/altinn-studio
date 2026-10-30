@@ -96,11 +96,6 @@ void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment 
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     bool reloadOnChange = config.GetValue(ReloadConfigOnChangeKey, true);
     config.SetBasePath(basePath);
-    config.AddJsonFile(
-        basePath + "app/altinn-appsettings/altinn-appsettings-secret.json",
-        optional: true,
-        reloadOnChange: reloadOnChange
-    );
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
@@ -201,7 +196,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     CreateDirectory(configuration);
 
-    services.ConfigureDataProtection(configuration, logger);
+    services.ConfigureDataProtection(configuration, env, logger);
     services.ConfigureMvc();
     services.AddProblemDetails();
     services.AddExceptionHandler<GlobalExceptionHandler>();

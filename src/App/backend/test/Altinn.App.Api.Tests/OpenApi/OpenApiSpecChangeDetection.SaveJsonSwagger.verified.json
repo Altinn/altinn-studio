@@ -5763,6 +5763,47 @@
               }
             }
           },
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AppProcessState"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnrichedInstanceResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "404": {
             "description": "Not Found",
             "content": {
@@ -5856,6 +5897,26 @@
         "responses": {
           "200": {
             "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppProcessState"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8765,6 +8826,11 @@
           "failedAttempts": {
             "type": "integer",
             "format": "int32",
+            "nullable": true
+          },
+          "firstFailedAt": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           },
           "waitingReason": {
