@@ -4,9 +4,9 @@ import morgan from 'morgan';
 import {
   buildRoute,
   buildsRoute,
-  kubernetesWrapperRoute,
   runtimeGatewayDeploymentsRoute,
   runtimeGatewayDeploymentDetailsRoute,
+  runtimeGatewayRunningAppRoute,
 } from './routes/builds.js';
 import { authenticationRoute } from './routes/authentication.js';
 import {
@@ -48,10 +48,14 @@ app.get('/_apis/build/builds/', buildsRoute);
 app.get('/_apis/build/builds/:BuildNumber', buildRoute);
 app.get('/authentication/api/v1/exchange/:service', authenticationRoute);
 app.get('/environments.json', environmentsRoute);
-app.get('/apps/:org/:env/kuberneteswrapper/api/v1/deployments', kubernetesWrapperRoute);
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/origin/:origin/apps',
   runtimeGatewayDeploymentsRoute,
+);
+// Before the details route, whose origin would otherwise match "running".
+app.get(
+  '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/running',
+  runtimeGatewayRunningAppRoute,
 );
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',

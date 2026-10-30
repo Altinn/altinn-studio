@@ -2,13 +2,17 @@ import classes from './DeploymentEnvironment.module.css';
 import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { Deploy } from './Deploy';
 import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
-import { getDeployStatus, type PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import {
+  findRunningPipelineDeployment,
+  getDeployStatus,
+  type PipelineDeployment,
+} from 'app-shared/types/api/PipelineDeployment';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import { BuildResult } from 'app-shared/types/Build';
 
 export interface DeploymentEnvironmentProps {
   pipelineDeploymentList: PipelineDeployment[];
-  kubernetesDeployment: KubernetesDeployment;
+  runningApp: RunningApp;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
@@ -17,7 +21,7 @@ export interface DeploymentEnvironmentProps {
 
 export const DeploymentEnvironment = ({
   pipelineDeploymentList,
-  kubernetesDeployment,
+  runningApp,
   envName,
   isProduction,
   urlToApp,
@@ -30,11 +34,10 @@ export const DeploymentEnvironment = ({
     <div className={classes.container}>
       <div className={classes.header}>
         <DeploymentEnvironmentStatus
-          kubernetesDeployment={kubernetesDeployment}
+          runningApp={runningApp}
           isDeploymentInProgress={isDeploymentInProgress}
           lastPublishedDate={
-            pipelineDeploymentList.find((item) => item.tagName === kubernetesDeployment?.version)
-              ?.build?.finished
+            findRunningPipelineDeployment(pipelineDeploymentList, runningApp)?.build?.finished
           }
           envName={envName}
           isProduction={isProduction}
@@ -43,7 +46,7 @@ export const DeploymentEnvironment = ({
       </div>
       <div className={classes.content}>
         <Deploy
-          appDeployedVersion={kubernetesDeployment?.version}
+          appDeployedVersion={runningApp?.version}
           isDeploymentInProgress={isDeploymentInProgress}
           envName={envName}
           isProduction={isProduction}

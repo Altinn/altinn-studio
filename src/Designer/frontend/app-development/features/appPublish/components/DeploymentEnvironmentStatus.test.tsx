@@ -5,7 +5,7 @@ import { DeploymentEnvironmentStatus } from './DeploymentEnvironmentStatus';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../../test/testUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { kubernetesDeployment } from 'app-shared/mocks/mocks';
+import { runningApp } from 'app-shared/mocks/mocks';
 import { app, org } from '@studio/testing/testids';
 
 // Test data
@@ -55,7 +55,7 @@ describe('DeploymentEnvironmentStatus', () => {
 
   it('shows alert when the deployment status is unavailable', async () => {
     render({
-      kubernetesDeployment,
+      runningApp,
     });
 
     expect(screen.getByText(textMock('app_deployment.status.unavailable'))).toBeInTheDocument();
@@ -63,8 +63,8 @@ describe('DeploymentEnvironmentStatus', () => {
 
   it('shows alert when the deployment is successful', async () => {
     render({
-      kubernetesDeployment: {
-        ...kubernetesDeployment,
+      runningApp: {
+        ...runningApp,
         version: '1',
       },
     });

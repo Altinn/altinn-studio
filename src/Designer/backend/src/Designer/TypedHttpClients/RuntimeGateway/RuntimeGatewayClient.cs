@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading;
@@ -74,6 +75,33 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         return response
             ?? throw new InvalidOperationException(
                 "Received empty or null response body when deserializing AppDeployment."
+            );
+    }
+
+    /// <inheritdoc />
+    public async Task<RunningAppDeployment?> GetRunningAppDeployment(
+        string org,
+        string app,
+        AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    )
+    {
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        var baseUrl = TrimTrailingSlash(
+            await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
+        );
+        var requestUrl = $"{baseUrl}/runtime/gateway/api/v1/deploy/apps/{Uri.EscapeDataString(app)}/running";
+
+        using var response = await client.GetAsync(requestUrl, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<RunningAppDeployment>(cancellationToken)
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing RunningAppDeployment."
             );
     }
 

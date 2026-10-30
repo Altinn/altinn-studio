@@ -238,17 +238,43 @@ public class RuntimeGatewayResilienceTests : IDisposable
         Assert.Equal(standard.Retry.MaxRetryAttempts, options.Retry.MaxRetryAttempts);
     }
 
+    [Theory]
+    [InlineData(RuntimeGatewayServices.HttpClientName)]
+    [InlineData(RuntimeGatewayServices.WorkflowsHttpClientName)]
+    public async Task CircuitOpenedByOneCluster_LeavesTheOthersReachable(string clientName)
+    {
+        const string FailingCluster = "ttd.apps.tt02.altinn.no";
+        var handler = CountingHandler.ReturningByHost(host =>
+            host == FailingCluster ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK
+        );
+        using HttpClient client = CreateClient(clientName, handler, circuitBreakerMinimumThroughput: 4);
+
+        (_, bool circuitOpened) = await SendUntilCircuitOpens(
+            client,
+            HttpMethod.Get,
+            CircuitProbeRequests,
+            $"https://{FailingCluster}/probe"
+        );
+        int invocationsBefore = handler.Invocations;
+        using HttpResponseMessage response = await client.GetAsync("https://ttd.apps.altinn.no/probe");
+
+        Assert.True(circuitOpened);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(invocationsBefore + 1, handler.Invocations);
+    }
+
     private static async Task<(int Requests, bool CircuitOpened)> SendUntilCircuitOpens(
         HttpClient client,
         HttpMethod method,
-        int maxRequests
+        int maxRequests,
+        string url = "http://runtime-gateway.test/probe"
     )
     {
         for (int request = 1; request <= maxRequests; request++)
         {
             try
             {
-                using var message = new HttpRequestMessage(method, "http://runtime-gateway.test/probe");
+                using var message = new HttpRequestMessage(method, url);
                 using HttpResponseMessage response = await client.SendAsync(message);
             }
             catch (BrokenCircuitException)
@@ -321,10 +347,10 @@ public class RuntimeGatewayResilienceTests : IDisposable
 
     private sealed class CountingHandler : HttpMessageHandler
     {
-        private readonly Func<HttpResponseMessage> _respond;
+        private readonly Func<HttpRequestMessage, HttpResponseMessage> _respond;
         private int _invocations;
 
-        private CountingHandler(Func<HttpResponseMessage> respond)
+        private CountingHandler(Func<HttpRequestMessage, HttpResponseMessage> respond)
         {
             _respond = respond;
         }
@@ -332,9 +358,12 @@ public class RuntimeGatewayResilienceTests : IDisposable
         public int Invocations => Volatile.Read(ref _invocations);
 
         public static CountingHandler Returning(HttpStatusCode statusCode) =>
-            new(() => new HttpResponseMessage(statusCode));
+            new(_ => new HttpResponseMessage(statusCode));
 
-        public static CountingHandler Throwing(Func<Exception> exception) => new(() => throw exception());
+        public static CountingHandler ReturningByHost(Func<string, HttpStatusCode> statusCodeForHost) =>
+            new(request => new HttpResponseMessage(statusCodeForHost(request.RequestUri!.Host)));
+
+        public static CountingHandler Throwing(Func<Exception> exception) => new(_ => throw exception());
 
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
@@ -342,7 +371,7 @@ public class RuntimeGatewayResilienceTests : IDisposable
         )
         {
             Interlocked.Increment(ref _invocations);
-            return Task.FromResult(_respond());
+            return Task.FromResult(_respond(request));
         }
     }
 

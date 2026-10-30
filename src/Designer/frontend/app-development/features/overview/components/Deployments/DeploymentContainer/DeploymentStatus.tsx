@@ -11,12 +11,12 @@ import {
 } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 export type DeploymentStatusProps = {
-  kubernetesDeployment?: KubernetesDeployment;
+  runningApp?: RunningApp;
   deploymentType: PipelineDeployment['deploymentType'];
   isDeploymentInProgress?: boolean;
   lastPublishedDate?: string;
@@ -26,7 +26,7 @@ export type DeploymentStatusProps = {
 };
 
 export const DeploymentStatus = ({
-  kubernetesDeployment,
+  runningApp,
   deploymentType,
   isDeploymentInProgress,
   lastPublishedDate,
@@ -85,7 +85,7 @@ export const DeploymentStatus = ({
   }
 
   const isUndeploy = deploymentType === 'Decommission';
-  if (!kubernetesDeployment || isUndeploy) {
+  if (!runningApp || isUndeploy) {
     return (
       <DeploymentStatusAlert
         severity='info'
@@ -99,7 +99,7 @@ export const DeploymentStatus = ({
     );
   }
   const isDeploy = deploymentType === 'Deploy';
-  if (!kubernetesDeployment?.version && isDeploy) {
+  if (!runningApp?.version && isDeploy) {
     return (
       <DeploymentStatusAlert
         severity='warning'
@@ -123,7 +123,7 @@ export const DeploymentStatus = ({
           <Trans
             i18nKey={'app_deployment.status.succeeded'}
             values={{
-              version: kubernetesDeployment.version,
+              version: runningApp.version,
             }}
             components={{
               a: (
