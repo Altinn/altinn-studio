@@ -23,6 +23,7 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -817,13 +818,15 @@ public class SchemaModelService : ISchemaModelService
     {
         bool separateNamespace = NamespaceNeedsToBeSeparated(application, csharpModelName);
         return separateNamespace
-            ? $"Altinn.App.Models.{csharpModelName}.{csharpModelName}"
-            : $"Altinn.App.Models.{csharpModelName}";
+            ? DataModelClassRef.InOwnNamespace(csharpModelName)
+            : DataModelClassRef.InSharedNamespace(csharpModelName);
     }
 
     private bool NamespaceNeedsToBeSeparated(ApplicationMetadata application, string csharpModelName)
     {
-        return application.DataTypes.All(d => d.AppLogic?.ClassRef != $"Altinn.App.Models.{csharpModelName}");
+        return application.DataTypes.All(d =>
+            d.AppLogic?.ClassRef != DataModelClassRef.InSharedNamespace(csharpModelName)
+        );
     }
 
     public async Task<DataType> GetModelDataType(string org, string app, string modelId)

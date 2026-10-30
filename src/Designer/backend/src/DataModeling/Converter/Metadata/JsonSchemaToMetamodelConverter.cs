@@ -586,7 +586,13 @@ public class JsonSchemaToMetamodelConverter
         return _modelMetadata.Elements.FirstOrDefault(e => e.Key == id).Value != null;
     }
 
-    private static string ConvertToCSharpCompatibleName(string name)
+    /// <summary>
+    /// Converts a name from a JSON schema to the name of a C# class or property, by removing the hyphens that C#
+    /// does not accept.
+    /// </summary>
+    /// <param name="name">The name in the JSON schema.</param>
+    /// <returns>The C# name, or null when the name is null or empty.</returns>
+    public static string ConvertToCSharpCompatibleName(string name)
     {
         if (string.IsNullOrEmpty(name))
         {

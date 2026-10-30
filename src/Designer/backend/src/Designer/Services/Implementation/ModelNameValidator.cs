@@ -1,19 +1,16 @@
 using System.IO;
-using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-using Altinn.App.Core.Models;
-using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Exceptions.DataModeling;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Json.Schema;
@@ -68,14 +65,13 @@ public class ModelNameValidator : IModelNameValidator
 
         var applicationMetadata = await repository.GetApplicationMetadata();
 
-        bool fileExistsByRelativePath = repository.FileExistsByRelativePath(
-            Path.Combine(repository.GetRelativeModelFolder(), fileName)
+        // An upload replaces the data model that has the same file name, and the file name without its extension is
+        // the id of that data model's data type.
+        DataModelClassRef.ThrowIfAnotherDataTypeHasClass(
+            applicationMetadata,
+            modelName,
+            replacedDataTypeId: repository.GetSchemaName(fileName)
         );
-
-        if (!fileExistsByRelativePath)
-        {
-            ValidateTypeNameForNewModel(applicationMetadata, modelName);
-        }
     }
 
     private ModelMetadata TestE2EConversion(Stream xsdSchema, AltinnStudioSettings altinnStudioSettings)
@@ -113,24 +109,12 @@ public class ModelNameValidator : IModelNameValidator
 
         var applicationMetadata = await repository.GetApplicationMetadata();
 
-        ValidateTypeNameForNewModel(applicationMetadata, modelName);
-    }
-
-    public void ValidateTypeNameForNewModel(ApplicationMetadata applicationMetadata, string typeName)
-    {
-        DataType? dataType = applicationMetadata.DataTypes.FirstOrDefault(d =>
-            d.AppLogic?.ClassRef == $"Altinn.App.Models.{typeName}"
-            || d.AppLogic?.ClassRef == $"Altinn.App.Models.{typeName}.{typeName}"
+        // The metamodel converter makes the data model's class name from the model name.
+        DataModelClassRef.ThrowIfAnotherDataTypeHasClass(
+            applicationMetadata,
+            JsonSchemaToMetamodelConverter.ConvertToCSharpCompatibleName(modelName),
+            replacedDataTypeId: null
         );
-        if (dataType is not null)
-        {
-            throw new ModelWithTheSameBaseTypeAlreadyExists(
-                $"The C# class {dataType.AppLogic?.ClassRef} already belongs to the data type '{dataType.Id}'. "
-                    + "A new data model needs a root type name that no other data model uses. In a JSON schema, "
-                    + "the root type is the $defs or definitions type that the root refers to with $ref, or "
-                    + "@xsdRootElement when the root has its own properties."
-            );
-        }
     }
 
     private string SerializeJsonSchema(JsonSchema jsonSchema)
