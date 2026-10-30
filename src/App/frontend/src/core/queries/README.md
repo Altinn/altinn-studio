@@ -11,6 +11,11 @@ Request functions stay separate from query policy. The flat [AppQueriesProvider]
 [queries.ts](queries.ts). Existing HTTP clients in [core/api-client](../api-client) remain React-free. Query
 definitions, mutations, and cache operations belong here.
 
+Features own workflow decisions: save preparation and form-store updates, process validation and navigation, and
+button locking and client actions. Compose these around domain mutations. When preparation must run after earlier
+mutations finish, pass a callback that the mutation invokes inside its serialized operation. Keep returned mutation
+callbacks stable so effects do not save or navigate again after an unrelated render.
+
 - Check inferred return types after moving a hook. Select plain application values and give callbacks explicit
   argument and return types so TanStack results and options stay private. Renaming or wrapping a generic TanStack
   hook still exposes its API.
