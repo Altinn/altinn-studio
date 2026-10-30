@@ -8,6 +8,7 @@ import {
   useOrderDetails,
   useRefetchOrderDetails,
 } from 'src/core/queries/payment/OrderDetailsProvider';
+import { paymentQueryKeys } from 'src/core/queries/payment/payment.queries';
 import { PaymentInformationProvider, usePaymentInformation } from 'src/core/queries/payment/PaymentInformationProvider';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 
@@ -33,7 +34,9 @@ export const usePerformPayActionMutation = (partyId?: string, instanceGuid?: str
       if (data?.redirectUrl) {
         window.location.assign(data.redirectUrl);
       } else {
-        return queryClient.invalidateQueries({ queryKey: ['fetchPaymentInfo'] });
+        return queryClient.invalidateQueries({
+          queryKey: paymentQueryKeys.informationForInstance(`${partyId}/${instanceGuid}`),
+        });
       }
     },
   });

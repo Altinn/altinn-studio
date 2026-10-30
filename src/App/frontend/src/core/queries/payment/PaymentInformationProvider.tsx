@@ -6,6 +6,7 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
+import { paymentQueryKeys } from 'src/core/queries/payment/payment.queries';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -20,7 +21,7 @@ function usePaymentInformationQueryDef(enabled: boolean, instanceId?: string): U
   const selectedLanguage = useCurrentLanguage();
 
   return {
-    queryKey: ['fetchPaymentInfoForTask', instanceId, selectedLanguage],
+    queryKey: paymentQueryKeys.information(instanceId, selectedLanguage, taskId),
     queryFn: instanceId ? () => fetchPaymentInformationForTask(instanceId, selectedLanguage, taskId) : skipToken,
     enabled: enabled && !!instanceId,
     retry: 3,

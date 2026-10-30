@@ -6,6 +6,7 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useAppQueries } from 'src/core/queries/AppQueriesProvider';
+import { paymentQueryKeys } from 'src/core/queries/payment/payment.queries';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useHasPayment } from 'src/features/payment/utils';
@@ -16,7 +17,7 @@ function useOrderDetailsQueryDef(enabled: boolean, instanceId?: string): UseQuer
   const { fetchOrderDetails } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
   return {
-    queryKey: ['fetchOrderDetails'],
+    queryKey: paymentQueryKeys.orderDetails(instanceId, selectedLanguage),
     queryFn: instanceId ? () => fetchOrderDetails(instanceId, selectedLanguage) : skipToken,
     enabled: enabled && !!instanceId,
   };
@@ -51,8 +52,9 @@ const { Provider, useCtx } = delayedContext(() =>
 export const OrderDetailsProvider = Provider;
 export const useOrderDetails = () => useCtx();
 export const useRefetchOrderDetails = () => {
+  const instanceId = useLaxInstanceId();
   const queryClient = useQueryClient();
   return useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['fetchOrderDetails'] });
-  }, [queryClient]);
+    queryClient.invalidateQueries({ queryKey: paymentQueryKeys.orderDetailsForInstance(instanceId) });
+  }, [instanceId, queryClient]);
 };
