@@ -1457,13 +1457,12 @@ public class SourceControlService(
 
     private LibGit2Sharp.Signature GetDeveloperSignature(string developer)
     {
-        return new LibGit2Sharp.Signature(developer, $"{developer}@noreply.altinn.studio", DateTime.Now);
+        return new LibGit2Sharp.Signature(GetDefaultIdentity(developer), DateTime.Now);
     }
 
     private static Identity GetDefaultIdentity(string developer)
     {
-        string email = $"{developer}@noreply.altinn.studio";
-        return new Identity(developer, email);
+        return new Identity(developer, $"{developer}@{General.StudioCommitEmailDomain}");
     }
 
     private LibGit2Sharp.Repository CreateLocalRepo(AltinnRepoEditingContext editingContext)

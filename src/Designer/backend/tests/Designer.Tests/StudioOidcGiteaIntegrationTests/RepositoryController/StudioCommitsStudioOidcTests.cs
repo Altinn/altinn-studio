@@ -5,6 +5,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
@@ -217,6 +218,6 @@ public class StudioCommitsStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
 
         var commitNode = JsonNode.Parse(await commitResponse.Content.ReadAsStringAsync())!["commit"]!;
         Assert.Equal(expectedMessage, commitNode["message"]!.ToString().Trim());
-        Assert.EndsWith("@noreply.altinn.studio", commitNode["author"]!["email"]!.ToString());
+        Assert.EndsWith($"@{General.StudioCommitEmailDomain}", commitNode["author"]!["email"]!.ToString());
     }
 }
