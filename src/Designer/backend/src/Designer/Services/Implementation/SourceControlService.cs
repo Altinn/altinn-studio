@@ -148,6 +148,15 @@ public class SourceControlService(
 
                     if (aheadBy > 0)
                     {
+                        if (isDirtyBefore)
+                        {
+                            // Combining needs a clean working directory. Sharing combines the uncommitted changes too.
+                            status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                            SetErrorStatus(ctx.activity, "checkout_conflict");
+                            checkoutConflict = true;
+                            return status;
+                        }
+
                         RemoteRebaseResult rebaseResult = self.RebaseOntoRemoteBranch(
                             ctx.authenticatedContext,
                             headBranchBefore
@@ -914,11 +923,13 @@ public class SourceControlService(
                     }
 
                     Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
-                    // Uncommitted changes stay in the working directory, where the checkout refuses to overwrite them.
-                    // Staged changes would end up in a merge commit, so they count as being in the way.
-                    if (repo.RetrieveStatus(new StatusOptions()).Any(entry => (entry.State & StagedStates) != 0))
+                    // Studio updates the working directory itself only when it is clean, because LibGit2Sharp's
+                    // checkout lacks checks that its merge has, and can delete untracked files.
+                    if (repo.RetrieveStatus(new StatusOptions()).IsDirty)
                     {
-                        throw new CheckoutConflictException("Staged changes are in the way of the remote changes.");
+                        throw new CheckoutConflictException(
+                            "Uncommitted changes are in the way of the remote changes."
+                        );
                     }
 
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
@@ -1718,13 +1729,6 @@ public class SourceControlService(
         }
     }
 
-    private const FileStatus StagedStates =
-        FileStatus.NewInIndex
-        | FileStatus.ModifiedInIndex
-        | FileStatus.DeletedFromIndex
-        | FileStatus.RenamedInIndex
-        | FileStatus.TypeChangeInIndex;
-
     private static LibGit2Sharp.Commit[] GetLocalCommits(LibGit2Sharp.Repository repo, Branch upstream) =>
         repo
             .Commits.QueryBy(
@@ -1762,9 +1766,9 @@ public class SourceControlService(
     private static bool IsUtf8(string? encoding) =>
         encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
 
-    // Changes the working directory once. The safe checkout keeps uncommitted changes and refuses to overwrite them.
-    // If a lock or I/O error stops a later step, HEAD goes back on the branch and no file is touched: the files the
-    // checkout wrote then show as local changes, which sharing or deleting the local changes resolves.
+    // Changes the clean working directory once. If a lock or I/O error stops a later step, HEAD goes back on the branch
+    // and no file is touched. The files the checkout wrote then show as local changes, which sharing or deleting the
+    // local changes resolves.
     private static void MoveBranchTo(LibGit2Sharp.Repository repo, string branchReference, LibGit2Sharp.Commit commit)
     {
         try

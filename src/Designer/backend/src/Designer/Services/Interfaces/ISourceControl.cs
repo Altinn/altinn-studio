@@ -185,9 +185,10 @@ public interface ISourceControl
     RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
 
     /// <summary>
-    /// Rebases the local commits on a branch onto the same branch on origin, so that pushing them does not need a
-    /// merge commit. On conflicts it leaves them in the working directory, as pulling does. Uncommitted changes stay as
-    /// they are, and it throws <see cref="LibGit2Sharp.CheckoutConflictException"/> when they are in the way.
+    /// Puts the local commits on a branch on top of the same branch on origin, as one commit with the merged files, so
+    /// that pushing them does not need a merge commit. On conflicts it leaves them in the working directory, as pulling
+    /// does. It throws
+    /// <see cref="LibGit2Sharp.CheckoutConflictException"/> when there are uncommitted changes.
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     /// <param name="branchName">The branch on origin to rebase onto</param>
