@@ -90,6 +90,25 @@ describe('Group summary test', () => {
       cy.contains('td', 'Across columns').should('have.attr', 'colspan', '2');
     });
     cy.visualTesting('repeatingGroupAddButtons');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.rowsBefore = [];
+        component.rowsAfter = [];
+      }
+    });
+    cy.get('[data-componentid="RepeatingGroup-Summary2-table"] table').within(() => {
+      cy.findByRole('columnheader', { name: /^A long column heading/ }).should('exist');
+      cy.findByRole('columnheader', { name: 'Poeng' }).should('exist');
+      cy.findByRole('columnheader', { name: 'Dato' }).should('exist');
+      cy.findByRole('cell', { name: inputValue }).should('exist');
+      cy.findAllByRole('row')
+        .should('have.length', 2)
+        .each(($row) => {
+          cy.wrap($row).children().should('have.length', 4);
+        });
+      cy.findByRole('columnheader', { name: 'Extra action', timeout: 0 }).should('not.exist');
+    });
   });
 
   it('Fills in an input in the repeating group, the text appears in summary', () => {
