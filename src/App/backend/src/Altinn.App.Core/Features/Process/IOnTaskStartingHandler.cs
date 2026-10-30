@@ -7,8 +7,17 @@ namespace Altinn.App.Core.Features.Process;
 /// <strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong>
 /// </remarks>
 [ImplementableByApps]
-public interface IOnTaskStartingHandler : IOnTaskLifecycleHandler
+public interface IOnTaskStartingHandler : IProcessStepConfigurable
 {
+    /// <summary>
+    /// Determines whether the hook should run for the given task ID. At most one implementation may run for a task; if
+    /// more than one returns true for a task in the process definition, the app does not start. The app calls this when
+    /// it plans a transition into the task, not when the hook runs, so the answer must depend on the task ID alone.
+    /// </summary>
+    /// <param name="taskId">The task ID to check.</param>
+    /// <returns>True if the hook should run for this task; otherwise, false.</returns>
+    public bool ShouldRunForTask(string taskId);
+
     /// <summary>
     /// Executes the start task hook logic.
     /// </summary>
@@ -27,7 +36,7 @@ public sealed class OnTaskStartingContext
 {
     /// <summary>
     /// The ID of the task this hook is running for (the task being started).
-    /// Matches the <c>taskId</c> passed to <see cref="IOnTaskLifecycleHandler.ShouldRunForTask"/>.
+    /// Matches the <c>taskId</c> passed to <see cref="IOnTaskStartingHandler.ShouldRunForTask"/>.
     /// </summary>
     public required string TaskId { get; init; }
 
