@@ -95,9 +95,10 @@ describe('VersionControlButtonsContext', () => {
       const onPullSuccess = vi.fn();
       const queryClient = createQueryClientMock();
       queryClient.setQueryData(editorQueryKey, {});
+      const getRepoPull = vi.fn();
       renderVersionControlButtonsContextProvider({
         contextProviderProps: { onPullSuccess },
-        queries: { getRepoPull: vi.fn().mockResolvedValue(repoStatusWith('Ok')) },
+        queries: { getRepoPull },
         queryClient,
       });
 
@@ -110,6 +111,7 @@ describe('VersionControlButtonsContext', () => {
       await waitFor(() =>
         expect(queryClient.getQueryState(editorQueryKey)?.isInvalidated).toBe(true),
       );
+      expect(getRepoPull).not.toHaveBeenCalled();
     });
 
     it('should enter merge conflict mode when sharing is rejected and the pull finds conflicts', async () => {

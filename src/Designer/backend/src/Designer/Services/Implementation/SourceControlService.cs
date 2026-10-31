@@ -874,6 +874,10 @@ public class SourceControlService(
 
                     Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
+                    LibGit2Sharp.Commit[] localCommits = GetLocalCommits(repo, upstream);
+                    // Commits fetched from Gitea become local when someone rewrites the branch there. A message in
+                    // another encoding than UTF-8 would be garbled in a combined commit, so such commits are merged.
+                    bool combine = localCommits.All(commit => IsUtf8(commit.Encoding));
                     // LibGit2Sharp's merge updates the files, with the checks that keep uncommitted and untracked
                     // files. Studio changes only the history afterwards.
                     MergeResult mergeResult = repo.Merge(
@@ -882,7 +886,7 @@ public class SourceControlService(
                         new MergeOptions
                         {
                             FastForwardStrategy = FastForwardStrategy.NoFastForward,
-                            CommitOnSuccess = false,
+                            CommitOnSuccess = !combine,
                         }
                     );
                     if (mergeResult.Status == MergeStatus.Conflicts)
@@ -900,8 +904,12 @@ public class SourceControlService(
                         return result;
                     }
 
-                    CommitMergeOnTopOf(repo, originalTip, upstream, signature);
-                    combineStatus = "combined";
+                    if (combine)
+                    {
+                        CommitMergeOnTopOf(repo, originalTip, upstream.Tip, localCommits, signature);
+                    }
+
+                    combineStatus = combine ? "combined" : "merged";
                     PopulateContentStatusFromCommitDiff(
                         repo,
                         originalTip.Tree,
@@ -1695,12 +1703,11 @@ public class SourceControlService(
     private static void CommitMergeOnTopOf(
         LibGit2Sharp.Repository repo,
         LibGit2Sharp.Commit originalTip,
-        Branch upstream,
+        LibGit2Sharp.Commit onto,
+        LibGit2Sharp.Commit[] localCommits,
         LibGit2Sharp.Signature committer
     )
     {
-        LibGit2Sharp.Commit onto = upstream.Tip;
-        LibGit2Sharp.Commit[] localCommits = GetLocalCommits(repo, upstream);
         Tree mergedTree = repo.ObjectDatabase.CreateTree(repo.Index);
         LibGit2Sharp.Commit target =
             localCommits.Length == 0 || mergedTree.Id == onto.Tree.Id
@@ -1732,6 +1739,9 @@ public class SourceControlService(
 
         repo.Refs.UpdateTarget(branch, target.Id, "studio: combine local commits");
     }
+
+    private static bool IsUtf8(string? encoding) =>
+        encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
     {

@@ -69,21 +69,26 @@ export const VersionControlButtonsContextProvider = ({
 
   const showToast = (textKey: string) => toast.error(t(textKey), { toastId: textKey });
 
+  // A pull or a share may have brought in other people's changes, which the open editors should show.
+  const refreshEditors = async () => {
+    onPullSuccess?.();
+    await queryClient.invalidateQueries({
+      predicate: (query) => query.queryKey.includes(owner) && query.queryKey.includes(repoName),
+    });
+  };
+
   const pull = async (): Promise<PullOutcome> => {
     const { data: result, isError } = await fetchPullData();
-    // The default error message explains the failure, and a failed refetch keeps the previous result.
-    if (isError) return 'failed';
+    // The default error message explains a failure, and a failed refetch keeps the previous result. There is no
+    // result when the user has moved to another repository meanwhile.
+    if (isError || !result) return 'failed';
     if (isMergeConflict(result)) {
       enterMergeConflictMode(result);
       return 'mergeConflict';
     }
     if (isCheckoutConflict(result)) return 'checkoutConflict';
 
-    // The pull, or a share before it, may have brought in other people's changes, which the open editors should show.
-    onPullSuccess?.();
-    await queryClient.invalidateQueries({
-      predicate: (query) => query.queryKey.includes(owner) && query.queryKey.includes(repoName),
-    });
+    await refreshEditors();
     return 'upToDate';
   };
 
@@ -113,9 +118,9 @@ export const VersionControlButtonsContextProvider = ({
       return;
     }
 
+    // Sharing combined the user's changes with everything on Gitea, so there is nothing to pull.
     toast.success(t('sync_header.sharing_changes_completed'));
-    // The pull refreshes the editors and catches anything pushed since. The popover does not wait for it.
-    void pull();
+    void refreshEditors();
   };
 
   return (

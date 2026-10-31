@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
@@ -753,6 +754,40 @@ public class SourceControlServiceTest : IDisposable
         Assert.Equal(FileStatus.ModifiedInWorkdir, repositoryStatus["test.txt"].State);
         Assert.Equal(FileStatus.NewInWorkdir, repositoryStatus["untracked.txt"].State);
         Assert.Equal(uncommittedContent, File.ReadAllText(Path.Join(localRepoPath, "test.txt")));
+    }
+
+    [Fact]
+    public void PullRemoteChanges_WithALocalCommitMessageThatIsNotUtf8_MergesAndKeepsTheCommit()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+        string localCommitSha;
+        using (Repository localRepo = new(localRepoPath))
+        {
+            // Such a commit can come from Gitea, and becomes local when someone rewrites the branch there.
+            LibGit2Sharp.Commit head = localRepo.Head.Tip;
+            string headers =
+                $"tree {head.Tree.Sha}\nparent {head.Sha}\n"
+                + "author someone <someone@test.com> 1700000000 +0100\n"
+                + "committer someone <someone@test.com> 1700000000 +0100\nencoding ISO-8859-1\n\n";
+            byte[] data = [.. Encoding.ASCII.GetBytes(headers), .. Encoding.Latin1.GetBytes("Blåbær og øl\n")];
+            ObjectId commitId = localRepo.ObjectDatabase.Write<LibGit2Sharp.Commit>(data);
+            localRepo.Refs.UpdateTarget(localRepo.Refs[$"refs/heads/{General.DefaultBranch}"], commitId);
+            localCommitSha = commitId.Sha;
+        }
+
+        RepoStatus status = _sourceControlService.PullRemoteChanges(authenticatedContext);
+
+        Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+        using Repository pulledRepo = new(localRepoPath);
+        Assert.Contains(localCommitSha, pulledRepo.Head.Tip.Parents.Select(parent => parent.Sha));
+        Assert.Equal(CurrentOperation.None, pulledRepo.Info.CurrentOperation);
+        Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
     }
 
     [Fact]
