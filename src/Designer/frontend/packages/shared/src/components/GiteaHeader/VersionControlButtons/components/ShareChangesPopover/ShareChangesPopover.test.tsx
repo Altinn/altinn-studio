@@ -113,6 +113,23 @@ describe('shareChanges', () => {
     expect(notificationIcon).toBeInTheDocument();
   });
 
+  it('should render notificationIcon when there are commits that were not pushed', () => {
+    renderShareChangesPopover({
+      versionControlButtonsContextProps: {
+        ...mockVersionControlButtonsContextValue,
+        repoStatus: { ...mockVersionControlButtonsContextValue.repoStatus, aheadBy: 1 },
+      },
+    });
+
+    expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  it('should not render notificationIcon when there is nothing to share', () => {
+    renderShareChangesPopover();
+
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
   it('should render share changes button as disabled when there are merge conflicts', () => {
     renderShareChangesPopover({
       versionControlButtonsContextProps: {
