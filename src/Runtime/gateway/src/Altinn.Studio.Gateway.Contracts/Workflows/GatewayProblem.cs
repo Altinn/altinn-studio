@@ -17,6 +17,18 @@ public record GatewayProblem(string Type, string Title, int Status, string Detai
     /// </summary>
     public const string WorkflowEngineUnavailableType = "urn:altinn:studio:gateway:workflow-engine-unavailable";
 
+    /// <summary>
+    /// Problem type reported when an app is restarted while a deploy or an earlier restart is still replacing its
+    /// instances.
+    /// </summary>
+    public const string AppUpdatingType = "urn:altinn:studio:gateway:app-updating";
+
+    /// <summary>
+    /// Problem type reported when an app is restarted while its Deployment is paused, so its instances would not be
+    /// replaced.
+    /// </summary>
+    public const string AppPausedType = "urn:altinn:studio:gateway:app-paused";
+
     /// <summary>Problem type reported when the app route parameter is not a valid app name.</summary>
     public const string InvalidAppNameType = "urn:altinn:studio:gateway:invalid-app-name";
 
