@@ -31,6 +31,7 @@ public class DeploymentPipelinePollingJob : IJob
     private readonly IPublisher _mediatr;
     private readonly ILogger<DeploymentPipelinePollingJob> _logger;
     private readonly TimeProvider _timeProvider;
+    private readonly AppMetrics _appMetrics;
 
     public DeploymentPipelinePollingJob(
         IAzureDevOpsBuildClient azureDevOpsBuildClient,
@@ -40,7 +41,8 @@ public class DeploymentPipelinePollingJob : IJob
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IPublisher mediatr,
         ILogger<DeploymentPipelinePollingJob> logger,
-        TimeProvider timeProvider
+        TimeProvider timeProvider,
+        AppMetrics appMetrics
     )
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -51,6 +53,7 @@ public class DeploymentPipelinePollingJob : IJob
         _mediatr = mediatr;
         _logger = logger;
         _timeProvider = timeProvider;
+        _appMetrics = appMetrics;
     }
 
     public async Task Execute(IJobExecutionContext context)
@@ -97,6 +100,17 @@ public class DeploymentPipelinePollingJob : IJob
             )
             {
                 await AddDeployEventIfNotExist(build.Status, build, org, buildId);
+                // A failed pipeline is the deployment's outcome, since the runtime cluster gets nothing to report on.
+                if (build.Result != BuildResult.Succeeded && !deploymentEntity.HasFinalEvent)
+                {
+                    _appMetrics.RecordDeployment(
+                        org,
+                        environment,
+                        deploymentEntity.DeploymentType,
+                        DeployEventType.PipelineFailed,
+                        first: null
+                    );
+                }
             }
 
             await _deploymentRepository.Update(deploymentEntity);

@@ -16,6 +16,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +44,7 @@ public class RepositoryController : ControllerBase
     private readonly IBranchService _branchService;
     private readonly IAppTemplateCatalog _appTemplateCatalog;
     private readonly IAppRepositorySearchService _appRepositorySearchService;
+    private readonly AppMetrics _appMetrics;
 
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -57,6 +59,7 @@ public class RepositoryController : ControllerBase
     /// <param name="branchService">the branch service</param>
     /// <param name="appTemplateCatalog">the available app scaffolds</param>
     /// <param name="appRepositorySearchService">the search for the repositories that hold apps</param>
+    /// <param name="appMetrics">the metrics of the service owners' apps</param>
     public RepositoryController(
         IGiteaClient giteaClient,
         ISourceControl sourceControl,
@@ -64,7 +67,8 @@ public class RepositoryController : ControllerBase
         IHubContext<SyncHub, ISyncClient> syncHub,
         IBranchService branchService,
         IAppTemplateCatalog appTemplateCatalog,
-        IAppRepositorySearchService appRepositorySearchService
+        IAppRepositorySearchService appRepositorySearchService,
+        AppMetrics appMetrics
     )
     {
         _giteaClient = giteaClient;
@@ -74,6 +78,7 @@ public class RepositoryController : ControllerBase
         _branchService = branchService;
         _appTemplateCatalog = appTemplateCatalog;
         _appRepositorySearchService = appRepositorySearchService;
+        _appMetrics = appMetrics;
     }
 
     /// <summary>
@@ -164,6 +169,7 @@ public class RepositoryController : ControllerBase
 
             if (repo.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
+                RecordCreation(targetOrg, developer, AppCreationSource.Copy);
                 return Created(repo.CloneUrl, repo);
             }
 
@@ -174,6 +180,16 @@ public class RepositoryController : ControllerBase
         {
             await _repository.DeleteRepository(targetOrg, targetRepository);
             return StatusCode(500, e);
+        }
+    }
+
+    // An app in the developer's own account is no service owner's, and counting it would make each developer a
+    // series of their own.
+    private void RecordCreation(string owner, string developer, AppCreationSource source)
+    {
+        if (!owner.Equals(developer, StringComparison.OrdinalIgnoreCase))
+        {
+            _appMetrics.RecordCreation(owner, source);
         }
     }
 
@@ -284,6 +300,11 @@ public class RepositoryController : ControllerBase
 
             if (repositoryResult.RepositoryCreatedStatus == HttpStatusCode.Created)
             {
+                RecordCreation(
+                    request.Org,
+                    AuthenticationHelper.GetDeveloperUserName(HttpContext),
+                    AppCreationSource.Template
+                );
                 return Created(repositoryResult.CloneUrl, repositoryResult);
             }
             return StatusCode((int)repositoryResult.RepositoryCreatedStatus, repositoryResult);
