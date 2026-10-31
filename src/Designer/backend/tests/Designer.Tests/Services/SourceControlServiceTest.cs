@@ -947,7 +947,7 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public void PullRemoteChanges_WhenALockStopsTheBranchMove_SharingPublishesBothChanges()
+    public void PullRemoteChanges_WhenALockStopsTheBranchMove_SharingCombinesAgain()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
@@ -964,24 +964,28 @@ public class SourceControlServiceTest : IDisposable
 
         Assert.ThrowsAny<LibGit2SharpException>(() => _sourceControlService.PullRemoteChanges(authenticatedContext));
 
-        // The merge has updated the files and is left in progress, as when a merge cannot commit.
+        // The merge has ended, and its files are left as uncommitted changes.
         File.Delete(lockPath);
         using (Repository localRepo = new(localRepoPath))
         {
             Assert.Equal(localCommitSha, localRepo.Head.Tip.Sha);
-            Assert.Equal(CurrentOperation.Merge, localRepo.Info.CurrentOperation);
-            Assert.Empty(localRepo.Index.Conflicts);
+            Assert.Equal(CurrentOperation.None, localRepo.Info.CurrentOperation);
+            Assert.True(localRepo.RetrieveStatus(new StatusOptions()).IsDirty);
         }
 
-        _sourceControlService.PushChangesForRepository(authenticatedContext, new CommitInfo { Message = "share" });
-
-        using Repository sharedRepo = new(localRepoPath);
-        Assert.Equal(sharedRepo.Branches[$"origin/{General.DefaultBranch}"].Tip.Sha, sharedRepo.Head.Tip.Sha);
-        Assert.Equal(
-            [localCommitSha, remoteTipSha],
-            sharedRepo.Head.Tip.Parents.Select(parent => parent.Sha).ToArray()
+        Assert.Throws<NonFastForwardException>(() =>
+            _sourceControlService.PushChangesForRepository(authenticatedContext, new CommitInfo { Message = "share" })
         );
+        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+            authenticatedContext,
+            General.DefaultBranch
+        );
+
+        Assert.Equal(RebaseStatus.Complete, result.Status);
+        using Repository sharedRepo = new(localRepoPath);
+        Assert.Equal(remoteTipSha, Assert.Single(sharedRepo.Head.Tip.Parents).Sha);
         Assert.Equal(CurrentOperation.None, sharedRepo.Info.CurrentOperation);
+        Assert.False(sharedRepo.RetrieveStatus(new StatusOptions()).IsDirty);
         Assert.Equal(remoteContent, File.ReadAllText(Path.Join(localRepoPath, "test.txt")));
         Assert.True(File.Exists(Path.Join(localRepoPath, "local-only.txt")));
     }
@@ -1041,6 +1045,7 @@ public class SourceControlServiceTest : IDisposable
         using Repository localRepo = new(localRepoPath);
         Assert.Equal(remoteTipSha, Assert.Single(localRepo.Head.Tip.Parents).Sha);
         Assert.Equal(CurrentOperation.None, localRepo.Info.CurrentOperation);
+        Assert.Empty(Directory.GetFiles(localRepo.Info.Path, "MERGE_*"));
         Assert.NotNull(localRepo.Head.Tip["local-only.txt"]);
         Assert.NotNull(localRepo.Head.Tip["remote-only.txt"]);
         Assert.Null(localRepo.Head.Tip["untracked.txt"]);

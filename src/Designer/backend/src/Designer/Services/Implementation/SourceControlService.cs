@@ -1705,8 +1705,9 @@ public class SourceControlService(
 
     // Replaces the merge that is in progress with one commit on top of the remote branch, so that the history stays
     // linear and the files are exactly what the merge gave. A share has one local commit. Several are left only by
-    // shares that failed, and they become one. The mixed reset moves the branch, the index and the merge state, and
-    // touches no file.
+    // shares that failed, and they become one. The index already holds the merged files, so only the merge state and
+    // the branch change. Ending the merge first means that a failure leaves either the merge, which the next share
+    // commits, or the merged files as uncommitted changes, which the next share combines again.
     private static void CommitMergeOnTopOf(
         LibGit2Sharp.Repository repo,
         LibGit2Sharp.Commit onto,
@@ -1726,7 +1727,15 @@ public class SourceControlService(
                     [onto],
                     prettifyMessage: false
                 );
-        repo.Reset(ResetMode.Mixed, target);
+        string branchReference = repo.Head.CanonicalName;
+        // LibGit2Sharp cannot end a merge without resetting the index, which would drop files staged meanwhile.
+        // MERGE_HEAD goes last, because it is what marks the merge.
+        foreach (string mergeFile in new[] { "MERGE_MSG", "MERGE_MODE", "MERGE_HEAD" })
+        {
+            File.Delete(Path.Join(repo.Info.Path, mergeFile));
+        }
+
+        repo.Refs.UpdateTarget(repo.Refs[branchReference], target.Id, "studio: combine local commits");
     }
 
     private static bool IsUtf8(string? encoding) =>
