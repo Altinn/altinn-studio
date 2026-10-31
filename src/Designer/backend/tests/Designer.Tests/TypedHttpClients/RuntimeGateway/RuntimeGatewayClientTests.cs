@@ -133,7 +133,7 @@ public class RuntimeGatewayClientTests
                 restartedAt = "2026-10-31T10:42:00+00:00",
             }
         );
-        var client = CreateClient(handler);
+        var client = CreateClient(handler, ServiceCollectionExtensions.RestartHttpClientName);
 
         var restart = await client.RestartApp(
             "ttd",
@@ -181,7 +181,7 @@ public class RuntimeGatewayClientTests
             statusCode,
             problemType is null ? null : new { type = problemType, status = (int)statusCode }
         );
-        var client = CreateClient(handler);
+        var client = CreateClient(handler, ServiceCollectionExtensions.RestartHttpClientName);
 
         var restart = await client.RestartApp(
             "ttd",
@@ -197,18 +197,21 @@ public class RuntimeGatewayClientTests
     public async Task RestartApp_WhenTheGatewayFails_Throws()
     {
         using var handler = new RespondingHandler(HttpStatusCode.InternalServerError);
-        var client = CreateClient(handler);
+        var client = CreateClient(handler, ServiceCollectionExtensions.RestartHttpClientName);
 
         await Assert.ThrowsAsync<HttpRequestException>(() =>
             client.RestartApp("ttd", "my-app", AltinnEnvironment.FromName("tt02"), CancellationToken.None)
         );
     }
 
-    private static RuntimeGatewayClient CreateClient(HttpMessageHandler handler)
+    private static RuntimeGatewayClient CreateClient(
+        HttpMessageHandler handler,
+        string httpClientName = ServiceCollectionExtensions.HttpClientName
+    )
     {
-        var httpClientFactory = new Mock<IHttpClientFactory>();
+        var httpClientFactory = new Mock<IHttpClientFactory>(MockBehavior.Strict);
         httpClientFactory
-            .Setup(factory => factory.CreateClient("runtime-gateway"))
+            .Setup(factory => factory.CreateClient(httpClientName))
             .Returns(() => new HttpClient(handler, disposeHandler: false));
         var environmentsService = new Mock<IEnvironmentsService>();
         environmentsService

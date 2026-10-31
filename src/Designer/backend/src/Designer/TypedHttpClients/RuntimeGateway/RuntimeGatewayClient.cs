@@ -263,7 +263,7 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         CancellationToken cancellationToken
     )
     {
-        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.HttpClientName);
+        using var client = _httpClientFactory.CreateClient(ServiceCollectionExtensions.RestartHttpClientName);
         var baseUrl = TrimTrailingSlash(
             await _environmentsService.GetAppClusterUri(org, environment.Name, cancellationToken)
         );
