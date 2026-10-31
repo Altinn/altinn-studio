@@ -1566,7 +1566,46 @@ public class SourceControlService(
         foreach (Remote remote in repo.Network.Remotes)
         {
             IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-            Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+            try
+            {
+                Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+            }
+            catch (LibGit2SharpException ex)
+                when (ex.Message.Contains($"refs/remotes/{remote.Name}/", StringComparison.Ordinal)
+                    && !RemoteTrackingRefsAreLocked(repo, remote.Name)
+                )
+            {
+                // When a remote branch is replaced by one nested under or above it, such as develop by develop/test,
+                // the stale tracking ref is in the way. Git's fetch --prune removes stale refs before it writes new
+                // ones, but libgit2 prunes afterwards. Tracking refs only mirror the remote, so fetch writes them again.
+                RemoveRemoteTrackingRefs(repo, remote.Name);
+                Activity.Current?.SetTag(ServiceTelemetry.Attributes.Git.FetchTrackingRefsRebuilt, true);
+                Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+            }
+        }
+    }
+
+    private static bool RemoteTrackingRefsAreLocked(LibGit2Sharp.Repository repo, string remoteName)
+    {
+        // A writer holds the refs, or one crashed while holding them. Removing them would stop half way.
+        string trackingRefsDirectory = Path.Join(repo.Info.Path, "refs", "remotes", remoteName);
+        return File.Exists(Path.Join(repo.Info.Path, "packed-refs.lock"))
+            || (
+                Directory.Exists(trackingRefsDirectory)
+                && Directory.EnumerateFiles(trackingRefsDirectory, "*.lock", SearchOption.AllDirectories).Any()
+            );
+    }
+
+    private static void RemoveRemoteTrackingRefs(LibGit2Sharp.Repository repo, string remoteName)
+    {
+        // Keeps symbolic refs such as origin/HEAD, which fetch doesn't write.
+        List<DirectReference> trackingRefs = repo
+            .Refs.FromGlob($"refs/remotes/{remoteName}/*")
+            .OfType<DirectReference>()
+            .ToList();
+        foreach (DirectReference trackingRef in trackingRefs)
+        {
+            repo.Refs.Remove(trackingRef);
         }
     }
 
