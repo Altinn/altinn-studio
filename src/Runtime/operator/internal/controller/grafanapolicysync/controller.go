@@ -290,24 +290,25 @@ func (r *Reconciler) getPolicyTree(ctx context.Context, grafanaURL, token string
 	return json.RawMessage(body), nil
 }
 
+// putPolicyTree is not retried: if a PUT that failed did reach Grafana, sending the same tree again
+// could overwrite a route someone changed in the meantime. The next pass reads the tree again.
 func (r *Reconciler) putPolicyTree(ctx context.Context, grafanaURL, token string, tree json.RawMessage) error {
-	resp, err := r.doWithRetry(ctx, func() (*http.Request, error) {
-		req, err := http.NewRequestWithContext(
-			ctx,
-			http.MethodPut,
-			grafanaURL+policiesPath,
-			bytes.NewReader(tree),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("build PUT policy request: %w", err)
-		}
-		req.Header.Set("Authorization", "Bearer "+token)
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Disable-Provenance", "true")
-		return req, nil
-	})
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPut,
+		grafanaURL+policiesPath,
+		bytes.NewReader(tree),
+	)
 	if err != nil {
-		return err
+		return fmt.Errorf("build PUT policy request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Disable-Provenance", "true")
+
+	resp, err := r.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("PUT policy tree: %w", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -321,8 +322,7 @@ func (r *Reconciler) putPolicyTree(ctx context.Context, grafanaURL, token string
 // doWithRetry sends a request built by newRequest, and sends it again after a transport error, a
 // 429 or a 5xx, up to requestAttempts times with doubling delays. Each attempt is its own client
 // span, so the trace keeps the failed attempts, but the run fails only when the last one does. It
-// returns the last attempt's response or error. Both requests are idempotent: a PUT that reached
-// Grafana before its response was lost writes the same tree again.
+// returns the last attempt's response or error. Only use it for requests that are safe to repeat.
 func (r *Reconciler) doWithRetry(
 	ctx context.Context,
 	newRequest func() (*http.Request, error),

@@ -699,18 +699,13 @@ func TestReconciler_GetPolicyTree_DoesNotRetryClientError(t *testing.T) {
 	g.Expect(calls.Load()).To(Equal(int32(1)))
 }
 
-func TestReconciler_PutPolicyTree_RetrySendsTreeAgain(t *testing.T) {
+func TestReconciler_PutPolicyTree_DoesNotRetry(t *testing.T) {
 	g := NewWithT(t)
 
-	var bodies []string
+	var calls atomic.Int32
 	reconciler := newRetryTestReconciler(t, func(req *http.Request) (*http.Response, error) {
-		body, err := io.ReadAll(req.Body)
-		g.Expect(err).NotTo(HaveOccurred())
-		bodies = append(bodies, string(body))
-		if len(bodies) == 1 {
-			return newJSONResponse(http.StatusBadGateway, "bad gateway"), nil
-		}
-		return newJSONResponse(http.StatusAccepted, ""), nil
+		calls.Add(1)
+		return newJSONResponse(http.StatusBadGateway, "bad gateway"), nil
 	})
 
 	err := reconciler.putPolicyTree(
@@ -719,8 +714,8 @@ func TestReconciler_PutPolicyTree_RetrySendsTreeAgain(t *testing.T) {
 		"token",
 		json.RawMessage(`{"receiver":"default"}`),
 	)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(bodies).To(Equal([]string{`{"receiver":"default"}`, `{"receiver":"default"}`}))
+	g.Expect(err).To(MatchError(ContainSubstring("PUT policy tree returned non-success status: 502: bad gateway")))
+	g.Expect(calls.Load()).To(Equal(int32(1)))
 }
 
 func TestReconciler_GetPolicyTree_WaitsForClockBeforeRetrying(t *testing.T) {
