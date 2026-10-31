@@ -144,21 +144,6 @@ internal sealed class SigneeContextsManager(
             providedSignee,
             (PartyLookup lookup) => altinnPartyClient.LookupParty(lookup, cancellationToken: cancellationToken)
         );
-        Party party = signee.GetParty();
-
-        Notification? notification = providedSignee.CommunicationConfig?.Notification;
-
-        Email? emailNotification = notification?.Email;
-        if (emailNotification is not null && string.IsNullOrEmpty(emailNotification.EmailAddress))
-        {
-            emailNotification.EmailAddress = party.Organization?.EMailAddress;
-        }
-
-        Sms? smsNotification = notification?.Sms;
-        if (smsNotification is not null && string.IsNullOrEmpty(smsNotification.MobileNumber))
-        {
-            smsNotification.MobileNumber = party.Organization?.MobileNumber ?? party.Person?.MobileNumber;
-        }
 
         return new SigneeContext
         {
