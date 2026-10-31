@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.Net;
 using Altinn.Studio.Gateway.Contracts.Deploy;
 using k8s;
+using k8s.Autorest;
 using k8s.Models;
 
 namespace Altinn.Studio.Gateway.Api.Clients.K8s;
@@ -10,6 +12,8 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
     private const string ReleaseLabel = "release";
     private const string ProgressingCondition = "Progressing";
     private const string ProgressDeadlineExceededReason = "ProgressDeadlineExceeded";
+    private const string NewReplicaSetAvailableReason = "NewReplicaSetAvailable";
+    private const int MaxRestartAttempts = 3;
 
     // RFC 3339, as kubectl rollout restart writes its annotation.
     internal const string RestartedAtFormat = "yyyy-MM-ddTHH:mm:ssZ";
@@ -44,25 +48,47 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
     )
     {
         var release = ReleaseOf(org, app);
-        var deployment = await Find(release, @namespace, cancellationToken);
-        if (deployment is null)
+        var attempt = 0;
+        while (true)
         {
-            return new AppRestart.NotFound();
-        }
+            attempt++;
+            var deployment = await Find(release, @namespace, cancellationToken);
+            if (deployment is null)
+            {
+                return new AppRestart.NotFound();
+            }
 
-        var running = ToRunningAppDeployment(release, deployment);
-        if (running.Status is RunningAppStatus.Updating)
-        {
-            return new AppRestart.AlreadyUpdating(running);
-        }
+            // A paused Deployment accepts the annotation but replaces no pods, so the restart would never finish.
+            if (deployment.Spec?.Paused == true)
+            {
+                return new AppRestart.Paused();
+            }
 
-        var restarted = await _kubernetes.AppsV1.PatchNamespacedDeploymentAsync(
-            RestartPatch(_timeProvider.GetUtcNow()),
-            deployment.Metadata.Name,
-            @namespace,
-            cancellationToken: cancellationToken
-        );
-        return new AppRestart.Started(ToRunningAppDeployment(release, restarted));
+            var running = ToRunningAppDeployment(release, deployment);
+            if (running.Status is RunningAppStatus.Updating)
+            {
+                return new AppRestart.AlreadyUpdating(running);
+            }
+
+            try
+            {
+                var restarted = await _kubernetes.AppsV1.PatchNamespacedDeploymentAsync(
+                    RestartPatch(_timeProvider.GetUtcNow(), deployment.Metadata.ResourceVersion),
+                    deployment.Metadata.Name,
+                    @namespace,
+                    cancellationToken: cancellationToken
+                );
+                return new AppRestart.Started(ToRunningAppDeployment(release, restarted));
+            }
+            // The Deployment changed since it was read, such as by another restart or a deploy, so decide again.
+            catch (HttpOperationException e) when (e.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                if (attempt == MaxRestartAttempts)
+                {
+                    return new AppRestart.AlreadyUpdating(running);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -88,7 +114,8 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
 
     /// <summary>
     /// Follows the conditions <c>kubectl rollout status</c> waits for: the controller has seen the latest spec, and
-    /// every desired pod runs it and is available, with no old pods left.
+    /// every desired pod runs it and is available, with no old pods left. Pods that stop being available after the
+    /// rollout completed make the app unavailable rather than updating, since nothing is replacing them.
     /// </summary>
     internal static RunningAppStatus StatusOf(V1Deployment deployment)
     {
@@ -98,11 +125,8 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
             return RunningAppStatus.Updating;
         }
 
-        if (
-            status.Conditions?.Any(condition =>
-                condition.Type == ProgressingCondition && condition.Reason == ProgressDeadlineExceededReason
-            ) == true
-        )
+        var progress = status.Conditions?.FirstOrDefault(condition => condition.Type == ProgressingCondition)?.Reason;
+        if (progress == ProgressDeadlineExceededReason)
         {
             return RunningAppStatus.Failed;
         }
@@ -112,16 +136,28 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
         var updated = status.UpdatedReplicas ?? 0;
         var total = status.Replicas ?? 0;
         var available = status.AvailableReplicas ?? 0;
-        return updated < desired || total > updated || available < updated
-            ? RunningAppStatus.Updating
-            : RunningAppStatus.Ready;
+        if (updated < desired || total > updated)
+        {
+            return RunningAppStatus.Updating;
+        }
+
+        if (available < updated)
+        {
+            return progress == NewReplicaSetAvailableReason ? RunningAppStatus.Unavailable : RunningAppStatus.Updating;
+        }
+
+        return RunningAppStatus.Ready;
     }
 
-    internal static V1Patch RestartPatch(DateTimeOffset now)
+    /// <summary>
+    /// The patch carries the resource version it was decided on, so Kubernetes rejects it when the Deployment has
+    /// changed since.
+    /// </summary>
+    internal static V1Patch RestartPatch(DateTimeOffset now, string resourceVersion)
     {
         var timestamp = now.UtcDateTime.ToString(RestartedAtFormat, CultureInfo.InvariantCulture);
         return new V1Patch(
-            $"{{\"spec\":{{\"template\":{{\"metadata\":{{\"annotations\":{{\"{StudioLabels.RestartedAt}\":\"{timestamp}\"}}}}}}}}}}",
+            $"{{\"metadata\":{{\"resourceVersion\":\"{resourceVersion}\"}},\"spec\":{{\"template\":{{\"metadata\":{{\"annotations\":{{\"{StudioLabels.RestartedAt}\":\"{timestamp}\"}}}}}}}}}}",
             V1Patch.PatchType.MergePatch
         );
     }
@@ -157,7 +193,8 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
 }
 
 /// <summary>
-/// The outcome of restarting an app: <see cref="Started"/>, <see cref="NotFound"/> or <see cref="AlreadyUpdating"/>.
+/// The outcome of restarting an app: <see cref="Started"/>, <see cref="NotFound"/>, <see cref="Paused"/> or
+/// <see cref="AlreadyUpdating"/>.
 /// </summary>
 internal abstract record AppRestart
 {
@@ -169,8 +206,13 @@ internal abstract record AppRestart
     internal sealed record NotFound : AppRestart;
 
     /// <summary>
-    /// A deploy or an earlier restart is still replacing the app's instances, so another restart would interrupt
-    /// instances that have only just started.
+    /// Someone paused the app's Deployment by hand, so Kubernetes would not replace its pods.
+    /// </summary>
+    internal sealed record Paused : AppRestart;
+
+    /// <summary>
+    /// A deploy or an earlier restart is still replacing the app's instances, or kept changing them while the restart
+    /// was decided, so another restart would interrupt instances that have only just started.
     /// </summary>
     internal sealed record AlreadyUpdating(RunningAppDeployment Deployment) : AppRestart;
 }

@@ -17,6 +17,9 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
 
     // A pod that never becomes available keeps the Deployment updating until its progress deadline.
     private const string UnpullableImage = "registry.invalid/ttd/never:1";
+
+    // Kind preloads it on every node, so its pods start and become available without a pull.
+    private const string PauseImage = "registry.k8s.io/pause:3.10";
     private static readonly TimeSpan StatusTimeout = TimeSpan.FromSeconds(90);
 
     private readonly IKubernetes _k8sClient;
@@ -83,9 +86,12 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var app = "failing-" + Guid.NewGuid().ToString("N")[..5];
-        await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, progressDeadlineSeconds: 5, ct: ct);
-
+        await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, ct: ct);
         await WaitForStatus(app, RunningAppStatus.Updating, ct);
+
+        // Only now, so a slow run cannot miss the updating status.
+        await ShortenProgressDeadline(app, ct);
+
         await WaitForStatus(app, RunningAppStatus.Failed, ct);
     }
 
@@ -111,12 +117,13 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Restart_WhenReady_StampsThePodTemplate()
+    public async Task Restart_WhenReady_ReplacesThePods()
     {
         var ct = TestContext.Current.CancellationToken;
         var app = "restart-" + Guid.NewGuid().ToString("N")[..5];
-        await CreateDeploymentAsync(app, $"registry:5000/{Org}/{app}:9cf6fc1", ct: ct);
+        await CreateDeploymentAsync(app, PauseImage, replicas: 1, ct: ct);
         await WaitForStatus(app, RunningAppStatus.Ready, ct);
+        var podsBefore = await PodUids(app, ct);
 
         var response = await _httpClient.PostAsync(RestartUri(app), content: null, ct);
 
@@ -125,19 +132,37 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         Assert.NotNull(accepted);
         Assert.Equal(RunningAppStatus.Updating, accepted.Status);
         Assert.NotNull(accepted.RestartedAt);
-
-        var deployment = await _k8sClient.AppsV1.ReadNamespacedDeploymentAsync(
-            DeploymentName(app),
-            TestNamespace,
-            cancellationToken: ct
-        );
-        Assert.Equal(
-            accepted.RestartedAt.Value.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
-            deployment.Spec.Template.Metadata.Annotations["altinn.studio/restarted-at"]
-        );
+        Assert.Equal(FormatRestartedAt(accepted.RestartedAt.Value), await RestartedAtAnnotation(app, ct));
 
         var running = await WaitForStatus(app, RunningAppStatus.Ready, ct);
         Assert.Equal(accepted.RestartedAt, running.RestartedAt);
+        var podsAfter = await PodUids(app, ct);
+        Assert.NotEmpty(podsAfter);
+        Assert.Empty(podsAfter.Intersect(podsBefore));
+    }
+
+    [Fact]
+    public async Task Restart_WhenRequestedTwiceAtOnce_RestartsOnce()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var app = "twice-" + Guid.NewGuid().ToString("N")[..5];
+        await CreateDeploymentAsync(app, PauseImage, replicas: 1, ct: ct);
+        await WaitForStatus(app, RunningAppStatus.Ready, ct);
+
+        var responses = await Task.WhenAll(
+            Enumerable.Range(0, 5).Select(_ => _httpClient.PostAsync(RestartUri(app), content: null, ct))
+        );
+
+        Assert.Equal(
+            [
+                HttpStatusCode.Accepted,
+                HttpStatusCode.Conflict,
+                HttpStatusCode.Conflict,
+                HttpStatusCode.Conflict,
+                HttpStatusCode.Conflict,
+            ],
+            responses.Select(response => response.StatusCode).Order()
+        );
     }
 
     [Fact]
@@ -160,12 +185,32 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var app = "refail-" + Guid.NewGuid().ToString("N")[..5];
-        await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, progressDeadlineSeconds: 5, ct: ct);
+        await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, progressDeadlineSeconds: 1, ct: ct);
         await WaitForStatus(app, RunningAppStatus.Failed, ct);
 
         var response = await _httpClient.PostAsync(RestartUri(app), content: null, ct);
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        var accepted = await response.Content.ReadFromJsonAsync<RunningAppDeployment>(ct);
+        Assert.NotNull(accepted?.RestartedAt);
+        Assert.Equal(RunningAppStatus.Updating, accepted.Status);
+        Assert.Equal(FormatRestartedAt(accepted.RestartedAt.Value), await RestartedAtAnnotation(app, ct));
+    }
+
+    [Fact]
+    public async Task Restart_WhenPaused_ReturnsConflict()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var app = "paused-" + Guid.NewGuid().ToString("N")[..5];
+        await CreateDeploymentAsync(app, PauseImage, paused: true, ct: ct);
+        await WaitForStatus(app, RunningAppStatus.Ready, ct);
+
+        var response = await _httpClient.PostAsync(RestartUri(app), content: null, ct);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<GatewayProblem>(ct);
+        Assert.Equal(GatewayProblem.AppPausedType, problem?.Type);
+        Assert.Null(await RestartedAtAnnotation(app, ct));
     }
 
     [Fact]
@@ -210,6 +255,45 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         return deployment;
     }
 
+    private async Task ShortenProgressDeadline(string app, CancellationToken ct) =>
+        await _k8sClient.AppsV1.PatchNamespacedDeploymentAsync(
+            new V1Patch("""{"spec":{"progressDeadlineSeconds":1}}""", V1Patch.PatchType.MergePatch),
+            DeploymentName(app),
+            TestNamespace,
+            cancellationToken: ct
+        );
+
+    private async Task<string?> RestartedAtAnnotation(string app, CancellationToken ct)
+    {
+        var deployment = await _k8sClient.AppsV1.ReadNamespacedDeploymentAsync(
+            DeploymentName(app),
+            TestNamespace,
+            cancellationToken: ct
+        );
+        return
+            deployment.Spec.Template.Metadata.Annotations?.TryGetValue("altinn.studio/restarted-at", out var value)
+            == true
+            ? value
+            : null;
+    }
+
+    // Pods that are terminating belong to the rollout that just finished, not to what runs.
+    private async Task<HashSet<string>> PodUids(string app, CancellationToken ct)
+    {
+        var pods = await _k8sClient.CoreV1.ListNamespacedPodAsync(
+            TestNamespace,
+            labelSelector: $"release={Org}-{app}",
+            cancellationToken: ct
+        );
+        return pods
+            .Items.Where(pod => pod.Metadata.DeletionTimestamp is null)
+            .Select(pod => pod.Metadata.Uid)
+            .ToHashSet();
+    }
+
+    private static string FormatRestartedAt(DateTimeOffset restartedAt) =>
+        restartedAt.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+
     private static Uri RestartUri(string app) =>
         new($"/runtime/gateway/api/v1/deploy/apps/{Uri.EscapeDataString(app)}/restart", UriKind.Relative);
 
@@ -224,6 +308,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         Dictionary<string, string>? annotations = null,
         int replicas = 0,
         int? progressDeadlineSeconds = null,
+        bool paused = false,
         CancellationToken ct = default
     )
     {
@@ -240,6 +325,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
                 Spec = new V1DeploymentSpec
                 {
                     Replicas = replicas,
+                    Paused = paused,
                     ProgressDeadlineSeconds = progressDeadlineSeconds,
                     Selector = new V1LabelSelector { MatchLabels = labels },
                     Template = new V1PodTemplateSpec

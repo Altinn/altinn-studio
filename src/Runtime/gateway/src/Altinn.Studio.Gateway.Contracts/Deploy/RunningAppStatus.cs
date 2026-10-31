@@ -17,6 +17,13 @@ public enum RunningAppStatus
     [JsonStringEnumMemberName("updating")]
     Updating,
 
+    /// <summary>
+    /// Not every instance is available, though none is being replaced, such as when instances crash after they
+    /// started. A restart may help.
+    /// </summary>
+    [JsonStringEnumMemberName("unavailable")]
+    Unavailable,
+
     /// <summary>Instances stopped being replaced before they were all available, such as when they keep crashing.</summary>
     [JsonStringEnumMemberName("failed")]
     Failed,

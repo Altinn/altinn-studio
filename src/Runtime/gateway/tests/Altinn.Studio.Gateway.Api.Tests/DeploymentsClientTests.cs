@@ -116,6 +116,22 @@ public sealed class DeploymentsClientTests
     }
 
     [Fact]
+    public void StatusOf_WhenAPodStopsBeingAvailableAfterTheRollout_IsUnavailable()
+    {
+        var deployment = Deployment(desired: 2, status: Status(available: 1, progress: "NewReplicaSetAvailable"));
+
+        Assert.Equal(RunningAppStatus.Unavailable, DeploymentsClient.StatusOf(deployment));
+    }
+
+    [Fact]
+    public void StatusOf_WhenANewPodIsNotAvailableYetDuringTheRollout_IsUpdating()
+    {
+        var deployment = Deployment(desired: 2, status: Status(available: 1, progress: "ReplicaSetUpdated"));
+
+        Assert.Equal(RunningAppStatus.Updating, DeploymentsClient.StatusOf(deployment));
+    }
+
+    [Fact]
     public void StatusOf_WhenTheRolloutMissedItsDeadline_IsFailed()
     {
         var deployment = Deployment(
@@ -143,16 +159,37 @@ public sealed class DeploymentsClientTests
     }
 
     [Fact]
-    public void RestartPatch_StampsThePodTemplateWithTheTime()
+    public void RestartPatch_StampsThePodTemplateOfTheVersionItWasDecidedOn()
     {
-        var patch = DeploymentsClient.RestartPatch(new DateTimeOffset(2026, 10, 31, 11, 42, 5, TimeSpan.FromHours(1)));
+        var patch = DeploymentsClient.RestartPatch(
+            new DateTimeOffset(2026, 10, 31, 11, 42, 5, TimeSpan.FromHours(1)),
+            resourceVersion: "4711"
+        );
 
         Assert.Equal(V1Patch.PatchType.MergePatch, patch.Type);
         Assert.Equal(
-            """{"spec":{"template":{"metadata":{"annotations":{"altinn.studio/restarted-at":"2026-10-31T10:42:05Z"}}}}}""",
+            """{"metadata":{"resourceVersion":"4711"},"spec":{"template":{"metadata":{"annotations":{"altinn.studio/restarted-at":"2026-10-31T10:42:05Z"}}}}}""",
             patch.Content
         );
     }
+
+    private static V1DeploymentStatus Status(int available, string progress) =>
+        new()
+        {
+            ObservedGeneration = 2,
+            UpdatedReplicas = 2,
+            Replicas = 2,
+            AvailableReplicas = available,
+            Conditions =
+            [
+                new V1DeploymentCondition
+                {
+                    Type = "Progressing",
+                    Status = "True",
+                    Reason = progress,
+                },
+            ],
+        };
 
     private static V1Deployment Deployment(
         string image = "ttd/my-app:9cf6fc1",

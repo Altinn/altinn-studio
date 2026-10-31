@@ -40,6 +40,13 @@ internal static class HandleRestartApp
                     statusCode: StatusCodes.Status409Conflict,
                     detail: "A deploy or restart is still replacing the app's instances. Restart it once they are ready."
                 );
+            case AppRestart.Paused:
+                return Results.Problem(
+                    type: GatewayProblem.AppPausedType,
+                    title: "App is paused",
+                    statusCode: StatusCodes.Status409Conflict,
+                    detail: "The app's Deployment is paused, so its instances would not be replaced. Resume it first."
+                );
             default:
                 return Results.NotFound();
         }

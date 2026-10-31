@@ -33,7 +33,7 @@ internal static class DeployEndpoints
             .WithName("RestartApp")
             .WithSummary("Restart an App.")
             .WithDescription(
-                "Endpoint to replace an app's running instances with new ones of the same version, without a deploy. Returns 409 while a deploy or restart is still replacing them."
+                "Endpoint to replace an app's running instances with new ones of the same version, without a deploy. Returns 409 while a deploy or restart is still replacing them, or while the app is paused."
             );
 
         deployApi
