@@ -1,0 +1,13 @@
+{
+  "$schema": "https://altinn.studio/designer/app-dist/9.0.0-preview.6/schemas/json/layout/layoutSettings.schema.v1.json",
+  "pages": {
+    "order": [
+      "om-selskapet",
+      "stiftere-og-aksjetegning",
+      "aksjekapital",
+      "styre-og-revisjon",
+      "signering-av-stiftelsesdok"
+    ]
+  },
+  "defaultDataType": "Skjemadata"
+}
