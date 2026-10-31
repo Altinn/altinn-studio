@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation.Organisation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Medallion.Threading;
 using Moq;
 using Xunit;
 
@@ -234,17 +235,83 @@ public class OrgLibraryServiceTests
         );
     }
 
+    [Fact]
+    public async Task UpdateSharedResourcesByPath_HoldsTheContentRepositoryLockWhileItUsesTheClone()
+    {
+        Mock<IGiteaClient> giteaClient = new();
+        giteaClient
+            .Setup(c =>
+                c.GetLatestCommitOnBranch(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync("base-sha");
+        bool lockHeld = false;
+        List<bool> lockHeldDuringCloneUse = [];
+        Mock<ISourceControl> sourceControl = new();
+        sourceControl
+            .Setup(s => s.PullRemoteChanges(It.IsAny<AltinnAuthenticatedRepoEditingContext>()))
+            .Callback(() => lockHeldDuringCloneUse.Add(lockHeld))
+            .Returns(
+                new RepoStatus { RepositoryStatus = Altinn.Studio.Designer.Enums.RepositoryStatus.CheckoutConflict }
+            );
+        Mock<IDistributedSynchronizationHandle> handle = new();
+        handle.Setup(h => h.DisposeAsync()).Callback(() => lockHeld = false).Returns(ValueTask.CompletedTask);
+        Mock<ILockService> lockService = new();
+        lockService
+            .Setup(l =>
+                l.AcquireRepoUserWideLockAsync(
+                    It.Is<AltinnRepoEditingContext>(c =>
+                        c.Org == "ttd" && c.Repo == "ttd-content" && c.Developer == "testUser"
+                    ),
+                    It.IsAny<TimeSpan?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback(() => lockHeld = true)
+            .ReturnsAsync(handle.Object);
+        OrgLibraryService service = Setup(
+            overrideGitea: giteaClient,
+            overrideSourceControl: sourceControl,
+            overrideLockService: lockService
+        );
+        UpdateSharedResourceRequest request = new([new FileMetadata("file.json", "content")], "base-sha", "update");
+
+        await Assert.ThrowsAsync<LibGit2Sharp.NonFastForwardException>(() =>
+            service.UpdateSharedResourcesByPath("ttd", "testUser", "token", request)
+        );
+
+        Assert.Equal([true], lockHeldDuringCloneUse);
+        Assert.False(lockHeld);
+    }
+
     private static OrgLibraryService Setup(
         Mock<IGiteaClient>? overrideGitea = null,
         Mock<IAltinnGitRepositoryFactory>? overrideFactory = null,
-        Mock<ISourceControl>? overrideSourceControl = null
+        Mock<ISourceControl>? overrideSourceControl = null,
+        Mock<ILockService>? overrideLockService = null
     )
     {
         Mock<IGiteaClient> giteaClient = overrideGitea ?? new();
         Mock<ISourceControl> sourceControl = overrideSourceControl ?? new();
         Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = overrideFactory ?? new();
         Mock<ISharedContentClient> sharedContentClient = new();
-        Mock<ILockService> lockService = new();
+        Mock<ILockService> lockService = overrideLockService ?? new();
+        if (overrideLockService is null)
+        {
+            lockService
+                .Setup(l =>
+                    l.AcquireRepoUserWideLockAsync(
+                        It.IsAny<AltinnRepoEditingContext>(),
+                        It.IsAny<TimeSpan?>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(Mock.Of<IDistributedSynchronizationHandle>());
+        }
 
         return new(
             giteaClient.Object,
