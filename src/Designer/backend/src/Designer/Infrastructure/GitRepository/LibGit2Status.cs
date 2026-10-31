@@ -34,6 +34,16 @@ internal static class LibGit2Status
         | UpdateIndex;
 
     // The libgit2 build that the struct layouts below were checked against: libgit2 1.8.6, in LibGit2Sharp 0.32.
+    // LibGit2Sharp.Core.NativeDllName.Name names the build a LibGit2Sharp version loads. Wrong layouts read and write the
+    // wrong memory rather than fail, so before you set this to a new build, compare the new libgit2's headers and
+    // LibGit2Sharp's source with this file:
+    // - The structs match git_status_options and git_status_entry in include/git2/status.h, git_diff_delta and
+    //   git_diff_file in diff.h, and git_oid in oid.h, field by field. git_oid grows in builds with SHA-256 support.
+    // - The flag values match GIT_STATUS_OPT_* in status.h, and Flags matches what LibGit2Sharp's RepositoryStatus.cs
+    //   passes for a default StatusOptions.
+    // - The delegates match the functions they load, and git_error in errors.h still starts with the message.
+    // - LibGit2Sharp's Repository still has the internal Handle property.
+    // Then run SourceControlServiceTest, whose parity test compares this status with LibGit2Sharp's.
     private const string SupportedLibrary = "git2-5853918";
 
     private static readonly Lazy<(Native? Native, string? Failure)> s_native = new(Native.Load);
