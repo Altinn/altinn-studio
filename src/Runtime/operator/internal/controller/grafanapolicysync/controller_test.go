@@ -3,11 +3,14 @@ package grafanapolicysync
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	. "github.com/onsi/gomega"
@@ -40,7 +43,10 @@ func (r errorCloseReadCloser) Close() error {
 	return r.closeErr
 }
 
-var errTestCloseFailed = io.ErrClosedPipe
+var (
+	errTestCloseFailed         = io.ErrClosedPipe
+	errTestTLSHandshakeTimeout = errors.New("net/http: TLS handshake timeout")
+)
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
 	scheme := k8sruntime.NewScheme()
@@ -598,6 +604,7 @@ func TestReconciler_GetPolicyTree_IgnoresResponseCloseErrorOnStatusFailure(t *te
 	}
 
 	reconciler := newTestReconciler(t, newFakeK8sClient(), httpClient)
+	reconciler.retryDelay = 0
 	_, err := reconciler.getPolicyTree(context.Background(), "https://grafana.example", "token")
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(ContainSubstring("GET policy tree returned non-success status: 500: bad"))
@@ -609,4 +616,135 @@ func TestHasExternalGrafana(t *testing.T) {
 	g.Expect(hasExternalGrafana("tt02")).To(BeTrue())
 	g.Expect(hasExternalGrafana(operatorcontext.EnvironmentProd)).To(BeTrue())
 	g.Expect(hasExternalGrafana(operatorcontext.EnvironmentLocal)).To(BeFalse())
+}
+
+func newRetryTestReconciler(t *testing.T, transport roundTripFunc) *Reconciler {
+	t.Helper()
+	reconciler := newTestReconciler(t, newFakeK8sClient(), &http.Client{Transport: transport})
+	reconciler.retryDelay = 0
+	return reconciler
+}
+
+func newJSONResponse(status int, body string) *http.Response {
+	return &http.Response{
+		StatusCode: status,
+		Status:     http.StatusText(status),
+		Body:       io.NopCloser(strings.NewReader(body)),
+		Header:     make(http.Header),
+	}
+}
+
+func TestReconciler_GetPolicyTree_RetriesTransportError(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls atomic.Int32
+	reconciler := newRetryTestReconciler(t, func(req *http.Request) (*http.Response, error) {
+		if calls.Add(1) == 1 {
+			return nil, errTestTLSHandshakeTimeout
+		}
+		return newJSONResponse(http.StatusOK, `{"receiver":"default"}`), nil
+	})
+
+	tree, err := reconciler.getPolicyTree(context.Background(), "https://grafana.example", "token")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(string(tree)).To(Equal(`{"receiver":"default"}`))
+	g.Expect(calls.Load()).To(Equal(int32(2)))
+}
+
+func TestReconciler_GetPolicyTree_RetriesServerError(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls atomic.Int32
+	reconciler := newRetryTestReconciler(t, func(req *http.Request) (*http.Response, error) {
+		switch calls.Add(1) {
+		case 1:
+			return newJSONResponse(http.StatusServiceUnavailable, "unavailable"), nil
+		case 2:
+			return newJSONResponse(http.StatusTooManyRequests, "slow down"), nil
+		default:
+			return newJSONResponse(http.StatusOK, `{"receiver":"default"}`), nil
+		}
+	})
+
+	_, err := reconciler.getPolicyTree(context.Background(), "https://grafana.example", "token")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(calls.Load()).To(Equal(int32(3)))
+}
+
+func TestReconciler_GetPolicyTree_GivesUpAfterLastAttempt(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls atomic.Int32
+	reconciler := newRetryTestReconciler(t, func(req *http.Request) (*http.Response, error) {
+		calls.Add(1)
+		return nil, errTestTLSHandshakeTimeout
+	})
+
+	_, err := reconciler.getPolicyTree(context.Background(), "https://grafana.example", "token")
+	g.Expect(err).To(MatchError(errTestTLSHandshakeTimeout))
+	g.Expect(calls.Load()).To(Equal(int32(requestAttempts)))
+}
+
+func TestReconciler_GetPolicyTree_DoesNotRetryClientError(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls atomic.Int32
+	reconciler := newRetryTestReconciler(t, func(req *http.Request) (*http.Response, error) {
+		calls.Add(1)
+		return newJSONResponse(http.StatusUnauthorized, "invalid token"), nil
+	})
+
+	_, err := reconciler.getPolicyTree(context.Background(), "https://grafana.example", "token")
+	g.Expect(err).To(MatchError(ContainSubstring("GET policy tree returned non-success status: 401: invalid token")))
+	g.Expect(calls.Load()).To(Equal(int32(1)))
+}
+
+func TestReconciler_PutPolicyTree_DoesNotRetry(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls atomic.Int32
+	reconciler := newRetryTestReconciler(t, func(req *http.Request) (*http.Response, error) {
+		calls.Add(1)
+		return newJSONResponse(http.StatusBadGateway, "bad gateway"), nil
+	})
+
+	err := reconciler.putPolicyTree(
+		context.Background(),
+		"https://grafana.example",
+		"token",
+		json.RawMessage(`{"receiver":"default"}`),
+	)
+	g.Expect(err).To(MatchError(ContainSubstring("PUT policy tree returned non-success status: 502: bad gateway")))
+	g.Expect(calls.Load()).To(Equal(int32(1)))
+}
+
+func TestReconciler_GetPolicyTree_WaitsForClockBeforeRetrying(t *testing.T) {
+	g := NewWithT(t)
+
+	var calls atomic.Int32
+	reconciler := newTestReconciler(t, newFakeK8sClient(), &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			if calls.Add(1) == 1 {
+				return nil, errTestTLSHandshakeTimeout
+			}
+			return newJSONResponse(http.StatusOK, `{"receiver":"default"}`), nil
+		}),
+	})
+	clock, ok := reconciler.runtime.GetClock().(*opclock.FakeClock)
+	g.Expect(ok).To(BeTrue())
+
+	done := make(chan error, 1)
+	go func() {
+		_, err := reconciler.getPolicyTree(context.Background(), "https://grafana.example", "token")
+		done <- err
+	}()
+
+	g.Eventually(calls.Load).Should(Equal(int32(1)))
+	g.Consistently(calls.Load, 100*time.Millisecond).Should(Equal(int32(1)))
+
+	g.Eventually(func() int32 {
+		clock.Advance(initialRequestDelay)
+		return calls.Load()
+	}).Should(Equal(int32(2)))
+	g.Eventually(done).Should(Receive(BeNil()))
 }
