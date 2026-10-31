@@ -62,7 +62,9 @@ COPY . .
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:d8ee39817ca03a3757288e83c37ed73cc969a286c603b827c7cbe33add1c2d1c AS generate-studio-backend
+# The same Ubuntu as the final image, so that what dotnet publish builds for the build machine, such as the native
+# launcher, also runs there.
+FROM mcr.microsoft.com/dotnet/sdk:10.0-resolute@sha256:667f3cee6f24afb202d3e32c7941e3800bbac57dd70bb68f89e52a6245aff88f AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/common/dotnet/Altinn.Studio.Common ./src/common/dotnet/Altinn.Studio.Common
@@ -94,13 +96,13 @@ COPY ./src/App/template/v9/src /app-template-dotnet-src/v9
 WORKDIR /app-template-dotnet-src/v9
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v9/src
 
-# Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:ecf8dcbaab8ebc4bdfb2322d6fe4217bbb118894310ebb6d53c580874ab4b27d AS final
-EXPOSE 80
+# Building the final image. The chiseled image has no shell or package manager, so this stage only copies files.
+# Its -extra variant adds ICU and time zones, which Designer needs.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-resolute-chiseled-extra@sha256:41db8302b4b08401ccf2bf139b02b37460da8872179d793899782ec0ef90933a AS final
 WORKDIR /app
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-  DOTNET_RUNNING_IN_CONTAINER=true
-RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
+# Designer's database connections never use Kerberos. Without this, Npgsql looks for the Kerberos library, which the
+# image does not have, and the runtime prints an error at startup. A connection string can still set the mode.
+ENV PGGSSENCMODE=disable
 
 COPY --from=generate-studio-backend /app_output .
 
@@ -117,4 +119,5 @@ COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/ver
 ## Copying app templates. GeneralSettings decides which one new applications default to.
 COPY --from=app-template-release /app-template-release ./Templates/AspNet
 
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

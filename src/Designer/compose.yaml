@@ -168,6 +168,8 @@ services:
         condition: service_started
       studio_azure_mock:
         condition: service_started
+      studio_designer_volumes:
+        condition: service_completed_successfully
     build:
       context: ./../..
       dockerfile: src/Designer/Dockerfile
@@ -175,8 +177,18 @@ services:
       - 'host.docker.internal:host-gateway'
       - 'studio.localhost:host-gateway'
 
-  # Designer's healthcheck runs outside its container, because the chiseled image Designer is moving to has no shell
-  # or HTTP client to run one with. The services that need Designer running wait for this container to finish.
+  # Designer runs as the app user of the .NET container images, but a volume Docker creates, or one an earlier Designer
+  # wrote to as root, belongs to root. This gives Designer's volumes to the app user before it starts.
+  studio_designer_volumes:
+    container_name: studio-designer-volumes
+    image: docker.io/library/alpine:3.24
+    command: ['chown', '-R', '1654:1654', '/AltinnCore/Repos', '/mnt/keys']
+    volumes:
+      - 'designer-git-data:/AltinnCore/Repos'
+      - 'keys:/mnt/keys'
+
+  # Designer's healthcheck runs outside its container, because Designer's chiseled image has no shell or HTTP client to
+  # run one with. The services that need Designer running wait for this container to finish.
   studio_designer_ready:
     container_name: studio-designer-ready
     image: docker.io/library/alpine:3.24
