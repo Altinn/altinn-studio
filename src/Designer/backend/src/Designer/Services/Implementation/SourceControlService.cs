@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Exceptions.SourceControl;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
@@ -465,12 +466,21 @@ public class SourceControlService(
                 using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
                 try
                 {
-                    RepositoryStatus status = repo.RetrieveStatus(new StatusOptions());
-                    foreach (StatusEntry item in status)
+                    IReadOnlyList<(string FilePath, FileStatus State)>? status =
+                        LibGit2Status.RetrieveStatusUpdatingIndex(repo);
+                    if (status is null)
+                    {
+                        ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.StatusIndexLocked, true);
+                        status = repo.RetrieveStatus(new StatusOptions())
+                            .Select(item => (item.FilePath, item.State))
+                            .ToList();
+                    }
+
+                    foreach ((string filePath, FileStatus state) in status)
                     {
                         RepositoryContent content = new();
-                        content.FilePath = item.FilePath;
-                        content.FileStatus = (Enums.FileStatus)(int)item.State;
+                        content.FilePath = filePath;
+                        content.FileStatus = (Enums.FileStatus)(int)state;
                         if (content.FileStatus == Enums.FileStatus.Conflicted)
                         {
                             repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
@@ -480,13 +490,16 @@ public class SourceControlService(
                         repoStatus.ContentStatus.Add(content);
                     }
 
-                    if (repo.Head.IsTracking)
+                    Branch head = repo.Head;
+                    if (head.IsTracking)
                     {
-                        repoStatus.AheadBy = repo.Head.TrackingDetails.AheadBy;
-                        repoStatus.BehindBy = repo.Head.TrackingDetails.BehindBy;
+                        // Each TrackingDetails compares the histories again.
+                        BranchTrackingDetails trackingDetails = head.TrackingDetails;
+                        repoStatus.AheadBy = trackingDetails.AheadBy;
+                        repoStatus.BehindBy = trackingDetails.BehindBy;
                     }
 
-                    repoStatus.CurrentBranch = repo.Head.FriendlyName;
+                    repoStatus.CurrentBranch = head.FriendlyName;
                     return repoStatus;
                 }
                 finally
