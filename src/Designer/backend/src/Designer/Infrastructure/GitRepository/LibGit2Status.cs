@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -142,6 +143,23 @@ internal static unsafe class LibGit2Status
     [return: UnsafeAccessorType("LibGit2Sharp.Core.Handles.RepositoryHandle, LibGit2Sharp")]
     private static extern object GetHandle(LibGit2Sharp.Repository repo);
 
+    // LibGit2Sharp's lookup of its native library, which it registers with NativeLibrary.SetDllImportResolver:
+    // GlobalSettings.NativeLibraryPath when set, then the default lookup, then the runtimes folders.
+    // NativeLibrary.Load(name, assembly, searchPath) doesn't call registered resolvers, so it could find another copy.
+    [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "ResolveDll")]
+    private static extern nint ResolveLibGit2(
+        [UnsafeAccessorType("LibGit2Sharp.Core.NativeMethods, LibGit2Sharp")] object? nativeMethods,
+        string libraryName,
+        Assembly assembly,
+        DllImportSearchPath? searchPath
+    );
+
+    /// <summary>
+    /// Why the libgit2 at <paramref name="library"/> can't be used, or null when it can: when it is the copy that
+    /// LibGit2Sharp initialized. For tests.
+    /// </summary>
+    internal static string? CheckLibrary(nint library) => Native.Bind(library).Failure;
+
     [StructLayout(LayoutKind.Sequential)]
     private struct GitStatusOptions
     {
@@ -212,6 +230,8 @@ internal static unsafe class LibGit2Status
         public readonly delegate* unmanaged[Cdecl]<nint, nuint, GitStatusEntry*> ByIndex;
         public readonly delegate* unmanaged[Cdecl]<nint, void> ListFree;
         public readonly delegate* unmanaged[Cdecl]<GitError*> ErrorLast;
+        private readonly delegate* unmanaged[Cdecl]<int> _init;
+        private readonly delegate* unmanaged[Cdecl]<int> _shutdown;
 
         private Native(nint library)
         {
@@ -225,6 +245,8 @@ internal static unsafe class LibGit2Status
                 NativeLibrary.GetExport(library, "git_status_byindex");
             ListFree = (delegate* unmanaged[Cdecl]<nint, void>)NativeLibrary.GetExport(library, "git_status_list_free");
             ErrorLast = (delegate* unmanaged[Cdecl]<GitError*>)NativeLibrary.GetExport(library, "git_error_last");
+            _init = (delegate* unmanaged[Cdecl]<int>)NativeLibrary.GetExport(library, "git_libgit2_init");
+            _shutdown = (delegate* unmanaged[Cdecl]<int>)NativeLibrary.GetExport(library, "git_libgit2_shutdown");
         }
 
         public static (Native? Native, string? Failure) Load()
@@ -234,21 +256,48 @@ internal static unsafe class LibGit2Status
             {
                 return (null, $"LibGit2Sharp loads libgit2 {libGit2}, not {SupportedLibGit2}.");
             }
+            nint library;
             try
             {
-                // Through LibGit2Sharp's assembly, so its resolver finds the library it loaded itself.
-                nint library = NativeLibrary.Load(
+                library = ResolveLibGit2(
+                    null,
                     $"git2-{SupportedLibGit2}",
                     typeof(LibGit2Sharp.Repository).Assembly,
                     null
                 );
-                return (new Native(library), null);
             }
-            catch (Exception e)
-                when (e is DllNotFoundException or BadImageFormatException or EntryPointNotFoundException)
+            catch (Exception e) when (e is MissingMemberException or TypeLoadException)
+            {
+                return (null, "LibGit2Sharp no longer has the resolver NativeMethods.ResolveDll.");
+            }
+            return library == 0 ? (null, "LibGit2Sharp's resolver found no libgit2.") : Bind(library);
+        }
+
+        /// <summary>
+        /// Binds to the libgit2 at <paramref name="library"/> if it is the copy LibGit2Sharp initialized. Another copy
+        /// would have its own global state and fail on LibGit2Sharp's repository, so it isn't given one.
+        /// </summary>
+        public static (Native? Native, string? Failure) Bind(nint library)
+        {
+            Native native;
+            try
+            {
+                native = new Native(library);
+            }
+            catch (EntryPointNotFoundException e)
             {
                 return (null, $"Could not load libgit2's status functions: {e.Message}");
             }
+            // libgit2 counts its initializations. LibGit2Sharp's copy has at least its own, so this one makes two or
+            // more. A copy nobody initialized counts one, and shutting it down again leaves it as it was.
+            int initializations = native._init();
+            if (initializations > 0)
+            {
+                native._shutdown();
+            }
+            return initializations >= 2
+                ? (native, null)
+                : (null, "The libgit2 found is not the copy LibGit2Sharp initialized.");
         }
     }
 }
