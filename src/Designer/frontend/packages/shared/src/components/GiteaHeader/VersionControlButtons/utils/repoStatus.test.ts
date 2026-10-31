@@ -58,6 +58,10 @@ describe('repoStatus', () => {
       expect(hasChangesToShare({ ...mockRepoStatus, aheadBy: 1 })).toBe(true);
     });
 
+    it('should be true for a branch that is not on Gitea, which has no count', () => {
+      expect(hasChangesToShare({ ...mockRepoStatus, aheadBy: null })).toBe(true);
+    });
+
     it('should be false when the only changed files are ignored', () => {
       const status = {
         ...mockRepoStatus,
