@@ -958,6 +958,38 @@ public class SourceControlServiceTest : IDisposable
         Assert.NotNull(repo.Branches[$"origin/{General.DefaultBranch}"]);
     }
 
+    [Fact]
+    public void FetchRemoteChanges_WhenATrackingRefIsLocked_KeepsTheTrackingRefs()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        using (Repository collaboratorRepo = new(collaboratorRepoPath))
+        {
+            collaboratorRepo.CreateBranch("other");
+            collaboratorRepo.Network.Push(
+                collaboratorRepo.Network.Remotes["origin"],
+                "refs/heads/other",
+                new PushOptions()
+            );
+        }
+        _sourceControlService.FetchRemoteChanges(authenticatedContext);
+        CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+        File.WriteAllText(
+            Path.Join(localRepoPath, ".git", "refs", "remotes", "origin", $"{General.DefaultBranch}.lock"),
+            string.Empty
+        );
+
+        Assert.Throws<LibGit2SharpException>(() => _sourceControlService.FetchRemoteChanges(authenticatedContext));
+
+        using Repository repo = new(localRepoPath);
+        Assert.NotNull(repo.Branches[$"origin/{General.DefaultBranch}"]);
+        Assert.NotNull(repo.Branches["origin/other"]);
+    }
+
     private static HttpContext GetHttpContextForTestUser(string userName)
     {
         List<Claim> claims = new();

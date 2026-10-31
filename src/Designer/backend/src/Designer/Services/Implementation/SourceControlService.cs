@@ -1571,7 +1571,9 @@ public class SourceControlService(
                 Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
             }
             catch (LibGit2SharpException ex)
-                when (ex.Message.Contains($"refs/remotes/{remote.Name}/", StringComparison.Ordinal))
+                when (ex.Message.Contains($"refs/remotes/{remote.Name}/", StringComparison.Ordinal)
+                    && !RemoteTrackingRefsAreLocked(repo, remote.Name)
+                )
             {
                 // When a remote branch is replaced by one nested under or above it, such as develop by develop/test,
                 // the stale tracking ref is in the way. Git's fetch --prune removes stale refs before it writes new
@@ -1581,6 +1583,17 @@ public class SourceControlService(
                 Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
             }
         }
+    }
+
+    private static bool RemoteTrackingRefsAreLocked(LibGit2Sharp.Repository repo, string remoteName)
+    {
+        // A writer holds the refs, or one crashed while holding them. Removing them would stop half way.
+        string trackingRefsDirectory = Path.Join(repo.Info.Path, "refs", "remotes", remoteName);
+        return File.Exists(Path.Join(repo.Info.Path, "packed-refs.lock"))
+            || (
+                Directory.Exists(trackingRefsDirectory)
+                && Directory.EnumerateFiles(trackingRefsDirectory, "*.lock", SearchOption.AllDirectories).Any()
+            );
     }
 
     private static void RemoveRemoteTrackingRefs(LibGit2Sharp.Repository repo, string remoteName)
