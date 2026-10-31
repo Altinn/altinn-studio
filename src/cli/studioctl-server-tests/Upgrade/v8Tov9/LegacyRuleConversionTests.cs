@@ -386,23 +386,30 @@ public sealed class LegacyRuleConversionTests
         using System.Collections.Generic;
         using System.Threading.Tasks;
         using Altinn.App.Core.Internal.Expressions;
-        namespace TestModels { public class Root { } }
+        namespace TestModels { public class Root { public Altinn.App.Core.Internal.Data.IFormDataWrapper Wrapper { get; set; } = null!; } }
         namespace Altinn.App.Core.Internal.Expressions {
             public readonly record struct ExpressionValue(object? Value) {
                 public static ExpressionValue FromObject(object? value) => new(value);
             }
         }
         namespace Altinn.App.Core.Features {
-            public interface IInstanceDataMutator { }
-            public interface IDataWriteProcessor { }
+            public interface IDataProcessor {
+                Task ProcessDataRead(Altinn.Platform.Storage.Interface.Models.Instance instance, Guid? dataId, object data, string? language);
+                Task ProcessDataWrite(Altinn.Platform.Storage.Interface.Models.Instance instance, Guid? dataId, object data, object? previousData, string? language);
+            }
         }
         namespace Altinn.App.Core.Internal.Data {
             public interface IFormDataWrapper { object? Get(ReadOnlySpan<char> path); bool Set(ReadOnlySpan<char> path, ExpressionValue value); IFormDataWrapper Copy(); }
         }
-        namespace Altinn.App.Core.Models {
-            public class Change { public object CurrentFormData { get; } = new TestModels.Root();
-                public Altinn.App.Core.Internal.Data.IFormDataWrapper CurrentFormDataWrapper { get; set; } = null!; }
-            public class DataElementChanges { public List<Change> FormDataChanges { get; } = new(); }
+        namespace Altinn.Platform.Storage.Interface.Models {
+            public class Instance { }
+            public class DataType { public string Id { get; set; } = ""; }
+            public class DataElement { }
+        }
+        namespace Altinn.App.Core.Internal.Data {
+            public static class FormDataWrapperFactory {
+                public static IFormDataWrapper Create(object model, Altinn.Platform.Storage.Interface.Models.DataType type, Altinn.Platform.Storage.Interface.Models.DataElement? dataElement) => ((TestModels.Root)model).Wrapper;
+            }
         }
         public class Store(Dictionary<string, object?> inputs) : Altinn.App.Core.Internal.Data.IFormDataWrapper {
             public object? Result = 19d;
@@ -413,9 +420,11 @@ public sealed class LegacyRuleConversionTests
         public static class Entry {
             public static async Task<object?> Run(Dictionary<string, object?> inputs) {
                 var store = new Store(inputs);
-                var changes = new Altinn.App.Core.Models.DataElementChanges();
-                changes.FormDataChanges.Add(new() { CurrentFormDataWrapper = store });
-                await new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor().ProcessDataWrite(null!, "task", changes, null);
+                var model = new TestModels.Root { Wrapper = store };
+                var processor = new Altinn.App.Logic.ConvertedLegacyRules.FormDataProcessor();
+                await processor.ProcessDataWrite(new(), null, model, null, null);
+                await processor.ProcessDataRead(new(), null, model, null);
+                await processor.ProcessDataWrite(new(), null, new object(), null, null);
                 return store.Result;
             }
         }

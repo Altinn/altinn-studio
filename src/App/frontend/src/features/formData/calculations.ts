@@ -182,11 +182,13 @@ export function runCalculations(
           window.logWarnOnce(`Could not convert calculation result for ${dataType}.${target}`);
           continue;
         }
-        if (converted.value === null) {
-          dot.delete(target, model.currentData);
+        if (converted.value === null && dot.pick(target, model.currentData) === undefined) {
+          // An absent value already means null. Do not create missing parent objects just to clear a field.
           dot.delete(target, model.invalidCurrentData);
           continue;
         }
+        // Keep explicit nulls stable across saves. Deleting them makes every nullable value returned by
+        // the backend look like another local change and can trigger an endless series of saves.
         if (!deepEqual(dot.pick(target, model.currentData), converted.value)) {
           dot.str(target, converted.value, model.currentData);
         }
