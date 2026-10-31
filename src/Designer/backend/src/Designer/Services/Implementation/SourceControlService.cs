@@ -911,7 +911,8 @@ public class SourceControlService(
                 Branch upstream =
                     repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
                     ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
-                Tree headTreeBeforeRebase = repo.Head.Tip.Tree;
+                LibGit2Sharp.Commit originalTip = repo.Head.Tip;
+                Tree headTreeBeforeRebase = originalTip.Tree;
 
                 try
                 {
@@ -946,7 +947,7 @@ public class SourceControlService(
                     {
                         if (!mergedInstead && mergeResult.Status != MergeStatus.UpToDate)
                         {
-                            CommitMergeOnTopOf(repo, upstream.Tip, localCommits, signature);
+                            CommitMergeOnTopOf(repo, originalTip, upstream.Tip, localCommits, signature);
                         }
 
                         result.Status = RebaseStatus.Complete;
@@ -1710,6 +1711,7 @@ public class SourceControlService(
     // commits, or the merged files as uncommitted changes, which the next share combines again.
     private static void CommitMergeOnTopOf(
         LibGit2Sharp.Repository repo,
+        LibGit2Sharp.Commit originalTip,
         LibGit2Sharp.Commit onto,
         LibGit2Sharp.Commit[] localCommits,
         LibGit2Sharp.Signature committer
@@ -1735,7 +1737,16 @@ public class SourceControlService(
             File.Delete(Path.Join(repo.Info.Path, mergeFile));
         }
 
-        repo.Refs.UpdateTarget(repo.Refs[branchReference], target.Id, "studio: combine local commits");
+        // Requests outside the repository lock can commit meanwhile. Their commit already holds the merged files, so
+        // keeping it loses nothing, and the next share publishes it. LibGit2Sharp cannot make the check and the move
+        // one step, so a commit in between the two is still overwritten.
+        LibGit2Sharp.Reference branch = repo.Refs[branchReference];
+        if (branch.TargetIdentifier != originalTip.Sha)
+        {
+            throw new InvalidOperationException($"'{branchReference}' changed while Studio combined it.");
+        }
+
+        repo.Refs.UpdateTarget(branch, target.Id, "studio: combine local commits");
     }
 
     private static bool IsUtf8(string? encoding) =>
