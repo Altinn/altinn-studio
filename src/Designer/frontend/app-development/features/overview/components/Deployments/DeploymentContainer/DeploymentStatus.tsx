@@ -115,6 +115,51 @@ export const DeploymentStatus = ({
     );
   }
 
+  const goToPublish = (
+    <Trans i18nKey='overview.go_to_publish'>
+      <a href={publishPath(org, app)} />
+    </Trans>
+  );
+
+  if (runningApp.status === 'updating') {
+    return (
+      <DeploymentStatusAlert
+        severity='info'
+        content={
+          <div className={classes.loadingSpinner}>
+            <StudioSpinner aria-hidden data-size='xs' />
+            {t('app_deployment.status.inProgress')}
+          </div>
+        }
+        footer={goToPublish}
+      />
+    );
+  }
+
+  if (runningApp.status === 'unavailable') {
+    return (
+      <DeploymentStatusAlert
+        severity='warning'
+        content={
+          <StudioParagraph spacing>{t('app_deployment.status.not_responding')}</StudioParagraph>
+        }
+        footer={goToPublish}
+      />
+    );
+  }
+
+  if (runningApp.status === 'failed') {
+    return (
+      <DeploymentStatusAlert
+        severity='danger'
+        content={
+          <StudioParagraph spacing>{t('app_deployment.status.update_failed')}</StudioParagraph>
+        }
+        footer={goToPublish}
+      />
+    );
+  }
+
   return (
     <DeploymentStatusAlert
       severity='success'

@@ -1,16 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { renderWithProviders } from '../../../../test/testUtils';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+
+const environment = 'tt02';
+const linkToEnv = 'https://unit-test';
+const restartableApp: RunningApp = {
+  environment,
+  version: '1',
+  buildId: null,
+  status: 'ready',
+  restartedAt: null,
+  canRestart: true,
+};
 
 describe('DeployMoreOptionsMenu', () => {
-  const linkToEnv = 'https://unit-test';
-
   it('should display two options, undeploy app and link to app', async () => {
-    renderMenu(linkToEnv);
+    renderMenu();
     await openMenu();
 
     const listItems = screen.getAllByRole('listitem');
@@ -23,7 +36,7 @@ describe('DeployMoreOptionsMenu', () => {
   });
 
   it('should open list of list-items when menu trigger is clicked', async () => {
-    renderMenu(linkToEnv);
+    renderMenu();
     await openMenu();
 
     const listItems = screen.getAllByRole('listitem');
@@ -31,7 +44,7 @@ describe('DeployMoreOptionsMenu', () => {
   });
 
   it('should open dialog if undeploy is clicked', async () => {
-    renderMenu(linkToEnv);
+    renderMenu();
     await openMenu();
 
     const undeployButton = screen.getByRole('button', {
@@ -41,7 +54,7 @@ describe('DeployMoreOptionsMenu', () => {
   });
 
   it('should have a link to app within the env', async () => {
-    renderMenu(linkToEnv);
+    renderMenu();
     await openMenu();
 
     const linkButton = screen.getByRole('link', {
@@ -50,13 +63,51 @@ describe('DeployMoreOptionsMenu', () => {
     expect(linkButton).toHaveAttribute('href', linkToEnv);
     expect(linkButton).toHaveAttribute('rel', 'noopener noreferrer');
   });
+
+  it('offers a restart when the app can be restarted and the user may deploy to the environment', async () => {
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+
+    expect(getRestartButton()).toBeInTheDocument();
+  });
+
+  it('does not offer a restart when another Studio environment deployed the app', async () => {
+    renderMenu({
+      runningApp: { ...restartableApp, canRestart: false },
+      permissions: [environment],
+    });
+    await openMenu();
+
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
+
+  it('does not offer a restart when the user may not deploy to the environment', async () => {
+    renderMenu({ runningApp: restartableApp, permissions: ['production'] });
+    await openMenu();
+
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
 });
 
-function renderMenu(linkToEnv: string): void {
-  render(
-    <ServicesContextProvider {...queriesMock} client={undefined}>
-      <DeployMoreOptionsMenu linkToEnv={linkToEnv} environment='unit-test-env' />
-    </ServicesContextProvider>,
+type RenderMenuOptions = {
+  runningApp?: RunningApp;
+  permissions?: string[];
+};
+
+function renderMenu({
+  runningApp = { ...restartableApp, canRestart: false },
+  permissions = [],
+}: RenderMenuOptions = {}): void {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.DeployPermissions, org, app], permissions);
+  renderWithProviders(
+    <DeployMoreOptionsMenu
+      linkToEnv={linkToEnv}
+      environment={environment}
+      envTitle='TT02'
+      runningApp={runningApp}
+    />,
+    { queryClient, startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/deploy` },
   );
 }
 
@@ -68,3 +119,9 @@ async function openMenu(): Promise<void> {
     }),
   );
 }
+
+const getRestartButton = () =>
+  screen.getByRole('button', { name: textMock('app_deployment.restart_button') });
+
+const queryRestartButton = () =>
+  screen.queryByRole('button', { name: textMock('app_deployment.restart_button') });

@@ -81,4 +81,21 @@ describe('DeploymentStatus', () => {
 
     expect(screen.getByText(textMock('app_deployment.status.succeeded'))).toBeInTheDocument();
   });
+  it('shows that the app is updating while its instances are replaced', async () => {
+    render({ runningApp: { ...runningApp, version: '1', status: 'updating' } });
+
+    expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
+  });
+
+  it('shows that the app does not respond when it is unavailable', async () => {
+    render({ runningApp: { ...runningApp, version: '1', status: 'unavailable' } });
+
+    expect(screen.getByText(textMock('app_deployment.status.not_responding'))).toBeInTheDocument();
+  });
+
+  it('shows that the update failed when it failed', async () => {
+    render({ runningApp: { ...runningApp, version: '1', status: 'failed' } });
+
+    expect(screen.getByText(textMock('app_deployment.status.update_failed'))).toBeInTheDocument();
+  });
 });

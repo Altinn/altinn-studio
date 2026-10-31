@@ -39,6 +39,17 @@ export const DeploymentEnvironmentStatus = ({
     });
   };
 
+  // A restart after the last deploy is the latest the user did to what runs.
+  const lastChange = (publishedDate?: string, restartedAt?: string | null): string | undefined => {
+    if (restartedAt && (!publishedDate || new Date(restartedAt) > new Date(publishedDate))) {
+      return t('app_deployment.last_restarted', { lastRestartedDate: formatDateTime(restartedAt) });
+    }
+    return (
+      publishedDate &&
+      t('app_deployment.last_published', { lastPublishedDate: formatDateTime(publishedDate) })
+    );
+  };
+
   const DeploymentStatusAlert = ({
     severity,
     content,
@@ -55,7 +66,12 @@ export const DeploymentEnvironmentStatus = ({
           {envTitle}
         </StudioHeading>
         {runningApp?.version && (
-          <DeployMoreOptionsMenu linkToEnv={urlToApp} environment={envName} />
+          <DeployMoreOptionsMenu
+            linkToEnv={urlToApp}
+            environment={envName}
+            envTitle={envTitle}
+            runningApp={runningApp}
+          />
         )}
 
         {content}
@@ -104,6 +120,46 @@ export const DeploymentEnvironmentStatus = ({
     );
   }
 
+  if (runningApp.status === 'updating') {
+    return (
+      <DeploymentStatusAlert
+        severity='info'
+        content={
+          <div className={classes.loadingSpinner}>
+            <StudioSpinner aria-hidden data-size='xs' />
+            {t('app_deployment.status.inProgress')}
+          </div>
+        }
+      />
+    );
+  }
+
+  if (runningApp.status === 'unavailable') {
+    return (
+      <DeploymentStatusAlert
+        severity='warning'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.not_responding')}
+          </StudioParagraph>
+        }
+      />
+    );
+  }
+
+  if (runningApp.status === 'failed') {
+    return (
+      <DeploymentStatusAlert
+        severity='danger'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.update_failed')}
+          </StudioParagraph>
+        }
+      />
+    );
+  }
+
   return (
     <DeploymentStatusAlert
       severity='success'
@@ -125,10 +181,7 @@ export const DeploymentEnvironmentStatus = ({
           />
         </StudioParagraph>
       }
-      footer={
-        lastPublishedDate &&
-        t('app_deployment.last_published', { lastPublishedDate: formatDateTime(lastPublishedDate) })
-      }
+      footer={lastChange(lastPublishedDate, runningApp.restartedAt)}
     />
   );
 };
