@@ -600,7 +600,7 @@
   "sync_header.service_updated_to_latest": "Your app is updated to the latest version",
   "sync_header.sharing_changes_completed": "You have shared your changes and your app is updated to the latest version",
   "sync_header.sharing_changes_no_access": "You do not have the necessary rights for sharing your changes for this app",
-  "sync_header.sharing_changes_rejected": "Others shared changes at the same time as you, so your changes were not shared.",
+  "sync_header.sharing_changes_rejected": "Others shared changes at the same time as you, so your changes were not shared. Try again.",
   "top_menu.about": "About",
   "top_menu.create": "Create",
   "top_menu.data_model": "Data model",

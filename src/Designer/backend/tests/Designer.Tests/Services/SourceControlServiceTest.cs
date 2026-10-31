@@ -811,6 +811,24 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
+    public void PushChangesForRepository_WhenAheadWithNothingUncommitted_PushesTheCommits()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        string localCommitSha = CommitLocalChange(localRepoPath, "local-only.txt", "local content", "local update");
+
+        _sourceControlService.PushChangesForRepository(authenticatedContext, new CommitInfo { Message = "share" });
+
+        using Repository collaboratorRepo = new(collaboratorRepoPath);
+        Commands.Fetch(collaboratorRepo, "origin", [], new FetchOptions(), null);
+        Assert.Equal(localCommitSha, collaboratorRepo.Branches[$"origin/{General.DefaultBranch}"].Tip.Sha);
+    }
+
+    [Fact]
     public void PullRemoteChanges_RepoInitializedFromEmptyRemote_PullsRemoteChanges()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();

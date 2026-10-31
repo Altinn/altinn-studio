@@ -1948,7 +1948,7 @@
   "sync_header.settings_back_to_ui-editor": "Til Utforming",
   "sync_header.sharing_changes_completed": "Du har delt dine endringer og appen er oppdatert til siste versjon",
   "sync_header.sharing_changes_no_access": "Du har ikke skriverettigheter til denne appen og kan ikke dele dine endringer med andre",
-  "sync_header.sharing_changes_rejected": "Andre delte endringer samtidig som deg, så endringene dine ble ikke delt.",
+  "sync_header.sharing_changes_rejected": "Andre delte endringer samtidig som deg, så endringene dine ble ikke delt. Prøv igjen.",
   "sync_header.show_changes_modal.column_header_file_name": "Filnavn",
   "sync_header.show_changes_modal.column_header_file_status": "Status",
   "sync_header.show_changes_modal.file_diff_title": "Endringer i {{fileName}}",

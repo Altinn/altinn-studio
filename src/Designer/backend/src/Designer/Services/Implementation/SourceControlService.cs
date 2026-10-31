@@ -711,37 +711,20 @@ public class SourceControlService(
             if (isDirty)
             {
                 EnsureUnbornHeadPointsToBranch(repo, branchName);
-                string remoteUrl = FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
-                {
-                    // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
-                    // Requires administrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
-
                 Commands.Stage(repo, "*");
 
                 LibGit2Sharp.Signature signature = GetDeveloperSignature(authenticatedContext.Developer);
                 LibGit2Sharp.Commit commit = repo.Commit(message, signature, signature);
                 commitCreated = true;
                 createdCommitSha = commit.Sha;
+            }
 
-                PushOptions options = new()
-                {
-                    CredentialsProvider = GetCredentialsHandler(authenticatedContext),
-                    CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
-                };
-
-                Branch branch =
-                    repo.Branches[branchName]
-                    ?? throw new BranchNotFoundException(
-                        $"Branch '{branchName}' not found in local repository. Cannot push non-existing branch."
-                    );
-                branch = EnsureLocalBranchTracksOrigin(repo, branch);
-                repo.Network.Push(branch, options);
-                pushedBranchName = branch.FriendlyName;
+            // A share that failed after committing, or an org library update that failed to push, leaves commits
+            // that only a push publishes.
+            if (commitCreated || HasCommitsNotOnOrigin(repo, branchName))
+            {
+                PushBranch(repo, authenticatedContext, branchName);
+                pushedBranchName = branchName;
             }
         }
         finally
@@ -772,38 +755,7 @@ public class SourceControlService(
             static (self, ctx) =>
             {
                 using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
-                string remoteUrl = self.FindRemoteRepoLocation(
-                    ctx.authenticatedContext.Org,
-                    ctx.authenticatedContext.Repo
-                );
-                Remote remote = repo.Network.Remotes["origin"];
-                if (!remote.PushUrl.Equals(remoteUrl))
-                {
-                    // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
-                    // Requires administrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
-
-                Branch branch =
-                    repo.Branches[ctx.branchName]
-                    ?? throw new BranchNotFoundException(
-                        $"Branch '{ctx.branchName}' not found in local repository. Cannot publish non-existing branch."
-                    );
-
-                repo.Branches.Update(
-                    branch,
-                    updater =>
-                    {
-                        updater.Remote = "origin";
-                        updater.UpstreamBranch = $"refs/heads/{ctx.branchName}";
-                    }
-                );
-                PushOptions options = new()
-                {
-                    CredentialsProvider = self.GetCredentialsHandler(ctx.authenticatedContext),
-                    CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext),
-                };
-                repo.Network.Push(branch, options);
+                self.PushBranch(repo, ctx.authenticatedContext, ctx.branchName);
             }
         );
     }
@@ -1608,6 +1560,47 @@ public class SourceControlService(
             IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
             Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
         }
+    }
+
+    private void PushBranch(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    )
+    {
+        string remoteUrl = FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
+        Remote remote = repo.Network.Remotes["origin"];
+        if (!remote.PushUrl.Equals(remoteUrl))
+        {
+            // This is relevant when we switch between running designer in local or in docker. The remote URL changes.
+            // Requires administrator access to update files.
+            repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+        }
+
+        Branch branch =
+            repo.Branches[branchName]
+            ?? throw new BranchNotFoundException(
+                $"Branch '{branchName}' not found in local repository. Cannot push non-existing branch."
+            );
+        branch = EnsureLocalBranchTracksOrigin(repo, branch);
+        PushOptions options = new()
+        {
+            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+            CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
+        };
+        repo.Network.Push(branch, options);
+    }
+
+    private static bool HasCommitsNotOnOrigin(LibGit2Sharp.Repository repo, string branchName)
+    {
+        LibGit2Sharp.Commit? tip = repo.Branches[branchName]?.Tip;
+        if (tip is null)
+        {
+            return false;
+        }
+
+        LibGit2Sharp.Commit? remoteTip = repo.Branches[$"refs/remotes/origin/{branchName}"]?.Tip;
+        return remoteTip is null || repo.ObjectDatabase.CalculateHistoryDivergence(tip, remoteTip).AheadBy > 0;
     }
 
     private static void EnsureUnbornHeadPointsToBranch(LibGit2Sharp.Repository repo, string branchName)
