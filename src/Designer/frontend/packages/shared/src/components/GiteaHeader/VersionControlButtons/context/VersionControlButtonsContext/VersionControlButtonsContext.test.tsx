@@ -254,7 +254,7 @@ describe('VersionControlButtonsContext', () => {
     const user = userEvent.setup();
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const queryClient = createQueryClientMock();
-    const rebaseConflictError = createApiErrorMock(409, 'GT_01');
+    const nonFastForwardError = createApiErrorMock(409, 'GT_01');
 
     const TestComponent = () => {
       const { commitAndPushChanges, isLoading, hasMergeConflict } =
@@ -280,7 +280,7 @@ describe('VersionControlButtonsContext', () => {
       },
       queries: {
         getRepoPull: vi.fn().mockResolvedValue({ repositoryStatus: 'MergeConflict' }),
-        commitAndPushChanges: vi.fn().mockRejectedValue(rebaseConflictError),
+        commitAndPushChanges: vi.fn().mockRejectedValue(nonFastForwardError),
       },
       queryClient,
     });
@@ -289,7 +289,7 @@ describe('VersionControlButtonsContext', () => {
     await user.click(commitButton);
 
     await waitFor(() => {
-      expect(consoleErrorSpy).toHaveBeenCalledWith(rebaseConflictError);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(nonFastForwardError);
     });
     await waitFor(() => {
       expect(screen.getByTestId(hasMergeConflictTestId)).toHaveTextContent('true');

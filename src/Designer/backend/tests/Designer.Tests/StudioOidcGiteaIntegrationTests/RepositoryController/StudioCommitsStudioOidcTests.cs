@@ -123,7 +123,7 @@ public class StudioCommitsStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
 
     [Theory]
     [InlineData(GiteaConstants.TestOrgUsername)]
-    public async Task Commit_AndPush_WhenRemoteHasAdvanced_RebasesOntoIt(string org)
+    public async Task Commit_AndPush_WhenRemoteHasAdvanced_CombinesOnTopOfIt(string org)
     {
         string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
         await CreateAppUsingDesigner(org, targetRepo);

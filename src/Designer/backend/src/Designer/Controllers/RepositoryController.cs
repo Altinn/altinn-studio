@@ -421,17 +421,17 @@ public class RepositoryController : ControllerBase
         }
         catch (LibGit2Sharp.NonFastForwardException)
         {
-            // Someone else pushed first. Replaying the new commit on top of theirs keeps the history linear,
-            // where pulling would add a merge commit.
+            // Someone else pushed first. Combining puts the new commit on top of theirs and keeps the history
+            // linear, where pulling would add a merge commit.
             string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
                 ? commitInfo.BranchName
                 : _sourceControl.GetCurrentBranch(authenticatedContext).BranchName;
-            List<RepositoryContent> changedFiles = RebaseAndPublish(authenticatedContext, branchName);
+            List<RepositoryContent> changedFiles = CombineAndPublish(authenticatedContext, branchName);
             await NotifyFileSyncSuccesses(developer, changedFiles);
         }
     }
 
-    private List<RepositoryContent> RebaseAndPublish(
+    private List<RepositoryContent> CombineAndPublish(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     )
@@ -439,15 +439,15 @@ public class RepositoryController : ControllerBase
         List<RepositoryContent> changedFiles = [];
         for (int attempt = 1; ; attempt++)
         {
-            RemoteRebaseResult rebaseResult = _sourceControl.RebaseOntoRemoteBranch(authenticatedContext, branchName);
-            if (rebaseResult.Status == LibGit2Sharp.RebaseStatus.Conflicts)
+            CombineResult combineResult = _sourceControl.CombineWithRemoteBranch(authenticatedContext, branchName);
+            if (combineResult.HasConflicts)
             {
                 throw new LibGit2Sharp.NonFastForwardException(
-                    $"Rebase onto remote branch '{branchName}' failed with conflicts."
+                    $"Combining with remote branch '{branchName}' met conflicts."
                 );
             }
 
-            changedFiles.AddRange(rebaseResult.ContentStatus);
+            changedFiles.AddRange(combineResult.ContentStatus);
             try
             {
                 _sourceControl.PublishBranch(authenticatedContext, branchName);
@@ -455,7 +455,7 @@ public class RepositoryController : ControllerBase
             }
             catch (LibGit2Sharp.NonFastForwardException) when (attempt < MaxPublishAttempts)
             {
-                // Someone pushed again while this rebased.
+                // Someone pushed again while this combined.
             }
         }
     }

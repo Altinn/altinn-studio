@@ -197,7 +197,7 @@ public class ISourceControlMock : ISourceControl
     public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) =>
         throw new NotImplementedException();
 
-    public RemoteRebaseResult RebaseOntoRemoteBranch(
+    public CombineResult CombineWithRemoteBranch(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     ) => throw new NotImplementedException();

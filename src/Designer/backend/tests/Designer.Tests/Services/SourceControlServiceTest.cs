@@ -573,7 +573,7 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public void PullRemoteChanges_CleanAndDiverged_RebasesWithoutMergeCommit()
+    public void PullRemoteChanges_CleanAndDiverged_CombinesWithoutMergeCommit()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
@@ -802,7 +802,7 @@ public class SourceControlServiceTest : IDisposable
     [InlineData("delete", "rename:nations.txt")]
     [InlineData("rename:nations.txt", "delete")]
     [InlineData("rename:nations.txt", "rename:lands.txt")]
-    public void RebaseOntoRemoteBranch_WhenARenameMeetsADeleteOrAnotherRename_LeavesAConflict(
+    public void CombineWithRemoteBranch_WhenARenameMeetsADeleteOrAnotherRename_LeavesAConflict(
         string localOperation,
         string remoteOperation
     )
@@ -816,12 +816,12 @@ public class SourceControlServiceTest : IDisposable
         CommitChange(collaboratorRepoPath, root => ChangeTestFile(root, remoteOperation), "remote change", push: true);
         CommitChange(localRepoPath, root => ChangeTestFile(root, localOperation), "local change");
 
-        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+        CombineResult result = _sourceControlService.CombineWithRemoteBranch(
             authenticatedContext,
             General.DefaultBranch
         );
 
-        Assert.Equal(RebaseStatus.Conflicts, result.Status);
+        Assert.True(result.HasConflicts);
         using Repository localRepo = new(localRepoPath);
         Assert.NotEmpty(localRepo.Index.Conflicts);
     }
@@ -829,7 +829,7 @@ public class SourceControlServiceTest : IDisposable
     [Theory]
     [InlineData("rename:renamed.txt", "edit")]
     [InlineData("edit", "rename:renamed.txt")]
-    public void RebaseOntoRemoteBranch_WhenARenameMeetsAnEdit_KeepsBothOnALinearHistory(
+    public void CombineWithRemoteBranch_WhenARenameMeetsAnEdit_KeepsBothOnALinearHistory(
         string localOperation,
         string remoteOperation
     )
@@ -843,12 +843,12 @@ public class SourceControlServiceTest : IDisposable
         CommitChange(collaboratorRepoPath, root => ChangeTestFile(root, remoteOperation), "remote change", push: true);
         CommitChange(localRepoPath, root => ChangeTestFile(root, localOperation), "local change");
 
-        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+        CombineResult result = _sourceControlService.CombineWithRemoteBranch(
             authenticatedContext,
             General.DefaultBranch
         );
 
-        Assert.Equal(RebaseStatus.Complete, result.Status);
+        Assert.False(result.HasConflicts);
         using Repository localRepo = new(localRepoPath);
         Assert.Equal("local change", localRepo.Head.Tip.MessageShort);
         Assert.Single(localRepo.Head.Tip.Parents);
@@ -859,7 +859,7 @@ public class SourceControlServiceTest : IDisposable
     [Theory]
     [InlineData("foo", "foo/bar.json")]
     [InlineData("foo/bar.json", "foo")]
-    public void RebaseOntoRemoteBranch_WhenAFileMeetsAFolderWithTheSameName_LeavesAConflict(
+    public void CombineWithRemoteBranch_WhenAFileMeetsAFolderWithTheSameName_LeavesAConflict(
         string localPath,
         string remotePath
     )
@@ -873,12 +873,12 @@ public class SourceControlServiceTest : IDisposable
         CommitChange(collaboratorRepoPath, root => WriteFile(root, remotePath, "remote"), "remote change", push: true);
         CommitChange(localRepoPath, root => WriteFile(root, localPath, "local"), "local change");
 
-        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+        CombineResult result = _sourceControlService.CombineWithRemoteBranch(
             authenticatedContext,
             General.DefaultBranch
         );
 
-        Assert.Equal(RebaseStatus.Conflicts, result.Status);
+        Assert.True(result.HasConflicts);
         Assert.Equal(
             DesignerRepositoryStatus.MergeConflict,
             _sourceControlService.RepositoryStatus(authenticatedContext).RepositoryStatus
@@ -976,12 +976,12 @@ public class SourceControlServiceTest : IDisposable
         Assert.Throws<NonFastForwardException>(() =>
             _sourceControlService.PushChangesForRepository(authenticatedContext, new CommitInfo { Message = "share" })
         );
-        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+        CombineResult result = _sourceControlService.CombineWithRemoteBranch(
             authenticatedContext,
             General.DefaultBranch
         );
 
-        Assert.Equal(RebaseStatus.Complete, result.Status);
+        Assert.False(result.HasConflicts);
         using Repository sharedRepo = new(localRepoPath);
         Assert.Equal(remoteTipSha, Assert.Single(sharedRepo.Head.Tip.Parents).Sha);
         Assert.Equal(CurrentOperation.None, sharedRepo.Info.CurrentOperation);
@@ -991,7 +991,7 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public void RebaseOntoRemoteBranch_WhenAnUncommittedFolderReplacesAChangedFile_KeepsTheFolder()
+    public void CombineWithRemoteBranch_WhenAnUncommittedFolderReplacesAChangedFile_KeepsTheFolder()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
@@ -1007,7 +1007,7 @@ public class SourceControlServiceTest : IDisposable
         WriteFile(localRepoPath, "test.txt/user.txt", "user content");
 
         Assert.Throws<CheckoutConflictException>(() =>
-            _sourceControlService.RebaseOntoRemoteBranch(authenticatedContext, General.DefaultBranch)
+            _sourceControlService.CombineWithRemoteBranch(authenticatedContext, General.DefaultBranch)
         );
 
         using Repository localRepo = new(localRepoPath);
@@ -1016,7 +1016,7 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public void RebaseOntoRemoteBranch_WithAnUncommittedFileOutOfTheWay_KeepsItUncommitted()
+    public void CombineWithRemoteBranch_WithAnUncommittedFileOutOfTheWay_KeepsItUncommitted()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
@@ -1036,12 +1036,12 @@ public class SourceControlServiceTest : IDisposable
         File.WriteAllText(Path.Join(localRepoPath, "test.txt"), uncommittedContent);
         WriteFile(localRepoPath, "untracked.txt", "untracked content");
 
-        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+        CombineResult result = _sourceControlService.CombineWithRemoteBranch(
             authenticatedContext,
             General.DefaultBranch
         );
 
-        Assert.Equal(RebaseStatus.Complete, result.Status);
+        Assert.False(result.HasConflicts);
         using Repository localRepo = new(localRepoPath);
         Assert.Equal(remoteTipSha, Assert.Single(localRepo.Head.Tip.Parents).Sha);
         Assert.Equal(CurrentOperation.None, localRepo.Info.CurrentOperation);
@@ -1056,7 +1056,7 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public void RebaseOntoRemoteBranch_WithSeveralLocalCommits_CombinesThemOnTopOfTheRemoteBranch()
+    public void CombineWithRemoteBranch_WithSeveralLocalCommits_CombinesThemOnTopOfTheRemoteBranch()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
@@ -1073,12 +1073,12 @@ public class SourceControlServiceTest : IDisposable
         CommitLocalChange(localRepoPath, "first.txt", "first", "first local update");
         CommitLocalChange(localRepoPath, "second.txt", "second", "second local update");
 
-        RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
+        CombineResult result = _sourceControlService.CombineWithRemoteBranch(
             authenticatedContext,
             General.DefaultBranch
         );
 
-        Assert.Equal(RebaseStatus.Complete, result.Status);
+        Assert.False(result.HasConflicts);
         using Repository localRepo = new(localRepoPath);
         Assert.Equal(remoteCommitSha, Assert.Single(localRepo.Head.Tip.Parents).Sha);
         Assert.Equal("first local update\n\nsecond local update\n", localRepo.Head.Tip.Message);
@@ -1088,7 +1088,7 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
-    public void RebaseOntoRemoteBranch_ForABranchThatIsNotCheckedOut_Throws()
+    public void CombineWithRemoteBranch_ForABranchThatIsNotCheckedOut_Throws()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
@@ -1106,7 +1106,7 @@ public class SourceControlServiceTest : IDisposable
         }
 
         Assert.Throws<InvalidOperationException>(() =>
-            _sourceControlService.RebaseOntoRemoteBranch(authenticatedContext, "other")
+            _sourceControlService.CombineWithRemoteBranch(authenticatedContext, "other")
         );
     }
 

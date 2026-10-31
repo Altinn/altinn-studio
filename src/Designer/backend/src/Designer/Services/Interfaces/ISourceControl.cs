@@ -191,8 +191,8 @@ public interface ISourceControl
     /// way.
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-    /// <param name="branchName">The branch on origin to rebase onto</param>
-    RemoteRebaseResult RebaseOntoRemoteBranch(
+    /// <param name="branchName">The checked-out branch, which has the same name on origin</param>
+    CombineResult CombineWithRemoteBranch(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     );

@@ -157,21 +157,22 @@ public class SourceControlService(
                             return status;
                         }
 
-                        RemoteRebaseResult rebaseResult = self.RebaseOntoRemoteBranch(
+                        CombineResult combineResult = self.CombineWithRemoteBranch(
                             ctx.authenticatedContext,
                             headBranchBefore
                         );
-                        mergeStatus = rebaseResult.Status.ToString();
 
-                        if (rebaseResult.Status == RebaseStatus.Conflicts)
+                        if (combineResult.HasConflicts)
                         {
+                            mergeStatus = MergeStatus.Conflicts.ToString();
                             status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
                             SetErrorStatus(ctx.activity, "merge_conflict");
                             mergeConflict = true;
                             return status;
                         }
 
-                        status.ContentStatus.AddRange(rebaseResult.ContentStatus);
+                        mergeStatus = "Combined";
+                        status.ContentStatus.AddRange(combineResult.ContentStatus);
                         return status;
                     }
 
@@ -890,7 +891,7 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
-    public RemoteRebaseResult RebaseOntoRemoteBranch(
+    public CombineResult CombineWithRemoteBranch(
         AltinnAuthenticatedRepoEditingContext authenticatedContext,
         string branchName
     )
@@ -904,15 +905,13 @@ public class SourceControlService(
             {
                 self.FetchRemoteChanges(ctx.authenticatedContext);
                 using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
-                RemoteRebaseResult result = new();
-                RebaseStatus? status = null;
-                bool mergedInstead = false;
+                CombineResult result = new();
+                string combineStatus = "failed";
 
                 Branch upstream =
                     repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
                     ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
                 LibGit2Sharp.Commit originalTip = repo.Head.Tip;
-                Tree headTreeBeforeRebase = originalTip.Tree;
 
                 try
                 {
@@ -923,9 +922,6 @@ public class SourceControlService(
 
                     Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
-                    LibGit2Sharp.Commit[] localCommits = GetLocalCommits(repo, upstream);
-                    // A message in another encoding than UTF-8 would be garbled in a combined commit.
-                    mergedInstead = localCommits.Any(commit => !IsUtf8(commit.Encoding));
                     // LibGit2Sharp's merge updates the files, with the checks that keep uncommitted and untracked
                     // files. Studio changes only the history afterwards.
                     MergeResult mergeResult = repo.Merge(
@@ -934,43 +930,37 @@ public class SourceControlService(
                         new MergeOptions
                         {
                             FastForwardStrategy = FastForwardStrategy.NoFastForward,
-                            CommitOnSuccess = mergedInstead,
+                            CommitOnSuccess = false,
                         }
                     );
                     if (mergeResult.Status == MergeStatus.Conflicts)
                     {
                         // The conflicts stay in the working directory for the conflict screen.
-                        mergedInstead = true;
-                        result.Status = RebaseStatus.Conflicts;
+                        result.HasConflicts = true;
+                        combineStatus = "conflicts";
+                        SetErrorStatus(ctx.activity, "combine_conflicts");
+                        return result;
                     }
-                    else
+
+                    if (mergeResult.Status == MergeStatus.UpToDate)
                     {
-                        if (!mergedInstead && mergeResult.Status != MergeStatus.UpToDate)
-                        {
-                            CommitMergeOnTopOf(repo, originalTip, upstream.Tip, localCommits, signature);
-                        }
-
-                        result.Status = RebaseStatus.Complete;
-                        PopulateContentStatusFromCommitDiff(
-                            repo,
-                            headTreeBeforeRebase,
-                            repo.Head.Tip.Tree,
-                            result.ContentStatus
-                        );
+                        combineStatus = "up_to_date";
+                        return result;
                     }
 
-                    status = result.Status;
-                    if (result.Status == RebaseStatus.Conflicts)
-                    {
-                        SetErrorStatus(ctx.activity, "rebase_conflicts");
-                    }
-
+                    CommitMergeOnTopOf(repo, originalTip, upstream, signature);
+                    combineStatus = "combined";
+                    PopulateContentStatusFromCommitDiff(
+                        repo,
+                        originalTip.Tree,
+                        repo.Head.Tip.Tree,
+                        result.ContentStatus
+                    );
                     return result;
                 }
                 finally
                 {
-                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseStatus, status?.ToString() ?? "failed");
-                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.RebaseMergedInstead, mergedInstead);
+                    ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.CombineStatus, combineStatus);
                     ctx.activity?.SetTag(
                         ServiceTelemetry.Attributes.Git.ContentStatusCount,
                         result.ContentStatus.Count
@@ -1712,11 +1702,12 @@ public class SourceControlService(
     private static void CommitMergeOnTopOf(
         LibGit2Sharp.Repository repo,
         LibGit2Sharp.Commit originalTip,
-        LibGit2Sharp.Commit onto,
-        LibGit2Sharp.Commit[] localCommits,
+        Branch upstream,
         LibGit2Sharp.Signature committer
     )
     {
+        LibGit2Sharp.Commit onto = upstream.Tip;
+        LibGit2Sharp.Commit[] localCommits = GetLocalCommits(repo, upstream);
         Tree mergedTree = repo.ObjectDatabase.CreateTree(repo.Index);
         LibGit2Sharp.Commit target =
             localCommits.Length == 0 || mergedTree.Id == onto.Tree.Id
@@ -1748,9 +1739,6 @@ public class SourceControlService(
 
         repo.Refs.UpdateTarget(branch, target.Id, "studio: combine local commits");
     }
-
-    private static bool IsUtf8(string? encoding) =>
-        encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
     {

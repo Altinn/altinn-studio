@@ -47,7 +47,7 @@ public class CommitAndPushRepoTests
     }
 
     [Fact]
-    public async Task CommitAndPushRepo_WhenRebaseRecoverySucceeds_EmitsSyncEventsFromRebaseResult()
+    public async Task CommitAndPushRepo_WhenCombiningSucceeds_EmitsSyncEventsFromCombineResult()
     {
         string org = "ttd";
         string repo = "apps-test";
@@ -80,7 +80,7 @@ public class CommitAndPushRepoTests
             .Returns(new CurrentBranchInfo { BranchName = "master" });
         _sourceControlMock
             .Setup(x =>
-                x.RebaseOntoRemoteBranch(
+                x.CombineWithRemoteBranch(
                     It.Is<AltinnAuthenticatedRepoEditingContext>(ctx =>
                         ctx.Org == org
                         && ctx.Repo == repo
@@ -91,9 +91,8 @@ public class CommitAndPushRepoTests
                 )
             )
             .Returns(
-                new RemoteRebaseResult
+                new CombineResult
                 {
-                    Status = LibGit2Sharp.RebaseStatus.Complete,
                     ContentStatus =
                     [
                         new RepositoryContent { FilePath = "App/config/applicationmetadata.json" },
@@ -145,7 +144,7 @@ public class CommitAndPushRepoTests
     }
 
     [Fact]
-    public async Task CommitAndPushRepo_WhenSomeonePushesAgainDuringRecovery_RebasesAgainAndPublishes()
+    public async Task CommitAndPushRepo_WhenSomeonePushesAgainDuringRecovery_CombinesAgainAndPublishes()
     {
         string uri = $"{VersionPrefix}/repo/ttd/apps-test/commit-and-push";
 
@@ -158,8 +157,8 @@ public class CommitAndPushRepoTests
             .Setup(x => x.GetCurrentBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>()))
             .Returns(new CurrentBranchInfo { BranchName = "master" });
         _sourceControlMock
-            .Setup(x => x.RebaseOntoRemoteBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), "master"))
-            .Returns(new RemoteRebaseResult { Status = LibGit2Sharp.RebaseStatus.Complete });
+            .Setup(x => x.CombineWithRemoteBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), "master"))
+            .Returns(new CombineResult());
         _sourceControlMock
             .SetupSequence(x => x.PublishBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), "master"))
             .Throws(new LibGit2Sharp.NonFastForwardException("remote advanced again"))
@@ -175,7 +174,7 @@ public class CommitAndPushRepoTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         _sourceControlMock.Verify(
-            x => x.RebaseOntoRemoteBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), "master"),
+            x => x.CombineWithRemoteBranch(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), "master"),
             Times.Exactly(2)
         );
     }
