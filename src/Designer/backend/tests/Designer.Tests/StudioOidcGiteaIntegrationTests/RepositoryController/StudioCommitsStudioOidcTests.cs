@@ -5,6 +5,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
@@ -12,9 +13,9 @@ using Xunit;
 
 namespace Designer.Tests.StudioOidcGiteaIntegrationTests.RepositoryController;
 
-public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNotesStudioOidcTests>
+public class StudioCommitsStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<StudioCommitsStudioOidcTests>
 {
-    public GitNotesStudioOidcTests(
+    public StudioCommitsStudioOidcTests(
         StudioOidcGiteaWebAppApplicationFactoryFixture<Program> factory,
         StudioOidcGiteaFixture giteaFixture,
         StudioOidcSharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
@@ -23,7 +24,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
 
     [Theory]
     [InlineData(GiteaConstants.TestOrgUsername)]
-    public async Task Commit_AndPush_Separate_Should_Create_GitNote(string org)
+    public async Task Commit_AndPush_Separate_Should_Push_Studio_Commit(string org)
     {
         string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
         await CreateAppUsingDesigner(org, targetRepo);
@@ -46,12 +47,12 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         );
         Assert.Equal(HttpStatusCode.OK, pushResponse.StatusCode);
 
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit");
     }
 
     [Theory]
     [InlineData(GiteaConstants.TestOrgUsername)]
-    public async Task Commit_AndPush_AndContents_Should_Create_GitNote(string org)
+    public async Task Commit_AndPush_AndContents_Should_Push_Studio_Commit(string org)
     {
         string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
         await CreateAppUsingDesigner(org, targetRepo);
@@ -69,7 +70,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         );
         Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
 
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit");
     }
 
     [Theory]
@@ -92,7 +93,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         );
         Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
 
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit");
 
         using HttpResponseMessage resetResponse = await HttpClient.GetAsync(
             $"designer/api/repos/repo/{org}/{targetRepo}/reset"
@@ -107,7 +108,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         await File.WriteAllTextAsync($"{CreatedFolderPath}/newFile.txt", "I am a new file");
 
         using var commitAndPushContent2 = new StringContent(
-            GetCommitInfoJson("test commit", org, targetRepo),
+            GetCommitInfoJson("test commit after reset", org, targetRepo),
             Encoding.UTF8,
             MediaTypeNames.Application.Json
         );
@@ -117,7 +118,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
         );
         Assert.Equal(HttpStatusCode.OK, commitAndPushResponse2.StatusCode);
 
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit after reset");
     }
 
     [Theory]
@@ -126,7 +127,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
     {
         string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
         await CreateAppUsingDesigner(org, targetRepo);
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "App created");
 
         using var createFileContent = new StringContent(
             GenerateCommitJsonPayload("I am a new file created in gitea", "test gitea commit"),
@@ -155,7 +156,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
             commitAndPushContent
         );
         Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit");
     }
 
     [Theory]
@@ -164,7 +165,7 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
     {
         string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
         await CreateAppUsingDesigner(org, targetRepo);
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "App created");
 
         using var createFileContent = new StringContent(
             GenerateCommitJsonPayload("I am a new file created in gitea", "test gitea commit"),
@@ -194,21 +195,29 @@ public class GitNotesStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<GitNo
             commitAndPushContent
         );
         Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
-        await VerifyStudioNoteAddedToLatestCommit(org, targetRepo);
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit");
     }
 
-    private async Task VerifyStudioNoteAddedToLatestCommit(string org, string targetRepo)
+    // Studio commits in the developer's name with an address that only Studio uses, which tells them apart from
+    // commits made outside Studio.
+    private async Task VerifyLatestCommitIsFromStudio(string org, string targetRepo, string expectedMessage)
     {
-        using HttpResponseMessage getCommitResponse = await HttpClient.GetAsync(
-            $"designer/api/repos/repo/{org}/{targetRepo}/latest-commit"
+        // Read through git refs: Gitea updates its branch list in the background after a push.
+        using HttpResponseMessage refResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+            $"repos/{org}/{targetRepo}/git/refs/heads/master"
         );
-        Commit commit = await getCommitResponse.Content.ReadAsAsync<Commit>();
+        Assert.Equal(HttpStatusCode.OK, refResponse.StatusCode);
+        string headSha = JsonNode.Parse(await refResponse.Content.ReadAsStringAsync())![0]!["object"]![
+            "sha"
+        ]!.ToString();
 
-        var noteResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
-            $"repos/{org}/{targetRepo}/git/notes/{commit.Sha}"
+        using HttpResponseMessage commitResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+            $"repos/{org}/{targetRepo}/git/commits/{headSha}"
         );
+        Assert.Equal(HttpStatusCode.OK, commitResponse.StatusCode);
 
-        var notesNode = JsonNode.Parse(await noteResponse.Content.ReadAsStringAsync());
-        Assert.Equal("studio-commit", notesNode!["message"]!.ToString());
+        var commitNode = JsonNode.Parse(await commitResponse.Content.ReadAsStringAsync())!["commit"]!;
+        Assert.Equal(expectedMessage, commitNode["message"]!.ToString().Trim());
+        Assert.EndsWith($"@{General.StudioCommitEmailDomain}", commitNode["author"]!["email"]!.ToString());
     }
 }

@@ -230,7 +230,4 @@ public class ISourceControlMock : ISourceControl
 
     public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) =>
         throw new NotImplementedException();
-
-    public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext) =>
-        throw new NotImplementedException();
 }

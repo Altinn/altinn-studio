@@ -52,10 +52,7 @@ public class SourceControlService(
                 cloneOptions.FetchOptions.CredentialsProvider = self.GetCredentialsHandler(authenticatedContext);
                 cloneOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext);
                 string localPath = self.FindLocalRepoLocation(authenticatedContext);
-                string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
-
-                self.FetchGitNotes(authenticatedContext);
-                return cloneResult;
+                return LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
             }
         );
     }
@@ -91,9 +88,7 @@ public class SourceControlService(
                     cloneOptions.BranchName = ctx.branchName;
                 }
 
-                string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, ctx.destinationPath, cloneOptions);
-                self.FetchGitNotesAtPath(ctx.destinationPath, ctx.authenticatedContext);
-                return cloneResult;
+                return LibGit2Sharp.Repository.Clone(remoteRepo, ctx.destinationPath, cloneOptions);
             }
         );
     }
@@ -136,7 +131,6 @@ public class SourceControlService(
                     );
                     mergeStatus = mergeResult.Status.ToString();
 
-                    self.FetchGitNotes(ctx.authenticatedContext);
                     TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
                     foreach (TreeEntryChanges change in treeChanges.Modified)
                     {
@@ -332,7 +326,6 @@ public class SourceControlService(
                     };
 
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
                     pushCompleted = true;
                     return pushSuccess;
                 }
@@ -367,7 +360,7 @@ public class SourceControlService(
             activity,
             (editingContext, commitInfo),
             static (self, ctx) =>
-                self.CommitAndAddStudioNote(
+                self.CommitAllChanges(
                     ctx.editingContext.Org,
                     ctx.editingContext.Repo,
                     ctx.editingContext.Developer,
@@ -376,7 +369,7 @@ public class SourceControlService(
         );
     }
 
-    private void CommitAndAddStudioNote(string org, string repository, string developer, string message)
+    private void CommitAllChanges(string org, string repository, string developer, string message)
     {
         string localServiceRepoFolder = _repositorySettings.GetServicePath(org, repository, developer);
         using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
@@ -393,10 +386,7 @@ public class SourceControlService(
         Commands.Stage(repo, "*");
 
         LibGit2Sharp.Signature signature = GetDeveloperSignature(developer);
-        LibGit2Sharp.Commit commit = repo.Commit(message, signature, signature);
-
-        NoteCollection notes = repo.Notes;
-        notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
+        repo.Commit(message, signature, signature);
     }
 
     /// <inheritdoc/>
@@ -695,7 +685,6 @@ public class SourceControlService(
         {
             if (isDirty)
             {
-                FetchGitNotes(authenticatedContext);
                 string remoteUrl = FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
                 Remote remote = repo.Network.Remotes["origin"];
 
@@ -712,8 +701,6 @@ public class SourceControlService(
                 LibGit2Sharp.Commit commit = repo.Commit(message, signature, signature);
                 commitCreated = true;
                 createdCommitSha = commit.Sha;
-                NoteCollection notes = repo.Notes;
-                notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
                 PushOptions options = new()
                 {
@@ -724,14 +711,12 @@ public class SourceControlService(
                 if (branchName == DefaultBranch)
                 {
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
                     pushedDefaultBranch = true;
                 }
                 else
                 {
                     Branch b = repo.Branches[branchName];
                     repo.Network.Push(b, options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
                     pushedFeatureBranch = true;
                 }
             }
@@ -796,7 +781,6 @@ public class SourceControlService(
                     CustomHeaders = self.GetAuthCustomHeaders(ctx.authenticatedContext),
                 };
                 repo.Network.Push(branch, options);
-                repo.Network.Push(remote, "refs/notes/commits", options);
             }
         );
     }
@@ -818,13 +802,10 @@ public class SourceControlService(
                 if (status.IsDirty)
                 {
                     string commitMessage = ctx.message ?? string.Empty;
-                    string noteMessage = "studio-commit";
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(developer);
 
                     CommandsExtensions.StageAllChanges(repo);
-                    LibGit2Sharp.Commit commit = repo.Commit(commitMessage, signature, signature);
-                    NoteCollection notes = repo.Notes;
-                    notes.Add(commit.Id, noteMessage, signature, signature, notes.DefaultNamespace);
+                    repo.Commit(commitMessage, signature, signature);
                 }
             }
         );
@@ -1476,13 +1457,12 @@ public class SourceControlService(
 
     private LibGit2Sharp.Signature GetDeveloperSignature(string developer)
     {
-        return new LibGit2Sharp.Signature(developer, $"{developer}@noreply.altinn.studio", DateTime.Now);
+        return new LibGit2Sharp.Signature(GetDefaultIdentity(developer), DateTime.Now);
     }
 
     private static Identity GetDefaultIdentity(string developer)
     {
-        string email = $"{developer}@noreply.altinn.studio";
-        return new Identity(developer, email);
+        return new Identity(developer, $"{developer}@{General.StudioCommitEmailDomain}");
     }
 
     private LibGit2Sharp.Repository CreateLocalRepo(AltinnRepoEditingContext editingContext)
@@ -1506,31 +1486,6 @@ public class SourceControlService(
                 Username = authenticatedContext.DeveloperAppToken,
                 Password = string.Empty,
             };
-    }
-
-    public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext)
-    {
-        using var activity = StartActivity(authenticatedContext);
-        ExecuteWithTelemetry(
-            activity,
-            authenticatedContext,
-            static (self, authenticatedContext) =>
-                self.FetchGitNotesAtPath(self.FindLocalRepoLocation(authenticatedContext), authenticatedContext)
-        );
-    }
-
-    private void FetchGitNotesAtPath(
-        string localRepositoryPath,
-        AltinnAuthenticatedRepoEditingContext authenticatedContext
-    )
-    {
-        using LibGit2Sharp.Repository repo = new(localRepositoryPath);
-        FetchOptions options = new()
-        {
-            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
-            CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
-        };
-        Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
     }
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)

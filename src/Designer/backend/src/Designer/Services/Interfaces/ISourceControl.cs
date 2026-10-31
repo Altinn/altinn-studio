@@ -254,10 +254,4 @@ public interface ISourceControl
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     /// <param name="branchName">The name of the branch</param>
     void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
-
-    /// <summary>
-    /// Fetches git notes.
-    /// </summary>
-    /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
-    void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext);
 }
