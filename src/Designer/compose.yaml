@@ -95,8 +95,8 @@ services:
     depends_on:
       studio_repositories:
         condition: service_healthy
-      studio_designer:
-        condition: service_healthy
+      studio_designer_ready:
+        condition: service_completed_successfully
     extra_hosts:
       - 'host.docker.internal:host-gateway'
 
@@ -104,11 +104,6 @@ services:
     container_name: studio-designer
     image: designer:${COMMIT:-latest}
     restart: always
-    post_start:
-      - command: >
-          sh -c '
-          echo "{\"accountLinkUrl\": \"$$StudioOidcLoginSettings__AccountLinkUrl\", \"featureFlags\": {\"studioOidc\": true}}" > /app/wwwroot/designer/config/env.json
-          '
     volumes:
       - 'designer-git-data:/AltinnCore/Repos'
       - 'keys:/mnt/keys'
@@ -179,11 +174,25 @@ services:
     extra_hosts:
       - 'host.docker.internal:host-gateway'
       - 'studio.localhost:host-gateway'
-    healthcheck:
-      test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
-      interval: 5s
-      timeout: 10s
-      retries: 5
+
+  # Designer's healthcheck runs outside its container, because the chiseled image Designer is moving to has no shell
+  # or HTTP client to run one with. The services that need Designer running wait for this container to finish.
+  studio_designer_ready:
+    container_name: studio-designer-ready
+    image: docker.io/library/alpine:3.24
+    command:
+      - /bin/sh
+      - -c
+      - |
+        for attempt in $$(seq 1 90); do
+          wget -q -O /dev/null http://studio-designer:6000/health && exit 0
+          sleep 2
+        done
+        echo "Designer did not become healthy within three minutes" >&2
+        exit 1
+    depends_on:
+      studio_designer:
+        condition: service_started
 
   gitea_proxy:
     container_name: gitea-proxy
@@ -214,8 +223,8 @@ services:
     depends_on:
       studio_repositories:
         condition: service_healthy
-      studio_designer:
-        condition: service_healthy
+      studio_designer_ready:
+        condition: service_completed_successfully
 
   studio_repositories:
     container_name: studio-repositories
