@@ -1,14 +1,12 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
-import { hasChangesToShare } from '../../utils/repoStatus';
 
 export const REFRESH_DELAY_MS = 1000;
 
-// Studio saves every change to the user's copy of the repository, so any change can give the user something to share.
-// The status request fetches from Gitea while it holds the lock that saves wait for. So it waits for a pause in the
-// saves, and stops once there is something to share, which later changes rarely undo.
+// Studio saves every change to the user's copy of the repository, so any change can change what there is to share.
+// The status request fetches from Gitea, and some saves wait for it. So it waits for a pause in the saves, and for a
+// request that is still running.
 export const useRefreshRepoStatusAfterChanges = (owner: string, repoName: string): void => {
   const queryClient = useQueryClient();
 
@@ -16,16 +14,18 @@ export const useRefreshRepoStatusAfterChanges = (owner: string, repoName: string
     const queryKey = [QueryKey.RepoStatus, owner, repoName];
     let timeout: ReturnType<typeof setTimeout> | undefined;
 
+    const refresh = () => {
+      if (queryClient.isFetching({ queryKey }) > 0) {
+        timeout = setTimeout(refresh, REFRESH_DELAY_MS);
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey });
+    };
+
     const unsubscribe = queryClient.getMutationCache().subscribe((event) => {
       if (event.type !== 'updated' || event.action.type !== 'success') return;
-      const repoStatus = queryClient.getQueryData<RepoStatus>(queryKey);
-      if (repoStatus && hasChangesToShare(repoStatus)) return;
-
       clearTimeout(timeout);
-      timeout = setTimeout(
-        () => void queryClient.invalidateQueries({ queryKey }),
-        REFRESH_DELAY_MS,
-      );
+      timeout = setTimeout(refresh, REFRESH_DELAY_MS);
     });
 
     return () => {
