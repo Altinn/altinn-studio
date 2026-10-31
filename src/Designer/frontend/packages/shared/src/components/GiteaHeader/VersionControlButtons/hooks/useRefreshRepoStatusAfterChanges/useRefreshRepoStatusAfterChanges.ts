@@ -7,14 +7,17 @@ export const REFRESH_DELAY_MS = 1000;
 // Studio saves every change to the user's copy of the repository, so any change can change what there is to share.
 // The status request fetches from Gitea, and some saves wait for it. So it waits for a pause in the saves, and for a
 // request that is still running. Mutations that refresh the status themselves set meta.refreshesRepoStatus, and are
-// left to it once a status has loaded: their refresh then replaces a request that started before the change. Before
-// that, their refresh joins the request that is loading the first status, which may not include the change.
+// left to it if a status had loaded when they started: their refresh then replaces a request that started before the
+// change. Before that, their refresh joins the request that is loading the first status, which may not include the
+// change. The check is made at the start because a mutation that waits for its refresh succeeds only once that request
+// has filled the cache.
 export const useRefreshRepoStatusAfterChanges = (owner: string, repoName: string): void => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const queryKey = [QueryKey.RepoStatus, owner, repoName];
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    const startedWithStatus = new WeakSet<object>();
 
     const refresh = () => {
       if (queryClient.isFetching({ queryKey }) > 0) {
@@ -25,9 +28,13 @@ export const useRefreshRepoStatusAfterChanges = (owner: string, repoName: string
     };
 
     const unsubscribe = queryClient.getMutationCache().subscribe((event) => {
-      if (event.type !== 'updated' || event.action.type !== 'success') return;
+      if (event.type !== 'updated') return;
+      if (event.action.type === 'pending' && queryClient.getQueryData(queryKey) !== undefined) {
+        startedWithStatus.add(event.mutation);
+      }
+      if (event.action.type !== 'success') return;
       const refreshedByMutation = event.mutation.options.meta?.refreshesRepoStatus === true;
-      if (refreshedByMutation && queryClient.getQueryData(queryKey) !== undefined) return;
+      if (refreshedByMutation && startedWithStatus.has(event.mutation)) return;
       clearTimeout(timeout);
       timeout = setTimeout(refresh, REFRESH_DELAY_MS);
     });

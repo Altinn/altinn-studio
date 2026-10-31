@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from '@testing-library/react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -50,31 +50,49 @@ describe('useRefreshRepoStatusAfterChanges', () => {
   });
 
   it('should leave the refresh to a change that refreshes a loaded status itself', async () => {
-    const { result, queryClient, invalidateQueries } = renderSaveThatRefreshesTheStatus();
-    queryClient.setQueryData(repoStatusQueryKey, mockRepoStatus);
+    const { result, queryClient, requests } = renderWithStatusAndSaveThatRefreshesIt({
+      awaitRefresh: false,
+      loadedStatus: statusBeforeSave,
+    });
+    act(() => void result.current.status.refetch());
+    expect(requests).toHaveLength(1);
 
-    await act(() => result.current.mutateAsync());
+    await act(() => result.current.save.mutateAsync());
+    expect(requests).toHaveLength(2);
+    await act(async () => requests[0](statusBeforeSave));
+    await act(async () => requests[1](statusAfterSave));
     await wait(REFRESH_DELAY_MS * 2);
 
-    expect(invalidateQueries).toHaveBeenCalledTimes(1);
+    expect(requests).toHaveLength(2);
+    expect(queryClient.getQueryData(repoStatusQueryKey)).toEqual(statusAfterSave);
   });
 
-  it('should refresh after a change that refreshes the status itself while the first status loads', async () => {
-    const { result, queryClient, invalidateQueries } = renderSaveThatRefreshesTheStatus();
-    let finishRequest: (status: RepoStatus) => void;
-    void queryClient.fetchQuery({
-      queryKey: repoStatusQueryKey,
-      queryFn: () => new Promise<RepoStatus>((resolve) => (finishRequest = resolve)),
-    });
+  it.each([false, true])(
+    'should refresh after a change that refreshes the status itself while the first status loads, awaiting its refresh: %s',
+    async (awaitRefresh) => {
+      const { result, queryClient, requests, refreshStarted } =
+        renderWithStatusAndSaveThatRefreshesIt({
+          awaitRefresh,
+        });
+      expect(requests).toHaveLength(1);
 
-    await act(() => result.current.mutateAsync());
-    expect(invalidateQueries).toHaveBeenCalledTimes(1);
-    await act(async () => finishRequest(mockRepoStatus));
-    await wait(REFRESH_DELAY_MS);
+      let saved: Promise<void>;
+      await act(async () => {
+        saved = result.current.save.mutateAsync();
+        await refreshStarted;
+      });
+      expect(requests).toHaveLength(1);
+      await act(async () => {
+        requests[0](statusBeforeSave);
+        await saved;
+      });
+      await wait(REFRESH_DELAY_MS);
+      expect(requests).toHaveLength(2);
+      await act(async () => requests[1](statusAfterSave));
 
-    expect(invalidateQueries).toHaveBeenCalledTimes(2);
-    expect(invalidateQueries).toHaveBeenLastCalledWith({ queryKey: repoStatusQueryKey });
-  });
+      expect(queryClient.getQueryData(repoStatusQueryKey)).toEqual(statusAfterSave);
+    },
+  );
 
   it('should not refresh the repository status when a change fails', async () => {
     const { result, invalidateQueries } = renderSave(() => Promise.reject(new Error('Not saved')));
@@ -101,20 +119,46 @@ const renderSave = (save: () => Promise<void>) => {
   return { result, queryClient, invalidateQueries };
 };
 
-// A save that refreshes the status itself when it succeeds, as resourceadm's saves do.
-const renderSaveThatRefreshesTheStatus = () => {
+const statusBeforeSave: RepoStatus = { ...mockRepoStatus, contentStatus: [] };
+const statusAfterSave: RepoStatus = {
+  ...mockRepoStatus,
+  contentStatus: [{ filePath: 'App/ui/layouts/Side1.json', fileStatus: 'ModifiedInWorkdir' }],
+};
+
+// The header's status, shown, and a save that refreshes it itself when it succeeds, as resourceadm's saves do. Each
+// status request waits in requests until the test answers it.
+const renderWithStatusAndSaveThatRefreshesIt = ({
+  awaitRefresh,
+  loadedStatus,
+}: {
+  awaitRefresh: boolean;
+  loadedStatus?: RepoStatus;
+}) => {
   const queryClient = createQueryClientMock();
-  const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
+  if (loadedStatus) queryClient.setQueryData(repoStatusQueryKey, loadedStatus);
+  const requests: Array<(status: RepoStatus) => void> = [];
+  let startRefresh: () => void;
+  const refreshStarted = new Promise<void>((resolve) => (startRefresh = resolve));
   const { result } = renderHookWithProviders(
     () => {
       useRefreshRepoStatusAfterChanges(org, app);
-      return useMutation({
+      const status = useQuery({
+        queryKey: repoStatusQueryKey,
+        queryFn: () => new Promise<RepoStatus>((resolve) => requests.push(resolve)),
+        staleTime: Infinity,
+      });
+      const save = useMutation({
         mutationFn: () => Promise.resolve(),
         meta: { hideDefaultError: true, refreshesRepoStatus: true },
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: repoStatusQueryKey }),
+        onSuccess: () => {
+          const refresh = queryClient.invalidateQueries({ queryKey: repoStatusQueryKey });
+          startRefresh();
+          return awaitRefresh ? refresh : undefined;
+        },
       });
+      return { status, save };
     },
     { queryClient },
   );
-  return { result, queryClient, invalidateQueries };
+  return { result, queryClient, requests, refreshStarted };
 };
