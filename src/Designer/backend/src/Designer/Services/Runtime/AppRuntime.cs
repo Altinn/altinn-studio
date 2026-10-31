@@ -56,7 +56,7 @@ public sealed class AppRuntime(
                 logger.LogInformation(
                     "Restarted {App} in environment {EnvName} for org {Org}.",
                     app.WithoutLineBreaks(),
-                    environment,
+                    environment.WithoutLineBreaks(),
                     org.WithoutLineBreaks()
                 );
                 return new AppRestart.Started(ToRunning(environment, started.Deployment));
