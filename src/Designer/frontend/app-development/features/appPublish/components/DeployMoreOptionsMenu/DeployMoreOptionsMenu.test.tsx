@@ -71,6 +71,31 @@ describe('DeployMoreOptionsMenu', () => {
     expect(getRestartButton()).toBeInTheDocument();
   });
 
+  it('closes the menu and asks for confirmation when the user chooses to restart', async () => {
+    const user = userEvent.setup();
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+
+    await user.click(getRestartButton());
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('app_deployment.restart_confirmation_dialog_title', { envTitle: 'TT02' }),
+      }),
+    ).toBeInTheDocument();
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
+
+  it('does not let the user restart the app while it is updating', async () => {
+    renderMenu({
+      runningApp: { ...restartableApp, status: 'updating' },
+      permissions: [environment],
+    });
+    await openMenu();
+
+    expect(getRestartButton()).toBeDisabled();
+  });
+
   it('does not offer a restart when another Studio environment deployed the app', async () => {
     renderMenu({
       runningApp: { ...restartableApp, canRestart: false },

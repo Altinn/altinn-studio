@@ -19,44 +19,39 @@ const runningApp: RunningApp = {
   canRestart: true,
 };
 
-const defaultProps: RestartAppDialogProps = { runningApp, envTitle: 'TT02' };
+const defaultProps: RestartAppDialogProps = {
+  runningApp,
+  envTitle: 'TT02',
+  isOpen: true,
+  onClose: vi.fn(),
+};
 
 describe('RestartAppDialog', () => {
   it('restarts the app in the environment once the user confirms', async () => {
     const user = userEvent.setup();
     const restartApp = vi.fn().mockResolvedValue({ ...runningApp, status: 'updating' });
-    renderRestartAppDialog({}, { restartApp });
+    const onClose = vi.fn();
+    renderRestartAppDialog({ onClose }, { restartApp });
 
-    await user.click(
-      screen.getByRole('button', { name: textMock('app_deployment.restart_button') }),
-    );
     await user.click(
       screen.getByRole('button', { name: textMock('app_deployment.restart_confirmation_button') }),
     );
 
     expect(restartApp).toHaveBeenCalledTimes(1);
     expect(restartApp).toHaveBeenCalledWith(org, app, 'tt02');
+    expect(onClose).toHaveBeenCalled();
   });
 
-  it('does not restart the app when the user cancels', async () => {
+  it('closes without restarting the app when the user cancels', async () => {
     const user = userEvent.setup();
     const restartApp = vi.fn();
-    renderRestartAppDialog({}, { restartApp });
+    const onClose = vi.fn();
+    renderRestartAppDialog({ onClose }, { restartApp });
 
-    await user.click(
-      screen.getByRole('button', { name: textMock('app_deployment.restart_button') }),
-    );
     await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
 
     expect(restartApp).not.toHaveBeenCalled();
-  });
-
-  it('cannot be opened while the app is updating', () => {
-    renderRestartAppDialog({ runningApp: { ...runningApp, status: 'updating' } });
-
-    expect(
-      screen.getByRole('button', { name: textMock('app_deployment.restart_button') }),
-    ).toBeDisabled();
+    expect(onClose).toHaveBeenCalled();
   });
 });
 

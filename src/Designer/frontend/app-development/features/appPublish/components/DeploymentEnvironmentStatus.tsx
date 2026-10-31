@@ -50,39 +50,17 @@ export const DeploymentEnvironmentStatus = ({
     );
   };
 
-  const DeploymentStatusAlert = ({
-    severity,
-    content,
-    footer,
-  }: {
-    severity: 'success' | 'warning' | 'info' | 'danger';
-    content: string | React.ReactNode;
-    footer?: string | JSX.Element;
-  }) => {
-    const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
-    return (
-      <StudioAlert data-color={severity} className={classes.alert}>
-        <StudioHeading spacing level={2} data-size='xs'>
-          {envTitle}
-        </StudioHeading>
-        {runningApp?.version && (
-          <DeployMoreOptionsMenu
-            linkToEnv={urlToApp}
-            environment={envName}
-            envTitle={envTitle}
-            runningApp={runningApp}
-          />
-        )}
-
-        {content}
-        {footer && <StudioParagraph data-size='xs'>{footer}</StudioParagraph>}
-      </StudioAlert>
-    );
+  const environment: DeploymentStatusAlertEnvironment = {
+    envName,
+    isProduction,
+    runningApp,
+    urlToApp,
   };
 
   if (isDeploymentInProgress) {
     return (
       <DeploymentStatusAlert
+        {...environment}
         severity='info'
         content={
           <div className={classes.loadingSpinner}>
@@ -97,6 +75,7 @@ export const DeploymentEnvironmentStatus = ({
   if (!runningApp) {
     return (
       <DeploymentStatusAlert
+        {...environment}
         severity='info'
         content={
           <StudioParagraph className={classes.content} data-size='sm'>
@@ -110,6 +89,7 @@ export const DeploymentEnvironmentStatus = ({
   if (!runningApp?.version) {
     return (
       <DeploymentStatusAlert
+        {...environment}
         severity='warning'
         content={
           <StudioParagraph className={classes.content} data-size='sm'>
@@ -123,6 +103,7 @@ export const DeploymentEnvironmentStatus = ({
   if (runningApp.status === 'updating') {
     return (
       <DeploymentStatusAlert
+        {...environment}
         severity='info'
         content={
           <div className={classes.loadingSpinner}>
@@ -137,6 +118,7 @@ export const DeploymentEnvironmentStatus = ({
   if (runningApp.status === 'unavailable') {
     return (
       <DeploymentStatusAlert
+        {...environment}
         severity='warning'
         content={
           <StudioParagraph className={classes.content} data-size='sm'>
@@ -150,6 +132,7 @@ export const DeploymentEnvironmentStatus = ({
   if (runningApp.status === 'failed') {
     return (
       <DeploymentStatusAlert
+        {...environment}
         severity='danger'
         content={
           <StudioParagraph className={classes.content} data-size='sm'>
@@ -162,6 +145,7 @@ export const DeploymentEnvironmentStatus = ({
 
   return (
     <DeploymentStatusAlert
+      {...environment}
       severity='success'
       content={
         <StudioParagraph className={classes.content} spacing data-size='sm'>
@@ -183,5 +167,48 @@ export const DeploymentEnvironmentStatus = ({
       }
       footer={lastChange(lastPublishedDate, runningApp.restartedAt)}
     />
+  );
+};
+
+type DeploymentStatusAlertEnvironment = Pick<
+  DeploymentEnvironmentStatusProps,
+  'envName' | 'isProduction' | 'runningApp' | 'urlToApp'
+>;
+
+type DeploymentStatusAlertProps = DeploymentStatusAlertEnvironment & {
+  severity: 'success' | 'warning' | 'info' | 'danger';
+  content: string | React.ReactNode;
+  footer?: string | JSX.Element;
+};
+
+// Declared outside DeploymentEnvironmentStatus, so a refetch does not remount the menu and close its dialog.
+const DeploymentStatusAlert = ({
+  envName,
+  isProduction,
+  runningApp,
+  urlToApp,
+  severity,
+  content,
+  footer,
+}: DeploymentStatusAlertProps) => {
+  const { t } = useTranslation();
+  const envTitle = isProduction ? t('general.production') : envName.toUpperCase();
+  return (
+    <StudioAlert data-color={severity} className={classes.alert}>
+      <StudioHeading spacing level={2} data-size='xs'>
+        {envTitle}
+      </StudioHeading>
+      {runningApp?.version && (
+        <DeployMoreOptionsMenu
+          linkToEnv={urlToApp}
+          environment={envName}
+          envTitle={envTitle}
+          runningApp={runningApp}
+        />
+      )}
+
+      {content}
+      {footer && <StudioParagraph data-size='xs'>{footer}</StudioParagraph>}
+    </StudioAlert>
   );
 };
