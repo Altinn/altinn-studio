@@ -5,12 +5,12 @@ import { useHasMergeConflict } from '../../hooks/useHasMergeConflict';
 import { toast } from 'react-toastify';
 import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
-import { isGitNonFastForwardError } from 'app-shared/hooks/mutations/useRepoCommitAndPushMutation';
+import { isGitNonFastForwardError } from 'app-shared/utils/ApiErrorUtils';
 import { useTranslation } from 'react-i18next';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
 import {
-  hasCheckoutConflict,
-  hasRepoMergeConflict,
+  isCheckoutConflict,
+  isMergeConflict,
   toMergeConflictRepoStatus,
 } from '../../utils/repoStatus';
 import { useQueryClient } from '@tanstack/react-query';
@@ -24,8 +24,11 @@ export type VersionControlButtonsContextProps = {
   setHasMergeConflict: React.Dispatch<React.SetStateAction<boolean>>;
   repoStatus: RepoStatus;
   commitAndPushChanges: (message: string) => Promise<void>;
+  fetchChanges: () => Promise<boolean>;
   onPullSuccess: () => void;
 };
+
+type PullOutcome = 'upToDate' | 'mergeConflict' | 'checkoutConflict' | 'failed';
 
 export const VersionControlButtonsContext =
   createContext<Partial<VersionControlButtonsContextProps>>(undefined);
@@ -55,7 +58,7 @@ export const VersionControlButtonsContextProvider = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const setMergeConflictState = (status?: Partial<RepoStatus>) => {
+  const enterMergeConflictMode = (status: RepoStatus) => {
     queryClient.setQueryData(
       [QueryKey.RepoStatus, owner, repoName],
       toMergeConflictRepoStatus(status),
@@ -64,29 +67,38 @@ export const VersionControlButtonsContextProvider = ({
     setHasMergeConflict(true);
   };
 
-  // A share or a pull may have brought in other people's changes, which the open editors should show.
-  const refreshAfterPull = async () => {
+  const showToast = (textKey: string) => toast.error(t(textKey), { toastId: textKey });
+
+  const pull = async (): Promise<PullOutcome> => {
+    const { data: result, isError } = await fetchPullData();
+    // The default error message explains the failure, and a failed refetch keeps the previous result.
+    if (isError) return 'failed';
+    if (isMergeConflict(result)) {
+      enterMergeConflictMode(result);
+      return 'mergeConflict';
+    }
+    if (isCheckoutConflict(result)) return 'checkoutConflict';
+
+    // The pull, or a share before it, may have brought in other people's changes, which the open editors should show.
     onPullSuccess?.();
     await queryClient.invalidateQueries({
       predicate: (query) => query.queryKey.includes(owner) && query.queryKey.includes(repoName),
     });
+    return 'upToDate';
+  };
+
+  const fetchChanges = async (): Promise<boolean> => {
+    const outcome = await pull();
+    if (outcome === 'checkoutConflict') showToast('sync_header.checkout_conflict_blocked_action');
+    return outcome === 'upToDate';
   };
 
   const explainFailedShare = async (error: unknown) => {
-    const { data: result, isError } = await fetchPullData();
-    if (isError) {
-      return;
-    }
-    if (hasRepoMergeConflict(result)) {
-      setMergeConflictState(result);
-    } else if (hasCheckoutConflict(result)) {
-      toast.error(t('sync_header.checkout_conflict_blocked_action'));
-    } else if (isGitNonFastForwardError(error)) {
-      toast.error(t('api_errors.GT_01'));
-    }
-    if (result.repositoryStatus === 'Ok') {
-      await refreshAfterPull();
-    }
+    const outcome = await pull();
+    // Other errors already show the default error message.
+    if (!isGitNonFastForwardError(error)) return;
+    if (outcome === 'checkoutConflict') showToast('sync_header.checkout_conflict_blocked_action');
+    if (outcome === 'upToDate') showToast('sync_header.sharing_changes_rejected');
   };
 
   const commitAndPushChanges = async (commitMessage: string) => {
@@ -101,11 +113,9 @@ export const VersionControlButtonsContextProvider = ({
       return;
     }
 
-    const { data: result } = await fetchPullData();
-    if (result?.repositoryStatus === 'Ok') {
-      toast.success(t('sync_header.sharing_changes_completed'));
-      await refreshAfterPull();
-    }
+    toast.success(t('sync_header.sharing_changes_completed'));
+    // The pull refreshes the editors and catches anything pushed since. The popover does not wait for it.
+    void pull();
   };
 
   return (
@@ -117,6 +127,7 @@ export const VersionControlButtonsContextProvider = ({
         hasMergeConflict,
         setHasMergeConflict,
         commitAndPushChanges,
+        fetchChanges,
         repoStatus,
         onPullSuccess,
       }}

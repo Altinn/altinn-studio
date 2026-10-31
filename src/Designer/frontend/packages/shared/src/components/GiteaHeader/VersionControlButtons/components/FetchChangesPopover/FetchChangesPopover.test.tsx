@@ -4,7 +4,6 @@ import { FetchChangesPopover } from './FetchChangesPopover';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
   VersionControlButtonsContext,
   type VersionControlButtonsContextProps,
@@ -12,45 +11,39 @@ import {
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
 import { useMediaQuery } from '@studio/hooks';
 import { renderWithProviders } from '../../../mocks/renderWithProviders';
-import { app, org } from '@studio/testing/testids';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 vi.mock('@studio/hooks/src/hooks/useMediaQuery');
 
-const mockGetRepoPull = vi.fn();
-
-describe('fetchChanges', () => {
-  it('should call invalidateQueries with correct predicate when fetching changes successfully', async () => {
+describe('FetchChangesPopover', () => {
+  it('should fetch changes and confirm the update when the app is up to date', async () => {
     const user = userEvent.setup();
-    const mockInvalidateQueries = vi.fn();
-    mockGetRepoPull.mockImplementation(() =>
-      Promise.resolve({ repositoryStatus: 'Ok', hasMergeConflict: false }),
-    );
-    renderFetchChangesPopover({
-      queries: { getRepoPull: mockGetRepoPull },
-      versionControlButtonsContextProps: {
-        ...mockVersionControlButtonsContextValue,
-      },
-      invalidateQueries: mockInvalidateQueries,
-    });
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-    await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
-    });
-    const predicate = mockInvalidateQueries.mock.calls[0][0].predicate;
-    expect(predicate({ queryKey: [org, app, 'RepoStatus'] })).toBe(true);
+    const fetchChanges = vi.fn().mockResolvedValue(true);
+    renderFetchChangesPopover({ versionControlButtonsContextProps: { fetchChanges } });
+
+    await user.click(screen.getByRole('button', { name: textMock('sync_header.fetch_changes') }));
+
+    expect(fetchChanges).toHaveBeenCalledTimes(1);
+    expect(
+      await screen.findByText(textMock('sync_header.service_updated_to_latest')),
+    ).toBeInTheDocument();
   });
 
-  it('should call "getPullRepo"" when clicking sync button', async () => {
+  it('should close the popover without confirming an update when fetching does not update the app', async () => {
     const user = userEvent.setup();
+    const fetchChanges = vi.fn().mockResolvedValue(false);
+    renderFetchChangesPopover({ versionControlButtonsContextProps: { fetchChanges } });
 
-    const getRepoPull = mockGetRepoPull.mockImplementation(() => Promise.resolve({}));
-    renderFetchChangesPopover({ queries: { getRepoPull } });
+    await user.click(screen.getByRole('button', { name: textMock('sync_header.fetch_changes') }));
 
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-    expect(getRepoPull).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(fetchChanges).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        screen.queryByText(textMock('sync_header.fetching_latest_version')),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText(textMock('sync_header.service_updated_to_latest')),
+    ).not.toBeInTheDocument();
   });
 
   it('should render number of changes when displayNotification is true and there are no merge conflicts', () => {
@@ -98,99 +91,6 @@ describe('fetchChanges', () => {
     expect(fetchButton).toHaveAttribute('disabled');
   });
 
-  it('should call onPullSuccess when fetching changes', async () => {
-    const user = userEvent.setup();
-    const mockInvalidateQueries = vi.fn();
-    const getRepoPull = mockGetRepoPull.mockImplementation(() =>
-      Promise.resolve({ repositoryStatus: 'Ok' }),
-    );
-    renderFetchChangesPopover({
-      queries: { getRepoPull },
-      invalidateQueries: mockInvalidateQueries,
-    });
-
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-
-    expect(mockVersionControlButtonsContextValue.onPullSuccess).toHaveBeenCalledTimes(1);
-  });
-
-  it('should mark merge conflict and close popover when there is a merge conflict', async () => {
-    const user = userEvent.setup();
-
-    const getRepoPull = mockGetRepoPull.mockImplementation(() =>
-      Promise.resolve({ repositoryStatus: 'MergeConflict' }),
-    );
-
-    renderFetchChangesPopover({
-      queries: { getRepoPull },
-      versionControlButtonsContextProps: {
-        ...mockVersionControlButtonsContextValue,
-        hasPushRights: true,
-      },
-    });
-
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-
-    await waitFor(() => {
-      expect(mockVersionControlButtonsContextValue.setHasMergeConflict).toHaveBeenCalledWith(true);
-    });
-  });
-
-  it('should show warning toast and keep merge conflict mode disabled when there is a checkout conflict', async () => {
-    const user = userEvent.setup();
-
-    const getRepoPull = mockGetRepoPull.mockImplementation(() =>
-      Promise.resolve({ repositoryStatus: 'CheckoutConflict' }),
-    );
-
-    renderFetchChangesPopover({
-      queries: { getRepoPull },
-      versionControlButtonsContextProps: {
-        ...mockVersionControlButtonsContextValue,
-        hasPushRights: true,
-      },
-    });
-
-    const fetchButton = screen.getByRole('button', { name: textMock('sync_header.fetch_changes') });
-    await user.click(fetchButton);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(textMock('sync_header.checkout_conflict_blocked_action')),
-      ).toBeInTheDocument();
-    });
-    expect(mockVersionControlButtonsContextValue.setHasMergeConflict).not.toHaveBeenCalled();
-  });
-
-  it('should close the popover without confirming an update when fetching changes fails', async () => {
-    const user = userEvent.setup();
-    const onPullSuccess = vi.fn();
-    const getRepoPull = mockGetRepoPull.mockRejectedValue(new Error('Pull failed'));
-
-    renderFetchChangesPopover({
-      queries: { getRepoPull },
-      versionControlButtonsContextProps: {
-        ...mockVersionControlButtonsContextValue,
-        onPullSuccess,
-      },
-    });
-
-    await user.click(screen.getByRole('button', { name: textMock('sync_header.fetch_changes') }));
-
-    await waitFor(() => expect(getRepoPull).toHaveBeenCalled());
-    await waitFor(() =>
-      expect(
-        screen.queryByText(textMock('sync_header.fetching_latest_version')),
-      ).not.toBeInTheDocument(),
-    );
-    expect(
-      screen.queryByText(textMock('sync_header.service_updated_to_latest')),
-    ).not.toBeInTheDocument();
-    expect(onPullSuccess).not.toHaveBeenCalled();
-  });
-
   it('should render the button with text on a large screen', () => {
     renderFetchChangesPopover();
 
@@ -212,20 +112,13 @@ describe('fetchChanges', () => {
 });
 
 type Props = {
-  queries?: Partial<ServicesContextProps>;
   versionControlButtonsContextProps?: Partial<VersionControlButtonsContextProps>;
-  invalidateQueries?: Mock;
 };
 
 const renderFetchChangesPopover = (props: Partial<Props> = {}) => {
-  const { queries, versionControlButtonsContextProps, invalidateQueries } = props;
-  const queryClient = createQueryClientMock();
-  queryClient.invalidateQueries = invalidateQueries;
+  const { versionControlButtonsContextProps } = props;
 
-  return renderWithProviders(
-    { ...queries },
-    queryClient,
-  )(
+  return renderWithProviders()(
     <VersionControlButtonsContext.Provider
       value={{ ...mockVersionControlButtonsContextValue, ...versionControlButtonsContextProps }}
     >

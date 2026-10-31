@@ -4,36 +4,17 @@ import { StudioBadge, StudioPopover } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
-import { useRepoPullQuery } from 'app-shared/hooks/queries';
-import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { toast } from 'react-toastify';
-import {
-  hasCheckoutConflict,
-  hasRepoMergeConflict,
-  toMergeConflictRepoStatus,
-} from '../../utils/repoStatus';
 
 export const FetchChangesPopover = (): React.ReactElement => {
-  const {
-    isLoading,
-    setIsLoading,
-    hasMergeConflict,
-    setHasMergeConflict,
-    repoStatus,
-    onPullSuccess,
-  } = useVersionControlButtonsContext();
+  const { isLoading, setIsLoading, hasMergeConflict, repoStatus, fetchChanges } =
+    useVersionControlButtonsContext();
 
-  const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { refetch: fetchPullData } = useRepoPullQuery(owner, repoName, true);
-  const queryClient = useQueryClient();
 
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -49,30 +30,8 @@ export const FetchChangesPopover = (): React.ReactElement => {
     setPopoverOpen(true);
 
     setIsLoading(true);
-    const { data: result, isError } = await fetchPullData();
-
-    if (isError) {
-      // The default error message explains the failure, and a failed refetch keeps the previous result.
-      setPopoverOpen(false);
-    } else if (result.repositoryStatus === 'Ok') {
-      onPullSuccess?.();
-      await queryClient.invalidateQueries({
-        predicate: (q) => {
-          const queryKey = q.queryKey;
-          return queryKey.includes(owner) && queryKey.includes(repoName);
-        },
-      });
-    } else if (hasRepoMergeConflict(result)) {
-      queryClient.setQueryData(
-        [QueryKey.RepoStatus, owner, repoName],
-        toMergeConflictRepoStatus(result),
-      );
-      setHasMergeConflict?.(true);
-      setPopoverOpen(false);
-    } else if (hasCheckoutConflict(result)) {
-      toast.error(t('sync_header.checkout_conflict_blocked_action'));
-      setPopoverOpen(false);
-    }
+    const isUpToDate = await fetchChanges();
+    if (!isUpToDate) setPopoverOpen(false);
     setIsLoading(false);
   };
 

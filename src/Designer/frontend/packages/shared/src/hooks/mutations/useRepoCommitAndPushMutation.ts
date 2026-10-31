@@ -1,13 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { ApiError } from 'app-shared/types/api/ApiError';
-import { isAxiosError } from 'axios';
-import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
-
-export const isGitNonFastForwardError = (error: unknown): boolean =>
-  isAxiosError<ApiError>(error) &&
-  error.response?.data?.errorCode === ApiErrorCodes.GitNonFastForward;
+import { isGitNonFastForwardError } from 'app-shared/utils/ApiErrorUtils';
 
 export const useRepoCommitAndPushMutation = (owner: string, app: string) => {
   const q = useQueryClient();
