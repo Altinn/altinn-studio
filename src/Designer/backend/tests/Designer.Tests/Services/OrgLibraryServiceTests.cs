@@ -200,13 +200,47 @@ public class OrgLibraryServiceTests
         }
     }
 
+    [Fact]
+    public async Task UpdateSharedResourcesByPath_WhenTheCloneCannotBeUpdated_ThrowsWithoutCommitting()
+    {
+        Mock<IGiteaClient> giteaClient = new();
+        giteaClient
+            .Setup(c =>
+                c.GetLatestCommitOnBranch(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync("base-sha");
+        Mock<ISourceControl> sourceControl = new();
+        sourceControl
+            .Setup(s => s.PullRemoteChanges(It.IsAny<AltinnAuthenticatedRepoEditingContext>()))
+            .Returns(
+                new RepoStatus { RepositoryStatus = Altinn.Studio.Designer.Enums.RepositoryStatus.CheckoutConflict }
+            );
+        OrgLibraryService service = Setup(overrideGitea: giteaClient, overrideSourceControl: sourceControl);
+        UpdateSharedResourceRequest request = new([new FileMetadata("file.json", "content")], "base-sha", "update");
+
+        await Assert.ThrowsAsync<LibGit2Sharp.NonFastForwardException>(() =>
+            service.UpdateSharedResourcesByPath("ttd", "testUser", "token", request)
+        );
+
+        sourceControl.Verify(
+            s => s.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()),
+            Times.Never
+        );
+    }
+
     private static OrgLibraryService Setup(
         Mock<IGiteaClient>? overrideGitea = null,
-        Mock<IAltinnGitRepositoryFactory>? overrideFactory = null
+        Mock<IAltinnGitRepositoryFactory>? overrideFactory = null,
+        Mock<ISourceControl>? overrideSourceControl = null
     )
     {
         Mock<IGiteaClient> giteaClient = overrideGitea ?? new();
-        Mock<ISourceControl> sourceControl = new();
+        Mock<ISourceControl> sourceControl = overrideSourceControl ?? new();
         Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = overrideFactory ?? new();
         Mock<ISharedContentClient> sharedContentClient = new();
 

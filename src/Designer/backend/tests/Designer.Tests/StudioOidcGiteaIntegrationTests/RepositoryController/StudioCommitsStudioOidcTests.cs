@@ -52,6 +52,39 @@ public class StudioCommitsStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
 
     [Theory]
     [InlineData(GiteaConstants.TestOrgUsername)]
+    public async Task CommitAndPush_WithACommitThatWasNotPushed_PushesIt(string org)
+    {
+        string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+        await CreateAppUsingDesigner(org, targetRepo);
+
+        await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
+        using var commitContent = new StringContent(
+            GetCommitInfoJson("unpushed commit", org, targetRepo),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using HttpResponseMessage commitResponse = await HttpClient.PostAsync(
+            $"designer/api/repos/repo/{org}/{targetRepo}/commit",
+            commitContent
+        );
+        Assert.Equal(HttpStatusCode.OK, commitResponse.StatusCode);
+
+        using var commitAndPushContent = new StringContent(
+            GetCommitInfoJson("nothing new", org, targetRepo),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+            $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+            commitAndPushContent
+        );
+        Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
+
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "unpushed commit");
+    }
+
+    [Theory]
+    [InlineData(GiteaConstants.TestOrgUsername)]
     public async Task Commit_AndPush_AndContents_Should_Push_Studio_Commit(string org)
     {
         string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
@@ -119,6 +152,50 @@ public class StudioCommitsStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
         Assert.Equal(HttpStatusCode.OK, commitAndPushResponse2.StatusCode);
 
         await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit after reset");
+    }
+
+    [Theory]
+    [InlineData(GiteaConstants.TestOrgUsername)]
+    public async Task Commit_AndPush_WhenRemoteHasAdvanced_CombinesOnTopOfIt(string org)
+    {
+        string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+        await CreateAppUsingDesigner(org, targetRepo);
+
+        await File.WriteAllTextAsync($"{CreatedFolderPath}/local-only.txt", "I am a local file");
+
+        using var createFileContent = new StringContent(
+            GenerateCommitJsonPayload("I am a remote file created in gitea", "test gitea commit"),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync(
+            $"repos/{org}/{targetRepo}/contents/remote-only.txt",
+            createFileContent
+        );
+        Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
+
+        using var commitAndPushContent = new StringContent(
+            GetCommitInfoJson("test commit", org, targetRepo),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json
+        );
+        using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+            $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+            commitAndPushContent
+        );
+        Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
+
+        Assert.True(File.Exists($"{CreatedFolderPath}/remote-only.txt"));
+        using LibGit2Sharp.Repository localRepo = new(CreatedFolderPath);
+        Assert.Equal("test commit", localRepo.Head.Tip.MessageShort);
+        Assert.Single(localRepo.Head.Tip.Parents);
+
+        var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+            $"repos/{org}/{targetRepo}/contents/local-only.txt"
+        );
+        Assert.Equal(HttpStatusCode.OK, giteaFileResponse.StatusCode);
+
+        await VerifyLatestCommitIsFromStudio(org, targetRepo, "test commit");
     }
 
     [Theory]

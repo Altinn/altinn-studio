@@ -82,6 +82,7 @@ internal static partial class ServiceTelemetry
             public const string CloneCloned = Prefix + "clone.cloned";
             public const string CloneFailureHandled = Prefix + "clone.failure_handled";
             public const string CloneRepoExisted = Prefix + "clone.repo_existed";
+            public const string CombineStatus = Prefix + "combine.status";
             public const string CommitCreated = Prefix + "commit.created";
             public const string CommitIsDirty = Prefix + "commit.is_dirty";
             public const string CommitMessageEmpty = Prefix + "commit.message_empty";
