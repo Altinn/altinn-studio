@@ -186,9 +186,9 @@ public interface ISourceControl
 
     /// <summary>
     /// Puts the local commits on a branch on top of the same branch on origin, as one commit with the merged files, so
-    /// that pushing them does not need a merge commit. On conflicts it leaves them in the working directory, as pulling
-    /// does. It throws
-    /// <see cref="LibGit2Sharp.CheckoutConflictException"/> when there are uncommitted changes.
+    /// that pushing them does not need a merge commit. It merges as pulling does, so conflicts stay in the working
+    /// directory, and it throws <see cref="LibGit2Sharp.CheckoutConflictException"/> when uncommitted changes are in the
+    /// way.
     /// </summary>
     /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
     /// <param name="branchName">The branch on origin to rebase onto</param>

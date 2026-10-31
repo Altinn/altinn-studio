@@ -150,7 +150,7 @@ public class SourceControlService(
                     {
                         if (isDirtyBefore)
                         {
-                            // Combining needs a clean working directory. Sharing combines the uncommitted changes too.
+                            // Sharing brings in the remote changes together with the uncommitted ones.
                             status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
                             SetErrorStatus(ctx.activity, "checkout_conflict");
                             checkoutConflict = true;
@@ -911,9 +911,7 @@ public class SourceControlService(
                 Branch upstream =
                     repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
                     ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
-                LibGit2Sharp.Commit originalTip = repo.Head.Tip;
-                string branchReference = repo.Head.CanonicalName;
-                Tree headTreeBeforeRebase = originalTip.Tree;
+                Tree headTreeBeforeRebase = repo.Head.Tip.Tree;
 
                 try
                 {
@@ -923,50 +921,39 @@ public class SourceControlService(
                     }
 
                     Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
-                    // Studio updates the working directory itself only when it is clean, because LibGit2Sharp's
-                    // checkout lacks checks that its merge has, and can delete untracked files.
-                    if (repo.RetrieveStatus(new StatusOptions()).IsDirty)
-                    {
-                        throw new CheckoutConflictException(
-                            "Uncommitted changes are in the way of the remote changes."
-                        );
-                    }
-
                     LibGit2Sharp.Signature signature = self.GetDeveloperSignature(ctx.authenticatedContext.Developer);
                     LibGit2Sharp.Commit[] localCommits = GetLocalCommits(repo, upstream);
-                    MergeTreeResult merged = repo.ObjectDatabase.MergeCommits(
-                        originalTip,
+                    // A message in another encoding than UTF-8 would be garbled in a combined commit.
+                    mergedInstead = localCommits.Any(commit => !IsUtf8(commit.Encoding));
+                    // LibGit2Sharp's merge updates the files, with the checks that keep uncommitted and untracked
+                    // files. Studio changes only the history afterwards.
+                    MergeResult mergeResult = repo.Merge(
                         upstream.Tip,
-                        new MergeTreeOptions { FindRenames = true }
+                        signature,
+                        new MergeOptions
+                        {
+                            FastForwardStrategy = FastForwardStrategy.NoFastForward,
+                            CommitOnSuccess = mergedInstead,
+                        }
                     );
-                    // Requests outside the repository lock, such as a branch switch, can change the clone meanwhile.
-                    if (repo.Head.CanonicalName != branchReference || repo.Head.Tip.Id != originalTip.Id)
+                    if (mergeResult.Status == MergeStatus.Conflicts)
                     {
-                        throw new InvalidOperationException($"'{branchReference}' changed while Studio merged it.");
-                    }
-
-                    if (
-                        merged.Status == MergeTreeStatus.Conflicts
-                        || localCommits.Any(commit => !IsUtf8(commit.Encoding))
-                    )
-                    {
-                        // A merge leaves the conflicts in the working directory for the conflict screen. A message in
-                        // another encoding than UTF-8 would be garbled in a combined commit.
+                        // The conflicts stay in the working directory for the conflict screen.
                         mergedInstead = true;
-                        MergeRemoteBranch(repo, upstream, signature, headTreeBeforeRebase, result);
+                        result.Status = RebaseStatus.Conflicts;
                     }
                     else
                     {
-                        LibGit2Sharp.Commit target =
-                            localCommits.Length == 0 || merged.Tree.Id == upstream.Tip.Tree.Id
-                                ? upstream.Tip
-                                : CombineLocalCommits(repo, upstream.Tip, merged.Tree, localCommits, signature);
-                        MoveBranchTo(repo, branchReference, target);
+                        if (!mergedInstead && mergeResult.Status != MergeStatus.UpToDate)
+                        {
+                            CommitMergeOnTopOf(repo, upstream.Tip, localCommits, signature);
+                        }
+
                         result.Status = RebaseStatus.Complete;
                         PopulateContentStatusFromCommitDiff(
                             repo,
                             headTreeBeforeRebase,
-                            target.Tree,
+                            repo.Head.Tip.Tree,
                             result.ContentStatus
                         );
                     }
@@ -1632,31 +1619,6 @@ public class SourceControlService(
         }
     }
 
-    // A clean merge is committed, as pulling did before rebasing. Conflicts stay in the working directory, so the
-    // repository status reports them and the user can download their changes.
-    private static void MergeRemoteBranch(
-        LibGit2Sharp.Repository repo,
-        Branch upstream,
-        LibGit2Sharp.Signature signature,
-        Tree headTreeBeforeMerge,
-        RemoteRebaseResult result
-    )
-    {
-        MergeResult mergeResult = repo.Merge(
-            upstream.Tip,
-            signature,
-            new MergeOptions { FastForwardStrategy = FastForwardStrategy.NoFastForward }
-        );
-        if (mergeResult.Status == MergeStatus.Conflicts)
-        {
-            result.Status = RebaseStatus.Conflicts;
-            return;
-        }
-
-        result.Status = RebaseStatus.Complete;
-        PopulateContentStatusFromCommitDiff(repo, headTreeBeforeMerge, repo.Head.Tip.Tree, result.ContentStatus);
-    }
-
     private static void EnsureUnbornHeadPointsToBranch(LibGit2Sharp.Repository repo, string branchName)
     {
         if (repo.Head.Tip is not null || repo.Head.FriendlyName == branchName)
@@ -1741,59 +1703,34 @@ public class SourceControlService(
             )
             .ToArray();
 
-    // Puts the local changes on top of the remote branch as one commit with the merged files, so that the history
-    // stays linear and the files are exactly what a merge gives. A share has one local commit; several are left only by
-    // shares that failed, and they become one.
-    private static LibGit2Sharp.Commit CombineLocalCommits(
+    // Replaces the merge that is in progress with one commit on top of the remote branch, so that the history stays
+    // linear and the files are exactly what the merge gave. A share has one local commit. Several are left only by
+    // shares that failed, and they become one. The mixed reset moves the branch, the index and the merge state, and
+    // touches no file.
+    private static void CommitMergeOnTopOf(
         LibGit2Sharp.Repository repo,
         LibGit2Sharp.Commit onto,
-        Tree mergedTree,
         LibGit2Sharp.Commit[] localCommits,
         LibGit2Sharp.Signature committer
     )
     {
-        string message = string.Join("\n\n", localCommits.Select(commit => commit.Message.TrimEnd())) + "\n";
-        return repo.ObjectDatabase.CreateCommit(
-            localCommits[^1].Author,
-            committer,
-            message,
-            mergedTree,
-            [onto],
-            prettifyMessage: false
-        );
+        Tree mergedTree = repo.ObjectDatabase.CreateTree(repo.Index);
+        LibGit2Sharp.Commit target =
+            localCommits.Length == 0 || mergedTree.Id == onto.Tree.Id
+                ? onto
+                : repo.ObjectDatabase.CreateCommit(
+                    localCommits[^1].Author,
+                    committer,
+                    string.Join("\n\n", localCommits.Select(commit => commit.Message.TrimEnd())) + "\n",
+                    mergedTree,
+                    [onto],
+                    prettifyMessage: false
+                );
+        repo.Reset(ResetMode.Mixed, target);
     }
 
     private static bool IsUtf8(string? encoding) =>
         encoding is null || string.Equals(encoding, "UTF-8", StringComparison.OrdinalIgnoreCase);
-
-    // Changes the clean working directory once. If a lock or I/O error stops a later step, HEAD goes back on the branch
-    // and no file is touched. The files the checkout wrote then show as local changes, which sharing or deleting the
-    // local changes resolves.
-    private static void MoveBranchTo(LibGit2Sharp.Repository repo, string branchReference, LibGit2Sharp.Commit commit)
-    {
-        try
-        {
-            Commands.Checkout(repo, commit);
-            repo.Refs.UpdateTarget(repo.Refs[branchReference], commit.Id);
-            repo.Refs.UpdateTarget("HEAD", branchReference);
-        }
-        catch (Exception exception) when (exception is not CheckoutConflictException)
-        {
-            if (repo.Info.IsHeadDetached)
-            {
-                try
-                {
-                    repo.Refs.UpdateTarget("HEAD", branchReference);
-                }
-                catch (LibGit2SharpException)
-                {
-                    // The original failure is the one the caller reports.
-                }
-            }
-
-            throw;
-        }
-    }
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
     {

@@ -908,11 +908,86 @@ public class SourceControlServiceTest : IDisposable
         Assert.True(File.Exists(Path.Join(localRepoPath, "local-only.txt")));
     }
 
-    [Theory]
-    [InlineData("refs/heads/master.lock")]
-    [InlineData("HEAD.lock")]
-    [InlineData("index.lock")]
-    public void PullRemoteChanges_WhenALockStopsTheUpdate_SharingRecovers(string lockFile)
+    [Fact]
+    public void PullRemoteChanges_WhenTheIndexIsLocked_ChangesNothing()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        string remoteTipSha = CommitAndPushChange(
+            collaboratorRepoPath,
+            "remote-only.txt",
+            "remote content",
+            "remote update"
+        );
+        string localCommitSha = CommitLocalChange(localRepoPath, "local-only.txt", "local content", "local update");
+        string lockPath = Path.Join(localRepoPath, ".git", "index.lock");
+        File.WriteAllText(lockPath, string.Empty);
+
+        Assert.ThrowsAny<LibGit2SharpException>(() => _sourceControlService.PullRemoteChanges(authenticatedContext));
+
+        File.Delete(lockPath);
+        using (Repository localRepo = new(localRepoPath))
+        {
+            Assert.Equal(localCommitSha, localRepo.Head.Tip.Sha);
+            Assert.Equal(CurrentOperation.None, localRepo.Info.CurrentOperation);
+            Assert.False(localRepo.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.False(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
+        }
+
+        RepoStatus status = _sourceControlService.PullRemoteChanges(authenticatedContext);
+
+        Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+        using Repository pulledRepo = new(localRepoPath);
+        Assert.Equal(remoteTipSha, Assert.Single(pulledRepo.Head.Tip.Parents).Sha);
+        Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
+    }
+
+    [Fact]
+    public void PullRemoteChanges_WhenALockStopsTheBranchMove_SharingPublishesBothChanges()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        string remoteContent = File.ReadAllText(Path.Join(localRepoPath, "test.txt"))
+            .Replace("line two", "remote line two");
+        string remoteTipSha = CommitAndPushChange(collaboratorRepoPath, "test.txt", remoteContent, "remote update");
+        string localCommitSha = CommitLocalChange(localRepoPath, "local-only.txt", "local content", "local update");
+        string lockPath = Path.Join(localRepoPath, ".git", "refs", "heads", "master.lock");
+        File.WriteAllText(lockPath, string.Empty);
+
+        Assert.ThrowsAny<LibGit2SharpException>(() => _sourceControlService.PullRemoteChanges(authenticatedContext));
+
+        // The merge has updated the files and is left in progress, as when a merge cannot commit.
+        File.Delete(lockPath);
+        using (Repository localRepo = new(localRepoPath))
+        {
+            Assert.Equal(localCommitSha, localRepo.Head.Tip.Sha);
+            Assert.Equal(CurrentOperation.Merge, localRepo.Info.CurrentOperation);
+            Assert.Empty(localRepo.Index.Conflicts);
+        }
+
+        _sourceControlService.PushChangesForRepository(authenticatedContext, new CommitInfo { Message = "share" });
+
+        using Repository sharedRepo = new(localRepoPath);
+        Assert.Equal(sharedRepo.Branches[$"origin/{General.DefaultBranch}"].Tip.Sha, sharedRepo.Head.Tip.Sha);
+        Assert.Equal(
+            [localCommitSha, remoteTipSha],
+            sharedRepo.Head.Tip.Parents.Select(parent => parent.Sha).ToArray()
+        );
+        Assert.Equal(CurrentOperation.None, sharedRepo.Info.CurrentOperation);
+        Assert.Equal(remoteContent, File.ReadAllText(Path.Join(localRepoPath, "test.txt")));
+        Assert.True(File.Exists(Path.Join(localRepoPath, "local-only.txt")));
+    }
+
+    [Fact]
+    public void RebaseOntoRemoteBranch_WhenAnUncommittedFolderReplacesAChangedFile_KeepsTheFolder()
     {
         string repoName = TestDataHelper.GenerateTestRepoName();
         AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
@@ -923,40 +998,56 @@ public class SourceControlServiceTest : IDisposable
         string remoteContent = File.ReadAllText(Path.Join(localRepoPath, "test.txt"))
             .Replace("line two", "remote line two");
         CommitAndPushChange(collaboratorRepoPath, "test.txt", remoteContent, "remote update");
+        string localCommitSha = CommitLocalChange(localRepoPath, "local-only.txt", "local content", "local update");
+        File.Delete(Path.Join(localRepoPath, "test.txt"));
+        WriteFile(localRepoPath, "test.txt/user.txt", "user content");
+
+        Assert.Throws<CheckoutConflictException>(() =>
+            _sourceControlService.RebaseOntoRemoteBranch(authenticatedContext, General.DefaultBranch)
+        );
+
+        using Repository localRepo = new(localRepoPath);
+        Assert.Equal(localCommitSha, localRepo.Head.Tip.Sha);
+        Assert.Equal("user content", File.ReadAllText(Path.Join(localRepoPath, "test.txt", "user.txt")));
+    }
+
+    [Fact]
+    public void RebaseOntoRemoteBranch_WithAnUncommittedFileOutOfTheWay_KeepsItUncommitted()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
         string remoteTipSha = CommitAndPushChange(
             collaboratorRepoPath,
             "remote-only.txt",
             "remote content",
-            "remote file"
+            "remote update"
         );
-        string localCommitSha = CommitLocalChange(localRepoPath, "local-only.txt", "local content", "local update");
-        string lockPath = Path.Join(localRepoPath, ".git", lockFile);
-        File.WriteAllText(lockPath, string.Empty);
+        CommitLocalChange(localRepoPath, "local-only.txt", "local content", "local update");
+        string uncommittedContent = File.ReadAllText(Path.Join(localRepoPath, "test.txt"))
+            .Replace("line two", "uncommitted line two");
+        File.WriteAllText(Path.Join(localRepoPath, "test.txt"), uncommittedContent);
+        WriteFile(localRepoPath, "untracked.txt", "untracked content");
 
-        Assert.ThrowsAny<LibGit2SharpException>(() => _sourceControlService.PullRemoteChanges(authenticatedContext));
-
-        File.Delete(lockPath);
-        using (Repository localRepo = new(localRepoPath))
-        {
-            Assert.False(localRepo.Info.IsHeadDetached);
-            Assert.Equal(localCommitSha, localRepo.Head.Tip.Sha);
-        }
-
-        Assert.Throws<NonFastForwardException>(() =>
-            _sourceControlService.PushChangesForRepository(authenticatedContext, new CommitInfo { Message = "share" })
-        );
         RemoteRebaseResult result = _sourceControlService.RebaseOntoRemoteBranch(
             authenticatedContext,
             General.DefaultBranch
         );
 
         Assert.Equal(RebaseStatus.Complete, result.Status);
-        using Repository sharedRepo = new(localRepoPath);
-        Assert.Equal(remoteTipSha, Assert.Single(sharedRepo.Head.Tip.Parents).Sha);
-        Assert.False(sharedRepo.RetrieveStatus(new StatusOptions()).IsDirty);
-        Assert.Equal(remoteContent, File.ReadAllText(Path.Join(localRepoPath, "test.txt")));
-        Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
-        Assert.True(File.Exists(Path.Join(localRepoPath, "local-only.txt")));
+        using Repository localRepo = new(localRepoPath);
+        Assert.Equal(remoteTipSha, Assert.Single(localRepo.Head.Tip.Parents).Sha);
+        Assert.Equal(CurrentOperation.None, localRepo.Info.CurrentOperation);
+        Assert.NotNull(localRepo.Head.Tip["local-only.txt"]);
+        Assert.NotNull(localRepo.Head.Tip["remote-only.txt"]);
+        Assert.Null(localRepo.Head.Tip["untracked.txt"]);
+        RepositoryStatus repositoryStatus = localRepo.RetrieveStatus(new StatusOptions());
+        Assert.Equal(FileStatus.ModifiedInWorkdir, repositoryStatus["test.txt"].State);
+        Assert.Equal(FileStatus.NewInWorkdir, repositoryStatus["untracked.txt"].State);
+        Assert.Equal(uncommittedContent, File.ReadAllText(Path.Join(localRepoPath, "test.txt")));
     }
 
     [Fact]
