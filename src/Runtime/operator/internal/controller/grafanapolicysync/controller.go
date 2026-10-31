@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -34,6 +35,14 @@ const (
 	defaultPollInterval  = 10 * time.Minute
 	shortRetryInterval   = 10 * time.Second
 	initialRetryAttempts = 10
+
+	// Grafana is close by, so a connection that takes seconds to set up has stalled. A fresh one
+	// on the next attempt usually gets through, so fail fast instead of waiting out Go's
+	// defaults (30 s to connect, 10 s for the TLS handshake).
+	connectTimeout      = 5 * time.Second
+	requestTimeout      = 15 * time.Second
+	requestAttempts     = 3
+	initialRequestDelay = 1 * time.Second
 
 	grafanaNamespace = "grafana"
 	grafanaName      = "external-grafana"
@@ -71,6 +80,7 @@ type Reconciler struct {
 	httpClient   *http.Client
 	logger       logr.Logger
 	pollInterval time.Duration
+	retryDelay   time.Duration
 }
 
 func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *Reconciler {
@@ -79,11 +89,24 @@ func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *Reconciler {
 		k8sClient: k8sClient,
 		runtime:   runtime,
 		httpClient: &http.Client{
-			Timeout:   15 * time.Second,
-			Transport: otelhttp.NewTransport(http.DefaultTransport),
+			Timeout:   requestTimeout,
+			Transport: otelhttp.NewTransport(newTransport()),
 		},
 		pollInterval: defaultPollInterval,
+		retryDelay:   initialRequestDelay,
 	}
+}
+
+func newTransport() *http.Transport {
+	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
+	assert.That(ok, "http.DefaultTransport should be an *http.Transport")
+	transport := defaultTransport.Clone()
+	transport.DialContext = (&net.Dialer{
+		Timeout:   connectTimeout,
+		KeepAlive: 30 * time.Second,
+	}).DialContext
+	transport.TLSHandshakeTimeout = connectTimeout
+	return transport
 }
 
 func NewReconcilerForTesting(
@@ -93,7 +116,7 @@ func NewReconcilerForTesting(
 ) *Reconciler {
 	if httpClient == nil {
 		httpClient = &http.Client{
-			Timeout: 15 * time.Second,
+			Timeout: requestTimeout,
 		}
 	}
 	return &Reconciler{
@@ -102,6 +125,7 @@ func NewReconcilerForTesting(
 		runtime:      runtime,
 		httpClient:   httpClient,
 		pollInterval: defaultPollInterval,
+		retryDelay:   initialRequestDelay,
 	}
 }
 
@@ -131,9 +155,9 @@ func (r *Reconciler) Start(ctx context.Context) error {
 		"environment", environment,
 	)
 
+	// A failed run logs its own ERROR, linked to its trace.
 	for range initialRetryAttempts {
 		if err := r.SyncAll(ctx); err != nil {
-			r.logger.Error(err, "initial sync failed")
 			select {
 			case <-ctx.Done():
 				return nil
@@ -152,9 +176,7 @@ func (r *Reconciler) Start(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.Chan():
-			if err := r.SyncAll(ctx); err != nil {
-				r.logger.Error(err, "sync failed")
-			}
+			_ = r.SyncAll(ctx) //nolint:errcheck // A failed run logs its own ERROR, linked to its trace.
 		}
 	}
 }
@@ -239,16 +261,17 @@ func (r *Reconciler) getGrafanaCredentials(ctx context.Context) (string, string,
 }
 
 func (r *Reconciler) getPolicyTree(ctx context.Context, grafanaURL, token string) (json.RawMessage, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+policiesPath, nil)
+	resp, err := r.doWithRetry(ctx, func() (*http.Request, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+policiesPath, nil)
+		if err != nil {
+			return nil, fmt.Errorf("build GET policy request: %w", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Accept", "application/json")
+		return req, nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("build GET policy request: %w", err)
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := r.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("GET policy tree: %w", err)
+		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -268,22 +291,23 @@ func (r *Reconciler) getPolicyTree(ctx context.Context, grafanaURL, token string
 }
 
 func (r *Reconciler) putPolicyTree(ctx context.Context, grafanaURL, token string, tree json.RawMessage) error {
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPut,
-		grafanaURL+policiesPath,
-		bytes.NewReader(tree),
-	)
+	resp, err := r.doWithRetry(ctx, func() (*http.Request, error) {
+		req, err := http.NewRequestWithContext(
+			ctx,
+			http.MethodPut,
+			grafanaURL+policiesPath,
+			bytes.NewReader(tree),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("build PUT policy request: %w", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Disable-Provenance", "true")
+		return req, nil
+	})
 	if err != nil {
-		return fmt.Errorf("build PUT policy request: %w", err)
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Disable-Provenance", "true")
-
-	resp, err := r.httpClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("PUT policy tree: %w", err)
+		return err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -292,6 +316,62 @@ func (r *Reconciler) putPolicyTree(ctx context.Context, grafanaURL, token string
 		return fmt.Errorf("%w: %d: %s", errPutPolicyTreeStatus, resp.StatusCode, string(body))
 	}
 	return nil
+}
+
+// doWithRetry sends a request built by newRequest, and sends it again after a transport error, a
+// 429 or a 5xx, up to requestAttempts times with doubling delays. Each attempt is its own client
+// span, so the trace keeps the failed attempts, but the run fails only when the last one does. It
+// returns the last attempt's response or error. Both requests are idempotent: a PUT that reached
+// Grafana before its response was lost writes the same tree again.
+func (r *Reconciler) doWithRetry(
+	ctx context.Context,
+	newRequest func() (*http.Request, error),
+) (*http.Response, error) {
+	clock := r.runtime.GetClock()
+	delay := r.retryDelay
+	for attempt := 1; ; attempt++ {
+		req, err := newRequest()
+		if err != nil {
+			return nil, err
+		}
+		resp, err := r.httpClient.Do(req)
+		if attempt == requestAttempts || ctx.Err() != nil || !isRetryable(resp, err) {
+			if err != nil {
+				return nil, fmt.Errorf("%s policy tree: %w", req.Method, err)
+			}
+			return resp, nil
+		}
+
+		var reason string
+		if err != nil {
+			reason = err.Error()
+		} else {
+			reason = resp.Status
+			_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4*1024))
+			_ = resp.Body.Close()
+		}
+		log.FromContext(ctx).Info(
+			"retrying Grafana request",
+			"method", req.Method,
+			"attempt", attempt,
+			"reason", reason,
+			"delay", delay,
+		)
+
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("wait to retry Grafana request: %w", ctx.Err())
+		case <-clock.After(delay):
+		}
+		delay *= 2
+	}
+}
+
+func isRetryable(resp *http.Response, err error) bool {
+	if err != nil {
+		return true
+	}
+	return resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= http.StatusInternalServerError
 }
 
 func hasExternalGrafana(environment string) bool {
