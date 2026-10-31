@@ -45,10 +45,14 @@ internal static unsafe class LibGit2Status
     //   with SHA-256 support.
     // - The flag values match GIT_STATUS_OPT_* in status.h, and Flags matches what LibGit2Sharp's RepositoryStatus.cs
     //   passes for a default StatusOptions.
-    // - The function pointer types match the functions they load.
+    // - The function pointer types match the functions they load, and UninitializedMessage still matches the error
+    //   git_error_last returns before initialization.
     // - LibGit2Sharp's Repository still has the internal Handle property, a LibGit2Sharp.Core.Handles.RepositoryHandle.
     // Then run SourceControlServiceTest, whose parity test compares this status with LibGit2Sharp's.
     private const string SupportedLibGit2 = "5853918";
+
+    // What git_error_last returns, in src/util/errors.c, from a copy of libgit2 that nobody has initialized.
+    private const string UninitializedMessage = "library has not been initialized";
 
     private static readonly Lazy<(Native? Native, string? Failure)> s_native = new(Native.Load);
 
@@ -155,8 +159,7 @@ internal static unsafe class LibGit2Status
     );
 
     /// <summary>
-    /// Why the libgit2 at <paramref name="library"/> can't be used, or null when it can: when it is the copy that
-    /// LibGit2Sharp initialized. For tests.
+    /// Why the libgit2 at <paramref name="library"/> can't be used, or null when it can. For tests.
     /// </summary>
     internal static string? CheckLibrary(nint library) => Native.Bind(library).Failure;
 
@@ -230,8 +233,6 @@ internal static unsafe class LibGit2Status
         public readonly delegate* unmanaged[Cdecl]<nint, nuint, GitStatusEntry*> ByIndex;
         public readonly delegate* unmanaged[Cdecl]<nint, void> ListFree;
         public readonly delegate* unmanaged[Cdecl]<GitError*> ErrorLast;
-        private readonly delegate* unmanaged[Cdecl]<int> _init;
-        private readonly delegate* unmanaged[Cdecl]<int> _shutdown;
 
         private Native(nint library)
         {
@@ -245,8 +246,6 @@ internal static unsafe class LibGit2Status
                 NativeLibrary.GetExport(library, "git_status_byindex");
             ListFree = (delegate* unmanaged[Cdecl]<nint, void>)NativeLibrary.GetExport(library, "git_status_list_free");
             ErrorLast = (delegate* unmanaged[Cdecl]<GitError*>)NativeLibrary.GetExport(library, "git_error_last");
-            _init = (delegate* unmanaged[Cdecl]<int>)NativeLibrary.GetExport(library, "git_libgit2_init");
-            _shutdown = (delegate* unmanaged[Cdecl]<int>)NativeLibrary.GetExport(library, "git_libgit2_shutdown");
         }
 
         public static (Native? Native, string? Failure) Load()
@@ -274,8 +273,10 @@ internal static unsafe class LibGit2Status
         }
 
         /// <summary>
-        /// Binds to the libgit2 at <paramref name="library"/> if it is the copy LibGit2Sharp initialized. Another copy
-        /// would have its own global state and fail on LibGit2Sharp's repository, so it isn't given one.
+        /// Binds to the libgit2 at <paramref name="library"/> unless nobody has initialized it. LibGit2Sharp's resolver
+        /// picks the same copy for LibGit2Sharp and for this, from inputs that are fixed once LibGit2Sharp has loaded it.
+        /// Should another copy turn up all the same, it would be one nobody initialized, since nothing here initializes
+        /// one: its functions then fail or worse, so it isn't given LibGit2Sharp's repository.
         /// </summary>
         public static (Native? Native, string? Failure) Bind(nint library)
         {
@@ -288,16 +289,11 @@ internal static unsafe class LibGit2Status
             {
                 return (null, $"Could not load libgit2's status functions: {e.Message}");
             }
-            // libgit2 counts its initializations. LibGit2Sharp's copy has at least its own, so this one makes two or
-            // more. A copy nobody initialized counts one, and shutting it down again leaves it as it was.
-            int initializations = native._init();
-            if (initializations > 0)
-            {
-                native._shutdown();
-            }
-            return initializations >= 2
-                ? (native, null)
-                : (null, "The libgit2 found is not the copy LibGit2Sharp initialized.");
+            // Read-only: an uninitialized libgit2 answers with a static error, and changes nothing.
+            GitError* error = native.ErrorLast();
+            return error is not null && ReadUtf8(error->Message) == UninitializedMessage
+                ? (null, "The libgit2 found is not the copy LibGit2Sharp initialized.")
+                : (native, null);
         }
     }
 }
