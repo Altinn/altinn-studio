@@ -94,13 +94,10 @@ COPY ./src/App/template/v9/src /app-template-dotnet-src/v9
 WORKDIR /app-template-dotnet-src/v9
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release/v9/src
 
-# Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:ecf8dcbaab8ebc4bdfb2322d6fe4217bbb118894310ebb6d53c580874ab4b27d AS final
-EXPOSE 80
+# Building the final image. The chiseled image has no shell or package manager, so this stage only copies files.
+# Its -extra variant adds ICU and time zones, which Designer needs.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-resolute-chiseled-extra@sha256:41db8302b4b08401ccf2bf139b02b37460da8872179d793899782ec0ef90933a AS final
 WORKDIR /app
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-  DOTNET_RUNNING_IN_CONTAINER=true
-RUN apk add --no-cache icu-libs krb5-libs libgcc libintl openssl libstdc++ zlib curl tzdata
 
 COPY --from=generate-studio-backend /app_output .
 
@@ -117,4 +114,5 @@ COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/ver
 ## Copying app templates. GeneralSettings decides which one new applications default to.
 COPY --from=app-template-release /app-template-release ./Templates/AspNet
 
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

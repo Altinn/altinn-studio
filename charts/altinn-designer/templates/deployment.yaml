@@ -25,10 +25,24 @@ spec:
       {{- if .Values.serviceAccount.enabled }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
+      # The app user of the .NET container images. No fsGroup: kubelet could then try to change the group of every file
+      # on the repository share, which the share's mount options already present as owned by this user.
+      securityContext:
+        runAsUser: 1654
+        runAsGroup: 1654
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: {{ .Values.image.containerPort }}
           env:
@@ -80,14 +94,18 @@ spec:
               initialDelaySeconds: 10
               failureThreshold: 3
               periodSeconds: 10
+          {{- end }}
           volumeMounts:
+            # The root filesystem is read-only, so temporary files go here.
+            - name: tmp
+              mountPath: /tmp
             {{- range $mount := .Values.volumeMounts}}
             - name: {{ $mount.name }}
               mountPath: {{ $mount.mountPath }}
             {{- end }}
-          {{- end }}
-        {{- if .Values.volumes }}
       volumes:
+        - name: tmp
+          emptyDir: {}
       {{- range $volume := .Values.volumes }}
         - name: {{ $volume.name }}
           {{- if $volume.persistentVolumeClaim }}
@@ -98,7 +116,6 @@ spec:
           secret:
             secretName: {{ $volume.secret.secretName }}
           {{- end }}
-      {{- end }}
       {{- end }}
       {{- if .Values.image.imagePullSecret }}
       imagePullSecrets:
