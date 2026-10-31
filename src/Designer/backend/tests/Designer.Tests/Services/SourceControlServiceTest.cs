@@ -881,6 +881,83 @@ public class SourceControlServiceTest : IDisposable
         Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
     }
 
+    [Theory]
+    [InlineData("develop", "develop/test", false)]
+    [InlineData("develop/test", "develop", false)]
+    [InlineData("develop", "develop/test", true)]
+    [InlineData("develop/test", "develop", true)]
+    public void PullRemoteChanges_WhenARemoteBranchIsReplacedByOneNestedUnderOrAboveIt_PullsRemoteChanges(
+        string replacedBranch,
+        string replacementBranch,
+        bool packedRefs
+    )
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        );
+        using (Repository collaboratorRepo = new(collaboratorRepoPath))
+        {
+            collaboratorRepo.CreateBranch(replacedBranch);
+            collaboratorRepo.Network.Push(
+                collaboratorRepo.Network.Remotes["origin"],
+                $"refs/heads/{replacedBranch}",
+                new PushOptions()
+            );
+        }
+        _sourceControlService.FetchRemoteChanges(authenticatedContext);
+        if (packedRefs)
+        {
+            PackRef(localRepoPath, $"refs/remotes/origin/{replacedBranch}");
+        }
+
+        using (Repository collaboratorRepo = new(collaboratorRepoPath))
+        {
+            Remote origin = collaboratorRepo.Network.Remotes["origin"];
+            collaboratorRepo.Network.Push(origin, $":refs/heads/{replacedBranch}", new PushOptions());
+            collaboratorRepo.Branches.Remove(replacedBranch);
+            collaboratorRepo.CreateBranch(replacementBranch);
+            collaboratorRepo.Network.Push(origin, $"refs/heads/{replacementBranch}", new PushOptions());
+        }
+        CommitAndPushChange(collaboratorRepoPath, "remote-only.txt", "remote content", "remote update");
+        File.WriteAllText(Path.Join(localRepoPath, "local-only.txt"), "local dirty content");
+
+        RepoStatus status = _sourceControlService.PullRemoteChanges(authenticatedContext);
+
+        Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+        Assert.True(File.Exists(Path.Join(localRepoPath, "remote-only.txt")));
+        Assert.Equal("local dirty content", File.ReadAllText(Path.Join(localRepoPath, "local-only.txt")));
+        using Repository localRepo = new(localRepoPath);
+        Assert.Null(localRepo.Branches[$"origin/{replacedBranch}"]);
+        Assert.NotNull(localRepo.Branches[$"origin/{replacementBranch}"]);
+        Assert.Equal(
+            $"refs/remotes/origin/{General.DefaultBranch}",
+            Assert.IsType<SymbolicReference>(localRepo.Refs["refs/remotes/origin/HEAD"]).TargetIdentifier
+        );
+    }
+
+    [Fact]
+    public void FetchRemoteChanges_WhenTheRemoteCannotBeReached_KeepsTheTrackingRefs()
+    {
+        string repoName = TestDataHelper.GenerateTestRepoName();
+        AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+            repoName,
+            out string localRepoPath,
+            out _
+        );
+        using (Repository localRepo = new(localRepoPath))
+        {
+            localRepo.Network.Remotes.Update("origin", r => r.Url = $"{localRepo.Network.Remotes["origin"].Url}-moved");
+        }
+
+        Assert.Throws<LibGit2SharpException>(() => _sourceControlService.FetchRemoteChanges(authenticatedContext));
+
+        using Repository repo = new(localRepoPath);
+        Assert.NotNull(repo.Branches[$"origin/{General.DefaultBranch}"]);
+    }
+
     private static HttpContext GetHttpContextForTestUser(string userName)
     {
         List<Claim> claims = new();
@@ -1311,6 +1388,17 @@ public class SourceControlServiceTest : IDisposable
         Branch defaultBranch = repo.CreateBranch(General.DefaultBranch, repo.Head.Tip);
         Commands.Checkout(repo, defaultBranch);
         repo.Branches.Remove(currentHeadBranch);
+    }
+
+    /// <summary>
+    /// Moves a loose ref into packed-refs, as git gc does.
+    /// </summary>
+    private static void PackRef(string repoPath, string canonicalName)
+    {
+        string looseRefPath = Path.Join(repoPath, ".git", canonicalName);
+        string sha = File.ReadAllText(looseRefPath).Trim();
+        File.AppendAllText(Path.Join(repoPath, ".git", "packed-refs"), $"{sha} {canonicalName}\n");
+        File.Delete(looseRefPath);
     }
 
     private void TrackDirectory(string directory) => _extraDirsToCleanUp.Add(directory);

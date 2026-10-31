@@ -90,6 +90,7 @@ internal static partial class ServiceTelemetry
             public const string CommitSha = Prefix + "commit.sha";
             public const string ContentStatusCount = Prefix + "content_status_count";
             public const string FeatureBranch = Prefix + "feature_branch";
+            public const string FetchTrackingRefsRebuilt = Prefix + "fetch.tracking_refs_rebuilt";
             public const string FilePath = Prefix + "file.path";
             public const string FileStaged = Prefix + "file.staged";
             public const string IsDirty = Prefix + "is_dirty";
