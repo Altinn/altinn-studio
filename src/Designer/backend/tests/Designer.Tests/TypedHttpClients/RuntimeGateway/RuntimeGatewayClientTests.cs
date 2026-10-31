@@ -61,6 +61,8 @@ public class RuntimeGatewayClientTests
                 buildId = "1234",
                 sourceEnvironment = "prod",
                 deploymentId = "42",
+                status = "ready",
+                restartedAt = "2026-10-31T10:42:00+00:00",
             }
         );
         var client = CreateClient(handler);
@@ -72,7 +74,16 @@ public class RuntimeGatewayClientTests
             CancellationToken.None
         );
 
-        Assert.Equal(new RunningAppDeployment("8", "1234"), deployment);
+        Assert.Equal(
+            new RunningAppDeployment(
+                "8",
+                "1234",
+                "prod",
+                "ready",
+                new DateTimeOffset(2026, 10, 31, 10, 42, 0, TimeSpan.Zero)
+            ),
+            deployment
+        );
         Assert.Equal(
             "https://ttd.apps.tt02.altinn.no/runtime/gateway/api/v1/deploy/apps/my-app/running",
             handler.RequestUri?.ToString()
@@ -106,6 +117,93 @@ public class RuntimeGatewayClientTests
         );
     }
 
+    [Fact]
+    public async Task RestartApp_WhenTheGatewayAccepts_ReturnsTheAppAsItIsNow()
+    {
+        using var handler = new RespondingHandler(
+            HttpStatusCode.Accepted,
+            new
+            {
+                release = "ttd-my-app",
+                imageTag = "8",
+                buildId = "1234",
+                sourceEnvironment = "prod",
+                deploymentId = "42",
+                status = "updating",
+                restartedAt = "2026-10-31T10:42:00+00:00",
+            }
+        );
+        var client = CreateClient(handler);
+
+        var restart = await client.RestartApp(
+            "ttd",
+            "my-app",
+            AltinnEnvironment.FromName("tt02"),
+            CancellationToken.None
+        );
+
+        Assert.Equal(
+            new GatewayAppRestart.Started(
+                new RunningAppDeployment(
+                    "8",
+                    "1234",
+                    "prod",
+                    "updating",
+                    new DateTimeOffset(2026, 10, 31, 10, 42, 0, TimeSpan.Zero)
+                )
+            ),
+            restart
+        );
+        Assert.Equal(HttpMethod.Post, handler.Method);
+        Assert.Equal(
+            "https://ttd.apps.tt02.altinn.no/runtime/gateway/api/v1/deploy/apps/my-app/restart",
+            handler.RequestUri?.ToString()
+        );
+    }
+
+    public static TheoryData<HttpStatusCode, string, GatewayAppRestart> Refusals =>
+        new()
+        {
+            { HttpStatusCode.NotFound, null, new GatewayAppRestart.NotFound() },
+            { HttpStatusCode.Conflict, "urn:altinn:studio:gateway:app-updating", new GatewayAppRestart.Updating() },
+            { HttpStatusCode.Conflict, "urn:altinn:studio:gateway:app-paused", new GatewayAppRestart.Paused() },
+        };
+
+    [Theory]
+    [MemberData(nameof(Refusals))]
+    public async Task RestartApp_WhenTheGatewayRefuses_SaysWhy(
+        HttpStatusCode statusCode,
+        string problemType,
+        GatewayAppRestart expected
+    )
+    {
+        using var handler = new RespondingHandler(
+            statusCode,
+            problemType is null ? null : new { type = problemType, status = (int)statusCode }
+        );
+        var client = CreateClient(handler);
+
+        var restart = await client.RestartApp(
+            "ttd",
+            "my-app",
+            AltinnEnvironment.FromName("tt02"),
+            CancellationToken.None
+        );
+
+        Assert.Equal(expected, restart);
+    }
+
+    [Fact]
+    public async Task RestartApp_WhenTheGatewayFails_Throws()
+    {
+        using var handler = new RespondingHandler(HttpStatusCode.InternalServerError);
+        var client = CreateClient(handler);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            client.RestartApp("ttd", "my-app", AltinnEnvironment.FromName("tt02"), CancellationToken.None)
+        );
+    }
+
     private static RuntimeGatewayClient CreateClient(HttpMessageHandler handler)
     {
         var httpClientFactory = new Mock<IHttpClientFactory>();
@@ -127,12 +225,15 @@ public class RuntimeGatewayClientTests
     {
         public Uri RequestUri { get; private set; }
 
+        public HttpMethod Method { get; private set; }
+
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
         )
         {
             RequestUri = request.RequestUri;
+            Method = request.Method;
             var response = new HttpResponseMessage(statusCode);
             if (body is not null)
             {
