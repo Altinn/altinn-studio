@@ -2,3 +2,8 @@
 [core]
 	# Check out symbolic links as plain files holding the link target.
 	symlinks = false
+[safe]
+	# Open repositories whichever user owns them. Designer is the only user in its container and every repository is
+	# its own clone, but the repository share can appear owned by another user than the one Designer runs as, for
+	# example while Designer moves from root to the .NET app user.
+	directory = *
