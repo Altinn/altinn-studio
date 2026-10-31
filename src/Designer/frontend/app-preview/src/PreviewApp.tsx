@@ -1,12 +1,13 @@
-import { Route, Routes } from 'react-router-dom';
-import { LandingPage } from './views/LandingPage';
-import { NoMatch } from './views/NoMatch';
+// import { Route, Routes } from 'react-router-dom';
+// import { LandingPage } from './views/LandingPage';
+// import { NoMatch } from './views/NoMatch';
 import classes from './PreviewApp.module.css';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
+import { StudioAlert } from '@studio/components';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,
@@ -24,11 +25,12 @@ i18next.use(initReactI18next).init({
 export const PreviewApp = () => {
   return (
     <div className={classes.previewContainer}>
-      <Routes>
+      <StudioAlert title='Forhåndsvisning er midlertidig utilgjengelig' />
+      {/* <Routes>
         <Route path='/:org/:app' element={<LandingPage />} />
         <Route path='/:org/:app/:layoutSet' element={<LandingPage />} />
         <Route path='*' element={<NoMatch />} />
-      </Routes>
+      </Routes> */}
     </div>
   );
 };
