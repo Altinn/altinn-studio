@@ -45,4 +45,24 @@ describe('useRestartAppMutation', () => {
       ).toEqual([restarted, ready('production')]),
     );
   });
+
+  it('refreshes what runs when the restart is refused', async () => {
+    const restartApp = vi.fn().mockRejectedValue(new Error('AppUpdating'));
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app], {
+      pipelineDeploymentList: [],
+      runningAppList: [ready('tt02')],
+    });
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHookWithProviders(
+      { restartApp },
+      queryClient,
+    )(() => useRestartAppMutation(org, app)).renderHookResult;
+    await expect(result.current.mutateAsync({ environment: 'tt02' })).rejects.toThrow();
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppDeployments, org, app],
+    });
+  });
 });

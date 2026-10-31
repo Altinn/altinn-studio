@@ -14,12 +14,15 @@ export const useRestartAppMutation = (org: string, app: string) => {
 
   return useMutation({
     mutationFn: ({ environment }: UseRestartAppMutation) => restartApp(org, app, environment),
-    onSuccess: async (restarted: RunningApp): Promise<void> => {
+    onSuccess: (restarted: RunningApp): void => {
       // The app is updating from now on, which starts the polling in useAppDeploymentsQuery.
       queryClient.setQueryData<DeploymentsResponse>(
         [QueryKey.AppDeployments, org, app],
         (deployments) => deployments && replaceRunningApp(deployments, restarted),
       );
+    },
+    // A refusal means the page no longer shows what runs, such as when someone else restarted the app since.
+    onSettled: async (): Promise<void> => {
       await queryClient.invalidateQueries({ queryKey: [QueryKey.AppDeployments, org, app] });
     },
   });
