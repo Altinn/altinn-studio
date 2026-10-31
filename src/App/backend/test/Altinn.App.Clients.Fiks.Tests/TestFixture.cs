@@ -25,9 +25,11 @@ using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
+using Altinn.App.Tests.Common;
 using Altinn.Common.AccessTokenClient.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -212,6 +214,8 @@ internal sealed record TestFixture(
 
         // Non-mockable services
         builder.Services.AddTransient<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
+        builder.Configuration.AddInMemoryCollection(ProvisionedSecretsTestEnvironment.VariablesWithNothingProvisioned);
+        builder.Services.AddProvisionedSecrets();
         builder.Services.AddSingleton<ModelSerializationService>();
         builder.Services.AddAppImplementationFactory();
         builder.Services.AddRuntimeEnvironment();
