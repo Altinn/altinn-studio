@@ -94,6 +94,53 @@ describe('useRefreshRepoStatusAfterChanges', () => {
     },
   );
 
+  it('should wait for a change that is still running', async () => {
+    const { result, invalidateQueries } = renderChanges();
+    const slowSave = deferred();
+
+    await act(() => result.current.save.mutateAsync(undefined));
+    act(() => void result.current.save.mutateAsync(slowSave.promise));
+    await wait(REFRESH_DELAY_MS * 2);
+    expect(invalidateQueries).not.toHaveBeenCalled();
+
+    await act(async () => slowSave.resolve());
+    await wait(REFRESH_DELAY_MS);
+    expect(invalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not refresh after a change that leaves the repository unchanged', async () => {
+    const { result, invalidateQueries } = renderChanges();
+
+    await act(() => result.current.createPreview.mutateAsync());
+    await wait(REFRESH_DELAY_MS * 2);
+
+    expect(invalidateQueries).not.toHaveBeenCalled();
+  });
+
+  it('should drop a pending refresh that a later change refreshing the status itself covers', async () => {
+    const { result, invalidateQueries } = renderChanges(statusBeforeSave);
+
+    await act(() => result.current.save.mutateAsync(undefined));
+    await wait(REFRESH_DELAY_MS / 2);
+    await act(() => result.current.share.mutateAsync(undefined));
+    await wait(REFRESH_DELAY_MS * 2);
+
+    expect(invalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('should keep the refresh for a change that succeeds while a change refreshing the status itself runs', async () => {
+    const { result, invalidateQueries } = renderChanges(statusBeforeSave);
+    const share = deferred();
+
+    act(() => void result.current.share.mutateAsync(share.promise));
+    await wait(REFRESH_DELAY_MS / 2);
+    await act(() => result.current.save.mutateAsync(undefined));
+    await act(async () => share.resolve());
+    await wait(REFRESH_DELAY_MS * 2);
+
+    expect(invalidateQueries).toHaveBeenCalledTimes(2);
+  });
+
   it('should not refresh the repository status when a change fails', async () => {
     const { result, invalidateQueries } = renderSave(() => Promise.reject(new Error('Not saved')));
 
@@ -161,4 +208,43 @@ const renderWithStatusAndSaveThatRefreshesIt = ({
     { queryClient },
   );
   return { result, queryClient, requests, refreshStarted };
+};
+
+const deferred = () => {
+  let resolve: () => void;
+  const promise = new Promise<void>((done) => (resolve = done));
+  return { promise, resolve: () => resolve() };
+};
+
+// The header's status, shown, and the kinds of change Studio makes. A save and a share finish when the promise they are
+// given does, or at once without one.
+const renderChanges = (loadedStatus?: RepoStatus) => {
+  const queryClient = createQueryClientMock();
+  if (loadedStatus) queryClient.setQueryData(repoStatusQueryKey, loadedStatus);
+  const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
+  const finishes = (done?: Promise<void>) => done ?? Promise.resolve();
+  const { result } = renderHookWithProviders(
+    () => {
+      useRefreshRepoStatusAfterChanges(org, app);
+      useQuery({
+        queryKey: repoStatusQueryKey,
+        queryFn: () => Promise.resolve(mockRepoStatus),
+        staleTime: Infinity,
+      });
+      return {
+        save: useMutation({ mutationFn: finishes, meta: { hideDefaultError: true } }),
+        share: useMutation({
+          mutationFn: finishes,
+          meta: { hideDefaultError: true, refreshesRepoStatus: true },
+          onSuccess: () => void queryClient.invalidateQueries({ queryKey: repoStatusQueryKey }),
+        }),
+        createPreview: useMutation({
+          mutationFn: () => Promise.resolve(),
+          meta: { hideDefaultError: true, leavesRepoUnchanged: true },
+        }),
+      };
+    },
+    { queryClient },
+  );
+  return { result, queryClient, invalidateQueries };
 };
