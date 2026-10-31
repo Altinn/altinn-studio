@@ -1034,6 +1034,42 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
+    public void RepositoryStatus_WithAnotherBranchAhead_CountsTheCheckedOutBranch()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first.txt");
+            repo.Network.Remotes.Add("origin", "https://test.gitea.com/ttd/repo.git");
+            SetRemoteDefaultBranch(repo, repo.Head.Tip);
+            repo.Refs.Add("refs/remotes/origin/another", repo.Head.Tip.Id);
+
+            // The other branch comes first, and has a commit that is not on origin.
+            Branch another = repo.CreateBranch("another");
+            Commands.Checkout(repo, another);
+            CommitFiles(repo, "bob", HistoryTime(2), "second.txt");
+            Commands.Checkout(repo, repo.Branches[General.DefaultBranch]);
+            foreach (Branch branch in new[] { repo.Branches["another"], repo.Head })
+            {
+                repo.Branches.Update(
+                    branch,
+                    updater => updater.Remote = "origin",
+                    updater => updater.UpstreamBranch = branch.CanonicalName
+                );
+            }
+        }
+
+        // Act
+        RepoStatus status = _sourceControlService.RepositoryStatus(context);
+
+        // Assert
+        Assert.Equal(General.DefaultBranch, status.CurrentBranch);
+        Assert.Equal(0, status.AheadBy);
+        Assert.Equal(0, status.BehindBy);
+    }
+
+    [Fact]
     public void GetTopLevelFolderHistory_ReturnsFirstAuthorAndLastChangePerFolder()
     {
         // Arrange

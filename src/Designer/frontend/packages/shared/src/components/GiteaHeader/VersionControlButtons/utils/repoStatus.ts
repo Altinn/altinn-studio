@@ -11,3 +11,7 @@ export const toMergeConflictRepoStatus = (repoStatus: RepoStatus): RepoStatus =>
   hasMergeConflict: true,
   repositoryStatus: 'MergeConflict',
 });
+
+// Ignored files are never shared. Commits that were not pushed are shared with the next share.
+export const hasChangesToShare = (repoStatus: RepoStatus): boolean =>
+  repoStatus.contentStatus.some((file) => file.fileStatus !== 'Ignored') || repoStatus.aheadBy > 0;
