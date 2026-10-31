@@ -12,7 +12,7 @@ internal sealed class RuleHandlerParser
     private readonly string _ruleHandlerPath;
     private readonly Dictionary<string, JavaScriptFunction> _conditionalFunctions = new();
     private readonly Dictionary<string, JavaScriptFunction> _dataProcessingFunctions = new();
-    private readonly Dictionary<string, object> _globalConstants = new();
+    private readonly Dictionary<string, object?> _globalConstants = new();
 
     public RuleHandlerParser(string ruleHandlerPath)
     {
@@ -24,6 +24,9 @@ internal sealed class RuleHandlerParser
     /// </summary>
     public void Parse()
     {
+        _conditionalFunctions.Clear();
+        _dataProcessingFunctions.Clear();
+        _globalConstants.Clear();
         if (!File.Exists(_ruleHandlerPath))
         {
             // It's okay if the file doesn't exist - some layout sets may not have it
@@ -70,7 +73,7 @@ internal sealed class RuleHandlerParser
     /// <summary>
     /// Get all global constants extracted from the file
     /// </summary>
-    public IReadOnlyDictionary<string, object> GetGlobalConstants()
+    public IReadOnlyDictionary<string, object?> GetGlobalConstants()
     {
         return _globalConstants;
     }
@@ -204,6 +207,7 @@ internal sealed class RuleHandlerParser
     /// </summary>
     private void ExtractGlobalConstants(Script program)
     {
+        var assignedNames = AssignedNames(program).ToHashSet(StringComparer.Ordinal);
         foreach (var statement in program.Body)
         {
             if (statement is VariableDeclaration varDecl)
@@ -211,7 +215,11 @@ internal sealed class RuleHandlerParser
                 foreach (var declarator in varDecl.Declarations)
                 {
                     // Only extract simple constant assignments: var NAME = value;
-                    if (declarator.Id is Identifier identifier && declarator.Init is Literal literal)
+                    if (
+                        declarator.Id is Identifier identifier
+                        && declarator.Init is Literal literal
+                        && !assignedNames.Contains(identifier.Name)
+                    )
                     {
                         var constantName = identifier.Name;
                         var constantValue = literal.Value;
@@ -219,10 +227,38 @@ internal sealed class RuleHandlerParser
                         // Only store simple literal values (numbers, strings, booleans, null)
                         if (constantValue is int or long or double or float or string or bool || constantValue == null)
                         {
-                            _globalConstants[constantName] = constantValue ?? "null";
+                            _globalConstants[constantName] = constantValue;
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private static IEnumerable<string> AssignedNames(Node node)
+    {
+        if (node is AssignmentExpression assignment)
+            foreach (var name in AssignmentNames(assignment.Left))
+                yield return name;
+        if (node is UpdateExpression { Argument: Identifier identifier })
+            yield return identifier.Name;
+        foreach (var child in node.ChildNodes)
+        {
+            foreach (var name in AssignedNames(child))
+                yield return name;
+        }
+    }
+
+    private static IEnumerable<string> AssignmentNames(Node node)
+    {
+        if (node is Identifier identifier)
+            yield return identifier.Name;
+        else if (node is not MemberExpression)
+        {
+            foreach (var child in node.ChildNodes)
+            {
+                foreach (var name in AssignmentNames(child))
+                    yield return name;
             }
         }
     }

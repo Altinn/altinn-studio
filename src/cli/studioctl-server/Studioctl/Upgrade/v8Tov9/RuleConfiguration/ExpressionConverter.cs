@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingMatchers;
 using Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.Models;
 
@@ -8,25 +9,34 @@ namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration;
 /// </summary>
 public class ExpressionConverter
 {
+    // Numeric comparisons coerce operands without depending on either runtime's number formatting.
+    // Both comparisons return false for null, so a missing input is not equal to zero.
+    internal static object[] NumericEquals(object? left, object? right) =>
+        new object[]
+        {
+            "and",
+            new object?[] { "greaterThanEq", left, right },
+            new object?[] { "lessThanEq", left, right },
+        };
+
     private readonly JavaScriptExpressionParser _parser;
     private readonly List<IExpressionMatcher> _matchers;
-    private readonly IReadOnlyDictionary<string, object> _globalConstants;
+    private readonly IReadOnlyDictionary<string, object?> _globalConstants;
     private readonly Dictionary<string, JavaScriptFunction> _availableFunctions;
 
     public ExpressionConverter(
-        IReadOnlyDictionary<string, object>? globalConstants = null,
+        IReadOnlyDictionary<string, object?>? globalConstants = null,
         Dictionary<string, JavaScriptFunction>? availableFunctions = null
     )
     {
         _parser = new JavaScriptExpressionParser();
-        _globalConstants = globalConstants ?? new Dictionary<string, object>();
+        _globalConstants = globalConstants ?? new Dictionary<string, object?>();
         _availableFunctions = availableFunctions ?? new Dictionary<string, JavaScriptFunction>();
         _matchers = new List<IExpressionMatcher>
         {
             // Order matters! More specific matchers should come first
             new ParenthesizedExpressionMatcher(), // Unwrap parentheses first
             new ConditionalExpressionMatcher(), // Handle ternary expressions (condition ? true : false)
-            new ObjectExistenceCheckMatcher(), // Handle obj existence checks (must come before comparisons)
             new WindowLocationMatcher(), // Check for window.location.host patterns before generic comparisons
             new TypeofMatcher(), // Handle typeof checks for undefined (before BinaryComparisonMatcher)
             new CallExpressionMatcher(), // Handle method calls like .includes() and indexOf()
@@ -47,7 +57,13 @@ public class ExpressionConverter
     /// <param name="inputParams">Mapping of parameter names to data model paths</param>
     /// <param name="selectedAction">The action from the rule config ("Show" or "Hide")</param>
     /// <returns>Conversion result with expression or error information</returns>
-    public ConversionResult Convert(string functionBody, Dictionary<string, string> inputParams, string selectedAction)
+    public ConversionResult Convert(
+        string functionBody,
+        Dictionary<string, string> inputParams,
+        string selectedAction,
+        IReadOnlyDictionary<string, string>? inputTypes = null,
+        IReadOnlyDictionary<string, IReadOnlyList<string>>? inputOptions = null
+    )
     {
         var debugInfo = new List<string>();
         var warnings = new List<string>();
@@ -64,7 +80,7 @@ public class ExpressionConverter
 
         // Step 1: Parse the JavaScript function and extract its body using AST
         var parseResult = _parser.ParseFunction(functionBody);
-        if (!parseResult.Success)
+        if (!parseResult.Success || parseResult.ReturnExpression is not { } returnExpression)
         {
             return new ConversionResult
             {
@@ -79,10 +95,13 @@ public class ExpressionConverter
         var context = new ConversionContext
         {
             InputParams = cleanedInputParams,
-            ObjectParameterName = "obj",
+            ObjectParameterName = parseResult.ObjectParameterName,
             Matchers = _matchers,
             VariableMappings = parseResult.VariableMappings,
             GlobalConstants = _globalConstants,
+            InputTypes = inputTypes ?? new Dictionary<string, string>(),
+            InputOptions = inputOptions ?? new Dictionary<string, IReadOnlyList<string>>(),
+            FunctionDefinitions = _availableFunctions,
             AvailableFunctions = _availableFunctions
                 .SelectMany(kvp =>
                     kvp.Value.ReturnExpression != null
@@ -93,15 +112,19 @@ public class ExpressionConverter
         };
 
         debugInfo.Add("=== Converting Return Expression ===");
-        // ! ReturnExpression is guaranteed non-null when parseResult.Success is true (checked on line 67)
-        var expression = context.ConvertExpression(parseResult.ReturnExpression!, debugInfo);
+        // Validate evaluated initializers as well, including values that the final return does not use.
+        // Dropping an unsupported call here could hide side effects from the original rule.
+        var unsupportedEvaluation = parseResult.EvaluatedExpressions.Any(evaluated =>
+            !context.IsPureValue(evaluated) && context.ConvertExpression(evaluated, debugInfo) == null
+        );
+        var expression = unsupportedEvaluation ? null : context.ConvertBoolean(returnExpression, debugInfo);
 
         if (expression == null)
         {
             return new ConversionResult
             {
                 Status = ConversionStatus.Failed,
-                FailureReason = "Could not convert return expression to expression language",
+                FailureReason = context.FailureReason ?? "Could not convert return expression to expression language",
                 DebugInfo = debugInfo,
                 Warnings = warnings,
                 OriginalJavaScript = functionBody,
@@ -122,6 +145,8 @@ public class ExpressionConverter
         {
             debugInfo.Add("Action is 'Hide' - using expression as-is");
         }
+
+        expression = ExpressionSimplifier.Simplify(JsonSerializer.SerializeToNode(expression));
 
         return new ConversionResult
         {

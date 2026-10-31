@@ -35,36 +35,8 @@ public class UnaryPlusMatcher : IExpressionMatcher
         // Handle logical negation (!)
         if (op == "!" || op == "LogicalNot")
         {
-            // Check if the argument is a simple property access (truthiness check)
-            // e.g., !obj.value should become ["equals", value, null]
-            if (TruthinessCheckMatcher.IsTruthinessCheck(unaryExpr.Argument))
-            {
-                debugInfo.Add("Converting ! of property access (truthiness check) to equals null");
-
-                var propertyValue = context.ConvertExpression(unaryExpr.Argument, debugInfo);
-                if (propertyValue == null)
-                {
-                    debugInfo.Add("❌ Failed to convert property in negated truthiness check");
-                    return null;
-                }
-
-                debugInfo.Add("✅ Successfully converted !property to equals null");
-                // ! null literal is intentionally used as the comparison value in the expression
-                return new object[] { "equals", propertyValue, null! };
-            }
-
-            // Otherwise, standard negation for boolean expressions
-            debugInfo.Add("Converting unary ! (logical negation) to 'not'");
-
-            var argument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
-            if (argument == null)
-            {
-                debugInfo.Add("❌ Failed to convert argument of negation expression");
-                return null;
-            }
-
-            debugInfo.Add("✅ Successfully converted negation to 'not'");
-            return new object[] { "not", argument };
+            var argument = context.ConvertBoolean(unaryExpr.Argument, debugInfo);
+            return argument == null ? null : new object[] { "not", argument };
         }
 
         // Handle unary minus for negative numbers
@@ -75,8 +47,7 @@ public class UnaryPlusMatcher : IExpressionMatcher
             var argument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
             if (argument == null)
             {
-                debugInfo.Add("❌ Failed to convert argument of unary - expression");
-                return null;
+                return context.Reject("❌ Failed to convert argument of unary - expression", debugInfo);
             }
 
             // If the argument is a number, negate it
@@ -89,22 +60,22 @@ public class UnaryPlusMatcher : IExpressionMatcher
             if (argument is float f)
                 return -f;
 
-            debugInfo.Add("⚠️ Unary minus applied to non-numeric value");
-            return null;
+            if (context.GetValueType(unaryExpr.Argument) == "number")
+                return new object[] { "minus", 0, argument };
+
+            return context.Reject("⚠️ Unary minus applied to non-numeric value", debugInfo);
         }
 
-        // Handle unary plus (numeric coercion)
-        debugInfo.Add("Converting unary + (numeric coercion) - implicit in expression language");
-
-        // Just convert the inner expression, coercion is implicit
-        var positiveArgument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
-        if (positiveArgument == null)
+        // Numeric coercion must remain numeric. Returning the input unchanged loses
+        // the distinction between +"01" and "01" during equality comparisons.
+        if (context.GetValueType(unaryExpr.Argument) != "number")
         {
-            debugInfo.Add("⚠️ Failed to convert argument of unary + expression");
-            return null;
+            return context.Reject(
+                "Unary numeric coercion requires a present numeric input so undefined does not become zero",
+                debugInfo
+            );
         }
-
-        // Return the argument directly - no explicit coercion needed
-        return positiveArgument;
+        var positiveArgument = context.ConvertExpression(unaryExpr.Argument, debugInfo);
+        return positiveArgument == null ? null : new object[] { "plus", positiveArgument, 0 };
     }
 }
