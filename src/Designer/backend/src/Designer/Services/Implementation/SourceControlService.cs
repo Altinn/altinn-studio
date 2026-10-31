@@ -1737,9 +1737,9 @@ public class SourceControlService(
             File.Delete(Path.Join(repo.Info.Path, mergeFile));
         }
 
-        // Requests outside the repository lock can commit meanwhile. Their commit already holds the merged files, so
-        // keeping it loses nothing, and the next share publishes it. LibGit2Sharp cannot make the check and the move
-        // one step, so a commit in between the two is still overwritten.
+        // Requests outside the repository lock can commit meanwhile. Keeping their commit loses nothing, and the request's
+        // own push usually publishes it. LibGit2Sharp cannot make the check and the move one step, so a commit in
+        // between the two is still replaced, but its files stay staged for the next share.
         LibGit2Sharp.Reference branch = repo.Refs[branchReference];
         if (branch.TargetIdentifier != originalTip.Sha)
         {
