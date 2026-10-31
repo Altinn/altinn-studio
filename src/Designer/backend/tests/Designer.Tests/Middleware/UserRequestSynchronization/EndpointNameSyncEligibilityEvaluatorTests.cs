@@ -29,6 +29,7 @@ public class EndpointNameSyncEligibilityEvaluatorTests
     [InlineData(nameof(RepositoryController.CommitAndPushRepo))]
     [InlineData(nameof(RepositoryController.Commit))]
     [InlineData(nameof(RepositoryController.CheckoutBranch))]
+    [InlineData(nameof(RepositoryController.DeleteBranch))]
     [InlineData(nameof(RepositoryController.DiscardLocalChanges))]
     [InlineData(nameof(RepositoryController.StageChange))]
     public void IsEligibleForSynchronization_RepositoryActionThatUsesTheIndex_ReturnsTrue(string actionName)
