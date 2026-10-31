@@ -969,10 +969,11 @@ public class SourceControlServiceTest : IDisposable
         );
         using (Repository collaboratorRepo = new(collaboratorRepoPath))
         {
-            collaboratorRepo.CreateBranch("other");
+            // Sorts before the locked ref, so removing the refs in order would reach it first.
+            collaboratorRepo.CreateBranch("aaa-other");
             collaboratorRepo.Network.Push(
                 collaboratorRepo.Network.Remotes["origin"],
-                "refs/heads/other",
+                "refs/heads/aaa-other",
                 new PushOptions()
             );
         }
@@ -983,11 +984,11 @@ public class SourceControlServiceTest : IDisposable
             string.Empty
         );
 
-        Assert.Throws<LibGit2SharpException>(() => _sourceControlService.FetchRemoteChanges(authenticatedContext));
+        Assert.ThrowsAny<LibGit2SharpException>(() => _sourceControlService.FetchRemoteChanges(authenticatedContext));
 
         using Repository repo = new(localRepoPath);
         Assert.NotNull(repo.Branches[$"origin/{General.DefaultBranch}"]);
-        Assert.NotNull(repo.Branches["origin/other"]);
+        Assert.NotNull(repo.Branches["origin/aaa-other"]);
     }
 
     private static HttpContext GetHttpContextForTestUser(string userName)
