@@ -250,14 +250,25 @@ public class OrgLibraryServiceTests
             )
             .ReturnsAsync("base-sha");
         bool lockHeld = false;
-        List<bool> lockHeldDuringCloneUse = [];
+        List<(string Step, bool LockHeld)> steps = [];
         Mock<ISourceControl> sourceControl = new();
         sourceControl
+            .Setup(s => s.CloneIfNotExists(It.IsAny<AltinnAuthenticatedRepoEditingContext>()))
+            .Callback(() => steps.Add(("clone", lockHeld)));
+        sourceControl
+            .Setup(s => s.CheckoutRepoOnBranch(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()))
+            .Callback(() => steps.Add(("checkout", lockHeld)));
+        sourceControl
             .Setup(s => s.PullRemoteChanges(It.IsAny<AltinnAuthenticatedRepoEditingContext>()))
-            .Callback(() => lockHeldDuringCloneUse.Add(lockHeld))
-            .Returns(
-                new RepoStatus { RepositoryStatus = Altinn.Studio.Designer.Enums.RepositoryStatus.CheckoutConflict }
-            );
+            .Callback(() => steps.Add(("pull", lockHeld)))
+            .Returns(new RepoStatus { RepositoryStatus = Altinn.Studio.Designer.Enums.RepositoryStatus.Ok });
+        sourceControl
+            .Setup(s => s.CommitToLocalRepo(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<string>()))
+            .Callback(() => steps.Add(("commit", lockHeld)));
+        sourceControl
+            .Setup(s => s.Push(It.IsAny<AltinnAuthenticatedRepoEditingContext>()))
+            .Callback(() => steps.Add(("push", lockHeld)))
+            .Returns(true);
         Mock<IDistributedSynchronizationHandle> handle = new();
         handle.Setup(h => h.DisposeAsync()).Callback(() => lockHeld = false).Returns(ValueTask.CompletedTask);
         Mock<ILockService> lockService = new();
@@ -278,13 +289,11 @@ public class OrgLibraryServiceTests
             overrideSourceControl: sourceControl,
             overrideLockService: lockService
         );
-        UpdateSharedResourceRequest request = new([new FileMetadata("file.json", "content")], "base-sha", "update");
+        UpdateSharedResourceRequest request = new([], "base-sha", "update");
 
-        await Assert.ThrowsAsync<LibGit2Sharp.NonFastForwardException>(() =>
-            service.UpdateSharedResourcesByPath("ttd", "testUser", "token", request)
-        );
+        await service.UpdateSharedResourcesByPath("ttd", "testUser", "token", request);
 
-        Assert.Equal([true], lockHeldDuringCloneUse);
+        Assert.Equal([("clone", true), ("checkout", true), ("pull", true), ("commit", true), ("push", true)], steps);
         Assert.False(lockHeld);
     }
 

@@ -467,10 +467,13 @@ public class SourceControlService(
                 try
                 {
                     IReadOnlyList<(string FilePath, FileStatus State)>? status =
-                        LibGit2Status.RetrieveStatusUpdatingIndex(repo);
+                        LibGit2Status.RetrieveStatusUpdatingIndex(repo, out string? indexUpdateFailure);
                     if (status is null)
                     {
-                        ctx.activity?.SetTag(ServiceTelemetry.Attributes.Git.StatusIndexLocked, true);
+                        ctx.activity?.SetTag(
+                            ServiceTelemetry.Attributes.Git.StatusIndexUpdateFailure,
+                            indexUpdateFailure
+                        );
                         status = repo.RetrieveStatus(new StatusOptions())
                             .Select(item => (item.FilePath, item.State))
                             .ToList();

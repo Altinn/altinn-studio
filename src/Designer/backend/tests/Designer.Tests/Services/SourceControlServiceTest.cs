@@ -1076,21 +1076,60 @@ public class SourceControlServiceTest : IDisposable
         {
             CommitFiles(repo, "alice", HistoryTime(1), "first.txt", "second.txt");
         }
-        // The same content with another modification time, as when the share reports other times than were indexed.
+        // The same content with other modification times, as when the share reports other times than were indexed.
+        // Older than the index, so that no entry is racily clean, which git checks again on every call.
         File.SetLastWriteTimeUtc(Path.Join(_repoDir, "first.txt"), DateTime.UtcNow.AddHours(-1));
+        File.SetLastWriteTimeUtc(Path.Join(_repoDir, "second.txt"), DateTime.UtcNow.AddHours(-1));
         string indexPath = Path.Join(_repoDir, ".git", "index");
         byte[] indexBefore = File.ReadAllBytes(indexPath);
 
         // Act
         RepoStatus first = _sourceControlService.RepositoryStatus(context);
         byte[] indexAfterFirst = File.ReadAllBytes(indexPath);
+        DateTime indexWrittenAfterFirst = File.GetLastWriteTimeUtc(indexPath);
         RepoStatus second = _sourceControlService.RepositoryStatus(context);
 
         // Assert
         Assert.Empty(first.ContentStatus);
         Assert.Empty(second.ContentStatus);
         Assert.NotEqual(indexBefore, indexAfterFirst);
-        Assert.Equal(indexAfterFirst, File.ReadAllBytes(indexPath));
+        Assert.Equal(indexWrittenAfterFirst, File.GetLastWriteTimeUtc(indexPath));
+    }
+
+    [Fact]
+    public void RepositoryStatus_DuringAConflictedMerge_SavesStatDataAndKeepsTheConflict()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        List<(string, int)> expected;
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "conflicted.txt", "unchanged.txt");
+            Branch other = repo.CreateBranch("other");
+            CommitFiles(repo, "bob", HistoryTime(2), "conflicted.txt");
+            Commands.Checkout(repo, other);
+            CommitFiles(repo, "carol", HistoryTime(3), "conflicted.txt");
+            Commands.Checkout(repo, repo.Branches[General.DefaultBranch]);
+            LibGit2Sharp.Signature merger = new("dave", "dave@test.com", HistoryTime(4));
+            Assert.Equal(MergeStatus.Conflicts, repo.Merge(other, merger).Status);
+            expected = Statuses(
+                repo.RetrieveStatus(new StatusOptions()).Select(item => (item.FilePath, (int)item.State))
+            );
+        }
+        File.SetLastWriteTimeUtc(Path.Join(_repoDir, "unchanged.txt"), DateTime.UtcNow.AddHours(-1));
+        string indexPath = Path.Join(_repoDir, ".git", "index");
+        byte[] indexBefore = File.ReadAllBytes(indexPath);
+
+        // Act
+        RepoStatus status = _sourceControlService.RepositoryStatus(context);
+
+        // Assert
+        Assert.True(status.HasMergeConflict);
+        Assert.Equal(expected, Statuses(status.ContentStatus.Select(item => (item.FilePath, (int)item.FileStatus))));
+        Assert.NotEqual(indexBefore, File.ReadAllBytes(indexPath));
+        using Repository after = new(_repoDir);
+        Assert.Equal("conflicted.txt", Assert.Single(after.Index.Conflicts).Ours.Path);
+        Assert.Equal(CurrentOperation.Merge, after.Info.CurrentOperation);
     }
 
     [Fact]

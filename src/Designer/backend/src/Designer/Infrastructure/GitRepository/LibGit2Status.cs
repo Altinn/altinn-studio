@@ -33,46 +33,62 @@ internal static class LibGit2Status
         | RenamesFromRewrites
         | UpdateIndex;
 
-    private const int GitELocked = -14;
+    // The libgit2 build that the struct layouts below were checked against: libgit2 1.8.6, in LibGit2Sharp 0.32.
+    private const string SupportedLibrary = "git2-5853918";
 
-    private static readonly Lazy<Native> s_native = new(Native.Load);
+    private static readonly Lazy<(Native? Native, string? Failure)> s_native = new(Native.Load);
+
+    private static readonly int s_newFilePathOffset =
+        (int)Marshal.OffsetOf<GitDiffDelta>(nameof(GitDiffDelta.NewFile))
+        + (int)Marshal.OffsetOf<GitDiffFile>(nameof(GitDiffFile.Path));
 
     /// <summary>
     /// Returns the same entries as <c>repo.RetrieveStatus(new StatusOptions())</c>, and saves refreshed stat data in the
-    /// index. Returns null, and changes nothing, when another process holds the index's lock.
+    /// index. Returns null, with the reason in <paramref name="failure"/>, when it can't: when libgit2 fails, for
+    /// example because another process holds the index's lock, or when LibGit2Sharp loads another libgit2 than the one
+    /// this was checked against. The caller then reads the status without saving it, as <c>git status</c> does when it
+    /// can't write the index.
     /// </summary>
-    /// <exception cref="InvalidOperationException">libgit2 fails for another reason.</exception>
     public static IReadOnlyList<(string FilePath, FileStatus State)>? RetrieveStatusUpdatingIndex(
-        LibGit2Sharp.Repository repo
+        LibGit2Sharp.Repository repo,
+        out string? failure
     )
     {
-        Native native = s_native.Value;
-        GitStatusOptions options = default;
-        Check(native, native.OptionsInit(ref options, 1));
-        options.Flags = Flags;
-
-        SafeHandle handle = native.HandleOf(repo);
-        bool addedReference = false;
-        IntPtr list;
-        int result;
-        try
-        {
-            handle.DangerousAddRef(ref addedReference);
-            result = native.ListNew(out list, handle.DangerousGetHandle(), ref options);
-        }
-        finally
-        {
-            if (addedReference)
-            {
-                handle.DangerousRelease();
-            }
-        }
-
-        if (result == GitELocked)
+        (Native? native, failure) = s_native.Value;
+        if (native is null)
         {
             return null;
         }
-        Check(native, result);
+
+        GitStatusOptions options = default;
+        int result = native.OptionsInit(ref options, 1);
+        IntPtr list = IntPtr.Zero;
+        if (result >= 0)
+        {
+            options.Flags = Flags;
+            SafeHandle handle = native.HandleOf(repo);
+            bool addedReference = false;
+            try
+            {
+                handle.DangerousAddRef(ref addedReference);
+                result = native.ListNew(out list, handle.DangerousGetHandle(), ref options);
+            }
+            finally
+            {
+                if (addedReference)
+                {
+                    handle.DangerousRelease();
+                }
+            }
+        }
+
+        if (result < 0)
+        {
+            IntPtr error = native.ErrorLast();
+            string message = error == IntPtr.Zero ? "" : Marshal.PtrToStringUTF8(Marshal.ReadIntPtr(error)) ?? "";
+            failure = $"libgit2 error {result}: {message}";
+            return null;
+        }
 
         try
         {
@@ -92,21 +108,6 @@ internal static class LibGit2Status
         {
             native.ListFree(list);
         }
-    }
-
-    private static readonly int s_newFilePathOffset =
-        (int)Marshal.OffsetOf<GitDiffDelta>(nameof(GitDiffDelta.NewFile))
-        + (int)Marshal.OffsetOf<GitDiffFile>(nameof(GitDiffFile.Path));
-
-    private static void Check(Native native, int result)
-    {
-        if (result >= 0)
-        {
-            return;
-        }
-        IntPtr error = native.ErrorLast();
-        string message = error == IntPtr.Zero ? string.Empty : Marshal.PtrToStringUTF8(Marshal.ReadIntPtr(error)) ?? "";
-        throw new InvalidOperationException($"libgit2 failed to read the repository status ({result}): {message}");
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -174,7 +175,8 @@ internal static class LibGit2Status
 
     /// <summary>
     /// The libgit2 functions, from the library LibGit2Sharp loads, and LibGit2Sharp's handle to a repository. Both are
-    /// internal to LibGit2Sharp, so a LibGit2Sharp upgrade can break them; this class's tests then fail.
+    /// internal to LibGit2Sharp. After a LibGit2Sharp upgrade this loads nothing, and the status tests fail until the
+    /// layouts are checked against the new libgit2 and <see cref="SupportedLibrary"/> is updated.
     /// </summary>
     private sealed class Native
     {
@@ -186,19 +188,27 @@ internal static class LibGit2Status
         public required ErrorLast ErrorLast { get; init; }
         public required Func<LibGit2Sharp.Repository, SafeHandle> HandleOf { get; init; }
 
-        public static Native Load()
+        public static (Native? Native, string? Failure) Load()
         {
             Assembly libGit2Sharp = typeof(LibGit2Sharp.Repository).Assembly;
-            string libraryName =
+            string? libraryName =
                 libGit2Sharp.GetType("LibGit2Sharp.Core.NativeDllName")?.GetField("Name")?.GetRawConstantValue()
-                    as string
-                ?? throw new InvalidOperationException("LibGit2Sharp no longer names its libgit2 library.");
-            PropertyInfo handleProperty =
-                typeof(LibGit2Sharp.Repository).GetProperty("Handle", BindingFlags.NonPublic | BindingFlags.Instance)
-                ?? throw new InvalidOperationException("LibGit2Sharp's repository no longer has a handle.");
+                as string;
+            if (libraryName != SupportedLibrary)
+            {
+                return (null, $"LibGit2Sharp loads {libraryName ?? "an unknown libgit2"}, not {SupportedLibrary}.");
+            }
+            PropertyInfo? handleProperty = typeof(LibGit2Sharp.Repository).GetProperty(
+                "Handle",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+            if (handleProperty is null)
+            {
+                return (null, "LibGit2Sharp's repository no longer has a handle.");
+            }
             IntPtr library = NativeLibrary.Load(libraryName, libGit2Sharp, null);
 
-            return new Native
+            Native native = new()
             {
                 OptionsInit = Export<StatusOptionsInit>(library, "git_status_options_init"),
                 ListNew = Export<StatusListNew>(library, "git_status_list_new"),
@@ -210,6 +220,7 @@ internal static class LibGit2Status
                     handleProperty.GetValue(repo) as SafeHandle
                     ?? throw new InvalidOperationException("LibGit2Sharp's repository handle is not a SafeHandle."),
             };
+            return (native, null);
         }
 
         private static T Export<T>(IntPtr library, string name)
