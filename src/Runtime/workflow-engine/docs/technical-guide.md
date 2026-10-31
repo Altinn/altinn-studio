@@ -794,6 +794,13 @@ key, or until a workflow it created is [abandoned](#abandon). `409 Conflict` mea
 body, `400 Bad Request` that validation failed, and `429 Too Many Requests` that the engine is at
 `BackpressureThreshold`.
 
+The engine compares a fingerprint of the body, not the body itself. The fingerprint leaves out `context`, which a
+caller may rebuild per attempt, and each step's `labels`, which the engine stores for its readers and never queries.
+So a replay with a fresh callback token, or with a step label renamed by a deploy in between, still gets `200 OK`.
+Everything else counts, including the workflow labels, since the engine indexes them and callers read them back.
+Validation runs before the fingerprint check, and a command may validate the context it declares, so a replay whose
+context a command rejects gets `400 Bad Request` rather than the original workflows.
+
 ### List workflows
 
 `GET /api/v1/{namespace}/workflows` lists workflows newest first, with the same items as the single read. The status,
