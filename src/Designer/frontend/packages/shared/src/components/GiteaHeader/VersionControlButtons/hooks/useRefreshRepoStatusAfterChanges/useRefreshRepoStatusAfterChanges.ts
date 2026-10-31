@@ -6,7 +6,8 @@ export const REFRESH_DELAY_MS = 1000;
 
 // Studio saves every change to the user's copy of the repository, so any change can change what there is to share.
 // The status request fetches from Gitea, and some saves wait for it. So it waits for a pause in the saves, and for a
-// request that is still running.
+// request that is still running. Mutations that refresh the status themselves set meta.refreshesRepoStatus, and are
+// left to it.
 export const useRefreshRepoStatusAfterChanges = (owner: string, repoName: string): void => {
   const queryClient = useQueryClient();
 
@@ -24,6 +25,7 @@ export const useRefreshRepoStatusAfterChanges = (owner: string, repoName: string
 
     const unsubscribe = queryClient.getMutationCache().subscribe((event) => {
       if (event.type !== 'updated' || event.action.type !== 'success') return;
+      if (event.mutation.options.meta?.refreshesRepoStatus) return;
       clearTimeout(timeout);
       timeout = setTimeout(refresh, REFRESH_DELAY_MS);
     });

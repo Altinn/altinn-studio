@@ -49,6 +49,17 @@ describe('useRefreshRepoStatusAfterChanges', () => {
     expect(invalidateQueries).toHaveBeenCalledTimes(1);
   });
 
+  it('should leave the refresh to a change that refreshes the status itself', async () => {
+    const { result, invalidateQueries } = renderSave(() => Promise.resolve(), {
+      refreshesRepoStatus: true,
+    });
+
+    await act(() => result.current.mutateAsync());
+    await wait(REFRESH_DELAY_MS);
+
+    expect(invalidateQueries).not.toHaveBeenCalled();
+  });
+
   it('should not refresh the repository status when a change fails', async () => {
     const { result, invalidateQueries } = renderSave(() => Promise.reject(new Error('Not saved')));
 
@@ -61,13 +72,13 @@ describe('useRefreshRepoStatusAfterChanges', () => {
 
 const wait = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
 
-const renderSave = (save: () => Promise<void>) => {
+const renderSave = (save: () => Promise<void>, meta: Record<string, unknown> = {}) => {
   const queryClient = createQueryClientMock();
   const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
   const { result } = renderHookWithProviders(
     () => {
       useRefreshRepoStatusAfterChanges(org, app);
-      return useMutation({ mutationFn: save, meta: { hideDefaultError: true } });
+      return useMutation({ mutationFn: save, meta: { hideDefaultError: true, ...meta } });
     },
     { queryClient },
   );
