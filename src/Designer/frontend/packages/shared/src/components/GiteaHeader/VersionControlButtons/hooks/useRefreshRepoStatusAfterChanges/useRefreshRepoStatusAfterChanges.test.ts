@@ -6,6 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { mockRepoStatus } from '../../test/mocks/versionControlContextMock';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import {
   REFRESH_DELAY_MS,
   useRefreshRepoStatusAfterChanges,
@@ -18,8 +19,7 @@ describe('useRefreshRepoStatusAfterChanges', () => {
   afterEach(() => vi.useRealTimers());
 
   it('should refresh the repository status once after a series of saves', async () => {
-    const { result, queryClient, invalidateQueries } = renderSave(() => Promise.resolve());
-    queryClient.setQueryData(repoStatusQueryKey, mockRepoStatus);
+    const { result, invalidateQueries } = renderSave(() => Promise.resolve());
 
     await act(() => result.current.mutateAsync());
     await wait(REFRESH_DELAY_MS / 2);
@@ -32,14 +32,21 @@ describe('useRefreshRepoStatusAfterChanges', () => {
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: repoStatusQueryKey });
   });
 
-  it('should not refresh the repository status when there is already something to share', async () => {
+  it('should wait for a status request that is still running', async () => {
     const { result, queryClient, invalidateQueries } = renderSave(() => Promise.resolve());
-    queryClient.setQueryData(repoStatusQueryKey, { ...mockRepoStatus, aheadBy: 1 });
+    let finishRequest: (status: RepoStatus) => void;
+    void queryClient.fetchQuery({
+      queryKey: repoStatusQueryKey,
+      queryFn: () => new Promise<RepoStatus>((resolve) => (finishRequest = resolve)),
+    });
 
     await act(() => result.current.mutateAsync());
     await wait(REFRESH_DELAY_MS);
-
     expect(invalidateQueries).not.toHaveBeenCalled();
+
+    await act(async () => finishRequest(mockRepoStatus));
+    await wait(REFRESH_DELAY_MS);
+    expect(invalidateQueries).toHaveBeenCalledTimes(1);
   });
 
   it('should not refresh the repository status when a change fails', async () => {
