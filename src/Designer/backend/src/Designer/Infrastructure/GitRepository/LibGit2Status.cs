@@ -37,9 +37,9 @@ internal static unsafe class LibGit2Status
         | UpdateIndex;
 
     // The libgit2 build that the struct layouts below were checked against: libgit2 1.8.6, in LibGit2Sharp 0.32, which
-    // reports it as GlobalSettings.Version.LibGit2CommitSha and loads it as the library git2-<that commit>. Wrong layouts
-    // read and write the wrong memory rather than fail, so before you set this to a new build, compare the new libgit2's
-    // headers and LibGit2Sharp's source with this file:
+    // reports it as GlobalSettings.Version.LibGit2CommitSha and loads it as the library git2-<that commit>. Wrong
+    // layouts read and write the wrong memory rather than fail, so before you set this to a new build, compare the new
+    // libgit2's headers and LibGit2Sharp's source with this file:
     // - The structs match git_status_options and git_status_entry in include/git2/status.h, git_diff_delta and
     //   git_diff_file in diff.h, git_oid in oid.h and git_error in errors.h, field by field. git_oid grows in builds
     //   with SHA-256 support.
@@ -56,85 +56,87 @@ internal static unsafe class LibGit2Status
 
     private static readonly Lazy<(Native? Native, string? Failure)> s_native = new(Native.Load);
 
-    /// <summary>
-    /// Returns the same entries as <c>repo.RetrieveStatus(new StatusOptions())</c>, and saves refreshed stat data in the
-    /// index. Returns null, with the reason in <paramref name="failure"/>, when it can't: when libgit2 fails, for
-    /// example because another process holds the index's lock, or when LibGit2Sharp loads another libgit2 than the one
-    /// this was checked against. The caller then reads the status without saving it, as <c>git status</c> does when it
-    /// can't write the index.
-    /// </summary>
-    public static IReadOnlyList<(string FilePath, FileStatus State)>? RetrieveStatusUpdatingIndex(
-        LibGit2Sharp.Repository repo,
-        out string? failure
-    )
+    extension(LibGit2Sharp.Repository repo)
     {
-        (Native? native, failure) = s_native.Value;
-        if (native is null)
+        /// <summary>
+        /// Returns the same entries as <c>repo.RetrieveStatus(new StatusOptions())</c>, and saves refreshed stat data
+        /// in the index. Returns null, with the reason in <paramref name="failure"/>, when it can't: when libgit2
+        /// fails, for example because another process holds the index's lock, or when LibGit2Sharp loads another
+        /// libgit2 than the one this was checked against. The caller then reads the status without saving it, as <c>git
+        /// status</c> does when it can't write the index.
+        /// </summary>
+        public IReadOnlyList<(string FilePath, FileStatus State)>? RetrieveStatusUpdatingIndex(out string? failure)
         {
-            return null;
-        }
+            (Native? native, failure) = s_native.Value;
+            if (native is null)
+            {
+                return null;
+            }
 
-        SafeHandle? handle;
-        try
-        {
-            handle = GetHandle(repo) as SafeHandle;
-        }
-        catch (Exception e) when (e is MissingMemberException or TypeLoadException)
-        {
-            handle = null;
-        }
-        if (handle is null)
-        {
-            failure = "LibGit2Sharp's repository no longer has a RepositoryHandle.";
-            return null;
-        }
-
-        GitStatusOptions options = default;
-        int result = native.OptionsInit(&options, GitStatusOptions.Version1);
-        nint list = 0;
-        if (result >= 0)
-        {
-            options.Flags = Flags;
-            bool addedReference = false;
+            SafeHandle? handle;
             try
             {
-                handle.DangerousAddRef(ref addedReference);
-                result = native.ListNew(&list, handle.DangerousGetHandle(), &options);
+                handle = GetHandle(repo) as SafeHandle;
+            }
+            catch (Exception e) when (e is MissingMemberException or TypeLoadException)
+            {
+                handle = null;
+            }
+            if (handle is null)
+            {
+                failure = "LibGit2Sharp's repository no longer has a RepositoryHandle.";
+                return null;
+            }
+
+            GitStatusOptions options = default;
+            int result = native.OptionsInit(&options, GitStatusOptions.Version1);
+            nint list = 0;
+            if (result >= 0)
+            {
+                options.Flags = Flags;
+                bool addedReference = false;
+                try
+                {
+                    handle.DangerousAddRef(ref addedReference);
+                    result = native.ListNew(&list, handle.DangerousGetHandle(), &options);
+                }
+                finally
+                {
+                    if (addedReference)
+                    {
+                        handle.DangerousRelease();
+                    }
+                }
+            }
+
+            if (result < 0)
+            {
+                GitError* error = native.ErrorLast();
+                string message = error is null ? "" : ReadUtf8(error->Message);
+                failure = $"libgit2 error {result}: {message}";
+                return null;
+            }
+
+            try
+            {
+                nuint count = native.EntryCount(list);
+                var entries = new List<(string, FileStatus)>(checked((int)count));
+                for (nuint i = 0; i < count; i++)
+                {
+                    GitStatusEntry* entry = native.ByIndex(list, i);
+                    // As LibGit2Sharp's RepositoryStatus: the working directory's path, or else the index's.
+                    GitDiffDelta* delta = entry->IndexToWorkdir is not null
+                        ? entry->IndexToWorkdir
+                        : entry->HeadToIndex;
+                    string path = ReadUtf8(delta->NewFile.Path);
+                    entries.Add((path, (FileStatus)entry->Status));
+                }
+                return entries;
             }
             finally
             {
-                if (addedReference)
-                {
-                    handle.DangerousRelease();
-                }
+                native.ListFree(list);
             }
-        }
-
-        if (result < 0)
-        {
-            GitError* error = native.ErrorLast();
-            string message = error is null ? "" : ReadUtf8(error->Message);
-            failure = $"libgit2 error {result}: {message}";
-            return null;
-        }
-
-        try
-        {
-            nuint count = native.EntryCount(list);
-            var entries = new List<(string, FileStatus)>(checked((int)count));
-            for (nuint i = 0; i < count; i++)
-            {
-                GitStatusEntry* entry = native.ByIndex(list, i);
-                // As LibGit2Sharp's RepositoryStatus: the working directory's path, or else the index's.
-                GitDiffDelta* delta = entry->IndexToWorkdir is not null ? entry->IndexToWorkdir : entry->HeadToIndex;
-                string path = ReadUtf8(delta->NewFile.Path);
-                entries.Add((path, (FileStatus)entry->Status));
-            }
-            return entries;
-        }
-        finally
-        {
-            native.ListFree(list);
         }
     }
 
@@ -221,9 +223,9 @@ internal static unsafe class LibGit2Status
     }
 
     /// <summary>
-    /// The libgit2 functions, from the library LibGit2Sharp loads. After a LibGit2Sharp upgrade that changes the libgit2
-    /// build this loads nothing, and the status tests fail until the layouts are checked against the new libgit2 and
-    /// <see cref="SupportedLibGit2"/> is updated.
+    /// The libgit2 functions, from the library LibGit2Sharp loads. After a LibGit2Sharp upgrade that changes the
+    /// libgit2 build this loads nothing, and the status tests fail until the layouts are checked against the new
+    /// libgit2 and <see cref="SupportedLibGit2"/> is updated.
     /// </summary>
     private sealed class Native
     {
@@ -274,9 +276,9 @@ internal static unsafe class LibGit2Status
 
         /// <summary>
         /// Binds to the libgit2 at <paramref name="library"/> unless nobody has initialized it. LibGit2Sharp's resolver
-        /// picks the same copy for LibGit2Sharp and for this, from inputs that are fixed once LibGit2Sharp has loaded it.
-        /// Should another copy turn up all the same, it would be one nobody initialized, since nothing here initializes
-        /// one: its functions then fail or worse, so it isn't given LibGit2Sharp's repository.
+        /// picks the same copy for LibGit2Sharp and for this, from inputs that are fixed once LibGit2Sharp has loaded
+        /// it. Should another copy turn up all the same, it would be one nobody initialized, since nothing here
+        /// initializes one: its functions then fail or worse, so it isn't given LibGit2Sharp's repository.
         /// </summary>
         public static (Native? Native, string? Failure) Bind(nint library)
         {

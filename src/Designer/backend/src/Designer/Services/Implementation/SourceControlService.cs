@@ -466,8 +466,9 @@ public class SourceControlService(
                 using var repo = new LibGit2Sharp.Repository(localServiceRepoFolder);
                 try
                 {
-                    IReadOnlyList<(string FilePath, FileStatus State)>? status =
-                        LibGit2Status.RetrieveStatusUpdatingIndex(repo, out string? indexUpdateFailure);
+                    IReadOnlyList<(string FilePath, FileStatus State)>? status = repo.RetrieveStatusUpdatingIndex(
+                        out string? indexUpdateFailure
+                    );
                     if (status is null)
                     {
                         ctx.activity?.SetTag(
