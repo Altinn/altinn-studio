@@ -29,6 +29,14 @@ internal static class DeployEndpoints
             );
 
         deployApi
+            .MapPost("/apps/{app}/restart", HandleRestartApp.Handler)
+            .WithName("RestartApp")
+            .WithSummary("Restart an App.")
+            .WithDescription(
+                "Endpoint to replace an app's running instances with new ones of the same version, without a deploy. Returns 409 while a deploy or restart is still replacing them."
+            );
+
+        deployApi
             .MapGet("/apps/{app}/{originEnvironment}/deployed", HandleIsAppDeployed.IsAppDeployedHandler)
             .WithName("IsAppDeployed")
             .WithSummary("Check if App is deployed.")

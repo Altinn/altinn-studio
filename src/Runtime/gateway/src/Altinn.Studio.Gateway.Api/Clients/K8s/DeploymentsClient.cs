@@ -1,12 +1,18 @@
+using System.Globalization;
 using Altinn.Studio.Gateway.Contracts.Deploy;
 using k8s;
 using k8s.Models;
 
 namespace Altinn.Studio.Gateway.Api.Clients.K8s;
 
-internal sealed class DeploymentsClient(IKubernetes _kubernetes)
+internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _timeProvider)
 {
     private const string ReleaseLabel = "release";
+    private const string ProgressingCondition = "Progressing";
+    private const string ProgressDeadlineExceededReason = "ProgressDeadlineExceeded";
+
+    // RFC 3339, as kubectl rollout restart writes its annotation.
+    internal const string RestartedAtFormat = "yyyy-MM-ddTHH:mm:ssZ";
 
     /// <summary>
     /// Gets the app's Deployment by its <c>release</c> label rather than by name, since apps deployed before GitOps
@@ -20,14 +26,43 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes)
         CancellationToken cancellationToken
     )
     {
-        var release = $"{org}-{app}".ToLowerInvariant();
-        var deployments = await _kubernetes.AppsV1.ListNamespacedDeploymentAsync(
+        var release = ReleaseOf(org, app);
+        var deployment = await Find(release, @namespace, cancellationToken);
+        return deployment is null ? null : ToRunningAppDeployment(release, deployment);
+    }
+
+    /// <summary>
+    /// Restarts the app by stamping its pod template, as <c>kubectl rollout restart</c> does, so Kubernetes replaces
+    /// its pods with the same version, as it would on a deploy. Flux leaves the annotation alone, since app HelmReleases do not
+    /// detect drift, and Helm keeps it on the next deploy, since no chart manifest sets it.
+    /// </summary>
+    public async Task<AppRestart> Restart(
+        string org,
+        string app,
+        string @namespace,
+        CancellationToken cancellationToken
+    )
+    {
+        var release = ReleaseOf(org, app);
+        var deployment = await Find(release, @namespace, cancellationToken);
+        if (deployment is null)
+        {
+            return new AppRestart.NotFound();
+        }
+
+        var running = ToRunningAppDeployment(release, deployment);
+        if (running.Status is RunningAppStatus.Updating)
+        {
+            return new AppRestart.AlreadyUpdating(running);
+        }
+
+        var restarted = await _kubernetes.AppsV1.PatchNamespacedDeploymentAsync(
+            RestartPatch(_timeProvider.GetUtcNow()),
+            deployment.Metadata.Name,
             @namespace,
-            labelSelector: $"{ReleaseLabel}={release}",
             cancellationToken: cancellationToken
         );
-
-        return deployments.Items is [var deployment, ..] ? ToRunningAppDeployment(release, deployment) : null;
+        return new AppRestart.Started(ToRunningAppDeployment(release, restarted));
     }
 
     /// <summary>
@@ -45,10 +80,97 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes)
             ContainerImage.TagOf(image),
             Annotation(annotations, StudioLabels.BuildId),
             Annotation(annotations, StudioLabels.SourceEnvironment),
-            Annotation(annotations, StudioLabels.DeploymentId)
+            Annotation(annotations, StudioLabels.DeploymentId),
+            StatusOf(deployment),
+            RestartedAt(annotations)
         );
     }
 
+    /// <summary>
+    /// Follows the conditions <c>kubectl rollout status</c> waits for: the controller has seen the latest spec, and
+    /// every desired pod runs it and is available, with no old pods left.
+    /// </summary>
+    internal static RunningAppStatus StatusOf(V1Deployment deployment)
+    {
+        var status = deployment.Status;
+        if (status is null || (status.ObservedGeneration ?? 0) < (deployment.Metadata?.Generation ?? 0))
+        {
+            return RunningAppStatus.Updating;
+        }
+
+        if (
+            status.Conditions?.Any(condition =>
+                condition.Type == ProgressingCondition && condition.Reason == ProgressDeadlineExceededReason
+            ) == true
+        )
+        {
+            return RunningAppStatus.Failed;
+        }
+
+        // Kubernetes omits counts that are zero.
+        var desired = deployment.Spec?.Replicas ?? 1;
+        var updated = status.UpdatedReplicas ?? 0;
+        var total = status.Replicas ?? 0;
+        var available = status.AvailableReplicas ?? 0;
+        return updated < desired || total > updated || available < updated
+            ? RunningAppStatus.Updating
+            : RunningAppStatus.Ready;
+    }
+
+    internal static V1Patch RestartPatch(DateTimeOffset now)
+    {
+        var timestamp = now.UtcDateTime.ToString(RestartedAtFormat, CultureInfo.InvariantCulture);
+        return new V1Patch(
+            $"{{\"spec\":{{\"template\":{{\"metadata\":{{\"annotations\":{{\"{StudioLabels.RestartedAt}\":\"{timestamp}\"}}}}}}}}}}",
+            V1Patch.PatchType.MergePatch
+        );
+    }
+
+#pragma warning disable CA1308 // Helm release names are lowercase.
+    private static string ReleaseOf(string org, string app) => $"{org}-{app}".ToLowerInvariant();
+#pragma warning restore CA1308
+
+    private async Task<V1Deployment?> Find(string release, string @namespace, CancellationToken cancellationToken)
+    {
+        var deployments = await _kubernetes.AppsV1.ListNamespacedDeploymentAsync(
+            @namespace,
+            labelSelector: $"{ReleaseLabel}={release}",
+            cancellationToken: cancellationToken
+        );
+        return deployments.Items is [var deployment, ..] ? deployment : null;
+    }
+
+    private static DateTimeOffset? RestartedAt(IDictionary<string, string>? annotations) =>
+        Annotation(annotations, StudioLabels.RestartedAt) is { } value
+        && DateTimeOffset.TryParseExact(
+            value,
+            RestartedAtFormat,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out var restartedAt
+        )
+            ? restartedAt
+            : null;
+
     private static string? Annotation(IDictionary<string, string>? annotations, string key) =>
         annotations is not null && annotations.TryGetValue(key, out var value) && value.Length > 0 ? value : null;
+}
+
+/// <summary>
+/// The outcome of restarting an app: <see cref="Started"/>, <see cref="NotFound"/> or <see cref="AlreadyUpdating"/>.
+/// </summary>
+internal abstract record AppRestart
+{
+    private AppRestart() { }
+
+    /// <param name="Deployment">The app as Kubernetes accepted the restart, so already updating.</param>
+    internal sealed record Started(RunningAppDeployment Deployment) : AppRestart;
+
+    internal sealed record NotFound : AppRestart;
+
+    /// <summary>
+    /// A deploy or an earlier restart is still replacing the app's instances, so another restart would interrupt
+    /// instances that have only just started.
+    /// </summary>
+    internal sealed record AlreadyUpdating(RunningAppDeployment Deployment) : AppRestart;
 }

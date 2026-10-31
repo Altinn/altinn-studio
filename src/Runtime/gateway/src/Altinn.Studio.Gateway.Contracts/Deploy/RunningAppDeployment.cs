@@ -11,10 +11,14 @@ namespace Altinn.Studio.Gateway.Contracts.Deploy;
 /// <param name="BuildId">The deploy pipeline's build.</param>
 /// <param name="SourceEnvironment">The Studio environment that deployed the app, such as <c>prod</c>.</param>
 /// <param name="DeploymentId">The deployment's id in that Studio environment.</param>
+/// <param name="Status">Whether the app runs its latest version, from a deploy or a restart.</param>
+/// <param name="RestartedAt">When the app was last restarted without a deploy, or null when it has not been.</param>
 public record RunningAppDeployment(
     string Release,
     string? ImageTag,
     string? BuildId,
     string? SourceEnvironment,
-    string? DeploymentId
+    string? DeploymentId,
+    RunningAppStatus Status,
+    DateTimeOffset? RestartedAt
 );
