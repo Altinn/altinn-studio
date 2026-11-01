@@ -1,216 +1,401 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Text.Json;
 using Acornima.Ast;
 
 namespace Altinn.Studio.Cli.Upgrade.v8Tov9.RuleConfiguration.ConditionalRenderingMatchers;
 
 /// <summary>
-/// Matches binary comparison expressions (===, !==, &gt;, &lt;, &gt;=, &lt;=)
+/// Converts comparisons only when expression coercion preserves the JavaScript comparison.
 /// </summary>
 public class BinaryComparisonMatcher : IExpressionMatcher
 {
-    private static readonly Dictionary<string, string> _operatorMap = new()
-    {
-        // Symbol operators
-        { "===", "equals" },
-        { "==", "equals" },
-        { "!==", "notEquals" },
-        { "!=", "notEquals" },
-        { ">", "greaterThan" },
-        { ">=", "greaterThanEq" },
-        { "<", "lessThan" },
-        { "<=", "lessThanEq" },
-        // Acornima enum names
-        { "StrictEquality", "equals" },
-        { "StrictInequality", "notEquals" },
-        { "Equality", "equals" },
-        { "Inequality", "notEquals" },
-        { "GreaterThan", "greaterThan" },
-        { "GreaterThanOrEqual", "greaterThanEq" },
-        { "LessThan", "lessThan" },
-        { "LessThanOrEqual", "lessThanEq" },
-    };
-
-    public bool CanMatch(Expression expression)
-    {
-        // Check if this is a binary expression (includes subclasses like NonLogicalBinaryExpression)
-        if (expression is BinaryExpression binaryExpr)
-        {
-            var op = binaryExpr.Operator.ToString();
-            return _operatorMap.ContainsKey(op);
-        }
-
-        return false;
-    }
+    public bool CanMatch(Expression expression) => expression is BinaryExpression and not LogicalExpression;
 
     public object? Match(Expression expression, ConversionContext context, List<string> debugInfo)
     {
-        if (expression is not BinaryExpression binaryExpr)
+        if (expression is not BinaryExpression binary)
             return null;
-
-        var op = binaryExpr.Operator.ToString();
-        if (!_operatorMap.TryGetValue(op, out var exprFunction))
+        var op = binary.Operator.ToString();
+        if (op is "Addition" or "Subtraction" or "Multiplication" or "Division")
+            return ConvertArithmetic(binary, context, debugInfo);
+        var equality = op is "Equality" or "StrictEquality" or "==" or "===";
+        var inequality = op is "Inequality" or "StrictInequality" or "!=" or "!==";
+        var strict = op is "StrictEquality" or "StrictInequality" or "===" or "!==";
+        if (TryIndexOf(binary.Left, out var indexCall) && IsMinusOne(binary.Right))
+            return ConvertIndexOf(indexCall, op, false, context, debugInfo);
+        if (TryIndexOf(binary.Right, out indexCall) && IsMinusOne(binary.Left))
+            return ConvertIndexOf(indexCall, op, true, context, debugInfo);
+        var leftType = context.GetValueType(binary.Left);
+        var rightType = context.GetValueType(binary.Right);
+        // Check the lowered operands too: locals and helper calls may contain the arithmetic.
+        if (leftType == "number" && rightType == "number")
+            foreach (var operand in new[] { binary.Left, binary.Right })
+            {
+                var value = context.ConvertExpression(operand, debugInfo);
+                if (value != null && NumericComparisonSafety.MayChangeBoundary(JsonSerializer.SerializeToNode(value)))
+                    return context.Reject(
+                        "Fractional arithmetic in a comparison can change JavaScript boundary decisions",
+                        debugInfo
+                    );
+            }
+        if (equality || inequality)
         {
-            debugInfo.Add($"❌ Unsupported binary operator: {op}");
-            return null;
+            var converted = ConvertEquality(binary.Left, binary.Right, leftType, rightType, strict, context, debugInfo);
+            if (converted == null)
+                return null;
+            return inequality ? new object[] { "not", converted } : converted;
         }
-
-        // Check if this is an indexOf comparison pattern BEFORE converting
-        // Pattern: string.indexOf(value) !== -1 or -1 !== string.indexOf(value)
-        if (IsIndexOfCall(binaryExpr.Left) && IsNegativeOneLiteral(binaryExpr.Right))
+        var function = op switch
         {
-            return HandleIndexOfComparisonAst(binaryExpr.Left, op, context, debugInfo);
-        }
-        if (IsIndexOfCall(binaryExpr.Right) && IsNegativeOneLiteral(binaryExpr.Left))
-        {
-            return HandleIndexOfComparisonAst(binaryExpr.Right, op, context, debugInfo);
-        }
-
-        var left = context.ConvertExpression(binaryExpr.Left, debugInfo);
-        if (left == null)
-        {
-            debugInfo.Add($"❌ Failed to convert left side of {op}");
-            return null;
-        }
-
-        var right = context.ConvertExpression(binaryExpr.Right, debugInfo);
-        if (right == null)
-        {
-            debugInfo.Add($"❌ Failed to convert right side of {op}");
-            return null;
-        }
-
-        // Unwrap null values (they're wrapped in arrays to distinguish from conversion failure)
-        var leftValue = UnwrapNullValue(left);
-        var rightValue = UnwrapNullValue(right);
-
-        return new object?[] { exprFunction, leftValue, rightValue };
-    }
-
-    /// <summary>
-    /// Check if an AST expression is a call to indexOf()
-    /// </summary>
-    private static bool IsIndexOfCall(Expression expr)
-    {
-        if (expr is not CallExpression callExpr)
-            return false;
-
-        if (callExpr.Callee is not MemberExpression memberExpr)
-            return false;
-
-        var methodName = memberExpr.Property switch
-        {
-            Identifier id => id.Name,
+            "GreaterThan" or ">" => "greaterThan",
+            "GreaterThanOrEqual" or ">=" => "greaterThanEq",
+            "LessThan" or "<" => "lessThan",
+            "LessThanOrEqual" or "<=" => "lessThanEq",
             _ => null,
         };
-
-        return methodName == "indexOf";
+        if (function == null)
+            return context.Reject($"Unsupported conditional arithmetic operator: {op}", debugInfo);
+        if (leftType != "number" || rightType != "number")
+        {
+            return context.Reject(
+                "Relational comparisons require numeric operands; JavaScript string ordering is different",
+                debugInfo
+            );
+        }
+        var left = context.ConvertExpression(binary.Left, debugInfo);
+        var right = context.ConvertExpression(binary.Right, debugInfo);
+        if (left == null || right == null)
+            return null;
+        // The legacy binding supplied null for every configured missing/non-scalar input.
+        // JavaScript relational operators coerce that null to zero.
+        return new object[] { function, Numeric(left, binary.Left, context), Numeric(right, binary.Right, context) };
     }
 
-    /// <summary>
-    /// Check if an AST expression is the literal -1
-    /// </summary>
-    private static bool IsNegativeOneLiteral(Expression expr)
+    private static object Numeric(object value, Expression source, ConversionContext context) =>
+        context.IsDefinitelyNonNull(source) ? value : new object[] { "plus", value, 0 };
+
+    private static object? ConvertArithmetic(BinaryExpression binary, ConversionContext context, List<string> debugInfo)
     {
-        // Check for literal -1 (handles different numeric types)
-        if (expr is Literal literal)
-        {
-            return literal.Value switch
+        if (context.GetValueType(binary.Left) != "number" || context.GetValueType(binary.Right) != "number")
+            return context.Reject("Arithmetic requires numeric model inputs", debugInfo);
+        var division = binary.Operator.ToString() == "Division";
+        if (division && !context.IsDefinitelyNonZero(binary.Right))
+            return context.Reject("Division is not guarded against a zero denominator", debugInfo);
+        var left = context.ConvertExpression(binary.Left, debugInfo);
+        var right = context.ConvertExpression(binary.Right, debugInfo);
+        if (left == null || right == null)
+            return null;
+        left = Numeric(left, binary.Left, context);
+        right = Numeric(right, binary.Right, context);
+        // Conditional branches are eager in both engines. Keep an unreachable divide safe.
+        if (division)
+            right = new object[]
             {
-                int i => i == -1,
-                long l => l == -1,
-                double d => Math.Abs(d - (-1.0)) < 0.0001,
-                float f => Math.Abs(f - (-1.0f)) < 0.0001f,
-                _ => false,
+                "if",
+                ExpressionConverter.NumericEquals(new object[] { "plus", right, 0 }, 0),
+                1,
+                "else",
+                right,
             };
-        }
-
-        // Check for unary negation of 1: -1
-        if (expr is UnaryExpression unaryExpr)
+        var operation = binary.Operator.ToString() switch
         {
-            var op = unaryExpr.Operator.ToString();
-            if ((op == "-" || op == "UnaryMinus" || op == "UnaryNegation") && unaryExpr.Argument is Literal argLiteral)
-            {
-                return argLiteral.Value switch
-                {
-                    int i => i == 1,
-                    long l => l == 1,
-                    double d => Math.Abs(d - 1.0) < 0.0001,
-                    float f => Math.Abs(f - 1.0f) < 0.0001f,
-                    _ => false,
-                };
-            }
-        }
-
-        return false;
+            "Addition" => "plus",
+            "Subtraction" => "minus",
+            "Multiplication" => "multiply",
+            _ => "divide",
+        };
+        return new object[] { operation, left, right };
     }
 
-    /// <summary>
-    /// Handle indexOf() comparison with -1 at the AST level
-    /// </summary>
-    private static object? HandleIndexOfComparisonAst(
-        Expression indexOfExpr,
-        string op,
+    internal static bool NullComparisonIsFalse(Expression other, string function, bool reversed)
+    {
+        var sign = 1d;
+        if (other is UnaryExpression unary && unary.Operator.ToString() is "UnaryNegation" or "UnaryMinus" or "-")
+        {
+            sign = -1d;
+            other = unary.Argument;
+        }
+        if (other is not Literal { Value: double value })
+            return false;
+        var left = reversed ? sign * value : 0d;
+        var right = reversed ? 0d : sign * value;
+        return function switch
+        {
+            "greaterThan" => !(left > right),
+            "greaterThanEq" => !(left >= right),
+            "lessThan" => !(left < right),
+            "lessThanEq" => !(left <= right),
+            _ => false,
+        };
+    }
+
+    private static object? ConvertEquality(
+        Expression leftExpression,
+        Expression rightExpression,
+        string? leftType,
+        string? rightType,
+        bool strict,
         ConversionContext context,
         List<string> debugInfo
     )
     {
-        var callExpr = (CallExpression)indexOfExpr;
-        var memberExpr = (MemberExpression)callExpr.Callee;
-
-        debugInfo.Add($"Converting indexOf() {op} -1 to contains check");
-
-        // Convert the subject (the string being searched)
-        var subject = context.ConvertExpression(memberExpr.Object, debugInfo);
-        if (subject == null)
+        if (leftType is "null" or "undefined" || rightType is "null" or "undefined")
         {
-            debugInfo.Add("❌ Failed to convert subject of indexOf()");
+            if (leftType is "null" or "undefined" && rightType is "null" or "undefined")
+                return !strict || leftType == rightType;
+            var subject = leftType is "null" or "undefined" ? rightExpression : leftExpression;
+            var subjectType = leftType is "null" or "undefined" ? rightType : leftType;
+            if (subjectType == "object")
+                return false;
+            if (context.IsDefinitelyNonNull(subject))
+                return false;
+            if (strict && (leftType == "undefined" || rightType == "undefined"))
+                return false;
+            if ((subjectType == "string" || subjectType == null) && !context.HasSafeStringDomain(subject))
+            {
+                return context.Reject(
+                    "Unrestricted strings may contain the reserved expression value 'null'",
+                    debugInfo
+                );
+            }
+            var value = context.ConvertExpression(subject, debugInfo);
+            return value == null ? null : new object?[] { "equals", value, null };
+        }
+        if (leftType == "object" || rightType == "object")
+        {
+            if (leftType == "object" && rightType == "object")
+                return true;
+            return context.Reject("Object-to-primitive comparisons require manual conversion", debugInfo);
+        }
+        if (strict && leftType != null && rightType != null && leftType != rightType)
+            return false;
+        var left = context.ConvertExpression(leftExpression, debugInfo);
+        var right = context.ConvertExpression(rightExpression, debugInfo);
+        if (left == null || right == null)
             return null;
-        }
-
-        // Get the search value (first argument)
-        if (callExpr.Arguments.Count == 0)
+        if (leftType == "number" && rightType == "number")
         {
-            debugInfo.Add("❌ indexOf() requires at least one argument");
-            return null;
+            if (
+                leftExpression is MemberExpression
+                && rightExpression is MemberExpression
+                && (!context.IsDefinitelyNonNull(leftExpression) || !context.IsDefinitelyNonNull(rightExpression))
+            )
+            {
+                return new object?[]
+                {
+                    "or",
+                    new object?[]
+                    {
+                        "and",
+                        new object?[] { "equals", left, null },
+                        new object?[] { "equals", right, null },
+                    },
+                    ExpressionConverter.NumericEquals(left, right),
+                };
+            }
+            return ExpressionConverter.NumericEquals(left, right);
         }
-
-        var searchValue = context.ConvertExpression(callExpr.Arguments[0], debugInfo);
-        if (searchValue == null)
+        if (leftType == "boolean" && rightType == "boolean")
         {
-            debugInfo.Add("❌ Failed to convert search argument of indexOf()");
-            return null;
+            if (
+                strict
+                && leftExpression is MemberExpression
+                && rightExpression is MemberExpression
+                && (!context.IsDefinitelyNonNull(leftExpression) || !context.IsDefinitelyNonNull(rightExpression))
+            )
+                return null;
+            return new object[] { "equals", left, right };
         }
-
-        // Unwrap null values
-        var searchValueUnwrapped = UnwrapNullValue(searchValue);
-
-        // indexOf(x) !== -1 means "contains", indexOf(x) === -1 means "does not contain"
-        bool isCheckingForContains = op == "!==" || op == "StrictInequality" || op == "!=" || op == "Inequality";
-
-        // ! subject is verified non-null above; an unwrapped search value can intentionally be null
-        var containsExpression = new object[] { "contains", subject, searchValueUnwrapped! };
-
-        if (isCheckingForContains)
+        if (
+            leftType == "string"
+            && rightExpression is Literal { Value: string rightText }
+            && ConversionContext.IsReservedString(rightText)
+        )
+            return ExactReservedStringEquality(left, rightText, context, debugInfo);
+        if (
+            rightType == "string"
+            && leftExpression is Literal { Value: string leftText }
+            && ConversionContext.IsReservedString(leftText)
+        )
+            return ExactReservedStringEquality(right, leftText, context, debugInfo);
+        if (
+            leftType == "string"
+            && rightType == "string"
+            && (IsOrdinaryStringLiteral(leftExpression) || IsOrdinaryStringLiteral(rightExpression))
+        )
+            return new object[] { "equals", left, right };
+        if (
+            (leftType == "string" || leftType == null) && IsSafeNonNumericStringLiteral(rightExpression)
+            || (rightType == "string" || rightType == null) && IsSafeNonNumericStringLiteral(leftExpression)
+        )
+            return new object[] { "equals", left, right };
+        if (
+            leftType == "string"
+            && rightType == "string"
+            && context.HasSafeStringDomain(leftExpression)
+            && context.HasSafeStringDomain(rightExpression)
+        )
+            return new object[] { "equals", left, right };
+        if (!strict)
         {
-            debugInfo.Add("✅ Converted indexOf() !== -1 to 'contains'");
-            return containsExpression;
+            if (
+                leftType is "number" or "boolean" && NumericStringRequiresManualConversion(rightExpression)
+                || rightType is "number" or "boolean" && NumericStringRequiresManualConversion(leftExpression)
+            )
+                return context.Reject(
+                    "Radix-prefixed and non-finite numeric strings require JavaScript-specific numeric coercion",
+                    debugInfo
+                );
+            if (leftType == "number" && TryNumericLiteral(rightExpression, out var number))
+                return ExpressionConverter.NumericEquals(left, number);
+            if (rightType == "number" && TryNumericLiteral(leftExpression, out number))
+                return ExpressionConverter.NumericEquals(number, right);
+            if (leftType == "boolean" && TryNumericLiteral(rightExpression, out number))
+                return CompareBooleanToNumber(left, number);
+            if (rightType == "boolean" && TryNumericLiteral(leftExpression, out number))
+                return CompareBooleanToNumber(right, number);
+            if (leftType is "number" or "boolean" && rightExpression is Literal { Value: string })
+                return false;
+            if (rightType is "number" or "boolean" && leftExpression is Literal { Value: string })
+                return false;
         }
-        else
-        {
-            debugInfo.Add("✅ Converted indexOf() === -1 to 'not contains'");
-            return new object[] { "not", containsExpression };
-        }
+        return context.Reject(
+            "Cannot preserve JavaScript equality without compatible model types or bounded string values",
+            debugInfo
+        );
     }
 
-    /// <summary>
-    /// Unwrap null values that were wrapped to distinguish from conversion failure
-    /// </summary>
-    private static object? UnwrapNullValue(object value)
+    private static object CompareBooleanToNumber(object value, double number)
     {
-        // Check if this is a wrapped null (single-element array containing null)
-        if (value is object?[] array && array.Length == 1 && array[0] == null)
+        if (number.CompareTo(0d) == 0)
+            return new object[] { "equals", value, false };
+        if (number.CompareTo(1d) == 0)
+            return new object[] { "equals", value, true };
+        return false;
+    }
+
+    private static bool NumericStringRequiresManualConversion(Expression expression)
+    {
+        if (expression is not Literal { Value: string text })
+            return false;
+        var trimmed = text.Trim();
+        return trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("0b", StringComparison.OrdinalIgnoreCase)
+            || trimmed.StartsWith("0o", StringComparison.OrdinalIgnoreCase)
+            || double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
+                && !double.IsFinite(number);
+    }
+
+    private static object? ExactReservedStringEquality(
+        object subject,
+        string literal,
+        ConversionContext context,
+        List<string> debugInfo
+    )
+    {
+        if (literal == "null")
+            return context.Reject(
+                "The dataModel expression normalizes the exact string 'null' to null before comparison",
+                debugInfo
+            );
+        // equals casts strings and folds these words. JMESPath receives Any and preserves their case.
+        return new object[] { "jmespath", subject, "@ == '" + literal + "'" };
+    }
+
+    private static bool IsSafeNonNumericStringLiteral(Expression expression) =>
+        expression is Literal { Value: string text }
+        && !ConversionContext.IsReservedString(text)
+        && !double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out _)
+        && text.Trim().Length != 0;
+
+    private static bool IsOrdinaryStringLiteral(Expression expression) =>
+        expression is Literal { Value: string text } && !ConversionContext.IsReservedString(text);
+
+    private static bool TryNumericLiteral(Expression expression, out double value)
+    {
+        value = 0;
+        if (expression is Literal { Value: double number })
         {
-            return null;
+            value = number;
+            return true;
         }
-        return value;
+        if (expression is Literal { Value: string text })
+            return text.Trim().Length == 0
+                || double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        if (expression is Literal { Value: bool boolean })
+        {
+            value = boolean ? 1 : 0;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool TryIndexOf(Expression expression, [NotNullWhen(true)] out CallExpression? call)
+    {
+        call = null;
+        if (
+            expression
+            is not CallExpression
+            {
+                Callee: MemberExpression { Computed: false, Property: Identifier { Name: "indexOf" } }
+            } candidate
+        )
+            return false;
+        call = candidate;
+        return true;
+    }
+
+    private static bool IsMinusOne(Expression expression) =>
+        expression is UnaryExpression unary
+        && unary.Operator.ToString() is "UnaryNegation" or "UnaryMinus" or "-"
+        && unary.Argument is Literal { Value: double value }
+        && value.CompareTo(1d) == 0;
+
+    private static object? ConvertIndexOf(
+        CallExpression call,
+        string op,
+        bool reversed,
+        ConversionContext context,
+        List<string> debugInfo
+    )
+    {
+        if (call.Arguments.Count != 1 || call.Callee is not MemberExpression member)
+        {
+            return context.Reject("indexOf with a starting position requires manual conversion", debugInfo);
+        }
+        var subject = context.ConvertExpression(member.Object, debugInfo);
+        var search = context.ConvertExpression(call.Arguments[0], debugInfo);
+        if (
+            subject == null
+            || search == null
+            || context.GetValueType(member.Object) != "string"
+            || !context.HasSafeStringDomain(member.Object)
+            || context.GetValueType(call.Arguments[0]) != "string"
+            || !context.HasSafeStringDomain(call.Arguments[0])
+        )
+            return context.Reject("String search text must preserve its type and reserved-value casing", debugInfo);
+        var contains = new object[] { "contains", subject, search };
+        // indexOf returns either -1 or a non-negative index. Reverse relational operators
+        // when the call is on the right instead of treating every comparison as equality.
+        if (reversed)
+            op = op switch
+            {
+                "GreaterThan" or ">" => "LessThan",
+                "LessThan" or "<" => "GreaterThan",
+                "GreaterThanOrEqual" or ">=" => "LessThanOrEqual",
+                "LessThanOrEqual" or "<=" => "GreaterThanOrEqual",
+                _ => op,
+            };
+        return op switch
+        {
+            "Equality" or "StrictEquality" or "==" or "===" => new object[] { "not", contains },
+            "Inequality" or "StrictInequality" or "!=" or "!==" => contains,
+            "GreaterThan" or ">" => contains,
+            "LessThan" or "<" => false,
+            "GreaterThanOrEqual" or ">=" => true,
+            "LessThanOrEqual" or "<=" => new object[] { "not", contains },
+            _ => null,
+        };
     }
 }

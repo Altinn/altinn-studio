@@ -64,14 +64,24 @@ public class WindowLocationMatcher : IExpressionMatcher
             return false;
 
         // Check if property is "host"
-        if (memberExpr.Property is not Identifier hostProp || hostProp.Name != "host")
+        if (
+            memberExpr.Computed
+            || memberExpr.Optional
+            || memberExpr.Property is not Identifier hostProp
+            || hostProp.Name != "host"
+        )
             return false;
 
         // Check if object is window.location
         if (memberExpr.Object is not MemberExpression locationExpr)
             return false;
 
-        if (locationExpr.Property is not Identifier locationProp || locationProp.Name != "location")
+        if (
+            locationExpr.Computed
+            || locationExpr.Optional
+            || locationExpr.Property is not Identifier locationProp
+            || locationProp.Name != "location"
+        )
             return false;
 
         // Check if object is window
@@ -84,7 +94,7 @@ public class WindowLocationMatcher : IExpressionMatcher
     private bool IsWindowLocationEndsWith(CallExpression callExpr)
     {
         // Check if callee is a member expression (for .endsWith())
-        if (callExpr.Callee is not MemberExpression memberExpr)
+        if (callExpr.Callee is not MemberExpression { Computed: false, Optional: false } memberExpr)
             return false;
 
         // Check if method is "endsWith"
@@ -160,7 +170,7 @@ public class WindowLocationMatcher : IExpressionMatcher
             return null;
 
         // Get the domain suffix from the first argument
-        if (callExpr.Arguments.Count == 0 || callExpr.Arguments[0] is not Literal literal)
+        if (callExpr.Arguments.Count != 1 || callExpr.Arguments[0] is not Literal literal)
         {
             debugInfo.Add("❌ .endsWith() call missing domain suffix argument");
             return null;
@@ -173,28 +183,27 @@ public class WindowLocationMatcher : IExpressionMatcher
             return null;
         }
 
-        // Map suffix to environment
-        // Look for exact match or any domain ending with this suffix
-        string? environment = null;
-        foreach (var kvp in _domainToEnvironment)
+        var environments = _domainToEnvironment
+            .Where(domain => domain.Key.EndsWith(suffix, StringComparison.Ordinal))
+            .Select(domain => domain.Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        if (environments.Count == 0)
         {
-            if (kvp.Key == suffix || kvp.Key.EndsWith(suffix, StringComparison.Ordinal))
-            {
-                environment = kvp.Value;
-                break;
-            }
-        }
-
-        if (environment == null)
-        {
-            debugInfo.Add($"⚠️ Unknown domain suffix '{suffix}' - cannot map to environment");
-            debugInfo.Add($"   Known domains: {string.Join(", ", _domainToEnvironment.Keys)}");
+            debugInfo.Add($"Unknown domain suffix '{suffix}' - cannot map to environment");
             return null;
         }
-
-        debugInfo.Add($"✅ Converted window.location.host.endsWith(\"{suffix}\") → environment == \"{environment}\"");
         context.RequiresEnvironmentSettings = true;
-
-        return new object[] { "equals", new object[] { "frontendSettings", "environment" }, environment };
+        var checks = environments
+            .Select(environment =>
+                (object)new object[] { "equals", new object[] { "frontendSettings", "environment" }, environment }
+            )
+            .ToList();
+        // A shared suffix such as altinn.no matches both staging and production.
+        return checks.Count == 1
+            ? checks[0]
+            : new object[] { "or" }
+                .Concat(checks)
+                .ToArray();
     }
 }

@@ -171,8 +171,12 @@ internal sealed class DataModelTypeResolver
 
                 currentType = property.Type;
 
-                // If this is a collection, get the element type
-                if (IsCollectionType(currentType, out var elementType))
+                // Traverse collection elements for indexed values or child paths. A whole collection
+                // must not be mistaken for a scalar calculation input or output.
+                if (
+                    (i < pathSegments.Length - 1 || segment.Contains('['))
+                    && IsCollectionType(currentType, out var elementType)
+                )
                 {
                     currentType = elementType;
                 }
