@@ -126,4 +126,10 @@ describe('DeploymentStatus', () => {
 
     expect(screen.getByText(textMock('app_deployment.status.update_failed'))).toBeInTheDocument();
   });
+
+  it('shows that the update failed even when the version is unknown', async () => {
+    render({ runningApp: { ...runningApp, version: null, status: 'failed' } });
+
+    expect(screen.getByText(textMock('app_deployment.status.update_failed'))).toBeInTheDocument();
+  });
 });

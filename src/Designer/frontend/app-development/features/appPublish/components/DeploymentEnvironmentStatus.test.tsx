@@ -144,4 +144,23 @@ describe('DeploymentEnvironmentStatus', () => {
 
     expect(screen.getByText(/app_deployment\.last_published/)).toBeInTheDocument();
   });
+
+  it('shows that the app is updating even when the version is unknown', async () => {
+    render({ runningApp: { ...runningApp, version: null, status: 'updating' } });
+
+    expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
+  });
+
+  it('does not call an update a restart when it cannot tell when the app was published', async () => {
+    render({
+      runningApp: {
+        ...runningApp,
+        version: '1',
+        status: 'updating',
+        restartedAt: '2026-10-31T10:42:00+00:00',
+      },
+    });
+
+    expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
+  });
 });

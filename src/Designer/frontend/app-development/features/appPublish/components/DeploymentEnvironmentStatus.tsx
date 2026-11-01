@@ -89,20 +89,6 @@ export const DeploymentEnvironmentStatus = ({
     );
   }
 
-  if (!runningApp?.version) {
-    return (
-      <DeploymentStatusAlert
-        {...environment}
-        severity='warning'
-        content={
-          <StudioParagraph className={classes.content} data-size='sm'>
-            {t('app_deployment.status.unavailable')}
-          </StudioParagraph>
-        }
-      />
-    );
-  }
-
   if (runningApp.status === 'updating') {
     return (
       <DeploymentStatusAlert
@@ -140,6 +126,20 @@ export const DeploymentEnvironmentStatus = ({
         content={
           <StudioParagraph className={classes.content} data-size='sm'>
             {t('app_deployment.status.update_failed')}
+          </StudioParagraph>
+        }
+      />
+    );
+  }
+
+  if (!runningApp?.version) {
+    return (
+      <DeploymentStatusAlert
+        {...environment}
+        severity='warning'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.unavailable')}
           </StudioParagraph>
         }
       />

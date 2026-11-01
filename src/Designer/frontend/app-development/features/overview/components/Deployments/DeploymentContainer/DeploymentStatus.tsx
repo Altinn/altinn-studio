@@ -99,22 +99,6 @@ export const DeploymentStatus = ({
     );
   }
   const isDeploy = deploymentType === 'Deploy';
-  if (!runningApp?.version && isDeploy) {
-    return (
-      <DeploymentStatusAlert
-        severity='warning'
-        content={
-          <StudioParagraph spacing>{t('app_deployment.status.unavailable')}</StudioParagraph>
-        }
-        footer={
-          <Trans i18nKey='overview.go_to_publish'>
-            <a href={publishPath(org, app)} />
-          </Trans>
-        }
-      />
-    );
-  }
-
   const goToPublish = (
     <Trans i18nKey='overview.go_to_publish'>
       <a href={publishPath(org, app)} />
@@ -157,6 +141,22 @@ export const DeploymentStatus = ({
           <StudioParagraph spacing>{t('app_deployment.status.update_failed')}</StudioParagraph>
         }
         footer={goToPublish}
+      />
+    );
+  }
+
+  if (!runningApp?.version && isDeploy) {
+    return (
+      <DeploymentStatusAlert
+        severity='warning'
+        content={
+          <StudioParagraph spacing>{t('app_deployment.status.unavailable')}</StudioParagraph>
+        }
+        footer={
+          <Trans i18nKey='overview.go_to_publish'>
+            <a href={publishPath(org, app)} />
+          </Trans>
+        }
       />
     );
   }

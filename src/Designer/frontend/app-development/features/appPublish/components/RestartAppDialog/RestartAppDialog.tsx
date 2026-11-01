@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { useId, type ReactElement } from 'react';
 import { StudioButton, StudioDialog, StudioHeading, StudioParagraph } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -22,15 +22,16 @@ export const RestartAppDialog = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: restartApp, isPending } = useRestartAppMutation(org, app);
+  const headingId = useId();
 
   // A failure shows as a toast, so the dialog closes either way.
   const onRestartClicked = () =>
     restartApp({ environment: runningApp.environment }, { onSettled: onClose });
 
   return (
-    <StudioDialog open={isOpen} onClose={onClose}>
+    <StudioDialog open={isOpen} onClose={onClose} aria-labelledby={headingId}>
       <StudioDialog.Block>
-        <StudioHeading level={2}>
+        <StudioHeading level={2} id={headingId}>
           {t('app_deployment.restart_confirmation_dialog_title', { envTitle })}
         </StudioHeading>
       </StudioDialog.Block>
@@ -41,7 +42,10 @@ export const RestartAppDialog = ({
           })}
         </StudioParagraph>
         <div className={classes.buttons}>
-          <StudioButton onClick={onRestartClicked} disabled={isPending}>
+          <StudioButton
+            onClick={onRestartClicked}
+            disabled={isPending || runningApp.status === 'updating'}
+          >
             {t('app_deployment.restart_confirmation_button')}
           </StudioButton>
           <StudioButton variant='secondary' onClick={onClose}>

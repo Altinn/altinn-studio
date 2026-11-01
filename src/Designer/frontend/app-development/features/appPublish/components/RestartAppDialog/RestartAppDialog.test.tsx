@@ -27,6 +27,24 @@ const defaultProps: RestartAppDialogProps = {
 };
 
 describe('RestartAppDialog', () => {
+  it('is named by its title, so screen readers announce what it restarts', () => {
+    renderRestartAppDialog();
+
+    expect(
+      screen.getByRole('dialog', {
+        name: textMock('app_deployment.restart_confirmation_dialog_title', { envTitle: 'TT02' }),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not let the user confirm while the app is updating', () => {
+    renderRestartAppDialog({ runningApp: { ...runningApp, status: 'updating' } });
+
+    expect(
+      screen.getByRole('button', { name: textMock('app_deployment.restart_confirmation_button') }),
+    ).toBeDisabled();
+  });
+
   it('restarts the app in the environment once the user confirms', async () => {
     const user = userEvent.setup();
     const restartApp = vi.fn().mockResolvedValue({ ...runningApp, status: 'updating' });

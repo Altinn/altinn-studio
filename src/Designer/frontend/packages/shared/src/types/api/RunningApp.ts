@@ -18,7 +18,8 @@ export interface RunningApp {
 
 /**
  * Whether the app was restarted after it was last published, so that the restart is the latest change to what runs.
- * A deploy and a restart both make the app `updating`, and this tells them apart.
+ * A deploy and a restart both make the app `updating`, and this tells them apart. Without the publish date, such as
+ * for a deploy from another Studio environment, a restart cannot be told to be the later one.
  */
 export const wasRestartedAfterPublish = (
   runningApp: RunningApp | undefined,
@@ -26,6 +27,6 @@ export const wasRestartedAfterPublish = (
 ): boolean => {
   const restartedAt = runningApp?.restartedAt;
   return (
-    !!restartedAt && (!lastPublishedDate || new Date(restartedAt) > new Date(lastPublishedDate))
+    !!restartedAt && !!lastPublishedDate && new Date(restartedAt) > new Date(lastPublishedDate)
   );
 };
