@@ -43,6 +43,16 @@ describe('RestartAppDialog', () => {
     expect(screen.getByRole('dialog')).toHaveAttribute('data-color', 'accent');
   });
 
+  it('leaves the version out when it is unknown', () => {
+    renderRestartAppDialog({ runningApp: { ...runningApp, version: null } });
+
+    expect(
+      screen.getByText(
+        textMock('app_deployment.restart_confirmation_dialog_description_without_version'),
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('does not let the user confirm while the app is updating', () => {
     renderRestartAppDialog({ runningApp: { ...runningApp, status: 'updating' } });
 

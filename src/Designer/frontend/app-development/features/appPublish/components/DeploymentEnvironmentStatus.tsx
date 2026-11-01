@@ -192,7 +192,8 @@ const DeploymentStatusAlert = ({
       <StudioHeading spacing level={2} data-size='xs'>
         {envTitle}
       </StudioHeading>
-      {runningApp?.version && (
+      {/* Without a tag, such as for an image deployed by digest, the app still runs and can be restarted. */}
+      {runningApp && (
         <DeployMoreOptionsMenu
           linkToEnv={urlToApp}
           environment={envName}

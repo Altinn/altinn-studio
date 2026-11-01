@@ -389,6 +389,7 @@
   "app_deployment.restart_button": "Start appen på nytt",
   "app_deployment.restart_confirmation_button": "Start på nytt",
   "app_deployment.restart_confirmation_dialog_description": "Appen startes på nytt med samme versjon ({{version}}).",
+  "app_deployment.restart_confirmation_dialog_description_without_version": "Appen startes på nytt med samme versjon.",
   "app_deployment.restart_confirmation_dialog_title": "Start appen på nytt i {{envTitle}}",
   "app_deployment.status.degraded": "Appen svarer, men kjører ikke som den skal i miljøet. Du kan prøve å starte den på nytt.",
   "app_deployment.status.inProgress": "Appen oppdateres i miljøet...",

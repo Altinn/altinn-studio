@@ -174,13 +174,22 @@ export const DeploymentStatus = ({
         </StudioParagraph>
       }
       footer={
-        lastPublishedDate && (
+        wasRestartedAfterPublish(runningApp, lastPublishedDate) ? (
           <Trans
-            i18nKey={'app_deployment.last_published'}
+            i18nKey={'app_deployment.last_restarted'}
             values={{
-              lastPublishedDate: formatDateTime(lastPublishedDate),
+              lastRestartedDate: formatDateTime(runningApp.restartedAt),
             }}
           />
+        ) : (
+          lastPublishedDate && (
+            <Trans
+              i18nKey={'app_deployment.last_published'}
+              values={{
+                lastPublishedDate: formatDateTime(lastPublishedDate),
+              }}
+            />
+          )
         )
       }
     />

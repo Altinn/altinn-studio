@@ -143,6 +143,16 @@ describe('DeploymentEnvironmentStatus', () => {
     expect(screen.getByText(/app_deployment\.last_published/)).toBeInTheDocument();
   });
 
+  it('offers the menu for a running app whose version is unknown, such as one deployed by digest', async () => {
+    render({ runningApp: { ...runningApp, version: null, status: 'stuck', canRestart: true } });
+
+    expect(
+      screen.getByRole('button', {
+        name: textMock('app_deployment.deploy_more_options_menu_label'),
+      }),
+    ).toBeInTheDocument();
+  });
+
   it('shows that the app is updating even when the version is unknown', async () => {
     render({ runningApp: { ...runningApp, version: null, status: 'updating' } });
 

@@ -16,6 +16,8 @@ export const useAppDeploymentsQuery = (
   return useQuery<DeploymentsResponse>({
     queryKey: [QueryKey.AppDeployments, owner, app],
     queryFn: () => getDeployments(owner, app),
+    // A status page, so returning to it shows what runs now, such as a restart another tab started.
+    refetchOnWindowFocus: 'always',
     refetchInterval: (query) =>
       isAnyAppUpdating(query.state.data) ? UPDATING_APP_POLL_INTERVAL_MS : false,
     meta,

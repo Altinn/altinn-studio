@@ -38,9 +38,11 @@ export const RestartAppDialog = ({
       </StudioDialog.Block>
       <StudioDialog.Block>
         <StudioParagraph spacing>
-          {t('app_deployment.restart_confirmation_dialog_description', {
-            version: runningApp.version,
-          })}
+          {runningApp.version
+            ? t('app_deployment.restart_confirmation_dialog_description', {
+                version: runningApp.version,
+              })
+            : t('app_deployment.restart_confirmation_dialog_description_without_version')}
         </StudioParagraph>
         <div className={classes.buttons}>
           <StudioButton

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
+import { focusManager } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RunningAppStatus } from 'app-shared/types/api/RunningApp';
@@ -37,6 +38,18 @@ describe('useAppDeploymentsQuery', () => {
     await advanceTime(3 * UPDATING_APP_POLL_INTERVAL_MS);
 
     expect(getDeployments).toHaveBeenCalledTimes(3);
+  });
+
+  it('refreshes when the user returns to the page, such as after restarting in another tab', async () => {
+    const getDeployments = vi.fn().mockResolvedValue(deployments('ready'));
+    await renderAndLoad(getDeployments);
+
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    await waitFor(() => expect(getDeployments).toHaveBeenCalledTimes(2));
   });
 
   it('does not poll when no app is updating', async () => {
