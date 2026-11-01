@@ -1,5 +1,8 @@
-/* A platform link whose URL the environment does not configure: still there, visibly not working. */
-.notConfigured {
+/*
+ * A platform link whose URL the environment does not configure: still there, visibly not working. The element type
+ * makes it beat the global .altinnLink, whose solid underline would otherwise hide the dashes.
+ */
+a.notConfigured {
   cursor: not-allowed;
   opacity: 0.6;
   text-decoration-line: underline;

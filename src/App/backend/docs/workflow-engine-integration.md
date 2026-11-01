@@ -8,21 +8,28 @@ the [integration code](../src/Altinn.App.Core/Internal/WorkflowEngine/README.md)
 
 ## Workflows and steps
 
-The app enqueues workflows in its own engine namespace, `{org}/{app}`, with one collection per instance. The engine
-calls the app's callback endpoint once for each step.
+The app enqueues workflows in its own engine namespace, `{org}/{app}`, with one collection per instance. Every step
+runs the engine's `app` command, which calls the app's callback endpoint once for the step. The callback runs the app
+command that the step's command key names, such as `StartTask`.
 
 A `process/next` request authorizes the action, runs its handler, validates the task, runs the gateways and prepares
 the transition. It then enqueues an acquire workflow with a single `AcquireProcessingStatus` step. That step claims the
 instance, and its callback enqueues the transition's primary workflow before it returns, so the collection cannot
 settle between the two. Instantiation runs as one workflow that starts with the acquire step.
 
-[`WorkflowCommandSet`](../src/Altinn.App.Core/Internal/WorkflowEngine/WorkflowCommandSet.cs) decides the steps, on
+[`WorkflowStepSet`](../src/Altinn.App.Core/Internal/WorkflowEngine/WorkflowStepSet.cs) decides the steps, on
 these rules:
 
-- `CommitProcessState` is the commit boundary. The steps before it move the process state in memory, so the task-start
-  steps already read the target task.
+- `CommitProcessState` is the commit boundary. It runs after the task-end or abandon steps and before the task-start
+  steps, so each group runs while Storage holds the task it belongs to.
 - `CleanupGeneratedFromTask` runs before the task-start hooks, so they never see data that an earlier visit to the
   task generated.
+- `StartTask`, `EndTask` and `AbandonTask` each run one stage of the task type's lifecycle pipeline
+  (`IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`), as `StartTask: 0`, `StartTask: 1`, …, so a failed
+  stage retries without the ones before it. The default composes no stages, so a task type with nothing to do at a
+  phase, as the built-in `data` task at every phase, gets no step. Each stage step carries its method's name as the `stepName` label, for the people following the
+  task in Studio's admin panel; see [Step names](service-task-pipelines.md#step-names).
+  A stage is named by position, like a service task item, so [in-flight workflows](#in-flight-workflows) applies.
 - A service task runs its steps after the commit. When it concludes, its last step enqueues the next transition as a
   dependent workflow, which does not acquire the instance again.
 
@@ -76,8 +83,6 @@ produce different bytes. On a replay the app rebuilds its state from Storage and
 attempt wins. A callback with nothing to save skips Storage, which is safe because the same incoming state leads to
 the same decision.
 
-- Between the in-memory move and the commit, Storage still has the task being left. Saves in that window keep the
-  in-memory process state.
 - Storage allows standalone data value patches and read status updates while the instance is processing, without
   changing its versions. A patch changes only the keys it sends, so writers that need more than last-writer-wins own
   separate keys. Values that other systems set, such as `dialog.id`, reach the callback state with the next save.
@@ -86,9 +91,7 @@ the same decision.
 
 Callbacks save as the service owner, acting on the request's check of the user's right. An app's policy must give the
 service owner the rights that the [policy analyzer](../src/Altinn.App.Analyzers/Authorization/ServiceOwnerActions.cs)
-lists. Storage always lets the app owner commit a process transition. Task-start steps save while Storage still has
-the old task, which works because the service owner's `write` right does not depend on the task. If Storage ever
-authorizes workflow saves as the end user, the new task must be committed before the task-start steps run.
+lists. Storage always lets the app owner commit a process transition.
 
 The gateways also run as the service owner, through the data accessor they are given. A gateway that calls
 `IDataClient` directly acts as the caller, and the accessor does not see what it changes.
@@ -146,10 +149,11 @@ command. The engine's technical guide defines
 [primary and auxiliary workflows](../../../Runtime/workflow-engine/docs/technical-guide.md#primary-and-auxiliary-workflows),
 and the [ADR](../../../../docs/adr/2026-07-10-workflow-engine-noncritical-side-effects.md) records why.
 
-- They are enqueued in one atomic batch: right after the commit for a task transition, and after the release for a
-  process end, so `completed` is announced only for a finished process.
-- They exist only for a committed transition, carry their own state, and run independently of the primary workflow.
-  The `process/next` wait, the next transition and status reads ignore them.
+- They are enqueued in one atomic batch: right after the task-start steps for a task transition, and after the
+  release for a process end, so `completed` is announced only for a finished process.
+- They exist only once the transition has committed and its task has started; a failure before that schedules nothing
+  until a resume gets past it. They carry their own state, and run independently of the primary workflow. The
+  `process/next` wait, the next transition and status reads ignore them.
 - Nothing orders them. The Events component delivers at least once and in any order anyway, so consumers that mirror
   process state from Altinn events must handle that. An auxiliary command that must run after another needs an
   explicit dependency.
@@ -161,7 +165,8 @@ Storage. The chain is the workflow it enqueued and every later primary workflow.
 
 - The wait answers 504 after a fixed time.
 - When every active workflow in the chain is parked, on a deferring service task or as a receive workflow, the wait
-  returns success after a short grace period. The transition has committed by then.
+  returns on the first poll that sees it. The transition has committed by then, and the task goes on without the
+  request: process/next and process/resume answer 202 with the process state, and instantiation answers 201 as usual.
 - The server logs the detail of a failure. Clients get a generic message and the kind of failure.
 
 Reads report the current task's transition: idle, processing or failed, the target task, and for a failure its kind
@@ -221,6 +226,11 @@ app does not guard against it. Names would not help either, since a redeploy can
 
 - A step whose item no longer fits fails permanently with a code that names the index. It never moves to a neighboring
   item, which could read another exchange's message.
+- A lifecycle step enqueued by a version from before lifecycle stages carries no stage index. It runs every stage of
+  the task type's pipeline in that one step, as the version that enqueued it ran the whole lifecycle. The first stage
+  runs under the step's id and each later stage under an id derived from it and the stage's position, the same on
+  every attempt, so calls keyed on the step id stay apart. Only the first stage can defer, since the step cannot save
+  between stages; a later stage that defers fails the step permanently with `ProcessTaskStageDeferredAfterOthers`.
 - To recover, resume the workflow on the code that enqueued it, or abandon it. An open mailbox stays open until its
   deadline or until someone closes it.
 - A reply handler finds its opening stage from the pipeline at each hop. After a reshape, concluding the exchange can
@@ -230,8 +240,12 @@ app does not guard against it. Names would not help either, since a redeploy can
 ## Known gaps
 
 - A retried step that reads a binary data element again, after the lost attempt updated it, gets a 409, and so does a
-  resume. No built-in command does this, but an app's service task can. A fix would send an empty mutation with the
-  same idempotency key, and treat a replay as proof that the step had committed.
+  resume. Signing's delegate and notify stages do this with the signee-state element, so the callback state carries
+  the bytes of signee-state elements the unit of work already holds (`WorkflowCallbackState.BinaryData`), and
+  `RestoreState` preloads them while the blob version still matches; the retried stage then reads its input from the
+  state and its save reaches replay. No other built-in command does this, but an app's service task can. A general
+  fix would send an empty mutation with the same idempotency key, and treat a replay as proof that the step had
+  committed.
 - An ended process reports `idle` without asking the engine. A failure after the commit of the final transition
   therefore shows only in the failure alert.
 - The recovery from a 409 on a retried enqueue does not cover the receive and continuation workflows of a mailbox

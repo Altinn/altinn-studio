@@ -1,7 +1,7 @@
-# Keep src/ build context minimal for workflow-engine-app image.
-
+# Build context: src/
 **
 !common/dotnet/Altinn.Studio.Common/**
+!common/dotnet/Altinn.Studio.Common.Telemetry/**
 !Runtime/workflow-engine/**
 !Runtime/workflow-engine-app/**
 
@@ -22,7 +22,6 @@
 **/.DS_Store
 **/.csharpier*
 
-Directory.*.props
 **/Directory.*.props
-!Directory.Packages.props
-!**/Directory.Packages.props
+!Runtime/workflow-engine/Directory.Packages.props
+!Runtime/workflow-engine-app/Directory.Packages.props

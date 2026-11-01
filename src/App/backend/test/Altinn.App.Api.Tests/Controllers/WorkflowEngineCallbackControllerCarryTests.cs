@@ -56,7 +56,7 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
 
         public string GetKey() => Key;
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context)
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context)
         {
             SeenMailbox = context.StateCarry.FindMailbox(OpeningIndex);
             if (Mints)
@@ -64,7 +64,7 @@ public class WorkflowEngineCallbackControllerCarryTests : ApiTestBase, IClassFix
                 context.StateCarry.RecordMailbox(OpeningIndex, _mintedMailboxId, _deadline);
             }
 
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
     }
 

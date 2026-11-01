@@ -3,7 +3,7 @@ using WorkflowEngine.Models.Abstractions;
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Base class for command descriptors that need both typed command data and typed workflow context.
+/// Base class for commands that need both typed command data and typed workflow context.
 /// The engine deserializes the raw JSON into <typeparamref name="TData"/> and <typeparamref name="TContext"/>
 /// before calling <see cref="Validate"/> or <see cref="Execute"/>.
 /// </summary>
@@ -60,7 +60,7 @@ public abstract class Command<TData, TContext> : ICommand
 }
 
 /// <summary>
-/// Base class for command descriptors that need typed command data but no workflow context.
+/// Base class for commands that need typed command data but no workflow context.
 /// The engine deserializes the raw JSON into <typeparamref name="TData"/>
 /// before calling <see cref="Validate"/> or <see cref="Execute"/>.
 /// </summary>

@@ -1,3 +1,5 @@
+using Altinn.Studio.Common.Telemetry;
+
 namespace Altinn.Studio.Designer.Telemetry;
 
 internal static partial class ServiceTelemetry
@@ -9,26 +11,24 @@ internal static partial class ServiceTelemetry
     /// </summary>
     public static class Attributes
     {
-        public const string ServiceVersion = "service.version";
-        public const string ServiceInstanceId = "service.instance.id";
         public const string UrlFull = "url.full";
         public const string EndUserId = "enduser.id";
         public const string ErrorType = "error.type";
 
-        public const string ServiceOwner = "altinn.service_owner";
-        public const string App = "altinn.app";
-        public const string RepoType = "altinn.repo_type";
+        public const string ServiceOwner = AltinnAttributes.ServiceOwner;
+        public const string App = AltinnAttributes.App;
+        public const string RepoType = AltinnAttributes.RepoType;
 
         /// <summary>
         /// The runtime environment an operation targets, such as tt02 for a deploy. Never a Studio environment:
         /// where Designer itself runs is the resource's deployment.environment.name.
         /// </summary>
-        public const string Environment = "altinn.environment";
+        public const string Environment = AltinnAttributes.Environment;
 
         /// <summary>
         /// Marks a span whose trace the collectors' tail sampling always keeps.
         /// </summary>
-        public const string Sampling = "altinn.studio.sampling";
+        public const string Sampling = AltinnAttributes.Sampling;
 
         public static class AppActivity
         {
@@ -82,6 +82,7 @@ internal static partial class ServiceTelemetry
             public const string CloneCloned = Prefix + "clone.cloned";
             public const string CloneFailureHandled = Prefix + "clone.failure_handled";
             public const string CloneRepoExisted = Prefix + "clone.repo_existed";
+            public const string CombineStatus = Prefix + "combine.status";
             public const string CommitCreated = Prefix + "commit.created";
             public const string CommitIsDirty = Prefix + "commit.is_dirty";
             public const string CommitMessageEmpty = Prefix + "commit.message_empty";
@@ -89,6 +90,7 @@ internal static partial class ServiceTelemetry
             public const string CommitSha = Prefix + "commit.sha";
             public const string ContentStatusCount = Prefix + "content_status_count";
             public const string FeatureBranch = Prefix + "feature_branch";
+            public const string FetchTrackingRefsRebuilt = Prefix + "fetch.tracking_refs_rebuilt";
             public const string FilePath = Prefix + "file.path";
             public const string FileStaged = Prefix + "file.staged";
             public const string IsDirty = Prefix + "is_dirty";
@@ -118,6 +120,11 @@ internal static partial class ServiceTelemetry
             public const string Repository = Prefix + "repository";
             public const string RepositoryStatus = Prefix + "repository_status";
             public const string SourceBranch = Prefix + "source_branch";
+
+            /// <summary>
+            /// Why the repository status could not save refreshed stat data in the index, such as a locked index.
+            /// </summary>
+            public const string StatusIndexUpdateFailure = Prefix + "status.index_update_failure";
             public const string TargetBranch = Prefix + "target_branch";
         }
 
@@ -235,7 +242,6 @@ internal static partial class ServiceTelemetry
         {
             private const string Prefix = "altinn.designer.undeploy.";
 
-            public const string BuildId = Prefix + "build.id";
             public const string PendingAgeSeconds = Prefix + "pending_age_seconds";
             public const string PendingSkipThresholdSeconds = Prefix + "pending_skip_threshold_seconds";
             public const string SkipReason = Prefix + "skip_reason";

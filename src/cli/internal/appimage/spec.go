@@ -14,6 +14,7 @@ import (
 	"altinn.studio/studioctl/internal/appnaming"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
+	"altinn.studio/studioctl/internal/osutil"
 )
 
 const (
@@ -31,8 +32,10 @@ type BuildSpec struct {
 	ContextPath       string
 	Dockerfile        string
 	DockerfileContent string
-	ImageTag          string
-	Build             types.BuildOptions
+	// DockerignoreContent is the generated Dockerfile's own <Dockerfile>.dockerignore.
+	DockerignoreContent string
+	ImageTag            string
+	Build               types.BuildOptions
 }
 
 // BuildSpecForApp builds image build configuration for an app container.
@@ -46,12 +49,17 @@ func BuildSpecForApp(result repocontext.Detection, imageTag string) (BuildSpec, 
 		return BuildSpec{}, err
 	}
 	var buildOptions types.BuildOptions
+	var dockerignoreContent string
 	if runRepo.UseGeneratedDockerfile {
 		buildCacheRef, err := generatedAppBuildCacheRef(runRepo)
 		if err != nil {
 			return BuildSpec{}, err
 		}
 		buildOptions = buildCacheOptions(buildCacheRef)
+		dockerignoreContent, err = generateDockerignore(runRepo)
+		if err != nil {
+			return BuildSpec{}, err
+		}
 	}
 
 	if imageTag == "" {
@@ -59,11 +67,12 @@ func BuildSpecForApp(result repocontext.Detection, imageTag string) (BuildSpec, 
 	}
 
 	return BuildSpec{
-		ContextPath:       contextPath,
-		Dockerfile:        dockerfile,
-		DockerfileContent: dockerfileContent,
-		ImageTag:          imageTag,
-		Build:             buildOptions,
+		ContextPath:         contextPath,
+		Dockerfile:          dockerfile,
+		DockerfileContent:   dockerfileContent,
+		DockerignoreContent: dockerignoreContent,
+		ImageTag:            imageTag,
+		Build:               buildOptions,
 	}, nil
 }
 
@@ -81,7 +90,10 @@ func MaterializeDockerfile(spec *BuildSpec) (func() error, error) {
 			return cleanup, err
 		}
 		spec.Dockerfile = dockerfile
-		cleanup = func() error { return os.Remove(dockerfile) }
+		cleanup, err = writeGeneratedDockerignore(dockerfile, spec.DockerignoreContent)
+		if err != nil {
+			return cleanup, err
+		}
 	}
 	if _, statErr := os.Stat(spec.Dockerfile); statErr != nil {
 		cleanupErr := cleanup()
@@ -150,6 +162,20 @@ func buildCacheOptions(ref string) types.BuildOptions {
 		opts.CacheTo = []string{"type=registry,ref=" + ref + ",mode=max"}
 	}
 	return opts
+}
+
+// writeGeneratedDockerignore writes the Dockerfile's own ignore file next to it, where Docker reads it also outside
+// the context, and returns a cleanup that removes both.
+func writeGeneratedDockerignore(dockerfile, content string) (func() error, error) {
+	removeDockerfile := func() error { return os.Remove(dockerfile) }
+	if content == "" {
+		return removeDockerfile, nil
+	}
+	dockerignore := dockerfile + ".dockerignore"
+	if err := os.WriteFile(dockerignore, []byte(content), osutil.FilePermOwnerOnly); err != nil {
+		return removeDockerfile, fmt.Errorf("write generated dockerignore: %w", errors.Join(err, removeDockerfile()))
+	}
+	return func() error { return errors.Join(os.Remove(dockerfile), os.Remove(dockerignore)) }, nil
 }
 
 func writeGeneratedDockerfile(content string) (string, error) {

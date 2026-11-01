@@ -13,20 +13,25 @@ for developing Altinn Studio itself. [CONTRIBUTING.md](CONTRIBUTING.md) says how
 
 ## How it fits together
 
-Altinn Studio has three layers:
+![Service owners build apps in Designer, in Core, and deploy them to Runtime, and their systems call the apps and Platform. Users open the apps directly or from Arbeidsflate, and systems call them. The apps call Platform and services outside Altinn, and Storage syncs app instances to Dialogporten, which Arbeidsflate shows.](docs/diagrams/context.svg)
 
-- **Core** is the control plane, which reaches out to the other two layers. Service owners build, configure and
+Altinn Studio spans Core, Runtime and Platform:
+
+- **Core** is the control plane, which reaches out to Runtime and Platform. Service owners build, configure and
   deploy their apps in [Designer](src/Designer), with help from the [Studio Assistant](src/AI), and the apps'
   repositories are in [Gitea](src/gitea).
 - **Runtime** is a service owner's own runtime, where its [apps](src/App) run. It is mostly data plane, such as the
-  apps and the [workflow engine](src/Runtime/workflow-engine-app), with the parts of the control plane that belong to
-  one service owner, such as the [gateway](src/Runtime/gateway) and the [operator](src/Runtime/operator).
+  apps and the [workflow engine](src/Runtime/workflow-engine-app), with the control plane services that belong to one
+  service owner, such as the [gateway](src/Runtime/gateway) and the [operator](src/Runtime/operator).
 - **Platform** is the shared data plane that apps call, such as Storage, Authorization, Receipt and
   [pdf3](src/Runtime/pdf3). Most of it lives in [other repositories](docs/repositories.md#platform).
 
+The [architecture diagram](docs/diagrams/architecture.svg) goes a level deeper. It shows what runs in Core, Runtime
+and Platform, and how a deployment and a user's request travel between them.
+
 App developers run apps on their own machines with [studioctl](src/cli), which runs
 [localtest](src/Runtime/localtest) in place of Runtime and Platform. The code is in [src/](src), the cluster
-configuration in [infra/](infra) and [charts/](charts), and the workflows in [.github/](.github/README.md).
+configuration in [infra/](infra) and [charts/](charts), and the workflows in [.github/](.github), with their conventions in [docs/cicd.md](docs/cicd.md).
 
 ## License
 

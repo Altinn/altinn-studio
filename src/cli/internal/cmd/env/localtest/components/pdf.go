@@ -28,9 +28,10 @@ func registerPDFComponents(manifest *Manifest, opts *Options) {
 
 func pdfImage(ctx *Options) resource.ImageResource {
 	if ctx.ImageMode == DevMode && ctx.DevConfig != nil {
+		// src/ is the build context, for the shared Go module in src/common/go.
 		return localDevImage(ctx.PrebuiltDevImages, &resource.BuiltImage{
 			Enabled:     nil,
-			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/pdf3")),
+			ContextPath: filepath.ToSlash(filepath.Join(ctx.DevConfig.RepoRoot, "src")),
 			Dockerfile: filepath.ToSlash(
 				filepath.Join(ctx.DevConfig.RepoRoot, "src/Runtime/pdf3/Dockerfile.worker"),
 			),

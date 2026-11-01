@@ -1,5 +1,6 @@
 import { matchPath, useLocation } from 'react-router';
 
+import { GlobalData } from 'src/GlobalData';
 import { useAsRef } from 'src/hooks/useAsRef';
 import type { SearchParams } from 'src/core/routing/types';
 
@@ -64,6 +65,16 @@ export const useNavigationParam = <T extends keyof PathParams>(key: T) => {
 
 export const useAllNavigationParams = () => matchParams(useLocation().pathname);
 export const useAllNavigationParamsAsRef = () => useAsRef(useAllNavigationParams());
+
+/**
+ * The params of the instance URL the browser shows now, or undefined when it shows no instance. The hooks above give
+ * the params as of the last render, which go stale in a callback that outlives its component, such as a mutation's.
+ */
+export function getLiveInstanceNavigationParams(): PathParams | undefined {
+  const { pathname } = window.location;
+  const basename = GlobalData.basename;
+  return pathname.startsWith(`${basename}/instance/`) ? matchParams(pathname.slice(basename.length)) : undefined;
+}
 
 export const useQueryKey = (key: SearchParams) => new URLSearchParams(useLocation().search).get(key);
 

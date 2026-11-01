@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMediaQuery } from '@studio/hooks';
 import { StudioBadge, StudioPopover } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
@@ -8,11 +8,11 @@ import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
-import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
+import { hasChangesToShare } from '../../utils/repoStatus';
 
 export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
@@ -27,8 +27,14 @@ export const ShareChangesPopover = () => {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [hasChangesToPush, setHasChangesToPush] = useState(true);
 
+  useEffect(() => {
+    if (hasMergeConflict) {
+      setPopoverOpen(false);
+    }
+  }, [hasMergeConflict]);
+
   const displayNotification: boolean =
-    repoStatus?.contentStatus && repoStatus?.contentStatus?.length > 0 && !hasMergeConflict;
+    !!repoStatus && hasChangesToShare(repoStatus) && !hasMergeConflict;
 
   const fileChanges: RepoContentStatus[] = repoStatus?.contentStatus;
 
@@ -42,12 +48,7 @@ export const ShareChangesPopover = () => {
     const { data: repoStatusResult } = await refetchRepoStatus();
     if (repoStatusResult) {
       setIsLoading(false);
-
-      if (!hasLocalChanges(repoStatusResult) && repoStatusResult.aheadBy === 0) {
-        setHasChangesToPush(false);
-      } else {
-        setHasChangesToPush(true);
-      }
+      setHasChangesToPush(hasChangesToShare(repoStatusResult));
     }
   };
 
@@ -96,11 +97,5 @@ export const ShareChangesPopover = () => {
         )}
       </StudioPopover>
     </StudioPopover.TriggerContext>
-  );
-};
-
-const hasLocalChanges = (result: IGitStatus) => {
-  return (
-    result && result.contentStatus.some((file: IContentStatus) => file.fileStatus !== 'Ignored')
   );
 };

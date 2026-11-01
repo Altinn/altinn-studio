@@ -89,7 +89,9 @@ engine's `DefaultStepRetryStrategy`.
 
 A collection head reports `failedAttempts`: how many consecutive attempts of its current step have failed and been
 scheduled for retry. It holds steady while a retry runs, so a consumer can tell a failing head from a slow one without
-reading each workflow.
+reading each workflow. With it comes `firstFailedAt`, when the first of those failures happened, which the step keeps
+as `FirstFailedAt`. Against the collection's `currentTime` it says how long the step has been failing on the engine's
+clock. Both reset when the step defers or is resumed.
 
 When a step exhausts its retries, the engine records the error in the step's `ErrorHistory`, marks the step and the
 workflow `Failed`, and marks the workflows that depend on it `DependencyFailed`.
@@ -636,6 +638,9 @@ same pod. It is the one id allowed on every metric series, since it changes only
 `altinn.workload.start_time` gauge, it gives a dashboard the processes reporting, each restart and, as the earliest
 start per `service.version`, each deploy. A value set in `OTEL_RESOURCE_ATTRIBUTES` must still be unique per process.
 
+The engine exports logs only at Warning and above, since the platform's pipeline drops the rest. The console still
+gets every level the configuration allows.
+
 Health probes are not traffic: the engine leaves them out of the HTTP request metrics and the traces, and leaves the
 dashboard's requests out of the traces.
 
@@ -792,9 +797,17 @@ body, `400 Bad Request` that validation failed, and `429 Too Many Requests` that
 ### List workflows
 
 `GET /api/v1/{namespace}/workflows` lists workflows newest first, with the same items as the single read. The status,
-label and collection filters combine. Pagination is by cursor: pass `nextCursor` back as `cursor`, and a null
-`nextCursor` marks the last page. `204 No Content` means nothing matched, and `400 Bad Request` that a status value is
-unknown.
+label, collection and `role` filters combine; `role` is `Primary` or `Auxiliary` (see
+[Primary and auxiliary workflows](#primary-and-auxiliary-workflows)). Pagination is by cursor: pass `nextCursor` back
+as `cursor`, and a null `nextCursor` marks the last page. `includeState=false` works as on the single read.
+`204 No Content` means nothing matched, and `400 Bad Request` that a status or role value is unknown.
+
+A collection's failed auxiliary workflows are one call, drained to zero by `resume` and `abandon`. `Abandoned` is left
+out of the status set on purpose: it marks a failure that has been written off.
+
+```http
+GET /api/v1/ttd%2Fmy-app/workflows?collectionKey={key}&role=Auxiliary&status=Failed&status=Canceled&status=DependencyFailed
+```
 
 ### Get single workflow
 
@@ -804,17 +817,30 @@ which counts queue wait as processing time. The stored value trails the worker b
 `step_started` write-back is fire-and-forget, and the update buffer drops it under pressure. A duration from a settled
 step is exact, and one from a `Processing` step is indicative.
 
+`role` is `Primary` or `Auxiliary`, derived from the workflow's `isHead` directive and always present. `isHead` is the
+raw directive, returned only when the enqueue request set one; read `role` instead. `includeState=false` leaves the
+app's state payloads, `initialState` and every step's `stateOut`, out of the response. The default is `true`; a status
+reader with no use for them, such as Studio's admin panel, passes `false`.
+
 ### List collections
 
-`GET /api/v1/{namespace}/collections` lists the namespace's collections, most recently updated first. Each carries its
-head workflow ids without their statuses, and [get collection](#get-collection) adds those. `204 No Content` means the
-namespace has none.
+`GET /api/v1/{namespace}/collections` is the per-collection health view, in a stable key order with an opaque cursor.
+Each entry carries its head workflow ids without their statuses, and [get collection](#get-collection) adds those. It
+also carries a `workflowCounts` rollup across all of the collection's workflows, split into primary and auxiliary.
+The endpoint has three modes: list (`cursor`, `pageSize`), annotate (`key`, repeatable) and discover
+(`failures=Any|Primary|Auxiliary`). [Query endpoints](workflow-collections.md#query-endpoints) has the mode rules and
+the buckets. `204 No Content` means nothing matched in list or discover mode. Annotate mode always answers `200 OK`,
+and lists the requested keys with no collection in `unmatchedKeys`, since retention may have purged them.
 
 ### Get collection
 
 `GET /api/v1/{namespace}/collections/{key}` returns one collection with the status of each head, and each head's
-`failedAttempts` and `waitingReason` as [retry](#retry--error-handling) and [deferral](#deferral-durable-yield)
-describe. `404 Not Found` means the namespace has no collection with that key.
+`failedAttempts`, `firstFailedAt` and `waitingReason` as [retry](#retry--error-handling) and
+[deferral](#deferral-durable-yield) describe. `404 Not Found` means the namespace has no collection with that key.
+
+It is a frontier view by contract: auxiliary workflows never appear in it, and it carries no `workflowCounts` rollup,
+since it sits on the app's hot path. Read health from [list collections](#list-collections), and a collection's
+failures from [list workflows](#list-workflows) with the `collectionKey`, `status` and `role` filters.
 
 ### List namespace throttles
 

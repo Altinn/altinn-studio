@@ -1,50 +1,32 @@
 import React from 'react';
 
 import { act, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceWithProcessMock } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock, getLayoutSettingsMock } from 'src/__mocks__/getUiConfigMock';
+import { defaultDataTypeMock, getLayoutSettingsMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { FormStore } from 'src/features/form/FormContext';
+import { useProcessNextOutsideFormProvider } from 'src/features/instance/useProcessNext';
+import { ActionButtonComponent } from 'src/layout/ActionButton/ActionButtonComponent';
 import { AddressComponent } from 'src/layout/Address/AddressComponent';
+import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
+import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonComponent';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
-import {
-  InstanceRouter,
-  renderGenericComponentTest,
-  renderWithoutInstanceAndLayout,
-} from 'src/test/renderWithProviders';
+import { InputComponent } from 'src/layout/Input/InputComponent';
+import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
+import { doProcessNext } from 'src/queries/queries';
+import { renderGenericComponentTest } from 'src/test/renderWithProviders';
+import { ELEMENT_TYPE } from 'src/types/shared';
+import type { IInstanceWithProcess } from 'src/core/api-client/instance.api';
+import type { IProcess } from 'src/types/shared';
+
+vi.mock('src/queries/queries', async () => ({
+  ...(await vi.importActual<typeof import('src/queries/queries')>('src/queries/queries')),
+  doProcessNext: vi.fn(),
+}));
 
 describe('FormProvider', () => {
-  it('loads the UI folder of a subform PDF service task with the subform being rendered', async () => {
-    const subformIds = ['aaaaaaaa-1111-2222-3333-444444444444', 'bbbbbbbb-1111-2222-3333-444444444444'];
-    const instance = getInstanceWithProcessMock();
-    instance.data.push(...subformIds.map((id) => ({ ...instance.data[0], id, dataType: 'subform' })));
-    window.altinnAppGlobalData.ui.folders.Task_SubformPdf = { defaultDataType: 'subform', pages: { order: ['Pdf'] } };
-    const fetchFormBootstrapForInstance = vi.fn(async () => getFormBootstrapMock());
-
-    await renderWithoutInstanceAndLayout({
-      renderer: () => <div />,
-      withFormProvider: true,
-      waitUntilLoaded: false,
-      router: ({ children }) => (
-        <InstanceRouter
-          initialPath={`/ttd/test/instance/${instance.id}/Task_SubformPdf/subform/subform-component/${subformIds[1]}`}
-          query='pdf=1'
-          alwaysRouteToChildren={true}
-        >
-          {children}
-        </InstanceRouter>
-      ),
-      queries: { fetchFormBootstrapForInstance },
-      apis: { instanceApi: { getInstance: async () => instance } },
-    });
-
-    await waitFor(() =>
-      expect(fetchFormBootstrapForInstance).toHaveBeenCalledWith(
-        expect.objectContaining({ uiFolder: 'Task_SubformPdf', dataElementId: subformIds[1], pdf: true }),
-      ),
-    );
-  });
-
   it('does not change form data when a PDF renders a task other than the current one', async () => {
     window.altinnAppGlobalData.ui.folders.Task_Pdf = getLayoutSettingsMock({ defaultDataType: defaultDataTypeMock });
     const { formDataMethods } = await renderGenericComponentTest({
@@ -104,5 +86,188 @@ describe('FormProvider', () => {
     expect(screen.getByDisplayValue('Feil')).toBeInTheDocument();
     expect(mutations.doPatchMultipleFormData.mock).not.toHaveBeenCalled();
     logError.mockRestore();
+  });
+});
+
+describe("FormProvider on a service task's page", () => {
+  const inputBinding = { dataType: defaultDataTypeMock, field: 'myInput' };
+
+  /** The process the backend returns, which each test can change. */
+  let process: IProcess;
+  const getInstance = async (): Promise<IInstanceWithProcess> => ({ ...getInstanceWithProcessMock(), process });
+
+  beforeEach(() => {
+    process = getInstanceWithProcessMock().process;
+    process.currentTask!.userActions = [
+      { id: 'write', authorized: true, type: 'ProcessAction' },
+      { id: 'reject', authorized: true, type: 'ProcessAction' },
+      { id: 'lookupPerson', authorized: true, type: 'ServerAction' },
+    ];
+    vi.mocked(doProcessNext).mockReset();
+  });
+
+  function WriteProbe() {
+    const setLeafValue = FormStore.data.useSetLeafValue();
+    return (
+      <button
+        type='button'
+        onClick={() => setLeafValue({ reference: inputBinding, newValue: 'written' })}
+      >
+        write-probe
+      </button>
+    );
+  }
+
+  function SubmitProbe() {
+    const processNext = useProcessNextOutsideFormProvider();
+    return (
+      <button
+        type='button'
+        onClick={() => processNext.mutate()}
+      >
+        submit-probe
+      </button>
+    );
+  }
+
+  function makeTask1AServiceTask() {
+    process.currentTask!.elementType = ELEMENT_TYPE.SERVICE_TASK;
+    process.processTasks = [{ altinnTaskType: 'data', elementId: 'Task_1', elementType: ELEMENT_TYPE.SERVICE_TASK }];
+  }
+
+  async function renderInput(query?: string) {
+    return await renderGenericComponentTest({
+      type: 'Input',
+      renderer: (props) => (
+        <>
+          <InputComponent {...props} />
+          <WriteProbe />
+          <SubmitProbe />
+        </>
+      ),
+      component: { dataModelBindings: { simpleBinding: inputBinding } },
+      query,
+      apis: { instanceApi: { getInstance } },
+    });
+  }
+
+  it.each(['idle', 'processing'] as const)(
+    'renders inputs read-only and rejects writes while the workflow is %s',
+    async (status) => {
+      const user = userEvent.setup();
+      const logError = vi.spyOn(window, 'logError').mockImplementation(() => {});
+      makeTask1AServiceTask();
+      process.workflow = { status };
+      await renderInput();
+
+      expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
+      await user.click(screen.getByRole('button', { name: 'write-probe' }));
+      expect(logError).toHaveBeenCalledWith(`Tried to write to readOnly dataType "${defaultDataTypeMock}"`);
+      expect(screen.getByRole('textbox')).toHaveValue('');
+      logError.mockRestore();
+    },
+  );
+
+  it("keeps a user task's page editable, also while process/next is pending", async () => {
+    // The form is still being validated and saved for the request then
+    const user = userEvent.setup();
+    vi.mocked(doProcessNext).mockImplementation(() => new Promise(() => {}));
+    await renderInput();
+
+    await user.click(screen.getByRole('button', { name: 'submit-probe' }));
+    await waitFor(() => expect(doProcessNext).toHaveBeenCalled());
+    await user.type(screen.getByRole('textbox'), 'typed');
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+    expect(screen.getByRole('textbox')).toHaveValue('typed');
+  });
+
+  it('leaves PDF mode unaffected', async () => {
+    makeTask1AServiceTask();
+    process.workflow = { status: 'processing' };
+    await renderInput('pdf=1');
+
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('readonly');
+  });
+
+  it('disables the submit button', async () => {
+    makeTask1AServiceTask();
+    await renderGenericComponentTest({
+      type: 'Button',
+      renderer: (props) => <ButtonComponent {...props} />,
+      component: { textResourceBindings: { title: 'Submit' } },
+      apis: { instanceApi: { getInstance } },
+    });
+
+    expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+  });
+
+  it('disables action buttons', async () => {
+    makeTask1AServiceTask();
+    await renderGenericComponentTest({
+      type: 'ActionButton',
+      renderer: (props) => <ActionButtonComponent {...props} />,
+      component: { action: 'reject', buttonStyle: 'primary', textResourceBindings: { title: 'Reject' } },
+      apis: { instanceApi: { getInstance } },
+    });
+
+    expect(screen.getByRole('button', { name: 'Reject' })).toBeDisabled();
+  });
+
+  it('disables custom buttons with server actions', async () => {
+    makeTask1AServiceTask();
+    await renderGenericComponentTest({
+      type: 'CustomButton',
+      renderer: (props) => <CustomButtonComponent {...props} />,
+      component: {
+        textResourceBindings: { title: 'Look up' },
+        actions: [
+          { id: 'lookupPerson', type: 'ServerAction' },
+          { id: 'nextPage', type: 'ClientAction' },
+        ],
+      },
+      apis: { instanceApi: { getInstance } },
+    });
+    expect(screen.getByRole('button', { name: 'Look up' })).toBeDisabled();
+  });
+
+  it('keeps custom buttons that only navigate enabled', async () => {
+    makeTask1AServiceTask();
+    await renderGenericComponentTest({
+      type: 'CustomButton',
+      renderer: (props) => <CustomButtonComponent {...props} />,
+      component: {
+        textResourceBindings: { title: 'Next page' },
+        actions: [{ id: 'nextPage', type: 'ClientAction' }],
+      },
+      apis: { instanceApi: { getInstance } },
+    });
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeEnabled();
+  });
+
+  it('keeps page navigation working', async () => {
+    makeTask1AServiceTask();
+    window.altinnAppGlobalData.ui = getUiConfigMock(
+      (obj) => (obj.folders.Task_1.pages = { order: ['page1', 'page2'] }),
+    );
+    const navigationButtons = { id: 'nav', type: 'NavigationButtons', textResourceBindings: {} } as const;
+    await renderGenericComponentTest({
+      type: 'NavigationButtons',
+      renderer: (props) => <NavigationButtonsComponent {...props} />,
+      component: navigationButtons,
+      initialPage: 'page1',
+      apis: { instanceApi: { getInstance } },
+      queries: {
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              page1: { data: { layout: [navigationButtons] } },
+              page2: { data: { layout: [{ id: 'page2-heading', type: 'Heading', size: 'L' }] } },
+            };
+          }),
+      },
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Neste' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Neste' })).not.toBeInTheDocument());
   });
 });

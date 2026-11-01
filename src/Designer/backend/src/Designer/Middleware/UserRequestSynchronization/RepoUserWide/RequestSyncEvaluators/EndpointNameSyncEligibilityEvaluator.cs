@@ -32,7 +32,11 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
                 nameof(RepositoryController.ResetLocalRepository),
                 nameof(RepositoryController.CommitAndPushRepo),
                 nameof(RepositoryController.Commit),
-                nameof(RepositoryController.Push)
+                nameof(RepositoryController.Push),
+                nameof(RepositoryController.DeleteBranch),
+                nameof(RepositoryController.CheckoutBranch),
+                nameof(RepositoryController.DiscardLocalChanges),
+                nameof(RepositoryController.StageChange)
             )
         },
         {
@@ -54,9 +58,7 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
                 nameof(UiFoldersController.UpdateLayoutSetName),
                 nameof(UiFoldersController.DeleteLayoutSet),
                 nameof(UiFoldersController.SaveValidationOnNavigation),
-                nameof(UiFoldersController.UpdateGlobalTaskNavigation),
-                nameof(UiFoldersController.GetSubformComponents),
-                nameof(UiFoldersController.SaveSubformPdfComponent)
+                nameof(UiFoldersController.UpdateGlobalTaskNavigation)
             )
         },
         {
@@ -85,7 +87,6 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
             TrimmedControllerName(nameof(DatamodelsController)),
             GenerateFrozenSet(nameof(DatamodelsController.Get), nameof(DatamodelsController.PutDatamodel))
         },
-        { TrimmedControllerName(nameof(PreviewController)), GenerateFrozenSet(nameof(PreviewController.Datamodel)) },
         {
             TrimmedControllerName(nameof(LayoutController)),
             GenerateFrozenSet(

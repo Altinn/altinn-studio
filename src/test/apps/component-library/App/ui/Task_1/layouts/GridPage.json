@@ -27,7 +27,8 @@
         "type": "Grid",
         "textResourceBindings": {
           "title": "Grid.Title",
-          "description": "Grid.Description"
+          "description": "Grid.Description",
+          "help": "Hjelp til utfylling av tabellen"
         },
         "rows": [
           {

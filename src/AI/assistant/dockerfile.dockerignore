@@ -1,3 +1,4 @@
+# Build context: repository root
 # The agents image builds from the repo root so it can bundle the v9 layout schemas from src/common.
 # Ignore everything, then include only what the image needs.
 *

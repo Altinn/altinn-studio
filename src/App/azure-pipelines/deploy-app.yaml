@@ -644,7 +644,8 @@ steps:
           HOST_NAME="${APP_ENVIRONMENT}.${ALTINN_HOST}"
         fi
 
-        # Start writing to overrides file
+        # Start writing to overrides file. The chart copies podAnnotations onto the Deployment's pod template,
+        # where the runtime gateway reads them to tell Designer which Studio deploy runs in the cluster.
         cat << EOF > "$OVERRIDES_FILE"
         image:
           pullSecrets: []
@@ -668,6 +669,8 @@ steps:
               value: "${TAGNAME}"
         podAnnotations:
           altinn.studio/deployment-id: "${DEPLOYMENT_ID}"
+          altinn.studio/build-id: "${BUILD_BUILDID}"
+          altinn.studio/source-environment: "${STUDIO_ENVIRONMENT}"
         EOF
 
         # Add service and ingressRoute

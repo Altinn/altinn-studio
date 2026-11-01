@@ -1,9 +1,13 @@
-// Restricts API key auth to git operations and Gitea REST API only (blocks web UI).
+// Restricts API key auth to git operations and Gitea REST API, excluding token management.
 // Part 1: ^/<owner>/<repo>[.git]/<git-endpoint>[?|end] — matches git clone/push/pull
 // Part 2: ^/api/v1/ — matches Gitea REST API calls
 // Cookie-authenticated users are not affected by this restriction.
 var apiKeyAllowedPattern =
   /^\/[^/]+\/[^/]+(\.git)?\/(info\/refs|git-upload-pack|git-receive-pack)(\?|$)|^\/api\/v1\//;
+
+// Token management requires a Designer browser session. Neither Studio API keys nor
+// native Gitea tokens may create independent credentials, including through Basic auth.
+var personalAccessTokenPattern = /^\/api\/v1\/users\/[^/]+\/tokens(\/|$)/;
 
 function getApiKey(r) {
   var headerApiKey = r.headersIn['X-Api-Key'];
@@ -31,9 +35,14 @@ function getApiKey(r) {
 
 function handleRequest(r) {
   var apiKey = getApiKey(r);
+  var isTokenManagementRequest = personalAccessTokenPattern.test(r.uri);
   r.variables.auth_api_key = apiKey;
   r.subrequest('/_internal/userinfo', { method: 'GET' }, function (reply) {
     if (reply.status === 204 || reply.status === 401 || reply.status === 403) {
+      if (isTokenManagementRequest) {
+        r.return(403, 'Personal access token management requires browser authentication');
+        return;
+      }
       r.internalRedirect('@proxy_to_gitea_clean');
       return;
     }
@@ -45,6 +54,11 @@ function handleRequest(r) {
 
     try {
       var body = JSON.parse(reply.responseText);
+
+      if (isTokenManagementRequest && body.authMethod !== 'Cookies') {
+        r.return(403, 'Personal access token management requires browser authentication');
+        return;
+      }
 
       if (body.authMethod === 'ApiKey' && !apiKeyAllowedPattern.test(r.uri)) {
         r.return(

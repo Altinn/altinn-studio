@@ -35,6 +35,8 @@ environmentVariables:
       value: Staging
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: kvSetting__SecretUri
+      value: https://altinn-studio-dev-kv.vault.azure.net
     - name: GeneralSettings__HostName
       value: dev.altinn.studio
     - name: GeneralSettings__TemplateLocation
@@ -107,17 +109,17 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
-    - name: AI_CONNECTION_STRING
+    - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
-    - name: POSTHOG_API_KEY
+    - name: FrontendEnvironmentSettings__PostHogApiKey
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: postHogApiKey
-    - name: POSTHOG_API_HOST
+    - name: FrontendEnvironmentSettings__PostHogApiHost
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
@@ -131,6 +133,8 @@ environmentVariables:
       value: Staging
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: kvSetting__SecretUri
+      value: https://altinn-studio-staging-kv.vault.azure.net
     - name: GeneralSettings__HostName
       value: staging.altinn.studio
     - name: GeneralSettings__TemplateLocation
@@ -203,17 +207,17 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
-    - name: AI_CONNECTION_STRING
+    - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
-    - name: POSTHOG_API_KEY
+    - name: FrontendEnvironmentSettings__PostHogApiKey
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: postHogApiKey
-    - name: POSTHOG_API_HOST
+    - name: FrontendEnvironmentSettings__PostHogApiHost
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
@@ -227,6 +231,8 @@ environmentVariables:
       value: Production
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: kvSetting__SecretUri
+      value: https://altinn-studio-prod-kv.vault.azure.net
     - name: GeneralSettings__HostName
       value: altinn.studio
     - name: GeneralSettings__TemplateLocation
@@ -297,17 +303,17 @@ environmentVariables:
       value: "0 0 0 * * ?"
     - name: AltinitySettings__AgentUrl
       value: http://altinn-altinity-agents
-    - name: AI_CONNECTION_STRING
+    - name: FrontendEnvironmentSettings__AiConnectionString
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: aiConnectionString
-    - name: POSTHOG_API_KEY
+    - name: FrontendEnvironmentSettings__PostHogApiKey
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
           key: postHogApiKey
-    - name: POSTHOG_API_HOST
+    - name: FrontendEnvironmentSettings__PostHogApiHost
       valueFrom:
         secretKeyRef:
           name: altinn-studio-env-secret
@@ -318,8 +324,6 @@ dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 volumeMounts:
   - name: altinn-repo-storage
     mountPath: "/AltinnCore/Repos"
-  - name: altinn-appsettings
-    mountPath: "/app/altinn-appsettings"
   - name: datakeys
     mountPath: /mnt/keys
   - name: accesstoken
@@ -329,9 +333,6 @@ volumes:
   - name: altinn-repo-storage
     persistentVolumeClaim:
       claimName: altinn-storage-repo-premium-volume-claim
-  - name: altinn-appsettings
-    secret:
-      secretName: altinn-appsettings-secret
   - name: accesstoken
     secret:
       secretName: accesstoken
@@ -365,14 +366,3 @@ ingress:
         traefik.frontend.priority: "600"
     paths:
       - path: /designerapi/
-
-
-lifecycle:
-  postStart:
-    exec:
-      command:
-        - /bin/sh
-        - -c
-        - >
-          mkdir -p wwwroot/designer/config &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"accountLinkUrl\": \"${StudioOidcLoginSettings__AccountLinkUrl}\", \"featureFlags\": {\"studioOidc\": true}}" > wwwroot/designer/config/env.json

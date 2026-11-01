@@ -80,28 +80,6 @@ public class ProcessModelingController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
 
-        if (metadataObject?.SubformPdfComponentChange is { } subformChange)
-        {
-            if (!_appVersionService.IsV9App(editingContext))
-            {
-                return BadRequest("Subform PDF configuration requires a v9 app.");
-            }
-            if (
-                string.IsNullOrWhiteSpace(subformChange.TaskId)
-                || (
-                    subformChange.ComponentId is not null
-                        ? string.IsNullOrWhiteSpace(subformChange.ComponentId)
-                            || string.IsNullOrWhiteSpace(subformChange.SourceLayoutSetId)
-                        : string.IsNullOrWhiteSpace(subformChange.PreviousComponentId)
-                )
-            )
-            {
-                return BadRequest(
-                    "Subform PDF changes require a task and either a source component or a previous component to remove."
-                );
-            }
-        }
-
         // In a v9 app a task id change renames the task's layout set folder, so the new id must follow the
         // layout set naming policy. Validate before the process definition is written.
         if (metadataObject?.TaskIdChange is not null && _appVersionService.IsV9App(editingContext))
@@ -144,18 +122,6 @@ public class ProcessModelingController : ControllerBase
                     OldId = metadataObject.TaskIdChange.OldId,
                     NewId = metadataObject.TaskIdChange.NewId,
                     EditingContext = editingContext,
-                },
-                cancellationToken
-            );
-        }
-
-        if (metadataObject?.SubformPdfComponentChange is not null)
-        {
-            await _mediator.Publish(
-                new SubformPdfComponentChangedEvent
-                {
-                    EditingContext = editingContext,
-                    Change = metadataObject.SubformPdfComponentChange,
                 },
                 cancellationToken
             );

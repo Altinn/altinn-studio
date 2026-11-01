@@ -388,15 +388,17 @@ internal sealed class WorkflowHandler(
 
         if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, initialStartTime, timeProvider))
         {
+            // PostgreSQL keeps FirstFailedAt to the microsecond, while the error history's JSON keeps every
+            // tick. Cut to the microsecond here, so the two read as the same instant after a round trip.
+            var failedAt = timeProvider.GetUtcNow();
+            failedAt = failedAt.AddTicks(-(failedAt.Ticks % TimeSpan.TicksPerMicrosecond));
+            if (currentStep.RequeueCount == 0)
+                currentStep.FirstFailedAt = failedAt;
+
             currentStep.RequeueCount++;
             currentStep.Status = PersistentItemStatus.Requeued;
             currentStep.ErrorHistory.Add(
-                new ErrorEntry(
-                    timeProvider.GetUtcNow(),
-                    result.Message ?? "Unknown error",
-                    result.HttpStatusCode,
-                    WasRetryable: true
-                )
+                new ErrorEntry(failedAt, result.Message ?? "Unknown error", result.HttpStatusCode, WasRetryable: true)
             );
             workflow.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
             ParkIfNamespaceThrottled(workflow, retryStrategy, initialStartTime);
@@ -495,6 +497,7 @@ internal sealed class WorkflowHandler(
         currentStep.FirstDeferredAt ??= now;
         currentStep.LastDeferredAt = now;
         currentStep.RequeueCount = 0;
+        currentStep.FirstFailedAt = null;
         currentStep.Status = PersistentItemStatus.Waiting;
         workflow.BackoffUntil = now.Add(scheduledDelay);
 

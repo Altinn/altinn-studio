@@ -1,6 +1,7 @@
 import pQueue from 'p-queue';
 import { between, sleep, designerDomain } from '../utils.js';
 import axios from 'axios';
+import { localtestDeployments } from './localtest.js';
 
 const queue = new pQueue({ concurrency: 1 });
 const builds = [];
@@ -34,6 +35,8 @@ export const buildsRoute = async (req, res) => {
         envName: params.APP_ENVIRONMENT,
         tagName: params.TAGNAME,
         buildNumber: BuildNumber,
+        deploymentId: params.DEPLOYMENT_ID,
+        sourceEnvironment: studioEnvironment(params.ALTINN_STUDIO_HOSTNAME),
         time: new Date(),
       },
     ];
@@ -86,45 +89,10 @@ export const buildRoute = async (req, res) => {
   res.json(build);
 };
 
-export const kubernetesWrapperRoute = async (req, res) => {
-  const { org, env } = req.params;
-  const release = req.query.labelSelector?.slice('release='.length);
-
-  const kubernetesWrapperDeployments = [
-    { version: '123456', release: 'kuberneteswrapper' },
-    ...deploys
-      .filter((deploy) => deploy.envName === env && deploy.org === org)
-      .map((deploy) => ({
-        version: deploy.tagName,
-        release: `${deploy.org}-${deploy.app}`,
-      })),
-  ];
-
-  res.json(kubernetesWrapperDeployments.filter((deploy) => !release || deploy.release === release));
-};
-
-export const runtimeGatewayDeploymentsRoute = async (req, res) => {
-  const { org, env, origin } = req.params;
-
-  res.json(
-    deploys
-      .filter((deploy) => deploy.org === org && deploy.envName === env)
-      .map((deploy) => ({
-        org: deploy.org,
-        env: deploy.envName,
-        app: deploy.app,
-        sourceEnvironment: origin,
-        buildId: deploy.buildNumber.toString(),
-        imageTag: deploy.tagName,
-      })),
-  );
-};
-
-export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
-  const { org, env, app, origin } = req.params;
-
-  const deployment = deploys
-    .filter((deploy) => deploy.org === org && deploy.envName === env && deploy.app === app)
+/** Every app deployed through local Studio, plus the apps the studioctl environment holds. */
+async function deploymentsFor(org, env, origin) {
+  const deployed = deploys
+    .filter((deploy) => deploy.org === org && deploy.envName === env)
     .map((deploy) => ({
       org: deploy.org,
       env: deploy.envName,
@@ -132,8 +100,26 @@ export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
       sourceEnvironment: origin,
       buildId: deploy.buildNumber.toString(),
       imageTag: deploy.tagName,
-    }))
-    .at(0);
+    }));
+  const deployedApps = new Set(deployed.map((deployment) => deployment.app));
+  const fromLocaltest = (await localtestDeployments(org, env, origin)).filter(
+    (deployment) => !deployedApps.has(deployment.app),
+  );
+  return [...deployed, ...fromLocaltest];
+}
+
+export const runtimeGatewayDeploymentsRoute = async (req, res) => {
+  const { org, env, origin } = req.params;
+
+  res.json(await deploymentsFor(org, env, origin));
+};
+
+export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
+  const { org, env, app, origin } = req.params;
+
+  const deployment = (await deploymentsFor(org, env, origin)).find(
+    (candidate) => candidate.app === app,
+  );
 
   if (!deployment) {
     res.sendStatus(404);
@@ -141,4 +127,33 @@ export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
   }
 
   res.json(deployment);
+};
+
+/** What the deploy pipeline sets STUDIO_ENVIRONMENT to, with Designer's fallback for local hosts. */
+function studioEnvironment(studioHostname = '') {
+  if (studioHostname.startsWith('dev.')) return 'dev';
+  if (studioHostname.startsWith('staging.')) return 'staging';
+  return 'prod';
+}
+
+/** The app's latest deploy through local Studio is what runs in the environment. */
+export const runtimeGatewayRunningAppRoute = (req, res) => {
+  const { org, env, app } = req.params;
+
+  const deploy = deploys.findLast(
+    (candidate) => candidate.org === org && candidate.envName === env && candidate.app === app,
+  );
+
+  if (!deploy) {
+    res.sendStatus(404);
+    return;
+  }
+
+  res.json({
+    release: `${org}-${app}`,
+    imageTag: deploy.tagName,
+    buildId: deploy.buildNumber.toString(),
+    sourceEnvironment: deploy.sourceEnvironment,
+    deploymentId: deploy.deploymentId,
+  });
 };

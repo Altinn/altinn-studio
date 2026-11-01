@@ -1,4 +1,3 @@
-using System.Reflection;
 using Altinn.App.Core.Features.Process;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,18 +30,11 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
         IServiceProvider sp = scope.ServiceProvider;
 
         // Resolve tasks in this scope so they can use scoped dependencies.
-        List<IServiceTask> simpleTasks = Resolve<IServiceTask>(sp);
-        List<IPipelineServiceTask> pipelineTasks = Resolve<IPipelineServiceTask>(sp);
+        List<IServiceTask> tasks = Resolve<IServiceTask>(sp);
 
         var errors = new List<string>();
 
-        foreach (IPipelineServiceTask task in simpleTasks)
-        {
-            ValidateSealedDefine(task, errors);
-            ValidatePipeline(task, errors);
-        }
-
-        foreach (IPipelineServiceTask task in pipelineTasks)
+        foreach (IServiceTask task in tasks)
         {
             ValidatePipeline(task, errors);
         }
@@ -63,13 +55,13 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private static void ValidatePipeline(IPipelineServiceTask task, List<string> errors)
+    private static void ValidatePipeline(IServiceTask task, List<string> errors)
     {
         string taskName = task.GetType().FullName ?? task.GetType().Name;
 
         try
         {
-            // Runs Define — a throwing or null-returning implementation lands here, as do the
+            // Runs DefineExecute — a throwing or null-returning implementation lands here, as do the
             // builder's own eager rejections (invalid options, a foreign or duplicate-answered
             // mailbox handle, a mailbox left unanswered when a terminal ends the composition).
             _ = task.ResolvePipeline();

@@ -19,24 +19,24 @@ using Moq;
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
 /// <summary>
-/// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose
-/// pipeline is the forwarding default <c>Finally(Execute)</c> — every test here exercises that
-/// default end to end (a real class, not a mock: mocks bypass interface defaults, see
-/// <see cref="ExecuteServiceTaskStageTests"/> for that guard). The multi-stage dispatch is
-/// covered by <see cref="ExecuteServiceTaskStageTests"/>.
+/// The simple dispatch of <see cref="ExecuteServiceTask"/>: an <see cref="IServiceTask"/> whose pipeline
+/// is just its conclusion, <c>Finally(Execute)</c> — every test here runs that pipeline end to end. The
+/// multi-stage dispatch is covered by <see cref="ExecuteServiceTaskStageTests"/>.
 /// </summary>
 public class ExecuteServiceTaskTests
 {
     /// <summary>An <see cref="IServiceTask"/> scripted per test, recording what it observed.</summary>
-    private sealed class FakeServiceTask(Func<ServiceTaskContext, Task<ServiceTaskResult>> onExecute) : IServiceTask
+    private sealed class FakeServiceTask(Func<StageContext, Task<ServiceTaskResult>> onExecute) : IServiceTask
     {
         public int ExecuteCount { get; private set; }
 
-        public ServiceTaskContext? Observed { get; private set; }
+        public StageContext? Observed { get; private set; }
 
         public string Type => "myServiceTask";
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context)
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context)
         {
             ExecuteCount++;
             Observed = context;
@@ -49,7 +49,7 @@ public class ExecuteServiceTaskTests
 
     private static readonly DateTimeOffset FixtureExecutionReferenceTime = new(2025, 3, 14, 9, 26, 53, TimeSpan.Zero);
 
-    private static ProcessEngineCommandContext CreateContext(
+    private static WorkflowEngineCommandContext CreateContext(
         Instance instance,
         string serviceTaskType,
         IInstanceDataMutator? mutator = null,
@@ -74,7 +74,7 @@ public class ExecuteServiceTaskTests
         var payload = new ExecuteServiceTaskPayload(serviceTaskType, ItemIndex: 0);
         string serializedPayload = CommandPayloadSerializer.Serialize(payload)!;
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -100,8 +100,8 @@ public class ExecuteServiceTaskTests
         };
     }
 
-    private static ProcessEngineCommandContext WithExecutionReferenceTime(
-        ProcessEngineCommandContext context,
+    private static WorkflowEngineCommandContext WithExecutionReferenceTime(
+        WorkflowEngineCommandContext context,
         DateTimeOffset executionReferenceTime
     ) =>
         new()
@@ -171,7 +171,7 @@ public class ExecuteServiceTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
         Assert.Equal(action, success.ProcessNextContinuation?.Action);
         Assert.Equal(ProcessStatus.Processing, context.InstanceDataMutator.Instance.Process?.Status);
@@ -210,7 +210,7 @@ public class ExecuteServiceTaskTests
 
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(serviceTask.Observed);
         Assert.Equal(stepId, serviceTask.Observed.StepId);
         Assert.Equal(executionReferenceTime, serviceTask.Observed.ExecutionReferenceTime);
@@ -247,10 +247,25 @@ public class ExecuteServiceTaskTests
 
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
         Assert.Contains(nameof(RogueResult), failed.ErrorMessage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Execute_WhenServiceTaskReturnsNull_FailsPermanentlyWithoutThrowing()
+    {
+        var serviceTask = new FakeServiceTask(_ => Task.FromResult<ServiceTaskResult>(null!));
+        var command = CreateCommand(serviceTask);
+        var context = CreateContext(CreateInstance(), "myServiceTask");
+
+        var result = await ((IWorkflowEngineCommand)command).Execute(context);
+
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
+        Assert.True(failed.NonRetryable);
+        Assert.Equal("ServiceTaskResultUnknown", failed.ExceptionType);
+        Assert.Contains("returned null", failed.ErrorMessage, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -267,7 +282,7 @@ public class ExecuteServiceTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Contains("Service task 'myServiceTask' failed: Something went wrong", failed.ErrorMessage);
         Assert.Equal("ServiceTaskFailedException", failed.ExceptionType);
         Assert.True(failed.NonRetryable);
@@ -290,7 +305,7 @@ public class ExecuteServiceTaskTests
 
         // Assert — a deferral is neither a success nor a failure: mapping it onto either would make the
         // engine advance the process or record an error, and it must do neither.
-        var deferred = Assert.IsType<DeferredProcessEngineCommandResult>(result);
+        var deferred = Assert.IsType<DeferredWorkflowEngineCommandResult>(result);
         Assert.Equal(TimeSpan.FromMinutes(5), deferred.Delay);
         Assert.Equal("delivery not confirmed", deferred.Reason);
     }
@@ -418,7 +433,7 @@ public class ExecuteServiceTaskTests
 
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Service task 'myServiceTask' failed: Try again", failed.ErrorMessage);
         Assert.Equal("ServiceTaskFailedException", failed.ExceptionType);
         Assert.False(failed.NonRetryable);
@@ -435,7 +450,7 @@ public class ExecuteServiceTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Contains("No service task found for type nonExistentType", failed.ErrorMessage);
         Assert.Equal("ProcessException", failed.ExceptionType);
     }
@@ -452,7 +467,7 @@ public class ExecuteServiceTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("Service task exploded", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }
@@ -479,7 +494,7 @@ public class ExecuteServiceTaskTests
         var result = await ((IWorkflowEngineCommand)command).Execute(context);
 
         // Assert
-        var success = Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        var success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
         Assert.NotNull(success.ProcessNextContinuation);
     }
 
@@ -506,11 +521,13 @@ public class ExecuteServiceTaskTests
         );
     }
 
-    private sealed class DelegateServiceTask(string type, Func<ServiceTaskContext, Task<ServiceTaskResult>> execute)
+    private sealed class DelegateServiceTask(string type, Func<StageContext, Task<ServiceTaskResult>> execute)
         : IServiceTask
     {
         public string Type => type;
 
-        public Task<ServiceTaskResult> Execute(ServiceTaskContext context) => execute(context);
+        public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) => pipeline.Finally(Execute);
+
+        public Task<ServiceTaskResult> Execute(StageContext context) => execute(context);
     }
 }

@@ -15,6 +15,7 @@ export const useDiscardChangesMutation = (
 
   return useMutation({
     mutationFn: () => discardChanges(org, app),
+    meta: { refreshesRepoStatus: true },
     onSuccess: (data, variables, onMutateResult, context) => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, org, app] });
       options?.onSuccess?.(data, variables, onMutateResult, context);

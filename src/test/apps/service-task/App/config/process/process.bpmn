@@ -140,8 +140,7 @@
           <altinn:taskType>subformPdf</altinn:taskType>
           <altinn:subformPdfConfig>
             <altinn:filenameTextResourceKey>SubformPdfFileName</altinn:filenameTextResourceKey>
-            <altinn:subformComponentId>Subform</altinn:subformComponentId>
-            <altinn:subformDataTypeId>SubformModel</altinn:subformDataTypeId>
+            <altinn:subformUiFolder>Subform</altinn:subformUiFolder>
           </altinn:subformPdfConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>

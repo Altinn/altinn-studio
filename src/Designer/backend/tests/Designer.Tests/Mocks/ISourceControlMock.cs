@@ -197,6 +197,11 @@ public class ISourceControlMock : ISourceControl
     public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) =>
         throw new NotImplementedException();
 
+    public CombineResult CombineWithRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    ) => throw new NotImplementedException();
+
     public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) =>
         throw new NotImplementedException();
 
@@ -229,8 +234,5 @@ public class ISourceControlMock : ISourceControl
     ) => throw new NotImplementedException();
 
     public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) =>
-        throw new NotImplementedException();
-
-    public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext) =>
         throw new NotImplementedException();
 }

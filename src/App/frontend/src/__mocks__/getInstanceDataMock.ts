@@ -1,4 +1,5 @@
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { ELEMENT_TYPE } from 'src/types/shared';
 import type { IInstance, IParty, IProcess } from 'src/types/shared';
 
 export const defaultMockDataElementId = '4f2610c9-911a-46a3-bc2d-5191602193f4';
@@ -77,6 +78,17 @@ export function getInstanceDataMock(
   return out;
 }
 
-export function getInstanceWithProcessMock(): IInstance & { process: IProcess } {
-  return { ...getInstanceDataMock(), process: getProcessDataMock() };
+export function getInstanceWithProcessMock(
+  mutateProcess?: (process: IProcess) => void,
+): IInstance & { process: IProcess } {
+  return { ...getInstanceDataMock(), process: getProcessDataMock(mutateProcess) };
+}
+
+/** An instance at Task_1 as a service task, so the page a test renders is the task's own page, which is locked. */
+export function getInstanceAtServiceTaskMock(): IInstance & { process: IProcess } {
+  return getInstanceWithProcessMock((process) => {
+    if (process.currentTask) {
+      process.currentTask.elementType = ELEMENT_TYPE.SERVICE_TASK;
+    }
+  });
 }

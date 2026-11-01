@@ -342,6 +342,7 @@ internal class ProcessEngine : IProcessEngine
                 NewProcessState = workflowResult.Instance.Process,
                 Events = [],
             },
+            WorkflowParked = workflowResult.Parked,
         };
 
         activity?.SetProcessChangeResult(changeResult);
@@ -380,17 +381,6 @@ internal class ProcessEngine : IProcessEngine
 
         if (!authorized)
         {
-            if (
-                request.Mode is ProcessNextMode.CompleteProcess
-                && !await _processEngineAuthorizer.AuthorizeProcessNext(instance, cancellationToken: cancellationToken)
-            )
-            {
-                ProcessChangeResult completeProcessAuthorizationFailedResult =
-                    CreateCompleteProcessAuthorizationFailedResult(currentTaskId, altinnTaskType);
-                activity?.SetProcessChangeResult(completeProcessAuthorizationFailedResult);
-                return completeProcessAuthorizationFailedResult;
-            }
-
             var result = new ProcessChangeResult
             {
                 Success = false,
@@ -429,32 +419,6 @@ internal class ProcessEngine : IProcessEngine
             );
             activity?.SetProcessChangeResult(blockedResult);
             return blockedResult;
-        }
-
-        if (request.Mode is ProcessNextMode.CompleteProcess)
-        {
-            bool completeProcessAuthorized = await _processEngineAuthorizer.AuthorizeProcessNext(
-                instance,
-                cancellationToken: cancellationToken
-            );
-            if (!completeProcessAuthorized)
-            {
-                ProcessChangeResult unauthorizedResult = CreateCompleteProcessAuthorizationFailedResult(
-                    currentTaskId,
-                    altinnTaskType
-                );
-                activity?.SetProcessChangeResult(unauthorizedResult);
-                return unauthorizedResult;
-            }
-
-            if (
-                await GetValidationError(instance, versions, currentTaskId, request.Language) is
-                { } completeValidationError
-            )
-            {
-                activity?.SetProcessChangeResult(completeValidationError);
-                return completeValidationError;
-            }
         }
 
         if (request.Action is not "reject")
@@ -607,6 +571,7 @@ internal class ProcessEngine : IProcessEngine
                 OldProcessState = instance.Process,
                 NewProcessState = newProcessState,
             },
+            WorkflowParked = workflowResult.Parked,
         };
 
         activity?.SetProcessChangeResult(changeResult);
@@ -1035,7 +1000,7 @@ internal class ProcessEngine : IProcessEngine
     }
 
     /// <summary>
-    /// Selects the action performed by process/completeProcess, or the implicit reject for process/next.
+    /// Selects the action a task type implies when process/next names none, such as the implicit reject.
     /// </summary>
     /// <remarks>
     /// This differs from the authorization table: unmapped task types keep their name, so <c>payment</c> does not
@@ -1120,19 +1085,6 @@ internal class ProcessEngine : IProcessEngine
         return true;
     }
 
-    private static ProcessChangeResult CreateCompleteProcessAuthorizationFailedResult(
-        string currentTaskId,
-        string altinnTaskType
-    ) =>
-        new()
-        {
-            Success = false,
-            ErrorType = ProcessErrorType.Unauthorized,
-            ErrorMessage =
-                $"User is not authorized to complete the current task. Task ID: {LogSanitizer.Sanitize(currentTaskId)}. Task type: {LogSanitizer.Sanitize(altinnTaskType)}.",
-            CompleteProcessAuthorizationFailed = true,
-        };
-
     private static string CreateWorkflowFailureMessage(WorkflowFailure workflowFailure) =>
         workflowFailure.Kind switch
         {
@@ -1200,7 +1152,7 @@ internal class ProcessEngine : IProcessEngine
         };
     }
 
-    private IPipelineServiceTask? CheckIfServiceTask(string? altinnTaskType)
+    private IServiceTask? CheckIfServiceTask(string? altinnTaskType)
     {
         if (altinnTaskType is null)
             return null;

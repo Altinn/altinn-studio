@@ -26,7 +26,7 @@ The platform services that apps call each have their own repository:
 [altinn-storage](https://github.com/Altinn/altinn-storage),
 [altinn-file-scan](https://github.com/Altinn/altinn-file-scan),
 [altinn-receipt](https://github.com/Altinn/altinn-receipt),
-[altinn-auth](https://github.com/Altinn/altinn-auth) for authentication and authorization,
+[altinn-auth](https://github.com/Altinn/altinn-auth) for authentication, authorization and access management,
 [altinn-register](https://github.com/Altinn/altinn-register),
 [altinn-profile](https://github.com/Altinn/altinn-profile),
 [altinn-notifications](https://github.com/Altinn/altinn-notifications),

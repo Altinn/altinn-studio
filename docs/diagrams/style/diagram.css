@@ -1,0 +1,203 @@
+/* The shared style for diagrams, after the Altinn profile in Designsystemet (Digdir theme, Small mode).
+   scripts/diagrams/sync.mjs copies it into each diagram, with the Inter font. README.md describes the rules. */
+svg {
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-feature-settings: 'cv05';
+}
+.canvas {
+  fill: #ffffff;
+}
+
+/* Text */
+.kicker {
+  font-size: 14px;
+  font-weight: 600;
+  fill: #005db1;
+}
+.title {
+  font-size: 30px;
+  font-weight: 500;
+  fill: #002c54;
+}
+.lead {
+  font-size: 16px;
+  fill: #545e6b;
+}
+.plane-label {
+  font-size: 16px;
+  font-weight: 600;
+}
+.plane-sub {
+  font-size: 13px;
+  fill: #545e6b;
+}
+.zone-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.h {
+  font-size: 16px;
+  font-weight: 600;
+  fill: #002c54;
+}
+.s {
+  font-size: 13px;
+  fill: #545e6b;
+}
+.note {
+  font-size: 13px;
+  fill: #1f2c3d;
+}
+.code {
+  font-size: 13px;
+  font-weight: 500;
+  fill: #005db1;
+}
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #1f2c3d;
+}
+.legend {
+  font-size: 13px;
+  fill: #1f2c3d;
+}
+
+/* Shapes, before the palette so that its fills and strokes win */
+.zone {
+  stroke-width: 1;
+}
+.card {
+  fill: #ffffff;
+  stroke-width: 1;
+}
+.tag {
+  stroke-width: 1;
+}
+.tag-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+.env-text {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Control plane: accent */
+.band-control {
+  fill: #eef4fa;
+}
+.text-control {
+  fill: #005db1;
+}
+.zone-core {
+  fill: #eef4fa;
+  stroke: #005db1;
+}
+.stack-core {
+  fill: #eef4fa;
+  stroke: #2a7cc5;
+}
+.card-control {
+  stroke: #99c0e3;
+}
+.card-designer {
+  fill: #0062ba;
+  stroke: #0062ba;
+}
+.on-designer {
+  fill: #ffffff;
+}
+.env-control {
+  fill: #ffffff;
+  stroke: #2a7cc5;
+}
+.edge-control {
+  fill: none;
+  stroke: #0062ba;
+  stroke-width: 1.5;
+}
+
+/* Data plane and Runtime: success */
+.band-data {
+  fill: #ecf6ee;
+}
+.text-data {
+  fill: #056d13;
+}
+.zone-runtime {
+  fill: #ecf6ee;
+  stroke: #056d13;
+}
+.stack-runtime {
+  fill: #ecf6ee;
+  stroke: #108c22;
+}
+.card-data {
+  stroke: #8fc997;
+}
+.tag-app {
+  fill: #daeddd;
+  stroke: #8fc997;
+}
+.env-data {
+  fill: #ffffff;
+  stroke: #108c22;
+}
+.edge-data {
+  fill: none;
+  stroke: #068718;
+  stroke-width: 1.5;
+}
+
+/* Platform: purple, which is not in the Digdir theme */
+.text-platform {
+  fill: #5b45a9;
+}
+.zone-platform {
+  fill: #f4f2fb;
+  stroke: #5b45a9;
+}
+.stack-platform {
+  fill: #f4f2fb;
+  stroke: #8a76d1;
+}
+.card-platform {
+  stroke: #c3b8e6;
+}
+.tag-platform {
+  fill: #e9e4f7;
+  stroke: #c3b8e6;
+}
+.env-platform {
+  fill: #ffffff;
+  stroke: #8a76d1;
+}
+
+/* Neutral: app deployment, the developer's machine and text */
+.text-neutral {
+  fill: #545e6b;
+}
+.zone-neutral {
+  fill: #f3f4f4;
+  stroke: #b8bcc1;
+}
+.zone-local {
+  fill: #ffffff;
+  stroke: #717a84;
+  stroke-dasharray: 4 4;
+}
+.card-neutral {
+  stroke: #b8bcc1;
+}
+.plane-divider {
+  fill: none;
+  stroke: #717a84;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+.edge-local {
+  fill: none;
+  stroke: #545e6b;
+  stroke-width: 1.5;
+}
