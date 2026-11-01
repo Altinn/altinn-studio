@@ -15,7 +15,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     private const string TestNamespace = "default";
     private const string Org = "ttd";
 
-    // A pod that never becomes available keeps the Deployment updating until its progress deadline.
+    // Its pods back off from pulling it, so they fail.
     private const string UnpullableImage = "registry.invalid/ttd/never:1";
 
     // Kind preloads it on every node, so its pods start and become available without a pull.
@@ -82,17 +82,36 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetRunning_WhenPodsNeverBecomeAvailable_ReportsUpdatingAndThenFailed()
+    public async Task GetRunning_WhileNewPodsStart_IsUpdating()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var app = "starting-" + Guid.NewGuid().ToString("N")[..5];
+        await CreateDeploymentAsync(app, PauseImage, replicas: 1, neverReady: true, ct: ct);
+
+        await WaitForStatus(app, RunningAppStatus.Updating, ct);
+    }
+
+    [Fact]
+    public async Task GetRunning_WhenNewPodsFailWhileTheOldOnesServe_IsStuck()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var app = "stuck-" + Guid.NewGuid().ToString("N")[..5];
+        await CreateDeploymentAsync(app, PauseImage, replicas: 1, ct: ct);
+        await WaitForStatus(app, RunningAppStatus.Ready, ct);
+
+        await SetImage(app, UnpullableImage, ct);
+
+        await WaitForStatus(app, RunningAppStatus.Stuck, ct);
+    }
+
+    [Fact]
+    public async Task GetRunning_WhenNoPodCanStart_IsUnavailable()
     {
         var ct = TestContext.Current.CancellationToken;
         var app = "failing-" + Guid.NewGuid().ToString("N")[..5];
         await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, ct: ct);
-        await WaitForStatus(app, RunningAppStatus.Updating, ct);
 
-        // Only now, so a slow run cannot miss the updating status.
-        await ShortenProgressDeadline(app, ct);
-
-        await WaitForStatus(app, RunningAppStatus.Failed, ct);
+        await WaitForStatus(app, RunningAppStatus.Unavailable, ct);
     }
 
     [Fact]
@@ -170,7 +189,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     {
         var ct = TestContext.Current.CancellationToken;
         var app = "updating-" + Guid.NewGuid().ToString("N")[..5];
-        await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, ct: ct);
+        await CreateDeploymentAsync(app, PauseImage, replicas: 1, neverReady: true, ct: ct);
         await WaitForStatus(app, RunningAppStatus.Updating, ct);
 
         var response = await _httpClient.PostAsync(RestartUri(app), content: null, ct);
@@ -181,12 +200,14 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Restart_WhenFailed_StampsThePodTemplate()
+    public async Task Restart_WhenStuck_StampsThePodTemplate()
     {
         var ct = TestContext.Current.CancellationToken;
-        var app = "refail-" + Guid.NewGuid().ToString("N")[..5];
-        await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, progressDeadlineSeconds: 1, ct: ct);
-        await WaitForStatus(app, RunningAppStatus.Failed, ct);
+        var app = "restuck-" + Guid.NewGuid().ToString("N")[..5];
+        await CreateDeploymentAsync(app, PauseImage, replicas: 1, ct: ct);
+        await WaitForStatus(app, RunningAppStatus.Ready, ct);
+        await SetImage(app, UnpullableImage, ct);
+        await WaitForStatus(app, RunningAppStatus.Stuck, ct);
 
         var response = await _httpClient.PostAsync(RestartUri(app), content: null, ct);
 
@@ -255,9 +276,12 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         return deployment;
     }
 
-    private async Task ShortenProgressDeadline(string app, CancellationToken ct) =>
+    private async Task SetImage(string app, string image, CancellationToken ct) =>
         await _k8sClient.AppsV1.PatchNamespacedDeploymentAsync(
-            new V1Patch("""{"spec":{"progressDeadlineSeconds":1}}""", V1Patch.PatchType.MergePatch),
+            new V1Patch(
+                $$"""[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"{{image}}"}]""",
+                V1Patch.PatchType.JsonPatch
+            ),
             DeploymentName(app),
             TestNamespace,
             cancellationToken: ct
@@ -307,7 +331,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         string image,
         Dictionary<string, string>? annotations = null,
         int replicas = 0,
-        int? progressDeadlineSeconds = null,
+        bool neverReady = false,
         bool paused = false,
         CancellationToken ct = default
     )
@@ -326,12 +350,29 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
                 {
                     Replicas = replicas,
                     Paused = paused,
-                    ProgressDeadlineSeconds = progressDeadlineSeconds,
                     Selector = new V1LabelSelector { MatchLabels = labels },
                     Template = new V1PodTemplateSpec
                     {
                         Metadata = new V1ObjectMeta { Labels = labels, Annotations = annotations },
-                        Spec = new V1PodSpec { Containers = [new V1Container { Name = app, Image = image }] },
+                        Spec = new V1PodSpec
+                        {
+                            Containers =
+                            [
+                                new V1Container
+                                {
+                                    Name = app,
+                                    Image = image,
+                                    // Nothing listens, so the pod runs without becoming ready, as an app that starts.
+                                    ReadinessProbe = neverReady
+                                        ? new V1Probe
+                                        {
+                                            TcpSocket = new V1TCPSocketAction { Port = 1 },
+                                            PeriodSeconds = 1,
+                                        }
+                                        : null,
+                                },
+                            ],
+                        },
                     },
                 },
             },
