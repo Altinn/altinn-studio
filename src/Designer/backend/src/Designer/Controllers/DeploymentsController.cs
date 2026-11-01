@@ -78,8 +78,8 @@ public class DeploymentsController : ControllerBase
 
         return new DeploymentsResponse
         {
-            PipelineDeploymentList = deployments.Results.ToList(),
-            RunningAppList = runStates.OfType<AppRunState.Running>().Select(RunningApp.From).ToList(),
+            PipelineDeploymentList = deployments.Results.Select(PipelineDeployment.From).ToList(),
+            EnvironmentList = runStates.Select(state => AppInEnvironment.From(state, deployments.Results)).ToList(),
         };
     }
 
@@ -115,7 +115,7 @@ public class DeploymentsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-    public async Task<ActionResult<DeploymentEntity>> Create(
+    public async Task<ActionResult<PipelineDeployment>> Create(
         string org,
         string app,
         [FromBody] CreateDeploymentRequestViewModel createDeployment
@@ -133,7 +133,7 @@ public class DeploymentsController : ControllerBase
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
 
         var createResult = await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel());
-        return Created(string.Empty, createResult);
+        return Created(string.Empty, PipelineDeployment.From(createResult));
     }
 
     /// <summary>
@@ -161,13 +161,21 @@ public class DeploymentsController : ControllerBase
         AppRestart restart = await _appRuntime.Restart(org, app, restartRequest.Environment, cancellationToken);
         return restart switch
         {
-            AppRestart.Started started => Accepted(RunningApp.From(started.Running)),
+            AppRestart.Started started => Accepted(
+                RunningApp.From(started.Running, (await AllDeployments(org, app, cancellationToken)).Results)
+            ),
             AppRestart.NotRunning => RestartProblem(DeploymentErrorCodes.AppNotRunning, HttpStatusCode.NotFound),
             AppRestart.Updating => RestartProblem(DeploymentErrorCodes.AppUpdating, HttpStatusCode.Conflict),
             AppRestart.Paused => RestartProblem(DeploymentErrorCodes.AppPaused, HttpStatusCode.Conflict),
             _ => RestartProblem(DeploymentErrorCodes.AppDeployedElsewhere, HttpStatusCode.Conflict),
         };
     }
+
+    private Task<SearchResults<DeploymentEntity>> AllDeployments(
+        string org,
+        string app,
+        CancellationToken cancellationToken
+    ) => _deploymentService.GetAsync(org, app, new DocumentQueryModel(), cancellationToken);
 
     private ObjectResult RestartProblem(string errorCode, HttpStatusCode statusCode) =>
         StatusCode((int)statusCode, ProblemDetailsUtils.GenerateProblemDetails(errorCode, statusCode));

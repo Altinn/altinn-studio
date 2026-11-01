@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -61,45 +63,62 @@ public class GetDeployments
     {
         List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
-        SetupRunning("tt02", new RunningAppDeployment("8", "1234", "prod", "updating", null));
+        SetupRunning("tt02", new RunningAppDeployment("8", "142287", "prod", "updating", null));
         SetupRunning("at22", new RunningAppDeployment("6.1", null, null, "ready", null));
         SetupRunning("production", null);
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
+        DateTime? FinishedOf(string buildId) =>
+            actual.PipelineDeploymentList.Single(deployment => deployment.Build.Id == buildId).Build.Finished;
 
         Assert.Equal(8, actual.PipelineDeploymentList.Count);
-        foreach (DeploymentEntity entity in actual.PipelineDeploymentList)
+        foreach (PipelineDeployment deployment in actual.PipelineDeploymentList)
         {
-            Assert.Equal(DateTimeKind.Utc, entity.Created.Kind);
-            Assert.Equal(DateTimeKind.Utc, entity.Build.Started!.Value.Kind);
-            Assert.Equal(DateTimeKind.Utc, entity.Build.Finished!.Value.Kind);
+            Assert.Equal(DateTimeKind.Utc, deployment.Created.Kind);
+            Assert.Equal(DateTimeKind.Utc, deployment.Build.Started!.Value.Kind);
+            Assert.Equal(DateTimeKind.Utc, deployment.Build.Finished!.Value.Kind);
         }
         Assert.Equivalent(
             new[]
             {
-                new RunningApp
+                new AppInEnvironment
                 {
                     Environment = "tt02",
-                    Version = "8",
-                    BuildId = "1234",
-                    Status = AppStatus.Updating,
-                    CanRestart = true,
+                    State = AppInEnvironmentState.Running,
+                    RunningApp = new RunningApp
+                    {
+                        Environment = "tt02",
+                        Version = "8",
+                        BuildId = "142287",
+                        Status = AppStatus.Updating,
+                        CanRestart = true,
+                        // The deploy whose build runs.
+                        PublishedAt = FinishedOf("142287"),
+                    },
                 },
-                new RunningApp
+                new AppInEnvironment
                 {
                     Environment = "at22",
-                    Version = "6.1",
-                    Status = AppStatus.Ready,
-                    CanRestart = true,
+                    State = AppInEnvironmentState.Running,
+                    RunningApp = new RunningApp
+                    {
+                        Environment = "at22",
+                        Version = "6.1",
+                        Status = AppStatus.Ready,
+                        CanRestart = true,
+                        // Without a build id, the latest deploy of the tag.
+                        PublishedAt = FinishedOf("142224"),
+                    },
                 },
+                new AppInEnvironment { Environment = "production", State = AppInEnvironmentState.NotRunning },
             },
-            actual.RunningAppList,
+            actual.EnvironmentList,
             strict: true
         );
     }
 
     [Fact]
-    public async Task GetDeployments_LeavesOutEnvironmentsWhereTheAppIsNotKnownToRun()
+    public async Task GetDeployments_WhenAnEnvironmentCannotTell_SaysItIsUnknown()
     {
         SetupRunning("tt02", new RunningAppDeployment("8", null, null, "ready", null));
         SetupRunning("at22", null);
@@ -107,7 +126,14 @@ public class GetDeployments
 
         DeploymentsResponse actual = await GetDeploymentsResponse();
 
-        Assert.Equal("tt02", Assert.Single(actual.RunningAppList).Environment);
+        Assert.Equal(
+            [
+                ("tt02", AppInEnvironmentState.Running),
+                ("at22", AppInEnvironmentState.NotRunning),
+                ("production", AppInEnvironmentState.Unknown),
+            ],
+            actual.EnvironmentList.Select(environment => (environment.Environment, environment.State))
+        );
     }
 
     [Fact]
@@ -115,16 +141,16 @@ public class GetDeployments
     {
         SetupRunning("tt02", new RunningAppDeployment("8", "1234", "prod", "ready", null));
         SetupRunning("at22", null);
-        SetupRunning("production", null);
+        SetupGatewayCall("production").ThrowsAsync(new HttpRequestException("Gateway unreachable"));
 
         using JsonDocument response = JsonDocument.Parse(await GetDeploymentsJson());
 
-        // A frontend loaded before runningAppList existed reads kubernetesDeploymentList, and fails without it.
-        JsonElement legacy = Assert.Single(
-            response.RootElement.GetProperty("kubernetesDeploymentList").EnumerateArray()
-        );
-        Assert.Equal("tt02", legacy.GetProperty("envName").GetString());
-        Assert.Equal("8", legacy.GetProperty("version").GetString());
+        // A frontend loaded before environmentList existed reads runningAppList, and shows the app as not published
+        // in every environment without it.
+        JsonElement running = Assert.Single(response.RootElement.GetProperty("runningAppList").EnumerateArray());
+        Assert.Equal("tt02", running.GetProperty("environment").GetString());
+        Assert.Equal("8", running.GetProperty("version").GetString());
+        Assert.Equal("1234", running.GetProperty("buildId").GetString());
     }
 
     private async Task<DeploymentsResponse> GetDeploymentsResponse() =>

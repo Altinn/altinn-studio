@@ -11,8 +11,12 @@ using System.Threading.Tasks;
 using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Filters.Deployments;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
+using Altinn.Studio.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.ViewModels.Response;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,21 +36,33 @@ public class RestartTests : DesignerEndpointsTestsBase<RestartTests>, IClassFixt
     private const string ThisStudioEnvironment = "prod";
 
     private readonly Mock<IRuntimeGatewayClient> _runtimeGatewayClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IDeploymentService> _deploymentServiceMock = new();
 
     public RestartTests(WebApplicationFactory<Program> factory)
-        : base(factory) { }
+        : base(factory) => SetupDeployments();
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         base.ConfigureTestServices(services);
         services.RemoveAll<IRuntimeGatewayClient>();
         services.AddSingleton(_runtimeGatewayClientMock.Object);
+        services.RemoveAll<IDeploymentService>();
+        services.AddSingleton(_deploymentServiceMock.Object);
     }
 
     [Fact]
     public async Task Restart_WhenTheGatewayStartsIt_ReturnsTheAppAsItIsNow()
     {
         var restartedAt = new DateTimeOffset(2026, 10, 31, 10, 42, 0, TimeSpan.Zero);
+        var publishedAt = new DateTime(2026, 10, 30, 9, 0, 0, DateTimeKind.Utc);
+        SetupDeployments(
+            new DeploymentEntity
+            {
+                EnvName = Environment,
+                TagName = "8",
+                Build = new BuildEntity { Id = "1234", Finished = publishedAt },
+            }
+        );
         SetupRunning(Running("ready"));
         SetupRestart()
             .ReturnsAsync(
@@ -63,6 +79,8 @@ public class RestartTests : DesignerEndpointsTestsBase<RestartTests>, IClassFixt
         Assert.Equal("updating", body.RootElement.GetProperty("status").GetString());
         Assert.Equal(restartedAt, body.RootElement.GetProperty("restartedAt").GetDateTimeOffset());
         Assert.True(body.RootElement.GetProperty("canRestart").GetBoolean());
+        // A restart keeps the deploy that runs, so the page can still tell which change was the latest.
+        Assert.Equal(publishedAt, body.RootElement.GetProperty("publishedAt").GetDateTime());
     }
 
     [Fact]
@@ -184,6 +202,11 @@ public class RestartTests : DesignerEndpointsTestsBase<RestartTests>, IClassFixt
         using JsonDocument body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.Equal(expectedErrorCode, body.RootElement.GetProperty("errorCode").GetString());
     }
+
+    private void SetupDeployments(params DeploymentEntity[] deployments) =>
+        _deploymentServiceMock
+            .Setup(service => service.GetAsync(Org, App, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = deployments });
 
     private void SetupRunning(RunningAppDeployment deployment) =>
         _runtimeGatewayClientMock
