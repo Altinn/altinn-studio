@@ -25,6 +25,9 @@ export default mergeConfig(
       // With coverage on, collecting each file's coverage gets slower the longer a worker lives, so a low limit that
       // restarts workers more often makes the CI run faster.
       vmMemoryLimit: '1GB',
+      // Workers share transformed modules through node_modules/.vitest-cache instead of each transforming them again,
+      // also after a restart at the memory limit. This makes a CI run about 10% faster, and later local runs faster.
+      fsModuleCache: true,
       // CI runs tests several times slower than a developer machine, and some tests are slow in jsdom 30 because the
       // design system's web components query and compute styles on every DOM change. A test that takes 3 s locally
       // can take more than 20 s in CI.
