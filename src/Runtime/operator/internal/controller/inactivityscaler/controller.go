@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -25,6 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"altinn.studio/operator/internal/appinventory"
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/operatorcontext"
 	rt "altinn.studio/operator/internal/runtime"
@@ -34,8 +34,6 @@ const (
 	defaultNamespace        = "default"
 	runtimeGatewayNamespace = "runtime-gateway"
 	runtimePdf3Namespace    = "runtime-pdf3"
-
-	appReleaseLabelKey = "release"
 
 	reconcileAnnotationKey      = "kustomize.toolkit.fluxcd.io/reconcile"
 	reconcileDisabledValue      = "disabled"
@@ -354,24 +352,12 @@ func (r *InactivityScalerReconciler) listAppDeployments(
 	}
 	result := make([]appsv1.Deployment, 0, len(list.Items))
 	for i := range list.Items {
-		if isAppDeployment(serviceOwner, &list.Items[i]) {
+		if appinventory.IsAppDeployment(serviceOwner, &list.Items[i]) {
 			result = append(result, list.Items[i])
 		}
 	}
 	sort.SliceStable(result, func(i, j int) bool { return result[i].Name < result[j].Name })
 	return result, nil
-}
-
-func isAppDeployment(serviceOwner string, deployment *appsv1.Deployment) bool {
-	if deployment == nil || serviceOwner == "" {
-		return false
-	}
-	prefix := serviceOwner + "-"
-	if !strings.HasPrefix(deployment.Name, prefix) {
-		return false
-	}
-	releaseLabel := deployment.Labels[appReleaseLabelKey]
-	return strings.HasPrefix(releaseLabel, prefix)
 }
 
 func appDeploymentNameSet(deployments []appsv1.Deployment) map[string]struct{} {

@@ -123,6 +123,8 @@ public static class ServiceRegistration
         services.AddTransient<IAppResourcesService, AppResourcesService>();
         services.AddTransient<INotificationService, NotificationService>();
         services.AddSingleton<NotificationMetrics>();
+        services.AddSingleton<AppMetrics>();
+        services.AddTransient<IGiteaAppCounter, GiteaDbAppCounter>();
         services.AddTransient<IAlertsService, AlertsService>();
         services.AddTransient<IBranchService, BranchService>();
         services.AddTransient<IMetricsService, MetricsService>();

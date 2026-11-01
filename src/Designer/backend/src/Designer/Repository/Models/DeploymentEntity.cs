@@ -44,21 +44,25 @@ public class DeploymentEntity : BaseEntity
     [JsonProperty("events")]
     public List<DeployEvent> Events { get; set; } = new List<DeployEvent>();
 
-    private static readonly DeployEventType[] s_finalEventTypes =
-    [
-        DeployEventType.InstallSucceeded,
-        DeployEventType.InstallFailed,
-        DeployEventType.UpgradeSucceeded,
-        DeployEventType.UpgradeFailed,
-        DeployEventType.UninstallSucceeded,
-        DeployEventType.UninstallFailed,
-    ];
+    /// <summary>
+    /// The final events of a deployment that put the app in the environment or took it out.
+    /// </summary>
+    public static IReadOnlyList<DeployEventType> SucceededFinalEventTypes { get; } =
+    [DeployEventType.InstallSucceeded, DeployEventType.UpgradeSucceeded, DeployEventType.UninstallSucceeded];
+
+    /// <summary>
+    /// The final events of a deployment that the runtime cluster failed to apply.
+    /// </summary>
+    public static IReadOnlyList<DeployEventType> FailedFinalEventTypes { get; } =
+    [DeployEventType.InstallFailed, DeployEventType.UpgradeFailed, DeployEventType.UninstallFailed];
 
     /// <summary>
     /// Indicates whether this deployment has reached a final state (install/upgrade succeeded or failed)
     /// </summary>
     [JsonIgnore]
-    public bool HasFinalEvent => Events?.Any(e => s_finalEventTypes.Contains(e.EventType)) ?? false;
+    public bool HasFinalEvent =>
+        Events?.Any(e => SucceededFinalEventTypes.Contains(e.EventType) || FailedFinalEventTypes.Contains(e.EventType))
+        ?? false;
 }
 
 public enum DeploymentType

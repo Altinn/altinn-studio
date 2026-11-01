@@ -30,6 +30,26 @@ internal static partial class ServiceTelemetry
         /// </summary>
         public const string Sampling = AltinnAttributes.Sampling;
 
+        public static class AppLifecycle
+        {
+            private const string Prefix = "altinn.designer.app.";
+
+            /// <summary>
+            /// How an app was created: from a template, or as a copy of another app.
+            /// </summary>
+            public const string CreationSource = Prefix + "creation.source";
+
+            /// <summary>
+            /// Whether a deployment puts an app in an environment or takes it out.
+            /// </summary>
+            public const string DeploymentType = Prefix + "deployment.type";
+
+            /// <summary>
+            /// Whether a successful deploy is the app's first in the environment.
+            /// </summary>
+            public const string DeploymentFirst = Prefix + "deployment.first";
+        }
+
         public static class AppActivity
         {
             private const string Prefix = "altinn.designer.app_activity.";

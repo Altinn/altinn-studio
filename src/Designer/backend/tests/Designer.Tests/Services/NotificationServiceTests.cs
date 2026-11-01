@@ -25,7 +25,9 @@ public class NotificationServiceTests : IDisposable
     private readonly Mock<IContactPointsRepository> _contactPointsRepository = new();
     private readonly Mock<IAltinnNotificationClient> _notificationClient = new();
     private readonly Mock<ISlackClient> _slackClient = new();
-    private readonly NotificationMetricsRecorder _metrics = new();
+    private readonly MetricsRecorder<NotificationMetrics> _metrics = new(meterFactory => new NotificationMetrics(
+        meterFactory
+    ));
 
     private static readonly Uri s_internalSlackWebhook = new("https://hooks.slack.com/services/internal");
     private static readonly Uri s_contactSlackWebhook = new("https://hooks.slack.com/services/contact");

@@ -32,6 +32,7 @@ import (
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/appinventory"
 	"altinn.studio/operator/internal/cnpgapi"
 	"altinn.studio/operator/internal/controller/appcodesync"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
@@ -42,6 +43,7 @@ import (
 	"altinn.studio/operator/internal/controller/secretsync"
 	"altinn.studio/operator/internal/grafanaapi"
 	"altinn.studio/operator/internal/operatorcontext"
+	operatorruntime "altinn.studio/operator/internal/runtime"
 	"altinn.studio/operator/internal/telemetry"
 	// +kubebuilder:scaffold:imports
 )
@@ -73,6 +75,18 @@ func exitAfterStartupFailure(span trace.Span, shutdown func(context.Context) err
 	span.End()
 	shutdownTelemetry(shutdown)
 	os.Exit(1)
+}
+
+// registerClusterMetrics registers the gauges that describe the cluster rather than one controller:
+// leader election, and the service owner's apps.
+func registerClusterMetrics(operatorRuntime operatorruntime.Runtime, mgr ctrl.Manager) error {
+	if err := telemetry.RegisterLeader(mgr.Elected()); err != nil {
+		return fmt.Errorf("report leader election: %w", err)
+	}
+	if err := appinventory.RegisterCountMetric(operatorRuntime, mgr.GetClient()); err != nil {
+		return fmt.Errorf("report the app count: %w", err)
+	}
+	return nil
 }
 
 // newManager loads the Kubernetes configuration with ctrl.GetConfig rather than GetConfigOrDie,
@@ -261,8 +275,8 @@ func main() {
 		setupLog.Info("skipping InactivityScaler controller in prod")
 	}
 
-	if err = telemetry.RegisterLeader(mgr.Elected()); err != nil {
-		setupLog.Error(err, "unable to report leader election")
+	if err = registerClusterMetrics(rt, mgr); err != nil {
+		setupLog.Error(err, "unable to report the cluster's gauges")
 		exitAfterStartupFailure(span, otelShutdown)
 	}
 
