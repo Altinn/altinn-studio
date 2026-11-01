@@ -86,6 +86,31 @@ describe('DeployMoreOptionsMenu', () => {
     expect(queryRestartButton()).not.toBeInTheDocument();
   });
 
+  it('closes the menu when the user presses Escape', async () => {
+    const user = userEvent.setup();
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+
+    await user.keyboard('{Escape}');
+
+    expect(queryRestartButton()).not.toBeInTheDocument();
+  });
+
+  it('closes the restart confirmation when the user cancels', async () => {
+    const user = userEvent.setup();
+    renderMenu({ runningApp: restartableApp, permissions: [environment] });
+    await openMenu();
+    await user.click(getRestartButton());
+
+    await user.click(screen.getByRole('button', { name: textMock('general.cancel') }));
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('app_deployment.restart_confirmation_dialog_title', { envTitle: 'TT02' }),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
   it('does not let the user restart the app while it is updating', async () => {
     renderMenu({
       runningApp: { ...restartableApp, status: 'updating' },

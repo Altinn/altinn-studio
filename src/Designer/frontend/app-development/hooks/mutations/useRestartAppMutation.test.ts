@@ -65,4 +65,23 @@ describe('useRestartAppMutation', () => {
       queryKey: [QueryKey.AppDeployments, org, app],
     });
   });
+
+  it('leaves the list of running apps empty when the backend sent none', async () => {
+    const restartApp = vi.fn().mockResolvedValue({ ...ready('tt02'), status: 'updating' });
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app], {
+      pipelineDeploymentList: [],
+    });
+
+    const { result } = renderHookWithProviders(
+      { restartApp },
+      queryClient,
+    )(() => useRestartAppMutation(org, app)).renderHookResult;
+    await result.current.mutateAsync({ environment: 'tt02' });
+
+    expect(
+      queryClient.getQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app])
+        ?.runningAppList,
+    ).toEqual([]);
+  });
 });
