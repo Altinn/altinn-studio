@@ -78,7 +78,7 @@ public class DeploymentsController : ControllerBase
 
         return new DeploymentsResponse
         {
-            PipelineDeploymentList = deployments.Results.Select(PipelineDeployment.From).ToList(),
+            PipelineDeploymentList = deployments.Results.ToList(),
             EnvironmentList = runStates.Select(state => AppInEnvironment.From(state, deployments.Results)).ToList(),
         };
     }
@@ -115,7 +115,7 @@ public class DeploymentsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-    public async Task<ActionResult<PipelineDeployment>> Create(
+    public async Task<ActionResult<DeploymentEntity>> Create(
         string org,
         string app,
         [FromBody] CreateDeploymentRequestViewModel createDeployment
@@ -133,7 +133,7 @@ public class DeploymentsController : ControllerBase
             AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
 
         var createResult = await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel());
-        return Created(string.Empty, PipelineDeployment.From(createResult));
+        return Created(string.Empty, createResult);
     }
 
     /// <summary>

@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
@@ -72,7 +71,7 @@ public class GetDeployments
             actual.PipelineDeploymentList.Single(deployment => deployment.Build.Id == buildId).Build.Finished;
 
         Assert.Equal(8, actual.PipelineDeploymentList.Count);
-        foreach (PipelineDeployment deployment in actual.PipelineDeploymentList)
+        foreach (DeploymentEntity deployment in actual.PipelineDeploymentList)
         {
             Assert.Equal(DateTimeKind.Utc, deployment.Created.Kind);
             Assert.Equal(DateTimeKind.Utc, deployment.Build.Started!.Value.Kind);

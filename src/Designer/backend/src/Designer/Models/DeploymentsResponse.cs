@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Repository.Models;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.Models;
 /// </summary>
 public sealed class DeploymentsResponse
 {
-    public required IReadOnlyList<PipelineDeployment> PipelineDeploymentList { get; init; }
+    public required IReadOnlyList<DeploymentEntity> PipelineDeploymentList { get; init; }
 
     public required IReadOnlyList<AppInEnvironment> EnvironmentList { get; init; }
 
