@@ -74,13 +74,13 @@ jobs:
     timeout-minutes: 30
     needs: [build-frontend]
     env:
-      # Pull requests from forks get no secrets, so they have no server to upload to or compare against.
+      # Pull requests from forks get no secrets, so no server to upload to or compare against.
       HAS_LHCI_SERVER: ${{ secrets.LHCI_SERVER_URL != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0 # Lighthouse CI reads the commit times of the build and of its base commit
+          fetch-depth: 0 # Lighthouse CI reads the commit times of the build and its base
 
       - name: Set up App Frontend test dependencies
         uses: ./.github/actions/app-frontend-test-dependencies
@@ -99,12 +99,14 @@ jobs:
           LHCI_BUILD_TOKEN: ${{ secrets.LHCI_ALTINN_APP_BUILD_TOKEN }}
           LHCI_USERNAME: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
           LHCI_PASSWORD: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
-          # Record the build under the pull request's head commit, which the compare step looks up. On its own,
-          # Lighthouse CI picks the newest commit in the merge checkout that isn't a merge, often one on main.
+          # Record the build under the pull request's head commit, which the compare step looks
+          # up. On its own, Lighthouse CI picks the newest non-merge commit in the merge checkout,
+          # often one on main.
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.event.pull_request.head.sha || github.sha }}
           LHCI_BUILD_CONTEXT__ANCESTOR_HASH: ${{ github.event.pull_request.base.sha || '' }}
         working-directory: src/App/frontend
-        # A failed upload to our server fails the job. Without a server, reports go to temporary public storage.
+        # A failed upload to our server fails the job. Without a server, reports go to
+        # temporary public storage.
         run: |
           if [ "$HAS_LHCI_SERVER" = true ]; then
             yarn run lhci --failOnUploadFailure
@@ -124,7 +126,7 @@ jobs:
           basic-auth-username: ${{ secrets.LHCI_BASIC_AUTH_USERNAME }}
           basic-auth-password: ${{ secrets.LHCI_BASIC_AUTH_PASSWORD }}
 
-      # The compare action reports its errors only in its outputs, so a failed comparison would otherwise go unnoticed.
+      # The compare action reports errors only in its outputs, so they would go unnoticed.
       - name: Report a failed comparison
         if: steps.lighthouse-compare.outputs.status == 'failure'
         env:

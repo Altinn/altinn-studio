@@ -32,6 +32,9 @@ module.exports = {
     upload: {
       target: process.env.LHCI_SERVER_URL ? 'lhci' : 'temporary-public-storage',
       serverBaseUrl: process.env.LHCI_SERVER_URL,
+      // The default patterns store the URL with ':PORT' in place of its port, which isn't a valid URL, and the compare
+      // step in app-frontend-lighthouse-ci.yml fails to parse it. Our port is fixed, so there's nothing to mask.
+      urlReplacementPatterns: [],
       token: process.env.LHCI_BUILD_TOKEN,
       basicAuth:
         process.env.LHCI_USERNAME && process.env.LHCI_PASSWORD
