@@ -44,13 +44,19 @@ describe('DeployMoreOptionsMenu', () => {
   });
 
   it('should open dialog if undeploy is clicked', async () => {
+    const user = userEvent.setup();
     renderMenu();
     await openMenu();
 
-    const undeployButton = screen.getByRole('button', {
-      name: textMock('app_deployment.undeploy_button'),
-    });
-    expect(undeployButton).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        name: textMock('app_deployment.unpublish_consequence_dialog_title'),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should have a link to app within the env', async () => {

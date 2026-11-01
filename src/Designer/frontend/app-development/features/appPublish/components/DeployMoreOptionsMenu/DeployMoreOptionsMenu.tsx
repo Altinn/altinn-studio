@@ -1,6 +1,11 @@
 import { useState, type ReactElement } from 'react';
-import { StudioButton, StudioPopover, StudioLink, StudioList } from '@studio/components';
-import { ExternalLinkIcon, MenuElipsisVerticalIcon } from '@studio/icons';
+import { StudioDropdown, StudioLinkButton } from '@studio/components';
+import {
+  ArrowsCirclepathIcon,
+  CloudSlashIcon,
+  ExternalLinkIcon,
+  MenuElipsisVerticalIcon,
+} from '@studio/icons';
 import { UndeployConsequenceDialog } from '../UndeployConsequenceDialog/UndeployConsequenceDialog';
 import { RestartAppDialog } from '../RestartAppDialog';
 import classes from './DeployMoreOptionsMenu.module.css';
@@ -24,58 +29,57 @@ export const DeployMoreOptionsMenu = ({
 }: DeployMoreOptionsMenuProps): ReactElement => {
   const { t } = useTranslation();
   const canRestart = useCanRestart(runningApp, environment);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRestartDialogOpen, setIsRestartDialogOpen] = useState(false);
+  const [isUndeployDialogOpen, setIsUndeployDialogOpen] = useState(false);
 
-  // The dialog sits outside the menu, so the menu can close behind it.
-  const openRestartDialog = (): void => {
-    setIsMenuOpen(false);
-    setIsRestartDialogOpen(true);
-  };
-
+  // The dialogs sit outside the menu, which closes when an item is chosen.
   return (
     <>
-      <StudioPopover.TriggerContext>
-        <StudioPopover.Trigger
-          variant='secondary'
-          className={classes.trigger}
-          aria-label={t('app_deployment.deploy_more_options_menu_label')}
-          icon={<MenuElipsisVerticalIcon />}
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        />
-        <StudioPopover
-          className={classes.content}
-          open={isMenuOpen}
-          onClose={() => setIsMenuOpen(false)}
-        >
-          <StudioList.Root className={classes.listContainer}>
-            {canRestart && (
-              <StudioList.Item>
-                <StudioButton
-                  variant='tertiary'
-                  onClick={openRestartDialog}
-                  disabled={runningApp.status === 'updating'}
-                >
-                  {t('app_deployment.restart_button')}
-                </StudioButton>
-              </StudioList.Item>
-            )}
-            <StudioList.Item>
-              <UndeployConsequenceDialog environment={environment} />
-            </StudioList.Item>
-            <StudioList.Item>
-              <StudioLink
-                className={classes.linkButton}
-                href={linkToEnv}
-                icon={<ExternalLinkIcon />}
-                rel='noopener noreferrer'
+      <StudioDropdown
+        icon={<MenuElipsisVerticalIcon />}
+        triggerButtonVariant='tertiary'
+        triggerButtonAriaLabel={t('app_deployment.deploy_more_options_menu_label')}
+        triggerButtonClassName={classes.trigger}
+        placement='bottom-end'
+      >
+        <StudioDropdown.List>
+          {canRestart && (
+            <StudioDropdown.Item>
+              <StudioDropdown.Button
+                data-color='neutral'
+                icon={<ArrowsCirclepathIcon />}
+                onClick={() => setIsRestartDialogOpen(true)}
+                disabled={runningApp.status === 'updating'}
               >
-                {t('app_deployment.more_options_menu')}
-              </StudioLink>
-            </StudioList.Item>
-          </StudioList.Root>
-        </StudioPopover>
-      </StudioPopover.TriggerContext>
+                {t('app_deployment.restart_button')}
+              </StudioDropdown.Button>
+            </StudioDropdown.Item>
+          )}
+          <StudioDropdown.Item>
+            <StudioLinkButton
+              className={classes.linkButton}
+              href={linkToEnv}
+              icon={<ExternalLinkIcon />}
+              rel='noopener noreferrer'
+              variant='tertiary'
+              data-color='neutral'
+            >
+              {t('app_deployment.more_options_menu')}
+            </StudioLinkButton>
+          </StudioDropdown.Item>
+        </StudioDropdown.List>
+        <StudioDropdown.List>
+          <StudioDropdown.Item>
+            <StudioDropdown.Button
+              data-color='danger'
+              icon={<CloudSlashIcon />}
+              onClick={() => setIsUndeployDialogOpen(true)}
+            >
+              {t('app_deployment.undeploy_button')}
+            </StudioDropdown.Button>
+          </StudioDropdown.Item>
+        </StudioDropdown.List>
+      </StudioDropdown>
       {canRestart && (
         <RestartAppDialog
           runningApp={runningApp}
@@ -84,6 +88,11 @@ export const DeployMoreOptionsMenu = ({
           onClose={() => setIsRestartDialogOpen(false)}
         />
       )}
+      <UndeployConsequenceDialog
+        environment={environment}
+        isOpen={isUndeployDialogOpen}
+        onClose={() => setIsUndeployDialogOpen(false)}
+      />
     </>
   );
 };

@@ -1,33 +1,31 @@
-import React, { useRef } from 'react';
-import { StudioButton, StudioDialog, StudioHeading } from '@studio/components';
+import React from 'react';
+import { StudioDialog, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { DialogContent } from './components/DialogContent';
 
-type UndeployConsequenceDialog = {
+type UndeployConsequenceDialogProps = {
   environment: string;
+  isOpen: boolean;
+  onClose: () => void;
 };
+
 export const UndeployConsequenceDialog = ({
   environment,
-}: UndeployConsequenceDialog): React.ReactElement => {
+  isOpen,
+  onClose,
+}: UndeployConsequenceDialogProps): React.ReactElement => {
   const { t } = useTranslation();
-  const dialogRef = useRef<HTMLDialogElement | null>(null);
-  const openDialog = () => dialogRef.current.showModal();
 
   return (
-    <>
-      <StudioButton onClick={openDialog} variant='tertiary'>
-        {t('app_deployment.undeploy_button')}
-      </StudioButton>
-      <StudioDialog ref={dialogRef}>
-        <StudioDialog.Block>
-          <StudioHeading level={2}>
-            {t('app_deployment.unpublish_consequence_dialog_title')}
-          </StudioHeading>
-        </StudioDialog.Block>
-        <StudioDialog.Block>
-          <DialogContent environment={environment} />
-        </StudioDialog.Block>
-      </StudioDialog>
-    </>
+    <StudioDialog open={isOpen} onClose={onClose}>
+      <StudioDialog.Block>
+        <StudioHeading level={2}>
+          {t('app_deployment.unpublish_consequence_dialog_title')}
+        </StudioHeading>
+      </StudioDialog.Block>
+      <StudioDialog.Block>
+        <DialogContent environment={environment} />
+      </StudioDialog.Block>
+    </StudioDialog>
   );
 };
