@@ -1,4 +1,4 @@
-import { useState, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { StudioDropdown, StudioLinkButton } from '@studio/components';
 import {
   ArrowsCirclepathIcon,
@@ -31,11 +31,13 @@ export const DeployMoreOptionsMenu = ({
   const canRestart = useCanRestart(runningApp, environment);
   const [isRestartDialogOpen, setIsRestartDialogOpen] = useState(false);
   const [isUndeployDialogOpen, setIsUndeployDialogOpen] = useState(false);
+  const triggerRef = useReturnFocusAfter(isRestartDialogOpen || isUndeployDialogOpen);
 
   // The dialogs sit outside the menu, which closes when an item is chosen.
   return (
     <>
       <StudioDropdown
+        triggerButtonRef={triggerRef}
         icon={<MenuElipsisVerticalIcon />}
         triggerButtonVariant='tertiary'
         triggerButtonAriaLabel={t('app_deployment.deploy_more_options_menu_label')}
@@ -95,6 +97,18 @@ export const DeployMoreOptionsMenu = ({
       />
     </>
   );
+};
+
+// The item that opened a dialog goes when the menu closes, so the browser would return focus to the page rather than
+// the menu. Effects run child first, so this follows the dialog's own closing.
+const useReturnFocusAfter = (isDialogOpen: boolean) => {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasDialogOpen = useRef(false);
+  useEffect(() => {
+    if (wasDialogOpen.current && !isDialogOpen) triggerRef.current?.focus();
+    wasDialogOpen.current = isDialogOpen;
+  }, [isDialogOpen]);
+  return triggerRef;
 };
 
 // The backend checks both again. Hiding the action saves the user a refusal.

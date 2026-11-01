@@ -66,7 +66,10 @@ describe('DeployMoreOptionsMenu', () => {
     await user.click(
       screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
     );
-    const dialog = screen.getByRole('dialog');
+    // Named by its title, so screen readers announce what it is about.
+    const dialog = screen.getByRole('dialog', {
+      name: textMock('app_deployment.unpublish_consequence_dialog_title'),
+    });
 
     await user.click(within(dialog).getByRole('button', { name: /lukk/i }));
 
@@ -75,6 +78,8 @@ describe('DeployMoreOptionsMenu', () => {
         name: textMock('app_deployment.unpublish_consequence_dialog_title'),
       }),
     ).not.toBeInTheDocument();
+    // The menu item that opened it went with the menu, so focus goes back to the menu.
+    expect(getMenuTrigger()).toHaveFocus();
   });
 
   it('should have a link to app within the env', async () => {
@@ -133,6 +138,7 @@ describe('DeployMoreOptionsMenu', () => {
         name: textMock('app_deployment.restart_confirmation_dialog_title', { envTitle: 'TT02' }),
       }),
     ).not.toBeInTheDocument();
+    expect(getMenuTrigger()).toHaveFocus();
   });
 
   it('does not let the user restart the app while it is updating', async () => {
@@ -187,11 +193,7 @@ function renderMenu({
 
 async function openMenu(): Promise<void> {
   const user = userEvent.setup();
-  return user.click(
-    screen.getByRole('button', {
-      name: textMock('app_deployment.deploy_more_options_menu_label'),
-    }),
-  );
+  return user.click(getMenuTrigger());
 }
 
 const getRestartButton = () =>
@@ -199,3 +201,9 @@ const getRestartButton = () =>
 
 const queryRestartButton = () =>
   screen.queryByRole('button', { name: textMock('app_deployment.restart_button') });
+
+function getMenuTrigger(): HTMLElement {
+  return screen.getByRole('button', {
+    name: textMock('app_deployment.deploy_more_options_menu_label'),
+  });
+}

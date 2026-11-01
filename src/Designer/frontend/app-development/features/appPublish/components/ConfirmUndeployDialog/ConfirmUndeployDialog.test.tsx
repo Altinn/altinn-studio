@@ -10,6 +10,17 @@ import { ConfirmUndeployDialog } from './ConfirmUndeployDialog';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 
 describe('ConfirmUndeployDialog', () => {
+  it('is named by its title, so screen readers announce what it confirms', async () => {
+    renderConfirmUndeployDialog({ undeployAppFromEnvMock: vi.fn() });
+    await openDialog();
+
+    expect(
+      screen.getByRole('dialog', {
+        name: textMock('app_deployment.undeploy_confirmation_dialog_title'),
+      }),
+    ).toBeInTheDocument();
+  });
+
   it('should provide a input field to confirm the app to undeploy and button is disabled', async () => {
     renderConfirmUndeployDialog({
       undeployAppFromEnvMock: vi.fn(),

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ReactElement } from 'react';
+import { createRef, type ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import type { RenderResult } from '@testing-library/react';
 import { StudioDropdown, type StudioDropdownProps } from './';
@@ -24,6 +24,12 @@ describe('StudioDropdown', () => {
     expect(triggerButton).toHaveAttribute('aria-expanded', 'true');
     await user.click(triggerButton);
     expect(triggerButton).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('Gives the trigger button to triggerButtonRef', () => {
+    const triggerButtonRef = createRef<HTMLButtonElement>();
+    renderStudioDropdown({ triggerButtonRef });
+    expect(triggerButtonRef.current).toBe(getButton(triggerButtonText));
   });
 
   it('Renders all headings', async () => {

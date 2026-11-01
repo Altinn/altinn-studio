@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { StudioDialog, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { DialogContent } from './components/DialogContent';
@@ -15,11 +15,12 @@ export const UndeployConsequenceDialog = ({
   onClose,
 }: UndeployConsequenceDialogProps): React.ReactElement => {
   const { t } = useTranslation();
+  const headingId = useId();
 
   return (
-    <StudioDialog open={isOpen} onClose={onClose}>
+    <StudioDialog open={isOpen} onClose={onClose} aria-labelledby={headingId}>
       <StudioDialog.Block>
-        <StudioHeading level={2}>
+        <StudioHeading level={2} id={headingId}>
           {t('app_deployment.unpublish_consequence_dialog_title')}
         </StudioHeading>
       </StudioDialog.Block>
