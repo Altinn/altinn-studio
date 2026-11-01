@@ -48,7 +48,7 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [],
-          runningAppList: [],
+          environmentList: [],
         }),
       ),
     });
@@ -59,7 +59,7 @@ describe('DeploymentContainer', () => {
     expect(screen.getByText(envName.toUpperCase())).toBeInTheDocument();
   });
 
-  it('renders org environments when the backend is older and sends no running apps', async () => {
+  it('renders org environments when the backend is older and sends no environment list', async () => {
     const envName = 'tt02';
     render({
       getEnvironments: vi
@@ -120,7 +120,7 @@ describe('DeploymentContainer', () => {
             secondDeploymentWithNone,
             thirdDeploymentWithSuccess,
           ],
-          runningAppList: [],
+          environmentList: [],
         }),
       ),
     });
@@ -160,7 +160,7 @@ describe('DeploymentContainer', () => {
       getDeployments: vi.fn().mockImplementation(() =>
         Promise.resolve<DeploymentsResponse>({
           pipelineDeploymentList: [firstDeployment, secondDeployment],
-          runningAppList: [],
+          environmentList: [],
         }),
       ),
     });

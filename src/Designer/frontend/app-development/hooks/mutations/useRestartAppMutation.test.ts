@@ -4,7 +4,7 @@ import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
-import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import type { AppInEnvironment, RunningApp } from 'app-shared/types/api/RunningApp';
 import { renderHookWithProviders } from '../../test/mocks';
 import { useRestartAppMutation } from './useRestartAppMutation';
 
@@ -15,6 +15,12 @@ const ready = (environment: string): RunningApp => ({
   status: 'ready',
   restartedAt: null,
   canRestart: true,
+});
+
+const running = (runningApp: RunningApp): AppInEnvironment => ({
+  environment: runningApp.environment,
+  state: 'running',
+  runningApp,
 });
 
 describe('useRestartAppMutation', () => {
@@ -28,7 +34,7 @@ describe('useRestartAppMutation', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app], {
       pipelineDeploymentList: [],
-      runningAppList: [ready('tt02'), ready('production')],
+      environmentList: [running(ready('tt02')), running(ready('production'))],
     });
 
     const { result } = renderHookWithProviders(
@@ -41,8 +47,8 @@ describe('useRestartAppMutation', () => {
     await waitFor(() =>
       expect(
         queryClient.getQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app])
-          ?.runningAppList,
-      ).toEqual([restarted, ready('production')]),
+          ?.environmentList,
+      ).toEqual([running(restarted), running(ready('production'))]),
     );
   });
 
@@ -51,7 +57,7 @@ describe('useRestartAppMutation', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app], {
       pipelineDeploymentList: [],
-      runningAppList: [ready('tt02')],
+      environmentList: [running(ready('tt02'))],
     });
     const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
 
@@ -66,11 +72,12 @@ describe('useRestartAppMutation', () => {
     });
   });
 
-  it('adds the restarted app when the environment is missing from the list', async () => {
+  it('shows the restarted app where the environment could not tell what ran', async () => {
     const restartApp = vi.fn().mockResolvedValue({ ...ready('tt02'), status: 'updating' });
     const queryClient = createQueryClientMock();
     queryClient.setQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app], {
       pipelineDeploymentList: [],
+      environmentList: [{ environment: 'tt02', state: 'unknown' }],
     });
 
     const { result } = renderHookWithProviders(
@@ -81,7 +88,7 @@ describe('useRestartAppMutation', () => {
 
     expect(
       queryClient.getQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app])
-        ?.runningAppList,
-    ).toEqual([{ ...ready('tt02'), status: 'updating' }]);
+        ?.environmentList,
+    ).toEqual([running({ ...ready('tt02'), status: 'updating' })]);
   });
 });

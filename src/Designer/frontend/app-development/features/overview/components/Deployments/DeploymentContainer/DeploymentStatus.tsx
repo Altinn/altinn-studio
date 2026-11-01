@@ -23,7 +23,8 @@ export type DeploymentStatusProps = {
   runningApp?: RunningApp;
   deploymentType: PipelineDeployment['deploymentType'];
   isDeploymentInProgress?: boolean;
-  lastPublishedDate?: string;
+  /** The environment could not tell what runs, such as when its cluster does not answer. */
+  isStatusUnknown?: boolean;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
@@ -33,7 +34,7 @@ export const DeploymentStatus = ({
   runningApp,
   deploymentType,
   isDeploymentInProgress,
-  lastPublishedDate,
+  isStatusUnknown,
   envName,
   isProduction,
   urlToApp,
@@ -88,6 +89,22 @@ export const DeploymentStatus = ({
     );
   }
 
+  if (isStatusUnknown) {
+    return (
+      <DeploymentStatusAlert
+        severity='warning'
+        content={
+          <StudioParagraph spacing>{t('app_deployment.status.unavailable')}</StudioParagraph>
+        }
+        footer={
+          <Trans i18nKey='overview.go_to_publish'>
+            <a href={publishPath(org, app)} />
+          </Trans>
+        }
+      />
+    );
+  }
+
   const isUndeploy = deploymentType === 'Decommission';
   if (!runningApp || isUndeploy) {
     return (
@@ -110,7 +127,7 @@ export const DeploymentStatus = ({
   );
 
   if (runningApp.status === 'updating') {
-    const isRestart = wasRestartedAfterPublish(runningApp, lastPublishedDate);
+    const isRestart = wasRestartedAfterPublish(runningApp);
     return (
       <DeploymentStatusAlert
         severity='info'
@@ -174,7 +191,7 @@ export const DeploymentStatus = ({
         </StudioParagraph>
       }
       footer={
-        wasRestartedAfterPublish(runningApp, lastPublishedDate) ? (
+        wasRestartedAfterPublish(runningApp) ? (
           <Trans
             i18nKey={'app_deployment.last_restarted'}
             values={{
@@ -182,11 +199,11 @@ export const DeploymentStatus = ({
             }}
           />
         ) : (
-          lastPublishedDate && (
+          runningApp.publishedAt && (
             <Trans
               i18nKey={'app_deployment.last_published'}
               values={{
-                lastPublishedDate: formatDateTime(lastPublishedDate),
+                lastPublishedDate: formatDateTime(runningApp.publishedAt),
               }}
             />
           )
