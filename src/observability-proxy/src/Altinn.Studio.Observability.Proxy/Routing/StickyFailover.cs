@@ -62,6 +62,15 @@ internal sealed class StickyFailover(ILogger<StickyFailover> logger, Observabili
     public DestinationState? Peek(string clusterId, IReadOnlyList<DestinationState> availableDestinations) =>
         Select(_current.GetValueOrDefault(clusterId), availableDestinations);
 
+    /// <summary>
+    /// The destination a read that could not reach <paramref name="failed"/> is sent to instead, or
+    /// <c>null</c> when no other is healthy. Like <see cref="Peek"/>, it does not move reads there.
+    /// </summary>
+    public static DestinationState? Standby(
+        IReadOnlyList<DestinationState> availableDestinations,
+        DestinationState failed
+    ) => Select(null, availableDestinations.Where(destination => !ReferenceEquals(destination, failed)).ToList());
+
     private static DestinationState? Select(string? currentId, IReadOnlyList<DestinationState> availableDestinations)
     {
         ArgumentNullException.ThrowIfNull(availableDestinations);

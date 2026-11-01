@@ -48,6 +48,7 @@ internal static class ObservabilityProxyExtensions
         builder.Services.AddRateLimiter(options => ConfigureRateLimiter(options, proxyOptions.RateLimiting));
 
         builder.Services.AddSingleton<StickyFailover>();
+        builder.Services.AddSingleton<ReadRetry>();
 
         builder
             .Services.AddReverseProxy()
@@ -156,22 +157,31 @@ internal static class ObservabilityProxyExtensions
                 }
             );
             // Before load balancing, which does not consult a policy when only one destination is
-            // healthy and so would miss the failover that has to make reads stay put.
+            // healthy and so would miss the failover that has to make reads stay put. A read that
+            // cannot reach the chosen copy is sent to the other one; see ReadRetry.
             proxyPipeline.Use(
                 (context, next) =>
                 {
                     var proxyFeature = context.GetReverseProxyFeature();
-                    if (ObservabilityReverseProxyConfig.IsStoragePair(proxyFeature.Cluster.Config))
+                    if (!ObservabilityReverseProxyConfig.IsStoragePair(proxyFeature.Cluster.Config))
                     {
-                        var destination = context
-                            .RequestServices.GetRequiredService<StickyFailover>()
-                            .Choose(proxyFeature.Cluster.Config.ClusterId, proxyFeature.AvailableDestinations);
-                        proxyFeature.AvailableDestinations = destination is null
-                            ? Array.Empty<DestinationState>()
-                            : destination;
+                        return next(context);
                     }
 
-                    return next(context);
+                    var availableDestinations = proxyFeature.AvailableDestinations;
+                    var destination = context
+                        .RequestServices.GetRequiredService<StickyFailover>()
+                        .Choose(proxyFeature.Cluster.Config.ClusterId, availableDestinations);
+                    if (destination is null)
+                    {
+                        proxyFeature.AvailableDestinations = Array.Empty<DestinationState>();
+                        return next(context);
+                    }
+
+                    proxyFeature.AvailableDestinations = destination;
+                    return context
+                        .RequestServices.GetRequiredService<ReadRetry>()
+                        .ForwardAsync(context, next, destination, availableDestinations);
                 }
             );
             proxyPipeline.UseLoadBalancing();
