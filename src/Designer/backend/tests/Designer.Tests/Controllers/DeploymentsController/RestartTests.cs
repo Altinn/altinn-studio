@@ -89,11 +89,23 @@ public class RestartTests : DesignerEndpointsTestsBase<RestartTests>, IClassFixt
         _deploymentServiceMock
             .Setup(service => service.GetAsync(Org, App, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database unavailable"));
+        // The gateway would accept the restart, so only reading the deploys first keeps it from starting.
+        SetupRunning(Running("ready"));
+        SetupRestart()
+            .ReturnsAsync(
+                new GatewayAppRestart.Started(
+                    new RunningAppDeployment("8", "1234", ThisStudioEnvironment, "updating", null)
+                )
+            );
 
         using HttpResponseMessage response = await PostRestart(Environment);
 
         // Failing after the restart started would report a restart that runs as failed.
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        _deploymentServiceMock.Verify(
+            service => service.GetAsync(Org, App, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         _runtimeGatewayClientMock.Verify(
             client =>
                 client.RestartApp(
