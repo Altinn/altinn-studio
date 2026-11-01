@@ -7,7 +7,8 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Internal.WorkflowEngine;
 
 /// <summary>
-/// Validates service task pipelines and the sealed forwarding implementation of <see cref="IServiceTask"/>.
+/// Validates service task pipelines, the sealed forwarding implementation of <see cref="IServiceTask"/>, and that
+/// no app service task reuses a built-in task type.
 /// <see cref="Process.ProcessTaskConfigurationValidationService"/> validates BPMN task configuration.
 /// </summary>
 internal sealed class ServiceTaskRegistrationValidator : IHostedService
@@ -46,10 +47,12 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
             ValidatePipeline(task, errors);
         }
 
+        ValidateNoBuiltInTypeReused([.. simpleTasks, .. pipelineTasks], errors);
+
         if (errors.Count > 0)
         {
             throw new InvalidOperationException(
-                "One or more service task pipelines are invalid:"
+                "One or more service task registrations are invalid:"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine, errors)
             );
@@ -101,6 +104,36 @@ internal sealed class ServiceTaskRegistrationValidator : IHostedService
                         + $"{nameof(IPipelineServiceTask)}.{nameof(IPipelineServiceTask.Define)}, whose forwarding "
                         + $"default is the contract — its {nameof(IServiceTask.Execute)} would never run. Implement "
                         + $"{nameof(IPipelineServiceTask)} directly instead."
+                );
+            }
+        }
+    }
+
+    /// <summary>
+    /// Which of two tasks with the same type runs depends on their interfaces and registration order, so an app
+    /// task may not share a type with a built-in (a task declared in this assembly).
+    /// </summary>
+    private static void ValidateNoBuiltInTypeReused(List<IPipelineServiceTask> tasks, List<string> errors)
+    {
+        Assembly builtInAssembly = typeof(ServiceTaskRegistrationValidator).Assembly;
+        IEnumerable<IGrouping<string, Type>> byType = tasks.GroupBy(
+            t => t.Type,
+            t => t.GetType(),
+            StringComparer.Ordinal
+        );
+
+        foreach (IGrouping<string, Type> sameType in byType)
+        {
+            Type? builtIn = sameType.FirstOrDefault(t => t.Assembly == builtInAssembly);
+            if (builtIn is null)
+                continue;
+
+            foreach (Type appTask in sameType.Where(t => t.Assembly != builtInAssembly))
+            {
+                errors.Add(
+                    $"  - {appTask.FullName}: has task type '{sameType.Key}', which belongs to the built-in "
+                        + $"{builtIn.Name}. A built-in service task cannot be replaced. Give the task its own type "
+                        + "and use that type in process.bpmn."
                 );
             }
         }

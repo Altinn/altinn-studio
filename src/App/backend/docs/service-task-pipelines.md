@@ -49,6 +49,8 @@ Two things about that check are worth knowing:
   app whose `Type` returns a constant, assuming each is registered under the interface it implements.
 - **The type is matched exactly, including case.** `<altinn:taskType>PDF</altinn:taskType>` does not reach
   a task whose `Type` is `pdf`.
+- **A built-in service task cannot be replaced.** The app refuses to start if one of its service tasks has the
+  `Type` of a built-in service task (`pdf`, `subformPdf`, `eFormidling`). Give your task its own type.
 
 In v9, `IProcessTask.ValidateConfiguration(ProcessTaskValidationContext)` is an optional app-facing
 hook, inherited by both service-task interfaces. The default returns no findings; existing tasks do

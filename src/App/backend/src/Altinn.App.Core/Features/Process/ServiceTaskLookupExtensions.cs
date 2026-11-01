@@ -34,7 +34,7 @@ internal static class ServiceTaskLookupExtensions
 
     /// <summary>
     /// Returns the last task whose <c>Type</c> exactly matches <paramref name="altinnTaskType"/>, or <c>null</c>.
-    /// An app can replace a built-in task by registering its implementation after the built-in task.
+    /// Built-in service tasks cannot be replaced: startup rejects an app service task that reuses a built-in type.
     /// </summary>
     public static T? ResolveByTaskType<T>(this IEnumerable<T> tasks, string altinnTaskType)
         where T : class, IProcessTask => tasks.LastOrDefault(task => task.Type == altinnTaskType);
