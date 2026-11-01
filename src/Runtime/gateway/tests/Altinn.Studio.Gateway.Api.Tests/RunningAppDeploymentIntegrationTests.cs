@@ -87,8 +87,24 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         var app = "starting-" + Guid.NewGuid().ToString("N")[..5];
         await CreateDeploymentAsync(app, PauseImage, replicas: 1, neverReady: true, ct: ct);
+        await WaitForStartingPod(app, ct);
 
-        await WaitForStatus(app, RunningAppStatus.Updating, ct);
+        Assert.Equal(RunningAppStatus.Updating, (await GetRunning(app, ct)).Status);
+    }
+
+    [Fact]
+    public async Task GetRunning_WhenANewRevisionReplacesFailingPods_IsUpdating()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var app = "replacing-" + Guid.NewGuid().ToString("N")[..5];
+        await CreateDeploymentAsync(app, UnpullableImage, replicas: 1, ct: ct);
+        await WaitForStatus(app, RunningAppStatus.Unavailable, ct);
+
+        // The new pod never becomes available, so the rollout keeps the failing old pod next to it.
+        await SetImage(app, PauseImage, neverReady: true, ct: ct);
+        await WaitForStartingPod(app, ct);
+
+        Assert.Equal(RunningAppStatus.Updating, (await GetRunning(app, ct)).Status);
     }
 
     [Fact]
@@ -99,7 +115,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         await CreateDeploymentAsync(app, PauseImage, replicas: 1, ct: ct);
         await WaitForStatus(app, RunningAppStatus.Ready, ct);
 
-        await SetImage(app, UnpullableImage, ct);
+        await SetImage(app, UnpullableImage, ct: ct);
 
         await WaitForStatus(app, RunningAppStatus.Stuck, ct);
     }
@@ -190,7 +206,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         var ct = TestContext.Current.CancellationToken;
         var app = "updating-" + Guid.NewGuid().ToString("N")[..5];
         await CreateDeploymentAsync(app, PauseImage, replicas: 1, neverReady: true, ct: ct);
-        await WaitForStatus(app, RunningAppStatus.Updating, ct);
+        await WaitForStartingPod(app, ct);
 
         var response = await _httpClient.PostAsync(RestartUri(app), content: null, ct);
 
@@ -206,7 +222,7 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         var app = "restuck-" + Guid.NewGuid().ToString("N")[..5];
         await CreateDeploymentAsync(app, PauseImage, replicas: 1, ct: ct);
         await WaitForStatus(app, RunningAppStatus.Ready, ct);
-        await SetImage(app, UnpullableImage, ct);
+        await SetImage(app, UnpullableImage, ct: ct);
         await WaitForStatus(app, RunningAppStatus.Stuck, ct);
 
         var response = await _httpClient.PostAsync(RestartUri(app), content: null, ct);
@@ -276,16 +292,68 @@ public sealed class RunningAppDeploymentIntegrationTests : IAsyncLifetime
         return deployment;
     }
 
-    private async Task SetImage(string app, string image, CancellationToken ct) =>
+    private async Task SetImage(string app, string image, bool neverReady = false, CancellationToken ct = default)
+    {
+        var container = "/spec/template/spec/containers/0";
+        var readiness = neverReady
+            ? $$$""",{"op":"add","path":"{{{container}}}/readinessProbe","value":{"tcpSocket":{"port":1},"periodSeconds":1}}"""
+            : "";
         await _k8sClient.AppsV1.PatchNamespacedDeploymentAsync(
             new V1Patch(
-                $$"""[{"op":"replace","path":"/spec/template/spec/containers/0/image","value":"{{image}}"}]""",
+                $$"""[{"op":"replace","path":"{{container}}/image","value":"{{image}}"}{{readiness}}]""",
                 V1Patch.PatchType.JsonPatch
             ),
             DeploymentName(app),
             TestNamespace,
             cancellationToken: ct
         );
+    }
+
+    private async Task<RunningAppDeployment> GetRunning(string app, CancellationToken ct)
+    {
+        using var response = await _httpClient.GetAsync(RunningUri(app), ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var deployment = await response.Content.ReadFromJsonAsync<RunningAppDeployment>(ct);
+        Assert.NotNull(deployment);
+        return deployment;
+    }
+
+    /// <summary>
+    /// Waits until the controller has seen the latest spec and a pod of it runs without being ready, so the status
+    /// depends on the pods rather than on the controller catching up.
+    /// </summary>
+    private async Task WaitForStartingPod(string app, CancellationToken ct)
+    {
+        var deadline = DateTimeOffset.UtcNow + StatusTimeout;
+        while (DateTimeOffset.UtcNow < deadline)
+        {
+            var deployment = await _k8sClient.AppsV1.ReadNamespacedDeploymentAsync(
+                DeploymentName(app),
+                TestNamespace,
+                cancellationToken: ct
+            );
+            var pods = await _k8sClient.CoreV1.ListNamespacedPodAsync(
+                TestNamespace,
+                labelSelector: $"release={Org}-{app}",
+                cancellationToken: ct
+            );
+            var observed = deployment.Status?.ObservedGeneration >= deployment.Metadata.Generation;
+            var starting = pods.Items.Any(pod =>
+                pod.Spec.Containers[0].ReadinessProbe is not null
+                && pod.Status?.Phase == "Running"
+                && pod.Status.Conditions?.Any(condition => condition.Type == "Ready" && condition.Status == "False")
+                    == true
+            );
+            if (observed && starting)
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(500), ct);
+        }
+
+        Assert.Fail($"No pod of {app} ran without being ready after {StatusTimeout}.");
+    }
 
     private async Task<string?> RestartedAtAnnotation(string app, CancellationToken ct)
     {

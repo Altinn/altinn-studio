@@ -14,7 +14,7 @@ rules:
       # To restart apps. Flux applies this with the gateway's targetNamespace, which would move a Role in `default`
       # to the gateway's namespace, so the grant is cluster-wide like the rest, and the gateway patches only `default`.
       - patch
-  # To find the pods of a Deployment's latest revision, as kubectl rollout status does.
+  # To find the pods of a Deployment's latest revision.
   - apiGroups:
       - apps
     resources:

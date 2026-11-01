@@ -13,12 +13,14 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
     private const string ProgressingCondition = "Progressing";
     private const string ProgressDeadlineExceededReason = "ProgressDeadlineExceeded";
     private const string NewReplicaSetAvailableReason = "NewReplicaSetAvailable";
+    private const string DeploymentPausedReason = "DeploymentPaused";
+    private const string ReplicaFailureCondition = "ReplicaFailure";
     private const string RevisionAnnotation = "deployment.kubernetes.io/revision";
     private const int MaxRestartAttempts = 3;
 
     /// <summary>
-    /// How long a pod may stay unready before it counts as failing, such as one waiting for the cluster autoscaler to
-    /// add a node. App pods take at least 30 seconds to become ready.
+    /// How long a pod may go without being ready before it counts as failing, such as one waiting for the cluster
+    /// autoscaler to add a node. App pods take at least 30 seconds to become ready.
     /// </summary>
     internal static readonly TimeSpan NotReadyGracePeriod = TimeSpan.FromMinutes(5);
 
@@ -179,13 +181,18 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
             return answers ? RunningAppStatus.Stuck : RunningAppStatus.Unavailable;
         }
 
-        // Pods that stop being available after a rollout completed leave its condition as it was, since nothing is
-        // replacing them.
-        var replacing =
-            updated < desired || total > updated || (available < updated && progress != NewReplicaSetAvailableReason);
+        // The cluster refused to create a pod, such as for want of quota.
+        var refused =
+            status.Conditions?.Any(condition => condition.Type == ReplicaFailureCondition && condition.Status == "True")
+            == true;
+
+        // Once a rollout completed, the controller keeps its condition through scaling and pods that stop being
+        // available, and a pause replaces it, so neither starts a rollout. Old pods always mean one runs.
+        var rolledOut = progress is NewReplicaSetAvailableReason or DeploymentPausedReason;
+        var replacing = total > updated || (!rolledOut && (updated < desired || available < updated));
         if (replacing)
         {
-            if (!await AnyFailing(currentPods, now))
+            if (!refused && !await AnyFailing(currentPods, now))
             {
                 return RunningAppStatus.Updating;
             }
@@ -198,19 +205,21 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
             return RunningAppStatus.Unavailable;
         }
 
-        // Pods that are starting, such as after a scale-up or on a new node, are on their way.
-        return available < updated && await AnyFailing(currentPods, now)
+        // Pods that are starting or being created, such as after a scale-up or on a new node, are on their way.
+        return refused || (available < updated && await AnyFailing(currentPods, now))
             ? RunningAppStatus.Degraded
             : RunningAppStatus.Ready;
     }
 
     /// <summary>
-    /// A pod fails when it is not ready and either a container backs off from failing, or it has not been ready for
-    /// longer than a start takes, such as when no node has room for it. Terminating pods are on their way out.
+    /// A pod fails when it is not ready and either a container backs off from failing, or <see cref="NotReadyGracePeriod"/>
+    /// passed since it last changed readiness, or since it was created if it never has, such as when no node has room
+    /// for it. A pod that gets a node only then starts its clock again. Terminating pods are on their way out, and
+    /// finished ones, such as an evicted pod, no longer count, as Kubernetes counts them.
     /// </summary>
     internal static bool IsFailing(V1Pod pod, DateTimeOffset now)
     {
-        if (pod.Metadata?.DeletionTimestamp is not null)
+        if (pod.Metadata?.DeletionTimestamp is not null || pod.Status?.Phase is "Failed" or "Succeeded")
         {
             return false;
         }
@@ -266,9 +275,10 @@ internal sealed class DeploymentsClient(IKubernetes _kubernetes, TimeProvider _t
         (await pods()).Any(pod => IsFailing(pod, now));
 
     /// <summary>
-    /// The pods of the ReplicaSet that runs the Deployment's latest revision, as <c>kubectl rollout status</c> finds it.
-    /// The Deployment's selector only narrows the lists; ownership decides, so pods of an old revision that still
-    /// fail do not count against a rollout that replaces them.
+    /// The pods of the ReplicaSet the Deployment owns for its latest revision, which both carry in their revision
+    /// annotation. The Deployment's selector only narrows the lists; ownership decides, so pods of an old revision that
+    /// still fail do not count against a rollout that replaces them. Without match labels to narrow the lists by, which
+    /// app Deployments always have, no pods are read.
     /// </summary>
     private async Task<IReadOnlyList<V1Pod>> CurrentPods(
         V1Deployment deployment,

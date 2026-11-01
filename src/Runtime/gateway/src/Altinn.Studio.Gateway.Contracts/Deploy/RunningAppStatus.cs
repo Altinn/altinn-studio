@@ -9,24 +9,30 @@ namespace Altinn.Studio.Gateway.Contracts.Deploy;
 [JsonConverter(typeof(JsonStringEnumConverter<RunningAppStatus>))]
 public enum RunningAppStatus
 {
-    /// <summary>Every instance runs the latest version and is available, or is starting, such as after a scale-up.</summary>
+    /// <summary>
+    /// Every instance runs the latest version and is available, or is starting or being created, such as after a
+    /// scale-up.
+    /// </summary>
     [JsonStringEnumMemberName("ready")]
     Ready,
 
-    /// <summary>Instances are being replaced, and the new ones are on their way to becoming available.</summary>
+    /// <summary>
+    /// Instances are being replaced, or created for the first time, and the new ones are on their way to becoming
+    /// available.
+    /// </summary>
     [JsonStringEnumMemberName("updating")]
     Updating,
 
     /// <summary>
-    /// New instances fail to start, such as when they keep crashing, so the replacement does not finish. The previous
-    /// instances still answer.
+    /// New instances fail to start, such as when they keep crashing or the cluster refuses to create them, so the
+    /// replacement does not finish. Some instances still answer, usually the previous ones.
     /// </summary>
     [JsonStringEnumMemberName("stuck")]
     Stuck,
 
     /// <summary>
-    /// No instance is being replaced, but some fail, such as when they keep crashing or find no room in the cluster.
-    /// The others still answer. A restart may help.
+    /// No instance is being replaced, but some fail or are missing, such as when they keep crashing, find no room in
+    /// the cluster, or the cluster refuses to create them. The others still answer. A restart may help.
     /// </summary>
     [JsonStringEnumMemberName("degraded")]
     Degraded,

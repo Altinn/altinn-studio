@@ -221,6 +221,62 @@ public sealed class DeploymentsClientTests
     }
 
     [Fact]
+    public async Task StatusOf_WhenTheClusterRefusesAPodOfAScaleUp_IsDegraded()
+    {
+        var status = Status(2, 2, 2, "NewReplicaSetAvailable");
+        status.Conditions.Add(ReplicaFailure());
+        var deployment = Deployment(desired: 3, status: status);
+
+        Assert.Equal(RunningAppStatus.Degraded, await StatusOf(deployment, PodsMustNotBeRead));
+    }
+
+    [Fact]
+    public async Task StatusOf_WhileAScaleUpCreatesItsPod_IsReady()
+    {
+        var deployment = Deployment(desired: 3, status: Status(2, 2, 2, "NewReplicaSetAvailable"));
+
+        Assert.Equal(RunningAppStatus.Ready, await StatusOf(deployment, PodsMustNotBeRead));
+    }
+
+    [Fact]
+    public async Task StatusOf_WhenTheClusterRefusesANewPodWhileTheOldOnesServe_IsStuck()
+    {
+        var status = Status(0, 2, 2, "ReplicaSetUpdated");
+        status.Conditions.Add(ReplicaFailure());
+        var deployment = Deployment(desired: 2, status: status);
+
+        Assert.Equal(RunningAppStatus.Stuck, await StatusOf(deployment, PodsMustNotBeRead));
+    }
+
+    [Fact]
+    public async Task StatusOf_WhenAPodOfAPausedAppFails_IsDegraded()
+    {
+        // Pausing replaces the condition of the completed rollout, though no rollout runs.
+        var deployment = Deployment(desired: 2, status: Status(2, 2, 1, "DeploymentPaused"));
+        deployment.Spec.Paused = true;
+
+        Assert.Equal(
+            RunningAppStatus.Degraded,
+            await StatusOf(deployment, [ReadyPod(), WaitingPod("CrashLoopBackOff")])
+        );
+    }
+
+    [Fact]
+    public async Task StatusOf_WhenAFinishedPodIsLeftOverAfterAnEviction_IsReady()
+    {
+        // Such as a pod the kubelet evicted, which stays until garbage collection, next to one a scale-up starts.
+        var deployment = Deployment(desired: 3, status: Status(3, 3, 2, "NewReplicaSetAvailable"));
+        var evicted = Pod(ready: false, since: Now - TimeSpan.FromHours(1));
+        evicted.Status.Phase = "Failed";
+        evicted.Status.Reason = "Evicted";
+
+        Assert.Equal(
+            RunningAppStatus.Ready,
+            await StatusOf(deployment, [ReadyPod(), ReadyPod(), StartingPod(), evicted])
+        );
+    }
+
+    [Fact]
     public async Task StatusOf_WhenNoPodIsAvailableAfterTheRollout_IsUnavailable()
     {
         var deployment = Deployment(desired: 2, status: Status(2, 2, 0, "NewReplicaSetAvailable"));
@@ -297,10 +353,23 @@ public sealed class DeploymentsClientTests
                 new V1DeploymentCondition
                 {
                     Type = "Progressing",
-                    Status = progress == "ProgressDeadlineExceeded" ? "False" : "True",
+                    Status = progress switch
+                    {
+                        "ProgressDeadlineExceeded" => "False",
+                        "DeploymentPaused" => "Unknown",
+                        _ => "True",
+                    },
                     Reason = progress,
                 },
             ],
+        };
+
+    private static V1DeploymentCondition ReplicaFailure() =>
+        new()
+        {
+            Type = "ReplicaFailure",
+            Status = "True",
+            Reason = "FailedCreate",
         };
 
     private static V1Pod ReadyPod() => Pod(ready: true, since: Now - TimeSpan.FromHours(1));
