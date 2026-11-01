@@ -11,7 +11,7 @@ import {
 } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
-import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import { wasRestartedAfterPublish, type RunningApp } from 'app-shared/types/api/RunningApp';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
@@ -122,13 +122,14 @@ export const DeploymentStatus = ({
   );
 
   if (runningApp.status === 'updating') {
+    const isRestart = wasRestartedAfterPublish(runningApp, lastPublishedDate);
     return (
       <DeploymentStatusAlert
         severity='info'
         content={
           <div className={classes.loadingSpinner}>
             <StudioSpinner aria-hidden data-size='xs' />
-            {t('app_deployment.status.inProgress')}
+            {t(isRestart ? 'app_deployment.status.restarting' : 'app_deployment.status.inProgress')}
           </div>
         }
         footer={goToPublish}

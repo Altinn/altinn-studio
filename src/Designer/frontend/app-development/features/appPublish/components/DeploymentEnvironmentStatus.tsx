@@ -8,7 +8,7 @@ import {
   StudioAlert,
 } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
-import type { RunningApp } from 'app-shared/types/api/RunningApp';
+import { wasRestartedAfterPublish, type RunningApp } from 'app-shared/types/api/RunningApp';
 import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
@@ -39,14 +39,17 @@ export const DeploymentEnvironmentStatus = ({
     });
   };
 
-  // A restart after the last deploy is the latest the user did to what runs.
-  const lastChange = (publishedDate?: string, restartedAt?: string | null): string | undefined => {
-    if (restartedAt && (!publishedDate || new Date(restartedAt) > new Date(publishedDate))) {
-      return t('app_deployment.last_restarted', { lastRestartedDate: formatDateTime(restartedAt) });
+  const isRestart = wasRestartedAfterPublish(runningApp, lastPublishedDate);
+
+  const lastChange = (): string | undefined => {
+    if (isRestart) {
+      return t('app_deployment.last_restarted', {
+        lastRestartedDate: formatDateTime(runningApp.restartedAt),
+      });
     }
     return (
-      publishedDate &&
-      t('app_deployment.last_published', { lastPublishedDate: formatDateTime(publishedDate) })
+      lastPublishedDate &&
+      t('app_deployment.last_published', { lastPublishedDate: formatDateTime(lastPublishedDate) })
     );
   };
 
@@ -108,7 +111,7 @@ export const DeploymentEnvironmentStatus = ({
         content={
           <div className={classes.loadingSpinner}>
             <StudioSpinner aria-hidden data-size='xs' />
-            {t('app_deployment.status.inProgress')}
+            {t(isRestart ? 'app_deployment.status.restarting' : 'app_deployment.status.inProgress')}
           </div>
         }
       />
@@ -165,7 +168,7 @@ export const DeploymentEnvironmentStatus = ({
           />
         </StudioParagraph>
       }
-      footer={lastChange(lastPublishedDate, runningApp.restartedAt)}
+      footer={lastChange()}
     />
   );
 };

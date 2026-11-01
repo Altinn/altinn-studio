@@ -15,3 +15,17 @@ export interface RunningApp {
   /** Whether this Studio environment may restart the app, once it is not `updating`. */
   canRestart?: boolean;
 }
+
+/**
+ * Whether the app was restarted after it was last published, so that the restart is the latest change to what runs.
+ * A deploy and a restart both make the app `updating`, and this tells them apart.
+ */
+export const wasRestartedAfterPublish = (
+  runningApp: RunningApp | undefined,
+  lastPublishedDate?: string,
+): boolean => {
+  const restartedAt = runningApp?.restartedAt;
+  return (
+    !!restartedAt && (!lastPublishedDate || new Date(restartedAt) > new Date(lastPublishedDate))
+  );
+};

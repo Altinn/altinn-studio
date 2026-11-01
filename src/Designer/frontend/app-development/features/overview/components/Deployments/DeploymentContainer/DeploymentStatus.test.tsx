@@ -87,6 +87,34 @@ describe('DeploymentStatus', () => {
     expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
   });
 
+  it('shows that the app is restarting when it was restarted after it was published', async () => {
+    render({
+      runningApp: {
+        ...runningApp,
+        version: '1',
+        status: 'updating',
+        restartedAt: '2026-10-31T10:42:00+00:00',
+      },
+      lastPublishedDate: '2026-10-30T10:00:00+00:00',
+    });
+
+    expect(screen.getByText(textMock('app_deployment.status.restarting'))).toBeInTheDocument();
+  });
+
+  it('shows that the app is updating when it was published after it was restarted', async () => {
+    render({
+      runningApp: {
+        ...runningApp,
+        version: '1',
+        status: 'updating',
+        restartedAt: '2026-10-30T10:00:00+00:00',
+      },
+      lastPublishedDate: '2026-10-31T10:42:00+00:00',
+    });
+
+    expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
+  });
+
   it('shows that the app does not respond when it is unavailable', async () => {
     render({ runningApp: { ...runningApp, version: '1', status: 'unavailable' } });
 
