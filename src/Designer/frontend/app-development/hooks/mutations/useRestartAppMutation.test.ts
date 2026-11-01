@@ -66,7 +66,7 @@ describe('useRestartAppMutation', () => {
     });
   });
 
-  it('leaves the list of running apps empty when the backend sent none', async () => {
+  it('adds the restarted app when the environment is missing from the list', async () => {
     const restartApp = vi.fn().mockResolvedValue({ ...ready('tt02'), status: 'updating' });
     const queryClient = createQueryClientMock();
     queryClient.setQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app], {
@@ -82,6 +82,6 @@ describe('useRestartAppMutation', () => {
     expect(
       queryClient.getQueryData<DeploymentsResponse>([QueryKey.AppDeployments, org, app])
         ?.runningAppList,
-    ).toEqual([]);
+    ).toEqual([{ ...ready('tt02'), status: 'updating' }]);
   });
 });

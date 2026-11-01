@@ -28,12 +28,21 @@ export const useRestartAppMutation = (org: string, app: string) => {
   });
 };
 
+// A refetch can have left the environment out, such as when its gateway did not answer, so the restart adds it back.
 const replaceRunningApp = (
   deployments: DeploymentsResponse,
   restarted: RunningApp,
-): DeploymentsResponse => ({
-  ...deployments,
-  runningAppList: (deployments.runningAppList ?? []).map((runningApp) =>
-    runningApp.environment === restarted.environment ? restarted : runningApp,
-  ),
-});
+): DeploymentsResponse => {
+  const runningAppList = deployments.runningAppList ?? [];
+  const isListed = runningAppList.some(
+    (runningApp) => runningApp.environment === restarted.environment,
+  );
+  return {
+    ...deployments,
+    runningAppList: isListed
+      ? runningAppList.map((runningApp) =>
+          runningApp.environment === restarted.environment ? restarted : runningApp,
+        )
+      : [...runningAppList, restarted],
+  };
+};
