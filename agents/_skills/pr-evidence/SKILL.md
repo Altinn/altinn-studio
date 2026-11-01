@@ -23,7 +23,7 @@ From the artifact directory, use local image references in the PR body; `gh --at
 those references to hosted URLs. Pass one `--attach` per file. For example, after pushing the branch:
 
 ```sh
-gh pr create --repo Altinn/altinn-studio --base main --head <branch> \
+gh pr create --repo Altinn/altinn-studio --base main --head <branch> --draft \
   --title 'fix: ...' --body-file pr-body.md --attach ./result.gif
 gh pr edit <number> --attach ./result.gif
 ```
