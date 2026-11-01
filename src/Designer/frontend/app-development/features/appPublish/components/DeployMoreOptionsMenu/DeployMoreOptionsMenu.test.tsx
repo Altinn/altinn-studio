@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -57,6 +57,24 @@ describe('DeployMoreOptionsMenu', () => {
         name: textMock('app_deployment.unpublish_consequence_dialog_title'),
       }),
     ).toBeInTheDocument();
+  });
+
+  it('closes the unpublish dialog when the user closes it', async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    await openMenu();
+    await user.click(
+      screen.getByRole('button', { name: textMock('app_deployment.undeploy_button') }),
+    );
+    const dialog = screen.getByRole('dialog');
+
+    await user.click(within(dialog).getByRole('button', { name: /lukk/i }));
+
+    expect(
+      screen.queryByRole('heading', {
+        name: textMock('app_deployment.unpublish_consequence_dialog_title'),
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it('should have a link to app within the env', async () => {
