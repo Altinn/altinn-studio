@@ -18,8 +18,9 @@ import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
 
 export interface DeploymentEnvironmentStatusProps {
-  lastPublishedDate?: string;
   isDeploymentInProgress?: boolean;
+  /** The environment could not tell what runs, such as when its cluster does not answer. */
+  isStatusUnknown?: boolean;
   runningApp?: RunningApp;
   envName: string;
   isProduction: boolean;
@@ -27,8 +28,8 @@ export interface DeploymentEnvironmentStatusProps {
 }
 
 export const DeploymentEnvironmentStatus = ({
-  lastPublishedDate,
   isDeploymentInProgress,
+  isStatusUnknown,
   runningApp,
   envName,
   isProduction,
@@ -43,7 +44,8 @@ export const DeploymentEnvironmentStatus = ({
     });
   };
 
-  const isRestart = wasRestartedAfterPublish(runningApp, lastPublishedDate);
+  const isRestart = wasRestartedAfterPublish(runningApp);
+  const publishedAt = runningApp?.publishedAt;
 
   const lastChange = (): string | undefined => {
     if (isRestart) {
@@ -52,8 +54,8 @@ export const DeploymentEnvironmentStatus = ({
       });
     }
     return (
-      lastPublishedDate &&
-      t('app_deployment.last_published', { lastPublishedDate: formatDateTime(lastPublishedDate) })
+      publishedAt &&
+      t('app_deployment.last_published', { lastPublishedDate: formatDateTime(publishedAt) })
     );
   };
 
@@ -74,6 +76,20 @@ export const DeploymentEnvironmentStatus = ({
             <StudioSpinner aria-hidden data-size='xs' />
             {t('app_deployment.status.inProgress')}
           </div>
+        }
+      />
+    );
+  }
+
+  if (isStatusUnknown) {
+    return (
+      <DeploymentStatusAlert
+        {...environment}
+        severity='warning'
+        content={
+          <StudioParagraph className={classes.content} data-size='sm'>
+            {t('app_deployment.status.unavailable')}
+          </StudioParagraph>
         }
       />
     );

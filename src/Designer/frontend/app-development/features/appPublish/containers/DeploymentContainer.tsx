@@ -68,7 +68,7 @@ export const DeploymentContainer = () => {
         const pipelineDeploymentList = appDeployment.pipelineDeploymentList
           .filter((item) => item.envName.toLowerCase() === orgEnvironment.name.toLowerCase())
           .filter((item, index) => index === 0 || item.build?.result !== BuildResult.none);
-        const runningApp = (appDeployment.runningAppList ?? []).find(
+        const appInEnvironment = (appDeployment.environmentList ?? []).find(
           (item) => item.environment.toLowerCase() === orgEnvironment.name.toLowerCase(),
         );
         return (
@@ -78,7 +78,8 @@ export const DeploymentContainer = () => {
             isProduction={orgEnvironment.type.toLowerCase() === PROD_ENV_TYPE}
             urlToApp={getAppLink(orgEnvironment.appPrefix, orgEnvironment.hostname, org, app)}
             pipelineDeploymentList={pipelineDeploymentList}
-            runningApp={runningApp}
+            runningApp={appInEnvironment?.runningApp ?? undefined}
+            isStatusUnknown={appInEnvironment?.state === 'unknown'}
             orgName={orgName}
           />
         );

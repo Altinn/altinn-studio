@@ -25,6 +25,15 @@ export interface RunningApp {
   restartedAt?: string | null;
   /** Whether this Studio environment may restart the app, once it is not `updating`. */
   canRestart?: boolean;
+  /** When the deploy that runs finished, or null when this Studio environment has no record of it. */
+  publishedAt?: string | null;
+}
+
+/** What runs of the app in one of the org's environments. `unknown` when the environment could not tell. */
+export interface AppInEnvironment {
+  environment: string;
+  state: 'running' | 'notRunning' | 'unknown';
+  runningApp?: RunningApp | null;
 }
 
 /**
@@ -32,12 +41,8 @@ export interface RunningApp {
  * A deploy and a restart both make the app `updating`, and this tells them apart. Without the publish date, such as
  * for a deploy from another Studio environment, a restart cannot be told to be the later one.
  */
-export const wasRestartedAfterPublish = (
-  runningApp: RunningApp | undefined,
-  lastPublishedDate?: string,
-): boolean => {
+export const wasRestartedAfterPublish = (runningApp: RunningApp | undefined): boolean => {
   const restartedAt = runningApp?.restartedAt;
-  return (
-    !!restartedAt && !!lastPublishedDate && new Date(restartedAt) > new Date(lastPublishedDate)
-  );
+  const publishedAt = runningApp?.publishedAt;
+  return !!restartedAt && !!publishedAt && new Date(restartedAt) > new Date(publishedAt);
 };

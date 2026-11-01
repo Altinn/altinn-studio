@@ -49,7 +49,7 @@ export const DeploymentContainer = ({ className }: DeploymentContainerProps) => 
       <section className={className}>
         <DeploymentStatusList
           orgEnvironmentList={orgEnvironmentList}
-          runningAppList={appDeployment.runningAppList ?? []}
+          environmentList={appDeployment.environmentList ?? []}
           pipelineDeploymentList={appDeployment.pipelineDeploymentList}
         />
       </section>
