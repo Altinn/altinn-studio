@@ -9,7 +9,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 /// <param name="BuildId">The build of the deploy that runs.</param>
 /// <param name="SourceEnvironment">The Studio environment that deployed the app, such as <c>prod</c>.</param>
 /// <param name="Status">
-/// <c>ready</c>, <c>updating</c>, <c>unavailable</c> or <c>failed</c>. A string, so that a status a newer gateway adds
+/// <c>ready</c>, <c>updating</c>, <c>stuck</c>, <c>degraded</c> or <c>unavailable</c>. A string, so that a status a newer gateway adds
 /// does not make the environment unreadable.
 /// </param>
 /// <param name="RestartedAt">When the app was last restarted without a deploy.</param>
