@@ -115,6 +115,24 @@ describe('DefinedBinding', () => {
     });
     expect(editButton).not.toHaveClass('error');
   });
+
+  it('should render without error css class when the label of Checkboxes is bound to a string list', async () => {
+    renderWithStringListLabelBinding(false);
+    await waitForLoadingToFinish();
+    const editButton = screen.getByRole('button', {
+      name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
+    });
+    expect(editButton).not.toHaveClass('error');
+  });
+
+  it('should render with error css class when the label of Checkboxes is bound to a string list and a group binding is set', async () => {
+    renderWithStringListLabelBinding(true);
+    await waitForLoadingToFinish();
+    const editButton = screen.getByRole('button', {
+      name: textMock('right_menu.data_model_bindings_edit', { binding: label }),
+    });
+    expect(editButton).toHaveClass('error');
+  });
 });
 
 const waitForLoadingToFinish = async () => {
@@ -132,4 +150,25 @@ const renderWithDataModelAndMetadata = (modelName: string, fieldName: string) =>
       Promise.resolve({ elements: { [fieldName]: { dataBindingName: fieldName, maxOccurs: 0 } } }),
     );
   renderDefinedBinding({ queries: { getDataModelMetadata }, queryClient });
+};
+
+const renderWithStringListLabelBinding = (hasGroupBinding: boolean) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.AppMetadataModelIds, org, app, false], [dataModel]);
+  const getDataModelMetadata = vi.fn().mockImplementation(() =>
+    Promise.resolve({
+      elements: {
+        [dataModelField]: {
+          dataBindingName: dataModelField,
+          maxOccurs: 99999,
+          xsdValueType: 'String',
+        },
+      },
+    }),
+  );
+  renderDefinedBinding({
+    props: { componentType: ComponentType.Checkboxes, bindingKey: 'label', hasGroupBinding },
+    queries: { getDataModelMetadata },
+    queryClient,
+  });
 };
