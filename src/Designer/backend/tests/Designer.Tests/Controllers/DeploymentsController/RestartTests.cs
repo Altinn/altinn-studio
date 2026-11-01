@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -6,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Filters.Deployments;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
@@ -60,6 +63,32 @@ public class RestartTests : DesignerEndpointsTestsBase<RestartTests>, IClassFixt
         Assert.Equal("updating", body.RootElement.GetProperty("status").GetString());
         Assert.Equal(restartedAt, body.RootElement.GetProperty("restartedAt").GetDateTimeOffset());
         Assert.True(body.RootElement.GetProperty("canRestart").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Restart_KeepsTheTraceThatRecordsWhoRestarted()
+    {
+        var requestSpans = new ConcurrentBag<Activity>();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == "Microsoft.AspNetCore",
+            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = requestSpans.Add,
+        };
+        ActivitySource.AddActivityListener(listener);
+        SetupRunning(Running("ready"));
+        SetupRestart().ReturnsAsync(new GatewayAppRestart.Started(Running("updating")));
+
+        ActivityTraceId traceId = ActivityTraceId.CreateRandom();
+
+        using HttpResponseMessage response = await PostRestart(
+            Environment,
+            traceParent: $"00-{traceId}-{ActivitySpanId.CreateRandom()}-01"
+        );
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        Activity requestSpan = Assert.Single(requestSpans, span => span.TraceId == traceId);
+        Assert.Equal("always", requestSpan.GetTagItem(AltinnAttributes.Sampling));
     }
 
     public static TheoryData<GatewayAppRestart, HttpStatusCode, string> GatewayRefusals =>
@@ -127,14 +156,22 @@ public class RestartTests : DesignerEndpointsTestsBase<RestartTests>, IClassFixt
     private static RunningAppDeployment Running(string status, string sourceEnvironment = ThisStudioEnvironment) =>
         new("8", "1234", sourceEnvironment, status, null);
 
-    private async Task<HttpResponseMessage> PostRestart(string environment)
+    private async Task<HttpResponseMessage> PostRestart(string environment, string traceParent = null)
     {
-        using var content = new StringContent(
-            JsonSerializer.Serialize(new { environment }),
-            Encoding.UTF8,
-            MediaTypeNames.Application.Json
-        );
-        return await HttpClient.PostAsync($"/designer/api/{Org}/{App}/deployments/restart", content);
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"/designer/api/{Org}/{App}/deployments/restart")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new { environment }),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+        if (traceParent is not null)
+        {
+            request.Headers.Add("traceparent", traceParent);
+        }
+
+        return await HttpClient.SendAsync(request);
     }
 
     private static async Task AssertProblem(

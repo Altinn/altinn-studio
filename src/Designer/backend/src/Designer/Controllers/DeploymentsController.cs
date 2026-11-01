@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Filters.Deployments;
@@ -154,6 +155,8 @@ public class DeploymentsController : ControllerBase
     {
         Guard.AssertValidEnvironmentName(restartRequest.Environment);
         HttpContext.SetTargetEnvironment(restartRequest.Environment);
+        // The request's trace is the only record of who restarted the app, so sampling must not drop it.
+        RootSpan.Of(HttpContext).SetAlwaysSample();
 
         AppRestart restart = await _appRuntime.Restart(org, app, restartRequest.Environment, cancellationToken);
         return restart switch
