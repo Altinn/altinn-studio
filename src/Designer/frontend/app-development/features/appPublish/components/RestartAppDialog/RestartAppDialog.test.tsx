@@ -37,6 +37,12 @@ describe('RestartAppDialog', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps its own color, rather than that of the status alert it sits in', () => {
+    renderRestartAppDialog();
+
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-color', 'accent');
+  });
+
   it('does not let the user confirm while the app is updating', () => {
     renderRestartAppDialog({ runningApp: { ...runningApp, status: 'updating' } });
 

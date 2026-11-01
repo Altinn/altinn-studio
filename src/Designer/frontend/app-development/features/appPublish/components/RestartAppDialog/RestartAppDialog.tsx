@@ -29,7 +29,8 @@ export const RestartAppDialog = ({
     restartApp({ environment: runningApp.environment }, { onSettled: onClose });
 
   return (
-    <StudioDialog open={isOpen} onClose={onClose} aria-labelledby={headingId}>
+    // The dialog sits in the environment's status alert, whose color it would otherwise take, such as red when failed.
+    <StudioDialog open={isOpen} onClose={onClose} aria-labelledby={headingId} data-color='accent'>
       <StudioDialog.Block>
         <StudioHeading level={2} id={headingId}>
           {t('app_deployment.restart_confirmation_dialog_title', { envTitle })}
