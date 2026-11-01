@@ -18,7 +18,7 @@
 }
 
 .content {
-  word-break: break-all;
+  overflow-wrap: anywhere;
   margin-top: var(--ds-size-4);
   margin-left: 0;
 }
