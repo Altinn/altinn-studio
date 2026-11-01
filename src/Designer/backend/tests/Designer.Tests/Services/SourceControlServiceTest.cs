@@ -1034,6 +1034,133 @@ public class SourceControlServiceTest : IDisposable
     }
 
     [Fact]
+    public void RepositoryStatus_ReportsWhatLibGit2SharpReports()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        List<(string, int)> expected;
+        using (Repository repo = new(_repoDir))
+        {
+            File.WriteAllText(Path.Join(_repoDir, ".gitignore"), "*.log\n");
+            Commands.Stage(repo, ".gitignore");
+            CommitFiles(repo, "alice", HistoryTime(1), "same-size.txt", "other-size.txt", "deleted.txt", "moved.txt");
+            File.WriteAllText(Path.Join(_repoDir, "same-size.txt"), "same-size.txt by bobby");
+            File.AppendAllText(Path.Join(_repoDir, "other-size.txt"), " and more");
+            File.Delete(Path.Join(_repoDir, "deleted.txt"));
+            Commands.Move(repo, "moved.txt", "renamed.txt");
+            File.WriteAllText(Path.Join(_repoDir, "staged.txt"), "staged");
+            Commands.Stage(repo, "staged.txt");
+            File.WriteAllText(Path.Join(_repoDir, "untracked.txt"), "untracked");
+            Directory.CreateDirectory(Path.Join(_repoDir, "folder"));
+            File.WriteAllText(Path.Join(_repoDir, "folder", "untracked.txt"), "untracked");
+            File.WriteAllText(Path.Join(_repoDir, "ignored.log"), "ignored");
+            expected = Statuses(
+                repo.RetrieveStatus(new StatusOptions()).Select(item => (item.FilePath, (int)item.State))
+            );
+        }
+
+        // Act
+        RepoStatus status = _sourceControlService.RepositoryStatus(context);
+
+        // Assert
+        Assert.Equal(8, expected.Count);
+        Assert.Equal(expected, Statuses(status.ContentStatus.Select(item => (item.FilePath, (int)item.FileStatus))));
+    }
+
+    [Fact]
+    public void RepositoryStatus_WithStaleStatDataInTheIndex_SavesItOnce()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first.txt", "second.txt");
+        }
+        // The same content with other modification times, as when the share reports other times than were indexed.
+        // Older than the index, so that no entry is racily clean, which git checks again on every call.
+        File.SetLastWriteTimeUtc(Path.Join(_repoDir, "first.txt"), DateTime.UtcNow.AddHours(-1));
+        File.SetLastWriteTimeUtc(Path.Join(_repoDir, "second.txt"), DateTime.UtcNow.AddHours(-1));
+        string indexPath = Path.Join(_repoDir, ".git", "index");
+        byte[] indexBefore = File.ReadAllBytes(indexPath);
+
+        // Act
+        RepoStatus first = _sourceControlService.RepositoryStatus(context);
+        byte[] indexAfterFirst = File.ReadAllBytes(indexPath);
+        DateTime indexWrittenAfterFirst = File.GetLastWriteTimeUtc(indexPath);
+        RepoStatus second = _sourceControlService.RepositoryStatus(context);
+
+        // Assert
+        Assert.Empty(first.ContentStatus);
+        Assert.Empty(second.ContentStatus);
+        Assert.NotEqual(indexBefore, indexAfterFirst);
+        Assert.Equal(indexWrittenAfterFirst, File.GetLastWriteTimeUtc(indexPath));
+    }
+
+    [Fact]
+    public void RepositoryStatus_DuringAConflictedMerge_SavesStatDataAndKeepsTheConflict()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        List<(string, int)> expected;
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "conflicted.txt", "unchanged.txt");
+            Branch other = repo.CreateBranch("other");
+            CommitFiles(repo, "bob", HistoryTime(2), "conflicted.txt");
+            Commands.Checkout(repo, other);
+            CommitFiles(repo, "carol", HistoryTime(3), "conflicted.txt");
+            Commands.Checkout(repo, repo.Branches[General.DefaultBranch]);
+            LibGit2Sharp.Signature merger = new("dave", "dave@test.com", HistoryTime(4));
+            Assert.Equal(MergeStatus.Conflicts, repo.Merge(other, merger).Status);
+            expected = Statuses(
+                repo.RetrieveStatus(new StatusOptions()).Select(item => (item.FilePath, (int)item.State))
+            );
+        }
+        File.SetLastWriteTimeUtc(Path.Join(_repoDir, "unchanged.txt"), DateTime.UtcNow.AddHours(-1));
+        string indexPath = Path.Join(_repoDir, ".git", "index");
+        byte[] indexBefore = File.ReadAllBytes(indexPath);
+
+        // Act
+        RepoStatus status = _sourceControlService.RepositoryStatus(context);
+
+        // Assert
+        Assert.True(status.HasMergeConflict);
+        Assert.Equal(expected, Statuses(status.ContentStatus.Select(item => (item.FilePath, (int)item.FileStatus))));
+        Assert.NotEqual(indexBefore, File.ReadAllBytes(indexPath));
+        using Repository after = new(_repoDir);
+        Assert.Equal("conflicted.txt", Assert.Single(after.Index.Conflicts).Ours.Path);
+        Assert.Equal(CurrentOperation.Merge, after.Info.CurrentOperation);
+    }
+
+    [Fact]
+    public void RepositoryStatus_WhenTheIndexIsLocked_ReportsWithoutChangingTheIndex()
+    {
+        // Arrange
+        AltinnRepoEditingContext context = CreateEmptyTestRepository();
+        using (Repository repo = new(_repoDir))
+        {
+            CommitFiles(repo, "alice", HistoryTime(1), "first.txt");
+        }
+        File.SetLastWriteTimeUtc(Path.Join(_repoDir, "first.txt"), DateTime.UtcNow.AddHours(-1));
+        File.WriteAllText(Path.Join(_repoDir, "untracked.txt"), "untracked");
+        string indexPath = Path.Join(_repoDir, ".git", "index");
+        byte[] indexBefore = File.ReadAllBytes(indexPath);
+        File.WriteAllText(indexPath + ".lock", "");
+
+        // Act
+        RepoStatus status = _sourceControlService.RepositoryStatus(context);
+
+        // Assert
+        RepositoryContent content = Assert.Single(status.ContentStatus);
+        Assert.Equal("untracked.txt", content.FilePath);
+        Assert.Equal(indexBefore, File.ReadAllBytes(indexPath));
+        Assert.True(File.Exists(indexPath + ".lock"));
+    }
+
+    private static List<(string, int)> Statuses(IEnumerable<(string, int)> statuses) =>
+        statuses.OrderBy(status => status.Item1, StringComparer.Ordinal).ToList();
+
+    [Fact]
     public void RepositoryStatus_WithAnotherBranchAhead_CountsTheCheckedOutBranch()
     {
         // Arrange

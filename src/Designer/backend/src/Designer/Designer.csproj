@@ -16,7 +16,14 @@
     <InvariantGlobalization>false</InvariantGlobalization>
     <Nullable>enable</Nullable>
     <Configurations>Release;Debug</Configurations>
+    <!-- For the function pointers and structs in Infrastructure/GitRepository/LibGit2Status.cs. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Native calls pass only blittable types, unchanged, and nothing can turn on the runtime's marshalling. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.DisableRuntimeMarshallingAttribute" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Altinn.App.Core" />

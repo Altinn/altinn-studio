@@ -34,7 +34,9 @@ public class EndpointNameSyncEligibilityEvaluator : IRepoUserSyncEligibilityEval
                 nameof(RepositoryController.Commit),
                 nameof(RepositoryController.Push),
                 nameof(RepositoryController.DeleteBranch),
-                nameof(RepositoryController.CheckoutBranch)
+                nameof(RepositoryController.CheckoutBranch),
+                nameof(RepositoryController.DiscardLocalChanges),
+                nameof(RepositoryController.StageChange)
             )
         },
         {

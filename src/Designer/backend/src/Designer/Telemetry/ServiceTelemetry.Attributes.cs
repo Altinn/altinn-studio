@@ -120,6 +120,11 @@ internal static partial class ServiceTelemetry
             public const string Repository = Prefix + "repository";
             public const string RepositoryStatus = Prefix + "repository_status";
             public const string SourceBranch = Prefix + "source_branch";
+
+            /// <summary>
+            /// Why the repository status could not save refreshed stat data in the index, such as a locked index.
+            /// </summary>
+            public const string StatusIndexUpdateFailure = Prefix + "status.index_update_failure";
             public const string TargetBranch = Prefix + "target_branch";
         }
 
