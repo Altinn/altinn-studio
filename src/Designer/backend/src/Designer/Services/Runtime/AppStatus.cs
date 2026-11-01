@@ -8,19 +8,26 @@ namespace Altinn.Studio.Designer.Services.Runtime;
 /// </summary>
 public enum AppStatus
 {
-    /// <summary>Every instance runs the latest version and is available.</summary>
+    /// <summary>Every instance runs the latest version and is available, or is on its way to.</summary>
     [EnumMember(Value = "ready")]
     Ready,
 
-    /// <summary>Instances are being replaced.</summary>
+    /// <summary>Instances are being replaced, and the new ones are on their way to becoming available.</summary>
     [EnumMember(Value = "updating")]
     Updating,
 
-    /// <summary>Not every instance is available, though none is being replaced. A restart may help.</summary>
+    /// <summary>
+    /// New instances fail to start, so the replacement does not finish. Some instances still answer, usually the
+    /// previous ones.
+    /// </summary>
+    [EnumMember(Value = "stuck")]
+    Stuck,
+
+    /// <summary>No instance is being replaced, but some fail or are missing. The others still answer.</summary>
+    [EnumMember(Value = "degraded")]
+    Degraded,
+
+    /// <summary>No instance answers.</summary>
     [EnumMember(Value = "unavailable")]
     Unavailable,
-
-    /// <summary>Instances stopped being replaced before they were all available.</summary>
-    [EnumMember(Value = "failed")]
-    Failed,
 }

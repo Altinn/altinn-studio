@@ -124,8 +124,9 @@ public sealed class AppRuntime(
         {
             "ready" => AppStatus.Ready,
             "updating" => AppStatus.Updating,
+            "stuck" => AppStatus.Stuck,
+            "degraded" => AppStatus.Degraded,
             "unavailable" => AppStatus.Unavailable,
-            "failed" => AppStatus.Failed,
             _ => null,
         };
 }

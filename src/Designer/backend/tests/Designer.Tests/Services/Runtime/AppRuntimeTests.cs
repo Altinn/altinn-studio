@@ -57,8 +57,9 @@ public class AppRuntimeTests
     [Theory]
     [InlineData("ready", AppStatus.Ready)]
     [InlineData("updating", AppStatus.Updating)]
+    [InlineData("stuck", AppStatus.Stuck)]
+    [InlineData("degraded", AppStatus.Degraded)]
     [InlineData("unavailable", AppStatus.Unavailable)]
-    [InlineData("failed", AppStatus.Failed)]
     public async Task GetAll_ReturnsTheStatusTheGatewayReports(string status, AppStatus expected)
     {
         SetupGatewayCall().ReturnsAsync(new RunningAppDeployment("8", null, "prod", status, null));
