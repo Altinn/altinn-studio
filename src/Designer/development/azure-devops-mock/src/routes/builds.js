@@ -137,23 +137,59 @@ function studioEnvironment(studioHostname = '') {
 }
 
 /** The app's latest deploy through local Studio is what runs in the environment. */
-export const runtimeGatewayRunningAppRoute = (req, res) => {
-  const { org, env, app } = req.params;
+// A restart in the cluster replaces the app's pods. The mock keeps the app updating for a while instead.
+const RESTART_DURATION_MS = 10_000;
+const restarts = new Map();
 
-  const deploy = deploys.findLast(
+const findRunningDeploy = ({ org, env, app }) =>
+  deploys.findLast(
     (candidate) => candidate.org === org && candidate.envName === env && candidate.app === app,
   );
 
+const runningApp = (params, deploy) => {
+  const restart = restarts.get(`${params.org}/${params.env}/${params.app}`);
+  const updating = restart !== undefined && Date.now() < restart.until;
+  return {
+    release: `${params.org}-${params.app}`,
+    imageTag: deploy.tagName,
+    buildId: deploy.buildNumber.toString(),
+    sourceEnvironment: deploy.sourceEnvironment,
+    deploymentId: deploy.deploymentId,
+    status: updating ? 'updating' : 'ready',
+    restartedAt: restart?.restartedAt ?? null,
+  };
+};
+
+export const runtimeGatewayRunningAppRoute = (req, res) => {
+  const deploy = findRunningDeploy(req.params);
   if (!deploy) {
     res.sendStatus(404);
     return;
   }
 
-  res.json({
-    release: `${org}-${app}`,
-    imageTag: deploy.tagName,
-    buildId: deploy.buildNumber.toString(),
-    sourceEnvironment: deploy.sourceEnvironment,
-    deploymentId: deploy.deploymentId,
+  res.json(runningApp(req.params, deploy));
+};
+
+export const runtimeGatewayRestartAppRoute = (req, res) => {
+  const deploy = findRunningDeploy(req.params);
+  if (!deploy) {
+    res.sendStatus(404);
+    return;
+  }
+
+  if (runningApp(req.params, deploy).status === 'updating') {
+    res.status(409).json({
+      type: 'urn:altinn:studio:gateway:app-updating',
+      title: 'App is updating',
+      status: 409,
+    });
+    return;
+  }
+
+  const now = Date.now();
+  restarts.set(`${req.params.org}/${req.params.env}/${req.params.app}`, {
+    restartedAt: new Date(now).toISOString(),
+    until: now + RESTART_DURATION_MS,
   });
+  res.status(202).json(runningApp(req.params, deploy));
 };

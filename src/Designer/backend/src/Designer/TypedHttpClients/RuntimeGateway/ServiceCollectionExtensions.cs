@@ -39,6 +39,15 @@ public static class ServiceCollectionExtensions
     internal const string WorkflowsHttpClientName = "runtime-gateway-workflows";
 
     /// <summary>
+    /// The client restarts use: the standard resilience handler, except that it never retries the restart itself.
+    /// </summary>
+    /// <remarks>
+    /// A retry after a restart Kubernetes accepted would be refused as already updating, reporting a restart that
+    /// started as failed, or would restart the app again if the first restart had already finished.
+    /// </remarks>
+    internal const string RestartHttpClientName = "runtime-gateway-restart";
+
+    /// <summary>
     /// How long the gateway gives the engine per phase (headers, then body) before answering
     /// "engine unavailable"; mirrors <c>WorkflowEngine.RequestTimeout</c> in the gateway's settings.
     /// Designer's own attempt has to outlast one phase, or a mutation the gateway is still waiting
@@ -56,6 +65,10 @@ public static class ServiceCollectionExtensions
         {
             // Plain HttpClients for a local / mock runtime gateway
             services.AddHttpClient(HttpClientName).AddStandardResilienceHandler().SelectPipelineByAuthority();
+            services
+                .AddHttpClient(RestartHttpClientName)
+                .AddStandardResilienceHandler(ConfigureRestartResilience)
+                .SelectPipelineByAuthority();
             services
                 .AddHttpClient(WorkflowsHttpClientName)
                 .AddStandardResilienceHandler(ConfigureWorkflowsResilience)
@@ -78,6 +91,10 @@ public static class ServiceCollectionExtensions
                     .AddStandardResilienceHandler()
                     .SelectPipelineByAuthority();
                 services
+                    .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(RestartHttpClientName, settings)
+                    .AddStandardResilienceHandler(ConfigureRestartResilience)
+                    .SelectPipelineByAuthority();
+                services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(WorkflowsHttpClientName, settings)
                     .AddStandardResilienceHandler(ConfigureWorkflowsResilience)
                     .SelectPipelineByAuthority();
@@ -91,6 +108,12 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddTransient<IRuntimeGatewayClient, RuntimeGatewayClient>();
+    }
+
+    internal static void ConfigureRestartResilience(HttpStandardResilienceOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        options.Retry.DisableForUnsafeHttpMethods();
     }
 
     /// <summary>

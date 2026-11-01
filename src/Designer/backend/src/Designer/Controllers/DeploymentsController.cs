@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Common.Telemetry;
 using Altinn.Studio.Designer.Clients.Interfaces;
+using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Filters.Deployments;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
@@ -131,6 +135,42 @@ public class DeploymentsController : ControllerBase
         var createResult = await _deploymentService.CreateAsync(authenticatedContext, createDeployment.ToDomainModel());
         return Created(string.Empty, createResult);
     }
+
+    /// <summary>
+    /// Restarts the app in an environment, so its instances are replaced with new ones of the same version.
+    /// </summary>
+    /// <param name="org">Organization name</param>
+    /// <param name="app">Application name</param>
+    /// <param name="restartRequest">The environment to restart the app in</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>The app as the restart left it, or why it could not be restarted</returns>
+    [HttpPost("restart")]
+    [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
+    public async Task<ActionResult<RunningApp>> Restart(
+        string org,
+        string app,
+        [FromBody] RestartRequest restartRequest,
+        CancellationToken cancellationToken
+    )
+    {
+        Guard.AssertValidEnvironmentName(restartRequest.Environment);
+        HttpContext.SetTargetEnvironment(restartRequest.Environment);
+        // The request's trace is the only record of who restarted the app, so sampling must not drop it.
+        RootSpan.Of(HttpContext).SetAlwaysSample();
+
+        AppRestart restart = await _appRuntime.Restart(org, app, restartRequest.Environment, cancellationToken);
+        return restart switch
+        {
+            AppRestart.Started started => Accepted(RunningApp.From(started.Running)),
+            AppRestart.NotRunning => RestartProblem(DeploymentErrorCodes.AppNotRunning, HttpStatusCode.NotFound),
+            AppRestart.Updating => RestartProblem(DeploymentErrorCodes.AppUpdating, HttpStatusCode.Conflict),
+            AppRestart.Paused => RestartProblem(DeploymentErrorCodes.AppPaused, HttpStatusCode.Conflict),
+            _ => RestartProblem(DeploymentErrorCodes.AppDeployedElsewhere, HttpStatusCode.Conflict),
+        };
+    }
+
+    private ObjectResult RestartProblem(string errorCode, HttpStatusCode statusCode) =>
+        StatusCode((int)statusCode, ProblemDetailsUtils.GenerateProblemDetails(errorCode, statusCode));
 
     /// <summary>
     /// Initiates the undeployment of an application from a specific environment
