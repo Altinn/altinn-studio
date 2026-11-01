@@ -480,11 +480,10 @@ public class SourceControlService(
                         repoStatus.ContentStatus.Add(content);
                     }
 
-                    Branch? branch = repo.Branches.FirstOrDefault(b => b.IsTracking);
-                    if (branch != null)
+                    if (repo.Head.IsTracking)
                     {
-                        repoStatus.AheadBy = branch.TrackingDetails.AheadBy;
-                        repoStatus.BehindBy = branch.TrackingDetails.BehindBy;
+                        repoStatus.AheadBy = repo.Head.TrackingDetails.AheadBy;
+                        repoStatus.BehindBy = repo.Head.TrackingDetails.BehindBy;
                     }
 
                     repoStatus.CurrentBranch = repo.Head.FriendlyName;

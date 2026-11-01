@@ -16,6 +16,7 @@ export const useRepoCommitAndPushMutation = (owner: string, app: string) => {
     meta: {
       // The caller explains this error, usually with the merge conflict screen.
       hideDefaultError: isGitNonFastForwardError,
+      refreshesRepoStatus: true,
     },
     onSuccess: () => {
       q.invalidateQueries({ queryKey: [QueryKey.RepoStatus, owner, app] }).then();

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { isCheckoutConflict, isMergeConflict, toMergeConflictRepoStatus } from './repoStatus';
+import {
+  hasChangesToShare,
+  isCheckoutConflict,
+  isMergeConflict,
+  toMergeConflictRepoStatus,
+} from './repoStatus';
 import { mockRepoStatus } from '../test/mocks/versionControlContextMock';
 
 describe('repoStatus', () => {
@@ -36,6 +41,34 @@ describe('repoStatus', () => {
         hasMergeConflict: true,
         repositoryStatus: 'MergeConflict',
       });
+    });
+  });
+
+  describe('hasChangesToShare', () => {
+    it('should be true when there are changed files', () => {
+      const status = {
+        ...mockRepoStatus,
+        contentStatus: [{ filePath: 'App/ui/layouts/Side1.json', fileStatus: 'ModifiedInWorkdir' }],
+      };
+
+      expect(hasChangesToShare(status)).toBe(true);
+    });
+
+    it('should be true when there are commits that were not pushed', () => {
+      expect(hasChangesToShare({ ...mockRepoStatus, aheadBy: 1 })).toBe(true);
+    });
+
+    it('should be true for a branch that is not on Gitea, which has no count', () => {
+      expect(hasChangesToShare({ ...mockRepoStatus, aheadBy: null })).toBe(true);
+    });
+
+    it('should be false when the only changed files are ignored', () => {
+      const status = {
+        ...mockRepoStatus,
+        contentStatus: [{ filePath: 'App/bin', fileStatus: 'Ignored' }],
+      };
+
+      expect(hasChangesToShare(status)).toBe(false);
     });
   });
 });

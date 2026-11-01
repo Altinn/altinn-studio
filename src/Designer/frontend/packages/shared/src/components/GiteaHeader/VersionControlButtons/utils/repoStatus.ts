@@ -11,3 +11,9 @@ export const toMergeConflictRepoStatus = (repoStatus: RepoStatus): RepoStatus =>
   hasMergeConflict: true,
   repositoryStatus: 'MergeConflict',
 });
+
+// Ignored files are never shared. Commits that were not pushed are shared with the next share, and a branch that is not
+// on Gitea has no count but is published by the next share.
+export const hasChangesToShare = (repoStatus: RepoStatus): boolean =>
+  repoStatus.contentStatus.some((file) => file.fileStatus !== 'Ignored') ||
+  repoStatus.aheadBy !== 0;

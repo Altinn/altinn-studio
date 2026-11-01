@@ -25,6 +25,7 @@ export const useCheckoutBranchMutation = (
     },
     meta: {
       hideDefaultError: (error: AxiosError) => HttpResponseUtils.isConflict(error),
+      refreshesRepoStatus: true,
       ...options?.meta,
     },
   });
