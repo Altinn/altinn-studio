@@ -18,6 +18,13 @@ namespace Altinn.App.logic.DataProcessing
             if (data.GetType() == typeof(NestedGroup))
             {
                 NestedGroup model = (NestedGroup)data;
+                // Existing app logic consumes the helper produced by the migrated legacy calculation.
+                if (model.AllocationHelper?.Split('|') is [var remaining, var incomplete])
+                {
+                    model.RemainingAllocation = decimal.Parse(remaining, System.Globalization.CultureInfo.InvariantCulture);
+                    model.IncompleteAllocation = bool.Parse(incomplete);
+                }
+
                 // The group, its rows and the amount are all optional, so walk down to the first
                 // row's original amount and only rewrite it when it is actually there.
                 var firstOriginalAmount = model.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?
