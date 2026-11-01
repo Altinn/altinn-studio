@@ -36,8 +36,8 @@ internal sealed record WorkflowEnqueueEnvelope(
 internal sealed class ProcessNextRequestFactory
 {
     // The Studio admin panel groups an instance's workflows into transitions by the source task, source flow
-    // and target task labels below (src/Designer/frontend/admin/features/apps/utils/workflowTriage.ts), so a
-    // rename here must be made there too.
+    // and target task labels below, and attributes steps by the element label. AdminPanelLabelsTests fails
+    // when one of them is renamed here without the panel's appWorkflowLabels.json.
 
     /// <summary>
     /// Element id of the task the transition left. Absent on initial task start.
