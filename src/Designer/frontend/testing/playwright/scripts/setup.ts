@@ -16,10 +16,10 @@ const environment: Record<string, string | null | undefined> = {
   GITEA_ACCESS_TOKEN: null,
 };
 
+// Calls Gitea directly, because the Gitea proxy only lets a Designer browser session manage tokens.
 const createGiteaAccessToken = async (): Promise<void> => {
   const result = await giteaApi({
-    path: `/repos/api/v1/users/${process.env.GITEA_CYPRESS_USER}/tokens`,
-    hostname: 'http://studio.localhost',
+    path: `/api/v1/users/${process.env.GITEA_CYPRESS_USER}/tokens`,
     method: 'POST',
     user: process.env.GITEA_CYPRESS_USER,
     pass: process.env.GITEA_CYPRESS_PASS,
