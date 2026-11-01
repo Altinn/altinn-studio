@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import React, { useRef, useState } from 'react';
+import React, { useId, useRef, useState } from 'react';
 import {
   StudioButton,
   StudioParagraph,
@@ -23,6 +23,7 @@ export const ConfirmUndeployDialog = ({
   const { t } = useTranslation();
   const { org, app: appName } = useStudioEnvironmentParams();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const headingId = useId();
   const [isAppNameConfirmed, setIsAppNameConfirmed] = useState<boolean>(false);
   const {
     mutate: mutateUndeploy,
@@ -54,9 +55,9 @@ export const ConfirmUndeployDialog = ({
       <StudioButton onClick={openDialog} variant='primary'>
         {t('app_deployment.undeploy_button')}
       </StudioButton>
-      <StudioDialog ref={dialogRef}>
+      <StudioDialog ref={dialogRef} aria-labelledby={headingId}>
         <StudioDialog.Block>
-          <StudioHeading level={2}>
+          <StudioHeading level={2} id={headingId}>
             {t('app_deployment.undeploy_confirmation_dialog_title')}
           </StudioHeading>
         </StudioDialog.Block>
