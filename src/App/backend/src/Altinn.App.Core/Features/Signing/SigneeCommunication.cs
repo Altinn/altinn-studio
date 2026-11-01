@@ -82,7 +82,9 @@ public class Notification
 public class Sms
 {
     /// <summary>
-    /// Override the mobile number to send the sms to. If not set, the registry mobile number will be used.
+    /// Override the mobile number to send the sms to, with a country code (for example +4799999999). If not set,
+    /// the sms goes to the signee's registered contact details: the Common Contact Register (KRR) for persons and
+    /// the notification addresses for organizations.
     /// </summary>
     [JsonPropertyName("mobileNumber")]
     public string? MobileNumber { get; set; }
@@ -105,7 +107,8 @@ public class Sms
 public class Email
 {
     /// <summary>
-    /// Override the email address to send the email to. If not set, the registry email address will be used for organizations. For persons, no email will be sent.
+    /// Override the email address to send the email to. If not set, the email goes to the signee's registered contact
+    /// details: the Common Contact Register (KRR) for persons and the notification addresses for organizations.
     /// </summary>
     [JsonPropertyName("emailAddress")]
     public string? EmailAddress { get; set; }
