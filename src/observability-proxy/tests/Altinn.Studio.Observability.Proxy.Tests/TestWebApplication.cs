@@ -110,24 +110,39 @@ internal sealed class TestWebApplication : IAsyncDisposable
 
     /// <summary>
     /// A storage instance whose health can be switched: <c>/health</c> answers 200 or 503 as
-    /// <paramref name="isHealthy"/> says, and every other request is answered with its name.
+    /// <paramref name="isHealthy"/> says, and every other request is answered with its name,
+    /// followed by the request body when there is one. While <paramref name="answersReads"/> says
+    /// no, those requests are dropped without a response, as by a copy going away before its health
+    /// checks fail.
     /// </summary>
-    public static async Task<TestWebApplication> StartNamedDownstreamAsync(string name, Func<bool> isHealthy)
+    public static async Task<TestWebApplication> StartNamedDownstreamAsync(
+        string name,
+        Func<bool> isHealthy,
+        Func<bool>? answersReads = null
+    )
     {
         var app = CreateBuilder().Build();
         app.Map(
             "/{**path}",
-            (HttpContext context) =>
+            async (HttpContext context) =>
             {
                 if (context.Request.Path == "/health")
                 {
                     context.Response.StatusCode = isHealthy()
                         ? StatusCodes.Status200OK
                         : StatusCodes.Status503ServiceUnavailable;
-                    return Task.CompletedTask;
+                    return;
                 }
 
-                return context.Response.WriteAsync(name, context.RequestAborted);
+                if (answersReads?.Invoke() == false)
+                {
+                    context.Abort();
+                    return;
+                }
+
+                using var reader = new StreamReader(context.Request.Body);
+                var body = await reader.ReadToEndAsync(context.RequestAborted);
+                await context.Response.WriteAsync(body.Length == 0 ? name : $"{name} {body}", context.RequestAborted);
             }
         );
         return await StartAsync(app, new ConcurrentQueue<string>());
