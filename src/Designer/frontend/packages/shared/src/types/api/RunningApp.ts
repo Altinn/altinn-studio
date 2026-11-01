@@ -1,5 +1,16 @@
-/** Whether an app runs its latest version. A deploy and a restart both make it `updating`. */
-export type RunningAppStatus = 'ready' | 'updating' | 'unavailable' | 'failed';
+/** Whether an app runs its latest version, and whether it answers. A deploy and a restart both make it `updating`. */
+export type RunningAppStatus = 'ready' | 'updating' | 'stuck' | 'degraded' | 'unavailable';
+
+type RunningAppProblem = { severity: 'warning' | 'danger'; textKey: string };
+
+/** How the deploy page and the overview warn about an app that does not run as it should. A restart may help each. */
+export const runningAppProblems: Partial<Record<RunningAppStatus, RunningAppProblem>> = {
+  // New instances fail to start, but the app answers as before.
+  stuck: { severity: 'warning', textKey: 'app_deployment.status.stuck' },
+  // Some instances fail, but the others answer.
+  degraded: { severity: 'warning', textKey: 'app_deployment.status.degraded' },
+  unavailable: { severity: 'danger', textKey: 'app_deployment.status.not_responding' },
+};
 
 /** The app as it runs in an environment. */
 export interface RunningApp {

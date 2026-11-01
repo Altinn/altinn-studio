@@ -115,21 +115,19 @@ describe('DeploymentStatus', () => {
     expect(screen.getByText(textMock('app_deployment.status.inProgress'))).toBeInTheDocument();
   });
 
-  it('shows that the app does not respond when it is unavailable', async () => {
-    render({ runningApp: { ...runningApp, version: '1', status: 'unavailable' } });
+  it.each([
+    ['stuck', 'app_deployment.status.stuck'],
+    ['degraded', 'app_deployment.status.degraded'],
+    ['unavailable', 'app_deployment.status.not_responding'],
+  ] as const)('warns about an app that is %s', async (status, textKey) => {
+    render({ runningApp: { ...runningApp, version: '1', status } });
 
-    expect(screen.getByText(textMock('app_deployment.status.not_responding'))).toBeInTheDocument();
+    expect(screen.getByText(textMock(textKey))).toBeInTheDocument();
   });
 
-  it('shows that the update failed when it failed', async () => {
-    render({ runningApp: { ...runningApp, version: '1', status: 'failed' } });
+  it('warns about an app that is stuck even when the version is unknown', async () => {
+    render({ runningApp: { ...runningApp, version: null, status: 'stuck' } });
 
-    expect(screen.getByText(textMock('app_deployment.status.update_failed'))).toBeInTheDocument();
-  });
-
-  it('shows that the update failed even when the version is unknown', async () => {
-    render({ runningApp: { ...runningApp, version: null, status: 'failed' } });
-
-    expect(screen.getByText(textMock('app_deployment.status.update_failed'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('app_deployment.status.stuck'))).toBeInTheDocument();
   });
 });

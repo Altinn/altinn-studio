@@ -8,7 +8,11 @@ import {
   StudioAlert,
 } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
-import { wasRestartedAfterPublish, type RunningApp } from 'app-shared/types/api/RunningApp';
+import {
+  runningAppProblems,
+  wasRestartedAfterPublish,
+  type RunningApp,
+} from 'app-shared/types/api/RunningApp';
 import { DateUtils } from '@studio/pure-functions';
 import { ExternalLinkIcon } from '@studio/icons';
 import { DeployMoreOptionsMenu } from './DeployMoreOptionsMenu/DeployMoreOptionsMenu';
@@ -104,28 +108,15 @@ export const DeploymentEnvironmentStatus = ({
     );
   }
 
-  if (runningApp.status === 'unavailable') {
+  const problem = runningApp.status && runningAppProblems[runningApp.status];
+  if (problem) {
     return (
       <DeploymentStatusAlert
         {...environment}
-        severity='warning'
+        severity={problem.severity}
         content={
           <StudioParagraph className={classes.content} data-size='sm'>
-            {t('app_deployment.status.not_responding')}
-          </StudioParagraph>
-        }
-      />
-    );
-  }
-
-  if (runningApp.status === 'failed') {
-    return (
-      <DeploymentStatusAlert
-        {...environment}
-        severity='danger'
-        content={
-          <StudioParagraph className={classes.content} data-size='sm'>
-            {t('app_deployment.status.update_failed')}
+            {t(problem.textKey)}
           </StudioParagraph>
         }
       />

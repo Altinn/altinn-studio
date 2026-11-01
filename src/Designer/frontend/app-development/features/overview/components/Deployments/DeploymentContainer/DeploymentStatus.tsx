@@ -11,7 +11,11 @@ import {
 } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
-import { wasRestartedAfterPublish, type RunningApp } from 'app-shared/types/api/RunningApp';
+import {
+  runningAppProblems,
+  wasRestartedAfterPublish,
+  type RunningApp,
+} from 'app-shared/types/api/RunningApp';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
@@ -121,25 +125,12 @@ export const DeploymentStatus = ({
     );
   }
 
-  if (runningApp.status === 'unavailable') {
+  const problem = runningApp.status && runningAppProblems[runningApp.status];
+  if (problem) {
     return (
       <DeploymentStatusAlert
-        severity='warning'
-        content={
-          <StudioParagraph spacing>{t('app_deployment.status.not_responding')}</StudioParagraph>
-        }
-        footer={goToPublish}
-      />
-    );
-  }
-
-  if (runningApp.status === 'failed') {
-    return (
-      <DeploymentStatusAlert
-        severity='danger'
-        content={
-          <StudioParagraph spacing>{t('app_deployment.status.update_failed')}</StudioParagraph>
-        }
+        severity={problem.severity}
+        content={<StudioParagraph spacing>{t(problem.textKey)}</StudioParagraph>}
         footer={goToPublish}
       />
     );
