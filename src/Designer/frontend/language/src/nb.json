@@ -394,7 +394,7 @@
   "app_deployment.status.none": "Appen er ikke publisert i miljøet.",
   "app_deployment.status.not_responding": "Appen svarer ikke som den skal i miljøet. Du kan prøve å starte den på nytt.",
   "app_deployment.status.open_app_in_new_window": "Lenken åpner appen i en ny fane",
-  "app_deployment.status.restarting": "Appen restartes i miljøet...",
+  "app_deployment.status.restarting": "Appen startes på nytt i miljøet...",
   "app_deployment.status.succeeded": "Appen <a>versjon {{version}}<ext></ext></a> er tilgjengelig i miljøet.",
   "app_deployment.status.unavailable": "Kan ikke se statusen for appen for øyeblikket.",
   "app_deployment.status.update_failed": "Appen ble ikke ferdig oppdatert i miljøet. Prøv å starte den på nytt. Hvis det ikke hjelper, publiser appen igjen.",

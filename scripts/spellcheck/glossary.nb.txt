@@ -202,7 +202,6 @@ reinstallere
 renderingsregel
 renderingsregler
 reseksjonering
-restartes
 resynkroniser
 rotbane
 rutenettoppsett
