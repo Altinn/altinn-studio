@@ -2,7 +2,7 @@ import type { UseQueryResult, QueryMeta } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import { environmentsOf, type DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 
 // Polls only while an app is updating, or an environment could not tell what runs, so a deploy page left open does
 // not keep calling every cluster.
@@ -26,7 +26,7 @@ export const useAppDeploymentsQuery = (
 };
 
 const pollInterval = (deployments?: DeploymentsResponse): number | false => {
-  const environments = deployments?.environmentList ?? [];
+  const environments = environmentsOf(deployments);
   if (environments.some((environment) => environment.runningApp?.status === 'updating')) {
     return UPDATING_APP_POLL_INTERVAL_MS;
   }

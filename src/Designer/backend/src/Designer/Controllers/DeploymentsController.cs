@@ -76,10 +76,15 @@ public class DeploymentsController : ControllerBase
 
         IReadOnlyList<AppRunState> runStates = await _appRuntime.GetAll(org, app, cancellationToken);
 
+        // A limited list can leave out the deploy that runs.
+        IEnumerable<DeploymentEntity> deploymentsToMatch = query?.Top is null
+            ? deployments.Results
+            : (await AllDeployments(org, app, cancellationToken)).Results;
+
         return new DeploymentsResponse
         {
             PipelineDeploymentList = deployments.Results.ToList(),
-            EnvironmentList = runStates.Select(state => AppInEnvironment.From(state, deployments.Results)).ToList(),
+            EnvironmentList = runStates.Select(state => AppInEnvironment.From(state, deploymentsToMatch)).ToList(),
         };
     }
 
@@ -158,12 +163,13 @@ public class DeploymentsController : ControllerBase
         // The request's trace is the only record of who restarted the app, so sampling must not drop it.
         RootSpan.Of(HttpContext).SetAlwaysSample();
 
+        // Read before restarting, since a restart keeps the deploy that runs, so that a failing read cannot report a
+        // restart that started as failed.
+        IEnumerable<DeploymentEntity> deployments = (await AllDeployments(org, app, cancellationToken)).Results;
         AppRestart restart = await _appRuntime.Restart(org, app, restartRequest.Environment, cancellationToken);
         return restart switch
         {
-            AppRestart.Started started => Accepted(
-                RunningApp.From(started.Running, (await AllDeployments(org, app, cancellationToken)).Results)
-            ),
+            AppRestart.Started started => Accepted(RunningApp.From(started.Running, deployments)),
             AppRestart.NotRunning => RestartProblem(DeploymentErrorCodes.AppNotRunning, HttpStatusCode.NotFound),
             AppRestart.Updating => RestartProblem(DeploymentErrorCodes.AppUpdating, HttpStatusCode.Conflict),
             AppRestart.Paused => RestartProblem(DeploymentErrorCodes.AppPaused, HttpStatusCode.Conflict),

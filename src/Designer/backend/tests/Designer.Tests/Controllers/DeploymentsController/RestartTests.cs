@@ -84,6 +84,29 @@ public class RestartTests : DesignerEndpointsTestsBase<RestartTests>, IClassFixt
     }
 
     [Fact]
+    public async Task Restart_WhenItCannotReadTheDeploys_DoesNotRestart()
+    {
+        _deploymentServiceMock
+            .Setup(service => service.GetAsync(Org, App, It.IsAny<DocumentQueryModel>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Database unavailable"));
+
+        using HttpResponseMessage response = await PostRestart(Environment);
+
+        // Failing after the restart started would report a restart that runs as failed.
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        _runtimeGatewayClientMock.Verify(
+            client =>
+                client.RestartApp(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public async Task Restart_KeepsTheTraceThatRecordsWhoRestarted()
     {
         var requestSpans = new ConcurrentBag<Activity>();

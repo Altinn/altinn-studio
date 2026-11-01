@@ -114,6 +114,14 @@ public class GetDeployments
             actual.EnvironmentList,
             strict: true
         );
+
+        // A limited list still tells when what runs was published.
+        DeploymentsResponse newestOnly = JsonSerializer.Deserialize<DeploymentsResponse>(
+            await GetDeploymentsJson("&top=1"),
+            JsonSerializerOptions
+        );
+        Assert.Single(newestOnly.PipelineDeploymentList);
+        Assert.Equivalent(actual.EnvironmentList, newestOnly.EnvironmentList, strict: true);
     }
 
     [Fact]
@@ -155,11 +163,11 @@ public class GetDeployments
     private async Task<DeploymentsResponse> GetDeploymentsResponse() =>
         JsonSerializer.Deserialize<DeploymentsResponse>(await GetDeploymentsJson(), JsonSerializerOptions);
 
-    private async Task<string> GetDeploymentsJson()
+    private async Task<string> GetDeploymentsJson(string extraQuery = "")
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
-            $"{VersionPrefix(Org, App)}?sortDirection=Descending"
+            $"{VersionPrefix(Org, App)}?sortDirection=Descending{extraQuery}"
         );
         using HttpResponseMessage response = await HttpClient.SendAsync(request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

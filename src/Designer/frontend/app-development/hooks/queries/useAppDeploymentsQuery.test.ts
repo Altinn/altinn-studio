@@ -83,6 +83,23 @@ describe('useAppDeploymentsQuery', () => {
     expect(getDeployments).toHaveBeenCalledTimes(3);
   });
 
+  it('polls while an app is updating, though the backend is older and sends only running apps', async () => {
+    const olderBackend = (status: RunningAppStatus): DeploymentsResponse => ({
+      pipelineDeploymentList: [],
+      runningAppList: deployments(status).environmentList.map(({ runningApp }) => runningApp),
+    });
+    const getDeployments = vi
+      .fn()
+      .mockResolvedValueOnce(olderBackend('updating'))
+      .mockResolvedValue(olderBackend('ready'));
+    await renderAndLoad(getDeployments);
+
+    await advanceTime(UPDATING_APP_POLL_INTERVAL_MS);
+    await advanceTime(3 * UPDATING_APP_POLL_INTERVAL_MS);
+
+    expect(getDeployments).toHaveBeenCalledTimes(2);
+  });
+
   it('does not poll when no app is updating', async () => {
     const getDeployments = vi.fn().mockResolvedValue(deployments('ready'));
     await renderAndLoad(getDeployments);

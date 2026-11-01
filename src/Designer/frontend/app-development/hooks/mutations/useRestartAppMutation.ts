@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
+import { environmentsOf, type DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { AppInEnvironment, RunningApp } from 'app-shared/types/api/RunningApp';
 
 type UseRestartAppMutation = {
@@ -38,7 +38,7 @@ const replaceRunningApp = (
     state: 'running',
     runningApp: restarted,
   };
-  const environmentList = deployments.environmentList ?? [];
+  const environmentList = environmentsOf(deployments);
   const isListed = environmentList.some(
     (environment) => environment.environment === restarted.environment,
   );
