@@ -1,4 +1,4 @@
-# devenv grows into a lab that reproduces the whole platform
+# devenv grows into a lab that reproduces the whole product
 
 - Status: Proposed
 - Deciders: Team
@@ -6,7 +6,7 @@
 
 ## Result
 
-A4: devenv becomes the lab where we develop and test the platform. It reproduces Core, runtime and platform as separate
+A4: devenv becomes the lab where we develop and test Altinn Studio. It reproduces Core, runtime and platform as separate
 areas that follow production's boundaries. Each area deploys from production's manifests with thin local overlays and
 lists how it differs from production. A topology chooses the areas, their profiles and whether they share a cluster.
 The lab reaches nothing outside itself, and it gives people and agents a small set of operations: start a topology,
@@ -22,11 +22,11 @@ We now use it for more than e2e tests:
 
 - As a lab for monitoring and alerting. A real fault, such as a storage copy that refuses writes, should produce the
   signal an alert rule watches, and the rule should fire and notify. A unit test of a rule's query assumes that the
-  signal exists. Only a real failure shows that it does, with the labels the rule expects, and that it is not missing
-  data instead.
+  signal exists. Only a real failure shows that it does, that it has the labels the rule expects, and that it does not
+  simply go missing.
 - In the future, as a target for security testing, such as pentests.
 
-Agents do much of this work, as they do most of our platform development. People use the lab too.
+Agents do much of this work, as they do most of our development. People use the lab too.
 
 Failures that matter often cross the boundaries between our [environments](../infrastructure/environments.md): Designer
 deploys to a runtime cluster, an app calls Storage in the platform cluster, and traffic to pdf3 goes through DIS Edge to
@@ -34,15 +34,15 @@ DIS Core. devenv reproduces one runtime cluster. Components from other clusters 
 missing. A lab limited to the runtime cluster cannot reproduce those failures, and a security test of one cluster
 misses the boundaries an attacker would cross.
 
-localtest, which studioctl ships to app developers, also runs the platform locally. It is a product, and its users'
-experience decides its design. devenv only serves the people and agents developing the platform, so fidelity and
+localtest, which studioctl ships to app developers, also runs Altinn Platform services locally. It is a product, and its
+users' experience decides its design. devenv serves the people and agents who develop Altinn Studio, so fidelity and
 control decide its design. The two can share code, but neither constrains the other.
 
 ## Decision drivers
 
 - B1: We can reproduce failures in and between Core, runtime and platform, and see whether they produce the signals,
   alerts and notifications we rely on.
-- B2: Results hold in production. The lab runs production's manifests and images, and every difference is written down.
+- B2: Results hold in production. The lab runs production's manifests and images, and lists every way it differs.
 - B3: Anyone, person or agent, can break things and attack the lab without affecting shared environments, other people
   or real services.
 - B4: The lab starts from scratch the same way every time, on a developer's machine and in CI, and returns to a known
@@ -68,7 +68,7 @@ control decide its design. The two can share code, but neither constrains the ot
 - Good, because devenv stays as it is (B6).
 - Bad, because breaking or attacking a shared environment disturbs other teams and service owners, and agents cannot
   be let loose on it (B3).
-- Bad, because a fault cannot be injected and undone on demand, and the environments drift between runs (B4).
+- Bad, because we cannot inject and undo a fault on demand, and the environments drift between runs (B4).
 
 ### A2: The lab on localtest
 
@@ -81,14 +81,14 @@ control decide its design. The two can share code, but neither constrains the ot
 ### A3: One cluster with every component
 
 - Good, because it is the smallest step from today's fixture and uses the least memory (B5).
-- Bad, because calls between clusters become calls inside one cluster. Failures and attacks at those boundaries cannot
-  be reproduced (B1, B3).
+- Bad, because calls between clusters become calls inside one cluster, so the lab cannot reproduce failures and attacks
+  at those boundaries (B1, B3).
 - Bad, because the overlays must merge configuration that production keeps apart, so the differences from production
   grow (B2, B6).
 
 ### A4: Areas that follow production's boundaries
 
-- Good, because failures and attacks between areas can be reproduced when a test needs separate clusters (B1, B3).
+- Good, because the lab can reproduce failures and attacks between areas when a test needs separate clusters (B1, B3).
 - Good, because each area deploys from production's manifests, and its list of differences shows when a result might
   not hold in production (B2).
 - Good, because a test starts only the areas and profiles it needs (B5).
@@ -114,14 +114,14 @@ flowchart LR
 
 ### Areas
 
-- Each component runs in the area that runs it in production. The [environments](../infrastructure/environments.md)
-  doc defines the areas: Core is the Studio clusters, runtime is the runtime clusters, and platform is DIS Core, DIS
-  Edge, the platform cluster and adminservices.
-- An area deploys from production's manifests, applied by Flux from the lab's registry, with local overlays only where
-  the lab must differ. This is the rule the observability overlays already follow.
+- Each component runs in the area that runs it in production. Core is the Studio clusters, runtime is the runtime
+  clusters, and platform is DIS Core, DIS Edge, the platform cluster and adminservices. The
+  [environments](../infrastructure/environments.md) doc describes each of them.
+- An area deploys from production's manifests the way production deploys them, with local overlays only where the lab
+  must differ. The observability overlays already follow this rule.
 - For manifests other teams own, an area uses what they publish, such as images and OCI artifacts, rather than a copy.
-- Each area lists how it differs from production, and nothing else. A stand-in for an external service, such as an
-  identity provider or the shared Grafana, is one of those differences.
+- Each area lists every way it differs from production. A stand-in for an external service, such as an identity
+  provider or the shared Grafana, is one of those differences.
 - Each area has a light profile, the default for CI, and a full profile in production's shape for the lab and for
   security testing.
 
@@ -129,9 +129,8 @@ flowchart LR
 
 - A topology names the areas, their profiles, and whether they share one kind cluster or each get their own. One
   cluster is cheaper. Separate clusters are for tests of the boundaries.
-- Each area is a part of devenv's resource graph, and a topology combines those parts with explicit dependencies
-  between areas.
-- Areas are added when a concrete failure or test needs them, starting with the boundary that failure crosses.
+- A topology states the dependencies between its areas, so devenv starts them in order and checks each boundary.
+- We add an area when a concrete failure or test needs it, starting with the boundary that failure crosses.
 
 ### Operations
 
@@ -149,5 +148,5 @@ run in CI.
 ### Alerting
 
 The lab checks that a failure produces the signal a rule watches, and runs the full chain from failure to notification
-for new rules and for the cases only Grafana decides, such as missing data. The rules' query logic can be tested
-without the lab, with input series shaped like the ones the lab produced.
+for new rules and for the cases only Grafana decides, such as missing data. Tests of a rule's query logic do not need
+the lab. They use input series shaped like the ones the lab produced.
