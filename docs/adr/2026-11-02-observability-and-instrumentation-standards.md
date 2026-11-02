@@ -88,6 +88,9 @@ names decided here. This decision doesn't cover telemetry from browsers.
   secrets.
 - B7: People and agents can follow the standard without asking, and a reviewer can check it.
 - B8: Nice to have: a service gets most of the standard from shared code and configuration, not its own.
+- B9: Dashboards and alerts work the same way for every service, with the same datasources, variables, sections and
+  alert labels, so someone who knows one service's dashboard can read any other.
+- B10: A dashboard, query or alert built against a local stack works unchanged in the shared Grafana.
 
 ## Alternatives considered
 
