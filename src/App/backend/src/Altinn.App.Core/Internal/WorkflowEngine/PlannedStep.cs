@@ -34,7 +34,7 @@ internal sealed record PlannedStep
 
     /// <summary>
     /// What the step is called where people follow the task's progress: the display name of the item it runs, or
-    /// null for a step with no name to show. Sent as the <see cref="WorkflowCommandSet.StepNameLabel"/> label.
+    /// null for a step with no name to show. Sent as the <see cref="WorkflowStepSet.StepNameLabel"/> label.
     /// </summary>
     public string? StepName { get; init; }
 
@@ -58,10 +58,7 @@ internal sealed record PlannedStep
             RetryStrategy = options?.RetryStrategy?.ToRetryStrategy(),
             Labels = StepName is null
                 ? null
-                : new Dictionary<string, string>(StringComparer.Ordinal)
-                {
-                    [WorkflowCommandSet.StepNameLabel] = StepName,
-                },
+                : new Dictionary<string, string>(StringComparer.Ordinal) { [WorkflowStepSet.StepNameLabel] = StepName },
         };
     }
 }

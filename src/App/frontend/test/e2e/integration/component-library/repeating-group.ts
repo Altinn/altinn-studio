@@ -84,7 +84,31 @@ describe('Group summary test', () => {
         });
     });
     cy.get('#add-button-RepeatingGroup').should('be.visible');
+    cy.get('[data-componentid="RepeatingGroup-Summary2-table"] table').within(() => {
+      cy.findByRole('columnheader', { name: 'Extra action' }).should('exist');
+      cy.contains('td', 'Additional information').should('exist');
+      cy.contains('td', 'Across columns').should('have.attr', 'colspan', '2');
+    });
     cy.visualTesting('repeatingGroupAddButtons');
+
+    cy.changeLayout((component) => {
+      if (component.type === 'RepeatingGroup' && component.id === 'RepeatingGroup') {
+        component.rowsBefore = [];
+        component.rowsAfter = [];
+      }
+    });
+    cy.get('[data-componentid="RepeatingGroup-Summary2-table"] table').within(() => {
+      cy.findByRole('columnheader', { name: /^A long column heading/ }).should('exist');
+      cy.findByRole('columnheader', { name: 'Poeng' }).should('exist');
+      cy.findByRole('columnheader', { name: 'Dato' }).should('exist');
+      cy.findByRole('cell', { name: inputValue }).should('exist');
+      cy.findAllByRole('row')
+        .should('have.length', 2)
+        .each(($row) => {
+          cy.wrap($row).children().should('have.length', 4);
+        });
+      cy.findByRole('columnheader', { name: 'Extra action', timeout: 0 }).should('not.exist');
+    });
   });
 
   it('Fills in an input in the repeating group, the text appears in summary', () => {
@@ -224,14 +248,16 @@ describe('Group summary test', () => {
       .click();
 
     cy.get('div[data-testid="summary-repeating-group-component"] > table').within(() => {
-      cy.findAllByRole('row').should('have.length', 3);
+      cy.findAllByRole('row').should('have.length', 5);
       cy.findByRole('columnheader', { name: /Navn/ }).should('exist');
       cy.findAllByRole('cell', { name: inputValue }).should('exist');
       cy.findAllByRole('cell', { name: inputValue2 }).should('exist');
-      cy.findAllByRole('columnheader').should(($headers) => {
-        const nameWidth = $headers[0].getBoundingClientRect().width;
-        const pointsWidth = $headers[1].getBoundingClientRect().width;
-        expect(pointsWidth, 'the 70% column is wider than the 10% column').to.be.greaterThan(nameWidth * 3);
+      cy.findByRole('columnheader', { name: /Navn/ }).then(($nameHeader) => {
+        const nameWidth = $nameHeader[0].getBoundingClientRect().width;
+        cy.findByRole('columnheader', { name: /Poeng/ }).should(($pointsHeader) => {
+          const pointsWidth = $pointsHeader[0].getBoundingClientRect().width;
+          expect(pointsWidth, 'the 70% column is wider than the 10% column').to.be.greaterThan(nameWidth * 3);
+        });
       });
       cy.contains('Største gyldig tall er 100').should('be.visible');
     });

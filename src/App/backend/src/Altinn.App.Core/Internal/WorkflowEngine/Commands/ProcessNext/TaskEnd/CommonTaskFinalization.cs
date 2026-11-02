@@ -43,7 +43,7 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
         _dataElementAccessChecker = dataElementAccessChecker;
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public async Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext parameters)
     {
         IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
         Instance instance = dataMutator.Instance;
@@ -75,11 +75,11 @@ internal sealed class CommonTaskFinalization : IWorkflowEngineCommand
 
             await Task.WhenAll(tasks);
 
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 

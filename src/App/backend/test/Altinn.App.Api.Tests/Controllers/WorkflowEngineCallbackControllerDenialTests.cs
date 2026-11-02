@@ -43,9 +43,9 @@ public class WorkflowEngineCallbackControllerDenialTests : ApiTestBase, IClassFi
 
         public string GetKey() => Key;
 
-        public Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext context) =>
-            Task.FromResult<ProcessEngineCommandResult>(
-                FailedProcessEngineCommandResult.Retryable(
+        public Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext context) =>
+            Task.FromResult<WorkflowEngineCommandResult>(
+                FailedWorkflowEngineCommandResult.Retryable(
                     new PlatformHttpException(HttpStatusCode.Forbidden, "Storage refused the request")
                 )
             );

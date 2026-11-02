@@ -19,6 +19,10 @@ public static class ServiceCollectionExtensions
     /// The client every deploy, metrics and alerts call uses, with the standard resilience
     /// handler as it comes.
     /// </summary>
+    /// <remarks>
+    /// Both gateway clients call one gateway per runtime cluster, so their pipelines are kept per
+    /// cluster. Otherwise one cluster that is down would open the circuit for all the others.
+    /// </remarks>
     internal const string HttpClientName = "runtime-gateway";
 
     /// <summary>
@@ -51,8 +55,11 @@ public static class ServiceCollectionExtensions
         if (env.IsDevelopment())
         {
             // Plain HttpClients for a local / mock runtime gateway
-            services.AddHttpClient(HttpClientName).AddStandardResilienceHandler();
-            services.AddHttpClient(WorkflowsHttpClientName).AddStandardResilienceHandler(ConfigureWorkflowsResilience);
+            services.AddHttpClient(HttpClientName).AddStandardResilienceHandler().SelectPipelineByAuthority();
+            services
+                .AddHttpClient(WorkflowsHttpClientName)
+                .AddStandardResilienceHandler(ConfigureWorkflowsResilience)
+                .SelectPipelineByAuthority();
             services
                 .AddHttpClient(RuntimeGatewayClient.ActivitySignalsHttpClientName)
                 .ConfigureHttpClient(client => client.Timeout = RuntimeGatewayClient.ActivitySignalsTimeout);
@@ -68,10 +75,12 @@ public static class ServiceCollectionExtensions
             {
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(HttpClientName, settings)
-                    .AddStandardResilienceHandler();
+                    .AddStandardResilienceHandler()
+                    .SelectPipelineByAuthority();
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(WorkflowsHttpClientName, settings)
-                    .AddStandardResilienceHandler(ConfigureWorkflowsResilience);
+                    .AddStandardResilienceHandler(ConfigureWorkflowsResilience)
+                    .SelectPipelineByAuthority();
                 services
                     .AddMaskinportenHttpClient<SettingsJwkClientDefinition>(
                         RuntimeGatewayClient.ActivitySignalsHttpClientName,

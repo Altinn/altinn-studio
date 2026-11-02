@@ -82,6 +82,7 @@ internal static partial class ServiceTelemetry
             public const string CloneCloned = Prefix + "clone.cloned";
             public const string CloneFailureHandled = Prefix + "clone.failure_handled";
             public const string CloneRepoExisted = Prefix + "clone.repo_existed";
+            public const string CombineStatus = Prefix + "combine.status";
             public const string CommitCreated = Prefix + "commit.created";
             public const string CommitIsDirty = Prefix + "commit.is_dirty";
             public const string CommitMessageEmpty = Prefix + "commit.message_empty";
@@ -89,6 +90,7 @@ internal static partial class ServiceTelemetry
             public const string CommitSha = Prefix + "commit.sha";
             public const string ContentStatusCount = Prefix + "content_status_count";
             public const string FeatureBranch = Prefix + "feature_branch";
+            public const string FetchTrackingRefsRebuilt = Prefix + "fetch.tracking_refs_rebuilt";
             public const string FilePath = Prefix + "file.path";
             public const string FileStaged = Prefix + "file.staged";
             public const string IsDirty = Prefix + "is_dirty";
@@ -118,6 +120,11 @@ internal static partial class ServiceTelemetry
             public const string Repository = Prefix + "repository";
             public const string RepositoryStatus = Prefix + "repository_status";
             public const string SourceBranch = Prefix + "source_branch";
+
+            /// <summary>
+            /// Why the repository status could not save refreshed stat data in the index, such as a locked index.
+            /// </summary>
+            public const string StatusIndexUpdateFailure = Prefix + "status.index_update_failure";
             public const string TargetBranch = Prefix + "target_branch";
         }
 

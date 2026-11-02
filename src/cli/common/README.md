@@ -12,8 +12,8 @@ each app release [publishes as an OCI artifact](../../../.github/actions/publish
 
 - The projects belong to [studioctl's solution](../studioctl.slnx), so `make test` in `src/cli` tests them. The
   Designer backend workflows also run when they change.
-- The libraries build with all analyzer rules and warnings as errors, also outside CI. Turn off a rule that does not
-  fit them in [.editorconfig](dotnet/.editorconfig), with a reason, rather than suppressing it in code.
+- The libraries build with all analyzer rules. Turn off a rule that does not fit them in
+  [.editorconfig](dotnet/.editorconfig), with a reason, rather than suppressing it in code.
 - Designer's [Dockerfile](../../Designer/Dockerfile) and
   [migrations Dockerfile](../../Designer/backend/Migrations.Dockerfile) copy AppDist together with the build
   configuration it inherits from `src/cli`. Update them when that configuration gains a file.

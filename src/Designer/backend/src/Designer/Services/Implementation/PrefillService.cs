@@ -87,7 +87,11 @@ public class PrefillService : IPrefillService
 
     private static void ValidateModelPath(string modelPath)
     {
-        if (string.IsNullOrWhiteSpace(modelPath) || modelPath.Contains(".."))
+        if (
+            string.IsNullOrWhiteSpace(modelPath)
+            || modelPath.Contains("..")
+            || !modelPath.EndsWith(SchemaFileSuffix, StringComparison.Ordinal)
+        )
         {
             throw new ArgumentException($"Invalid model path: {modelPath}", nameof(modelPath));
         }

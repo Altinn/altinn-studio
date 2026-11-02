@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -21,17 +20,6 @@ public class ImagesService : IImagesService
     public ImagesService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-    }
-
-    public FileStreamResult GetImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath)
-    {
-        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-            altinnRepoEditingContext.Org,
-            altinnRepoEditingContext.Repo,
-            altinnRepoEditingContext.Developer
-        );
-        Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
-        return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
     }
 
     public List<string> GetAllImageFileNames(AltinnRepoEditingContext altinnRepoEditingContext)
@@ -51,6 +39,10 @@ public class ImagesService : IImagesService
         bool overrideExisting
     )
     {
+        if (!Guard.IsSafePathSegment(imageName))
+        {
+            throw new System.ArgumentException("An image name must be a single file name.", nameof(imageName));
+        }
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             altinnRepoEditingContext.Org,
             altinnRepoEditingContext.Repo,

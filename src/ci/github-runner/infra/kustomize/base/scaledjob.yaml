@@ -74,6 +74,27 @@ spec:
                 mountPath: /var/cache/altinn/sandbox
               - name: tmp
                 mountPath: /tmp
+          # The namespace's egress policy takes effect for a new pod a few seconds after
+          # it starts. Wait until it does, so a job never runs before it applies.
+          - name: wait-for-egress-policy
+            image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
+            command: ["bash", "-c"]
+            args:
+              - |
+                for _ in $(seq 120); do
+                  timeout 2 bash -c ': </dev/tcp/169.254.169.254/80' 2>/dev/null || exit 0
+                  sleep 1
+                done
+                echo "The egress policy still does not apply to this pod after 120 attempts" >&2
+                exit 1
         containers:
           - name: coordinator
             image: altinntjenestercontainerregistry.azurecr.io/altinn-studio/github-runner-coordinator:latest

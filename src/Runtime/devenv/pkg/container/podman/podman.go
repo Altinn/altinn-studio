@@ -146,7 +146,7 @@ func (c *Client) BuildWithProgress(
 		Indeterminate: true,
 	})
 
-	output, err := runPodmanCommand(ctx, []string{"build", "-t", tag, "-f", dockerfile, contextPath})
+	output, err := runPodmanCommand(ctx, types.PodmanBuildArgs(contextPath, dockerfile, tag))
 	if err != nil {
 		return fmt.Errorf("podman build failed: %w\nOutput: %s", err, string(output))
 	}

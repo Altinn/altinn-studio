@@ -980,19 +980,6 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Gets specified image from App/wwwroot folder of local repo
-    /// </summary>
-    /// <param name="imageFilePath">The file path of the image</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>The image as stream</returns>
-    public Stream GetImageAsStreamByFilePath(string imageFilePath, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string imagePath = GetPathToImage(imageFilePath);
-        return OpenStreamByRelativePath(imagePath);
-    }
-
-    /// <summary>
     /// Delete specified image from App/wwwroot folder of local repo
     /// </summary>
     /// <param name="imageFilePath">The file path of the image</param>

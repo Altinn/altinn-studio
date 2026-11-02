@@ -6,6 +6,7 @@ import type { IDataModelReference } from '@app/layout-contract/generated/common.
 
 import { FormStore } from 'src/features/form/FormContext';
 import { getComponentDef } from 'src/layout';
+import { useTableLayout } from 'src/layout/RepeatingGroup/useTableLayout';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
@@ -72,6 +73,7 @@ function collectEditableChildren(
   }
 }
 export const RepGroupHooks = {
+  useTableLayout,
   useAllBaseRows(baseComponentId: string) {
     const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup')?.group;
     return FormStore.data.useFreshRows(groupBinding);

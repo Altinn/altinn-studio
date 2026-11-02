@@ -12,8 +12,8 @@ using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Runtime;
 using Altinn.Studio.Designer.Telemetry;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
@@ -33,21 +33,17 @@ public class DeploymentsController : ControllerBase
 {
     private readonly IDeploymentService _deploymentService;
     private readonly IGiteaClient _giteaClient;
-    private readonly IKubernetesDeploymentsService _kubernetesDeploymentsService;
+    private readonly AppRuntime _appRuntime;
 
     // TODO(#18666): DeveloperAppToken is unused with OIDC auth; placeholder satisfies
     // the AltinnAuthenticatedRepoEditingContext guard until that model is reworked.
     private const string OidcAuthTokenPlaceholder = "studio-oidc-auth";
 
-    public DeploymentsController(
-        IDeploymentService deploymentService,
-        IGiteaClient giteaClient,
-        IKubernetesDeploymentsService kubernetesDeploymentsService
-    )
+    public DeploymentsController(IDeploymentService deploymentService, IGiteaClient giteaClient, AppRuntime appRuntime)
     {
         _deploymentService = deploymentService;
         _giteaClient = giteaClient;
-        _kubernetesDeploymentsService = kubernetesDeploymentsService;
+        _appRuntime = appRuntime;
     }
 
     /// <summary>
@@ -57,7 +53,7 @@ public class DeploymentsController : ControllerBase
     /// <param name="app">Application name</param>
     /// <param name="query">Document query model</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of Pipeline deployments and Kubernetes deployments</returns>
+    /// <returns>List of Pipeline deployments and the app as it runs in each environment</returns>
     [HttpGet]
     [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
     public async Task<DeploymentsResponse> Get(
@@ -74,16 +70,12 @@ public class DeploymentsController : ControllerBase
             cancellationToken
         );
 
-        List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(
-            org,
-            app,
-            cancellationToken
-        );
+        IReadOnlyList<AppRunState> runStates = await _appRuntime.GetAll(org, app, cancellationToken);
 
         return new DeploymentsResponse
         {
             PipelineDeploymentList = deployments.Results.ToList(),
-            KubernetesDeploymentList = kubernetesDeploymentList,
+            RunningAppList = runStates.OfType<AppRunState.Running>().Select(RunningApp.From).ToList(),
         };
     }
 

@@ -177,9 +177,9 @@ internal abstract class PipelineConclusion : PipelineItem
     /// <summary>
     /// The pipeline ends with one more step — for a task that does one thing, its whole work.
     /// </summary>
-    internal sealed class FinalStep : PipelineConclusion
+    internal sealed class Final : PipelineConclusion
     {
-        public FinalStep(Func<StageContext, Task<ServiceTaskResult>> work, ProcessStepOptions? stepOptions)
+        public Final(Func<StageContext, Task<ServiceTaskResult>> work, ProcessStepOptions? stepOptions)
             : base(stepOptions)
         {
             Work = work;
