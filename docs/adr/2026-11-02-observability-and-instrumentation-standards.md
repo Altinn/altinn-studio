@@ -39,8 +39,8 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
     metrics from spans (A6.1).
 11. **Sampling.** The gateway keeps errors, slow traces and marked traces. Services mark only rare units of work where
     each one matters.
-12. **Dashboards and alerts.** They live as code in `Altinn/altinn-dashboards-grafana`, with pinned datasource UIDs.
-    Each service has one dashboard. Alerts fire on metrics only, on symptoms rather than causes.
+12. **Dashboards and alerts.** They live as code in `Altinn/altinn-dashboards-grafana`, with fixed datasource UIDs
+    (A7.1). Each service has one dashboard. Alerts fire on metrics only (A8.1), on symptoms rather than causes.
 13. **Local work and review.** Before merging, developers check telemetry against a local copy of the production
     pipeline, and test the telemetry that dashboards and alerts use. The team decides exceptions in review and records
     them in the guide.
@@ -128,6 +128,16 @@ Most decisions follow from the drivers and OpenTelemetry's guidance. These had r
 - A6.1: Metrics that services emit.
 - A6.2: Metrics the collector derives from spans before sampling.
 
+**How dashboards and alerts choose their datasource**
+
+- A7.1: Fixed datasource UIDs in every panel and rule.
+- A7.2: A datasource variable.
+
+**What alerts fire on**
+
+- A8.1: Metrics only.
+- A8.2: Metrics, and queries on logs.
+
 ## Pros and cons
 
 ### A1.1 The entry span
@@ -213,6 +223,34 @@ Most decisions follow from the drivers and OpenTelemetry's guidance. These had r
 - Good, because every span becomes countable without code in the service.
 - Bad, because it duplicates the HTTP metrics, and its series grow with every span name and attribute it keeps (B5).
 - Bad, because nobody owns the metrics' names and meaning.
+
+### A7.1 Fixed datasource UIDs
+
+- Good, because the local stacks have the same UIDs, so a dashboard built locally works in the shared Grafana (B10).
+- Good, because every dashboard and alert queries the same datasources (B9).
+- Bad, because a dashboard can't switch to another datasource. Each kind of query has one shared datasource, so
+  nothing needs to.
+
+### A7.2 A datasource variable
+
+- Good, because one dashboard can query different datasources.
+- Bad, because a saved variable often holds `default`, and the panels then query the wrong datasource without any
+  error. `Altinn/altinn-dashboards-grafana` advises against it for this reason (B9).
+- Bad, because an alert rule can't use a variable, so dashboards and alerts would choose datasources differently.
+
+### A8.1 Metrics only
+
+- Good, because metrics count every unit of work, so an alert fires on the real rate (B1).
+- Good, because every alert is written and read the same way (B9).
+- Bad, because a rare condition that only a log records can't fire an alert. The service counts it in a metric
+  instead.
+
+### A8.2 Metrics and logs
+
+- Good, because an alert can fire on a single log record, without a new metric.
+- Bad, because the pipeline drops logs below WARN and a service may limit repeated warnings, so a count of log
+  records is not the count of events (B1).
+- Bad, because alerts would come in two query languages (B9).
 
 ## Not decided here
 
