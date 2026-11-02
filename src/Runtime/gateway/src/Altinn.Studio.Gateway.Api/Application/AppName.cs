@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Altinn.Studio.Gateway.Contracts.Workflows;
 
 namespace Altinn.Studio.Gateway.Api.Application;
 
@@ -20,4 +21,13 @@ internal static partial class AppName
     private static partial Regex AppNameRegex();
 
     public static bool IsValid(string app) => AppNameRegex().IsMatch(app);
+
+    /// <summary>The response to a request whose app route parameter is not a valid app name.</summary>
+    public static IResult InvalidProblem() =>
+        Results.Problem(
+            type: GatewayProblem.InvalidAppNameType,
+            title: "Invalid app name",
+            statusCode: StatusCodes.Status400BadRequest,
+            detail: "The app route parameter must start with a letter and contain only lowercase letters, digits, and hyphens."
+        );
 }

@@ -87,7 +87,7 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     [Fact]
     public void A_Failed_Result_Flags_The_Denial_Without_Changing_The_Retry_Classification()
     {
-        var result = FailedProcessEngineCommandResult.Retryable(Platform(HttpStatusCode.Forbidden));
+        var result = FailedWorkflowEngineCommandResult.Retryable(Platform(HttpStatusCode.Forbidden));
 
         Assert.True(result.ServiceOwnerAuthorizationDenied);
         // The diagnosis is an explanation, not a reclassification: a 403 stays retryable so the
@@ -99,11 +99,11 @@ public class ServiceOwnerAuthorizationDiagnosticsTests
     public void A_Failed_Result_From_Any_Other_Exception_Is_Not_Flagged()
     {
         Assert.False(
-            FailedProcessEngineCommandResult.Retryable(new TimeoutException()).ServiceOwnerAuthorizationDenied
+            FailedWorkflowEngineCommandResult.Retryable(new TimeoutException()).ServiceOwnerAuthorizationDenied
         );
         Assert.False(
-            FailedProcessEngineCommandResult.Retryable("something went wrong").ServiceOwnerAuthorizationDenied
+            FailedWorkflowEngineCommandResult.Retryable("something went wrong").ServiceOwnerAuthorizationDenied
         );
-        Assert.False(FailedProcessEngineCommandResult.Permanent("invalid payload").ServiceOwnerAuthorizationDenied);
+        Assert.False(FailedWorkflowEngineCommandResult.Permanent("invalid payload").ServiceOwnerAuthorizationDenied);
     }
 }

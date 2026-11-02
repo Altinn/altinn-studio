@@ -388,7 +388,10 @@ internal sealed class WorkflowHandler(
 
         if (retryStrategy.CanRetry(currentStep.RequeueCount + 1, initialStartTime, timeProvider))
         {
+            // PostgreSQL keeps FirstFailedAt to the microsecond, while the error history's JSON keeps every
+            // tick. Cut to the microsecond here, so the two read as the same instant after a round trip.
             var failedAt = timeProvider.GetUtcNow();
+            failedAt = failedAt.AddTicks(-(failedAt.Ticks % TimeSpan.TicksPerMicrosecond));
             if (currentStep.RequeueCount == 0)
                 currentStep.FirstFailedAt = failedAt;
 

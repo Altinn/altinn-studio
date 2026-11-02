@@ -72,11 +72,36 @@ public sealed class LibGit2ConfigurationTests : IDisposable
     }
 
     [Fact]
+    public void AssertSymbolicLinksDisabled_RepositoryOverride_RejectsUnsafeConfiguration()
+    {
+        string path = Repository.Init(Path.Join(_directory, "local"));
+        using Repository repository = new(path);
+        repository.Config.Set("core.symlinks", true, ConfigurationLevel.Local);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            LibGit2Configuration.AssertSymbolicLinksDisabled(repository.Config)
+        );
+    }
+
+    [Fact]
     public void AssertSymbolicLinksDisabled_SymbolicLinksDisabled_DoesNotThrow()
     {
         using Configuration configuration = BuildConfiguration("[core]\n\tsymlinks = false\n");
 
         LibGit2Configuration.AssertSymbolicLinksDisabled(configuration);
+    }
+
+    [Fact]
+    public void SystemConfiguration_TrustsRepositoriesOfEveryOwner()
+    {
+        string systemConfigurationPath = Path.Join(
+            AppContext.BaseDirectory,
+            LibGit2Configuration.SystemConfigurationFolder,
+            "gitconfig"
+        );
+        using Configuration configuration = BuildConfiguration(File.ReadAllText(systemConfigurationPath));
+
+        Assert.Equal("*", configuration.Get<string>("safe.directory")?.Value);
     }
 
     public void Dispose()

@@ -11,5 +11,7 @@ export const useCreatePreviewInstanceMutation = (org: string, app: string) => {
   return useMutation({
     mutationFn: ({ partyId, taskId }: CreatePreviewPayload) =>
       createPreviewInstance(org, app, partyId, taskId),
+    // The instance lives in the preview, not in the user's copy of the repository.
+    meta: { leavesRepoUnchanged: true },
   });
 };

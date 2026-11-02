@@ -10,7 +10,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import userEvent from '@testing-library/user-event';
 import type { UseMutationResult } from '@tanstack/react-query';
-import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { Policy, PolicySubject } from '@altinn/policy-editor';
 import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 
 export const mockPolicy: Policy = {
@@ -18,12 +18,6 @@ export const mockPolicy: Policy = {
   requiredAuthenticationLevelEndUser: '3',
   requiredAuthenticationLevelOrg: '3',
 };
-
-const mockActions: PolicyAction[] = [
-  { actionId: 'a1', actionTitle: 'Action 1', actionDescription: 'The first action' },
-  { actionId: 'a2', actionTitle: 'Action 2', actionDescription: 'The second action' },
-  { actionId: 'a3', actionTitle: 'Action 3', actionDescription: 'The third action' },
-];
 
 const mockSubjects: PolicySubject[] = [
   {
@@ -88,19 +82,13 @@ describe('PolicyTab', () => {
     expect(getAppPolicy).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches actions on mount', () => {
-    const getPolicyActions = vi.fn().mockImplementation(() => Promise.resolve({}));
-    renderPolicyTab({ getPolicyActions });
-    expect(getPolicyActions).toHaveBeenCalledTimes(1);
-  });
-
   it('fetches subjects on mount', () => {
     const getPolicySubjects = vi.fn().mockImplementation(() => Promise.resolve(null));
     renderPolicyTab({ getPolicySubjects });
     expect(getPolicySubjects).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['getAppPolicy', 'getPolicyActions', 'getPolicySubjects'])(
+  it.each(['getAppPolicy', 'getPolicySubjects'])(
     'shows an error message if an error occurred on the %s query',
     async (queryName) => {
       const errorMessage = 'error-message-test';
@@ -167,12 +155,10 @@ const renderPolicyTab = (queries: Partial<ServicesContextProps> = {}) => {
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
   const getAppPolicy = vi.fn().mockImplementation(() => Promise.resolve(mockPolicy));
-  const getPolicyActions = vi.fn().mockImplementation(() => Promise.resolve(mockActions));
   const getPolicySubjects = vi.fn().mockImplementation(() => Promise.resolve(mockSubjects));
 
   renderPolicyTab({
     getAppPolicy,
-    getPolicyActions,
     getPolicySubjects,
     ...queries,
   });

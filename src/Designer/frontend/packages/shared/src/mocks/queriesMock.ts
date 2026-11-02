@@ -52,7 +52,7 @@ import type {
   StudioctlAuthCallback,
   StudioctlAuthRequest,
 } from 'app-shared/types/api/StudioctlAuth';
-import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
+import type { Policy, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
   deploymentsResponse,
@@ -248,7 +248,6 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() =>
       Promise.resolve<{ identifier?: string; policy?: Policy; resourceType: string }[]>([]),
     ),
-  getPolicyActions: vi.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: vi.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: vi.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
   getAccessPackages: vi.fn().mockImplementation(() => Promise.resolve([])),

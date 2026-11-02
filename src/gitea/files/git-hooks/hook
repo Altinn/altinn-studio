@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s inherit_errexit
+
+hook_name=$(basename "$0")
+repository_hook="${GIT_DIR:-.}/hooks/$hook_name"
+
+list_symbolic_links_in_commits() {
+  git -c log.showRoot=true log --format='commit %H' --raw --no-abbrev --no-renames --diff-merges=combined \
+    "$@" --not --all |
+    awk '
+      /^commit / { commit = $2; next }
+      /^:/ {
+        parent_count = match($0, /[^:]/) - 1
+        split(substr($0, parent_count + 1), fields, " ")
+        if (fields[parent_count + 1] == "120000") {
+          printf "  %s (commit %s)\n", substr($0, index($0, "\t") + 1), commit
+        }
+      }
+    '
+}
+
+list_symbolic_links_in_tree() {
+  git ls-tree -r --full-tree "$1" | awk -F '\t' -v tree="$1" '
+    /^120000 / { printf "  %s (tree %s)\n", $2, tree }
+  '
+}
+
+list_pushed_symbolic_links() {
+  local new_id object_id object_type
+  local commits=()
+  while read -r _ new_id _; do
+    [[ "$new_id" =~ ^0+$ ]] && continue
+    object_id=$(git rev-parse "$new_id^{}")
+    object_type=$(git cat-file -t "$object_id")
+    case "$object_type" in
+      commit) commits+=("$object_id") ;;
+      tree) list_symbolic_links_in_tree "$object_id" ;;
+    esac
+  done
+  if ((${#commits[@]} > 0)); then
+    list_symbolic_links_in_commits "${commits[@]}"
+  fi
+}
+
+if [[ "$hook_name" == pre-receive ]]; then
+  commands=$(cat)
+  symbolic_links=$(list_pushed_symbolic_links <<<"$commands")
+  if [[ -n "$symbolic_links" ]]; then
+    echo "Symbolic links are not allowed in Altinn Studio repositories. Replace them with regular files and push again:" >&2
+    echo "$symbolic_links" >&2
+    exit 1
+  fi
+  [[ -x "$repository_hook" ]] || exit 0
+  printf '%s\n' "$commands" | "$repository_hook" "$@"
+  exit
+fi
+
+[[ -x "$repository_hook" ]] || exit 0
+exec "$repository_hook" "$@"

@@ -846,12 +846,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             throw new InvalidOperationException("Workflow-owned aggregate save requires a captured instance version.");
         }
 
-        // MutateProcessState can move the callback snapshot ahead of Storage before CommitProcessState.
-        // Data-only callback saves must retain that in-memory process state for the next signed callback
-        // instead of replacing it with Storage's still-durable source task. For user-facing saves the
-        // in-memory process state matches Storage, so the preserved snapshot is content-equal.
-        ProcessState? processSnapshot = mutationPlan.Request.ProcessState?.State is null ? Instance.Process : null;
-
         StorageAuthenticationMethod authenticationMethod = ResolveAggregateAuthenticationMethod(
             mutationPlan.AuthenticationMethods,
             defaultAuthenticationMethod
@@ -894,22 +888,12 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (result.Replayed)
         {
             await RebuildFromStorageAfterReplay(cancellationToken);
-            if (processSnapshot is not null)
-            {
-                processSnapshot.Status = Instance.Process?.Status;
-                Instance.Process = processSnapshot;
-            }
             throw new InstanceMutationReplayedException(
                 "Storage replayed the workflow-owned instance mutation. The unit of work has been rebuilt from Storage state."
             );
         }
 
         ApplyAggregateMutationResult(changes, mutationPlan, result);
-        if (processSnapshot is not null)
-        {
-            processSnapshot.Status = Instance.Process?.Status;
-            Instance.Process = processSnapshot;
-        }
         ClearStagedInstanceMutations();
         return WorkflowAggregateSaveOutcome.Saved;
     }

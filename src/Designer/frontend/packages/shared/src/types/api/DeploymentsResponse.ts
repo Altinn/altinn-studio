@@ -1,7 +1,8 @@
-import type { KubernetesDeployment } from './KubernetesDeployment';
+import type { RunningApp } from './RunningApp';
 import type { PipelineDeployment } from './PipelineDeployment';
 
 export interface DeploymentsResponse {
   pipelineDeploymentList: PipelineDeployment[];
-  kubernetesDeploymentList: KubernetesDeployment[];
+  /** Missing from a backend older than this frontend, as during a rollout. */
+  runningAppList?: RunningApp[];
 }

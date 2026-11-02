@@ -65,7 +65,6 @@ bildeopplaster
 borettslagsandel
 brukerdataene
 brukerkontoer
-brukerpålogging
 brukersynkronisering
 claimet
 datamodellbinding
@@ -77,7 +76,6 @@ delegerbar
 delegerbare
 delegeringstekst
 driftsmeldinger
-egenregistrering
 endringslogg
 endringsoppsummering
 endringstransaksjonen
@@ -328,7 +326,6 @@ aktiverings             # aktiverings-e-post
 autoriserings           # Autoriserings-URL
 bekreftelses            # bekreftelses-e-post
 påloggings              # påloggings- og registreringssidene
-tofaktor                # tofaktor-autentisering
 trinnsautentisering     # 2-trinnsautentisering
 
 # Unusual but deliberate: calques and translator style in shipped UI text
@@ -338,9 +335,7 @@ autoriseringsforespørselen  # Gitea translation; a sibling key says 'autorisasj
 avstandsjustert             # Gitea's rendering of 'monospace' (avstandsjustert skrift)
 beskrivelsesløse            # ad-hoc -løse derivation in the Gitea UI (emneløse, ikonløse, beskrivelsesløse)
 bolsk                       # calque of 'boolean' used as a data-type label in the expression editor
-delstreng                   # calque of 'substring' in a Gitea validation message
 fravelg                     # calque of 'deselect' in the Gitea UI
-føderert                    # 'føderert avatar-oppslag' (federated) in the Gitea UI
 gjennomsynsforespørsel      # Gitea's rendering of 'review request'
 gjentagende                 # variant of 'gjentakende' in the Designer news feed
 godkjenningsoverskrift      # Gitea's rendering of 'authorization header'

@@ -38,8 +38,8 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
-    public override async Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public override async Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         CommonTaskInitializationPayload payload
     )
     {
@@ -69,6 +69,6 @@ internal sealed class CommonTaskInitialization : WorkflowEngineCommandBase<Commo
             instanceDataMutator.AddFormDataElement(dataType.Id, data);
         }
 
-        return new SuccessfulProcessEngineCommandResult();
+        return new SuccessfulWorkflowEngineCommandResult();
     }
 }

@@ -1,3 +1,4 @@
+# Build context: repository root
 # Designer's frontend build requires the repository-root Yarn workspace, so this is the deliberate
 # exception to the src/ context convention. Keep the root context as a complete narrow allowlist.
 **
@@ -24,8 +25,15 @@
 !src/cli/common/dotnet/Directory.Build.props
 !src/cli/common/dotnet/Altinn.Studio.AppDist
 !src/cli/common/dotnet/Altinn.Studio.AppDist/**
-!src/Designer/backend
-!src/Designer/backend/**
+!src/Designer/backend/.config/**
+!src/Designer/backend/.csharpierignore
+!src/Designer/backend/.csharpierrc.yaml
+!src/Designer/backend/.editorconfig
+!src/Designer/backend/Directory.Build.props
+!src/Designer/backend/Directory.Packages.props
+!src/Designer/backend/global.json
+!src/Designer/backend/PolicyAdmin/**
+!src/Designer/backend/src/**
 !src/Designer/development/azure-devops-mock/package.json
 !src/Designer/frontend
 !src/Designer/frontend/**

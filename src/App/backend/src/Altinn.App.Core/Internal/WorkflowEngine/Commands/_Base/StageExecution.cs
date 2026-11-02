@@ -25,7 +25,7 @@ internal static class StageExecution
     /// version ran the whole lifecycle as one step, so the step is run that way here, as a payload with no stage
     /// index. A payload of another type is invalid, as for any command.
     /// </summary>
-    public static ProcessTaskStagePayload? ResolvePayload(ProcessEngineCommandContext context) =>
+    public static ProcessTaskStagePayload? ResolvePayload(WorkflowEngineCommandContext context) =>
         context.Payload.Payload is null
             ? new ProcessTaskStagePayload(StageIndex: null)
             : CommandPayloadSerializer.Deserialize<CommandRequestPayload>(context.Payload.Payload)
@@ -45,10 +45,10 @@ internal static class StageExecution
     /// <see cref="StageContext.StepId"/> stay apart. Only the first stage can defer: a deferral discards what the
     /// stages before it changed, so a later stage that defers fails the step permanently instead.
     /// </remarks>
-    public static async Task<ProcessEngineCommandResult> Run(
+    public static async Task<WorkflowEngineCommandResult> Run(
         ProcessTaskPipeline pipeline,
         ProcessTaskStagePayload payload,
-        ProcessEngineCommandContext context,
+        WorkflowEngineCommandContext context,
         LifecyclePhase phase,
         string? altinnTaskType
     )
@@ -64,13 +64,13 @@ internal static class StageExecution
                 {
                     StepId = StepIdForStage(stageContext.StepId, index),
                 };
-                ProcessEngineCommandResult result = await RunStage(stages[index], index, stageOwnContext);
+                WorkflowEngineCommandResult result = await RunStage(stages[index], index, stageOwnContext);
                 switch (result)
                 {
-                    case SuccessfulProcessEngineCommandResult:
+                    case SuccessfulWorkflowEngineCommandResult:
                         continue;
-                    case DeferredProcessEngineCommandResult when index > 0:
-                        return FailedProcessEngineCommandResult.Permanent(
+                    case DeferredWorkflowEngineCommandResult when index > 0:
+                        return FailedWorkflowEngineCommandResult.Permanent(
                             $"Task type '{altinnTaskType}' {phase.Name()} stage {index} deferred after the stages "
                                 + "before it ran. This step was enqueued before the task composed stages and runs "
                                 + "every stage without saving in between, so a deferral would discard what they "
@@ -83,12 +83,12 @@ internal static class StageExecution
                         return result;
                 }
             }
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
 
         if (stages.ElementAtOrDefault(stageIndex) is not { } stage)
         {
-            return FailedProcessEngineCommandResult.Permanent(
+            return FailedWorkflowEngineCommandResult.Permanent(
                 $"Task type '{altinnTaskType}' composes no {phase.Name()} stage at index {stageIndex}. A pipeline's "
                     + "indexes are positions in its composition: if stages were inserted, reordered or removed since this "
                     + "workflow was enqueued, every index behind the change has moved. Resume the workflow on the "
@@ -98,7 +98,7 @@ internal static class StageExecution
         }
         return await RunStage(stage, stageIndex, stageContext);
 
-        async Task<ProcessEngineCommandResult> RunStage(PipelineStage.Plain stage, int index, StageContext context) =>
+        async Task<WorkflowEngineCommandResult> RunStage(PipelineStage.Plain stage, int index, StageContext context) =>
             MapResult(
                 await stage.Work(context),
                 message => $"Task type '{altinnTaskType}' {phase.Name()} stage {index} failed: {message}",
@@ -130,7 +130,7 @@ internal static class StageExecution
     /// The context for a stage run by this step: the instance data, the step's identity, and the engine's record of
     /// how many times the step has been attempted and how long it has waited.
     /// </summary>
-    public static StageContext CreateContext(ProcessEngineCommandContext context) =>
+    public static StageContext CreateContext(WorkflowEngineCommandContext context) =>
         new()
         {
             InstanceDataMutator = context.InstanceDataMutator,
@@ -156,31 +156,31 @@ internal static class StageExecution
     /// The step's result for a stage that completed, deferred or failed. <paramref name="describeFailure"/> turns
     /// the stage's error message into the step's, naming what failed.
     /// </summary>
-    public static ProcessEngineCommandResult MapResult(
+    public static WorkflowEngineCommandResult MapResult(
         StageResult result,
         Func<string, string> describeFailure,
         string failureReasonCode
     ) =>
         result switch
         {
-            CompletedStageResult => new SuccessfulProcessEngineCommandResult(),
-            DeferredStageResult deferred => new DeferredProcessEngineCommandResult
+            CompletedStageResult => new SuccessfulWorkflowEngineCommandResult(),
+            DeferredStageResult deferred => new DeferredWorkflowEngineCommandResult
             {
                 Delay = deferred.Delay,
                 Reason = deferred.Reason,
             },
-            FailedStageResult { Kind: FailureKind.Permanent } failed => FailedProcessEngineCommandResult.Permanent(
+            FailedStageResult { Kind: FailureKind.Permanent } failed => FailedWorkflowEngineCommandResult.Permanent(
                 describeFailure(failed.ErrorMessage),
                 failureReasonCode
             ),
-            FailedStageResult failed => FailedProcessEngineCommandResult.Retryable(
+            FailedStageResult failed => FailedWorkflowEngineCommandResult.Retryable(
                 describeFailure(failed.ErrorMessage),
                 failureReasonCode
             ),
             // An author's own result type is an error no retry fixes; a throw here would be caught by the command
             // and retried until the budget runs out, repeating the stage's calls each time.
             // The same for null, which the pattern above also routes here.
-            _ => FailedProcessEngineCommandResult.Permanent(
+            _ => FailedWorkflowEngineCommandResult.Permanent(
                 describeFailure(
                     $"returned {DescribeResult(result)}, which this version of the app-lib cannot act on. Return one "
                         + $"of the results {nameof(StageResult)}'s factory methods produce "

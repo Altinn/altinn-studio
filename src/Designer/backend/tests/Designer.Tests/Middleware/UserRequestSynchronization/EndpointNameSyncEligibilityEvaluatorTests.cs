@@ -21,6 +21,26 @@ public class EndpointNameSyncEligibilityEvaluatorTests
         Assert.True(isEligible);
     }
 
+    // Reading the repository status writes the index, so every action that writes the index must hold the lock too.
+    [Theory]
+    [InlineData(nameof(RepositoryController.RepoStatus))]
+    [InlineData(nameof(RepositoryController.Pull))]
+    [InlineData(nameof(RepositoryController.ResetLocalRepository))]
+    [InlineData(nameof(RepositoryController.CommitAndPushRepo))]
+    [InlineData(nameof(RepositoryController.Commit))]
+    [InlineData(nameof(RepositoryController.CheckoutBranch))]
+    [InlineData(nameof(RepositoryController.DeleteBranch))]
+    [InlineData(nameof(RepositoryController.DiscardLocalChanges))]
+    [InlineData(nameof(RepositoryController.StageChange))]
+    public void IsEligibleForSynchronization_RepositoryActionThatUsesTheIndex_ReturnsTrue(string actionName)
+    {
+        var evaluator = new EndpointNameSyncEligibilityEvaluator();
+
+        bool isEligible = evaluator.IsEligibleForSynchronization(CreateHttpContext("Repository", actionName));
+
+        Assert.True(isEligible);
+    }
+
     [Fact]
     public void IsEligibleForSynchronization_UnsupportedAction_ReturnsFalse()
     {

@@ -21,6 +21,22 @@ internal static class DeployEndpoints
             .WithDescription("Endpoint to get a single app deployment.");
 
         deployApi
+            .MapGet("/apps/{app}/running", HandleGetRunningAppDeployment.Handler)
+            .WithName("GetRunningAppDeployment")
+            .WithSummary("Get the running App deployment.")
+            .WithDescription(
+                "Endpoint to get the version of an app that runs in the cluster, whichever Studio environment deployed it."
+            );
+
+        deployApi
+            .MapPost("/apps/{app}/restart", HandleRestartApp.Handler)
+            .WithName("RestartApp")
+            .WithSummary("Restart an App.")
+            .WithDescription(
+                "Endpoint to replace an app's running instances with new ones of the same version, without a deploy. Returns 409 while a deploy or restart is still replacing them, or while the app is paused."
+            );
+
+        deployApi
             .MapGet("/apps/{app}/{originEnvironment}/deployed", HandleIsAppDeployed.IsAppDeployedHandler)
             .WithName("IsAppDeployed")
             .WithSummary("Check if App is deployed.")

@@ -31,7 +31,7 @@ internal sealed record WorkflowEnqueueEnvelope(
 
 /// <summary>
 /// Factory for creating WorkflowEnqueueRequest objects from process state changes.
-/// Maps instance events to command sequences and assembles the complete request.
+/// Maps instance events to steps and assembles the complete request.
 /// </summary>
 internal sealed class ProcessNextRequestFactory
 {
@@ -68,24 +68,24 @@ internal sealed class ProcessNextRequestFactory
     /// labels; this is what lets a consumer attribute a step to an element without knowing what any
     /// command is called.
     ///
-    /// Carried only by the pre-commit lifecycle steps, which is exactly the run the dashboard brackets
-    /// under one element name. The transition-level steps around them (<c>AcquireProcessingStatus</c>,
-    /// <c>MutateProcessState</c>, <c>CommitProcessState</c>, <c>EnqueueAuxiliaryWorkflows</c>) belong to
-    /// the transition rather than to either element and stay unlabeled, and so do the post-commit and
+    /// Carried only by the task-end, abandon and task-start lifecycle steps, which are exactly the runs the
+    /// dashboard brackets under one element name. The transition-level steps around them
+    /// (<c>AcquireProcessingStatus</c>, <c>CommitProcessState</c>, <c>EnqueueAuxiliaryWorkflows</c>) belong
+    /// to the transition rather than to either element and stay unlabeled, and so do the post-commit and
     /// auxiliary steps: labeling those would draw the entering element's name a second time, after the
-    /// commit, around work the first bracket already named.
+    /// task start, around work the first bracket already named.
     /// </summary>
     internal const string ProcessNextElementLabel = "processNextElement";
 
     /// <summary>
     /// OperationId prefix for the transition's primary process-next workflow (the one the process waits on,
-    /// carrying the pre-commit, commit, and post-commit steps).
+    /// carrying the task-end, commit, task-start and post-commit steps).
     /// </summary>
     internal const string PrimaryOperationIdPrefix = "Process next:";
 
     /// <summary>
-    /// OperationId prefix for the auxiliary workflows (one single-step workflow per auxiliary command,
-    /// enqueued as an atomic batch at the commit boundary by <see cref="EnqueueAuxiliaryWorkflows"/>; each
+    /// OperationId prefix for the auxiliary workflows (one single-step workflow per auxiliary step,
+    /// enqueued as an atomic batch after the task start by <see cref="EnqueueAuxiliaryWorkflows"/>; each
     /// OperationId carries the command key as a suffix). A human-readable naming convention for ops queries
     /// and logs only - identification (wait/settle scoping, failure classification) is by the workflow role
     /// the engine reports (see <see cref="WorkflowEngineService.IsAuxiliaryWorkflow"/>), not by this string.
@@ -181,7 +181,7 @@ internal sealed class ProcessNextRequestFactory
                 OperationId = $"{PrimaryOperationIdPrefix} Mark instance as processing",
                 Steps =
                 [
-                    CreateCommand(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
+                    CreateStep(ProcessingStatusAcquirer.Key, new AcquireProcessingStatusPayload(processStateChange)),
                 ],
                 State = state,
             },
@@ -254,7 +254,7 @@ internal sealed class ProcessNextRequestFactory
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
 
-        AssembledCommands commands = AssembleCommandSequence(
+        AssembledSteps assembled = AssembleSteps(
             processStateChange,
             acquireProcessingStatus,
             isInstantiation,
@@ -281,23 +281,23 @@ internal sealed class ProcessNextRequestFactory
             processStateChange.NewProcessState?.CurrentTask?.ElementId
         );
 
-        // One EnqueueAuxiliaryWorkflows step after the CommitProcessState commit schedules the
-        // transition's auxiliary workflows, so they exist if and only if the transition committed.
+        // One EnqueueAuxiliaryWorkflows step after the entered task's start schedules the transition's
+        // auxiliary workflows, so they exist only once the transition has committed and the task started.
         List<StepRequest> auxiliary = [];
-        if (commands.Auxiliary.Count > 0)
+        if (assembled.Auxiliary.Count > 0)
         {
             var auxiliaryEnqueueRequest = new WorkflowEnqueueRequest
             {
                 Labels = labels,
                 // Runtime authentication is added by the enqueue command. Embedding a freshly minted
                 // callback token here would change the parent's hashed payload on every reconstruction.
-                // One single-step workflow per auxiliary command: the commands are independent
+                // One single-step workflow per auxiliary step: the steps are independent
                 // outcomes, so each gets its own failure containment - a dead-lettered event
                 // registration must not starve the notification behind it - and its own retry
-                // pacing, alert row, and redrive. Should an auxiliary command ever need ordering
+                // pacing, alert row, and redrive. Should an auxiliary step ever need ordering
                 // relative to another, express it explicitly via DependsOn rather than as an
                 // accident of step-list position.
-                Workflows = commands
+                Workflows = assembled
                     .Auxiliary.Select(step => new WorkflowRequest
                     {
                         OperationId = $"{AuxiliaryOperationIdPrefix} {fromTaskId} -> {toTaskId} · {step.OperationId}",
@@ -312,15 +312,16 @@ internal sealed class ProcessNextRequestFactory
                     })
                     .ToList(),
             };
-            auxiliary.Add(CreateEnqueueAuxiliaryWorkflowsCommand(auxiliaryEnqueueRequest));
+            auxiliary.Add(CreateEnqueueAuxiliaryWorkflowsStep(auxiliaryEnqueueRequest));
         }
 
         // Auxiliary workflows announce a transition once it is complete. A task transition is complete
-        // at the commit, so they go before slow post-commit work such as a service task. A process end
-        // is complete only after its post-commit steps release the instance, so they wait for those.
-        List<StepRequest> steps = commands.EndsProcess
-            ? [.. commands.ThroughCommit, .. commands.PrimaryPostCommit, .. auxiliary]
-            : [.. commands.ThroughCommit, .. auxiliary, .. commands.PrimaryPostCommit];
+        // once the entered task has started, so they go before slow post-commit work such as a service
+        // task. A process end is complete only after its post-commit steps release the instance, so they
+        // wait for those.
+        List<StepRequest> steps = assembled.EndsProcess
+            ? [.. assembled.ThroughTaskStart, .. assembled.PrimaryPostCommit, .. auxiliary]
+            : [.. assembled.ThroughTaskStart, .. auxiliary, .. assembled.PrimaryPostCommit];
 
         List<WorkflowRequest> workflows =
         [
@@ -386,19 +387,19 @@ internal sealed class ProcessNextRequestFactory
     }
 
     /// <summary>
-    /// The assembled step lists for one transition: the primary workflow's sequence through the
-    /// CommitProcessState commit, the primary post-commit commands that follow it, and the auxiliary
-    /// steps destined for the separate auxiliary workflows (enqueued at the commit boundary by
-    /// <see cref="EnqueueAuxiliaryWorkflows"/>).
+    /// The assembled step lists for one transition: the primary workflow's sequence through the entered
+    /// task's start (task end, the CommitProcessState commit, task start), the primary post-commit steps
+    /// that follow it, and the auxiliary steps destined for the separate auxiliary workflows (enqueued after
+    /// the task start by <see cref="EnqueueAuxiliaryWorkflows"/>).
     /// </summary>
-    private readonly record struct AssembledCommands(
-        List<StepRequest> ThroughCommit,
+    private readonly record struct AssembledSteps(
+        List<StepRequest> ThroughTaskStart,
         List<StepRequest> PrimaryPostCommit,
         List<StepRequest> Auxiliary,
         bool EndsProcess
     );
 
-    private AssembledCommands AssembleCommandSequence(
+    private AssembledSteps AssembleSteps(
         ProcessStateChange processStateChange,
         bool acquireProcessingStatus,
         bool isInstantiation,
@@ -428,7 +429,7 @@ internal sealed class ProcessNextRequestFactory
             string? altinnTaskType = instanceEvent.ProcessInfo?.CurrentTask?.AltinnTaskType;
             string? serviceTaskType = GetServiceTaskType(altinnTaskType);
 
-            WorkflowCommandSet? workflowCommands = GetWorkflowStepsForInstanceEvent(
+            WorkflowStepSet? eventSteps = GetWorkflowStepsForInstanceEvent(
                 instanceEvent,
                 instanceEventType,
                 altinnTaskType,
@@ -438,77 +439,71 @@ internal sealed class ProcessNextRequestFactory
                 prefill,
                 notification
             );
-            if (workflowCommands != null)
+            if (eventSteps != null)
             {
-                if (workflowCommands.ServiceTaskFollowsCommit)
+                if (eventSteps.ServiceTaskFollowsCommit)
                 {
                     serviceTaskFollowsCommit = true;
                 }
 
-                // The task this event's commands run against (start hooks/service task read the entering
+                // The task this event's steps run against (start hooks/service task read the entering
                 // task; end/abandon hooks read the leaving task). This is the same id each hook feeds into
                 // ShouldRunForTask at execute time, so resolving the handler here yields the same match.
                 string? eventTaskId = instanceEvent.ProcessInfo?.CurrentTask?.ElementId;
 
-                // The BPMN element these commands run for, which is the task for every event that has one
+                // The BPMN element these steps run for, which is the task for every event that has one
                 // and the end event for process end — where CurrentTask is deliberately null, the ended
                 // state having no current task. Options resolution stays keyed on the task alone: an end
                 // event is not a task and configures none of the per-task step options.
                 string? eventElementId = eventTaskId ?? instanceEvent.ProcessInfo?.EndEvent;
 
-                // Task-end/abandon commands go in the first group (they need OLD CurrentTask).
-                // Task-start and process-end commands go in the second group (they need NEW CurrentTask).
-                // MutateProcessState is inserted between the two groups to transition in-memory state.
+                // Task-end/abandon steps go in the first group, task-start steps in the second.
+                // CommitProcessState goes between them, so each group runs while Storage holds the task it
+                // belongs to.
                 if (instanceEventType is InstanceEventType.process_EndTask or InstanceEventType.process_AbandonTask)
                 {
                     taskEndSteps.AddRange(
-                        workflowCommands
-                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
+                        eventSteps
+                            .LifecycleSteps.ToStepRequests(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
                 else
                 {
                     taskStartSteps.AddRange(
-                        workflowCommands
-                            .Commands.ToStepRequests(_stepOptionsResolver, eventTaskId)
+                        eventSteps
+                            .LifecycleSteps.ToStepRequests(_stepOptionsResolver, eventTaskId)
                             .WithProcessElement(eventElementId)
                     );
                 }
 
                 primaryPostCommitSteps.AddRange(
-                    workflowCommands.PrimaryPostCommitCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
+                    eventSteps.PrimaryPostCommitSteps.ToStepRequests(_stepOptionsResolver, eventTaskId)
                 );
-                auxiliarySteps.AddRange(
-                    workflowCommands.AuxiliaryCommands.ToStepRequests(_stepOptionsResolver, eventTaskId)
-                );
+                auxiliarySteps.AddRange(eventSteps.AuxiliarySteps.ToStepRequests(_stepOptionsResolver, eventTaskId));
             }
         }
 
-        var commands = new List<StepRequest>();
+        var throughTaskStart = new List<StepRequest>();
         if (acquireProcessingStatus)
         {
-            commands.Add(CreateCommand(ProcessingStatusAcquirer.Key));
+            throughTaskStart.Add(CreateStep(ProcessingStatusAcquirer.Key));
         }
-        commands.AddRange(taskEndSteps);
-        if (taskEndSteps.Count > 0)
-        {
-            commands.Add(CreateMutateProcessStateCommand(processStateChange));
-        }
-        commands.AddRange(taskStartSteps);
-        commands.Add(CreateCommitProcessStateCommand(processStateChange));
+        throughTaskStart.AddRange(taskEndSteps);
+        throughTaskStart.Add(CreateCommitProcessStateStep(processStateChange));
+        throughTaskStart.AddRange(taskStartSteps);
 
         // The last step releases the instance, unless a service task follows: its continuation workflow
         // carries on the transition and releases when it finishes.
         if (!serviceTaskFollowsCommit)
         {
-            primaryPostCommitSteps.Add(CreateCommand(ReleaseProcessingStatus.Key));
+            primaryPostCommitSteps.Add(CreateStep(ReleaseProcessingStatus.Key));
         }
 
-        return new AssembledCommands(commands, primaryPostCommitSteps, auxiliarySteps, endsProcess);
+        return new AssembledSteps(throughTaskStart, primaryPostCommitSteps, auxiliarySteps, endsProcess);
     }
 
-    private WorkflowCommandSet? GetWorkflowStepsForInstanceEvent(
+    private WorkflowStepSet? GetWorkflowStepsForInstanceEvent(
         InstanceEvent instanceEvent,
         InstanceEventType eventType,
         string? altinnTaskType,
@@ -525,7 +520,7 @@ internal sealed class ProcessNextRequestFactory
                 return null;
             case InstanceEventType.process_StartTask:
             {
-                return WorkflowCommandSet.GetTaskStartSteps(
+                return WorkflowStepSet.GetTaskStartSteps(
                     new TaskStartContext
                     {
                         TaskId = GetRequiredEventTaskId(instanceEvent, eventType),
@@ -540,16 +535,16 @@ internal sealed class ProcessNextRequestFactory
                 );
             }
             case InstanceEventType.process_EndTask:
-                return WorkflowCommandSet.GetTaskEndSteps(
+                return WorkflowStepSet.GetTaskEndSteps(
                     GetRequiredEventTaskId(instanceEvent, eventType),
                     ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.End)
                 );
             case InstanceEventType.process_AbandonTask:
-                return WorkflowCommandSet.GetTaskAbandonSteps(
+                return WorkflowStepSet.GetTaskAbandonSteps(
                     ResolveProcessTaskPipeline(altinnTaskType, LifecyclePhase.Abandon)
                 );
             case InstanceEventType.process_EndEvent:
-                return WorkflowCommandSet.GetProcessEndSteps(
+                return WorkflowStepSet.GetProcessEndSteps(
                     new ProcessEndContext { RegisterEvents = _appSettings.RegisterEventsWithEventsComponent }
                 );
             default:
@@ -643,20 +638,17 @@ internal sealed class ProcessNextRequestFactory
         };
     }
 
-    private StepRequest CreateMutateProcessStateCommand(ProcessStateChange processStateChange) =>
-        CreateCommand(MutateProcessState.Key, new ProcessStateChangePayload(processStateChange));
+    private StepRequest CreateCommitProcessStateStep(ProcessStateChange processStateChange) =>
+        CreateStep(CommitProcessState.Key, new ProcessStateChangePayload(processStateChange));
 
-    private StepRequest CreateCommitProcessStateCommand(ProcessStateChange processStateChange) =>
-        CreateCommand(CommitProcessState.Key, new ProcessStateChangePayload(processStateChange));
-
-    private StepRequest CreateEnqueueAuxiliaryWorkflowsCommand(WorkflowEnqueueRequest auxiliaryEnqueueRequest) =>
-        CreateCommand(EnqueueAuxiliaryWorkflows.Key, new EnqueueAuxiliaryWorkflowsPayload(auxiliaryEnqueueRequest));
+    private StepRequest CreateEnqueueAuxiliaryWorkflowsStep(WorkflowEnqueueRequest auxiliaryEnqueueRequest) =>
+        CreateStep(EnqueueAuxiliaryWorkflows.Key, new EnqueueAuxiliaryWorkflowsPayload(auxiliaryEnqueueRequest));
 
     /// <summary>
     /// A step of the transition's own, which runs for no task and declares no options, so it gets the command's
     /// default options and otherwise the engine's.
     /// </summary>
-    private StepRequest CreateCommand(string commandKey, CommandRequestPayload? payload = null) =>
+    private StepRequest CreateStep(string commandKey, CommandRequestPayload? payload = null) =>
         new PlannedStep
         {
             CommandKey = commandKey,

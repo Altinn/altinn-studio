@@ -199,9 +199,9 @@ func (c *AzureKeyVaultReconciler) Start(ctx context.Context) error {
 		"mappings", len(c.mappings),
 	)
 
+	// A failed run logs its own ERROR, linked to its trace.
 	for range 10 {
 		if err := c.SyncAll(ctx); err != nil {
-			c.logger.Error(err, "initial sync failed")
 			select {
 			case <-ctx.Done():
 				return nil
@@ -221,9 +221,7 @@ func (c *AzureKeyVaultReconciler) Start(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-ticker.Chan():
-			if err := c.SyncAll(ctx); err != nil {
-				c.logger.Error(err, "sync failed")
-			}
+			_ = c.SyncAll(ctx) //nolint:errcheck // A failed run logs its own ERROR, linked to its trace.
 		}
 
 		nextPollInterval := c.runtime.GetConfigMonitor().Get().KeyVaultSyncController.PollInterval
