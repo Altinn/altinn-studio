@@ -41,7 +41,7 @@ const (
 	monitoringGrafanaCA = "monitoring-grafana-ca-bundle"
 	// dashboardsReloadSeconds is how often Grafana rereads the provisioned dashboards.
 	dashboardsReloadSeconds = 10
-	// dashboardsCheckoutTimeout bounds cloning or updating the cached dashboards checkout, so
+	// dashboardsCheckoutTimeout bounds cloning or fetching the cached dashboards checkout, so
 	// a stalled network falls back to the cached copy instead of blocking the graph.
 	dashboardsCheckoutTimeout = 3 * time.Minute
 
@@ -57,7 +57,7 @@ var errDashboardsDatasourceURL = errors.New("datasource URL is not on the observ
 
 // resolveDashboardsRepository returns the dashboards checkout to read: the one given, or a
 // clone in the fixture's cache, updated to the repository's main branch when it can be
-// within dashboardsCheckoutTimeout.
+// fetched within dashboardsCheckoutTimeout.
 func resolveDashboardsRepository(ctx context.Context, explicit, cachePath string) (string, error) {
 	if explicit == "" {
 		explicit = os.Getenv(EnvDashboardsRepository)
@@ -79,11 +79,12 @@ func resolveDashboardsRepository(ctx context.Context, explicit, cachePath string
 		Ref:     "main",
 		Path:    filepath.Join(cachePath, "altinn-dashboards-grafana"),
 	}
-	ctx, cancel := context.WithTimeout(ctx, dashboardsCheckoutTimeout)
-	defer cancel()
-	if err := localbackend.EnsureGitCheckout(ctx, checkout); err != nil {
+	// Only a checkout from an earlier start is complete; a failed clone is not.
+	_, statErr := os.Stat(filepath.Join(checkout.Path, ".git"))
+	cached := statErr == nil
+	if err := localbackend.EnsureGitCheckout(ctx, checkout, dashboardsCheckoutTimeout); err != nil {
 		// Offline, with GitHub unavailable or too slow, the copy from an earlier start will do.
-		if _, statErr := os.Stat(filepath.Join(checkout.Path, ".git")); statErr != nil {
+		if !cached {
 			return "", fmt.Errorf("check out dashboards repository: %w", err)
 		}
 		log.Printf("warning: using the cached dashboards repository, which could not be updated: %v", err)

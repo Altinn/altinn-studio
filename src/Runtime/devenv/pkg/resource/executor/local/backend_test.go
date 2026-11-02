@@ -2,12 +2,15 @@ package localbackend
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"altinn.studio/devenv/pkg/resource"
 	"altinn.studio/devenv/pkg/resource/executor"
@@ -138,6 +141,27 @@ func TestApplyGitCheckoutRejectsTagOnlyRef(t *testing.T) {
 	if _, err := New().Apply(t.Context(), executor.BackendContext{GraphID: "test"}, checkout); err == nil {
 		t.Fatal("Apply() error = nil, want an error for a tag without a matching branch")
 	}
+	if _, err := os.Stat(checkout.Path); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Stat() error = %v, want the failed clone removed", err)
+	}
+}
+
+func TestEnsureGitCheckoutTimesOutOnlyNetworkOperations(t *testing.T) {
+	upstream := newTestUpstream(t)
+	upstream.commit("first")
+	checkout := upstream.checkout(t)
+	applyCheckout(t, checkout)
+	upstream.commit("second")
+	// A reset that outlasts the network timeout, which would leave a partial working tree if
+	// the timeout killed it.
+	wrapGit(t, "reset", "sleep 2")
+
+	if err := EnsureGitCheckout(t.Context(), checkout, time.Second); err != nil {
+		t.Fatalf("EnsureGitCheckout() error = %v", err)
+	}
+
+	assertFileContent(t, filepath.Join(checkout.Path, "file.txt"), "second")
+	assertHead(t, checkout.Path, upstream.head())
 }
 
 func TestApplyGitCheckoutIgnoresTemplates(t *testing.T) {
@@ -408,6 +432,24 @@ func (u *testUpstream) checkout(t *testing.T) *resource.GitCheckout {
 		Ref:     "main",
 		Path:    filepath.Join(t.TempDir(), "checkout"),
 	}
+}
+
+// wrapGit puts a git first on PATH that runs script before the git command it wraps.
+func wrapGit(t *testing.T, command, script string) {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("the git wrapper is a shell script")
+	}
+	git, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatalf("LookPath() error = %v", err)
+	}
+	dir := t.TempDir()
+	wrapper := fmt.Sprintf("#!/bin/sh\nif [ \"$1\" = %s ]; then %s; fi\nexec %q \"$@\"\n", command, script, git)
+	if err := os.WriteFile(filepath.Join(dir, "git"), []byte(wrapper), 0o700); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
 }
 
 func applyCheckout(t *testing.T, checkout *resource.GitCheckout) {

@@ -87,7 +87,7 @@ func (b Backend) Apply(
 	case *resource.LocalFile:
 		return executor.NoOutput{}, applyLocalFile(res)
 	case *resource.GitCheckout:
-		return executor.NoOutput{}, applyGitCheckout(ctx, res)
+		return executor.NoOutput{}, applyGitCheckout(ctx, res, 0)
 	default:
 		return nil, fmt.Errorf("%w: %T", errUnsupportedResource, r)
 	}
@@ -184,26 +184,24 @@ func observeLocalFile(file *resource.LocalFile) (executor.ObservedResource, erro
 
 // EnsureGitCheckout clones a checkout, or resets an existing one to its remote ref, as
 // applying the resource does. For callers that need the files before a graph is built.
-func EnsureGitCheckout(ctx context.Context, checkout *resource.GitCheckout) error {
+// A positive networkTimeout bounds the clone or fetch, but not the local steps, so that it
+// cannot stop a reset partway through the working tree.
+func EnsureGitCheckout(ctx context.Context, checkout *resource.GitCheckout, networkTimeout time.Duration) error {
 	if err := checkout.Validate(); err != nil {
 		return fmt.Errorf("validate Git checkout %s: %w", checkout.Name, err)
 	}
-	return applyGitCheckout(ctx, checkout)
+	return applyGitCheckout(ctx, checkout, networkTimeout)
 }
 
-func applyGitCheckout(ctx context.Context, checkout *resource.GitCheckout) error {
+func applyGitCheckout(ctx context.Context, checkout *resource.GitCheckout, networkTimeout time.Duration) error {
 	if !isGitCheckout(checkout.Path) {
 		if pathExists(checkout.Path) {
 			return fmt.Errorf("%w: %s", errLocalPathNotGitRepo, checkout.Path)
 		}
-		if _, err := runGit(ctx, "", "clone", "--depth=1", "--single-branch", "--no-tags", "--no-local", "--template=",
-			"--branch", checkout.Ref, "--", checkout.RepoURL, checkout.Path); err != nil {
-			return fmt.Errorf("clone Git checkout %s: %w", checkout.Name, err)
-		}
-		// clone --branch also accepts tags, which have no remote branch to fetch on later applies.
-		ref := remoteRefName(checkout)
-		if _, err := runGit(ctx, checkout.Path, "show-ref", "--verify", "--quiet", ref); err != nil {
-			return fmt.Errorf("resolve Git checkout %s branch %s: %w", checkout.Name, checkout.Ref, err)
+		if err := cloneGitCheckout(ctx, checkout, networkTimeout); err != nil {
+			// git removes a clone that fails, but not one killed on cancellation, which a later
+			// apply would take for a complete checkout. The path did not exist before the clone.
+			return errors.Join(err, os.RemoveAll(checkout.Path))
 		}
 		return nil
 	}
@@ -212,8 +210,9 @@ func applyGitCheckout(ctx context.Context, checkout *resource.GitCheckout) error
 	}
 
 	refSpec := "+refs/heads/" + checkout.Ref + ":" + remoteRefName(checkout)
-	if _, err := runGit(
+	if err := runGitNetwork(
 		ctx,
+		networkTimeout,
 		checkout.Path,
 		"fetch",
 		"--depth=1",
@@ -226,6 +225,19 @@ func applyGitCheckout(ctx context.Context, checkout *resource.GitCheckout) error
 	}
 	if _, err := runGit(ctx, checkout.Path, "reset", "--hard", "--quiet", remoteRefName(checkout)); err != nil {
 		return fmt.Errorf("reset Git checkout %s: %w", checkout.Name, err)
+	}
+	return nil
+}
+
+func cloneGitCheckout(ctx context.Context, checkout *resource.GitCheckout, networkTimeout time.Duration) error {
+	if err := runGitNetwork(ctx, networkTimeout, "", "clone", "--depth=1", "--single-branch", "--no-tags",
+		"--no-local", "--template=", "--branch", checkout.Ref, "--", checkout.RepoURL, checkout.Path); err != nil {
+		return fmt.Errorf("clone Git checkout %s: %w", checkout.Name, err)
+	}
+	// clone --branch also accepts tags, which have no remote branch to fetch on later applies.
+	ref := remoteRefName(checkout)
+	if _, err := runGit(ctx, checkout.Path, "show-ref", "--verify", "--quiet", ref); err != nil {
+		return fmt.Errorf("resolve Git checkout %s branch %s: %w", checkout.Name, checkout.Ref, err)
 	}
 	return nil
 }
@@ -315,6 +327,18 @@ func runGit(ctx context.Context, dir string, args ...string) (string, error) {
 		return "", fmt.Errorf("git %s: %w", args[0], err)
 	}
 	return strings.TrimSpace(stdout.String()), nil
+}
+
+// runGitNetwork runs a git command that reaches the remote, as runGit does, within timeout when
+// it is positive.
+func runGitNetwork(ctx context.Context, timeout time.Duration, dir string, args ...string) error {
+	if timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+	_, err := runGit(ctx, dir, args...)
+	return err
 }
 
 // gitEnvironment returns the environment for git commands in dir. Checkouts come from public

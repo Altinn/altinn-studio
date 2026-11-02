@@ -2,9 +2,11 @@ package kind
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -85,6 +87,28 @@ func TestResolveDashboardsRepository_CancelledUpdateUsesCachedCheckout(t *testin
 	}
 	if got != cached {
 		t.Fatalf("resolveDashboardsRepository() = %q, want the cached checkout %q", got, cached)
+	}
+}
+
+func TestResolveDashboardsRepository_FailedCloneIsNotCached(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("the git wrapper is a shell script")
+	}
+	t.Setenv(EnvDashboardsRepository, "")
+	// A clone killed partway, which leaves its .git behind, without reaching the network.
+	bin := t.TempDir()
+	wrapper := "#!/bin/sh\nfor last; do :; done\nmkdir -p \"$last/.git\"\nexit 1\n"
+	if err := os.WriteFile(filepath.Join(bin, "git"), []byte(wrapper), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	cachePath := t.TempDir()
+	if _, err := resolveDashboardsRepository(t.Context(), "", cachePath); err == nil {
+		t.Fatal("resolveDashboardsRepository() error = nil, want the failed clone")
+	}
+	if _, err := os.Stat(filepath.Join(cachePath, "altinn-dashboards-grafana")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Stat() error = %v, want the failed clone removed", err)
 	}
 }
 
