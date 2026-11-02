@@ -12,32 +12,72 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
-
-	"altinn.studio/devenv/pkg/oci"
 )
 
-// uploadState is the opaque query state the registry gives an upload, which the client must send back.
-const uploadState = "_state=opaque%2Fstate"
+type (
+	// Descriptor decodes a pushed descriptor, independently of the client's types.
+	Descriptor struct {
+		MediaType string `json:"mediaType"`
+		Digest    string `json:"digest"`
+		Size      int64  `json:"size"`
+	}
+	// Manifest decodes a pushed manifest, independently of the client's types.
+	Manifest struct {
+		Annotations   map[string]string `json:"annotations"`
+		MediaType     string            `json:"mediaType"`
+		Config        Descriptor        `json:"config"`
+		Layers        []Descriptor      `json:"layers"`
+		SchemaVersion int               `json:"schemaVersion"`
+	}
+)
 
-// Registry records the blobs and manifests pushed to it.
+// Registry records pushed blobs by digest and manifests by repository:tag.
 type Registry struct {
 	server    *httptest.Server
 	blobs     map[string][]byte
 	manifests map[string][]byte
-	uploads   int
 	mu        sync.Mutex
-	absolute  bool
 }
 
-// NewRegistry starts a registry that is closed when the test ends.
-func NewRegistry(t *testing.T) *Registry {
+// NewRegistry starts a registry that is closed when the test ends. Upload sessions get a Location with opaque
+// query state, absolute or relative, that a blob PUT must send back.
+func NewRegistry(t *testing.T, absoluteLocation bool) *Registry {
 	t.Helper()
 	r := &Registry{blobs: map[string][]byte{}, manifests: map[string][]byte{}}
-	r.server = httptest.NewServer(http.HandlerFunc(r.serve))
+	r.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		repository, upload, isUpload := strings.Cut(strings.TrimPrefix(req.URL.Path, "/v2/"), "/blobs/uploads/")
+		manifestRepository, tag, isManifest := strings.Cut(strings.TrimPrefix(req.URL.Path, "/v2/"), "/manifests/")
+		sum := sha256.Sum256(body)
+		switch digest := "sha256:" + hex.EncodeToString(sum[:]); {
+		case req.Method == http.MethodPost && isUpload && upload == "":
+			location := "/v2/" + repository + "/blobs/uploads/session?state=kept"
+			if absoluteLocation {
+				location = r.server.URL + location
+			}
+			w.Header().Set("Location", location)
+			w.WriteHeader(http.StatusAccepted)
+		case req.Method == http.MethodPut && isUpload && upload == "session" &&
+			req.URL.Query().Get("state") == "kept" && req.URL.Query().Get("digest") == digest:
+			r.blobs[digest] = body
+			w.WriteHeader(http.StatusCreated)
+		case req.Method == http.MethodPut && isManifest &&
+			req.Header.Get("Content-Type") == "application/vnd.oci.image.manifest.v1+json":
+			r.manifests[manifestRepository+":"+tag] = body
+			w.WriteHeader(http.StatusCreated)
+		default:
+			http.Error(w, "unexpected "+req.Method+" "+req.URL.String(), http.StatusBadRequest)
+		}
+	}))
 	t.Cleanup(r.server.Close)
 	return r
 }
@@ -47,123 +87,31 @@ func (r *Registry) Host() string {
 	return strings.TrimPrefix(r.server.URL, "http://")
 }
 
-// UseAbsoluteLocation makes upload sessions return an absolute Location URL instead of a relative one.
-func (r *Registry) UseAbsoluteLocation() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.absolute = true
-}
-
-// Uploads returns how many blobs were uploaded.
-func (r *Registry) Uploads() int {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.uploads
-}
-
-// Manifest returns the manifest tagged repository:tag.
-func (r *Registry) Manifest(t *testing.T, repository, tag string) oci.Manifest {
+// Manifest decodes the manifest tagged name, repository:tag.
+func (r *Registry) Manifest(t *testing.T, name string) Manifest {
 	t.Helper()
 	r.mu.Lock()
-	data, ok := r.manifests[repository+":"+tag]
-	r.mu.Unlock()
-	if !ok {
-		t.Fatalf("no manifest %s:%s", repository, tag)
-	}
-	var manifest oci.Manifest
-	if err := json.Unmarshal(data, &manifest); err != nil {
-		t.Fatalf("decode manifest %s:%s: %v", repository, tag, err)
+	defer r.mu.Unlock()
+	var manifest Manifest
+	if err := json.Unmarshal(r.manifests[name], &manifest); err != nil {
+		t.Fatalf("manifest %s: %v", name, err)
 	}
 	return manifest
 }
 
-// Blob returns the blob a descriptor references, checking its size.
-func (r *Registry) Blob(t *testing.T, descriptor oci.Descriptor) []byte {
+// Blob returns the blob a descriptor references, checking that it was pushed with the descriptor's size.
+func (r *Registry) Blob(t *testing.T, descriptor Descriptor) []byte {
 	t.Helper()
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	data, ok := r.blobs[descriptor.Digest]
-	r.mu.Unlock()
-	if !ok {
-		t.Fatalf("no blob %s", descriptor.Digest)
-	}
-	if int64(len(data)) != descriptor.Size {
-		t.Fatalf("blob %s has %d bytes, descriptor says %d", descriptor.Digest, len(data), descriptor.Size)
+	if !ok || int64(len(data)) != descriptor.Size {
+		t.Fatalf("no blob %+v", descriptor)
 	}
 	return data
 }
 
-func (r *Registry) serve(w http.ResponseWriter, req *http.Request) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	path := strings.TrimPrefix(req.URL.Path, "/v2/")
-	switch {
-	case req.Method == http.MethodPost && strings.HasSuffix(path, "/blobs/uploads/"):
-		location := "/v2/" + path + strconv.Itoa(r.uploads) + "?" + uploadState
-		if r.absolute {
-			location = r.server.URL + location
-		}
-		w.Header().Set("Location", location)
-		w.WriteHeader(http.StatusAccepted)
-	case req.Method == http.MethodPut && strings.Contains(path, "/blobs/uploads/"):
-		r.putBlob(w, req)
-	case req.Method == http.MethodHead && strings.Contains(path, "/blobs/"):
-		if _, ok := r.blobs[path[strings.LastIndex(path, "/")+1:]]; !ok {
-			w.WriteHeader(http.StatusNotFound)
-		}
-	case req.Method == http.MethodPut && strings.Contains(path, "/manifests/"):
-		r.putManifest(w, req, strings.Replace(path, "/manifests/", ":", 1))
-	default:
-		http.Error(w, `{"errors":[{"code":"UNSUPPORTED"}]}`, http.StatusNotFound)
-	}
-}
-
-func (r *Registry) putBlob(w http.ResponseWriter, req *http.Request) {
-	if !strings.HasPrefix(req.URL.RawQuery, uploadState+"&") {
-		http.Error(w, "upload state lost: "+req.URL.RawQuery, http.StatusBadRequest)
-		return
-	}
-	data, err := io.ReadAll(req.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	sum := sha256.Sum256(data)
-	digest := "sha256:" + hex.EncodeToString(sum[:])
-	if req.URL.Query().Get("digest") != digest {
-		http.Error(w, `{"errors":[{"code":"DIGEST_INVALID"}]}`, http.StatusBadRequest)
-		return
-	}
-	r.blobs[digest] = data
-	r.uploads++
-	w.WriteHeader(http.StatusCreated)
-}
-
-func (r *Registry) putManifest(w http.ResponseWriter, req *http.Request, name string) {
-	if req.Header.Get("Content-Type") != oci.ManifestMediaType {
-		http.Error(w, "wrong content type "+req.Header.Get("Content-Type"), http.StatusBadRequest)
-		return
-	}
-	data, err := io.ReadAll(req.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	var manifest oci.Manifest
-	if err := json.Unmarshal(data, &manifest); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	for _, descriptor := range append([]oci.Descriptor{manifest.Config}, manifest.Layers...) {
-		if _, ok := r.blobs[descriptor.Digest]; !ok {
-			http.Error(w, `{"errors":[{"code":"MANIFEST_BLOB_UNKNOWN"}]}`, http.StatusBadRequest)
-			return
-		}
-	}
-	r.manifests[name] = data
-	w.WriteHeader(http.StatusCreated)
-}
-
-// Entry is one file or directory in a tarball.
+// Entry is one entry in a tarball.
 type Entry struct {
 	Name    string
 	Content string
@@ -171,16 +119,17 @@ type Entry struct {
 	Type    byte
 }
 
-// ReadTarball returns the entries of a gzipped tarball and the SHA-256 of the uncompressed tar.
+// ReadTarball returns the entries of a gzipped tarball and the SHA-256 of the uncompressed tar. It fails the
+// test if an entry keeps an owner or a time.
 func ReadTarball(t *testing.T, data []byte) ([]Entry, string) {
 	t.Helper()
 	gz, err := gzip.NewReader(bytes.NewReader(data))
 	if err != nil {
-		t.Fatalf("read gzip: %v", err)
+		t.Fatal(err)
 	}
 	raw, err := io.ReadAll(gz)
 	if err != nil {
-		t.Fatalf("read gzip: %v", err)
+		t.Fatal(err)
 	}
 	var entries []Entry
 	tr := tar.NewReader(bytes.NewReader(raw))
@@ -190,19 +139,16 @@ func ReadTarball(t *testing.T, data []byte) ([]Entry, string) {
 			break
 		}
 		if err != nil {
-			t.Fatalf("read tar: %v", err)
+			t.Fatal(err)
 		}
 		if !header.ModTime.IsZero() && header.ModTime.Unix() != 0 || header.Uid != 0 || header.Uname != "" {
 			t.Errorf("%s keeps owner or time: %+v", header.Name, header)
 		}
 		content, err := io.ReadAll(tr)
 		if err != nil {
-			t.Fatalf("read %s: %v", header.Name, err)
+			t.Fatal(err)
 		}
-		entries = append(
-			entries,
-			Entry{Name: header.Name, Type: header.Typeflag, Mode: header.Mode, Content: string(content)},
-		)
+		entries = append(entries, Entry{header.Name, string(content), header.Mode, header.Typeflag})
 	}
 	sum := sha256.Sum256(raw)
 	return entries, hex.EncodeToString(sum[:])

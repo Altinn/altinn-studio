@@ -6,47 +6,45 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
-	"io"
+	"io/fs"
 	"os"
-	"path/filepath"
 	"time"
 )
 
-// Media types and annotations of the artifacts that `flux push artifact` and github.com/fluxcd/pkg/oci
-// produce, which Flux's OCIRepository consumes.
-const (
-	FluxConfigMediaType  = "application/vnd.cncf.flux.config.v1+json"
-	FluxContentMediaType = "application/vnd.cncf.flux.content.v1.tar+gzip"
-
-	AnnotationCreated  = "org.opencontainers.image.created"
-	AnnotationSource   = "org.opencontainers.image.source"
-	AnnotationRevision = "org.opencontainers.image.revision"
-)
-
-// fluxConfig is the config blob. source-controller reads only the manifest and the first layer.
-var fluxConfig = []byte("{}")
-
-// PushArtifact pushes the directory or file at path to url (oci://host/repository[:tag]) as a Flux artifact.
+// PushArtifact pushes the directory dir to url (oci://host/repository[:tag]) as a Flux artifact, in the
+// format that `flux push artifact` and github.com/fluxcd/pkg/oci produce and Flux's OCIRepository consumes.
 //
 // The created annotation uses second precision, as in Flux. An unchanged push in a later second gets a
 // new manifest digest, so Flux reconciles it again.
-func (c *Client) PushArtifact(url, path, source, revision string) error {
-	layer, err := FluxTarball(path)
+func (c *Client) PushArtifact(url, dir, source, revision string) error {
+	// Like fluxcd/pkg/oci, keep directories and regular files with their permission bits, named relative to
+	// dir with "." as the root, and leave out symlinks and other irregular files.
+	layer, err := TarGz(dir, func(rel string, info fs.FileInfo) (*tar.Header, error) {
+		header := &tar.Header{Name: rel, Typeflag: tar.TypeDir, Mode: int64(info.Mode().Perm())}
+		switch {
+		case info.Mode().IsRegular():
+			header.Typeflag, header.Size = tar.TypeReg, info.Size()
+		case !info.IsDir():
+			return nil, nil //nolint:nilnil // nil leaves the entry out.
+		}
+		return header, nil
+	})
 	if err != nil {
-		return fmt.Errorf("archive %s: %w", path, err)
-	}
-	annotations := map[string]string{
-		AnnotationCreated:  time.Now().UTC().Format(time.RFC3339),
-		AnnotationSource:   source,
-		AnnotationRevision: revision,
+		return err
 	}
 	err = c.Push(
 		context.Background(),
 		url,
-		Blob{MediaType: FluxConfigMediaType, Data: fluxConfig},
-		Blob{MediaType: FluxContentMediaType, Data: layer},
-		annotations,
+		// source-controller reads only the manifest and the first layer.
+		Blob{MediaType: "application/vnd.cncf.flux.config.v1+json", Data: []byte("{}")},
+		Blob{MediaType: "application/vnd.cncf.flux.content.v1.tar+gzip", Data: layer},
+		map[string]string{
+			"org.opencontainers.image.created":  time.Now().UTC().Format(time.RFC3339),
+			"org.opencontainers.image.source":   source,
+			"org.opencontainers.image.revision": revision,
+		},
 	)
 	if err != nil {
 		return fmt.Errorf("push artifact to %s: %w", url, err)
@@ -54,81 +52,43 @@ func (c *Client) PushArtifact(url, path, source, revision string) error {
 	return nil
 }
 
-// FluxTarball archives path the way github.com/fluxcd/pkg/oci builds a tarball layer: a gzipped tar of the
-// directories and regular files under path, named relative to it with "." as the root, keeping permission
-// bits and dropping owners and times. Symlinks and other irregular files are left out. A file path becomes a
-// single entry named after the file.
-func FluxTarball(path string) ([]byte, error) {
-	root, err := filepath.Abs(path)
-	if err != nil {
-		return nil, fmt.Errorf("resolve %s: %w", path, err)
-	}
-	rootInfo, err := os.Stat(root)
-	if err != nil {
-		return nil, fmt.Errorf("stat %s: %w", path, err)
-	}
+// TarGz walks the directory root in lexical order and returns a gzipped tar of the entries header gives for
+// each path relative to root, "." being root itself. header returns nil to leave a path out, or fs.SkipDir to
+// leave out a directory. Regular entries get the file's content.
+func TarGz(root string, header func(rel string, info fs.FileInfo) (*tar.Header, error)) ([]byte, error) {
+	files := os.DirFS(root)
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	tw := tar.NewWriter(gz)
-	err = filepath.Walk(root, func(file string, info os.FileInfo, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
+	err := fs.WalkDir(files, ".", func(rel string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
-		if !info.Mode().IsRegular() && !info.IsDir() {
+		info, err := entry.Info()
+		if err != nil {
+			return fmt.Errorf("stat %s: %w", rel, err)
+		}
+		h, err := header(rel, info)
+		if h == nil || err != nil {
+			return err
+		}
+		if err = tw.WriteHeader(h); err != nil {
+			return fmt.Errorf("write tar header for %s: %w", rel, err)
+		}
+		if h.Typeflag != tar.TypeReg {
 			return nil
 		}
-		header, headerErr := tar.FileInfoHeader(info, "")
-		if headerErr != nil {
-			return fmt.Errorf("tar header for %s: %w", file, headerErr)
+		data, err := fs.ReadFile(files, rel)
+		if err == nil {
+			_, err = tw.Write(data)
 		}
-		if rootInfo.IsDir() {
-			rel, relErr := filepath.Rel(root, file)
-			if relErr != nil {
-				return fmt.Errorf("relative path of %s: %w", file, relErr)
-			}
-			header.Name = filepath.ToSlash(rel)
+		if err != nil {
+			return fmt.Errorf("archive %s: %w", rel, err)
 		}
-		return writeEntry(tw, normalizeHeader(header), file)
+		return nil
 	})
-	if err != nil {
-		return nil, fmt.Errorf("walk %s: %w", path, err)
-	}
-	if err := tw.Close(); err != nil {
-		return nil, fmt.Errorf("close tar: %w", err)
-	}
-	if err := gz.Close(); err != nil {
-		return nil, fmt.Errorf("close gzip: %w", err)
+	if err = errors.Join(err, tw.Close(), gz.Close()); err != nil {
+		return nil, fmt.Errorf("archive %s: %w", root, err)
 	}
 	return buf.Bytes(), nil
-}
-
-// normalizeHeader removes the owner and times, so the same content always gives the same layer.
-func normalizeHeader(header *tar.Header) *tar.Header {
-	header.Uid = 0
-	header.Gid = 0
-	header.Uname = ""
-	header.Gname = ""
-	header.ModTime = time.Time{}
-	header.AccessTime = time.Time{}
-	header.ChangeTime = time.Time{}
-	return header
-}
-
-func writeEntry(tw *tar.Writer, header *tar.Header, file string) error {
-	if err := tw.WriteHeader(header); err != nil {
-		return fmt.Errorf("write tar header for %s: %w", file, err)
-	}
-	if header.Typeflag != tar.TypeReg {
-		return nil
-	}
-	//nolint:gosec // G304: file comes from walking the artifact directory the fixture configured.
-	f, err := os.Open(file)
-	if err != nil {
-		return fmt.Errorf("open %s: %w", file, err)
-	}
-	defer closeQuietly(f)
-	if _, err := io.Copy(tw, f); err != nil {
-		return fmt.Errorf("archive %s: %w", file, err)
-	}
-	return nil
 }
