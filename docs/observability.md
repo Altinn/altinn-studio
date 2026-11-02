@@ -4,9 +4,9 @@ How Team Studio's services report telemetry, and how we build dashboards and ale
 instrument a service, review a change to its telemetry, or build a dashboard or an alert. The
 [observability ADR](adr/2026-11-02-observability-and-instrumentation-standards.md) records why we chose these rules.
 
-It covers every service Team Studio owns and operates, in the Studio cluster and in the runtime clusters. App
-telemetry is tracked in [altinn-studio#19775](https://github.com/Altinn/altinn-studio/issues/19775) and uses the same
-names. Telemetry from browsers is not covered here.
+It covers every service Team Studio owns and operates, in the Studio cluster and in the runtime clusters.
+[altinn-studio#19775](https://github.com/Altinn/altinn-studio/issues/19775) covers telemetry from apps, which uses the
+same names. This guide doesn't cover telemetry from browsers.
 
 ## How telemetry flows
 
@@ -17,15 +17,15 @@ names. Telemetry from browsers is not covered here.
 - The shared Grafana reads them through four datasources: `altinn-studio-metrics`, `altinn-studio-traces`,
   `altinn-studio-logs` and `altinn-studio-traces-logsql`.
 
-The collectors are configured in [infra/observability](../infra/observability). The
-[collection ADR](adr/2026-01-07-monitoring-telemetry-collection-distribution.md) describes how the pipeline is built.
-[The pipeline's contract](#the-pipelines-contract) below lists what it does to a service's telemetry.
+[infra/observability](../infra/observability) configures the collectors, and the
+[collection ADR](adr/2026-01-07-monitoring-telemetry-collection-distribution.md) explains their design.
+[The pipeline's contract](#the-pipelines-contract) below lists what they do to a service's telemetry.
 
 ## Which signal for what
 
 | Question                                                          | Signal                                 | Why                                                          |
 | ----------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------ |
-| How many, how fast, how often it fails                            | Metrics                                | Metrics are not sampled, so counts and rates are exact       |
+| How many, how fast, how often it fails                            | Metrics                                | The pipeline doesn't sample metrics, so counts are exact     |
 | What happened in one unit of work, and why                        | The unit of work's entry span          | One searchable record with everything known about the work   |
 | Something a person may need to act on, such as an exception       | A WARN or ERROR log, linked to a trace | Logs carry details, such as a stack trace, that spans do not |
 | Which errors and slow requests share an attribute, such as an app | LogsQL on the trace store              | Any span attribute can be a column, and sampling keeps these |
@@ -38,46 +38,48 @@ The collectors are configured in [infra/observability](../infra/observability). 
 ## Setting up a service
 
 A Go or .NET service uses the shared setup, [src/common/go](../src/common/go/README.md) or
-[src/common/dotnet/Altinn.Studio.Common.Telemetry](../src/common/dotnet/Altinn.Studio.Common.Telemetry). It sets the
-resource, the start-time gauge, the log level for export and the probe filters described here, so a service only adds
-its own instruments. A service in another language follows this guide, and its setup moves into `src/common` when a
-second service in that language needs it.
+[src/common/dotnet/Altinn.Studio.Common.Telemetry](../src/common/dotnet/Altinn.Studio.Common.Telemetry). The shared
+setup does what this guide asks of every service, so a service adds only its own instruments. A service in another
+language follows this guide itself. When a second service in that language needs the same setup, we move it into
+`src/common`.
 
-The deployment, not the code, configures the SDK through the standard `OTEL_*` variables:
+The deployment configures the SDK through the standard `OTEL_*` variables, not the code, so one place shows how a
+service reports:
 
-- `OTEL_EXPORTER_OTLP_ENDPOINT`: the service exports only when it is set, so it runs without a collector locally.
-- `OTEL_SERVICE_NAME`.
-- `OTEL_METRIC_EXPORT_INTERVAL=15000`. Code sets no interval, since an interval set in code can override the
-  deployment's. Grafana's metrics datasource assumes 15 s (`timeInterval`).
-- `OTEL_RESOURCE_ATTRIBUTES` with `k8s.pod.uid` from the Kubernetes downward API. The router needs it to add the
+- The service exports only when the deployment sets `OTEL_EXPORTER_OTLP_ENDPOINT`, so it runs without a collector
+  locally.
+- The deployment names the service in `OTEL_SERVICE_NAME`.
+- The service exports metrics every 15 s (`OTEL_METRIC_EXPORT_INTERVAL=15000`), the interval Grafana's metrics
+  datasource assumes. Code sets no interval, since an interval set in code can override the deployment's.
+- The deployment adds the pod's UID to `OTEL_RESOURCE_ATTRIBUTES` as `k8s.pod.uid`. The router needs it to add the
   pod's Kubernetes metadata.
 
-Metric temporality stays cumulative, the SDK default. VictoriaMetrics deduplicates the copies the pipeline writes, and
-that relies on cumulative values.
+Keep metric temporality cumulative, the SDK default. VictoriaMetrics deduplicates the copies of each metric that the
+pipeline writes, and that needs cumulative values.
 
 ### Resource attributes
 
-| Attribute                     | Value                                                                                                           | Set by                                  |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| `service.name`                | The service's short name in lowercase kebab-case, without a product prefix: `designer`, `gateway`, `pdf3-proxy` | The deployment                          |
-| `service.version`             | The build the image comes from, the same value as the image tag. `dev` for a local build                        | The build                               |
-| `service.instance.id`         | A UUID generated when the process starts, so a restart gets a new one even in the same pod                      | The shared setup                        |
-| `deployment.environment.name` | Altinn's name for the environment the service runs in, such as `prod`, `tt02` or `local`                        | The router. Services don't set it       |
-| `altinn.service_owner`        | Where a cluster serves one service owner                                                                        | The router in a service owner's cluster |
+| Attribute                     | Value                                                                                                                 | Set by                                  |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `service.name`                | The service's short name in lowercase kebab-case, without a product prefix: `designer`, `gateway`, `pdf3-proxy`       | The deployment                          |
+| `service.version`             | The build the image comes from, the same value as the image tag. `dev` for a local build                              | The build                               |
+| `service.instance.id`         | A UUID the process generates when it starts, so a restart gets a new one even in the same pod. Not an Altinn instance | The shared setup                        |
+| `deployment.environment.name` | Altinn's name for the environment the service runs in, such as `prod`, `tt02` or `local`                              | The router. Services don't set it       |
+| `altinn.service_owner`        | The service owner's `org`, such as `ttd`, where a cluster serves one service owner                                    | The router in a service owner's cluster |
 
 A service with more than one kind of process, such as pdf3's proxy and worker, gives each its own `service.name`.
 
 ### Every process reports when it started
 
 Each process exports the gauge `altinn.workload.start_time`, unit `s`, whose value is the process start time in Unix
-seconds. It reports it at every collection, even when idle. With `service.instance.id` and `service.version` it gives
-dashboards the number of running processes, a mark for each restart or scale-up, and a mark for each deploy, without
-lookups in Kubernetes or the deploy pipeline.
+seconds. The process reports it at every collection, even when idle. Together with `service.instance.id` and
+`service.version`, the gauge gives dashboards the number of running processes, a mark for each restart or scale-up, and
+a mark for each deploy, without lookups in Kubernetes or the deploy pipeline.
 
 ### Probes
 
-Health and readiness probes are not traffic. They stay out of traces and out of the request metrics, so request rates
-and latencies show only real callers.
+Health and readiness probes are not traffic. Services leave them out of traces and out of the request metrics, so
+request rates and latencies show only real callers.
 
 ## Units of work and the entry span
 
@@ -106,8 +108,8 @@ its value differs within the unit of work, such as one environment in a loop ove
 A trace holds one unit of work. The exception is a flow we choose to follow end to end across our systems as one
 trace, such as deploying an app through Designer, Azure DevOps, the gateway and Flux.
 
-- Nest synchronous work within the unit of work where a waterfall helps, such as outbound calls, database calls and
-  expensive phases.
+- Give synchronous work its own child span where it helps to see it in the trace view, such as outbound calls,
+  database calls and expensive phases.
 - A retried HTTP request is a sibling span with `http.request.resend_count`.
 - Work that outlives the request that started it, such as a queued, scheduled or batched job, runs in its own trace
   and links back to where it was created. Add the link when the span starts, so the sampler sees it.
@@ -128,8 +130,10 @@ Grafana lists traces by their root span's name.
   `GET /designer/api/{org}/{app}/validation`. `http.route` is the route template without its constraints.
 - Our own spans are named `<area>.<operation>`, lowercase, with snake_case within a segment: `git.push`,
   `pdf.generate`, `maskinporten.reconcile`. Not class and method names, which change when the code is refactored.
-- The edge names its span after the route template the service matched, which the service returns in a response
-  header that the edge removes. Without one, the edge uses a fixed name for the location.
+- Where our load balancer sits in front of a service, as in the Studio cluster, its span is the trace's root and
+  names the trace. The service returns the route template it matched in a response header, and the load balancer
+  names its span after it and removes the header. Without the header, the load balancer uses a fixed name for the
+  location.
 
 ### Errors
 
@@ -153,16 +157,16 @@ The gateway keeps every trace that has an error span, takes longer than a second
 share of the rest. The [gateway's configuration](../infra/observability/base/gateway.yaml) has the numbers.
 
 - A service marks a trace to be kept with `altinn.studio.sampling=always` on any span. Mark only units of work that are
-  rare and where each one matters, such as a deploy, an alert or a notification. Never a service's ordinary traffic.
+  rare and where each one matters, such as a deploy, an alert or a notification. Never mark a service's ordinary
+  traffic.
 - The sampler decides per trace, so a link can point to a trace it dropped. Mark the producer side when the linked
   trace matters.
 - Counts, rates and latencies come from metrics, never from stored spans.
 
 ## Attributes and names
 
-- Attributes from the [semantic conventions](https://opentelemetry.io/docs/specs/semconv/) are used as they are,
-  with their current names. Never give a convention's attribute another meaning, and never add an `altinn.` copy of
-  one.
+- Use attributes from the [semantic conventions](https://opentelemetry.io/docs/specs/semconv/) as they are, with
+  their current names. Never give a convention's attribute another meaning, and never add an `altinn.` copy of one.
 - Our own attributes and metrics start with `altinn.`. Names are lowercase, with `.` between segments and snake_case
   within one: `altinn.designer.git.pull.merge_status`.
 - A concept in the [shared vocabulary](#shared-vocabulary) is `altinn.<concept>`. Anything specific to one service is
@@ -234,8 +238,8 @@ accepts at most 4 million new series per hour and 8 million per day across every
 - `altinn.workload.start_time` is the one metric outside `altinn.<service>.…` that every service emits under the same
   name.
 - Give a histogram explicit bucket boundaries when the default ones don't cover the latencies the service sees.
-- A gauge for something that has one value in a cluster, such as which process is the leader, is reported by one
-  process only, so a second process during a rollout doesn't double it.
+- When a gauge has one value for the whole cluster, such as which process is the leader, only one process reports
+  it. A second process during a rollout then doesn't double it.
 - Metrics resolve detail down to about a minute. Finer detail comes from traces.
 - We don't use exemplars. VictoriaMetrics doesn't store them.
 
@@ -247,15 +251,15 @@ accepts at most 4 million new series per hour and 8 million per day across every
 - ERROR means a unit of work failed, or something needs a person to act. WARN means the service handled something
   that someone should look at, such as a dependency that needed a retry. INFO and DEBUG are for the console and local
   work.
-- Only WARN and above are exported. The shared setup exports from WARN, and the router drops anything below WARN,
-  including records without a severity. The console still gets every level.
+- Services export only WARN and above, and the router drops anything below WARN, including records without a
+  severity. The console still gets every level.
 - A unit of work that could log the same warning many times logs a limited number, then one record with the count of
   the rest.
 - Components we don't write, such as Gitea and nginx, log to their console only.
 
 ## Sensitive data
 
-Never in telemetry, in any attribute, URL, span name or log message:
+These never go in telemetry, whether in an attribute, a URL, a span name or a log message:
 
 - national identity numbers, such as fødselsnummer and D-nummer
 - names, email addresses, phone numbers and postal addresses
@@ -267,20 +271,21 @@ Never in telemetry, in any attribute, URL, span name or log message:
 Identifiers that our systems assign, such as party IDs, user IDs, instance GUIDs, organization numbers and Studio
 usernames, may be on spans and logs. They never go on metrics.
 
-- A URL is recorded without its query string, fragment and user info. A URL whose path can carry a secret or a
-  national identity number is recorded as its route template, or redacted.
+- Record a URL without its query string, fragment and user info. When a URL's path can carry a secret or a national
+  identity number, record its route template instead, or redact it.
 - To describe a payload, record its size, type or count, not its content.
 - The service that emits telemetry is responsible for keeping these out of it. The pipeline doesn't redact.
 
 ## The pipeline's contract
 
-What the collectors do to a service's telemetry. Services rely on it and don't repeat it. A change to it changes
-[infra/observability](../infra/observability) and this section in the same pull request.
+This section lists what the collectors do to a service's telemetry. Services rely on it and don't repeat it. A pull
+request that changes what the collectors do, in [infra/observability](../infra/observability), also updates this
+section.
 
 - The router sets `deployment.environment.name` from the cluster, overwriting any value a service sets.
 - In a service owner's own cluster, the router sets `altinn.service_owner` on the resource, unless the service has set
   it.
-- The router adds Kubernetes metadata to the resource, found by `k8s.pod.uid`.
+- The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`.
 - The router removes the `telemetry.sdk.*`, `process.*` and `os.*` attributes, `network.peer.port` and
   `network.protocol.version`, and blanks the instrumentation scope. Queries can't use them.
 - The router drops logs below WARN.
@@ -304,10 +309,11 @@ The pipeline doesn't derive metrics from spans. A service emits the metrics it n
 | `altinn-studio-traces-logsql` | Listing and breaking down errors and slow requests by any span attribute, such as the user or the app. Not counts of traffic |
 | `altinn-studio-logs`          | WARN and ERROR records, and the logs of a trace                                                                              |
 
-- Metrics are stored under their dotted OpenTelemetry names, such as `{"http.server.request.duration_bucket"}`.
+- VictoriaMetrics stores metrics under their dotted OpenTelemetry names, such as
+  `{"http.server.request.duration_bucket"}`.
 - Use `$__rate_interval` for rates. VictoriaMetrics returns 0, not a gap, for a window that holds no new sample, so a
   window shorter than the export interval gives wrong answers.
-- Traces link to their logs, and logs link to their trace.
+- Grafana links a trace to its logs, and a log to its trace.
 - A query on the LogsQL datasource filters on a span field, such as the service or `name:*`, since the same data holds
   one index row per trace.
 
@@ -322,7 +328,7 @@ The stack can't do these, so don't design telemetry that needs them:
 ## Dashboards
 
 - Dashboards live in [Altinn/altinn-dashboards-grafana](https://github.com/Altinn/altinn-dashboards-grafana), under
-  `products/studio/dashboards`. Edit them in Git. Grafana overwrites changes made in its UI.
+  `products/studio/dashboards`. Edit them in Git. The next sync overwrites changes made in Grafana's UI.
 - Each service has one dashboard, named after the service. Dashboards that span services, such as one for app
   deploys, are named for what they show.
 - Panels use the shared datasources' UIDs, not a datasource variable.
@@ -352,10 +358,13 @@ The stack can't do these, so don't design telemetry that needs them:
 
 ## Working on telemetry
 
-- Check telemetry locally against the production pipeline, with its allowlist, log filter and sampling, before you
-  merge. The [devenv monitoring stack](../infra/observability/local/README.md) runs it for services in the Studio and
-  runtime clusters, with Grafana and a Grafana MCP server. `studioctl env up --monitoring` keeps every signal and level,
-  and is for apps and the services that run with localtest, such as the workflow engine.
+- Before you merge, look at the telemetry in a local stack.
+  - For services in the Studio and runtime clusters, use the
+    [devenv monitoring stack](../infra/observability/local/README.md). It runs the production pipeline, with its
+    allowlist, log filter and sampling, and has Grafana and a Grafana MCP server.
+  - For apps and the services that run with localtest, such as the workflow engine, use
+    `studioctl env up --monitoring`. It keeps every signal and level, so it shows telemetry that production drops,
+    such as INFO logs and metrics outside the allowlist.
 - Test the telemetry that dashboards and alerts use, with in-memory exporters: the names, the attributes, and that the
   metric is emitted when it should be.
 - A reviewer checks that:
@@ -368,8 +377,8 @@ The stack can't do these, so don't design telemetry that needs them:
 
 ## Exceptions
 
-A service that can't follow a rule says so here, with the reason, in the pull request that needs it. The team decides
-in review.
+When a service can't follow a rule, the pull request that needs the exception adds it to this table, with the reason.
+The team decides in review.
 
 | Service             | Rule                                          | Instead                                                                                             | Why                                                                                             |
 | ------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |

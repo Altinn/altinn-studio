@@ -11,8 +11,8 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
 
 1. **Signals.** Counts, rates and latencies come from metrics. Each unit of work has an entry span that is its wide
    event. Logs are for conditions someone may need to act on, at WARN and above (A1.1).
-2. **Span events.** Our code adds no span events. A failure sets the span status, `error.type` and one ERROR log
-   linked to the trace.
+2. **Span events.** Our code adds no span events. A service marks a failure with the span status, `error.type` and
+   one ERROR log linked to the trace.
 3. **Trace boundaries.** A trace holds one unit of work, except for flows we choose to follow end to end as one
    trace, such as an app deploy. Work that outlives its request runs in its own trace and links back, with
    correlation keys on both sides (A2.1).
@@ -25,24 +25,24 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
 6. **Environments.** `deployment.environment.name` and `altinn.environment` use Altinn's environment names, such as
    `prod` and `tt02`, not the semantic conventions' tiers (A4.1). The router sets `deployment.environment.name`.
 7. **Cardinality.** Metric attributes take bounded values. IDs never go on metrics, except `service.instance.id`.
-   `altinn.service_owner` and `altinn.app` may.
+   `altinn.service_owner` and `altinn.app` may go on metrics.
 8. **Sensitive data.** Identifiers that our systems assign, such as party IDs, user IDs and GUIDs, may be on spans
    and logs. National identity numbers, contact details, secrets, payloads, text that users write and query strings
    never go in telemetry. The service that emits telemetry keeps them out.
 9. **Setup.** Services use the shared setup in `src/common`. The deployment configures the SDK through `OTEL_*`
    variables, with metrics exported every 15 s. Every process sets `service.version` and a per-process
    `service.instance.id`, and exports `altinn.workload.start_time`.
-10. **The pipeline's contract.** What the collectors do to telemetry is documented with the standard and changed
-    together with it. The metric allowlist stays, and covers our namespace and the semantic conventions' namespaces
-    that our services emit, including the language runtimes' metrics (A5.1). The pipeline does not derive metrics
-    from spans (A6.1).
+10. **The pipeline's contract.** The guide lists what the collectors do to telemetry. A pull request that changes the
+    collectors updates the guide. The metric allowlist stays, and covers our namespace and the semantic conventions'
+    namespaces that our services emit, including the language runtimes' metrics (A5.1). The pipeline does not derive
+    metrics from spans (A6.1).
 11. **Sampling.** The gateway keeps errors, slow traces and marked traces. Services mark only rare units of work where
     each one matters.
 12. **Dashboards and alerts.** They live as code in `Altinn/altinn-dashboards-grafana`, with pinned datasource UIDs.
     Each service has one dashboard. Alerts fire on metrics only, on symptoms rather than causes.
-13. **Local work and review.** Telemetry is checked against a local copy of the production pipeline before it is
-    merged, and the telemetry that dashboards and alerts use is tested. Exceptions are recorded in the guide and
-    decided in review.
+13. **Local work and review.** Before merging, developers check telemetry against a local copy of the production
+    pipeline, and test the telemetry that dashboards and alerts use. The team decides exceptions in review and records
+    them in the guide.
 
 ## Problem context
 
@@ -70,8 +70,8 @@ alert reopened the same questions. The issue's analysis also tested what our sta
 [Querying](../observability.md#querying) section lists the gaps that shape these decisions, such as no search on span
 event attributes and no exemplars on metrics.
 
-Telemetry from apps is tracked in [altinn-studio#19775](https://github.com/Altinn/altinn-studio/issues/19775) and uses
-the names decided here. Telemetry from browsers is outside this decision.
+[altinn-studio#19775](https://github.com/Altinn/altinn-studio/issues/19775) covers telemetry from apps, which uses the
+names decided here. This decision doesn't cover telemetry from browsers.
 
 ## Decision drivers
 
@@ -152,8 +152,8 @@ Most decisions follow from the drivers and OpenTelemetry's guidance. These had r
 ### A2.2 A child span
 
 - Good, because the whole story is in one trace.
-- Bad, because the trace stays open for as long as the work runs, sometimes hours, and the latency policy keeps all
-  of them.
+- Bad, because the trace stays open for as long as the work runs, sometimes hours, and the sampler's latency policy
+  keeps every such trace.
 
 ### A3.1 `altinn.<concept>` and `altinn.<service>.…`
 
@@ -189,8 +189,8 @@ Most decisions follow from the drivers and OpenTelemetry's guidance. These had r
 
 - Good, because metrics with unknown names and cardinality don't reach storage unreviewed (B5).
 - Good, because adding a namespace is a deliberate change that states its cost.
-- Bad, because a service that emits a new namespace sees nothing until the allowlist changes. The local stack, which
-  has the same allowlist, shows it before merge.
+- Bad, because a service that emits a new namespace sees nothing until the allowlist changes. The local stack has
+  the same allowlist, so the missing metrics show before merge.
 
 ### A5.2 Every metric
 
