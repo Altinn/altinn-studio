@@ -5,7 +5,9 @@ import { StudioDeleteButton } from '@studio/components';
 import type { ChatThread } from '../../../types/ChatThread';
 import type { ThreadSelectorTexts } from '../../../types/AssistantTexts';
 import type { WorkflowStatus } from '../../../types/WorkflowStatus';
-import { findThreadIdForKey, orderThreadIdsByDistance } from './utils';
+import { orderThreadIdsByDistance } from '../../../utils/threadUtils';
+import { findFocusTargetForKey, isNavigationKey } from './utils';
+import type { FocusTarget, ThreadPart } from './utils';
 import classes from './ThreadSelector.module.css';
 
 export type ThreadSelectorProps = {
@@ -29,49 +31,56 @@ export function ThreadSelector({
   onDeleteThread,
   onLastThreadDeleted,
 }: ThreadSelectorProps): ReactElement {
-  const [focusedThreadId, setFocusedThreadId] = useState<string>();
-  const threadButtonsRef = useRef(new Map<string, HTMLButtonElement>());
-  const deletionRef = useRef<Deletion>(undefined);
+  const [focusTarget, setFocusTarget] = useState<FocusTarget>();
+  const buttonsRef = useRef(new Map<string, HTMLButtonElement>());
+  const removedFocusTargetRef = useRef<FocusTarget>(undefined);
+  const previousThreadIdsRef = useRef<string[]>([]);
 
+  const canDelete = onDeleteThread !== undefined;
   const threadIds = chatThreads.map((thread) => thread.id);
-  // All threads have one Tab stop. The user moves between the threads with the arrow keys.
-  const tabbableThreadId =
-    [focusedThreadId, selectedThreadId].find((id) => id && threadIds.includes(id)) ?? threadIds[0];
+  const isAvailable = (target: FocusTarget | undefined): boolean =>
+    !!target && threadIds.includes(target.threadId) && (target.part === 'thread' || canDelete);
+  // The list has one Tab stop. The user moves in the list with the arrow keys.
+  const tabbableTarget: FocusTarget | undefined = isAvailable(focusTarget)
+    ? focusTarget
+    : findDefaultTarget(threadIds, selectedThreadId);
 
-  // The list removes the thread when the list loads again. This is after the user confirms the deletion.
+  // When the list removes the row that has the focus, the focus goes to the nearest thread that remains.
   useEffect(() => {
-    const deletion = deletionRef.current;
-    if (!deletion || chatThreads.some((thread) => thread.id === deletion.threadId)) return;
-    deletionRef.current = undefined;
-    if (!isFocusLost()) return;
-    const threadButtons = threadButtonsRef.current;
-    const nextThreadId = deletion.nextThreadIds.find((threadId) => threadButtons.has(threadId));
-    if (nextThreadId) threadButtons.get(nextThreadId)?.focus();
+    const currentThreadIds = chatThreads.map((thread) => thread.id);
+    const previousThreadIds = previousThreadIdsRef.current;
+    previousThreadIdsRef.current = currentThreadIds;
+    const removedTarget = removedFocusTargetRef.current;
+    removedFocusTargetRef.current = undefined;
+    if (!removedTarget || currentThreadIds.includes(removedTarget.threadId)) return;
+    const nextThreadId = orderThreadIdsByDistance(previousThreadIds, removedTarget.threadId).find(
+      (threadId) => currentThreadIds.includes(threadId),
+    );
+    if (nextThreadId) buttonsRef.current.get(toButtonKey(nextThreadId, 'thread'))?.focus();
     else onLastThreadDeleted?.();
   }, [chatThreads, onLastThreadDeleted]);
 
-  const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, threadId: string): void => {
-    const targetThreadId = findThreadIdForKey(threadIds, threadId, event.key);
-    if (!targetThreadId) return;
+  const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, current: FocusTarget): void => {
+    if (!isNavigationKey(event.key)) return;
+    // The list can scroll. Without this, a key at the end of the list scrolls the list.
     event.preventDefault();
-    threadButtonsRef.current.get(targetThreadId)?.focus();
+    const target = findFocusTargetForKey(threadIds, current, event.key, canDelete);
+    if (target) buttonsRef.current.get(toButtonKey(target.threadId, target.part))?.focus();
   };
 
-  const deleteThread = (threadId: string): void => {
-    deletionRef.current = {
-      threadId,
-      nextThreadIds: orderThreadIdsByDistance(threadIds, threadId),
-    };
-    onDeleteThread?.(threadId);
-  };
-
-  const createThreadButtonRef =
-    (threadId: string): RefCallback<HTMLButtonElement> =>
+  const createButtonRef =
+    (target: FocusTarget): RefCallback<HTMLButtonElement> =>
     (button) => {
       if (!button) return;
-      threadButtonsRef.current.set(threadId, button);
+      const buttonKey = toButtonKey(target.threadId, target.part);
+      buttonsRef.current.set(buttonKey, button);
+      if (removedFocusTargetRef.current?.threadId === target.threadId) {
+        removedFocusTargetRef.current = undefined;
+      }
       return () => {
-        threadButtonsRef.current.delete(threadId);
+        buttonsRef.current.delete(buttonKey);
+        // React calls this before it removes the button, so the button still has the focus here.
+        if (button === document.activeElement) removedFocusTargetRef.current = target;
       };
     };
 
@@ -84,13 +93,13 @@ export function ThreadSelector({
             thread={thread}
             texts={texts}
             isSelected={thread.id === selectedThreadId}
-            isTabbable={thread.id === tabbableThreadId}
+            tabbablePart={tabbableTarget?.threadId === thread.id ? tabbableTarget.part : undefined}
             isBusy={workflowStatusByThread?.[thread.id]?.isActive === true}
-            threadButtonRef={createThreadButtonRef(thread.id)}
+            createButtonRef={(part) => createButtonRef({ threadId: thread.id, part })}
             onSelect={() => onSelectThread(thread.id)}
-            onDelete={onDeleteThread && ((): void => deleteThread(thread.id))}
-            onFocus={() => setFocusedThreadId(thread.id)}
-            onKeyDown={(event) => moveFocus(event, thread.id)}
+            onDelete={onDeleteThread && ((): void => onDeleteThread(thread.id))}
+            onFocus={(part) => setFocusTarget({ threadId: thread.id, part })}
+            onKeyDown={(event, part) => moveFocus(event, { threadId: thread.id, part })}
           />
         ))}
       </ul>
@@ -98,70 +107,75 @@ export function ThreadSelector({
   );
 }
 
-type Deletion = {
-  threadId: string;
-  nextThreadIds: string[];
-};
+function findDefaultTarget(
+  threadIds: string[],
+  selectedThreadId: string | undefined,
+): FocusTarget | undefined {
+  const threadId =
+    selectedThreadId && threadIds.includes(selectedThreadId) ? selectedThreadId : threadIds[0];
+  return threadId === undefined ? undefined : { threadId, part: 'thread' };
+}
 
-function isFocusLost(): boolean {
-  return !document.activeElement || document.activeElement === document.body;
+function toButtonKey(threadId: string, part: ThreadPart): string {
+  return `${part}:${threadId}`;
 }
 
 type ThreadItemProps = {
   thread: ChatThread;
   texts: ThreadSelectorTexts;
   isSelected: boolean;
-  isTabbable: boolean;
+  tabbablePart?: ThreadPart;
   isBusy: boolean;
-  threadButtonRef: RefCallback<HTMLButtonElement>;
+  createButtonRef: (part: ThreadPart) => RefCallback<HTMLButtonElement>;
   onSelect: () => void;
   onDelete?: () => void;
-  onFocus: () => void;
-  onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
+  onFocus: (part: ThreadPart) => void;
+  onKeyDown: (event: KeyboardEvent<HTMLButtonElement>, part: ThreadPart) => void;
 };
 
 function ThreadItem({
   thread,
   texts,
   isSelected,
-  isTabbable,
+  tabbablePart,
   isBusy,
-  threadButtonRef,
+  createButtonRef,
   onSelect,
   onDelete,
   onFocus,
   onKeyDown,
 }: ThreadItemProps): ReactElement {
-  const tabIndex = isTabbable ? 0 : -1;
+  const tabIndexOf = (part: ThreadPart): number => (part === tabbablePart ? 0 : -1);
   const deleteLabel = `${texts.deleteThread} ${thread.title}`;
 
   return (
     <li className={cn(classes.item, { [classes.selected]: isSelected })}>
       <button
         type='button'
-        ref={threadButtonRef}
+        ref={createButtonRef('thread')}
         className={classes.threadButton}
-        tabIndex={tabIndex}
+        tabIndex={tabIndexOf('thread')}
         aria-current={isSelected ? 'true' : undefined}
         title={thread.title}
         onClick={onSelect}
-        onFocus={onFocus}
-        onKeyDown={onKeyDown}
+        onFocus={() => onFocus('thread')}
+        onKeyDown={(event) => onKeyDown(event, 'thread')}
       >
         <span className={classes.title}>{thread.title}</span>
       </button>
       {onDelete && (
         <StudioDeleteButton
+          ref={createButtonRef('delete')}
           variant='tertiary'
           data-size='sm'
           className={classes.deleteButton}
-          tabIndex={tabIndex}
+          tabIndex={tabIndexOf('delete')}
           aria-label={deleteLabel}
           title={deleteLabel}
           confirmMessage={isBusy ? texts.deleteBusyThreadConfirm : texts.deleteThreadConfirm}
           onDelete={onDelete}
-          onFocus={onFocus}
-          onKeyDown={onKeyDown}
+          onFocus={() => onFocus('delete')}
+          onKeyDown={(event) => onKeyDown(event, 'delete')}
         />
       )}
     </li>

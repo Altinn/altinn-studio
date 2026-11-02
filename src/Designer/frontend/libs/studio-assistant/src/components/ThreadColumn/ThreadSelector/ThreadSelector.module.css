@@ -46,6 +46,7 @@
 
 .title {
   display: block;
+  font-weight: var(--ds-font-weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

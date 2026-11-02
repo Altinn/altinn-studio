@@ -84,6 +84,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const terminatedAtMsByThreadRef = useRef<Record<string, number>>({});
   // Threads whose messages are already fetched for the current run.
   const runMessagesRefreshedThreadsRef = useRef<Set<string>>(new Set());
+  // Threads that the user deletes. The events of their runs must not write to them or fetch them.
+  const deletingThreadIdsRef = useRef<Set<string>>(new Set());
 
   const {
     selectedThreadId,
@@ -340,7 +342,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
   const handleWorkflowEvent = useCallback(
     (event: WorkflowEvent) => {
       const threadId = event.session_id;
-      if (!threadId || !ownsThread(threadId)) return;
+      if (!threadId || !ownsThread(threadId) || deletingThreadIdsRef.current.has(threadId)) return;
 
       if (event.type === 'assistant_message') {
         handleAssistantMessage(event);
@@ -600,6 +602,8 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
 
   const deleteThread = useCallback(
     async (threadId: string): Promise<void> => {
+      const deletingThreadIds = deletingThreadIdsRef.current;
+      deletingThreadIds.add(threadId);
       const statusBeforeCancel = workflowStatusByThread[threadId];
       if (statusBeforeCancel?.isActive) {
         markThreadTerminated(threadId);
@@ -610,12 +614,18 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
           await cancelWorkflow(threadId);
         } catch (error) {
           // The run continues and can write to the thread. Thus, do not delete the thread.
+          deletingThreadIds.delete(threadId);
           markThreadStillRunning(threadId, statusBeforeCancel);
           console.error('Cancel workflow request failed:', error);
           return;
         }
       }
-      deleteThreadWithoutCancelling(threadId);
+      try {
+        await deleteThreadWithoutCancelling(threadId);
+      } catch {
+        // The services context shows the error. The thread stays, so its events count again.
+        deletingThreadIds.delete(threadId);
+      }
     },
     [
       workflowStatusByThread,

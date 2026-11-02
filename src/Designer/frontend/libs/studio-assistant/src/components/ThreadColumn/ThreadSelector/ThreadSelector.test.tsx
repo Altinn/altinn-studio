@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThreadSelector } from './ThreadSelector';
 import type { ThreadSelectorProps } from './ThreadSelector';
@@ -56,12 +56,14 @@ describe('ThreadSelector', () => {
     expect(onSelectThread).toHaveBeenLastCalledWith(thirdThread.id);
   });
 
-  it('puts only the open thread and its delete button in the tab order', () => {
+  it('puts only the open thread in the tab order', () => {
     renderThreadSelector({ selectedThreadId: secondThread.id });
     threads.forEach((thread) => {
-      const tabIndex = thread === secondThread ? '0' : '-1';
-      expect(getThreadButton(thread)).toHaveAttribute('tabindex', tabIndex);
-      expect(getDeleteButton(thread)).toHaveAttribute('tabindex', tabIndex);
+      expect(getThreadButton(thread)).toHaveAttribute(
+        'tabindex',
+        thread === secondThread ? '0' : '-1',
+      );
+      expect(getDeleteButton(thread)).toHaveAttribute('tabindex', '-1');
     });
   });
 
@@ -89,29 +91,68 @@ describe('ThreadSelector', () => {
     expect(getThreadButton(firstThread)).toHaveFocus();
   });
 
-  it('goes from the focused thread to its delete button and then out of the list with Tab', async () => {
+  it('moves between a thread and its delete button with the right and left arrow keys', async () => {
+    const user = userEvent.setup();
+    renderThreadSelector();
+
+    await user.tab();
+    await user.keyboard('{ArrowRight}');
+    expect(getDeleteButton(firstThread)).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    expect(getDeleteButton(firstThread)).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(getThreadButton(firstThread)).toHaveFocus();
+  });
+
+  it('moves from a delete button to the delete button of the next thread with the down arrow key', async () => {
+    const user = userEvent.setup();
+    renderThreadSelector();
+
+    await user.tab();
+    await user.keyboard('{ArrowRight}');
+    await user.keyboard('{ArrowDown}');
+    expect(getDeleteButton(secondThread)).toHaveFocus();
+  });
+
+  it('leaves the list with Tab from a thread and from a delete button', async () => {
+    const user = userEvent.setup();
+    renderThreadSelector();
+
+    await user.tab();
+    await user.tab();
+    expect(document.body).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(getThreadButton(firstThread)).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    await user.tab();
+    expect(document.body).toHaveFocus();
+  });
+
+  it('keeps the last focused button in the tab order', async () => {
     const user = userEvent.setup();
     renderThreadSelector();
 
     await user.tab();
     await user.keyboard('{ArrowDown}');
+    await user.keyboard('{ArrowRight}');
     await user.tab();
-    expect(getDeleteButton(secondThread)).toHaveFocus();
-    await user.tab();
-    expect(document.body).toHaveFocus();
     await user.tab({ shift: true });
     expect(getDeleteButton(secondThread)).toHaveFocus();
   });
 
-  it('moves the focus from a delete button to the next thread with the arrow keys', async () => {
+  it('does not move to a delete button when the threads cannot be deleted', async () => {
     const user = userEvent.setup();
-    renderThreadSelector();
+    renderThreadSelector({ onDeleteThread: undefined });
 
     await user.tab();
-    await user.tab();
-    expect(getDeleteButton(firstThread)).toHaveFocus();
-    await user.keyboard('{ArrowDown}');
-    expect(getThreadButton(secondThread)).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    expect(getThreadButton(firstThread)).toHaveFocus();
+  });
+
+  it('stops the arrow keys from scrolling at the ends of the list', () => {
+    renderThreadSelector();
+    const isDefaultAllowed = fireEvent.keyDown(getThreadButton(thirdThread), { key: 'ArrowDown' });
+    expect(isDefaultAllowed).toBe(false);
   });
 
   it('names each delete button with the title of its thread', () => {
@@ -196,6 +237,18 @@ describe('ThreadSelector', () => {
     rerender({ chatThreads: [firstThread, thirdThread] });
 
     expect(getThreadButton(firstThread)).toHaveFocus();
+  });
+
+  it('does not take the focus when the user clicked outside the list while the thread was being deleted', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { rerender } = renderThreadSelector();
+
+    await user.click(getDeleteButton(secondThread));
+    await user.click(document.body);
+    rerender({ chatThreads: [firstThread, thirdThread] });
+
+    expect(document.body).toHaveFocus();
   });
 
   it('keeps the focus on the delete button while the thread is still in the list', async () => {

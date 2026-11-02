@@ -1655,7 +1655,7 @@ describe('deleteThread', () => {
     const callOrder: string[] = [];
     const threads = createThreadState({
       selectedThreadId: 'thread-a',
-      deleteThread: vi.fn(() => {
+      deleteThread: vi.fn(async () => {
         callOrder.push('deleteThread');
       }),
     });
@@ -1696,6 +1696,44 @@ describe('deleteThread', () => {
     expect(threads.deleteThread).not.toHaveBeenCalled();
     expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
     consoleErrorSpy.mockRestore();
+  });
+
+  it('ignores the events of a thread while the app deletes it', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    let emitEvent: (event: WorkflowEvent) => void = () => {};
+    emitEvent = mockWebSocket({
+      cancelWorkflow: vi.fn(async () => {
+        emitEvent({ type: 'error', session_id: 'thread-a', data: { status: 'cancelled' } });
+      }),
+    });
+
+    const { result } = renderUseAssistantWorkflow(threads);
+    await act(async () => emitEvent(busyEvent('thread-a')));
+    const refreshCountBeforeDeletion = vi.mocked(threads.refreshMessages).mock.calls.length;
+
+    await act(async () => {
+      await result.current.deleteThread('thread-a');
+    });
+
+    // The cancelled event must not fetch the messages of a thread that the app deletes.
+    expect(threads.refreshMessages).toHaveBeenCalledTimes(refreshCountBeforeDeletion);
+    expect(threads.deleteThread).toHaveBeenCalledWith('thread-a');
+  });
+
+  it('handles the events of a thread again when deleting it fails', async () => {
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      deleteThread: vi.fn().mockRejectedValue(new Error('delete failed')),
+    });
+    const emitEvent = mockWebSocket();
+
+    const { result } = renderUseAssistantWorkflow(threads);
+    await act(async () => {
+      await result.current.deleteThread('thread-a');
+    });
+    await act(async () => emitEvent(busyEvent('thread-a')));
+
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
   });
 });
 
