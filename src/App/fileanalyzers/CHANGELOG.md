@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- Uploads no longer fail the MIME type validator when `allowedContentTypes` is missing or empty, which is how Studio saves an attachment that allows all file types.
+- Uploads no longer fail the MIME type validator when `allowedContentTypes` is missing or empty, which is how Studio saves an attachment that allows all file types. ([#21701](https://github.com/Altinn/altinn-studio/pull/21701))
 
 ## [9.0.0-preview.1] - 2026-09-09
 
