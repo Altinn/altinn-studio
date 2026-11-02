@@ -1,8 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using LocalTest.Configuration;
+using LocalTest.Controllers;
+using LocalTest.Models;
 using LocalTest.Notifications.LocalTestNotifications;
+using LocalTest.Services.Correspondence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -105,6 +109,47 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
             expectedChannelStatuses,
             shipment.GetProperty("recipients").EnumerateArray().Select(r => r.GetProperty("status").GetString())
         );
+    }
+
+    [Fact]
+    public async Task Post_ListsTheNotificationAndItsRemindersOnTheMessagesPage()
+    {
+        var order = Order("order-3", DateTimeOffset.UtcNow.AddMinutes(5), "EmailAndSms");
+        order["reminders"] = new JsonArray(
+            JsonNode.Parse(
+                $$"""
+                {
+                  "requestedSendTime": "{{DateTimeOffset.UtcNow.AddDays(7):O}}",
+                  "recipient": {
+                    "recipientPerson": {
+                      "nationalIdentityNumber": "01899699552",
+                      "channelSchema": "Email",
+                      "emailSettings": { "subject": "Reminder", "body": "Body" }
+                    }
+                  }
+                }
+                """
+            )
+        );
+        await _controller.Post(order);
+
+        var settings = Options.Create(
+            new LocalPlatformSettings { LocalTestingStorageBasePath = _storagePath + Path.DirectorySeparatorChar }
+        );
+        using var repository = new LocalCorrespondenceRepository(
+            settings,
+            NullLogger<LocalCorrespondenceRepository>.Instance
+        );
+        var page = Assert.IsType<MessagesViewModel>(
+            Assert.IsType<ViewResult>(await new MessagesController(repository, settings).Index()).Model
+        );
+
+        var listed = page.NotificationOrders.OrderBy(o => o.RequestedSendTime).ToList();
+        Assert.Equal(["EmailAndSms", "Email"], listed.Select(o => o.Channel));
+        Assert.Equal(["person 01899699552"], listed[0].Recipients);
+        Assert.Equal(["Email", "SMS"], listed[0].Templates.Select(t => t.Kind));
+        Assert.Equal("Hello", listed[0].Templates[0].Subject);
+        Assert.Equal("Reminder", Assert.Single(listed[1].Templates).Subject);
     }
 
     [Fact]

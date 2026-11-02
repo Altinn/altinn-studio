@@ -76,18 +76,21 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             {
                 new(Guid.NewGuid(), "Notification", sendersReference, SendTime(request), channels, outcome),
             };
+            var shipmentRecipients = new List<JsonObject> { recipient };
             foreach (JsonNode? reminder in request["reminders"]?.AsArray() ?? [])
             {
+                JsonObject reminderRecipient = reminder?["recipient"] as JsonObject ?? recipient;
                 shipments.Add(
                     new(
                         Guid.NewGuid(),
                         "Reminder",
                         reminder?["sendersReference"]?.GetValue<string>(),
                         SendTime(reminder!),
-                        reminder?["recipient"] is JsonObject reminderRecipient ? Channels(reminderRecipient) : channels,
+                        Channels(reminderRecipient),
                         outcome
                     )
                 );
+                shipmentRecipients.Add(reminderRecipient);
             }
 
             var response = new OrderResponse(
@@ -97,9 +100,11 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             );
 
             await Write(orderFile, new StoredOrder(response));
-            foreach (StoredShipment shipment in shipments)
+            DateTimeOffset created = DateTimeOffset.UtcNow;
+            for (int i = 0; i < shipments.Count; i++)
             {
-                await Write(ShipmentFile(shipment.ShipmentId), shipment);
+                await Write(ShipmentFile(shipments[i].ShipmentId), shipments[i]);
+                await Write(MessagesPageFile(shipments[i].ShipmentId), MessagesPageOrder(shipments[i], shipmentRecipients[i], created));
             }
 
             return Created($"notifications/api/v1/future/orders/{response.NotificationOrderId}", response);
@@ -202,6 +207,49 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
         };
     }
 
+    /// <summary>
+    /// A shipment as the Messages page reads the orders of the older <c>orders/email</c> and <c>orders/sms</c>
+    /// API, so that it lists the notification beside them, with its own send time when it is a reminder.
+    /// </summary>
+    private static object MessagesPageOrder(StoredShipment shipment, JsonObject recipient, DateTimeOffset created)
+    {
+        JsonNode? owner = recipient["recipientPerson"] ?? recipient["recipientOrganization"];
+        string? address =
+            recipient["recipientEmail"]?["emailAddress"]?.ToString() ?? recipient["recipientSms"]?["phoneNumber"]?.ToString();
+        JsonNode? email = owner?["emailSettings"] ?? recipient["recipientEmail"]?["emailSettings"];
+        JsonNode? sms = owner?["smsSettings"] ?? recipient["recipientSms"]?["smsSettings"];
+
+        var templates = new List<object>();
+        if (shipment.Channels.Contains("Email") && email is not null)
+        {
+            templates.Add(new { subject = email["subject"]?.ToString(), body = email["body"]?.ToString() });
+        }
+        if (shipment.Channels.Contains("SMS") && sms is not null)
+        {
+            templates.Add(new { body = sms["body"]?.ToString() });
+        }
+
+        return new
+        {
+            id = shipment.ShipmentId,
+            created,
+            requestedSendTime = shipment.RequestedSendTime,
+            notificationChannel = owner?["channelSchema"]?.ToString() ?? shipment.Channels[0],
+            sendersReference = shipment.SendersReference,
+            resourceId = owner?["resourceId"]?.ToString(),
+            recipients = new[]
+            {
+                new
+                {
+                    nationalIdentityNumber = owner?["nationalIdentityNumber"]?.ToString(),
+                    organizationNumber = owner?["orgNumber"]?.ToString(),
+                    addressInfo = address is null ? [] : new[] { new { emailAddress = address } },
+                },
+            },
+            templates,
+        };
+    }
+
     private static DateTimeOffset SendTime(JsonNode order) =>
         order["requestedSendTime"]?.GetValue<DateTimeOffset>() ?? DateTimeOffset.UtcNow;
 
@@ -219,6 +267,10 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
                 Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(idempotencyId))) + ".json"
             )
         );
+
+    /// <summary>Where the Messages page reads orders from, one file per order.</summary>
+    private FileInfo MessagesPageFile(Guid shipmentId) =>
+        new(Path.Combine(StoragePath(), "orders", shipmentId + ".json"));
 
     private FileInfo ShipmentFile(Guid shipmentId) =>
         new(Path.Combine(StoragePath(), "shipments", shipmentId + ".json"));
