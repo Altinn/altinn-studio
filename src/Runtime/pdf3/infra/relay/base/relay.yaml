@@ -61,7 +61,8 @@ metadata:
   name: pdf3-relay-allow-ingress-from-apps
   namespace: runtime-pdf3
 spec:
-  # The same callers as the proxy's: apps, and the Azure Monitor Agent
+  # The same callers as the proxy's: apps, and the Azure Monitor Agent. The gateway checks pdf3 for the
+  # runtime cluster's health.
   podSelector:
     matchLabels:
       app: pdf3-relay
@@ -72,6 +73,10 @@ spec:
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: default
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: runtime-gateway
   - from:
     - namespaceSelector:
         matchLabels:
