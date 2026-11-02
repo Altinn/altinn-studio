@@ -2,6 +2,8 @@ import React from 'react';
 
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
@@ -67,6 +69,55 @@ describe('CustomWebComponent', () => {
     );
     await waitFor(() => {
       expect(Reflect.get(element, 'formData')).toEqual({ simpleBinding: 'Updated by widget' });
+    });
+  });
+
+  describe('with bindings to objects and lists', () => {
+    const initialData = {
+      property: { address: 'Testveien 1', number: 12 },
+      owners: [{ name: 'Ola' }, { name: 'Kari' }],
+      title: 'A title',
+    };
+    const component = {
+      tagName: 'test-component',
+      dataModelBindings: {
+        property: { dataType: defaultDataTypeMock, field: 'property' },
+        owners: { dataType: defaultDataTypeMock, field: 'owners' },
+        title: { dataType: defaultDataTypeMock, field: 'title' },
+      },
+    };
+    const queries = {
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = initialData;
+        }),
+    };
+
+    it('passes the data as it is in the data model in summary mode', async () => {
+      await renderGenericComponentTest({
+        type: 'Custom',
+        renderer: (props) => (
+          <CustomWebComponent
+            {...props}
+            summaryMode={true}
+          />
+        ),
+        component,
+        queries,
+      });
+      const element = screen.getByTestId('test-component');
+      expect(Reflect.get(element, 'formData')).toEqual(initialData);
+    });
+
+    it('passes the data as strings outside summary mode', async () => {
+      await renderGenericComponentTest({
+        type: 'Custom',
+        renderer: (props) => <CustomWebComponent {...props} />,
+        component,
+        queries,
+      });
+      const element = screen.getByTestId('test-component');
+      expect(Reflect.get(element, 'formData')).toEqual({ property: '', owners: '', title: 'A title' });
     });
   });
 
