@@ -46,17 +46,23 @@ func TestApplyGitCheckoutClonesOnlyTheRefShallowly(t *testing.T) {
 	upstream.commit("first")
 	upstream.commit("second")
 	upstream.branch("other")
-	checkout := upstream.checkout(t)
+	for name, repoURL := range map[string]string{"file URL": upstream.url(), "local path": upstream.bare} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	applyCheckout(t, checkout)
+			checkout := upstream.checkout(t)
+			checkout.RepoURL = repoURL
+			applyCheckout(t, checkout)
 
-	assertFileContent(t, filepath.Join(checkout.Path, "file.txt"), "second")
-	assertHead(t, checkout.Path, upstream.head())
-	if got := runTestGit(t, checkout.Path, "rev-list", "--count", "HEAD"); got != "1" {
-		t.Fatalf("commit count = %s, want a shallow clone of 1", got)
-	}
-	if got := runTestGit(t, checkout.Path, "branch", "--remotes"); got != "origin/main" {
-		t.Fatalf("remote branches = %q, want only origin/main", got)
+			assertFileContent(t, filepath.Join(checkout.Path, "file.txt"), "second")
+			assertHead(t, checkout.Path, upstream.head())
+			if got := runTestGit(t, checkout.Path, "rev-list", "--count", "HEAD"); got != "1" {
+				t.Fatalf("commit count = %s, want a shallow clone of 1", got)
+			}
+			if got := runTestGit(t, checkout.Path, "branch", "--remotes"); got != "origin/main" {
+				t.Fatalf("remote branches = %q, want only origin/main", got)
+			}
+		})
 	}
 }
 
@@ -73,6 +79,65 @@ func TestApplyGitCheckoutUpdatesToNewUpstreamCommit(t *testing.T) {
 
 	assertFileContent(t, filepath.Join(checkout.Path, "file.txt"), "second")
 	assertHead(t, checkout.Path, upstream.head())
+}
+
+func TestApplyGitCheckoutResetsToForcePushedBranch(t *testing.T) {
+	t.Parallel()
+
+	upstream := newTestUpstream(t)
+	upstream.commit("first")
+	checkout := upstream.checkout(t)
+	applyCheckout(t, checkout)
+
+	runTestGit(t, upstream.working, "checkout", "--orphan", "rewritten")
+	writeTestFile(t, filepath.Join(upstream.working, "file.txt"), "rewritten")
+	runTestGit(t, upstream.working, "commit", "--all", "--message", "rewritten")
+	runTestGit(t, upstream.working, "push", "--quiet", "--force", upstream.bare, "HEAD:refs/heads/main")
+	runTestGit(t, checkout.Path, "fetch", "--depth=1", "--force", "origin", "+refs/heads/main:refs/remotes/origin/main")
+
+	observed, err := New().Observe(t.Context(), executor.BackendContext{GraphID: "test"}, checkout)
+	if err != nil || observed.Status != executor.StatusPending {
+		t.Fatalf("Observe() = %v, %v, want pending before reset", observed.Status, err)
+	}
+	applyCheckout(t, checkout)
+
+	assertFileContent(t, filepath.Join(checkout.Path, "file.txt"), "rewritten")
+	assertHead(t, checkout.Path, upstream.head())
+	observed, err = New().Observe(t.Context(), executor.BackendContext{GraphID: "test"}, checkout)
+	if err != nil || observed.Status != executor.StatusReady {
+		t.Fatalf("Observe() = %v, %v, want ready after reset", observed.Status, err)
+	}
+}
+
+func TestApplyGitCheckoutRetriesFailedClone(t *testing.T) {
+	t.Parallel()
+
+	upstream := newTestUpstream(t)
+	upstream.commit("content")
+	checkout := upstream.checkout(t)
+	checkout.Ref = "missing"
+	if _, err := New().Apply(t.Context(), executor.BackendContext{GraphID: "test"}, checkout); err == nil {
+		t.Fatal("Apply() error = nil, want an error for the missing branch")
+	}
+
+	checkout.Ref = "main"
+	applyCheckout(t, checkout)
+	assertHead(t, checkout.Path, upstream.head())
+}
+
+func TestApplyGitCheckoutRejectsTagOnlyRef(t *testing.T) {
+	t.Parallel()
+
+	upstream := newTestUpstream(t)
+	upstream.commit("content")
+	runTestGit(t, upstream.working, "tag", "release")
+	runTestGit(t, upstream.working, "push", "--quiet", upstream.bare, "refs/tags/release")
+	checkout := upstream.checkout(t)
+	checkout.Ref = "release"
+
+	if _, err := New().Apply(t.Context(), executor.BackendContext{GraphID: "test"}, checkout); err == nil {
+		t.Fatal("Apply() error = nil, want an error for a tag without a matching branch")
+	}
 }
 
 func TestApplyGitCheckoutIgnoresTemplates(t *testing.T) {

@@ -196,9 +196,14 @@ func applyGitCheckout(ctx context.Context, checkout *resource.GitCheckout) error
 		if pathExists(checkout.Path) {
 			return fmt.Errorf("%w: %s", errLocalPathNotGitRepo, checkout.Path)
 		}
-		if _, err := runGit(ctx, "", "clone", "--depth=1", "--single-branch", "--no-tags", "--template=",
+		if _, err := runGit(ctx, "", "clone", "--depth=1", "--single-branch", "--no-tags", "--no-local", "--template=",
 			"--branch", checkout.Ref, "--", checkout.RepoURL, checkout.Path); err != nil {
 			return fmt.Errorf("clone Git checkout %s: %w", checkout.Name, err)
+		}
+		// clone --branch also accepts tags, which have no remote branch to fetch on later applies.
+		ref := remoteRefName(checkout)
+		if _, err := runGit(ctx, checkout.Path, "show-ref", "--verify", "--quiet", ref); err != nil {
+			return fmt.Errorf("resolve Git checkout %s branch %s: %w", checkout.Name, checkout.Ref, err)
 		}
 		return nil
 	}
