@@ -198,12 +198,6 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     }
 
     /// <inheritdoc />
-    public async Task<object> GetFormDataCopy(DataElementIdentifier dataElementIdentifier)
-    {
-        return (await GetFormDataWrapper(dataElementIdentifier)).Copy().BackingData<object>();
-    }
-
-    /// <inheritdoc />
     public async Task ReplaceFormData(DataElementIdentifier dataElementIdentifier, object model)
     {
         ArgumentNullException.ThrowIfNull(model);

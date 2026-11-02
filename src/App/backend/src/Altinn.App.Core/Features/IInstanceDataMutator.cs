@@ -95,16 +95,6 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
 
     /// <summary>
-    /// Reads a copy of the element's current form data; changes to the copy are not saved.
-    /// </summary>
-    /// <remarks>
-    /// The copy includes earlier changes in memory, such as changes to the object <see cref="IInstanceDataAccessor.GetFormData"/>
-    /// returns and data set with <see cref="ReplaceFormData"/>.
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">when identifier does not exist in instance.Data with an applogic data type</exception>
-    Task<object> GetFormDataCopy(DataElementIdentifier dataElementIdentifier);
-
-    /// <summary>
     /// Makes the state of <paramref name="model"/> at this call the element's form data; it is saved with the other changes.
     /// </summary>
     /// <remarks>
