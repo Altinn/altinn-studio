@@ -163,10 +163,15 @@ share of the rest. The [gateway's configuration](../infra/observability/base/gat
   trace matters.
 - Counts, rates and latencies come from metrics, never from stored spans.
 
-## Attributes and names
+## Semantic conventions and names
 
-- Use attributes from the [semantic conventions](https://opentelemetry.io/docs/specs/semconv/) as they are, with
-  their current names. Never give a convention's attribute another meaning, and never add an `altinn.` copy of one.
+Telemetry follows the [OpenTelemetry semantic conventions](https://opentelemetry.io/docs/specs/semconv/) wherever they
+cover it. That includes span names and kinds, metrics and attributes, and telemetry we write ourselves as well as what
+instrumentation libraries emit. Use the stable names where they exist. Where a convention is still in development, use
+its current names. Our own `altinn.` names are only for what the conventions don't cover.
+
+- Use a convention's attributes and metrics as they are. Never give one another meaning, and never add an `altinn.`
+  copy of one.
 - Our own attributes and metrics start with `altinn.`. Names are lowercase, with `.` between segments and snake_case
   within one: `altinn.designer.git.pull.merge_status`.
 - A concept in the [shared vocabulary](#shared-vocabulary) is `altinn.<concept>`. Anything specific to one service is

@@ -16,9 +16,10 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
 3. **Trace boundaries.** A trace holds one unit of work, except for flows we choose to follow end to end as one
    trace, such as an app deploy. Work that outlives its request runs in its own trace and links back, with
    correlation keys on both sides (A2.1).
-4. **Names.** Semantic convention attributes and metrics are used as they are. Our own are `altinn.<concept>` for the
-   shared vocabulary and `altinn.<service>.…` for one service, without a `studio` segment (A3.1). Span names never
-   contain IDs.
+4. **Names.** Telemetry follows the OpenTelemetry semantic conventions wherever they cover it, including the
+   telemetry we write ourselves. Our own names are only for what they don't cover: `altinn.<concept>` for the shared
+   vocabulary and `altinn.<service>.…` for one service, without a `studio` segment (A3.1). Span names never contain
+   IDs.
 5. **Shared vocabulary.** One name per concept in every service and signal, such as `altinn.service_owner` and
    `altinn.app`. The same key is a resource attribute where its value is fixed for the process, and a span, metric or
    log attribute where it varies.
