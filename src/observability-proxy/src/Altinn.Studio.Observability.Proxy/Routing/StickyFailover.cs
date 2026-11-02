@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Altinn.Studio.Observability.Proxy.Telemetry;
+using Yarp.ReverseProxy.Health;
 using Yarp.ReverseProxy.Model;
 
 namespace Altinn.Studio.Observability.Proxy.Routing;
@@ -65,11 +66,23 @@ internal sealed class StickyFailover(ILogger<StickyFailover> logger, Observabili
     /// <summary>
     /// The destination a read that could not reach <paramref name="failed"/> is sent to instead, or
     /// <c>null</c> when no other is healthy. Like <see cref="Peek"/>, it does not move reads there.
+    ///
+    /// A copy the health checks failed is never one, even when it is available: with every copy
+    /// unhealthy, YARP falls back to offering all of them, and a destination's health can change
+    /// after the list was taken.
     /// </summary>
     public static DestinationState? Standby(
         IReadOnlyList<DestinationState> availableDestinations,
         DestinationState failed
-    ) => Select(null, availableDestinations.Where(destination => !ReferenceEquals(destination, failed)).ToList());
+    ) =>
+        Select(
+            null,
+            availableDestinations
+                .Where(destination =>
+                    !ReferenceEquals(destination, failed) && destination.Health.Active != DestinationHealth.Unhealthy
+                )
+                .ToList()
+        );
 
     private static DestinationState? Select(string? currentId, IReadOnlyList<DestinationState> availableDestinations)
     {

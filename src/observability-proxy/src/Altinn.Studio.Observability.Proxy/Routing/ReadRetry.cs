@@ -9,7 +9,7 @@ namespace Altinn.Studio.Observability.Proxy.Routing;
 /// Sends a read that could not reach its storage copy to the other copy, once.
 ///
 /// <see cref="StickyFailover"/> moves reads only once the active health checks take a copy out,
-/// which takes two failed probes: with the default interval, 10 to 25 seconds after the copy went
+/// which takes two failed probes: with the default interval, 10 to 30 seconds after the copy went
 /// away. A node restart takes a copy away for about as long, so without this every read in that
 /// window fails, and Grafana's alert rules, which read through the proxy, report a monitoring
 /// failure.
@@ -29,7 +29,7 @@ internal sealed class ReadRetry(ILogger<ReadRetry> logger, ObservabilityProxyMet
     public const int MaxBufferedBodyBytes = 1024 * 1024;
 
     /// <param name="destination">The copy <see cref="StickyFailover"/> chose for this read.</param>
-    /// <param name="availableDestinations">The cluster's healthy copies, before the choice.</param>
+    /// <param name="availableDestinations">The copies YARP offered for this read, before the choice.</param>
     public async Task ForwardAsync(
         HttpContext context,
         RequestDelegate next,
@@ -37,8 +37,7 @@ internal sealed class ReadRetry(ILogger<ReadRetry> logger, ObservabilityProxyMet
         IReadOnlyList<DestinationState> availableDestinations
     )
     {
-        var standby = StickyFailover.Standby(availableDestinations, destination);
-        if (standby is null || !TryBufferBody(context.Request))
+        if (StickyFailover.Standby(availableDestinations, destination) is null || !TryBufferBody(context.Request))
         {
             await next(context);
             return;
@@ -46,9 +45,12 @@ internal sealed class ReadRetry(ILogger<ReadRetry> logger, ObservabilityProxyMet
 
         await next(context);
 
+        // The standby is chosen again, since its health checks may have failed while the first
+        // attempt ran.
         if (
             context.GetForwarderErrorFeature() is not { Error: ForwarderError.Request } forwarderError
             || context.Response.HasStarted
+            || StickyFailover.Standby(availableDestinations, destination) is not { } standby
         )
         {
             return;
