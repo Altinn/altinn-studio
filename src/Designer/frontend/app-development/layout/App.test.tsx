@@ -15,7 +15,7 @@ describe('App', () => {
   it('includes the app name in the document title', () => {
     renderApp('/test-org/first-app/overview');
 
-    expect(document.title).toBe(`${DISPLAY_NAME}: first-app`);
+    expect(document.title).toBe(`first-app - ${DISPLAY_NAME}`);
   });
 
   it('updates the document title when navigating to another app', () => {
@@ -23,7 +23,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Navigate to another app' }));
 
-    expect(document.title).toBe(`${DISPLAY_NAME}: second-app`);
+    expect(document.title).toBe(`second-app - ${DISPLAY_NAME}`);
   });
 
   it('restores the default document title when navigating outside an app', () => {
