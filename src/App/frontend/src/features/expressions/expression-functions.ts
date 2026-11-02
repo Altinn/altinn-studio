@@ -1,6 +1,6 @@
 import dot from 'dot-object';
 import escapeStringRegexp from 'escape-string-regexp';
-import type { IDataModelReference } from '@app/layout-contract/generated/common.generated';
+import type { IDataModelReference, IFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { SearchParams } from 'src/core/routing/types';
 import { evalExpr, exprCastValue } from 'src/features/expressions';
@@ -16,6 +16,7 @@ import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
+import { formatNumericText, getMapToReactNumberConfig } from 'src/utils/formattingUtils';
 import { collectHiddenSources, evaluateHiddenSources } from 'src/utils/layout/hiddenUtils';
 import type { EvaluateExpressionParams } from 'src/features/expressions';
 import type {
@@ -24,6 +25,7 @@ import type {
   ExprDate,
   ExprFunctionName,
   ExprFunctions,
+  ExprResolved,
   ExprValToActual,
   ExprValToActualOrExpr,
   ValidObject,
@@ -187,6 +189,10 @@ export const ExprFunctionDefinitions = {
   },
   optionLabel: {
     args: args(required(ExprVal.String), required(ExprVal.Any)),
+    returns: ExprVal.String,
+  },
+  formatNumber: {
+    args: args(required(ExprVal.Number), optional(ExprVal.Object)),
     returns: ExprVal.String,
   },
   formatDate: {
@@ -576,6 +582,25 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     }
 
     return null;
+  },
+  formatNumber(number, formatting) {
+    if (number === null) {
+      return null;
+    }
+
+    const text = number.toString();
+    try {
+      // Object arguments have no property types. Use the same formatting contract as Input and Number.
+      const config = getMapToReactNumberConfig(
+        formatting as ExprResolved<IFormatting> | undefined,
+        text,
+        this.dataSources.context.currentLanguage(),
+      );
+      return formatNumericText(text, config.number);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown formatting error';
+      throw new ExprRuntimeError(this.expr, this.path, `Number formatting error: ${message}`);
+    }
   },
   formatDate(date, format) {
     if (date === null) {
