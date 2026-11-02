@@ -33,7 +33,11 @@ export function App() {
   const app = match?.params?.app ?? '';
 
   useEffect(() => {
-    document.title = app ? `${app} - ${DISPLAY_NAME}` : DISPLAY_NAME;
+    if (!app) return;
+    document.title = `${app} - ${DISPLAY_NAME}`;
+    return () => {
+      document.title = DISPLAY_NAME;
+    };
   }, [app]);
 
   useEffect(() => {

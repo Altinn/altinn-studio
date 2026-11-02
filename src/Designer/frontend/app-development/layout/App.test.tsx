@@ -33,6 +33,14 @@ describe('App', () => {
 
     expect(document.title).toBe(DISPLAY_NAME);
   });
+
+  it('restores the default document title when unmounted', () => {
+    const { unmount } = renderApp('/test-org/first-app/overview');
+
+    unmount();
+
+    expect(document.title).toBe(DISPLAY_NAME);
+  });
 });
 
 const TestPage = () => {
