@@ -412,6 +412,12 @@ export function nn() {
     'broker_file_transfer.error_file_name_too_long': 'Filnamnet kan vere maks {0} teikn.',
     'broker_file_transfer.error_file_too_large': 'Fila er {0}. Du kan sende filer på opptil {1}.',
     'broker_file_transfer.error_file_type': 'Du kan berre sende desse filtypane: {0}.',
+    'broker_file_transfer.error_no_recipients':
+      'Du må oppgi kven som skal få fila, før du kan sende ho.',
+    'broker_file_transfer.error_invalid_recipients':
+      'Fila kan berre sendast til organisasjonsnummer med ni siffer, ikkje til {0}.',
+    'broker_file_transfer.error_recipients_not_allowed':
+      'Fila kan berre sendast til verksemder som har tilgang til denne tenesta.',
     'broker_file_transfer.error_no_access':
       'Du har ikkje tilgang til å sende filer i denne tenesta på vegner av verksemda.',
     'broker_file_transfer.error_login':

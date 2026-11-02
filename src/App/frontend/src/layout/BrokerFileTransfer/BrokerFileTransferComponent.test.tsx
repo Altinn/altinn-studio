@@ -357,6 +357,53 @@ describe('BrokerFileTransferComponent', () => {
     ).toBeInTheDocument();
   });
 
+  it('sends to the organizations in a data model field', async () => {
+    await render({
+      formData: { id: '', status: '', name: '', recipients: `${RECIPIENT}, 974760673` },
+      recipients: ['dataModel', 'broker.recipients'],
+    });
+
+    await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+    await userEvent.click(screen.getByRole('button', { name: 'Send filen' }));
+
+    expect(fake.controller.start).toHaveBeenCalledWith(
+      expect.objectContaining({ recipients: [RECIPIENT, '974760673'] }),
+    );
+  });
+
+  it('asks the user for the recipients when the data model field is empty', async () => {
+    await render({ recipients: ['dataModel', 'broker.recipients'] });
+
+    await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+
+    expect(screen.getByText('Du må oppgi hvem som skal motta filen, før du kan sende den.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
+  });
+
+  it('tells the user which recipients in the data model field are not organization numbers', async () => {
+    await render({
+      formData: { id: '', status: '', name: '', recipients: `${RECIPIENT}, 12345` },
+      recipients: ['dataModel', 'broker.recipients'],
+    });
+
+    await userEvent.upload(await findFileInput(), new File(['content'], 'rapport.pdf'));
+
+    expect(
+      screen.getByText('Filen kan bare sendes til organisasjonsnummer med ni siffer, ikke til 12345.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send filen' })).toBeDisabled();
+  });
+
+  it('continues an interrupted upload to the recipients it was started with', async () => {
+    vi.mocked(checkInterruptedTransfer).mockResolvedValue(resumable);
+    await render({ formData: interruptedFormData, recipients: ['dataModel', 'broker.recipients'] });
+
+    await userEvent.upload(await findFileInput(), new File(['rapporten'], 'rapport.pdf'));
+
+    expect(screen.queryByText('Du må oppgi hvem som skal motta filen, før du kan sende den.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fortsett opplastingen' })).toBeEnabled();
+  });
+
   it('refuses a file larger than the resource allows', async () => {
     vi.mocked(getResourceConfiguration).mockResolvedValue({ ...resourceConfiguration, maxFileTransferSize: 5 });
     await render();

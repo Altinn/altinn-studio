@@ -414,6 +414,12 @@ export function nb() {
     'broker_file_transfer.error_file_name_too_long': 'Filnavnet kan være maks {0} tegn.',
     'broker_file_transfer.error_file_too_large': 'Filen er {0}. Du kan sende filer på opptil {1}.',
     'broker_file_transfer.error_file_type': 'Du kan bare sende disse filtypene: {0}.',
+    'broker_file_transfer.error_no_recipients':
+      'Du må oppgi hvem som skal motta filen, før du kan sende den.',
+    'broker_file_transfer.error_invalid_recipients':
+      'Filen kan bare sendes til organisasjonsnummer med ni siffer, ikke til {0}.',
+    'broker_file_transfer.error_recipients_not_allowed':
+      'Filen kan bare sendes til virksomheter som har tilgang til denne tjenesten.',
     'broker_file_transfer.error_no_access':
       'Du har ikke tilgang til å sende filer i denne tjenesten på vegne av virksomheten.',
     'broker_file_transfer.error_login':

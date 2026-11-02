@@ -11,7 +11,7 @@ type StaticConfig = Pick<
   'resourceId' | 'hasCustomRecipients' | 'recipients' | 'metadata'
 >;
 
-// Mistakes the layout shows by itself; recipients from an expression are checked once evaluated
+// Mistakes the layout shows by itself; recipients from an expression can come from the form, so the user corrects those
 export function configProblems({ resourceId, hasCustomRecipients, recipients, metadata }: StaticConfig): Message[] {
   const problems: Message[] = [];
   if (!resourceId) {
@@ -31,18 +31,17 @@ export function splitRecipients(recipients: string): string[] {
     .filter(Boolean);
 }
 
-export function recipientProblems(recipients: string[]): Message[] {
+export function invalidRecipients(recipients: string[]): string[] {
+  return recipients.filter((recipient) => !toOrgNumber(recipient));
+}
+
+function recipientProblems(recipients: string[]): Message[] {
   if (recipients.length === 0) {
     return [{ key: 'config_error.broker_file_transfer_no_recipients', params: ['hasCustomRecipients', 'recipients'] }];
   }
-  const invalidRecipients = recipients.filter((recipient) => !toOrgNumber(recipient));
-  return invalidRecipients.length > 0
-    ? [
-        {
-          key: 'config_error.broker_file_transfer_invalid_recipients',
-          params: ['recipients', invalidRecipients.join(', ')],
-        },
-      ]
+  const invalid = invalidRecipients(recipients);
+  return invalid.length > 0
+    ? [{ key: 'config_error.broker_file_transfer_invalid_recipients', params: ['recipients', invalid.join(', ')] }]
     : [];
 }
 

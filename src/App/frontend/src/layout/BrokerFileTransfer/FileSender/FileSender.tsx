@@ -68,7 +68,12 @@ export function FileSender({ baseComponentId, setup }: FileSenderProps) {
     interrupted && file && !isSameFile(interrupted, file)
       ? { key: 'broker_file_transfer.wrong_file', params: [interrupted.fileName] }
       : undefined;
-  const problem = pickError ?? wrongFile ?? (file ? fileProblem(file, setup.maxFileSize, language) : undefined);
+  // An interrupted file transfer already has its recipients
+  const recipientsProblem = interrupted ? undefined : setup.recipientsProblem;
+  const problem =
+    pickError ??
+    wrongFile ??
+    (file ? (fileProblem(file, setup.maxFileSize, language) ?? recipientsProblem) : undefined);
   const sendError = upload.sendError !== null ? sendErrorMessage(upload.sendError) : undefined;
 
   return (

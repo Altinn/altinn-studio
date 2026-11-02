@@ -15,6 +15,9 @@ const MAX_FILE_NAME_LENGTH = 255;
 // Broker's error code for NoAccessToResource
 const NO_ACCESS_TO_RESOURCE = 6;
 
+// Broker's error codes for RecipientNotInAccessList and InvalidRecipient, from its check against the access list
+const RECIPIENTS_NOT_ALLOWED = new Set<number | undefined>([28, 31]);
+
 const problemDetailsSchema = z.object({
   errorCode: z.number().nullish(),
   detail: z.string().nullish(),
@@ -58,6 +61,9 @@ export function sendErrorMessage(error: unknown): Message {
   }
   if (error instanceof ApiError && error.status === 403) {
     return { key: 'broker_file_transfer.error_not_set_up' };
+  }
+  if (error instanceof ApiError && RECIPIENTS_NOT_ALLOWED.has(brokerProblem(error).errorCode)) {
+    return { key: 'broker_file_transfer.error_recipients_not_allowed' };
   }
   return { key: 'broker_file_transfer.error_send_failed' };
 }

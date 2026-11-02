@@ -12,7 +12,7 @@ import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
 import { toOrgNumber } from 'src/layout/BrokerFileTransfer/brokerClient/orgIdentifier';
 import { effectiveMaxFileTransferSize } from 'src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration';
 import { getBrokerApiBaseUrl } from 'src/layout/BrokerFileTransfer/brokerUploads';
-import { configProblems, recipientProblems, splitRecipients } from 'src/layout/BrokerFileTransfer/configProblems';
+import { configProblems, invalidRecipients, splitRecipients } from 'src/layout/BrokerFileTransfer/configProblems';
 import { brokerProblem, unauthorizedMessage } from 'src/layout/BrokerFileTransfer/messages';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
@@ -25,6 +25,8 @@ export type ReadySetup = {
   resourceId: string;
   sender: string;
   recipients: string[];
+  // Why a new file transfer can't be sent to the recipients yet, such as a field the user hasn't filled in
+  recipientsProblem: Message | undefined;
   disableVirusScan: boolean;
   maxFileSize: number | null;
 };
@@ -79,10 +81,6 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
       errors: ['BrokerFileTransfer sends on behalf of the instance owner, so it needs an instance.'],
     };
   }
-  const recipientErrors = configuredRecipients ? recipientProblems(configuredRecipients) : [];
-  if (recipientErrors.length > 0) {
-    return { kind: 'misconfigured', errors: translate(recipientErrors) };
-  }
   if (!baseUrl) {
     return {
       kind: 'unavailable',
@@ -112,8 +110,8 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   }
 
   const requiredParty = resource.data.requiredParty ? toOrgNumber(resource.data.requiredParty) : null;
-  const recipients = configuredRecipients ?? (requiredParty ? [requiredParty] : []);
-  if (recipients.length === 0) {
+  const recipients = configuredRecipients ?? (requiredParty ? [requiredParty] : null);
+  if (!recipients) {
     return {
       kind: 'misconfigured',
       errors: ['No recipients: set hasCustomRecipients and recipients, or give the Broker resource a required party.'],
@@ -127,6 +125,7 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
     resourceId,
     sender,
     recipients: recipients.map((recipient) => toOrgNumber(recipient) ?? recipient),
+    recipientsProblem: recipientsProblem(recipients),
     disableVirusScan,
     maxFileSize: lowerLimit(
       effectiveMaxFileTransferSize(resource.data.maxFileTransferSize, !disableVirusScan),
@@ -145,6 +144,17 @@ function resourceProblem(error: Error, resourceId: string): BrokerSetup {
     return { kind: 'misconfigured', errors: [`Altinn Broker cannot send on the resource '${resourceId}': ${reason}`] };
   }
   return { kind: 'problem', message: { key: 'broker_file_transfer.resource_unavailable' } };
+}
+
+// Fixed recipients were checked with the configuration, so these come from an expression, such as a form field
+function recipientsProblem(recipients: string[]): Message | undefined {
+  if (recipients.length === 0) {
+    return { key: 'broker_file_transfer.error_no_recipients' };
+  }
+  const invalid = invalidRecipients(recipients);
+  return invalid.length > 0
+    ? { key: 'broker_file_transfer.error_invalid_recipients', params: [invalid.join(', ')] }
+    : undefined;
 }
 
 function lowerLimit(limit: number | null, otherLimit: number | null): number | null {

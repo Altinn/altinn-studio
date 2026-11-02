@@ -413,6 +413,12 @@ export function en() {
     'broker_file_transfer.error_file_too_large':
       'The file is {0}. You can send files of up to {1}.',
     'broker_file_transfer.error_file_type': 'You can only send these file types: {0}.',
+    'broker_file_transfer.error_no_recipients':
+      'You must specify who will receive the file before you can send it.',
+    'broker_file_transfer.error_invalid_recipients':
+      'The file can only be sent to nine-digit organisation numbers, not to {0}.',
+    'broker_file_transfer.error_recipients_not_allowed':
+      'The file can only be sent to organisations that have access to this service.',
     'broker_file_transfer.error_no_access':
       'You do not have access to send files on this service on behalf of the organisation.',
     'broker_file_transfer.error_login':

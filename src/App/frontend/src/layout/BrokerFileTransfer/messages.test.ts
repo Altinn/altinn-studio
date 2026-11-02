@@ -27,6 +27,14 @@ describe('sendErrorMessage', () => {
     });
   });
 
+  it('says the file can only go to organizations with access when Broker refuses the recipients', () => {
+    const notInAccessList = new ApiError('Request failed: 400', 400, { errorCode: 28 });
+    const notFound = new ApiError('Request failed: 400', 400, { errorCode: 31 });
+
+    expect(sendErrorMessage(notInAccessList)).toEqual({ key: 'broker_file_transfer.error_recipients_not_allowed' });
+    expect(sendErrorMessage(notFound)).toEqual({ key: 'broker_file_transfer.error_recipients_not_allowed' });
+  });
+
   it('suggests trying again after other failures', () => {
     expect(sendErrorMessage(new ApiError('Request failed: 500', 500))).toEqual({
       key: 'broker_file_transfer.error_send_failed',
