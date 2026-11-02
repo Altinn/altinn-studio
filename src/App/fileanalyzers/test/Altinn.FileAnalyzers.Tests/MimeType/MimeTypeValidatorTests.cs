@@ -94,6 +94,22 @@ public class MimeTypeValidatorTests
         new[] { "application/vnd.ms-excel" },
         true
     )]
+    [InlineData("audio/midi", new[] { "midi", "mid" }, "song.mid", new[] { "audio/mid" }, true)]
+    // The content can have extensions of other types, so it doesn't show which type the file is
+    [InlineData(
+        "application/x-bzip2",
+        new[] { "bz2", "tar", "tbz2", "tb2" },
+        "archive.tar",
+        new[] { "application/x-tar" },
+        false
+    )]
+    [InlineData(
+        "video/mp4",
+        new[] { "mp4", "m4v", "m4a", "mp4a", "mov" },
+        "clip.mov",
+        new[] { "video/quicktime" },
+        false
+    )]
     // The content is not what the extension says
     [InlineData("image/webp", new[] { "webp" }, "photo.jpg", new[] { "image/jpeg" }, false)]
     [InlineData(

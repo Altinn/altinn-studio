@@ -61,10 +61,10 @@ internal sealed class MimeTypeValidator : IFileValidator
     }
 
     /// <summary>
-    /// Whether the content matches the file's own extension, and a content type <see cref="MimeTypeMap"/> gives that
-    /// extension is allowed. The content inspector names some types differently from the content types Studio writes
-    /// and the upload check accepts, such as application/excel for .xls, so its MIME type alone rejects files that
-    /// are what they say.
+    /// Whether the content matches the file's own extension and no extension of another type, and a content type
+    /// <see cref="MimeTypeMap"/> gives that extension is allowed. The content inspector names some types differently
+    /// from the content types Studio writes and the upload check accepts, such as application/excel for .xls, so its
+    /// MIME type alone rejects files that are what they say.
     /// </summary>
     private static bool IsAllowedByFileExtension(
         DataType dataType,
@@ -84,6 +84,18 @@ internal sealed class MimeTypeValidator : IFileValidator
         }
 
         var contentTypesForExtension = MimeTypeMap.GetMimeType(extension);
+
+        // Content that can have extensions of other types, such as bzip2 for both .bz2 and .tar, doesn't show which
+        // type the file is
+        if (
+            !analysisResult.Extensions.All(analysedExtension =>
+                MimeTypeMap.GetMimeType(analysedExtension).IsMatch(contentTypesForExtension.Type)
+            )
+        )
+        {
+            return false;
+        }
+
         return dataType.AllowedContentTypes.Any(allowed =>
             contentTypesForExtension.IsMatch(allowed)
         );
