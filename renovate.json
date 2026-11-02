@@ -74,12 +74,6 @@
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
-      "description": "Require explicit approval for Helm Go dependency updates because even patch releases can change Kubernetes client minor versions",
-      "matchManagers": ["gomod"],
-      "matchPackageNames": ["helm.sh/helm/v3"],
-      "dependencyDashboardApproval": true
-    },
-    {
       "description": "Group Kubernetes, Flux, and cluster tooling Go dependency patches so related release trains move together",
       "matchManagers": ["gomod", "custom.regex"],
       "matchPackageNames": [

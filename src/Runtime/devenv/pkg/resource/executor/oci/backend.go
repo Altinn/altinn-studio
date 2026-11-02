@@ -34,15 +34,11 @@ type helmOperations interface {
 }
 
 // New creates an OCI publishing resource backend.
-func New() (*Backend, error) {
-	helmClient, err := helm.NewClient(true)
-	if err != nil {
-		return nil, fmt.Errorf("create helm client: %w", err)
-	}
+func New() *Backend {
 	return &Backend{
 		oci:  oci.NewClient(),
-		helm: helmClient,
-	}, nil
+		helm: helm.NewClient(),
+	}
 }
 
 // Supports reports whether this backend can apply and observe r.
