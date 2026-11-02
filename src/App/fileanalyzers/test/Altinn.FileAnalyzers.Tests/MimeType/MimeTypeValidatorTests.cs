@@ -76,36 +76,55 @@ public class MimeTypeValidatorTests
         "application/excel",
         new[] { "xls" },
         "budget.xls",
-        "application/vnd.ms-excel",
+        new[] { "application/vnd.ms-excel" },
         true
     )]
     [InlineData(
         "application/mspowerpoint",
         new[] { "ppt" },
         "slides.ppt",
-        "application/vnd.ms-powerpoint",
+        new[] { "application/vnd.ms-powerpoint" },
         true
     )]
-    [InlineData("application/xml", new[] { "xml" }, "data.xml", "text/xml", true)]
+    [InlineData("application/xml", new[] { "xml" }, "data.xml", new[] { "text/xml" }, true)]
     [InlineData(
         "application/excel",
         new[] { "xls" },
         "BUDGET.XLS",
-        "application/vnd.ms-excel",
+        new[] { "application/vnd.ms-excel" },
         true
     )]
     // The content is not what the extension says
-    [InlineData("image/webp", new[] { "webp" }, "photo.jpg", "image/jpeg", false)]
+    [InlineData("image/webp", new[] { "webp" }, "photo.jpg", new[] { "image/jpeg" }, false)]
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        "budget.pdf",
+        new[] { "application/vnd.ms-excel", "application/pdf" },
+        false
+    )]
     // The extension's content type is not allowed
-    [InlineData("application/excel", new[] { "xls" }, "budget.xls", "application/pdf", false)]
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        "budget.xls",
+        new[] { "application/pdf" },
+        false
+    )]
     // No filename, or content the inspector does not recognize
-    [InlineData("application/excel", new[] { "xls" }, null, "application/vnd.ms-excel", false)]
-    [InlineData(null, new string[0], "document.pdf", "application/pdf", false)]
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        null,
+        new[] { "application/vnd.ms-excel" },
+        false
+    )]
+    [InlineData(null, new string[0], "document.pdf", new[] { "application/pdf" }, false)]
     public async Task Validate_ChecksContentTypeOfFileExtension_OnlyWhenContentMatchesIt(
         string? mimeType,
         string[] extensions,
         string? filename,
-        string allowedContentType,
+        string[] allowedContentTypes,
         bool expectedSuccess
     )
     {
@@ -113,7 +132,7 @@ public class MimeTypeValidatorTests
         {
             Id = "attachment",
             EnabledFileValidators = new List<string>() { "mimeTypeValidator" },
-            AllowedContentTypes = new List<string>() { allowedContentType },
+            AllowedContentTypes = allowedContentTypes.ToList(),
         };
         IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>()
         {
