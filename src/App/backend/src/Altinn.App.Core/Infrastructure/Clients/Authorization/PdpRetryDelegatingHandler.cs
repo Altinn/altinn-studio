@@ -7,6 +7,8 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization;
 /// A <see cref="DelegatingHandler"/> that sends a request to the PDP once more when the first attempt fails
 /// with a network error or a 502, 503 or 504 response.
 /// A decision request is safe to repeat: at most the PDP logs one more audit event for it.
+/// The handler sends the same request message twice, so its content must be readable twice, as the
+/// <see cref="StringContent"/> that <c>AuthorizationApiClient</c> sends is.
 /// </summary>
 internal sealed class PdpRetryDelegatingHandler : DelegatingHandler
 {
@@ -43,7 +45,7 @@ internal sealed class PdpRetryDelegatingHandler : DelegatingHandler
             _logger.LogWarning(e, "Request to PDP failed, retrying once");
         }
 
-        // A request the caller has given up on is not sent again
+        // When the caller has canceled or HttpClient.Timeout has run out, nobody waits for a second attempt
         cancellationToken.ThrowIfCancellationRequested();
         return await base.SendAsync(request, cancellationToken);
     }

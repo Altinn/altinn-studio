@@ -99,6 +99,7 @@ public class PdpRetryDelegatingHandlerTests
     [InlineData(HttpStatusCode.Unauthorized)]
     [InlineData(HttpStatusCode.Forbidden)]
     [InlineData(HttpStatusCode.NotFound)]
+    [InlineData(HttpStatusCode.TooManyRequests)]
     [InlineData(HttpStatusCode.InternalServerError)]
     public async Task SendAsync_DoesNotRetry_WhenResponseIsNotTransient(HttpStatusCode statusCode)
     {
@@ -112,7 +113,7 @@ public class PdpRetryDelegatingHandlerTests
     }
 
     [Fact]
-    public async Task SendAsync_DoesNotRetry_WhenRequestIsCanceled()
+    public async Task SendAsync_DoesNotRetry_WhenFirstAttemptThrowsTaskCanceledException()
     {
         List<string> receivedBodies = [];
         using HttpClient client = CreateClient(receivedBodies, () => throw new TaskCanceledException());

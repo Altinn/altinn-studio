@@ -22,7 +22,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- A call to the authorization PDP that fails with a network error or a 502, 503 or 504 response is sent once more, so a single failure no longer fails a save with 500 or opening an instance with 403. ([Altinn/app-lib-dotnet#1900](https://github.com/Altinn/app-lib-dotnet/issues/1900))
+- Saving data, or opening or creating an instance, no longer fails with 500 or 403 when one call to Altinn Authorization fails with a network error or a 502, 503 or 504 response. ([Altinn/app-lib-dotnet#1900](https://github.com/Altinn/app-lib-dotnet/issues/1900))
 
 ## [9.0.0-preview.9] - 2026-10-28
 
