@@ -1,27 +1,27 @@
-# Organization of the `/src` folder
+# Organize `src/` by the cluster that runs each component
 
-- Status: Proposed (change to Accepted before merge)
+- Status: Accepted
 - Deciders: Team
 - Date: 27.10.2026
 
 ## Result
 
-Which alternative was chosen. Do not include any reasoning here.
+A1: Folder structure based on [the main architecture diagram for the codebase](../diagrams/architecture.svg), which is based on what cluster the services run on. Additionally, local dev tools are grouped in `src/local`, and code used in multiple clusters is grouped in `src/common`.
 
 ## Problem context
 
-`altinn-studio` is a large monorepo with many components. It is important to organize the components in a logical and intuitive way, so that developers and agents can reason well about them. This ADR also includes a rename of the Studio cluster to `Core`.
+`altinn-studio` is a large monorepo with many components. It is important to organize the components in a logical and intuitive way, so that developers and agents can reason well about them.
 
 ## Decision drivers
 
 - D1: New developers can look at the folder structure to see the architecture at a glance.
-- D2: It is immediately obvious where to place a hypothetical new service.
+- D2: It is obvious where to place a hypothetical new service.
 - D3: The different clusters in the monorepo can be understood by looking at the folder structure.
 - D4: Components that work together are placed together.
 
 ## Alternatives considered
 
-A1: One folder for each kind of cluster: `src/core`, `src/runtime` and `src/platform`. Additionally, local dev tools are grouped in `src/local`, and code used in multiple clusters is grouped in `src/common`:
+A1: Folder structure based on [the main architecture diagram for the codebase](../diagrams/architecture.svg), which is based on what cluster the services run on. Additionally, local dev tools are grouped in `src/local`, and code used in multiple clusters is grouped in `src/common`:
 
 ```
 altinn-studio/
@@ -172,7 +172,7 @@ altinn-studio/
 - Good, because the top-level folders show which cluster runs each component (D1, D3).
 - Good, because one question places a new service: which cluster runs it? Code for more than one cluster goes in `common/`, and code that is not deployed goes in `local/` (D2).
 - Good, because `src/` and `infra/` are split by cluster in the same way, such as `src/core/` and `infra/core/` (D1, D3). The exceptions are `infra/admin/`, which only holds the workflow engine's database, and `src/platform/`, which has no folder in `infra/`.
-- Bad, because a folder does not always map to one cluster. `platform/` holds both the platform cluster and DIS Core, and pdf3's relay runs in the Runtime clusters although pdf3 sits in `platform/` (D3). A mitigation could be to split pdf3's relay into `runtime/`.
+- Bad, because a folder does not always map to one cluster. `platform/` holds both the platform cluster and DIS Core, and pdf3's relay runs in the runtime clusters although pdf3 sits in `platform/` (D3). A mitigation could be to split pdf3's relay into `runtime/`.
 - Bad, because components that work together can end up apart. `lhci-server` only measures the App frontend but sits in `core/ci/`, and the workflow engine and its two hosts are in three different folders (D4).
 - Bad, because `runtime/` mixes the App libraries, which ship inside every app, with the runtime services, which deploy on their own through release rings (D1).
 
@@ -182,5 +182,5 @@ altinn-studio/
 - Good, because the folders show the products, such as Designer, the App libraries and the runtime services (D1).
 - Good, because shared code and local dev tools have fixed homes in `common/` and `local/` (D2).
 - Bad, because the folders do not show which cluster runs a component. A reader has to look it up in [environments.md](../infrastructure/environments.md) and the syncroots it links to (D3).
-- Bad, because "closely related" is a judgment call. Designer reads `kubernetes-wrapper`, which runs in the Runtime clusters, and only apps use pdf3, which runs in DIS Core (D2).
+- Bad, because "work together" is a judgment call. Designer reads `kubernetes-wrapper`, which runs in the runtime clusters, and only apps use pdf3, which runs in DIS Core (D2).
 - Bad, because `src/` is structured by component while `infra/` is structured by cluster, so a reader has to map between the two (D1, D3).
