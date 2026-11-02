@@ -216,13 +216,47 @@ function submitAndReloadDuringTransition() {
 
 describe('Live workflow status (real engine)', () => {
   let heldInstanceGateUrl: string | undefined;
+  let releaseProcessNextResponse: (() => void) | undefined;
 
   afterEach(() => {
+    releaseProcessNextResponse?.();
+    releaseProcessNextResponse = undefined;
     if (heldInstanceGateUrl) {
       const url = heldInstanceGateUrl;
       heldInstanceGateUrl = undefined;
       cy.request('DELETE', url);
     }
+  });
+
+  it('renders a task opened before the pending process/next response arrives', () => {
+    cy.startAppInstance(appFrontend.apps.processTransitionTest, { cyUser: 'manager' });
+    fillLevers({ path: 'postCommit', serviceView: 'layout', delayMs: 3000 });
+    cy.intercept({ method: 'PUT', url: '**/process/next*', times: 1 }, (req) => {
+      req.continue(
+        () =>
+          new Promise<void>((resolve) => {
+            releaseProcessNextResponse = resolve;
+          }),
+      );
+    }).as('heldProcessNext');
+
+    cy.findByRole('button', { name: task1AdvanceButton }).click();
+    waitForProcessState({ workflowStatus: 'idle', currentTask: 'Task_2' }).then((root) => {
+      // Mount the committed task before delivering the response, regardless of which poll wins navigation.
+      // Same-document browser history keeps the submitting session and its pending mutation alive.
+      cy.window().then((win) => {
+        win.history.pushState(win.history.state, '', `${root}/Task_2/Side1`);
+        win.dispatchEvent(new win.PopStateEvent('popstate'));
+      });
+    });
+    cy.url().should('contain', '/Task_2/Side1');
+    cy.get('[data-loading][data-reason="process-wrapper"]').should('be.visible');
+    cy.wrap(null).should(() => expect(releaseProcessNextResponse).to.be.a('function'));
+    cy.then(() => releaseProcessNextResponse!());
+    cy.wait('@heldProcessNext');
+    cy.findByRole('heading', { name: /Task 2/ }).should('be.visible');
+    cy.findByRole('button', { name: task2SubmitButton }).click();
+    cy.get(appFrontend.receipt.container).should('be.visible');
   });
 
   it('idle: no delay/fail advances straight to Task_2', () => {
