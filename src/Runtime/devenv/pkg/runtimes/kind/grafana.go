@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -40,6 +41,9 @@ const (
 	monitoringGrafanaCA = "monitoring-grafana-ca-bundle"
 	// dashboardsReloadSeconds is how often Grafana rereads the provisioned dashboards.
 	dashboardsReloadSeconds = 10
+	// dashboardsCheckoutTimeout bounds cloning or updating the cached dashboards checkout, so
+	// a stalled network falls back to the cached copy instead of blocking the graph.
+	dashboardsCheckoutTimeout = 3 * time.Minute
 
 	// The shared Grafana reaches the observability-proxy at its public address; the
 	// local one reaches it in the cluster, with the local query token.
@@ -52,8 +56,9 @@ const (
 var errDashboardsDatasourceURL = errors.New("datasource URL is not on the observability-proxy")
 
 // resolveDashboardsRepository returns the dashboards checkout to read: the one given, or a
-// clone in the fixture's cache, updated to the repository's main branch when it can be.
-func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
+// clone in the fixture's cache, updated to the repository's main branch when it can be
+// within dashboardsCheckoutTimeout.
+func resolveDashboardsRepository(ctx context.Context, explicit, cachePath string) (string, error) {
 	if explicit == "" {
 		explicit = os.Getenv(EnvDashboardsRepository)
 	}
@@ -74,8 +79,10 @@ func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
 		Ref:     "main",
 		Path:    filepath.Join(cachePath, "altinn-dashboards-grafana"),
 	}
-	if err := localbackend.EnsureGitCheckout(context.Background(), checkout); err != nil {
-		// Offline, or with GitHub unavailable, the copy from an earlier start will do.
+	ctx, cancel := context.WithTimeout(ctx, dashboardsCheckoutTimeout)
+	defer cancel()
+	if err := localbackend.EnsureGitCheckout(ctx, checkout); err != nil {
+		// Offline, with GitHub unavailable or too slow, the copy from an earlier start will do.
 		if _, statErr := os.Stat(filepath.Join(checkout.Path, ".git")); statErr != nil {
 			return "", fmt.Errorf("check out dashboards repository: %w", err)
 		}

@@ -1,6 +1,7 @@
 package kind
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -61,6 +62,29 @@ func TestLoadGrafanaContent(t *testing.T) {
 	}
 	if content.Digest == "" {
 		t.Error("digest is empty")
+	}
+}
+
+func TestResolveDashboardsRepository_CancelledUpdateUsesCachedCheckout(t *testing.T) {
+	t.Setenv(EnvDashboardsRepository, "")
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	cachePath := t.TempDir()
+	if _, err := resolveDashboardsRepository(ctx, "", cachePath); err == nil {
+		t.Fatal("resolveDashboardsRepository() without a cached checkout error = nil, want the cancelled clone")
+	}
+
+	cached := filepath.Join(cachePath, "altinn-dashboards-grafana")
+	if err := os.MkdirAll(filepath.Join(cached, ".git"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	got, err := resolveDashboardsRepository(ctx, "", cachePath)
+	if err != nil {
+		t.Fatalf("resolveDashboardsRepository() with a cached checkout error = %v", err)
+	}
+	if got != cached {
+		t.Fatalf("resolveDashboardsRepository() = %q, want the cached checkout %q", got, cached)
 	}
 }
 
