@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- The MIME type validator no longer rejects files such as `.xls`, `.ppt` and `.xml` whose content matches their extension, when the content type Studio sets for the extension, such as `application/vnd.ms-excel`, is allowed.
+- The MIME type validator no longer rejects files such as `.xls`, `.ppt` and `.xml` whose content matches their extension, when the content type Studio sets for the extension, such as `application/vnd.ms-excel`, is allowed. ([#21700](https://github.com/Altinn/altinn-studio/pull/21700))
 
 ## [9.0.0-preview.1] - 2026-09-09
 
