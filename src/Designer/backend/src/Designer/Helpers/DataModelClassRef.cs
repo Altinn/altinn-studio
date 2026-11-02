@@ -19,7 +19,7 @@ internal static class DataModelClassRef
     /// <exception cref="ModelWithTheSameBaseTypeAlreadyExists">A data type has the class.</exception>
     public static void ThrowIfAnotherDataTypeHasClass(ApplicationMetadata applicationMetadata, string typeName)
     {
-        bool anotherDataTypeHasClass = applicationMetadata.DataTypes.Any(dataType =>
+        bool anotherDataTypeHasClass = (applicationMetadata.DataTypes ?? []).Any(dataType =>
             dataType.AppLogic?.ClassRef == $"Altinn.App.Models.{typeName}"
             || dataType.AppLogic?.ClassRef == $"Altinn.App.Models.{typeName}.{typeName}"
         );

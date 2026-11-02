@@ -32,6 +32,14 @@ public class DataModelClassRefTests
         DataModelClassRef.ThrowIfAnotherDataTypeHasClass(applicationMetadata, TypeName);
     }
 
+    [Fact]
+    public void ThrowIfAnotherDataTypeHasClass_NoDataTypes_DoesNotThrow()
+    {
+        ApplicationMetadata applicationMetadata = new("ttd/app");
+
+        DataModelClassRef.ThrowIfAnotherDataTypeHasClass(applicationMetadata, TypeName);
+    }
+
     // The data type without app logic is like the PDF data type that every app has.
     private static ApplicationMetadata CreateApplicationMetadata(string classRef) =>
         new("ttd/app")
