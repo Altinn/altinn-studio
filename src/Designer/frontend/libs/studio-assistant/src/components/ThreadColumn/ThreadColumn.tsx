@@ -1,16 +1,19 @@
+import { useId, useRef } from 'react';
 import type { ReactElement } from 'react';
-import { StudioContentMenu, StudioButton, StudioHeading } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import classes from './ThreadColumn.module.css';
 import { PlusIcon, SidebarLeftIcon } from '@studio/icons';
 import { AboutAssistantDialog } from './AboutAssistantDialog';
+import { ThreadSelector } from './ThreadSelector';
 import type { ChatThread } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
+import type { WorkflowStatus } from '../../types/WorkflowStatus';
 
 export type ThreadColumnProps = {
   texts: AssistantTexts;
   chatThreads: ChatThread[];
   selectedThreadId?: string;
-  currentSessionId?: string;
+  workflowStatusByThread?: Record<string, WorkflowStatus>;
   onToggleCollapse?: () => void;
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
@@ -21,12 +24,15 @@ export function ThreadColumn({
   texts,
   chatThreads,
   selectedThreadId,
-  currentSessionId,
+  workflowStatusByThread,
   onToggleCollapse,
   onSelectThread = (): void => {},
   onDeleteThread,
   onCreateThread,
 }: ThreadColumnProps): ReactElement {
+  const headingId = useId();
+  const newThreadButtonRef = useRef<HTMLButtonElement>(null);
+
   return (
     <div className={classes.threadColumn}>
       <div className={classes.threadButtons}>
@@ -34,25 +40,25 @@ export function ThreadColumn({
           <SidebarLeftIcon />
           {texts.hideThreads}
         </StudioButton>
-        <StudioButton onClick={onCreateThread} fullWidth>
+        <StudioButton ref={newThreadButtonRef} onClick={onCreateThread} fullWidth>
           <PlusIcon />
           {texts.newThread}
         </StudioButton>
       </div>
-      <StudioHeading level={3} className={classes.threadHeading}>
+      <StudioHeading id={headingId} level={3} className={classes.threadHeading}>
         {texts.previousThreads}
       </StudioHeading>
       <div className={classes.threadList}>
-        <StudioContentMenu selectedTabId={selectedThreadId} onChangeTab={onSelectThread}>
-          {chatThreads.map((thread) => (
-            <ThreadMenuTab
-              key={thread.id}
-              thread={thread}
-              // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-              onDelete={onDeleteThread ? () => onDeleteThread(thread.id) : undefined}
-            />
-          ))}
-        </StudioContentMenu>
+        <ThreadSelector
+          texts={texts.threadSelector}
+          chatThreads={chatThreads}
+          selectedThreadId={selectedThreadId}
+          workflowStatusByThread={workflowStatusByThread}
+          headingId={headingId}
+          onSelectThread={onSelectThread}
+          onDeleteThread={onDeleteThread}
+          onLastThreadDeleted={() => newThreadButtonRef.current?.focus()}
+        />
       </div>
       <div className={classes.aboutSection}>
         <AboutAssistantDialog texts={texts.aboutAssistantDialog} />
@@ -60,32 +66,3 @@ export function ThreadColumn({
     </div>
   );
 }
-
-type ThreadMenuTabProps = {
-  thread: ChatThread;
-  onDelete?: () => void;
-};
-
-const ThreadMenuTab = ({ thread, onDelete }: ThreadMenuTabProps): ReactElement => {
-  const title = 'Delete thread';
-
-  return (
-    <div className={classes.threadMenuTab}>
-      <StudioContentMenu.ButtonTab tabId={thread.id} tabName={thread.title} icon='' />
-      {onDelete && (
-        <StudioButton
-          variant='tertiary'
-          className={classes.deleteButton}
-          aria-label={title}
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          title={title}
-        >
-          ×
-        </StudioButton>
-      )}
-    </div>
-  );
-};

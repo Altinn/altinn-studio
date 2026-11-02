@@ -79,7 +79,7 @@ export function CompleteInterface({
               texts={texts}
               chatThreads={chatThreads}
               selectedThreadId={activeThreadId || undefined}
-              currentSessionId={activeThreadId}
+              workflowStatusByThread={workflowStatusByThread}
               onSelectThread={onSelectThread}
               onDeleteThread={onDeleteThread}
               onCreateThread={handleCreateThread}

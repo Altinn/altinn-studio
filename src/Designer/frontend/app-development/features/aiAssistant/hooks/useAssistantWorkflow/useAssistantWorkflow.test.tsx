@@ -1635,6 +1635,97 @@ describe('useAssistantWorkflow', () => {
   });
 });
 
+describe('deleteThread', () => {
+  it('deletes a thread where the assistant is not working without cancelling anything', async () => {
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const cancelWorkflow = vi.fn();
+    mockWebSocket({ cancelWorkflow });
+
+    const { result } = renderUseAssistantWorkflow(threads);
+
+    await act(async () => {
+      await result.current.deleteThread('thread-a');
+    });
+
+    expect(cancelWorkflow).not.toHaveBeenCalled();
+    expect(threads.deleteThread).toHaveBeenCalledWith('thread-a');
+  });
+
+  it('cancels the workflow of a busy thread before it deletes the thread', async () => {
+    const callOrder: string[] = [];
+    const threads = createThreadState({
+      selectedThreadId: 'thread-a',
+      deleteThread: vi.fn(() => {
+        callOrder.push('deleteThread');
+      }),
+    });
+    const emitEvent = mockWebSocket({
+      registerSession: vi.fn(async () => {
+        callOrder.push('registerSession');
+      }),
+      cancelWorkflow: vi.fn(async () => {
+        callOrder.push('cancelWorkflow');
+      }),
+    });
+
+    const { result } = renderUseAssistantWorkflow(threads);
+    await act(async () => emitEvent(busyEvent('thread-a')));
+
+    await act(async () => {
+      await result.current.deleteThread('thread-a');
+    });
+
+    expect(callOrder).toEqual(['registerSession', 'cancelWorkflow', 'deleteThread']);
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(false);
+  });
+
+  it('keeps a busy thread when cancelling its workflow fails', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const threads = createThreadState({ selectedThreadId: 'thread-a' });
+    const emitEvent = mockWebSocket({
+      cancelWorkflow: vi.fn().mockRejectedValue(new Error('agents unreachable')),
+    });
+
+    const { result } = renderUseAssistantWorkflow(threads);
+    await act(async () => emitEvent(busyEvent('thread-a')));
+
+    await act(async () => {
+      await result.current.deleteThread('thread-a');
+    });
+
+    expect(threads.deleteThread).not.toHaveBeenCalled();
+    expect(result.current.workflowStatusByThread['thread-a']?.isActive).toBe(true);
+    consoleErrorSpy.mockRestore();
+  });
+});
+
+const mockWebSocket = (
+  overrides: Partial<ReturnType<typeof useAssistantWebSocket>> = {},
+): ((event: WorkflowEvent) => void) => {
+  let emitEvent: (event: WorkflowEvent) => void = () => {};
+  mockUseAssistantWebSocket.mockReturnValue({
+    connectionStatus: 'connected',
+    startWorkflow: vi.fn(),
+    cancelWorkflow: vi.fn(),
+    respondToPermission: vi.fn(),
+    registerSession: vi.fn(),
+    onAgentMessage: vi.fn((callback) => {
+      emitEvent = callback;
+    }),
+    ...overrides,
+  });
+  mockUseCurrentBranchQuery.mockReturnValue({
+    data: createMockCurrentBranchInfo(),
+  } as UseQueryResult<CurrentBranchInfo>);
+  return (event) => emitEvent(event);
+};
+
+const busyEvent = (threadId: string): WorkflowEvent => ({
+  type: 'workflow_status',
+  session_id: threadId,
+  data: { message: 'Skanner repo', tool_use_id: 'tool-1' },
+});
+
 const createThreadState = (overrides: Partial<AssistantThreadState> = {}): AssistantThreadState => {
   const base: AssistantThreadState = {
     chatThreads: [],

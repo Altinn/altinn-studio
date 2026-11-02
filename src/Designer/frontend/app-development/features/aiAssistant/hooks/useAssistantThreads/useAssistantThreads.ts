@@ -50,15 +50,15 @@ export const useAssistantThreads = (): AssistantThreadState => {
 
   const deleteThread = useCallback(
     (threadId: string) => {
+      const neighborThreadId = findNeighborThreadId(chatThreads ?? [], threadId);
       deleteChatThread(threadId, {
         onSuccess: () => {
-          if (selectedThreadId === threadId) {
-            setSelectedThreadId(null);
-          }
+          // The user can open a different thread before the request is complete.
+          setSelectedThreadId((current) => (current === threadId ? neighborThreadId : current));
         },
       });
     },
-    [deleteChatThread, selectedThreadId],
+    [deleteChatThread, chatThreads],
   );
 
   const createMessage = useCallback(
@@ -109,3 +109,10 @@ export const useAssistantThreads = (): AssistantThreadState => {
     refreshMessages,
   };
 };
+
+/** Gives the thread after the deleted thread. If there is no thread after it, gives the thread before it. */
+function findNeighborThreadId(chatThreads: ChatThread[], threadId: string): string | null {
+  const position = chatThreads.findIndex((thread) => thread.id === threadId);
+  if (position === -1) return null;
+  return (chatThreads[position + 1] ?? chatThreads[position - 1])?.id ?? null;
+}

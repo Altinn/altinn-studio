@@ -13,6 +13,11 @@ export const useAssistantTexts = (): AssistantTexts => {
     showThreads: t('ai_assistant.show_threads'),
     newThread: t('ai_assistant.new_thread'),
     previousThreads: t('ai_assistant.threads'),
+    threadSelector: {
+      deleteThread: t('ai_assistant.delete_thread'),
+      deleteThreadConfirm: t('ai_assistant.delete_thread_confirm'),
+      deleteBusyThreadConfirm: t('ai_assistant.delete_busy_thread_confirm'),
+    },
     aboutAssistantDialog: {
       heading: t('ai_assistant.about_assistant_heading'),
       intro: t('ai_assistant.about_assistant_intro'),

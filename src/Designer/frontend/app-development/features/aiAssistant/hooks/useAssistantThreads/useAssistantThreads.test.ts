@@ -177,24 +177,63 @@ describe('useAssistantThreads', () => {
     });
   });
 
-  it('clears current session when deleting active thread succeeds', () => {
-    const deleteThreadMutate = vi.fn().mockImplementation((_id, options) => options?.onSuccess?.());
-    mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: deleteThreadMutate } as any);
-
+  it('opens the next thread when deleting the open thread succeeds', () => {
+    mockDeleteSucceeds();
+    mockUseChatThreadsQuery.mockReturnValue({ data: threeThreads } as any);
     const { result } = renderUseAssistantThreads();
 
-    act(() => {
-      result.current.selectThread(threadId);
-    });
+    act(() => result.current.selectThread('thread-b'));
+    act(() => result.current.deleteThread('thread-b'));
 
-    act(() => {
-      result.current.deleteThread(threadId);
-    });
+    expect(result.current.selectedThreadId).toBe('thread-c');
+  });
 
-    expect(deleteThreadMutate).toHaveBeenCalledWith(threadId, expect.any(Object));
+  it('opens the previous thread when deleting the open last thread succeeds', () => {
+    mockDeleteSucceeds();
+    mockUseChatThreadsQuery.mockReturnValue({ data: threeThreads } as any);
+    const { result } = renderUseAssistantThreads();
+
+    act(() => result.current.selectThread('thread-c'));
+    act(() => result.current.deleteThread('thread-c'));
+
+    expect(result.current.selectedThreadId).toBe('thread-b');
+  });
+
+  it('clears the open thread when deleting the only thread succeeds', () => {
+    const deleteThreadMutate = mockDeleteSucceeds();
+    mockUseChatThreadsQuery.mockReturnValue({ data: [threeThreads[0]] } as any);
+    const { result } = renderUseAssistantThreads();
+
+    act(() => result.current.selectThread('thread-a'));
+    act(() => result.current.deleteThread('thread-a'));
+
+    expect(deleteThreadMutate).toHaveBeenCalledWith('thread-a', expect.any(Object));
     expect(result.current.selectedThreadId).toBeNull();
   });
+
+  it('keeps the open thread when deleting another thread succeeds', () => {
+    mockDeleteSucceeds();
+    mockUseChatThreadsQuery.mockReturnValue({ data: threeThreads } as any);
+    const { result } = renderUseAssistantThreads();
+
+    act(() => result.current.selectThread('thread-a'));
+    act(() => result.current.deleteThread('thread-b'));
+
+    expect(result.current.selectedThreadId).toBe('thread-a');
+  });
 });
+
+const threeThreads = ['thread-a', 'thread-b', 'thread-c'].map((id) => ({
+  id,
+  title: id,
+  createdAt: '2026-01-01T00:00:00Z',
+}));
+
+const mockDeleteSucceeds = () => {
+  const deleteThreadMutate = vi.fn().mockImplementation((_id, options) => options?.onSuccess?.());
+  mockUseDeleteChatThreadMutation.mockReturnValue({ mutate: deleteThreadMutate } as any);
+  return deleteThreadMutate;
+};
 
 const renderUseAssistantThreads = (queryClient: QueryClient = new QueryClient()) =>
   renderHook(() => useAssistantThreads(), {

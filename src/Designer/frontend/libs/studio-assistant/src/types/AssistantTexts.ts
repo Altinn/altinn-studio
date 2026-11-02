@@ -7,6 +7,7 @@ export type AssistantTexts = {
   showThreads: string;
   newThread: string;
   previousThreads: string;
+  threadSelector: ThreadSelectorTexts;
   aboutAssistantDialog: AboutAssistantDialogTexts;
   emptyThread: EmptyThreadTexts;
   textarea: TextAreaTexts;
@@ -21,6 +22,12 @@ export type AssistantTexts = {
   permissionPrompt: PermissionPromptTexts;
   sourcesLabel: string;
   filesChangedLabel: string;
+};
+
+export type ThreadSelectorTexts = {
+  deleteThread: string;
+  deleteThreadConfirm: string;
+  deleteBusyThreadConfirm: string;
 };
 
 export type PermissionPromptTexts = {

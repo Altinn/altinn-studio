@@ -43,6 +43,7 @@ export interface UseAssistantWorkflowResult {
   workflowStatusByThread: Record<string, WorkflowStatus>;
   onSubmitMessage: (message: UserMessage) => Promise<void>;
   cancelCurrentWorkflow: () => Promise<void>;
+  deleteThread: (threadId: string) => Promise<void>;
   respondToPermission: (requestId: string, granted: boolean) => Promise<void>;
   cancelledMessageContent: string | null;
   clearCancelledMessageContent: () => void;
@@ -92,6 +93,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     createMessage,
     refreshMessages,
     chatMessages,
+    deleteThread: deleteThreadWithoutCancelling,
   } = threads;
 
   const setWorkflowStatus = useCallback((threadId: string, status: WorkflowStatus) => {
@@ -596,6 +598,38 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     markThreadTerminated,
   ]);
 
+  const deleteThread = useCallback(
+    async (threadId: string): Promise<void> => {
+      const statusBeforeCancel = workflowStatusByThread[threadId];
+      if (statusBeforeCancel?.isActive) {
+        markThreadTerminated(threadId);
+        setWorkflowStatus(threadId, { isActive: false });
+        try {
+          // The hub refuses commands for a session that this connection did not register.
+          await registerSession(org, app, threadId);
+          await cancelWorkflow(threadId);
+        } catch (error) {
+          // The run continues and can write to the thread. Thus, do not delete the thread.
+          markThreadStillRunning(threadId, statusBeforeCancel);
+          console.error('Cancel workflow request failed:', error);
+          return;
+        }
+      }
+      deleteThreadWithoutCancelling(threadId);
+    },
+    [
+      workflowStatusByThread,
+      markThreadTerminated,
+      setWorkflowStatus,
+      registerSession,
+      org,
+      app,
+      cancelWorkflow,
+      markThreadStillRunning,
+      deleteThreadWithoutCancelling,
+    ],
+  );
+
   const clearCancelledMessageContent = useCallback(() => {
     setCancelledMessageContent(null);
   }, []);
@@ -610,6 +644,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     workflowStatusByThread,
     onSubmitMessage,
     cancelCurrentWorkflow,
+    deleteThread,
     respondToPermission,
     cancelledMessageContent,
     clearCancelledMessageContent,
