@@ -19,7 +19,7 @@ internal sealed record NotifyInstanceOwnerOnInstantiationPayload(InstantiationNo
 /// <summary>
 /// Sends a notification to the instance owner after instantiation.
 /// Runs as a post-commit step so the instance is fully persisted before sending, and as the first step of its own
-/// auxiliary workflow: <see cref="AwaitInstantiationNotificationDelivery"/> follows it there and checks that the
+/// auxiliary workflow: <see cref="AwaitNotificationDelivery"/> follows it there and checks that the
 /// notification arrived.
 /// </summary>
 internal sealed class NotifyInstanceOwnerOnInstantiation(
@@ -62,7 +62,7 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
 
             if (notificationService is NotificationService builtIn)
             {
-                // Recorded for AwaitInstantiationNotificationDelivery, the next step of this workflow. A retry places
+                // Recorded for AwaitNotificationDelivery, the next step of this workflow. A retry places
                 // the same order again: Notifications returns the existing one for a repeated idempotency id.
                 InstantiationNotificationOrder order = await builtIn.OrderInstantiationNotification(
                     instance,

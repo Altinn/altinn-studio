@@ -106,7 +106,7 @@ internal sealed class WorkflowStepSet
                     NotifyInstanceOwnerOnInstantiation.Key,
                     new NotifyInstanceOwnerOnInstantiationPayload(context.Notification)
                 ),
-                CreateStep(AwaitInstantiationNotificationDelivery.Key),
+                CreateStep(AwaitNotificationDelivery.Key),
             ]);
         }
 

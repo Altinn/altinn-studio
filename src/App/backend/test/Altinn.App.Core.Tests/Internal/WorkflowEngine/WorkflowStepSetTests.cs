@@ -68,7 +68,7 @@ public class WorkflowStepSetTests
             [
                 [MovedToAltinnEvent.Key],
                 [InstanceCreatedAltinnEvent.Key],
-                [NotifyInstanceOwnerOnInstantiation.Key, AwaitInstantiationNotificationDelivery.Key],
+                [NotifyInstanceOwnerOnInstantiation.Key, AwaitNotificationDelivery.Key],
             ],
             stepSet.AuxiliaryWorkflows.Select(Keys)
         );

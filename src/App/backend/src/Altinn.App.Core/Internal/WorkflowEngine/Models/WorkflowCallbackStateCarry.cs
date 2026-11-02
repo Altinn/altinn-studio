@@ -107,12 +107,13 @@ internal sealed class WorkflowCallbackStateCarry
     public void RecordMailboxConcluded(int stageIndex) => _mailboxes.Remove(stageIndex);
 
     /// <summary>
-    /// The instantiation notification's order, or <c>null</c> when this workflow has placed none.
+    /// The notification order this workflow placed, or <c>null</c> when it has placed none.
     /// </summary>
     public CarriedNotificationShipment? NotificationShipment { get; private set; }
 
     /// <summary>
-    /// Records the instantiation notification's order for the steps after the one that placed it.
+    /// Records a notification order for the steps after the one that placed it, such as
+    /// <see cref="Commands.AwaitNotificationDelivery"/>.
     /// </summary>
     public void RecordNotificationShipment(Guid shipmentId, DateTimeOffset requestedSendTime)
     {

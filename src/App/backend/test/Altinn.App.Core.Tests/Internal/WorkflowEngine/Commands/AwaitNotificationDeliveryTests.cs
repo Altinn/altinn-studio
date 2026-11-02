@@ -8,11 +8,11 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Moq;
-using static Altinn.App.Core.Internal.WorkflowEngine.Commands.AwaitInstantiationNotificationDelivery;
+using static Altinn.App.Core.Internal.WorkflowEngine.Commands.AwaitNotificationDelivery;
 
 namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands;
 
-public class AwaitInstantiationNotificationDeliveryTests
+public class AwaitNotificationDeliveryTests
 {
     private static readonly DateTimeOffset _now = new(2026, 11, 2, 10, 0, 0, TimeSpan.Zero);
     private static readonly Guid _shipmentId = Guid.Parse("0f7a2d4e-3b1c-4c8e-9a5d-6e2f1b3c4d5e");
@@ -20,8 +20,8 @@ public class AwaitInstantiationNotificationDeliveryTests
     private readonly Mock<INotificationShipmentClient> _shipmentClient = new();
     private readonly FakeTimeProvider _time = new(_now);
 
-    private AwaitInstantiationNotificationDelivery CreateCommand() =>
-        new(_shipmentClient.Object, NullLogger<AwaitInstantiationNotificationDelivery>.Instance, _time);
+    private AwaitNotificationDelivery CreateCommand() =>
+        new(_shipmentClient.Object, NullLogger<AwaitNotificationDelivery>.Instance, _time);
 
     private static WorkflowEngineCommandContext CreateContext(
         DateTimeOffset? requestedSendTime,
@@ -156,7 +156,7 @@ public class AwaitInstantiationNotificationDeliveryTests
         var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal(
-            $"Instantiation notification not delivered. Email: Email_Failed_Bounced. SMS: SMS_Failed_InvalidRecipient. Shipment: {_shipmentId}.",
+            $"Notification not delivered. Email: Email_Failed_Bounced. SMS: SMS_Failed_InvalidRecipient. Shipment: {_shipmentId}.",
             failed.ErrorMessage
         );
         Assert.DoesNotContain("@", failed.ErrorMessage);

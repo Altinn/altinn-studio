@@ -51,16 +51,16 @@ internal sealed record WorkflowCallbackState
     public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes { get; init; }
 
     /// <summary>
-    /// The instantiation notification's order, recorded by the step that places it so the steps after it can
-    /// wait for its send time and check that it was delivered. <c>null</c> in every other workflow, and absent
-    /// from blobs written before the delivery check existed.
+    /// A notification order, recorded by the step that places it so the steps after it can wait for its send time
+    /// and check that it was delivered. <c>null</c> in every workflow that places none, and absent from blobs
+    /// written before the delivery check existed.
     /// </summary>
     [JsonPropertyName("notificationShipment")]
     public CarriedNotificationShipment? NotificationShipment { get; init; }
 }
 
 /// <summary>
-/// A notification order as it travels between the steps of the instantiation notification's workflow.
+/// A notification order as it travels between the steps of the workflow that placed it.
 /// </summary>
 internal sealed record CarriedNotificationShipment
 {

@@ -2128,7 +2128,7 @@ public class ProcessNextRequestFactoryTests
             [
                 [MovedToAltinnEvent.Key],
                 [InstanceCreatedAltinnEvent.Key],
-                [NotifyInstanceOwnerOnInstantiation.Key, AwaitInstantiationNotificationDelivery.Key],
+                [NotifyInstanceOwnerOnInstantiation.Key, AwaitNotificationDelivery.Key],
             ],
             siblings.Select(ExtractCommandKeys)
         );
