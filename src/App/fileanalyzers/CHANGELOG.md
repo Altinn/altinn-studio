@@ -14,6 +14,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - The "file type not allowed" error from the MIME type validator is now in the user's language. Change it with the text key `validation_errors.file_content_type_not_allowed`, which can use parameters such as `filename`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Altinn.FileAnalyzers now targets .NET 11, like the version 9 Altinn app libraries. Move your app to `net11.0` before taking this version.
 
+### Fixed
+
+- Uploads no longer fail the MIME type validator when a data type has no allowed content types. Like the rest of the upload check, it then allows any file.
+
 ## [9.0.0-preview.1] - 2026-09-09
 
 ### Changed

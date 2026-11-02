@@ -70,6 +70,41 @@ public class MimeTypeValidatorTests
         );
     }
 
+    public static TheoryData<List<string>?> NoAllowedContentTypes =>
+        new() { null, new List<string>() };
+
+    [Theory]
+    [MemberData(nameof(NoAllowedContentTypes))]
+    public async Task Validate_NoAllowedContentTypes_ShouldValidateOk(
+        List<string>? allowedContentTypes
+    )
+    { // Simulate config in applicationMetadata.json without allowedContentTypes, or with an empty list
+        var dataType = new DataType()
+        {
+            Id = "attachment",
+            EnabledFileValidators = new List<string>() { "mimeTypeValidator" },
+            AllowedContentTypes = allowedContentTypes,
+        };
+        IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>()
+        {
+            new FileAnalysisResult("mimeTypeAnalyser")
+            {
+                MimeType = "image/webp",
+                Filename = "photo.webp",
+                Extensions = new List<string>() { "webp" },
+            },
+        };
+
+        var validator = new MimeTypeValidator();
+        (bool success, IEnumerable<ValidationIssue> errors) = await validator.Validate(
+            dataType,
+            fileAnalysisResults
+        );
+
+        Assert.True(success);
+        Assert.Empty(errors);
+    }
+
     [Fact]
     public async Task Validate_ContentTypeNotAllowed_SetsTextKeyAndParameters()
     {

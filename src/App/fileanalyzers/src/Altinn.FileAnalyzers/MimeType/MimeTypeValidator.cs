@@ -23,6 +23,14 @@ internal sealed class MimeTypeValidator : IFileValidator
     {
         List<ValidationIssue> errors = new();
 
+        // Like the upload check, a data type without allowed content types allows any content type
+        if (dataType.AllowedContentTypes is not { Count: > 0 })
+        {
+            return Task.FromResult<(bool Success, IEnumerable<ValidationIssue> Errors)>(
+                (true, errors)
+            );
+        }
+
         var fileMimeTypeResult = fileAnalysisResults.FirstOrDefault(x => x.MimeType is not null);
 
         // Verify that file mime type is an allowed content-type
