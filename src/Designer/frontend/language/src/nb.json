@@ -1956,6 +1956,7 @@
   "sync_header.review_file_changes": "Se siste endringer",
   "sync_header.service_updated_to_latest": "Appen din er oppdatert til siste versjon",
   "sync_header.settings": "Innstillinger",
+  "sync_header.settings_back_to_ai-assistant": "Til Assistent",
   "sync_header.settings_back_to_content-library": "Til Bibliotek",
   "sync_header.settings_back_to_data-model": "Til Datamodell",
   "sync_header.settings_back_to_deploy": "Til Publiser",
