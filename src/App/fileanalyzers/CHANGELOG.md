@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- Uploads no longer fail the MIME type validator when a data type has no allowed content types. Like the rest of the upload check, it then allows any file.
+- Uploads no longer fail the MIME type validator when `allowedContentTypes` is missing or empty, which is how Studio saves an attachment that allows all file types.
 
 ## [9.0.0-preview.1] - 2026-09-09
 
