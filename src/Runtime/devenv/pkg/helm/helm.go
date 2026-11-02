@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"maps"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"sigs.k8s.io/yaml"
 
 	"altinn.studio/devenv/pkg/oci"
@@ -36,9 +36,6 @@ const (
 	ignoreFileName = ".helmignore"
 	chartFileMode  = 0o644
 	defaultVersion = "v1"
-
-	annotationTitle   = "org.opencontainers.image.title"
-	annotationVersion = "org.opencontainers.image.version"
 )
 
 var (
@@ -46,31 +43,13 @@ var (
 	errUnsupportedChart = errors.New("unsupported chart")
 )
 
-// metadata is Helm's chart.Metadata, whose JSON is the config blob that Helm decodes on pull.
+// metadata is the subset of Helm's chart.Metadata used by charts/deployment.
+// Keep Helm's field order so the config JSON matches Helm's output.
 type metadata struct {
-	Name         string            `json:"name,omitempty"`
-	Home         string            `json:"home,omitempty"`
-	Sources      []string          `json:"sources,omitempty"`
-	Version      string            `json:"version,omitempty"`
-	Description  string            `json:"description,omitempty"`
-	Keywords     []string          `json:"keywords,omitempty"`
-	Maintainers  []maintainer      `json:"maintainers,omitempty"`
-	Icon         string            `json:"icon,omitempty"`
-	APIVersion   string            `json:"apiVersion,omitempty"`
-	Condition    string            `json:"condition,omitempty"`
-	Tags         string            `json:"tags,omitempty"`
-	AppVersion   string            `json:"appVersion,omitempty"`
-	Annotations  map[string]string `json:"annotations,omitempty"`
-	KubeVersion  string            `json:"kubeVersion,omitempty"`
-	Type         string            `json:"type,omitempty"`
-	Dependencies []any             `json:"dependencies,omitempty"`
-	Deprecated   bool              `json:"deprecated,omitempty"`
-}
-
-type maintainer struct {
-	Name  string `json:"name,omitempty"`
-	Email string `json:"email,omitempty"`
-	URL   string `json:"url,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Version     string `json:"version,omitempty"`
+	Description string `json:"description,omitempty"`
+	APIVersion  string `json:"apiVersion,omitempty"`
 }
 
 // Client packages Helm charts and pushes them to an OCI registry.
@@ -86,9 +65,9 @@ func NewClient() *Client {
 // PackageChart packages the chart directory chartPath into destDir as <name>-<version>.tgz, like
 // `helm package`, and returns the file's path.
 //
-// It supports charts without dependencies or symlinks, and .helmignore without negation (!). Like Helm, it
-// rejects **. The archive has the files under <name>/ with mode 0644 and no times, and Chart.yaml as it is
-// on disk rather than re-encoded.
+// It supports the metadata and .helmignore rules charts/deployment uses, rejecting other metadata,
+// dependencies, symlinks, ! and **. Files have mode 0644 and no times, under <name>/.
+// Chart.yaml is kept as it is on disk rather than re-encoded.
 func (c *Client) PackageChart(chartPath, destDir string) (string, error) {
 	chart, err := os.OpenRoot(chartPath)
 	if err != nil {
@@ -137,12 +116,20 @@ func (c *Client) PushChart(chartFile, ociRef string) error {
 	// OCI tags cannot contain +, so Helm replaces it in semver build metadata.
 	tag := strings.ReplaceAll(meta.Version, "+", "_")
 	ref := strings.TrimSuffix(ociRef, "/") + "/" + meta.Name + ":" + tag
+	annotations := map[string]string{
+		"org.opencontainers.image.title":   meta.Name,
+		"org.opencontainers.image.version": meta.Version,
+		oci.AnnotationCreated:              time.Now().UTC().Format(time.RFC3339),
+	}
+	if strings.TrimSpace(meta.Description) != "" {
+		annotations["org.opencontainers.image.description"] = meta.Description
+	}
 	err = c.registry.Push(
 		context.Background(),
 		ref,
 		oci.Blob{MediaType: ConfigMediaType, Data: config},
 		oci.Blob{MediaType: ChartMediaType, Data: archive},
-		manifestAnnotations(meta, time.Now()),
+		annotations,
 	)
 	if err != nil {
 		return fmt.Errorf("push chart to %s: %w", ref, err)
@@ -150,64 +137,33 @@ func (c *Client) PushChart(chartFile, ociRef string) error {
 	return nil
 }
 
-// manifestAnnotations returns the annotations `helm push` sets: OCI annotations from the chart's metadata,
-// overridden by the chart's own annotations except for the title and version.
-func manifestAnnotations(meta metadata, created time.Time) map[string]string {
-	authors := make([]string, 0, len(meta.Maintainers))
-	for _, m := range meta.Maintainers {
-		author := m.Name
-		if m.Email != "" {
-			author += " (" + m.Email + ")"
-		}
-		authors = append(authors, author)
-	}
-	source := ""
-	if len(meta.Sources) > 0 {
-		source = meta.Sources[0]
-	}
-	annotations := map[string]string{}
-	for key, value := range map[string]string{
-		"org.opencontainers.image.description": meta.Description,
-		"org.opencontainers.image.url":         meta.Home,
-		oci.AnnotationCreated:                  created.UTC().Format(time.RFC3339),
-		oci.AnnotationSource:                   source,
-		"org.opencontainers.image.authors":     strings.Join(authors, ", "),
-	} {
-		if strings.TrimSpace(value) != "" {
-			annotations[key] = value
-		}
-	}
-	maps.Copy(annotations, meta.Annotations)
-	annotations[annotationTitle] = meta.Name
-	annotations[annotationVersion] = meta.Version
-	return annotations
-}
-
 func parseMetadata(data []byte) (metadata, error) {
 	var meta metadata
-	if err := yaml.Unmarshal(data, &meta); err != nil {
+	if err := yaml.UnmarshalStrict(data, &meta); err != nil {
 		return meta, fmt.Errorf("parse %s: %w", chartFileName, err)
 	}
 	if meta.APIVersion == "" {
 		meta.APIVersion = defaultVersion
 	}
-	if meta.Name == "" || meta.Version == "" || path.Base(meta.Name) != meta.Name {
+	if meta.Name == "" || meta.Name == "." || meta.Name == ".." || path.Base(meta.Name) != meta.Name {
 		return meta, fmt.Errorf("%w: %s needs a name without slashes and a version", errInvalidChart, chartFileName)
 	}
-	if len(meta.Dependencies) > 0 {
-		return meta, fmt.Errorf("%w: dependencies are not supported", errUnsupportedChart)
+	if _, err := semver.ParseTolerant(meta.Version); err != nil {
+		return meta, fmt.Errorf("%w: chart version %q: %w", errInvalidChart, meta.Version, err)
+	}
+	if meta.APIVersion != "v1" && meta.APIVersion != "v2" {
+		return meta, fmt.Errorf("%w: apiVersion %q", errUnsupportedChart, meta.APIVersion)
 	}
 	return meta, nil
 }
 
-// chartFiles lists the chart's regular files that .helmignore keeps, relative to the chart, with Chart.yaml
-// first as in `helm package`.
+// chartFiles lists the chart's regular files that .helmignore keeps, relative to the chart.
 func chartFiles(chart *os.Root) ([]string, error) {
 	ignored, err := readIgnoreRules(chart)
 	if err != nil {
 		return nil, err
 	}
-	files := []string{chartFileName}
+	var files []string
 	err = fs.WalkDir(chart.FS(), ".", func(rel string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -219,9 +175,9 @@ func chartFiles(chart *os.Root) ([]string, error) {
 		switch {
 		case skip && entry.IsDir():
 			return fs.SkipDir
-		case skip || entry.IsDir() || rel == chartFileName:
+		case skip || entry.IsDir():
 			return nil
-		case strings.HasPrefix(rel, "charts/") || rel == "requirements.yaml":
+		case strings.HasPrefix(rel, "charts/") || rel == "requirements.yaml" || rel == "Chart.lock" || rel == "requirements.lock":
 			return fmt.Errorf("%w: %s: dependencies are not supported", errUnsupportedChart, rel)
 		case !entry.Type().IsRegular():
 			return fmt.Errorf("%w: %s is not a regular file", errUnsupportedChart, rel)
@@ -231,6 +187,9 @@ func chartFiles(chart *os.Root) ([]string, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list chart files: %w", err)
+	}
+	if !slices.Contains(files, chartFileName) {
+		return nil, fmt.Errorf("%w: %s is excluded by %s", errInvalidChart, chartFileName, ignoreFileName)
 	}
 	return files, nil
 }
@@ -305,7 +264,7 @@ func readIgnoreRules(chart *os.Root) (func(rel string, isDir bool) bool, error) 
 	data, err := chart.ReadFile(ignoreFileName)
 	switch {
 	case err == nil:
-		lines = append(lines, strings.Split(string(data), "\n")...)
+		lines = append(lines, strings.Split(strings.TrimPrefix(string(data), "\uFEFF"), "\n")...)
 	case !errors.Is(err, os.ErrNotExist):
 		return nil, fmt.Errorf("read %s: %w", ignoreFileName, err)
 	}

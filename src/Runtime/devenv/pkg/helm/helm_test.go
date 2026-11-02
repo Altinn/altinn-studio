@@ -19,21 +19,10 @@ description: Test chart
 # comment
 name: demo
 version: 1.2.3
-home: https://example.com
-sources:
-- https://example.com/src
-maintainers:
-- name: Team
-  email: team@example.com
-annotations:
-  example.com/note: hi
-  org.opencontainers.image.title: ignored
 `
 
 // helmConfig is the config blob Helm v3.21.1 pushes for chartYAML.
-const helmConfig = `{"name":"demo","home":"https://example.com","sources":["https://example.com/src"],` +
-	`"version":"1.2.3","description":"Test chart","maintainers":[{"name":"Team","email":"team@example.com"}],` +
-	`"apiVersion":"v1","annotations":{"example.com/note":"hi","org.opencontainers.image.title":"ignored"}}`
+const helmConfig = `{"name":"demo","version":"1.2.3","description":"Test chart","apiVersion":"v1"}`
 
 func TestPackageAndPushChartMatchesHelm(t *testing.T) {
 	t.Parallel()
@@ -41,7 +30,7 @@ func TestPackageAndPushChartMatchesHelm(t *testing.T) {
 	registry := ocitest.NewRegistry(t)
 	client := helm.NewClient()
 	chartDir := writeChart(t, map[string]string{
-		".helmignore":           "# comment\n*.bak\n.git/\n/README.md\ntemplates/*.txt\n",
+		".helmignore":           "\uFEFF# comment\n*.bak\n.git/\n/README.md\ntemplates/*.txt\n",
 		"Chart.yaml":            chartYAML,
 		"values.yaml":           "replicas: 1\n",
 		"README.md":             "ignored by /README.md\n",
@@ -89,12 +78,12 @@ func TestPackageAndPushChartMatchesHelm(t *testing.T) {
 		if entry.Mode != 0o644 {
 			t.Errorf("%s has mode %o", entry.Name, entry.Mode)
 		}
+		if entry.Name == "demo/Chart.yaml" && entry.Content != chartYAML {
+			t.Errorf("Chart.yaml = %q, want the file as on disk", entry.Content)
+		}
 		names = append(names, entry.Name)
 	}
-	if entries[0].Content != chartYAML {
-		t.Errorf("first entry = %+v, want Chart.yaml as on disk", entries[0])
-	}
-	// The files Helm v3.21.1 packages, in Helm's order, which differs from ours after Chart.yaml.
+	// Compare files rather than tar order; Helm groups templates separately.
 	want := []string{
 		"demo/Chart.yaml", "demo/values.yaml", "demo/templates/deploy.yaml", "demo/.helmignore", "demo/docs/README.md",
 	}
@@ -116,10 +105,6 @@ func assertChartAnnotations(t *testing.T, annotations map[string]string) {
 		"org.opencontainers.image.description": "Test chart",
 		"org.opencontainers.image.title":       "demo",
 		"org.opencontainers.image.version":     "1.2.3",
-		"org.opencontainers.image.url":         "https://example.com",
-		"org.opencontainers.image.source":      "https://example.com/src",
-		"org.opencontainers.image.authors":     "Team (team@example.com)",
-		"example.com/note":                     "hi",
 	}
 	if !reflect.DeepEqual(annotations, want) {
 		t.Errorf("annotations = %v, want Helm's %v", annotations, want)
@@ -136,6 +121,14 @@ func TestPackageChartRejectsWhatItDoesNotSupport(t *testing.T) {
 		"negated ignore rule": {"Chart.yaml": chart, ".helmignore": "*.yaml\n!values.yaml\n"},
 		"double star":         {"Chart.yaml": chart, ".helmignore": "**/*.bak\n"},
 		"missing version":     {"Chart.yaml": "name: demo\n"},
+		"version traversal":   {"Chart.yaml": "name: demo\nversion: /../../escaped\n"},
+		"dot name":            {"Chart.yaml": "name: .\nversion: 1.0.0\n"},
+		"parent name":         {"Chart.yaml": "name: ..\nversion: 1.0.0\n"},
+		"nested name":         {"Chart.yaml": "name: a/b\nversion: 1.0.0\n"},
+		"unknown metadata":    {"Chart.yaml": chart + "appVersion: 1.0.0\n"},
+		"unknown API":         {"Chart.yaml": "apiVersion: v3\nname: demo\nversion: 1.0.0\n"},
+		"ignored Chart.yaml":  {"Chart.yaml": chart, ".helmignore": "Chart.yaml\n"},
+		"dependency lock":     {"Chart.yaml": chart, "Chart.lock": "dependencies: []\n"},
 	}
 	for name, files := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -146,6 +139,31 @@ func TestPackageChartRejectsWhatItDoesNotSupport(t *testing.T) {
 			}
 			if _, isPathErr := errors.AsType[*os.PathError](err); isPathErr {
 				t.Fatalf("PackageChart() error = %v, want a chart error", err)
+			}
+		})
+	}
+}
+
+func TestPackageChartRejectsSymlinks(t *testing.T) {
+	t.Parallel()
+	for _, name := range []string{"Chart.yaml", "templates/link.yaml"} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			dir := writeChart(
+				t,
+				map[string]string{"Chart.yaml": chartYAML, "metadata": chartYAML, "templates/file": ""},
+			)
+			link := filepath.Join(dir, name)
+			if name == "Chart.yaml" {
+				if err := os.Remove(link); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := os.Symlink(filepath.Join(dir, "metadata"), link); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := helm.NewClient().PackageChart(dir, t.TempDir()); err == nil {
+				t.Fatal("PackageChart() accepted a symlink")
 			}
 		})
 	}
