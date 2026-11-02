@@ -4,9 +4,9 @@ import type { ComponentType } from '@altinn/ux-editor/types/ComponentType';
 import { ConfigStringProperties } from '../../../config/ConfigProperties/ConfigStringProperties';
 import { ConfigNumberProperties } from '../../../config/ConfigProperties/ConfigNumberProperties';
 import { EditBooleanValue } from '../../../config/editModal/EditBooleanValue';
-import { EditStringValue } from '../../../config/editModal/EditStringValue';
 import { getBooleanDefault, getComponentDefinition } from '../../../../data/componentCatalog';
 import { BrokerFileTransferMetadata } from './BrokerFileTransferMetadata/BrokerFileTransferMetadata';
+import { BrokerFileTransferRecipients } from './BrokerFileTransferRecipients';
 
 const brokerFileTransferMainStringProperties = ['resourceId'];
 const brokerFileTransferMainNumberProperties = ['maxFileTransferSizeInMB'];
@@ -50,10 +50,9 @@ export const BrokerFileTransferMainConfig = ({
         className={className}
       />
       {component.hasCustomRecipients && (
-        <EditStringValue
+        <BrokerFileTransferRecipients
           component={component}
           handleComponentChange={handleComponentChange}
-          propertyKey='recipients'
           definition={properties.recipients}
           className={className}
         />
