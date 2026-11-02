@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -6,6 +6,14 @@ import type { ILayoutSettings } from 'app-shared/types/global';
 import { renderWithProviders } from '../../../test/mocks';
 import { Preview } from './Preview';
 import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+
+const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
+vi.mock('app-shared/utils/previewAvailability', () => ({
+  get isPreviewDisabled() {
+    return previewAvailability.isPreviewDisabled;
+  },
+}));
 
 const layoutSetName = 'form-layout-set';
 const taskId = 'Task_1';
@@ -19,6 +27,24 @@ const defaultLayoutSettings: ILayoutSettings = {
 };
 
 describe('Preview', () => {
+  afterEach(() => {
+    previewAvailability.isPreviewDisabled = false;
+  });
+
+  it('should inform that preview is temporarily disabled instead of loading it', () => {
+    previewAvailability.isPreviewDisabled = true;
+    const createPreviewInstance = vi.fn();
+    renderPreview({
+      getLayoutSets: vi.fn().mockResolvedValue(defaultLayoutSets),
+      getFormLayoutSettings: vi.fn().mockResolvedValue(defaultLayoutSettings),
+      createPreviewInstance,
+    });
+
+    expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
+    expect(screen.queryByTitle('App Preview')).not.toBeInTheDocument();
+    expect(createPreviewInstance).not.toHaveBeenCalled();
+  });
+
   it('should show a loading spinner while data is pending', () => {
     renderPreview();
 

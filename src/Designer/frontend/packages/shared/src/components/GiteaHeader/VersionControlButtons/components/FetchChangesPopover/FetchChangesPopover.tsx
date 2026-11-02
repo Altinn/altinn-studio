@@ -4,31 +4,17 @@ import { StudioBadge, StudioPopover } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
-import { useRepoPullQuery } from 'app-shared/hooks/queries';
-import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 export const FetchChangesPopover = (): React.ReactElement => {
-  const {
-    isLoading,
-    setIsLoading,
-    hasMergeConflict,
-    setHasMergeConflict,
-    repoStatus,
-    onPullSuccess,
-  } = useVersionControlButtonsContext();
+  const { isLoading, setIsLoading, hasMergeConflict, repoStatus, fetchChanges } =
+    useVersionControlButtonsContext();
 
-  const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const { refetch: fetchPullData } = useRepoPullQuery(owner, repoName, true);
-  const queryClient = useQueryClient();
 
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -44,26 +30,8 @@ export const FetchChangesPopover = (): React.ReactElement => {
     setPopoverOpen(true);
 
     setIsLoading(true);
-    const { data: result } = await fetchPullData();
-
-    if (result.repositoryStatus === 'Ok') {
-      onPullSuccess?.();
-      await queryClient.invalidateQueries({
-        predicate: (q) => {
-          const queryKey = q.queryKey;
-          return queryKey.includes(owner) && queryKey.includes(repoName);
-        },
-      });
-    } else if (
-      result.hasMergeConflict ||
-      result.repositoryStatus === 'MergeConflict' ||
-      result.repositoryStatus === 'CheckoutConflict'
-    ) {
-      const conflictStatus: RepoStatus = { ...result, hasMergeConflict: true };
-      queryClient.setQueryData([QueryKey.RepoStatus, owner, repoName], conflictStatus);
-      setHasMergeConflict?.(true);
-      setPopoverOpen(false);
-    }
+    const isUpToDate = await fetchChanges();
+    if (!isUpToDate) setPopoverOpen(false);
     setIsLoading(false);
   };
 

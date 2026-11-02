@@ -177,7 +177,7 @@ public sealed class PipelineBuilder
 
         return new ServiceTaskPipeline(
             _items,
-            new PipelineConclusion.FinalStep(work, options) { DisplayName = PipelineStepNames.FromMethod(work) }
+            new PipelineConclusion.Final(work, options) { DisplayName = PipelineStepNames.FromMethod(work) }
         );
     }
 

@@ -439,8 +439,8 @@ public class ProcessNextRequestFactoryTests
 
     /// <summary>
     /// Unwraps the enqueue request embedded in the primary workflow's EnqueueAuxiliaryWorkflows step
-    /// payload (the request that step submits to the engine at the commit boundary), or null when
-    /// the transition has no auxiliary commands.
+    /// payload (the request that step submits to the engine after the task start), or null when
+    /// the transition has no auxiliary steps.
     /// </summary>
     private static WorkflowEnqueueRequest? TryExtractAuxiliaryEnqueueRequest(WorkflowEnqueueEnvelope bundle)
     {
@@ -469,8 +469,8 @@ public class ProcessNextRequestFactoryTests
     }
 
     /// <summary>
-    /// The auxiliary command keys across all auxiliary workflows, in declaration order (one
-    /// single-step workflow per auxiliary command).
+    /// The command keys of the auxiliary steps across all auxiliary workflows, in declaration order (one
+    /// single-step workflow per auxiliary step).
     /// </summary>
     private static List<string> ExtractAuxiliaryCommandKeys(WorkflowEnqueueEnvelope bundle) =>
         ExtractAuxiliaryWorkflows(bundle).SelectMany(ExtractCommandKeys).ToList();
@@ -820,17 +820,15 @@ public class ProcessNextRequestFactoryTests
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
-            // MutateProcessState (between end and start)
-            MutateProcessState.Key,
+            // CommitProcessState (commit boundary, between end and start)
+            CommitProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // CommitProcessState (commit boundary)
-            CommitProcessState.Key,
-            // Enqueues the auxiliary workflows at the commit boundary
+            // Enqueues the auxiliary workflows once the task has started
             EnqueueAuxiliaryWorkflows.Key,
             // Releases the instance as the workflow's last step
             ReleaseProcessingStatus.Key,
@@ -868,14 +866,13 @@ public class ProcessNextRequestFactoryTests
             (OnTaskEndingHook.Key, "Task_1"),
             (LockTaskData.Key, "Task_1"),
             // The transition's own steps belong to neither element.
-            (MutateProcessState.Key, null),
+            (CommitProcessState.Key, null),
             // Task start commands run for the task being entered.
             (UnlockTaskData.Key, "Task_2"),
             (CleanupGeneratedFromTask.Key, "Task_2"),
             (OnTaskStartingHook.Key, "Task_2"),
             (CommonTaskInitialization.Key, "Task_2"),
             (StartTask.Key, "Task_2"),
-            (CommitProcessState.Key, null),
             (EnqueueAuxiliaryWorkflows.Key, null),
             (ReleaseProcessingStatus.Key, null),
         ];
@@ -912,7 +909,6 @@ public class ProcessNextRequestFactoryTests
             (CommonTaskFinalization.Key, "Task_1"),
             (OnTaskEndingHook.Key, "Task_1"),
             (LockTaskData.Key, "Task_1"),
-            (MutateProcessState.Key, null),
             // A process end has no current task, so the end event is the element these steps run for.
             (CommitProcessState.Key, null),
             (OnProcessEndedHook.Key, null),
@@ -941,8 +937,8 @@ public class ProcessNextRequestFactoryTests
         );
 
         // Assert: ExecuteServiceTask runs for the entering task but stays unlabeled, because it sits
-        // after CommitProcessState — labeling it would draw that task's name a second time, after the
-        // commit, around work the pre-commit bracket already named.
+        // after the task start — labeling it would draw that task's name a second time, around work the
+        // task-start bracket already named.
         List<(string CommandKey, string? Element)> pairs = ExtractCommandElements(bundle.Request.Workflows[0]);
         Assert.Equal((ExecuteServiceTask.Key, null), pairs[^1]);
         Assert.Equal("Task_2", pairs.Single(p => p.CommandKey == CommonTaskInitialization.Key).Element);
@@ -1003,23 +999,16 @@ public class ProcessNextRequestFactoryTests
         );
 
         // Assert
-        var processStatePayloads = bundle
+        string? payload = bundle
             .Request.Workflows[0]
             .Steps.Where(s => s.Command.Type == "app" && s.Command.Data is not null)
             .Select(s => JsonSerializer.Deserialize<AppCommandData>(s.Command.Data!.Value))
-            .Where(appData =>
-                appData?.CommandKey == MutateProcessState.Key || appData?.CommandKey == CommitProcessState.Key
-            )
-            .Select(appData => appData!.Payload)
-            .ToList();
+            .Single(appData => appData?.CommandKey == CommitProcessState.Key)!
+            .Payload;
 
-        Assert.Equal(2, processStatePayloads.Count);
-        foreach (string? payload in processStatePayloads)
-        {
-            Assert.NotNull(payload);
-            using var document = JsonDocument.Parse(payload);
-            Assert.Equal("processStateChange", document.RootElement.GetProperty("$type").GetString());
-        }
+        Assert.NotNull(payload);
+        using var document = JsonDocument.Parse(payload);
+        Assert.Equal("processStateChange", document.RootElement.GetProperty("$type").GetString());
     }
 
     [Fact]
@@ -1050,12 +1039,11 @@ public class ProcessNextRequestFactoryTests
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
-            MutateProcessState.Key,
+            CommitProcessState.Key,
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
-            CommitProcessState.Key,
             EnqueueAuxiliaryWorkflows.Key,
             ExecuteServiceTask.Key,
         };
@@ -1098,8 +1086,6 @@ public class ProcessNextRequestFactoryTests
             CommonTaskFinalization.Key,
             OnTaskEndingHook.Key,
             LockTaskData.Key,
-            // MutateProcessState
-            MutateProcessState.Key,
             // CommitProcessState saves the ended state and keeps processing
             CommitProcessState.Key,
             // Process end commands (post-commit)
@@ -1118,7 +1104,7 @@ public class ProcessNextRequestFactoryTests
     }
 
     [Fact]
-    public async Task Create_InitialTaskStart_NoMutateProcessState_IncludesInstanceCreatedEvent()
+    public async Task Create_InitialTaskStart_CommitsBeforeTaskStart_IncludesInstanceCreatedEvent()
     {
         // Arrange
         var factory = CreateFactory(configureServices: AddEveryHookHandler);
@@ -1135,22 +1121,18 @@ public class ProcessNextRequestFactoryTests
 
         // Assert
         var keys = ExtractCommandKeys(bundle);
-
-        // No MutateProcessState because there is no task-end
-        Assert.DoesNotContain(MutateProcessState.Key, keys);
-
         var expected = new List<string>
         {
             ProcessingStatusAcquirer.Key,
-            // Task start commands only
+            // CommitProcessState, with no task-end commands before it
+            CommitProcessState.Key,
+            // Task start commands
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // CommitProcessState
-            CommitProcessState.Key,
-            // Enqueues the auxiliary workflows at the commit boundary
+            // Enqueues the auxiliary workflows once the task has started
             EnqueueAuxiliaryWorkflows.Key,
             // Releases the instance as the workflow's last step
             ReleaseProcessingStatus.Key,
@@ -1207,17 +1189,15 @@ public class ProcessNextRequestFactoryTests
             // Abandon commands
             AbandonTask.Key,
             OnTaskAbandonHook.Key,
-            // MutateProcessState
-            MutateProcessState.Key,
+            // CommitProcessState
+            CommitProcessState.Key,
             // Task start commands
             UnlockTaskData.Key,
             CleanupGeneratedFromTask.Key,
             OnTaskStartingHook.Key,
             CommonTaskInitialization.Key,
             StartTask.Key,
-            // CommitProcessState
-            CommitProcessState.Key,
-            // Enqueues the auxiliary workflows at the commit boundary
+            // Enqueues the auxiliary workflows once the task has started
             EnqueueAuxiliaryWorkflows.Key,
             // Releases the instance as the workflow's last step
             ReleaseProcessingStatus.Key,
@@ -1337,40 +1317,6 @@ public class ProcessNextRequestFactoryTests
         );
 
         Assert.Single(ExtractCommandKeys(bundle), key => key == hookKey);
-    }
-
-    /// <summary>A registered task type, which composes no abandon stages unless it defines them.</summary>
-    private sealed class NoAbandonWorkTask : IProcessTask
-    {
-        public string Type => "data";
-    }
-
-    [Fact]
-    public async Task Create_AbandonThatPlansNoSteps_StillMovesTheProcessStateBeforeTheTaskStart()
-    {
-        var factory = CreateFactory(configureServices: s => s.AddSingleton<IProcessTask>(new NoAbandonWorkTask()));
-
-        var bundle = await factory.CreateDependent(
-            TestInstance,
-            CreateTaskAbandonToNextTask(),
-            SignedTestState,
-            new Actor { UserId = 42 },
-            [WorkflowRef.FromDatabaseId(Guid.NewGuid())],
-            "test-process-next-idempotency-key"
-        );
-
-        Assert.Equal(
-            [
-                MutateProcessState.Key,
-                UnlockTaskData.Key,
-                CleanupGeneratedFromTask.Key,
-                CommonTaskInitialization.Key,
-                CommitProcessState.Key,
-                EnqueueAuxiliaryWorkflows.Key,
-                ReleaseProcessingStatus.Key,
-            ],
-            ExtractCommandKeys(bundle)
-        );
     }
 
     [Fact]
@@ -2143,7 +2089,7 @@ public class ProcessNextRequestFactoryTests
         var keys = ExtractAllCommandKeys(bundle);
         Assert.DoesNotContain(CompletedAltinnEvent.Key, keys);
         Assert.DoesNotContain(MovedToAltinnEvent.Key, keys);
-        // The release is the last step: with no auxiliary commands, nothing is enqueued after it.
+        // The release is the last step: with no auxiliary steps, nothing is enqueued after it.
         Assert.Equal([CommitProcessState.Key, DeleteDataOnProcessEnd.Key, ReleaseProcessingStatus.Key], keys[^3..]);
     }
 
@@ -2313,7 +2259,7 @@ public class ProcessNextRequestFactoryTests
     [Fact]
     public async Task Create_NoAuxiliaryCommands_EmitsSingleWorkflowWithoutEnqueueStep()
     {
-        // Arrange - no events, no service task, no instantiation extras -> no auxiliary commands
+        // Arrange - no events, no service task, no instantiation extras -> no auxiliary steps
         var factory = CreateFactory(registerEvents: false);
         var stateChange = CreateTaskToTaskTransition();
 
@@ -2353,7 +2299,7 @@ public class ProcessNextRequestFactoryTests
             notification: notification
         );
 
-        // Assert - the auxiliary commands are independent outcomes: each rides its own single-step
+        // Assert - the auxiliary steps are independent outcomes: each rides its own single-step
         // auxiliary workflow so a dead-lettered event registration cannot starve the notification behind it.
         Assert.Single(bundle.Request.Workflows);
         List<WorkflowRequest> siblings = ExtractAuxiliaryWorkflows(bundle);

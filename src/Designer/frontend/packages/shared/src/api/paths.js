@@ -181,7 +181,6 @@ export const appPolicyPath = (org, app) => `${apiBasePath}/${org}/${app}/policy`
 
 // Resourceadm
 export const resourcePolicyPath = (org, repo, id) => `${apiBasePath}/${org}/${repo}/policy/${id}`; // Get, Put
-export const resourceActionsPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/actionoptions`; // Get
 export const resourceSubjectsPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/subjectoptions`; // Get
 export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get

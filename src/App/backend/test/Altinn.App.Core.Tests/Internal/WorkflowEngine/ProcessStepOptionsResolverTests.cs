@@ -190,7 +190,7 @@ public class ProcessStepOptionsResolverTests
     {
         ProcessStepOptionsResolver resolver = CreateResolver();
 
-        StepRequest resolved = WorkflowCommandSet
+        StepRequest resolved = WorkflowStepSet
             .CreateItemStep(
                 "pipeline",
                 itemIndex: 1,

@@ -18,7 +18,7 @@ services belongs where it is defined.
 | A component: what it is for, what uses it, what it uses, how to start it | Its `README.md`, with longer material in a `docs/` folder beside it     |
 | Release notes for a component's users                                    | Its `CHANGELOG.md`                                                      |
 | Decisions and why we made them                                           | [docs/adr/](adr/)                                                       |
-| Conventions for workflows, builds and deployment                         | [.github/README.md](../.github/README.md)                               |
+| Conventions for workflows, builds and deployment                         | [cicd.md](cicd.md)                                                      |
 | Direction for agents in every session                                    | `AGENTS.md`                                                             |
 | Procedures for agents that only some tasks need                          | Skills in [agents/\_skills/](../agents/_skills)                         |
 | What the published Agents run with                                       | [agents/](../agents/README.md)                                          |

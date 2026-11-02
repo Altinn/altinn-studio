@@ -22,11 +22,11 @@ internal sealed class AbandonTask : WorkflowEngineCommandBase<ProcessTaskStagePa
 
     public override string GetKey() => Key;
 
-    protected override ProcessTaskStagePayload? ResolvePayload(ProcessEngineCommandContext context) =>
+    protected override ProcessTaskStagePayload? ResolvePayload(WorkflowEngineCommandContext context) =>
         StageExecution.ResolvePayload(context);
 
-    public override async Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public override async Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         ProcessTaskStagePayload payload
     )
     {
@@ -40,7 +40,7 @@ internal sealed class AbandonTask : WorkflowEngineCommandBase<ProcessTaskStagePa
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 }

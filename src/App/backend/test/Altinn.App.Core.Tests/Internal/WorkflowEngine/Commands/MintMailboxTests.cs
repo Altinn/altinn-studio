@@ -185,7 +185,7 @@ public class MintMailboxTests
         return new MintMailbox(sp.GetRequiredService<AppImplementationFactory>(), client);
     }
 
-    private static ProcessEngineCommandContext CreateContext(
+    private static WorkflowEngineCommandContext CreateContext(
         Guid? stepId = null,
         WorkflowCallbackStateCarry? carry = null
     )
@@ -201,7 +201,7 @@ public class MintMailboxTests
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, _instanceGuid),
@@ -228,10 +228,10 @@ public class MintMailboxTests
         var minter = new RecordingMailboxMinter();
         Guid stepId = Guid.NewGuid();
 
-        ProcessEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
+        WorkflowEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
             .Execute(CreateContext(stepId), Payload());
 
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
 
         (string ns, MailboxCreateRequest request) = Assert.Single(minter.Mints);
         Assert.Equal("ttd/test-app", ns);
@@ -282,10 +282,10 @@ public class MintMailboxTests
         var minter = new RecordingMailboxMinter();
         var carry = new WorkflowCallbackStateCarry();
 
-        ProcessEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
+        WorkflowEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
             .Execute(CreateContext(Guid.Empty, carry), Payload());
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxStepIdMissing", failed.ExceptionType);
         Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
@@ -304,10 +304,10 @@ public class MintMailboxTests
         };
         var carry = new WorkflowCallbackStateCarry();
 
-        ProcessEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
+        WorkflowEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
             .Execute(CreateContext(carry: carry), Payload());
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxRejected", failed.ExceptionType);
         Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
@@ -326,10 +326,10 @@ public class MintMailboxTests
         };
         var carry = new WorkflowCallbackStateCarry();
 
-        ProcessEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
+        WorkflowEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
             .Execute(CreateContext(carry: carry), Payload());
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Equal("MailboxAtCapacity", failed.ExceptionType);
         Assert.Contains($"index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
@@ -343,10 +343,10 @@ public class MintMailboxTests
         var minter = new RecordingMailboxMinter { Throws = new HttpRequestException("engine unreachable") };
         var carry = new WorkflowCallbackStateCarry();
 
-        ProcessEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
+        WorkflowEngineCommandResult result = await CreateCommand(new ArchivingTask(), minter)
             .Execute(CreateContext(carry: carry), Payload());
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Null(carry.Mailboxes);
     }
@@ -356,10 +356,10 @@ public class MintMailboxTests
     {
         var minter = new RecordingMailboxMinter();
 
-        ProcessEngineCommandResult result = await CreateCommand(new NoLongerDeclaringTask(), minter)
+        WorkflowEngineCommandResult result = await CreateCommand(new NoLongerDeclaringTask(), minter)
             .Execute(CreateContext(), Payload());
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
         Assert.Contains($"from the stage at index {SendStageIndex}", failed.ErrorMessage, StringComparison.Ordinal);
@@ -374,10 +374,10 @@ public class MintMailboxTests
     {
         var minter = new RecordingMailboxMinter();
 
-        ProcessEngineCommandResult result = await CreateCommand(new ShorterPipelineTask(), minter)
+        WorkflowEngineCommandResult result = await CreateCommand(new ShorterPipelineTask(), minter)
             .Execute(CreateContext(), Payload(stageIndex: 1));
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("MailboxDeclarationNotFound", failed.ExceptionType);
         Assert.Contains("from the stage at index 1", failed.ErrorMessage, StringComparison.Ordinal);
@@ -393,9 +393,9 @@ public class MintMailboxTests
         ServiceProvider sp = services.BuildServiceProvider();
         var command = new MintMailbox(sp.GetRequiredService<AppImplementationFactory>(), minter);
 
-        ProcessEngineCommandResult result = await command.Execute(CreateContext(), Payload());
+        WorkflowEngineCommandResult result = await command.Execute(CreateContext(), Payload());
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.False(failed.NonRetryable);
         Assert.Empty(minter.Mints);
     }
@@ -405,12 +405,12 @@ public class MintMailboxTests
     {
         var minter = new RecordingMailboxMinter();
         IWorkflowEngineCommand command = CreateCommand(new ArchivingTask(), minter);
-        ProcessEngineCommandContext context = CreateContext();
+        WorkflowEngineCommandContext context = CreateContext();
         context = context with { Payload = context.Payload with { Payload = null } };
 
-        ProcessEngineCommandResult result = await command.Execute(context);
+        WorkflowEngineCommandResult result = await command.Execute(context);
 
-        FailedProcessEngineCommandResult failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        FailedWorkflowEngineCommandResult failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.True(failed.NonRetryable);
         Assert.Equal("InvalidPayloadException", failed.ExceptionType);
         Assert.Empty(minter.Mints);

@@ -1,4 +1,5 @@
-# The build context is src/ (see the Dockerfile). Send only the shared Go module and pdf3's.
+# Build context: src/
+# Send only the shared Go module and pdf3's.
 **
 !common/go/**
 common/go/bin

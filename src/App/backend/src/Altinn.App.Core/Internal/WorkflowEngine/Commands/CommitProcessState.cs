@@ -21,14 +21,14 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
 
     public override string GetKey() => Key;
 
-    protected override ProcessStateChangePayload? ResolvePayload(ProcessEngineCommandContext context)
+    protected override ProcessStateChangePayload? ResolvePayload(WorkflowEngineCommandContext context)
     {
         ProcessStateChangePayload? payload = base.ResolvePayload(context);
         return payload?.ProcessStateChange is null ? null : payload;
     }
 
-    public override Task<ProcessEngineCommandResult> Execute(
-        ProcessEngineCommandContext context,
+    public override Task<WorkflowEngineCommandResult> Execute(
+        WorkflowEngineCommandContext context,
         ProcessStateChangePayload toStoragePayload
     )
     {
@@ -37,8 +37,8 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
             ProcessStateChange processStateChange = toStoragePayload.ProcessStateChange;
             if (processStateChange.NewProcessState == null)
             {
-                return Task.FromResult<ProcessEngineCommandResult>(
-                    FailedProcessEngineCommandResult.Permanent(
+                return Task.FromResult<WorkflowEngineCommandResult>(
+                    FailedWorkflowEngineCommandResult.Permanent(
                         "ProcessStateChange.NewProcessState is null",
                         "InvalidOperationException"
                     )
@@ -52,8 +52,8 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
                 && !string.IsNullOrWhiteSpace(newProcessState.EndEvent);
             if (!isActive && !isEnded)
             {
-                return Task.FromResult<ProcessEngineCommandResult>(
-                    FailedProcessEngineCommandResult.Permanent(
+                return Task.FromResult<WorkflowEngineCommandResult>(
+                    FailedWorkflowEngineCommandResult.Permanent(
                         "A process state must be active, with a current task, or ended, with no current task and a nonblank end event.",
                         nameof(InvalidOperationException)
                     )
@@ -62,8 +62,8 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
 
             if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
             {
-                return Task.FromResult<ProcessEngineCommandResult>(
-                    FailedProcessEngineCommandResult.Permanent(
+                return Task.FromResult<WorkflowEngineCommandResult>(
+                    FailedWorkflowEngineCommandResult.Permanent(
                         "Workflow process state save requires callback state restored into an InstanceDataUnitOfWork.",
                         "InvalidOperationException"
                     )
@@ -75,11 +75,11 @@ internal sealed class CommitProcessState : WorkflowEngineCommandBase<ProcessStat
             instance.Process = newProcessState;
             unitOfWork.UpdateProcessState(processStateChange);
 
-            return Task.FromResult<ProcessEngineCommandResult>(new SuccessfulProcessEngineCommandResult());
+            return Task.FromResult<WorkflowEngineCommandResult>(new SuccessfulWorkflowEngineCommandResult());
         }
         catch (Exception ex)
         {
-            return Task.FromResult<ProcessEngineCommandResult>(FailedProcessEngineCommandResult.Retryable(ex));
+            return Task.FromResult<WorkflowEngineCommandResult>(FailedWorkflowEngineCommandResult.Retryable(ex));
         }
     }
 }

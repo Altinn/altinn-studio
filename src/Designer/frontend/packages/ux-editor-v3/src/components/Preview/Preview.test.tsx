@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import { Preview } from './Preview';
 import { screen } from '@testing-library/react';
@@ -8,7 +8,25 @@ import type { IAppState } from '../../types/global';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
+const previewAvailability = vi.hoisted(() => ({ isPreviewDisabled: false }));
+vi.mock('app-shared/utils/previewAvailability', () => ({
+  get isPreviewDisabled() {
+    return previewAvailability.isPreviewDisabled;
+  },
+}));
+
 describe('Preview', () => {
+  afterEach(() => {
+    previewAvailability.isPreviewDisabled = false;
+  });
+
+  it('Informs that preview is temporarily disabled instead of loading it', () => {
+    previewAvailability.isPreviewDisabled = true;
+    renderWithMockStore({}, {}, queryClientMock)(<Preview />);
+    expect(screen.getByText(textMock('preview.temporarily_disabled'))).toBeInTheDocument();
+    expect(screen.queryByTitle(textMock('ux_editor.preview'))).not.toBeInTheDocument();
+  });
+
   it('Renders an iframe with the ref from AppContext', () => {
     const previewIframeRef = createRef<HTMLIFrameElement>();
     renderWithMockStore({}, {}, queryClientMock, { previewIframeRef })(<Preview />);

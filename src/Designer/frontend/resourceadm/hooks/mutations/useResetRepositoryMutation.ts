@@ -13,6 +13,7 @@ export const useResetRepositoryMutation = (owner: string, app: string) => {
   const { resetRepoChanges } = useServicesContext();
   return useMutation({
     mutationFn: () => resetRepoChanges(owner, app),
+    meta: { refreshesRepoStatus: true },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.RepoStatus, owner, app] });
     },

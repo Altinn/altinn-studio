@@ -1,4 +1,4 @@
-# Keep src/ build context minimal for gateway image.
+# Build context: src/
 **
 !common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj
 !common/dotnet/Altinn.Studio.Common/.editorconfig

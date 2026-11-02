@@ -38,7 +38,7 @@ public class WorkflowEngineCommandRegistrationTests
         var keys = new HashSet<string>();
 
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -52,7 +52,7 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -67,7 +67,7 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -83,7 +83,7 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -98,7 +98,7 @@ public class WorkflowEngineCommandRegistrationTests
         );
         // Only a mailbox-opening pipeline names MintMailbox.
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskStartSteps(
+            WorkflowStepSet.GetTaskStartSteps(
                 new TaskStartContext
                 {
                     TaskId = "Task_1",
@@ -112,29 +112,21 @@ public class WorkflowEngineCommandRegistrationTests
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskEndSteps(
-                "Task_1",
-                CreateLifecyclePipeline(),
-                endingHook: Mock.Of<IOnTaskEndingHandler>()
-            ),
+            WorkflowStepSet.GetTaskEndSteps("Task_1", CreateLifecyclePipeline(), Mock.Of<IOnTaskEndingHandler>()),
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetTaskAbandonSteps(
-                CreateLifecyclePipeline(),
-                abandonHook: Mock.Of<IOnTaskAbandoningHandler>()
-            ),
+            WorkflowStepSet.GetTaskAbandonSteps(CreateLifecyclePipeline(), Mock.Of<IOnTaskAbandoningHandler>()),
             keys
         );
         CollectCommandKeys(
-            WorkflowCommandSet.GetProcessEndSteps(
+            WorkflowStepSet.GetProcessEndSteps(
                 new ProcessEndContext { ProcessEndedHook = Mock.Of<IOnProcessEndedHandler>(), RegisterEvents = true }
             ),
             keys
         );
 
-        // ProcessNextRequestFactory adds these around the command sets.
-        keys.Add(MutateProcessState.Key);
+        // ProcessNextRequestFactory adds these around the step sets.
         keys.Add(CommitProcessState.Key);
         keys.Add(ReleaseProcessingStatus.Key);
         keys.Add(EnqueueAuxiliaryWorkflows.Key);
@@ -164,11 +156,11 @@ public class WorkflowEngineCommandRegistrationTests
                 (_, _) => Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success())
             );
 
-    private static void CollectCommandKeys(WorkflowCommandSet commandSet, HashSet<string> keys)
+    private static void CollectCommandKeys(WorkflowStepSet stepSet, HashSet<string> keys)
     {
-        IEnumerable<PlannedStep> steps = commandSet
-            .Commands.Concat(commandSet.PrimaryPostCommitCommands)
-            .Concat(commandSet.AuxiliaryCommands);
+        IEnumerable<PlannedStep> steps = stepSet
+            .LifecycleSteps.Concat(stepSet.PrimaryPostCommitSteps)
+            .Concat(stepSet.AuxiliarySteps);
         foreach (PlannedStep step in steps)
         {
             keys.Add(step.CommandKey);
