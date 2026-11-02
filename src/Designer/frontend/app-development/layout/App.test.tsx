@@ -1,22 +1,21 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { App } from './App';
+import { DISPLAY_NAME } from 'app-shared/constants';
 
 jest.mock('app-shared/hooks/useListenToMergeConflictInRepo', () => ({
   useListenToMergeConflictInRepo: jest.fn(),
 }));
 
-const defaultDocumentTitle = document.title;
-
 describe('App', () => {
   afterEach(() => {
-    document.title = defaultDocumentTitle;
+    document.title = '';
   });
 
   it('includes the app name in the document title', () => {
     renderApp('/test-org/first-app/overview');
 
-    expect(document.title).toBe(`${defaultDocumentTitle}: first-app`);
+    expect(document.title).toBe(`${DISPLAY_NAME}: first-app`);
   });
 
   it('updates the document title when navigating to another app', () => {
@@ -24,7 +23,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Navigate to another app' }));
 
-    expect(document.title).toBe(`${defaultDocumentTitle}: second-app`);
+    expect(document.title).toBe(`${DISPLAY_NAME}: second-app`);
   });
 
   it('restores the default document title when navigating outside an app', () => {
@@ -32,7 +31,7 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Navigate outside app' }));
 
-    expect(document.title).toBe(defaultDocumentTitle);
+    expect(document.title).toBe(DISPLAY_NAME);
   });
 });
 
