@@ -70,6 +70,7 @@ internal static class ServiceCollectionExtensions
 
         // Workflow engine commands - Notifications
         services.AddTransient<IWorkflowEngineCommand, NotifyInstanceOwnerOnInstantiation>();
+        services.AddTransient<IWorkflowEngineCommand, AwaitInstantiationNotificationDelivery>();
 
         // Workflow engine commands - ProcessEnd
         services.AddTransient<IWorkflowEngineCommand, OnProcessEndedHook>();

@@ -54,6 +54,18 @@ internal sealed class NotificationService : INotificationService
         Party party,
         InstantiationNotification instantiationNotification,
         CancellationToken cancellationToken
+    ) => await OrderInstantiationNotification(instance, party, instantiationNotification, cancellationToken);
+
+    /// <summary>
+    /// Places the instantiation notification's order, like <see cref="NotifyInstanceOwnerOnInstantiation"/>, and
+    /// returns what the delivery check needs to follow it up. Internal so that following up adds nothing to
+    /// <see cref="INotificationService"/>.
+    /// </summary>
+    internal async Task<InstantiationNotificationOrder> OrderInstantiationNotification(
+        Instance instance,
+        Party party,
+        InstantiationNotification instantiationNotification,
+        CancellationToken cancellationToken
     )
     {
         InstanceOwner instanceOwner = instance.InstanceOwner;
@@ -84,6 +96,11 @@ internal sealed class NotificationService : INotificationService
             orderResponse.Reminders.Count > 0
                 ? string.Join(", ", orderResponse.Reminders.Select(r => r.ShipmentId))
                 : "none"
+        );
+
+        return new InstantiationNotificationOrder(
+            orderResponse.Notification.ShipmentId,
+            new DateTimeOffset(orderRequest.RequestedSendTime)
         );
     }
 
@@ -458,3 +475,9 @@ internal sealed class NotificationService : INotificationService
         );
     }
 }
+
+/// <summary>
+/// The instantiation notification's order as the delivery check follows it up: the shipment Notifications created
+/// for its first notification, and when Notifications was asked to send it.
+/// </summary>
+internal sealed record InstantiationNotificationOrder(Guid ShipmentId, DateTimeOffset RequestedSendTime);

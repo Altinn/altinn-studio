@@ -49,6 +49,32 @@ internal sealed record WorkflowCallbackState
     /// </remarks>
     [JsonPropertyName("mailboxes")]
     public IReadOnlyDictionary<string, CarriedMailbox>? Mailboxes { get; init; }
+
+    /// <summary>
+    /// The instantiation notification's order, recorded by the step that places it so the steps after it can
+    /// wait for its send time and check that it was delivered. <c>null</c> in every other workflow, and absent
+    /// from blobs written before the delivery check existed.
+    /// </summary>
+    [JsonPropertyName("notificationShipment")]
+    public CarriedNotificationShipment? NotificationShipment { get; init; }
+}
+
+/// <summary>
+/// A notification order as it travels between the steps of the instantiation notification's workflow.
+/// </summary>
+internal sealed record CarriedNotificationShipment
+{
+    /// <summary>
+    /// The shipment Altinn Notifications created for the order's first notification.
+    /// </summary>
+    [JsonPropertyName("shipmentId")]
+    public required Guid ShipmentId { get; init; }
+
+    /// <summary>
+    /// When Notifications was asked to send it. Its status says nothing about delivery before then.
+    /// </summary>
+    [JsonPropertyName("requestedSendTime")]
+    public required DateTimeOffset RequestedSendTime { get; init; }
 }
 
 /// <summary>

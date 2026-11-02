@@ -18,7 +18,9 @@ internal sealed record NotifyInstanceOwnerOnInstantiationPayload(InstantiationNo
 
 /// <summary>
 /// Sends a notification to the instance owner after instantiation.
-/// Runs as a post-commit step so the instance is fully persisted before sending.
+/// Runs as a post-commit step so the instance is fully persisted before sending, and as the first step of its own
+/// auxiliary workflow: <see cref="AwaitInstantiationNotificationDelivery"/> follows it there and checks that the
+/// notification arrived.
 /// </summary>
 internal sealed class NotifyInstanceOwnerOnInstantiation(
     INotificationService notificationService,
@@ -58,12 +60,28 @@ internal sealed class NotifyInstanceOwnerOnInstantiation(
                 );
             }
 
-            await notificationService.NotifyInstanceOwnerOnInstantiation(
-                instance,
-                party,
-                payload.Notification,
-                context.CancellationToken
-            );
+            if (notificationService is NotificationService builtIn)
+            {
+                // Recorded for AwaitInstantiationNotificationDelivery, the next step of this workflow. A retry places
+                // the same order again: Notifications returns the existing one for a repeated idempotency id.
+                InstantiationNotificationOrder order = await builtIn.OrderInstantiationNotification(
+                    instance,
+                    party,
+                    payload.Notification,
+                    context.CancellationToken
+                );
+                context.StateCarry.RecordNotificationShipment(order.ShipmentId, order.RequestedSendTime);
+            }
+            else
+            {
+                // An app that replaced the notification service sends its own way, and there is no shipment to check.
+                await notificationService.NotifyInstanceOwnerOnInstantiation(
+                    instance,
+                    party,
+                    payload.Notification,
+                    context.CancellationToken
+                );
+            }
 
             return new SuccessfulWorkflowEngineCommandResult();
         }

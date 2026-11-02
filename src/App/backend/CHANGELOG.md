@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- The notification sent to the instance owner on instantiation is now followed up until Altinn Notifications reports it delivered. One that bounces or is never delivered fails its workflow in Studio's admin panel and logs an error with each channel's status. ([#21262](https://github.com/Altinn/altinn-studio/issues/21262))
+
 ### Changed
 
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
