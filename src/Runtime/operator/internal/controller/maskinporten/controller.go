@@ -44,8 +44,6 @@ import (
 	rt "altinn.studio/operator/internal/runtime"
 )
 
-const JsonFileName = "maskinporten-settings.json"
-
 var (
 	errSecretUpdateRetryExhausted = errors.New("failed to update secret after retries")
 	errUnexpectedSecretCount      = errors.New("unexpected number of secrets found")

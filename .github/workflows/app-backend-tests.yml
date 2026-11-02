@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/common/dotnet/**'
       - 'src/common/expression-tests/**'
+      - 'src/common/provisioned-secrets-contract/**'
       - 'src/App/backend/**'
       - 'src/App/PackageVersioning.props'
       - 'src/Runtime/common/dotnet/**'

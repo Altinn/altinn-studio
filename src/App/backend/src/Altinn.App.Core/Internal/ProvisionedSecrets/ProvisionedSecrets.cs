@@ -119,6 +119,15 @@ internal sealed class ProvisionedSecrets : IDisposable
     public IConfiguration Section(ProvisionedSecretFile file) => _root.GetSection(file.SectionName);
 
     /// <summary>
+    /// <para>Whether the platform provisioned <paramref name="file"/>: the file is there, as of the last poll,
+    /// and its wrapper object holds something. What it holds is the tenant's to validate.</para>
+    /// <para>This is read afresh on every call, so a file that is written, rotated or removed while the app
+    /// runs is seen without a restart.</para>
+    /// </summary>
+    /// <param name="file">One of the files this channel was built for, resolved or not.</param>
+    public bool IsProvisioned(ProvisionedSecretFile file) => _root.GetSection(file.SectionName).Exists();
+
+    /// <summary>
     /// Where <paramref name="file"/> is provisioned, as an absolute path: the channel's directory and the name
     /// this channel resolved for that file. Callers pass the static descriptor and never hold the name.
     /// </summary>

@@ -1,0 +1,20 @@
+{
+  "MaskinportenSettings": {
+    "authority": "https://test.maskinporten.no/",
+    "clientId": "studioctl-contract-client",
+    "jwk": {
+      "kty": "RSA",
+      "use": "sig",
+      "kid": "studioctl-contract-key",
+      "alg": "RS256",
+      "n": "wRMMjaDO5m6aOJk2ZAIAxw9L6bq47Ri5JglISU7YrfkATBecusl2YMG5KzjYQNDD-8tV3NU7FfjthVLnCTvEfeD6yw9nZPn-iYQngHT6d-76P_W7k8FMPZip7oLV7BZrMfyt808NlekjRh9KOfJoVI9ET6U4tQGbr0CIDo6ZY2Gj9lacFEfRbd3rV2NHGXjRjEPn_DsdwcHqQQbWNKkP4EBM4DQanBRaWL27wqqttzi_77HPeNqyfu6nH4RTq3YSxNZC6vXIcrkqaEW4R0eJOs_QIM0VyGnlC179FMt64tdKaVBYBufyS8z3_TKgLuvRMMr6aT_QhC7W0tPwd4YqmQ",
+      "e": "AQAB",
+      "d": "Es8Yw3ldfpxawNXIMzDww3OtiQ0MM-jbLKXt2VppiHU__qm0Nowm0KE-uUO16YaM-SwjZrqNIYRZG0pqwH8Gkt7Gf961y2QBVIM_1-dNeT6aOX3mcqv7keqb72TmkzPR6JI9nfzfDXIjYhLtR7ziRg6Y8ItffV61PHr0ZjqlHcW7f8XWMpJVc1SCKYiDS9Bfq31qggujFvI3_4SysFBZHfP5CjCH5jVNhjEYr49sLfwxUsxgjCgNf8u_hgznwqZwxNVC575V7FrXXYOXIwx46xnphWxQKt8KYvgok1C0-t67miq-wrKn7dX6KusHFpuOcxEx6Yo4uUhOdPbcrxyl2w",
+      "p": "44IJpQ0NzLJVJP4W-oaHfCJOX4aJPoaBJkV_TNBy8kxqrSmXRgapdEdQ489LHjBrfA5LKTXsnrBi1rwsQvdsfpLb5D5XIaJF6ujpOyyj3OmdURrZb4ab92XoagogjMEeGPLdygLLbGwRzQ16zBdkGzeGlwqCK5eQEKgbsDkldwc",
+      "q": "2UEQKKwQiYHvuXS3qn0F2A5GDFIVL-dMHYKHTs8g_LSwwT-AVn0cUbBdguX_HhNTx1G0ds4fgsgZw9iCt1MYN7NFGe13lyDvPVFpafjfihdiTpzS4u_HBXGOP_tHdR2VunqA31CzQ1Alql6Ew7oT995LyXKp5-gHIyQmrCViSV8",
+      "qi": "0ZRxalbhQIRf2U0x9M0-QTNvX7WvPfL0mQRxr8wJ8_BuOFp1tFyVCqG2BQ4WMXBMq9R18HGhNX3KRKwadIDMvts8Xrc5VuBs0D8wec8SP5gl5R4cepj7r0CxmnPedG2Upv-MpwDy7sGSJk4NJvYHtE6RQ_qBGqxxnygJyeTEuBc",
+      "dp": "uEuhxntRn20i_gl60cziudMMi-NvECBjRH5txeriApeWntmfOlGxOYl_5FsK7dSpbWAi0KpnGJGoL21VqZXG5K3QxQ8fBBbw7n9oV9AsmYsBLi9Czk5Lz9hUsnmrrnnOCMXMlpU29oiAzwvJWsTkCgwr0fToR6nKQUP80f8o80c",
+      "dq": "l5_EEk68H-wSjgF6qb8l0_tqQfELnmo0Aih2HLeMkzHcZpLWFAavPAf1y4SPf8MHZoWMiJok_dZ_vOKfoCibL0yrfoPwQgaXUdk-09oA0VSupKTovb-QzCjLmbXa0k76j7ItvS2KXwFRuEzNJfj5NLXteMPQ9uxGBu2VG_HfXcs"
+    }
+  }
+}

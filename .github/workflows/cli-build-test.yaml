@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, closed]
     paths:
       - "src/cli/**"
+      - "src/common/provisioned-secrets-contract/**"
       - "src/Runtime/common/dotnet/**"
       # studioctl imports Go packages from devenv through a go.mod replace directive.
       - "src/Runtime/devenv/**"

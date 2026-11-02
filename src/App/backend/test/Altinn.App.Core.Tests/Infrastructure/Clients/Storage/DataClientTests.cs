@@ -16,15 +16,18 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
 using Altinn.App.Core.Tests.TestUtils;
 using Altinn.App.PlatformServices.Tests.Data;
 using Altinn.App.PlatformServices.Tests.Mocks;
+using Altinn.App.Tests.Common;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -2074,6 +2077,12 @@ public class DataClientTests
             services.Configure<PlatformSettings>(options => options.ApiStorageEndpoint = ApiStorageEndpoint);
             services.Configure<GeneralSettings>(options => options.HostName = "tt02.altinn.no");
             services.AddRuntimeEnvironment();
+            services.AddSingleton<IConfiguration>(
+                new ConfigurationBuilder()
+                    .AddInMemoryCollection(ProvisionedSecretsTestEnvironment.VariablesWithNothingProvisioned)
+                    .Build()
+            );
+            services.AddProvisionedSecrets();
             services.AddSingleton<IAuthenticationTokenResolver, AuthenticationTokenResolver>();
             services.AddSingleton<ModelSerializationService>();
             services.AddSingleton(mocks.AppModelMock.Object);

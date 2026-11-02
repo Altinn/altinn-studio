@@ -1,0 +1,31 @@
+{
+  "directoryVariable": "RUNTIME_APP_SECRETS_DIR",
+  "maskinporten": {
+    "fileNameVariable": "RUNTIME_APP_SECRETS_MASKINPORTEN_FILENAME",
+    "fileName": "maskinporten-settings.json",
+    "section": "MaskinportenSettings",
+    "examples": [
+      {
+        "file": "maskinporten-settings.operator.json",
+        "writer": "operator",
+        "authority": "https://test.maskinporten.no/",
+        "clientId": "operator-contract-client",
+        "keyId": "9e5e51c1-de0e-4ad8-bb34-41018903b777.0"
+      },
+      {
+        "file": "maskinporten-settings.studioctl-jwk.json",
+        "writer": "studioctl",
+        "authority": "https://test.maskinporten.no/",
+        "clientId": "studioctl-contract-client",
+        "keyId": "studioctl-contract-key"
+      },
+      {
+        "file": "maskinporten-settings.studioctl-jwkbase64.json",
+        "writer": "studioctl",
+        "authority": "https://test.maskinporten.no/",
+        "clientId": "studioctl-contract-client",
+        "keyId": "studioctl-contract-key"
+      }
+    ]
+  }
+}

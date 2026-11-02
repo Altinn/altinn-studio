@@ -13,6 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
+- On a local run, the app makes its service owner requests, such as to Storage, with its Maskinporten client when one is stored, as a deployed app does, and with localtest's test token otherwise. If they fail after you store a test client, remove it with `studioctl app maskinporten remove`. ([#21647](https://github.com/Altinn/altinn-studio/pull/21647))
 
 ## [9.0.0-preview.9] - 2026-10-28
 

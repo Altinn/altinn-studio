@@ -10,8 +10,11 @@ using Altinn.App.Core.Internal;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
+using Altinn.App.Core.Internal.ProvisionedSecrets;
 using Altinn.App.Core.Models;
 using Altinn.App.PlatformServices.Tests.Mocks;
+using Altinn.App.Tests.Common;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -138,6 +141,63 @@ public class AuthenticationTokenResolverTest
     }
 
     [Fact]
+    public async Task GetAccessToken_UsesTheMaskinportenClient_OnLocaltest_WhenAClientIsProvisioned()
+    {
+        // Arrange: a localtest that provisions a Maskinporten client for the run has a Maskinporten fake and an
+        // exchange for it, so the service owner token takes the same path as on a deployed app.
+        var authMethodAltinn = AuthenticationMethod.ServiceOwner("a", "b");
+        bool localtestTokenRequested = false;
+        await using var fixture = Fixture.Create(
+            _generalSettingsLocal,
+            _ => localtestTokenRequested = true,
+            maskinportenClientProvisioned: true
+        );
+
+        // Act
+        var result = await fixture.AuthenticationTokenResolver.GetAccessToken(authMethodAltinn);
+
+        // Assert
+        Assert.Equal(_testTokens.ServiceOwnerTokenTt02, result);
+        Assert.False(localtestTokenRequested);
+        fixture.Mocks.MaskinportenClientMock.Verify(
+            x =>
+                x.GetAltinnExchangedToken(
+                    It.Is<IEnumerable<string>>(scopes =>
+                        scopes.SequenceEqual(
+                            new[]
+                            {
+                                "altinn:serviceowner",
+                                "altinn:serviceowner/instances.read",
+                                "altinn:serviceowner/instances.write",
+                                "a",
+                                "b",
+                            }
+                        )
+                    ),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GetAccessToken_UsesTheLocaltestToken_OnLocaltest_WhenNoClientIsProvisioned()
+    {
+        // Arrange: a localtest without a Maskinporten fake provisions no client, and keeps its test token.
+        await using var fixture = Fixture.Create(_generalSettingsLocal, maskinportenClientProvisioned: false);
+
+        // Act
+        var result = await fixture.AuthenticationTokenResolver.GetAccessToken(AuthenticationMethod.ServiceOwner());
+
+        // Assert
+        Assert.Equal(_testTokens.ServiceOwnerTokenLocal, result);
+        fixture.Mocks.MaskinportenClientMock.Verify(
+            x => x.GetAltinnExchangedToken(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public async Task GetAccessToken_UnderWorkflowCallbackPrincipal_ResolvesCurrentUserAsServiceOwner()
     {
         // Arrange: the ambient principal is an app callback (Authenticated.App), as during a workflow-engine
@@ -197,15 +257,23 @@ public class AuthenticationTokenResolverTest
     {
         public required ServiceProvider ServiceProvider { get; init; }
         public required FixtureMocks Mocks { get; init; }
+        public required string SecretsDirectory { get; init; }
         public IAuthenticationTokenResolver AuthenticationTokenResolver =>
             ServiceProvider.GetRequiredService<IAuthenticationTokenResolver>();
 
         public static Fixture Create(
             GeneralSettings? generalSettings = null,
             Action<HttpRequestMessage>? localtestTokenCallback = null,
-            Authenticated? currentAuth = null
+            Authenticated? currentAuth = null,
+            bool maskinportenClientProvisioned = false
         )
         {
+            string secretsDirectory = Directory.CreateTempSubdirectory("altinn-app-token-resolver-").FullName;
+            if (maskinportenClientProvisioned)
+            {
+                ProvisionedSecretsTestEnvironment.WriteMaskinportenClient(secretsDirectory);
+            }
+
             var mocks = new FixtureMocks();
             mocks.AppMetadataMock.Setup(x => x.ApplicationMetadata).Returns(_appMetadata);
             mocks.AuthenticationContextMock.Setup(x => x.Current).Returns(currentAuth ?? _userAuth);
@@ -242,6 +310,12 @@ public class AuthenticationTokenResolverTest
 
             var services = new ServiceCollection();
             services.AddRuntimeEnvironment();
+            services.AddSingleton<IConfiguration>(
+                new ConfigurationBuilder()
+                    .AddInMemoryCollection(ProvisionedSecretsTestEnvironment.VariablesFor(secretsDirectory))
+                    .Build()
+            );
+            services.AddProvisionedSecrets();
             services.Configure<PlatformSettings>(options =>
                 options.ApiStorageEndpoint = _platformSettings.ApiStorageEndpoint
             );
@@ -257,7 +331,12 @@ public class AuthenticationTokenResolverTest
             services.AddSingleton(mocks.AuthenticationContextMock.Object);
             services.AddLogging(logging => logging.AddProvider(NullLoggerProvider.Instance));
 
-            return new Fixture { Mocks = mocks, ServiceProvider = services.BuildServiceProvider() };
+            return new Fixture
+            {
+                Mocks = mocks,
+                ServiceProvider = services.BuildServiceProvider(),
+                SecretsDirectory = secretsDirectory,
+            };
         }
 
         public sealed record FixtureMocks
@@ -272,6 +351,7 @@ public class AuthenticationTokenResolverTest
         public async ValueTask DisposeAsync()
         {
             await ServiceProvider.DisposeAsync();
+            Directory.Delete(SecretsDirectory, recursive: true);
         }
     }
 

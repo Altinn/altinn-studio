@@ -7,6 +7,8 @@ on:
       - 'src/Runtime/operator/**'
       - 'src/Runtime/devenv/**'
       - 'src/common/go/**'
+      - 'src/common/provisioned-secrets-contract/**'
+      - 'infra/runtime/apps-config/base/apps-runtime-common-env.yaml'
       - '.github/workflows/runtime-operator-build.yml'
       - 'src/App/azure-pipelines/deploy-app.yaml'
       - '!**/AGENTS.md'
