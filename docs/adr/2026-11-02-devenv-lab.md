@@ -34,9 +34,10 @@ DIS Core. devenv reproduces one runtime cluster. Components from other clusters 
 missing. A lab limited to the runtime cluster cannot reproduce those failures, and a security test of one cluster
 misses the boundaries an attacker would cross.
 
-localtest, which studioctl ships to app developers, also runs Altinn Platform services locally. It is a product, and its
-users' experience decides its design. devenv serves the people and agents who develop Altinn Studio, so fidelity and
-control decide its design. The two can share code, but neither constrains the other.
+studioctl and localtest are Altinn Studio's interfaces for local app development, and localtest also runs Altinn
+Platform services. App developers use them, so their experience decides the design. devenv serves the people and agents
+who develop Altinn Studio, so fidelity and control decide its design. They can share code, but neither constrains the
+other.
 
 ## Decision drivers
 
