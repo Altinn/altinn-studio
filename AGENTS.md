@@ -9,6 +9,8 @@ Follow [CONTRIBUTING.md](CONTRIBUTING.md). The [README](README.md) says how the 
   could not run one, or a test run rewrote snapshots, name them in your report.
 - Skills are in [agents/\_skills/](agents/_skills). If one is not installed in your harness, read its `SKILL.md`
   there, or copy its directory into your harness's skill directory.
+- When you add or change a service's telemetry, dashboards or alerts, follow
+  [docs/observability.md](docs/observability.md).
 - What you learn about the product or how we work goes into the repository through a pull request, not into your
   harness's memory, so that the rest of the team can read and review it.
 - An `AGENTS.md` deeper in the tree adds to this one for its directory.
