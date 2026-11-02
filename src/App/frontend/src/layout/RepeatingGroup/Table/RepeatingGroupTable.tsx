@@ -80,9 +80,10 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
     displayEditColumn = false;
   }
   const useVerticalButtonLayout = config.edit?.buttonLayout === 'vertical';
+  // Reserve an action cell even when editing/deleting is disabled so validation stays discoverable.
   const columnCount = useVerticalButtonLayout
-    ? Number(displayEditColumn || displayDeleteColumn)
-    : Number(displayEditColumn) + Number(displayDeleteColumn);
+    ? 1
+    : Math.max(1, Number(displayEditColumn) + Number(displayDeleteColumn));
 
   const parent = FormStore.bootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
@@ -153,26 +154,36 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
                 ))}
               </DataModelLocationProvider>
               {useVerticalButtonLayout ? (
-                (displayEditColumn || displayDeleteColumn) && (
-                  <Table.HeaderCell style={{ padding: 0 }}>
-                    {displayEditColumn && (
-                      <span className={utilClasses.visuallyHidden}>
-                        <Lang id='general.edit' />
-                      </span>
-                    )}
-                    {displayDeleteColumn && (
-                      <span className={utilClasses.visuallyHidden}>
-                        <Lang id='general.delete' />
-                      </span>
-                    )}
-                  </Table.HeaderCell>
-                )
+                <Table.HeaderCell style={{ padding: 0 }}>
+                  {!displayEditColumn && !displayDeleteColumn && (
+                    <span className={utilClasses.visuallyHidden}>
+                      <Lang id='group.row_validation_messages' />
+                    </span>
+                  )}
+                  {displayEditColumn && (
+                    <span className={utilClasses.visuallyHidden}>
+                      <Lang id='general.edit' />
+                    </span>
+                  )}
+                  {displayDeleteColumn && (
+                    <span className={utilClasses.visuallyHidden}>
+                      <Lang id='general.delete' />
+                    </span>
+                  )}
+                </Table.HeaderCell>
               ) : (
                 <>
                   {displayEditColumn && (
                     <Table.HeaderCell style={{ padding: 0, paddingRight: '10px' }}>
                       <span className={utilClasses.visuallyHidden}>
                         <Lang id='general.edit' />
+                      </span>
+                    </Table.HeaderCell>
+                  )}
+                  {!displayEditColumn && !displayDeleteColumn && (
+                    <Table.HeaderCell style={{ padding: 0 }}>
+                      <span className={utilClasses.visuallyHidden}>
+                        <Lang id='group.row_validation_messages' />
                       </span>
                     </Table.HeaderCell>
                   )}
