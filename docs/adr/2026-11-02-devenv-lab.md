@@ -6,11 +6,11 @@
 
 ## Result
 
-A4: devenv becomes the lab where we develop and test Altinn Studio. It reproduces Core, runtime and platform as separate
-areas that follow production's boundaries. Each area deploys from production's manifests with thin local overlays and
-lists how it differs from production. A topology chooses the areas, their profiles and whether they share a cluster.
-The lab reaches nothing outside itself, and it gives people and agents a small set of operations: start a topology,
-report its state, inject a fault, observe, and reset.
+A4: devenv becomes the lab where we develop and test Altinn Studio. It reproduces the product as three separate areas
+that follow production's boundaries: core, runtime and platform. Each area deploys from production's manifests with thin
+local overlays and lists how it differs from production. A topology chooses the areas, their profiles and whether they
+share a cluster. The lab reaches nothing outside itself, and it gives people and agents a small set of operations: start
+a topology, report its state, inject a fault, observe, and reset.
 
 ## Problem context
 
@@ -41,8 +41,8 @@ other.
 
 ## Decision drivers
 
-- B1: We can reproduce failures in and between Core, runtime and platform, and see whether they produce the signals,
-  alerts and notifications we rely on.
+- B1: We can reproduce failures in and between the core, runtime and platform areas, and see whether they produce the
+  signals, alerts and notifications we rely on.
 - B2: Results hold in production. The lab runs production's manifests and images, and lists every way it differs.
 - B3: Anyone, person or agent, can break things and attack the lab without affecting shared environments, other people
   or real services.
@@ -115,8 +115,8 @@ flowchart LR
 
 ### Areas
 
-- Each component runs in the area that runs it in production. Core is the Studio clusters, runtime is the runtime
-  clusters, and platform is DIS Core, DIS Edge, the platform cluster and adminservices. The
+- Each component runs in the area that runs it in production. The core area is the Studio clusters, the runtime area
+  is the runtime clusters, and the platform area is DIS Core, DIS Edge, the platform cluster and adminservices. The
   [environments](../infrastructure/environments.md) doc describes each of them.
 - An area deploys from production's manifests the way production deploys them, with local overlays only where the lab
   must differ. The observability overlays already follow this rule.
