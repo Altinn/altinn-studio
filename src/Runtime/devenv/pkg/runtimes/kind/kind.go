@@ -684,7 +684,7 @@ func (r *KindContainerRuntime) addMonitoring(graph *resource.Graph, baseInfra *r
 	if err = addMonitoringResources(graph, root, r.ClusterRef(), r.RegistryRef(), baseInfra); err != nil {
 		return err
 	}
-	dashboards, err := resolveDashboardsRepository(r.options.DashboardsRepository, r.cachePath)
+	dashboards, err := resolveDashboardsRepository(context.Background(), r.options.DashboardsRepository, r.cachePath)
 	if err != nil {
 		return err
 	}
