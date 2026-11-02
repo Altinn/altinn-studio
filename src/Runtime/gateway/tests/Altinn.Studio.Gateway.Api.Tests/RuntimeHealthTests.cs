@@ -114,6 +114,51 @@ public sealed class RuntimeHealthTests : IDisposable
     }
 
     [Fact]
+    public async Task Publisher_ReportsACheckThatTimesOutAsUnhealthy()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        using var gateway = new GatewayApiFactory();
+        using var factory = gateway.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureAppConfiguration(
+                (_, configuration) =>
+                    configuration.AddInMemoryCollection(
+                        new Dictionary<string, string?> { ["RuntimeHealth:Timeout"] = "00:00:00.200" }
+                    )
+            );
+            builder.ConfigureTestServices(services =>
+                services
+                    .AddHealthChecks()
+                    .AddAsyncCheck(
+                        "stalled-dependency",
+                        async cancellationToken =>
+                        {
+                            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                            return HealthCheckResult.Healthy();
+                        },
+                        tags: [RuntimeHealthRegistration.RuntimeTag]
+                    )
+            );
+        });
+        using var client = factory.CreateClient();
+        var report = factory.Services.GetRequiredService<RuntimeHealthReport>();
+
+        // The publisher's first run starts a second after startup.
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(10);
+        while (!report.HasRun && DateTimeOffset.UtcNow < deadline)
+        {
+            await Task.Delay(50, ct);
+        }
+        using var ready = await client.GetAsync(new Uri("/health/ready", UriKind.Relative), ct);
+        using var health = await client.GetAsync(_healthEndpoint, ct);
+
+        Assert.True(report.HasRun);
+        Assert.Equal(HealthStatus.Unhealthy, report.Current.Entries["stalled-dependency"].Status);
+        Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, health.StatusCode);
+    }
+
+    [Fact]
     public void Report_IsUnhealthyBeforeTheChecksHaveRun()
     {
         var report = CreateReport(new FakeTimeProvider());
@@ -151,10 +196,7 @@ public sealed class RuntimeHealthTests : IDisposable
         services.AddHttpClient(Pdf3HealthCheck.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => handler);
         using var provider = services.BuildServiceProvider();
         var settings = new RuntimeHealthSettings();
-        var check = new Pdf3HealthCheck(
-            provider.GetRequiredService<IHttpClientFactory>(),
-            new StaticOptionsMonitor<RuntimeHealthSettings>(settings)
-        );
+        var check = new Pdf3HealthCheck(provider.GetRequiredService<IHttpClientFactory>(), Options.Create(settings));
 
         var result = await check.CheckHealthAsync(new HealthCheckContext(), TestContext.Current.CancellationToken);
 
@@ -200,14 +242,5 @@ public sealed class RuntimeHealthTests : IDisposable
         );
 
     private static RuntimeHealthReport CreateReport(TimeProvider time) =>
-        new(time, new StaticOptionsMonitor<RuntimeHealthSettings>(new RuntimeHealthSettings()));
-
-    private sealed class StaticOptionsMonitor<T>(T value) : IOptionsMonitor<T>
-    {
-        public T CurrentValue => value;
-
-        public T Get(string? name) => value;
-
-        public IDisposable? OnChange(Action<T, string?> listener) => null;
-    }
+        new(time, Options.Create(new RuntimeHealthSettings()));
 }

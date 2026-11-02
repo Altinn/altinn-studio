@@ -8,7 +8,7 @@ namespace Altinn.Studio.Gateway.Api.Health;
 /// Keeps the latest result of the runtime checks, which the health check publisher runs in the background. The
 /// public health endpoint answers from it, so a probe doesn't run the checks and can't put load on the cluster.
 /// </summary>
-internal sealed class RuntimeHealthReport(TimeProvider timeProvider, IOptionsMonitor<RuntimeHealthSettings> settings)
+internal sealed class RuntimeHealthReport(TimeProvider timeProvider, IOptions<RuntimeHealthSettings> settings)
     : IHealthCheckPublisher
 {
     /// <summary>
@@ -43,7 +43,7 @@ internal sealed class RuntimeHealthReport(TimeProvider timeProvider, IOptionsMon
                 return Unhealthy;
             }
 
-            var maxAge = settings.CurrentValue.Period * MaxAgeInPeriods;
+            var maxAge = settings.Value.Period * MaxAgeInPeriods;
             return timeProvider.GetUtcNow() - latest.PublishedAt > maxAge ? Unhealthy : latest.Report;
         }
     }

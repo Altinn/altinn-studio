@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Gateway.Api.Settings;
 
 /// <summary>
-/// Settings for the runtime checks that the public health endpoint reports.
+/// Settings for the runtime checks that the public health endpoint reports. They are read at startup.
 /// </summary>
 internal sealed class RuntimeHealthSettings
 {
@@ -27,8 +27,8 @@ internal sealed class RuntimeHealthSettings
     public TimeSpan Period { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// How long one check may take. Above Linkerd's 3 second fail-fast timeout, so a request that has no route
-    /// fails with Linkerd's answer rather than ours.
+    /// How long one check may take before it counts as unhealthy. Above Linkerd's 3 second fail-fast timeout, so a
+    /// request that has no route fails with Linkerd's answer rather than ours.
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
 }

@@ -10,10 +10,8 @@ namespace Altinn.Studio.Gateway.Api.Health;
 /// HTTPRoute apps' requests take. Without the route, the Service behind the address has no endpoints, and Linkerd
 /// fails the request.
 /// </summary>
-internal sealed class Pdf3HealthCheck(
-    IHttpClientFactory httpClientFactory,
-    IOptionsMonitor<RuntimeHealthSettings> settings
-) : IHealthCheck
+internal sealed class Pdf3HealthCheck(IHttpClientFactory httpClientFactory, IOptions<RuntimeHealthSettings> settings)
+    : IHealthCheck
 {
     public const string Name = "pdf3";
     public const string HttpClientName = "pdf3-health";
@@ -27,7 +25,7 @@ internal sealed class Pdf3HealthCheck(
 
         // A check isn't traffic, and the gateway keeps every trace it starts.
         using var _ = SuppressInstrumentationScope.Begin();
-        using var response = await client.GetAsync(settings.CurrentValue.Pdf3Url, cancellationToken);
+        using var response = await client.GetAsync(settings.Value.Pdf3Url, cancellationToken);
 
         return response.IsSuccessStatusCode
             ? HealthCheckResult.Healthy()

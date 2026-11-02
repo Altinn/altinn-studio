@@ -16,14 +16,16 @@ team's uptime monitoring. It answers without authentication, so it shows each ch
 details. The format follows [altinn-aspnet-healthchecks](https://github.com/Altinn/altinn-aspnet-healthchecks), the
 convention proposed for Altinn's products, without depending on it.
 
-The checks run every 30 seconds in the background, and the endpoint answers with their latest result. It answers 503
-until they have run, and if they stop running. A new gateway is not ready until they have run once, so a rollout does
+The checks run every 30 seconds in the background, and the endpoint answers with their latest result. A check that
+takes more than 10 seconds counts as unhealthy. The endpoint answers 503 until the checks have run, and if they stop
+running. A new gateway is not ready until they have run once, so a rollout does
 not show as downtime. The kubelet's probes do not run them, so an unavailable dependency does not take the gateway out
 of rotation.
 
 - **pdf3** calls the relay's `/pdf/health` at the address apps call for PDFs, so the request takes the same HTTPRoute
   as theirs. Without the route, the Service behind the address has no endpoints and Linkerd fails the request.
-  It is off in the local kind cluster, which has no relay.
+  It is off in the local kind cluster, which has no relay. Its requests are left out of traces, but not out of the
+  gateway's HTTP client metrics, where `server.address` is `pdf-generator.pdf.svc.cluster.local`.
 
 ## Telemetry
 

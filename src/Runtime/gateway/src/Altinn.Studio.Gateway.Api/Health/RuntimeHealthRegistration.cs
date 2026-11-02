@@ -17,9 +17,16 @@ internal static class RuntimeHealthRegistration
     public const string ReadyTag = "ready";
 
     /// <summary>
+    /// How much longer than one check a run of all of them may take. The checks run in parallel, and each one that
+    /// takes too long must end as an unhealthy entry before the run is cancelled, or the run publishes nothing.
+    /// </summary>
+    private static readonly TimeSpan _runTimeoutMargin = TimeSpan.FromSeconds(5);
+
+    /// <summary>
     /// Runs the runtime checks in the background with ASP.NET Core's health check publisher, and keeps their latest
     /// result in <see cref="RuntimeHealthReport"/>. The kubelet's probes don't run them: an unavailable dependency
-    /// must not take the gateway out of rotation.
+    /// must not take the gateway out of rotation. The settings are read once, at startup, since the publisher's
+    /// schedule doesn't change after it.
     /// </summary>
     public static IServiceCollection AddRuntimeHealth(this IServiceCollection services, IConfiguration configuration)
     {
@@ -41,8 +48,22 @@ internal static class RuntimeHealthRegistration
                 {
                     options.Delay = TimeSpan.FromSeconds(1);
                     options.Period = settings.Value.Period;
-                    options.Timeout = settings.Value.Timeout;
+                    options.Timeout = settings.Value.Timeout + _runTimeoutMargin;
                     options.Predicate = registration => registration.Tags.Contains(RuntimeTag);
+                }
+            );
+
+        // A check that times out ends as an unhealthy entry, rather than cancelling the whole run. Post-configured,
+        // since checks are registered with Configure, also after this.
+        services
+            .AddOptions<HealthCheckServiceOptions>()
+            .PostConfigure<IOptions<RuntimeHealthSettings>>(
+                (options, settings) =>
+                {
+                    foreach (var registration in options.Registrations.Where(r => r.Tags.Contains(RuntimeTag)))
+                    {
+                        registration.Timeout = settings.Value.Timeout;
+                    }
                 }
             );
 
@@ -55,13 +76,7 @@ internal static class RuntimeHealthRegistration
 
         if (section.GetValue(nameof(RuntimeHealthSettings.CheckPdf3), defaultValue: true))
         {
-            services.AddHttpClient(
-                Pdf3HealthCheck.HttpClientName,
-                (sp, client) =>
-                    client.Timeout = sp.GetRequiredService<
-                        IOptionsMonitor<RuntimeHealthSettings>
-                    >().CurrentValue.Timeout
-            );
+            services.AddHttpClient(Pdf3HealthCheck.HttpClientName);
             healthChecks.AddCheck<Pdf3HealthCheck>(Pdf3HealthCheck.Name, tags: [RuntimeTag]);
         }
 
