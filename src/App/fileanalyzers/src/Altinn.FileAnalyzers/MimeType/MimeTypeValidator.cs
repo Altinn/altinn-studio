@@ -1,5 +1,6 @@
 ﻿using Altinn.App.Core.Features.FileAnalysis;
 using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -30,7 +31,9 @@ internal sealed class MimeTypeValidator : IFileValidator
             !dataType.AllowedContentTypes.Contains(
                 fileMimeTypeResult?.MimeType,
                 StringComparer.InvariantCultureIgnoreCase
-            ) && !dataType.AllowedContentTypes.Contains("application/octet-stream")
+            )
+            && !dataType.AllowedContentTypes.Contains("application/octet-stream")
+            && !IsAllowedByFileExtension(dataType, fileMimeTypeResult)
         )
         {
             ValidationIssue error = new()
@@ -55,5 +58,33 @@ internal sealed class MimeTypeValidator : IFileValidator
         }
 
         return Task.FromResult<(bool Success, IEnumerable<ValidationIssue> Errors)>((true, errors));
+    }
+
+    /// <summary>
+    /// Whether the content matches the file's own extension, and a content type for that extension is allowed.
+    /// The content inspector names some types differently from <see cref="MimeTypeMap"/>, which the upload check
+    /// and Studio use, such as application/excel for .xls, so its MIME type alone rejects files that are what they say.
+    /// </summary>
+    private static bool IsAllowedByFileExtension(
+        DataType dataType,
+        FileAnalysisResult? analysisResult
+    )
+    {
+        string extension = Path.GetExtension(analysisResult?.Filename ?? string.Empty)
+            .TrimStart('.');
+        if (
+            analysisResult?.Extensions.Contains(
+                extension,
+                StringComparer.InvariantCultureIgnoreCase
+            ) != true
+        )
+        {
+            return false;
+        }
+
+        var contentTypesForExtension = MimeTypeMap.GetMimeType(extension);
+        return dataType.AllowedContentTypes.Any(allowed =>
+            contentTypesForExtension.IsMatch(allowed)
+        );
     }
 }

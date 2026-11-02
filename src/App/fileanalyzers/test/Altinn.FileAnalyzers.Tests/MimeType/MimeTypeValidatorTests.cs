@@ -70,6 +70,60 @@ public class MimeTypeValidatorTests
         );
     }
 
+    [Theory]
+    // The content inspector names these types differently from the content types Studio writes
+    [InlineData(
+        "application/excel",
+        new[] { "xls" },
+        "budget.xls",
+        "application/vnd.ms-excel",
+        true
+    )]
+    [InlineData(
+        "application/mspowerpoint",
+        new[] { "ppt" },
+        "slides.ppt",
+        "application/vnd.ms-powerpoint",
+        true
+    )]
+    [InlineData("application/xml", new[] { "xml" }, "data.xml", "text/xml", true)]
+    // The content is not what the extension says
+    [InlineData("image/webp", new[] { "webp" }, "photo.jpg", "image/jpeg", false)]
+    // The extension's content type is not allowed
+    [InlineData("application/excel", new[] { "xls" }, "budget.xls", "application/pdf", false)]
+    // No filename, or content the inspector does not recognise
+    [InlineData("application/excel", new[] { "xls" }, null, "application/vnd.ms-excel", false)]
+    [InlineData(null, new string[0], "document.pdf", "application/pdf", false)]
+    public async Task Validate_ChecksContentTypeOfFileExtension_OnlyWhenContentMatchesIt(
+        string? mimeType,
+        string[] extensions,
+        string? filename,
+        string allowedContentType,
+        bool expectedSuccess
+    )
+    {
+        var dataType = new DataType()
+        {
+            Id = "attachment",
+            EnabledFileValidators = new List<string>() { "mimeTypeValidator" },
+            AllowedContentTypes = new List<string>() { allowedContentType },
+        };
+        IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>()
+        {
+            new FileAnalysisResult("mimeTypeAnalyser")
+            {
+                MimeType = mimeType,
+                Filename = filename,
+                Extensions = extensions.ToList(),
+            },
+        };
+
+        var validator = new MimeTypeValidator();
+        (bool success, _) = await validator.Validate(dataType, fileAnalysisResults);
+
+        Assert.Equal(expectedSuccess, success);
+    }
+
     [Fact]
     public async Task Validate_ContentTypeNotAllowed_SetsTextKeyAndParameters()
     {
