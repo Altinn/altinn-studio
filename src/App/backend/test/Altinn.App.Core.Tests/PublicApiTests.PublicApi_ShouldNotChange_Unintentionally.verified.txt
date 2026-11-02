@@ -1527,6 +1527,8 @@ namespace Altinn.App.Core.Features
             where T :  class { }
         public static System.Threading.Tasks.Task<T?> GetFormData<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.Platform.Storage.Interface.Models.DataType dataType)
             where T :  class { }
+        public static System.Threading.Tasks.Task<T> GetFormDataCopy<T>(this Altinn.App.Core.Features.IInstanceDataAccessor accessor, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier)
+            where T :  class { }
         public static System.Threading.Tasks.Task<Altinn.App.Core.Internal.Data.IFormDataWrapper?> GetFormDataWrapper(this Altinn.App.Core.Features.IInstanceDataAccessor dataAccessor, Altinn.App.Core.Models.Layout.ModelBinding modelBinding, Altinn.App.Core.Models.DataElementIdentifier? defaultDataElementIdentifier) { }
     }
     public interface IInstanceDataListProvider
@@ -1542,7 +1544,6 @@ namespace Altinn.App.Core.Features
         void AddCompleteConfirmation();
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
-        System.Threading.Tasks.Task<object> GetFormDataCopy(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         System.Threading.Tasks.Task ReplaceFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model);
         void SetDataValue(string key, string? value);
@@ -1550,11 +1551,6 @@ namespace Altinn.App.Core.Features
         void SetSubstatus(Altinn.Platform.Storage.Interface.Models.Substatus substatus);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
         void UpdateDataElementMetadata(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, Altinn.App.Core.Models.DataElementMetadataUpdate update);
-    }
-    public static class IInstanceDataMutatorExtensions
-    {
-        public static System.Threading.Tasks.Task<T> GetFormDataCopy<T>(this Altinn.App.Core.Features.IInstanceDataMutator mutator, Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier)
-            where T :  class { }
     }
     [System.Obsolete("Use ITaskValidator, IDataElementValidator or IFormDataValidator instead")]
     public interface IInstanceValidator
