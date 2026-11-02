@@ -23,6 +23,7 @@ using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -174,10 +175,11 @@ public class SchemaModelService : ISchemaModelService
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         AltinnStudioSettings altinnStudioSettings = await altinnAppGitRepository.GetAltinnStudioSettings();
         bool isV9OrNewer = _appVersionService.IsV9App(altinnRepoEditingContext);
+        ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
         (string csharpClasses, XmlSchema xsd) = GenerateAppModelFiles(
             schemaFileName,
             jsonSchema,
-            serializedJsonContent,
+            modelMetadata,
             applicationMetadata,
             altinnStudioSettings.UseNullableReferenceTypes,
             isV9OrNewer
@@ -199,13 +201,24 @@ public class SchemaModelService : ISchemaModelService
     {
         var jsonSchema = JsonSchemaKeywords.FromText(jsonContent);
         string serializedJsonContent = SerializeJson(jsonSchema);
+        ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
         ApplicationMetadata applicationMetadata = AltinnAppGitRepository.DeserializeApplicationMetadata(
             applicationMetadataJson
         );
+        // Like Studio when a person adds a data model, refuse a new data model whose class a data type already has.
+        // A data model is new when no data type has its name. The caller saves the files in its own clone, so Studio
+        // cannot make the check.
+        if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == modelName))
+        {
+            DataModelClassRef.ThrowIfAnotherDataTypeHasClass(
+                applicationMetadata,
+                modelMetadata.GetRootElement().TypeName
+            );
+        }
         (string csharpClasses, XmlSchema xsd) = GenerateAppModelFiles(
             modelName,
             jsonSchema,
-            serializedJsonContent,
+            modelMetadata,
             applicationMetadata,
             useNullableReferenceTypes,
             isV9OrNewer
@@ -226,13 +239,12 @@ public class SchemaModelService : ISchemaModelService
     private (string CsharpClasses, XmlSchema Xsd) GenerateAppModelFiles(
         string schemaFileName,
         JsonSchema jsonSchema,
-        string serializedJsonContent,
+        ModelMetadata modelMetadata,
         ApplicationMetadata applicationMetadata,
         bool useNullableReferenceTypes,
         bool isV9OrNewer
     )
     {
-        ModelMetadata modelMetadata = GetModelMetadataForCsharpGeneration(serializedJsonContent, jsonSchema);
         string csharpModelName = modelMetadata.GetRootElement().TypeName;
         string csharpClasses = CreateCSharpClasses(modelMetadata, applicationMetadata, useNullableReferenceTypes);
         XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);

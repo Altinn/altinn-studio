@@ -57,7 +57,8 @@ public interface ISchemaModelService
 
     /// <summary>
     /// Generates the files that <see cref="UpdateSchema"/> writes for a data model in an app repository,
-    /// from app files the caller sends instead of from a repository. Nothing is saved.
+    /// from app files the caller sends instead of from a repository. Nothing is saved. Like Studio when a person adds a
+    /// data model, this refuses a new data model whose C# class a data type already has.
     /// </summary>
     /// <param name="modelName">The name of the data model's JSON schema file without <c>.schema.json</c>, which is also the id of its data type.</param>
     /// <param name="jsonContent">The JSON schema of the data model.</param>
