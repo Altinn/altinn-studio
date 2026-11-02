@@ -3,6 +3,7 @@ package kind
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -73,7 +74,7 @@ func resolveDashboardsRepository(explicit, cachePath string) (string, error) {
 		Ref:     "main",
 		Path:    filepath.Join(cachePath, "altinn-dashboards-grafana"),
 	}
-	if err := localbackend.EnsureGitCheckout(checkout); err != nil {
+	if err := localbackend.EnsureGitCheckout(context.Background(), checkout); err != nil {
 		// Offline, or with GitHub unavailable, the copy from an earlier start will do.
 		if _, statErr := os.Stat(filepath.Join(checkout.Path, ".git")); statErr != nil {
 			return "", fmt.Errorf("check out dashboards repository: %w", err)
