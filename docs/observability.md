@@ -1,8 +1,6 @@
 # Observability
 
-How Team Studio's services report telemetry, and how we build dashboards and alerts on it. Follow it when you
-instrument a service, review a change to its telemetry, or build a dashboard or an alert. The
-[observability ADR](adr/2026-11-02-observability-and-instrumentation-standards.md) records why we chose these rules.
+How Team Studio's services report telemetry, and how we build dashboards and alerts on it.
 
 It covers every service Team Studio owns and operates, in all three parts of Altinn Studio:
 
@@ -10,9 +8,8 @@ It covers every service Team Studio owns and operates, in all three parts of Alt
 - Runtime, in the service owners' runtime clusters
 - Platform, in DIS Core and the platform cluster
 
-[Environments](infrastructure/environments.md) describes the clusters.
-[altinn-studio#19775](https://github.com/Altinn/altinn-studio/issues/19775) covers telemetry from apps, which uses the
-same names. This guide doesn't cover telemetry from browsers.
+[Environments](infrastructure/environments.md) describes the clusters. This guide doesn't cover telemetry from
+browsers.
 
 ## How telemetry flows
 
@@ -23,8 +20,7 @@ same names. This guide doesn't cover telemetry from browsers.
 - The shared Grafana reads them through four datasources: `altinn-studio-metrics`, `altinn-studio-traces`,
   `altinn-studio-logs` and `altinn-studio-traces-logsql`.
 
-[infra/observability](../infra/observability) configures the collectors, and the
-[collection ADR](adr/2026-01-07-monitoring-telemetry-collection-distribution.md) explains their design.
+[infra/observability](../infra/observability) configures the collectors.
 [The pipeline's contract](#the-pipelines-contract) below lists what they do to a service's telemetry.
 
 ## Which signal for what
@@ -224,7 +220,7 @@ its current names. Our own `altinn.` names are only for what the conventions don
 ### Cardinality
 
 Every combination of metric attribute values is a series, in each process, for each histogram bucket. VictoriaMetrics
-accepts at most 4 million new series per hour and 8 million per day across everything we store.
+limits how many new series it accepts per hour and per day, and everything we store shares that limit.
 
 - A metric attribute takes values from a bounded set. IDs, URLs, paths, free text, error messages and user names
   never go on metrics. `service.instance.id` is the one ID allowed, since it changes only when a process starts.
@@ -266,7 +262,8 @@ accepts at most 4 million new series per hour and 8 million per day across every
   severity. The console still gets every level.
 - A unit of work that could log the same warning many times logs a limited number, then one record with the count of
   the rest.
-- Components we don't write, such as Gitea and nginx, log to their console only.
+- Components we don't write, such as Gitea and nginx, follow this guide as far as they can. When one can export over
+  OTLP, we configure it to send its telemetry through the pipeline like our own services.
 
 ## Sensitive data
 
@@ -297,17 +294,14 @@ section.
 - In a service owner's own cluster, the router sets `altinn.service_owner` on the resource, unless the service has set
   it.
 - The router adds the pod's Kubernetes metadata to the resource. It finds the pod by `k8s.pod.uid`.
-- The router removes the `telemetry.sdk.*`, `process.*` and `os.*` attributes, `network.peer.port` and
-  `network.protocol.version`, and blanks the instrumentation scope. Queries can't use them.
 - The router drops logs below WARN.
 - The router drops the `http.client.*` data points of a service's own exports to the router.
 - The gateway keeps only the metrics in its allowlist: our own (`altinn.*`), and the semantic conventions'
   namespaces that our services emit, such as `http.*`, `signalr.server.*` and the language runtimes' `dotnet.*` and
   `go.*`. A service that needs another namespace adds it to the allowlist, with the number of series it adds per
   process.
-- The gateway samples traces, as [Sampling](#sampling) describes.
-- The keys the pipeline acts on are `altinn.studio.sampling` and `azuremonitor.expected_404`. A service sets them only
-  for that purpose.
+- The gateway samples traces, as [Sampling](#sampling) describes. A service sets `altinn.studio.sampling` only to mark a
+  trace to be kept.
 
 The pipeline doesn't derive metrics from spans. A service emits the metrics it needs itself.
 
