@@ -237,9 +237,6 @@ describe('Repeating group row validation', () => {
   for (const mode of ['onlyTable', 'hidden-actions', 'compact-vertical-mobile'] as const) {
     it(`keeps indicators available in ${mode}`, () => {
       const mobile = mode === 'compact-vertical-mobile';
-      if (mobile) {
-        cy.viewport(390, 844);
-      }
       setup({
         edit:
           mode === 'onlyTable'
@@ -248,6 +245,9 @@ describe('Repeating group row validation', () => {
               ? { editButton: false, deleteButton: false }
               : { compactButtons: true, buttonLayout: 'vertical' },
       });
+      if (mobile) {
+        cy.viewport(390, 844);
+      }
       checkIndicator(0, 'error');
       checkIndicator(1, 'warning');
       if (mode === 'onlyTable') {
