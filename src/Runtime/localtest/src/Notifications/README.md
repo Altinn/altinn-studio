@@ -7,3 +7,7 @@ Localtest's Notifications emulation copies code from
 - Copy controllers, and adapt their authorization, since local requests carry no platform access token.
 - Do not copy persistence. Write a repository that stores the data on disk instead.
 - Register new services in `Startup.cs`.
+
+The order chain API (`future/orders`) and the shipment status (`future/shipment/{id}`) are the exception: a small
+stand-in in `LocalTestNotifications/LocalFutureOrdersController.cs` records orders and reports each shipment as
+delivered, or as a marker in the order's text picks. Replace it if the real order chain code is copied in.
