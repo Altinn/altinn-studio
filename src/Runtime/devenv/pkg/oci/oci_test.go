@@ -2,6 +2,8 @@ package oci_test
 
 import (
 	"archive/tar"
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -93,16 +95,14 @@ func TestPushFollowsAbsoluteLocationAndSkipsExistingBlobs(t *testing.T) {
 	registry := ocitest.NewRegistry(t)
 	registry.UseAbsoluteLocation()
 	client := oci.NewClient()
-	ref := oci.Reference{Host: registry.Host(), Repository: "app", Tag: "v1"}
 	config := oci.Blob{MediaType: "application/vnd.test.config+json", Data: []byte("{}")}
-	layers := []oci.Blob{{MediaType: "application/vnd.test.layer", Data: []byte("layer")}}
+	layer := oci.Blob{MediaType: "application/vnd.test.layer", Data: []byte("layer")}
 
-	first, err := client.Push(t.Context(), ref, config, layers, nil)
+	err := client.Push(t.Context(), "oci://"+registry.Host()+"/app:v1", config, layer, nil)
 	if err != nil {
 		t.Fatalf("first Push() error = %v", err)
 	}
-	ref.Tag = "v2"
-	second, err := client.Push(t.Context(), ref, config, layers, nil)
+	err = client.Push(t.Context(), "oci://"+registry.Host()+"/app:v2", config, layer, nil)
 	if err != nil {
 		t.Fatalf("second Push() error = %v", err)
 	}
@@ -110,8 +110,8 @@ func TestPushFollowsAbsoluteLocationAndSkipsExistingBlobs(t *testing.T) {
 	if registry.Uploads() != 2 {
 		t.Errorf("uploads = %d, want 2 because the second push reuses both blobs", registry.Uploads())
 	}
-	if first.Digest != second.Digest || first.MediaType != oci.ManifestMediaType {
-		t.Errorf("manifest descriptors = %+v and %+v", first, second)
+	if !reflect.DeepEqual(registry.Manifest(t, "app", "v1"), registry.Manifest(t, "app", "v2")) {
+		t.Error("identical content produced different manifests")
 	}
 }
 
@@ -126,13 +126,105 @@ func TestPushReportsRegistryError(t *testing.T) {
 		http.Error(w, `{"errors":[{"code":"DENIED"}]}`, http.StatusForbidden)
 	}))
 	t.Cleanup(server.Close)
-	ref := oci.Reference{Host: strings.TrimPrefix(server.URL, "http://"), Repository: "app", Tag: "v1"}
+	ref := "oci://" + strings.TrimPrefix(server.URL, "http://") + "/app:v1"
 	config := oci.Blob{MediaType: "application/vnd.test.config+json", Data: []byte("{}")}
 
-	_, err := oci.NewClient().Push(t.Context(), ref, config, nil, nil)
+	err := oci.NewClient().Push(t.Context(), ref, config, config, nil)
 
 	if err == nil || !strings.Contains(err.Error(), "403 Forbidden") || !strings.Contains(err.Error(), "DENIED") {
 		t.Fatalf("Push() error = %v, want the registry's status and body", err)
+	}
+}
+
+func TestPushRejectsInvalidUploadLocations(t *testing.T) {
+	t.Parallel()
+	for _, location := range []string{"", ":invalid", "http://elsewhere/upload", "https://localhost/upload", "/upload#fragment"} {
+		t.Run(location, func(t *testing.T) {
+			t.Parallel()
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				switch req.Method {
+				case http.MethodHead:
+					w.WriteHeader(http.StatusNotFound)
+				case http.MethodPost:
+					w.Header().Set("Location", location)
+					w.WriteHeader(http.StatusAccepted)
+				default:
+					t.Error("uploaded despite invalid Location")
+					w.WriteHeader(http.StatusCreated)
+				}
+			}))
+			t.Cleanup(server.Close)
+			ref := "oci://" + strings.TrimPrefix(server.URL, "http://") + "/app:v1"
+			if err := oci.NewClient().Push(t.Context(), ref, oci.Blob{}, oci.Blob{}, nil); err == nil {
+				t.Fatal("Push() accepted an invalid Location")
+			}
+		})
+	}
+}
+
+func TestPushStopsAtRegistryFailures(t *testing.T) {
+	t.Parallel()
+	for _, step := range []string{"HEAD", "POST", "blob PUT", "manifest PUT"} {
+		t.Run(step, func(t *testing.T) {
+			t.Parallel()
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				current := req.Method
+				if current == http.MethodPut {
+					current = "blob PUT"
+					if strings.Contains(req.URL.Path, "/manifests/") {
+						current = "manifest PUT"
+					}
+				}
+				if current == step {
+					http.Error(w, "registry failure", http.StatusInternalServerError)
+					return
+				}
+				switch req.Method {
+				case http.MethodHead:
+					w.WriteHeader(http.StatusNotFound)
+				case http.MethodPost:
+					w.Header().Set("Location", "session?state=kept")
+					w.WriteHeader(http.StatusAccepted)
+				case http.MethodPut:
+					if current == "blob PUT" &&
+						(req.URL.Query().Get("state") != "kept" || req.URL.Query().Get("digest") == "") {
+						t.Error("relative Location query was lost")
+					}
+					w.WriteHeader(http.StatusCreated)
+				}
+			}))
+			t.Cleanup(server.Close)
+			ref := "oci://" + strings.TrimPrefix(server.URL, "http://") + "/app:v1"
+			err := oci.NewClient().Push(t.Context(), ref, oci.Blob{}, oci.Blob{}, nil)
+			if err == nil || !strings.Contains(err.Error(), "500 Internal Server Error") {
+				t.Fatalf("Push() error = %v", err)
+			}
+			if step != "HEAD" && !strings.Contains(err.Error(), "registry failure") {
+				t.Fatalf("Push() lost error body: %v", err)
+			}
+		})
+	}
+}
+
+func TestPushCancelsInFlightRequest(t *testing.T) {
+	t.Parallel()
+	started := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, req *http.Request) {
+		close(started)
+		<-req.Context().Done()
+	}))
+	t.Cleanup(server.Close)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	result := make(chan error, 1)
+	go func() {
+		ref := "oci://" + strings.TrimPrefix(server.URL, "http://") + "/app:v1"
+		result <- oci.NewClient().Push(ctx, ref, oci.Blob{}, oci.Blob{}, nil)
+	}()
+	<-started
+	cancel()
+	if err := <-result; !errors.Is(err, context.Canceled) {
+		t.Fatalf("Push() error = %v, want cancellation", err)
 	}
 }
 
@@ -156,6 +248,15 @@ func TestParseReference(t *testing.T) {
 		{raw: "oci://localhost:5001", wantErr: true},
 		{raw: "oci://localhost:5001/app@sha256:abc", wantErr: true},
 		{raw: "oci://localhost:5001/app:", wantErr: true},
+		{raw: "oci://localhost:5001/a/../app:v1", wantErr: true},
+		{raw: "oci://localhost:5001//app:v1", wantErr: true},
+		{raw: "oci://localhost:5001/app:v1?query", wantErr: true},
+		{raw: "oci://localhost:5001/app:v1#fragment", wantErr: true},
+		{raw: "oci://localhost:5001/app%2fother:v1", wantErr: true},
+		{raw: "oci://user@localhost:5001/app:v1", wantErr: true},
+		{raw: "oci://localhost:5001/App:v1", wantErr: true},
+		{raw: "oci://localhost:5001/app:v1:other", wantErr: true},
+		{raw: "oci://localhost:5001/app:" + strings.Repeat("a", 129), wantErr: true},
 	}
 	for _, test := range tests {
 		got, err := oci.ParseReference(test.raw)

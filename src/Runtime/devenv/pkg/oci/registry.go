@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -29,6 +30,10 @@ const (
 var (
 	errInvalidReference = errors.New("invalid OCI reference")
 	errRegistryResponse = errors.New("unexpected registry response")
+	repositoryPattern   = regexp.MustCompile(
+		`^[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*$`,
+	)
+	tagPattern = regexp.MustCompile(`^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$`)
 )
 
 // Reference names a tagged manifest in a registry.
@@ -40,25 +45,20 @@ type Reference struct {
 
 // ParseReference parses oci://host/repository[:tag]. The tag defaults to latest, as in Flux.
 func ParseReference(raw string) (Reference, error) {
-	rest, ok := strings.CutPrefix(raw, referencePrefix)
-	if !ok {
-		return Reference{}, fmt.Errorf("%w %q: missing %s prefix", errInvalidReference, raw, referencePrefix)
+	parsed, err := url.Parse(raw)
+	if err != nil || !strings.HasPrefix(raw, referencePrefix) || parsed.Hostname() == "" ||
+		parsed.User != nil || strings.ContainsAny(raw, "?#%") {
+		return Reference{}, fmt.Errorf("%w %q", errInvalidReference, raw)
 	}
-	host, name, ok := strings.Cut(rest, "/")
-	if !ok || host == "" || name == "" {
-		return Reference{}, fmt.Errorf("%w %q: missing repository", errInvalidReference, raw)
-	}
-	if strings.Contains(name, "@") {
-		return Reference{}, fmt.Errorf("%w %q: digest references are not supported", errInvalidReference, raw)
-	}
+	name := strings.TrimPrefix(parsed.Path, "/")
 	repository, tag, hasTag := strings.Cut(name, ":")
 	if !hasTag {
 		tag = defaultTag
 	}
-	if repository == "" || tag == "" || strings.Contains(tag, "/") {
+	if !repositoryPattern.MatchString(repository) || !tagPattern.MatchString(tag) {
 		return Reference{}, fmt.Errorf("%w %q", errInvalidReference, raw)
 	}
-	return Reference{Host: host, Repository: repository, Tag: tag}, nil
+	return Reference{Host: parsed.Host, Repository: repository, Tag: tag}, nil
 }
 
 // String returns the reference in oci://host/repository:tag form.
@@ -110,41 +110,40 @@ func NewClient() *Client {
 	}
 }
 
-// Push uploads the config and layer blobs that the registry lacks, then tags a manifest that references
-// them. It returns the manifest's descriptor.
+// Push uploads a config and one layer, then tags a manifest that references them.
+// Both fixture artifact formats have exactly one layer.
 func (c *Client) Push(
 	ctx context.Context,
-	ref Reference,
-	config Blob,
-	layers []Blob,
+	rawReference string,
+	config, layer Blob,
 	annotations map[string]string,
-) (Descriptor, error) {
+) error {
+	ref, err := ParseReference(rawReference)
+	if err != nil {
+		return err
+	}
 	manifest := Manifest{
 		SchemaVersion: 2,
 		MediaType:     ManifestMediaType,
-		Layers:        make([]Descriptor, 0, len(layers)),
 		Annotations:   annotations,
 	}
-	var err error
 	if manifest.Config, err = c.pushBlob(ctx, ref, config); err != nil {
-		return Descriptor{}, err
+		return err
 	}
-	for _, layer := range layers {
-		descriptor, pushErr := c.pushBlob(ctx, ref, layer)
-		if pushErr != nil {
-			return Descriptor{}, pushErr
-		}
-		manifest.Layers = append(manifest.Layers, descriptor)
+	descriptor, err := c.pushBlob(ctx, ref, layer)
+	if err != nil {
+		return err
 	}
+	manifest.Layers = []Descriptor{descriptor}
 	data, err := json.Marshal(manifest)
 	if err != nil {
-		return Descriptor{}, fmt.Errorf("encode manifest for %s: %w", ref, err)
+		return fmt.Errorf("encode manifest for %s: %w", ref, err)
 	}
 	target := c.endpoint(ref, "/manifests/"+ref.Tag)
 	if _, _, err := c.do(ctx, http.MethodPut, target, ManifestMediaType, data, http.StatusCreated); err != nil {
-		return Descriptor{}, fmt.Errorf("push manifest %s: %w", ref, err)
+		return fmt.Errorf("push manifest %s: %w", ref, err)
 	}
-	return describe(Blob{MediaType: ManifestMediaType, Data: data}), nil
+	return nil
 }
 
 // pushBlob uploads blob unless the registry has it: a POST opens an upload session, and one PUT sends the
@@ -202,6 +201,10 @@ func resolveLocation(base, location string) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse Location %q: %w", location, err)
 	}
+	if resolved.Scheme != baseURL.Scheme || resolved.Host != baseURL.Host || resolved.User != nil ||
+		resolved.Fragment != "" {
+		return nil, fmt.Errorf("%w: Location %q leaves the local registry", errRegistryResponse, location)
+	}
 	return resolved, nil
 }
 
@@ -227,11 +230,7 @@ func (c *Client) do(
 	if err != nil {
 		return 0, nil, fmt.Errorf("%s %s: %w", method, target, err)
 	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			return
-		}
-	}()
+	defer closeQuietly(resp.Body)
 	if slices.Contains(expected, resp.StatusCode) {
 		return resp.StatusCode, resp.Header, nil
 	}

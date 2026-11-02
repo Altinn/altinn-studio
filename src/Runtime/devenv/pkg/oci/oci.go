@@ -29,13 +29,9 @@ var fluxConfig = []byte("{}")
 
 // PushArtifact pushes the directory or file at path to url (oci://host/repository[:tag]) as a Flux artifact.
 //
-// The created annotation is the push time, as in Flux, so every push gets a new manifest digest and Flux
-// reconciles it even when the content has not changed.
+// The created annotation uses second precision, as in Flux. An unchanged push in a later second gets a
+// new manifest digest, so Flux reconciles it again.
 func (c *Client) PushArtifact(url, path, source, revision string) error {
-	ref, err := ParseReference(url)
-	if err != nil {
-		return err
-	}
 	layer, err := FluxTarball(path)
 	if err != nil {
 		return fmt.Errorf("archive %s: %w", path, err)
@@ -45,11 +41,11 @@ func (c *Client) PushArtifact(url, path, source, revision string) error {
 		AnnotationSource:   source,
 		AnnotationRevision: revision,
 	}
-	_, err = c.Push(
+	err = c.Push(
 		context.Background(),
-		ref,
+		url,
 		Blob{MediaType: FluxConfigMediaType, Data: fluxConfig},
-		[]Blob{{MediaType: FluxContentMediaType, Data: layer}},
+		Blob{MediaType: FluxContentMediaType, Data: layer},
 		annotations,
 	)
 	if err != nil {

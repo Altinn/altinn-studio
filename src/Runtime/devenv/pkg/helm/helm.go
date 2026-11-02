@@ -136,15 +136,12 @@ func (c *Client) PushChart(chartFile, ociRef string) error {
 	}
 	// OCI tags cannot contain +, so Helm replaces it in semver build metadata.
 	tag := strings.ReplaceAll(meta.Version, "+", "_")
-	ref, err := oci.ParseReference(strings.TrimSuffix(ociRef, "/") + "/" + meta.Name + ":" + tag)
-	if err != nil {
-		return fmt.Errorf("chart reference: %w", err)
-	}
-	_, err = c.registry.Push(
+	ref := strings.TrimSuffix(ociRef, "/") + "/" + meta.Name + ":" + tag
+	err = c.registry.Push(
 		context.Background(),
 		ref,
 		oci.Blob{MediaType: ConfigMediaType, Data: config},
-		[]oci.Blob{{MediaType: ChartMediaType, Data: archive}},
+		oci.Blob{MediaType: ChartMediaType, Data: archive},
 		manifestAnnotations(meta, time.Now()),
 	)
 	if err != nil {
