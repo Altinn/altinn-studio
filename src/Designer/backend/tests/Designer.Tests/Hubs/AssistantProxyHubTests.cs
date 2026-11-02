@@ -352,6 +352,32 @@ public class AssistantProxyHubTests
         Assert.Equal(TestDeveloper, Assert.Single(cancelRequest.Headers.GetValues("X-Developer")));
     }
 
+    [Fact]
+    public async Task CancelWorkflow_SessionUnknownToAgentsService_CompletesWithoutError()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+        _agentHttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
+
+        var response = (JsonElement)await hub.CancelWorkflow(threadId.ToString());
+
+        Assert.Equal("not_found", response.GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task CancelWorkflow_AgentsServiceFails_ThrowsHubException()
+    {
+        var threadId = Guid.NewGuid();
+        SetupThreadOwnership(threadId, TestOrg, TestApp);
+        var hub = CreateHub();
+        await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
+        _agentHttpHandler.ResponseStatusCode = HttpStatusCode.InternalServerError;
+
+        await Assert.ThrowsAsync<HubException>(() => hub.CancelWorkflow(threadId.ToString()));
+    }
+
     private AssistantProxyHub CreateHub()
     {
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
@@ -386,6 +412,8 @@ public class AssistantProxyHubTests
 
         public List<JsonElement> RequestBodies { get; } = new();
 
+        public HttpStatusCode ResponseStatusCode { get; set; } = HttpStatusCode.OK;
+
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
@@ -399,7 +427,10 @@ public class AssistantProxyHubTests
                 );
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("""{"accepted": true}""") };
+            return new HttpResponseMessage(ResponseStatusCode)
+            {
+                Content = new StringContent("""{"accepted": true}"""),
+            };
         }
     }
 

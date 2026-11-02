@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -468,18 +469,31 @@ public class AssistantProxyHub : Hub<IAssistantClient>
             $"{_assistantSettings.AgentUrl}/api/agent/cancel/{sessionId}"
         );
         httpRequest.Headers.Add("X-Developer", developer);
-        var response = await SendRequestToAssistantAsync(httpRequest);
+        // The assistant service keeps its sessions in memory and forgets them when it restarts. A session that it does
+        // not know does not run, so there is nothing to cancel.
+        var notRunningResponse = JsonSerializer.SerializeToElement(
+            new { session_id = sessionId, status = "not_found" }
+        );
+        var response = await SendRequestToAssistantAsync(httpRequest, notRunningResponse);
 
         _logger.LogInformation("Session {SessionId} cancelled successfully", sessionId);
         return response;
     }
 
-    private async Task<JsonElement> SendRequestToAssistantAsync(HttpRequestMessage httpRequest)
+    private async Task<JsonElement> SendRequestToAssistantAsync(
+        HttpRequestMessage httpRequest,
+        JsonElement? notFoundResponse = null
+    )
     {
         var httpClient = _httpClientFactory.CreateClient();
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(_assistantSettings.TimeoutSeconds));
         using var response = await httpClient.SendAsync(httpRequest, cts.Token);
         string responseContent = await response.Content.ReadAsStringAsync(cts.Token);
+
+        if (response.StatusCode == HttpStatusCode.NotFound && notFoundResponse is { } fallbackResponse)
+        {
+            return fallbackResponse;
+        }
 
         if (!response.IsSuccessStatusCode)
         {
