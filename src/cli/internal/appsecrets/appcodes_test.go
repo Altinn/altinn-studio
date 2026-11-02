@@ -8,10 +8,18 @@ import (
 	"altinn.studio/studioctl/internal/appsecrets"
 )
 
-// wantAppCodesJSON is the file exactly as studioctl provisions it: the operator's shape, with only the
-// workflow engine's callback codes, since that is the only callback an app both mints and verifies locally.
+// wantAppCodesJSON is the file exactly as studioctl provisions it: the operator's shape, with the codes of the
+// callbacks an app both mints and verifies locally, the notification send condition's and the workflow engine's.
 const wantAppCodesJSON = `{
   "AppCodes": {
+    "NotificationCallback": [
+      {
+        "Code": "LOCAL-DEV-ONLY-notification-callback-secret",
+        "ExpiresAt": "2999-01-01T00:00:00Z",
+        "Id": "local-dev",
+        "IssuedAt": "2020-01-01T00:00:00Z"
+      }
+    ],
     "WorkflowEngineCallback": [
       {
         "Code": "LOCAL-DEV-ONLY-workflow-engine-callback-secret",

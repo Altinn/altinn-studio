@@ -9,6 +9,10 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Instantiation notifications work locally. Localtest accepts the order and reports it delivered, and `studioctl run` provides the app code that signs its send condition. Put `localtest:failed`, `localtest:reserved` or `localtest:pending` in the notification's text for another outcome. (PR_LINK)
+
 ### Fixed
 
 - With Podman, `studioctl app build` and `studioctl run` leave out the files an app's `Dockerfile.dockerignore` excludes, as they do with Docker. ([#21584](https://github.com/Altinn/altinn-studio/issues/21584))
