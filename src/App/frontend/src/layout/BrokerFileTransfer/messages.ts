@@ -7,6 +7,8 @@ import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
 import { FileChangedError } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
 import { UploadPlanError } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 
+// Texts for file problems and Broker errors, and formatting of file sizes and remaining time
+
 export type Message = { key: ValidLanguageKey; params?: (string | number)[] };
 
 // Broker refuses longer file names
@@ -105,7 +107,7 @@ const DURATION_UNITS = [
   { unit: 'minute', seconds: 60 },
 ] as const;
 
-// Rounded to the largest unit that fits, as BrokerBox does; null under a minute, which isn't worth a number
+// Rounded to the largest unit that fits; null under a minute, which isn't worth a number
 export function formatRemainingTime(seconds: number, language: string): string | null {
   if (!Number.isFinite(seconds) || seconds < 60) {
     return null;

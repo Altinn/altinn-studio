@@ -6,18 +6,20 @@ import { Expressions } from '@app/layout-contract/generated/expressions.generate
 import { useQuery } from 'src/core/queries/reactQuery';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { GlobalData } from 'src/GlobalData';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { brokerQueries } from 'src/layout/BrokerFileTransfer/api';
 import { ApiError } from 'src/layout/BrokerFileTransfer/brokerClient/client';
 import { toOrgNumber } from 'src/layout/BrokerFileTransfer/brokerClient/orgIdentifier';
 import { effectiveMaxFileTransferSize } from 'src/layout/BrokerFileTransfer/brokerClient/resourceConfiguration';
-import { getBrokerApiBaseUrl } from 'src/layout/BrokerFileTransfer/brokerUploads';
-import { configProblems, invalidRecipients, splitRecipients } from 'src/layout/BrokerFileTransfer/configProblems';
 import { brokerProblem, unauthorizedMessage } from 'src/layout/BrokerFileTransfer/messages';
+import { configProblems, invalidRecipients, splitRecipients } from 'src/layout/BrokerFileTransfer/setup/configProblems';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalExpression } from 'src/utils/layout/useEvalExpression';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
+
+// Works out whether the component can send, and with which Broker settings and recipients
 
 export type ReadySetup = {
   baseUrl: string;
@@ -48,7 +50,7 @@ export function useBrokerSetup(baseComponentId: string): BrokerSetup {
   const isSubformPage = useIsSubformPage();
   const navigation = useNavigation();
   const { langAsString } = useLanguage();
-  const baseUrl = getBrokerApiBaseUrl();
+  const baseUrl = GlobalData.platformFrontendSettings.brokerApiBaseUrl || undefined;
   const instanceId = useLaxInstanceId();
   const owner = useInstanceDataQuery({ select: (instance) => instance.instanceOwner }).data;
   const configuredRecipients = useConfiguredRecipients(baseComponentId);

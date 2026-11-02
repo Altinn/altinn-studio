@@ -14,12 +14,14 @@ import { CloudUpIcon } from '@navikt/aksel-icons';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import classes from 'src/layout/BrokerFileTransfer/FileSender/FileDropzone.module.css';
+import classes from 'src/layout/BrokerFileTransfer/ChooseFile/FileDropzone.module.css';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/messages';
-import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/useBrokerSetup';
+import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';
 import { useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
+
+// The drop zone for choosing a file, with the allowed file types and size limit
 
 // The shared Dropzone counts a MB as 1,048,576 bytes
 const DROPZONE_BYTES_IN_MB = 1048576;

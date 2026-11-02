@@ -1,4 +1,4 @@
-.fileRow {
+.fileBox {
   display: flex;
   align-items: center;
   gap: var(--ds-size-3);

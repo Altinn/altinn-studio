@@ -3,8 +3,10 @@ import { useEffect } from 'react';
 import { FormStore } from 'src/features/form/FormContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { getFeature } from 'src/features/toggles';
-import { configProblems } from 'src/layout/BrokerFileTransfer/configProblems';
+import { configProblems } from 'src/layout/BrokerFileTransfer/setup/configProblems';
 import type { ComponentLayoutValidationProps } from 'src/layout/layout';
+
+// Reports configuration mistakes and a missing feature toggle to the app developer
 
 export function BrokerFileTransferLayoutValidator({
   externalItem,

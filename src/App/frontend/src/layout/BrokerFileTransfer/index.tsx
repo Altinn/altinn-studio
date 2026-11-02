@@ -23,6 +23,8 @@ import type { ComponentLayoutValidationProps, IDataModelBindings } from 'src/lay
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
+// Registers the component with the app: rendering, summaries, display text and validation
+
 export class BrokerFileTransfer extends BrokerFileTransferDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'BrokerFileTransfer'>>(
     function LayoutComponentBrokerFileTransferRender(props, _): JSX.Element | null {

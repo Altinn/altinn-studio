@@ -7,16 +7,18 @@ import { PauseIcon, PlayIcon } from '@navikt/aksel-icons';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { FileRow } from 'src/layout/BrokerFileTransfer/FileRow';
-import { CancelUploadButton } from 'src/layout/BrokerFileTransfer/FileSender/CancelUploadButton';
-import classes from 'src/layout/BrokerFileTransfer/FileSender/UploadStatus.module.css';
+import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize, formatRemainingTime, uploadErrorMessage } from 'src/layout/BrokerFileTransfer/messages';
+import { CancelUploadButton } from 'src/layout/BrokerFileTransfer/UploadingFile/CancelUploadButton';
+import classes from 'src/layout/BrokerFileTransfer/UploadingFile/UploadingFile.module.css';
 import utilClasses from 'src/styles/utils.module.css';
 import type { UploadProgress } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
 import type { ActiveUpload } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
-type UploadStatusProps = {
+// Shows the running upload: progress, speed and time left, with pause, continue and cancel
+
+type UploadingFileProps = {
   active: ActiveUpload;
   progress: UploadProgress | null;
   onPause: () => void;
@@ -24,7 +26,7 @@ type UploadStatusProps = {
   onCancel: () => void;
 };
 
-export function UploadStatus({ active, progress, onPause, onResume, onCancel }: UploadStatusProps) {
+export function UploadingFile({ active, progress, onPause, onResume, onCancel }: UploadingFileProps) {
   const language = useCurrentLanguage();
   const { langAsString } = useLanguage();
   const { status } = active;
@@ -44,7 +46,7 @@ export function UploadStatus({ active, progress, onPause, onResume, onCancel }: 
 
   return (
     <div className={classes.container}>
-      <FileRow
+      <FileBox
         name={active.fileName}
         details={
           <>
@@ -112,7 +114,7 @@ export function UploadStatus({ active, progress, onPause, onResume, onCancel }: 
   );
 }
 
-// Speed and time left, as BrokerBox shows them, once there is enough to measure
+// Speed and time left, once there is enough to measure
 function describePace(
   { bytesPerSecond, secondsRemaining }: UploadProgress,
   language: string,

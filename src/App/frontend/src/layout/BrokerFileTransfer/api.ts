@@ -7,6 +7,8 @@ import { checkInterruptedTransfer } from 'src/layout/BrokerFileTransfer/brokerCl
 import type { UseQueryOptions } from 'src/core/queries/reactQuery';
 import type { InterruptedTransfer } from 'src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer';
 
+// Broker requests made through React Query: the resource's settings and an interrupted upload's state
+
 // brokerClient/ trusts Broker's responses, so the settings the component works from are checked here
 const resourceConfigurationSchema = z.object({
   maxFileTransferSize: z.number().nullable(),

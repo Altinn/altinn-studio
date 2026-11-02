@@ -5,8 +5,10 @@ import { TrashIcon } from '@navikt/aksel-icons';
 
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { FileRow } from 'src/layout/BrokerFileTransfer/FileRow';
+import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/messages';
+
+// Shows the chosen file with its size and a button to remove it
 
 type ChosenFileProps = {
   file: File;
@@ -16,7 +18,7 @@ type ChosenFileProps = {
 export function ChosenFile({ file, onRemove }: ChosenFileProps) {
   const language = useCurrentLanguage();
   return (
-    <FileRow
+    <FileBox
       name={file.name}
       details={formatFileSize(file.size, language)}
     >
@@ -31,6 +33,6 @@ export function ChosenFile({ file, onRemove }: ChosenFileProps) {
           aria-hidden
         />
       </Button>
-    </FileRow>
+    </FileBox>
   );
 }

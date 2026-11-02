@@ -2,6 +2,8 @@ import { toOrgNumber } from 'src/layout/BrokerFileTransfer/brokerClient/orgIdent
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 import type { CompExternal } from 'src/layout/layout';
 
+// Finds mistakes in the component's configuration, such as a missing resource or invalid recipients
+
 // Broker's limits for a file transfer's property list
 const MAX_METADATA_ENTRIES = 10;
 const MAX_METADATA_KEY_LENGTH = 50;

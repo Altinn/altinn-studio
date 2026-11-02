@@ -517,7 +517,7 @@ describe('BrokerFileTransferComponent', () => {
     expect(fake.controller.start).toHaveBeenCalledWith(expect.objectContaining({ file }));
   });
 
-  it('shows the upload speed and the time left, like BrokerBox', async () => {
+  it('shows the upload speed and the time left', async () => {
     await render();
     await findFileInput();
 

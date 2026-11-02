@@ -5,6 +5,8 @@ import { Button, ConfirmPopover } from '@app/form-component';
 import { Lang } from 'src/features/language/Lang';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
+// A button that asks for confirmation before canceling or discarding an upload
+
 type CancelUploadButtonProps = {
   label: Message['key'];
   confirmLabel: Message['key'];

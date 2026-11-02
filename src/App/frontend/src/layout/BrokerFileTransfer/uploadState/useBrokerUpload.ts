@@ -11,14 +11,16 @@ import {
   getUploadController,
   reportUploadGone,
   useUploadsKey,
-} from 'src/layout/BrokerFileTransfer/brokerUploads';
+} from 'src/layout/BrokerFileTransfer/uploadState/uploadStore';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpressionDictionary } from 'src/utils/layout/useEvalExpression';
 import type { ResumableTransfer } from 'src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer';
 import type { UploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
-import type { ReadySetup } from 'src/layout/BrokerFileTransfer/useBrokerSetup';
+import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 
-type InterruptedState = { kind: 'checking' } | { kind: 'unknown' } | ({ kind: 'resumable' } & ResumableTransfer);
+// Starts, continues and follows the upload, and records the transfer in the form
+
+export type InterruptedState = { kind: 'checking' } | { kind: 'unknown' } | ({ kind: 'resumable' } & ResumableTransfer);
 
 export function useBrokerUpload(baseComponentId: string, setup: ReadySetup) {
   const { baseUrl, instanceId, resourceId, sender, recipients, disableVirusScan } = setup;

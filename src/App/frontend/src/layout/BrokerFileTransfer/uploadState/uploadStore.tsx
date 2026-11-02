@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
-import { GlobalData } from 'src/GlobalData';
 import { configureBrokerClient } from 'src/layout/BrokerFileTransfer/brokerClient/config';
 import { isUploadGone } from 'src/layout/BrokerFileTransfer/brokerClient/tus/tusUpload';
 import { createUploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
@@ -11,7 +10,7 @@ import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { UploadController } from 'src/layout/BrokerFileTransfer/brokerClient/upload/uploadController';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 
-// brokerClient/ is BrokerBox's upload code (Altinn/altinn-broker), but resumes from the form, not session storage
+// Keeps each component's upload and chosen file outside React, so they survive the user leaving the page
 
 type FilePick = { file: File | null; pickError: Message | null };
 
@@ -19,7 +18,6 @@ export const noPick: FilePick = { file: null, pickError: null };
 
 type ComponentUploads = { controller: UploadController | null; pick: FilePick };
 
-// Kept outside the component, so an upload and the chosen file survive the user leaving the page
 const uploadsByComponent = new Map<string, ComponentUploads>();
 const pickListeners = new Set<() => void>();
 
@@ -35,10 +33,6 @@ function uploadsFor(key: string): ComponentUploads {
   const created: ComponentUploads = { controller: null, pick: noPick };
   uploadsByComponent.set(key, created);
   return created;
-}
-
-export function getBrokerApiBaseUrl(): string | undefined {
-  return GlobalData.platformFrontendSettings.brokerApiBaseUrl || undefined;
 }
 
 export function getUploadController(baseUrl: string, key: string): UploadController {

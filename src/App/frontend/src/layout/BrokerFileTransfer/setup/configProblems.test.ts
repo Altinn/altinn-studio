@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { configProblems } from 'src/layout/BrokerFileTransfer/configProblems';
+import { configProblems } from 'src/layout/BrokerFileTransfer/setup/configProblems';
 
 const valid = { resourceId: 'broker-resource' };
 

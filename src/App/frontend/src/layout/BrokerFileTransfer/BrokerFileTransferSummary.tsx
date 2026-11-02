@@ -10,16 +10,18 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import classes from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary.module.css';
-import { FileRow } from 'src/layout/BrokerFileTransfer/FileRow';
-import { useChosenFile } from 'src/layout/BrokerFileTransfer/FileSender/useFilePick';
+import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 import { formatFileSize } from 'src/layout/BrokerFileTransfer/messages';
-import { TransferFile } from 'src/layout/BrokerFileTransfer/TransferFile';
+import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
+import { useChosenFile } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { SummaryContains, SummaryFlex } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { useSummaryOverrides } from 'src/layout/Summary2/summaryStoreContext';
 import { useComponentConfig, useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import { useEvalExpression, useEvalOptionalText } from 'src/utils/layout/useEvalExpression';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
+
+// Shows the component in a summary: the sent file, a chosen file not yet sent, or nothing
 
 export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Props) {
   const emptyFieldText = useSummaryOverrides(targetBaseComponentId)?.emptyFieldText;
@@ -65,21 +67,21 @@ export function BrokerFileTransferSummary({ targetBaseComponentId }: Summary2Pro
           )}
         </div>
         {fileTransferId ? (
-          <TransferFile
+          <SentFile
             fileTransferId={fileTransferId}
             fileName={fileName}
             isSent={isSent}
           />
         ) : chosenFile ? (
           // Only in this browser until the user sends it
-          <FileRow
+          <FileBox
             name={chosenFile.name}
             details={formatFileSize(chosenFile.size, language)}
           >
             <Tag data-color='warning'>
               <Lang id='broker_file_transfer.not_sent' />
             </Tag>
-          </FileRow>
+          </FileBox>
         ) : (
           <Paragraph
             asChild

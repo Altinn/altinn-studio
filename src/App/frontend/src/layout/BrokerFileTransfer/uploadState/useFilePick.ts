@@ -1,14 +1,16 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import type { FileRejection } from 'react-dropzone';
 
+import { fileTypeProblem } from 'src/layout/BrokerFileTransfer/messages';
 import {
   getFilePick,
   noPick,
   setFilePick,
   subscribeToFilePicks,
   useUploadsKey,
-} from 'src/layout/BrokerFileTransfer/brokerUploads';
-import { fileTypeProblem } from 'src/layout/BrokerFileTransfer/messages';
+} from 'src/layout/BrokerFileTransfer/uploadState/uploadStore';
+
+// Choosing and removing the file, kept in the upload store until it's sent
 
 function useCurrentPick(baseComponentId: string) {
   const key = useUploadsKey(baseComponentId);

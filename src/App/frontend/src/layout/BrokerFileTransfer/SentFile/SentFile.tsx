@@ -3,17 +3,19 @@ import React from 'react';
 import { Tag } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
-import { FileRow } from 'src/layout/BrokerFileTransfer/FileRow';
+import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
 
-type TransferFileProps = {
+// Shows the sent file with its reference, and whether it's fully sent
+
+type SentFileProps = {
   fileTransferId: string;
   fileName?: string;
   isSent: boolean;
 };
 
-export function TransferFile({ fileTransferId, fileName, isSent }: TransferFileProps) {
+export function SentFile({ fileTransferId, fileName, isSent }: SentFileProps) {
   return (
-    <FileRow
+    <FileBox
       name={fileName || <Lang id={isSent ? 'broker_file_transfer.sent_file' : 'broker_file_transfer.unsent_file'} />}
       details={
         <Lang
@@ -25,6 +27,6 @@ export function TransferFile({ fileTransferId, fileName, isSent }: TransferFileP
       <Tag data-color={isSent ? 'success' : 'warning'}>
         <Lang id={isSent ? 'broker_file_transfer.sent' : 'broker_file_transfer.not_fully_sent'} />
       </Tag>
-    </FileRow>
+    </FileBox>
   );
 }

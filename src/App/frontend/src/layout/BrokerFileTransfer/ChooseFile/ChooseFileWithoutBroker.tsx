@@ -5,20 +5,21 @@ import { Alert, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { ChosenFile } from 'src/layout/BrokerFileTransfer/FileSender/ChosenFile';
-import { FileDropzone } from 'src/layout/BrokerFileTransfer/FileSender/FileDropzone';
-import classes from 'src/layout/BrokerFileTransfer/FileSender/FileSender.module.css';
-import { useFilePick } from 'src/layout/BrokerFileTransfer/FileSender/useFilePick';
+import classes from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile.module.css';
+import { ChosenFile } from 'src/layout/BrokerFileTransfer/ChooseFile/ChosenFile';
+import { FileDropzone } from 'src/layout/BrokerFileTransfer/ChooseFile/FileDropzone';
 import { fileProblem } from 'src/layout/BrokerFileTransfer/messages';
-import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/useBrokerSetup';
+import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
+import { useFilePick } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
 
-type UnavailableFileSenderProps = {
+// Stands in for ChooseFile where the app can't reach Broker, such as in Studio's preview: it can't send
+
+type ChooseFileWithoutBrokerProps = {
   baseComponentId: string;
   maxFileSize: number | null;
 };
 
-// Where the app can't reach Broker, such as in Studio's preview, the component looks as usual but can't send
-export function UnavailableFileSender({ baseComponentId, maxFileSize }: UnavailableFileSenderProps) {
+export function ChooseFileWithoutBroker({ baseComponentId, maxFileSize }: ChooseFileWithoutBrokerProps) {
   const language = useCurrentLanguage();
   const allowedFileEndings = useAllowedFileEndings(baseComponentId);
   const { file, pickError, pick, remove } = useFilePick(baseComponentId, allowedFileEndings);
