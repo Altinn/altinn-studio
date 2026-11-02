@@ -45,12 +45,12 @@
 
 .breadcrumb {
   overflow: hidden;
+  font-weight: var(--ds-font-weight-semibold);
   text-overflow: ellipsis;
 }
 
 .currentBreadcrumb {
   color: var(--ds-color-neutral-text-default);
-  font-weight: var(--ds-font-weight-medium);
   border-radius: var(--ds-border-radius-sm);
 }
 
