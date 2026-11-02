@@ -11,7 +11,7 @@ import { validationsOfSeverity } from 'src/features/validation/utils';
 import { isTransferSent } from 'src/layout/BrokerFileTransfer/brokerClient/fileTransferStatus';
 import classes from 'src/layout/BrokerFileTransfer/BrokerFileTransferSummary.module.css';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
-import { formatFileSize } from 'src/layout/BrokerFileTransfer/messages';
+import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
 import { SentFile } from 'src/layout/BrokerFileTransfer/SentFile/SentFile';
 import { useChosenFile } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';

@@ -15,7 +15,7 @@ import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/BrokerFileTransfer/ChooseFile/FileDropzone.module.css';
-import { formatFileSize } from 'src/layout/BrokerFileTransfer/messages';
+import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
 import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { useComponentConfig } from 'src/utils/layout/hooks';

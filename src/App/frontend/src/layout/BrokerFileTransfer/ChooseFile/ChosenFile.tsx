@@ -6,7 +6,7 @@ import { TrashIcon } from '@navikt/aksel-icons';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { FileBox } from 'src/layout/BrokerFileTransfer/FileBox';
-import { formatFileSize } from 'src/layout/BrokerFileTransfer/messages';
+import { formatFileSize } from 'src/layout/BrokerFileTransfer/formatting';
 
 // Shows the chosen file with its size and a button to remove it
 

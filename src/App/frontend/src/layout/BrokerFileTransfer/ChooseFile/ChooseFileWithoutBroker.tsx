@@ -1,13 +1,12 @@
 import React from 'react';
 
 import { Button } from '@app/form-component';
-import { Alert, ValidationMessage } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import classes from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile.module.css';
-import { ChosenFile } from 'src/layout/BrokerFileTransfer/ChooseFile/ChosenFile';
-import { FileDropzone } from 'src/layout/BrokerFileTransfer/ChooseFile/FileDropzone';
+import { FilePicker } from 'src/layout/BrokerFileTransfer/ChooseFile/FilePicker';
 import { fileProblem } from 'src/layout/BrokerFileTransfer/messages';
 import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
 import { useFilePick } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
@@ -27,27 +26,14 @@ export function ChooseFileWithoutBroker({ baseComponentId, maxFileSize }: Choose
 
   return (
     <div className={classes.container}>
-      {file ? (
-        <ChosenFile
-          file={file}
-          onRemove={remove}
-        />
-      ) : (
-        <FileDropzone
-          baseComponentId={baseComponentId}
-          maxFileSize={maxFileSize}
-          hasError={!!problem}
-          onDrop={pick}
-        />
-      )}
-      {problem && (
-        <ValidationMessage data-size='sm'>
-          <Lang
-            id={problem.key}
-            params={problem.params}
-          />
-        </ValidationMessage>
-      )}
+      <FilePicker
+        baseComponentId={baseComponentId}
+        maxFileSize={maxFileSize}
+        file={file}
+        problem={problem}
+        onPick={pick}
+        onRemove={remove}
+      />
       <Alert
         data-color='info'
         data-size='sm'

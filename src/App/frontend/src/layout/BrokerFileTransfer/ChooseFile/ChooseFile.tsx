@@ -1,19 +1,18 @@
 import React from 'react';
 
 import { Button } from '@app/form-component';
-import { Alert, ValidationMessage } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
 
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { expectedFileSize, isSameFile } from 'src/layout/BrokerFileTransfer/brokerClient/upload/interruptedTransfer';
+import { CancelUploadButton } from 'src/layout/BrokerFileTransfer/CancelUploadButton';
 import classes from 'src/layout/BrokerFileTransfer/ChooseFile/ChooseFile.module.css';
-import { ChosenFile } from 'src/layout/BrokerFileTransfer/ChooseFile/ChosenFile';
-import { FileDropzone } from 'src/layout/BrokerFileTransfer/ChooseFile/FileDropzone';
+import { FilePicker } from 'src/layout/BrokerFileTransfer/ChooseFile/FilePicker';
 import { InterruptedUploadNotice } from 'src/layout/BrokerFileTransfer/ChooseFile/InterruptedUploadNotice';
 import { fileProblem, sendErrorMessage } from 'src/layout/BrokerFileTransfer/messages';
 import { useAllowedFileEndings } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
-import { CancelUploadButton } from 'src/layout/BrokerFileTransfer/UploadingFile/CancelUploadButton';
 import { useFilePick } from 'src/layout/BrokerFileTransfer/uploadState/useFilePick';
 import type { Message } from 'src/layout/BrokerFileTransfer/messages';
 import type { ReadySetup } from 'src/layout/BrokerFileTransfer/setup/useBrokerSetup';
@@ -85,27 +84,14 @@ export function ChooseFile({
           size={expectedFileSize(interrupted)}
         />
       )}
-      {file ? (
-        <ChosenFile
-          file={file}
-          onRemove={remove}
-        />
-      ) : (
-        <FileDropzone
-          baseComponentId={baseComponentId}
-          maxFileSize={setup.maxFileSize}
-          hasError={!!problem}
-          onDrop={pick}
-        />
-      )}
-      {problem && (
-        <ValidationMessage data-size='sm'>
-          <Lang
-            id={problem.key}
-            params={problem.params}
-          />
-        </ValidationMessage>
-      )}
+      <FilePicker
+        baseComponentId={baseComponentId}
+        maxFileSize={setup.maxFileSize}
+        file={file}
+        problem={problem}
+        onPick={pick}
+        onRemove={remove}
+      />
       {error && (
         <Alert data-color='danger'>
           <Lang
