@@ -47,8 +47,9 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
 
 ## Problem context
 
-Team Studio owns and operates a growing number of services in the Studio cluster and the runtime clusters, and their
-telemetry ends up in one backend: VictoriaMetrics, VictoriaTraces and VictoriaLogs, queried from a shared Grafana.
+Team Studio owns and operates a growing number of services across Core, Runtime and Platform, the three parts of
+Altinn Studio that [Environments](../infrastructure/environments.md) describes. Their telemetry ends up in one
+backend: VictoriaMetrics, VictoriaTraces and VictoriaLogs, queried from a shared Grafana.
 [Monitoring telemetry collection and distribution](2026-01-07-monitoring-telemetry-collection-distribution.md) decided
 how telemetry gets there. Nothing decided what a service emits, how it names it, how it's configured, or how we turn
 it into dashboards and alerts.

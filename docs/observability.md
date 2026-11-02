@@ -4,7 +4,13 @@ How Team Studio's services report telemetry, and how we build dashboards and ale
 instrument a service, review a change to its telemetry, or build a dashboard or an alert. The
 [observability ADR](adr/2026-11-02-observability-and-instrumentation-standards.md) records why we chose these rules.
 
-It covers every service Team Studio owns and operates, in the Studio cluster and in the runtime clusters.
+It covers every service Team Studio owns and operates, in all three parts of Altinn Studio:
+
+- Core, in the Studio clusters
+- Runtime, in the service owners' runtime clusters
+- Platform, in DIS Core and the platform cluster
+
+[Environments](infrastructure/environments.md) describes the clusters.
 [altinn-studio#19775](https://github.com/Altinn/altinn-studio/issues/19775) covers telemetry from apps, which uses the
 same names. This guide doesn't cover telemetry from browsers.
 
@@ -130,7 +136,7 @@ Grafana lists traces by their root span's name.
   `GET /designer/api/{org}/{app}/validation`. `http.route` is the route template without its constraints.
 - Our own spans are named `<area>.<operation>`, lowercase, with snake_case within a segment: `git.push`,
   `pdf.generate`, `maskinporten.reconcile`. Not class and method names, which change when the code is refactored.
-- Where our load balancer sits in front of a service, as in the Studio cluster, its span is the trace's root and
+- Where our load balancer sits in front of a service, as in Core, its span is the trace's root and
   names the trace. The service returns the route template it matched in a response header, and the load balancer
   names its span after it and removes the header. Without the header, the load balancer uses a fixed name for the
   location.
@@ -364,7 +370,7 @@ The stack can't do these, so don't design telemetry that needs them:
 ## Working on telemetry
 
 - Before you merge, look at the telemetry in a local stack.
-  - For services in the Studio and runtime clusters, use the
+  - For services in Core, Runtime and Platform, use the
     [devenv monitoring stack](../infra/observability/local/README.md). It runs the production pipeline, with its
     allowlist, log filter and sampling, and has Grafana and a Grafana MCP server.
   - For apps and the services that run with localtest, such as the workflow engine, use
