@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -72,6 +73,41 @@ func TestApplyGitCheckoutUpdatesToNewUpstreamCommit(t *testing.T) {
 
 	assertFileContent(t, filepath.Join(checkout.Path, "file.txt"), "second")
 	assertHead(t, checkout.Path, upstream.head())
+}
+
+func TestApplyGitCheckoutIgnoresTemplates(t *testing.T) {
+	upstream := newTestUpstream(t)
+	upstream.commit("content")
+	checkout := upstream.checkout(t)
+	template := t.TempDir()
+	writeTestFile(t, filepath.Join(template, "hooks", "post-checkout"), "custom hook")
+	t.Setenv("GIT_TEMPLATE_DIR", template)
+
+	applyCheckout(t, checkout)
+
+	hook := filepath.Join(checkout.Path, ".git", "hooks", "post-checkout")
+	if _, err := os.Stat(hook); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Stat() error = %v, want no hook copied from the user's template", err)
+	}
+}
+
+func TestGitEnvironmentIgnoresMixedCaseRepositoryVariables(t *testing.T) {
+	// Windows environment variable names are case-insensitive.
+	t.Setenv("Git_Dir", "other-repository")
+	t.Setenv("Git_Work_Tree", "other-working-tree")
+	t.Setenv("Git_Config_Count", "1")
+	t.Setenv("Git_Config_Key_0", "core.worktree")
+	t.Setenv("Git_Config_Value_0", "other-working-tree")
+
+	env := gitEnvironment("")
+	for _, name := range []string{"GIT_DIR", "GIT_WORK_TREE", "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0"} {
+		if slices.ContainsFunc(env, func(entry string) bool {
+			key, _, _ := strings.Cut(entry, "=")
+			return strings.EqualFold(key, name)
+		}) {
+			t.Errorf("git environment contains %s", name)
+		}
+	}
 }
 
 func TestApplyGitCheckoutResetsLocalChanges(t *testing.T) {
@@ -183,7 +219,7 @@ func TestApplyGitCheckoutIgnoresRepositoryFromEnvironment(t *testing.T) {
 	checkout := upstream.checkout(t)
 	applyCheckout(t, checkout)
 	other := t.TempDir()
-	runTestGit(t, other, "init", "--quiet", "--initial-branch=main")
+	runTestGit(t, other, "init", "--quiet", "--template=", "--initial-branch=main")
 	// As set for a test run from a Git hook.
 	t.Setenv("GIT_DIR", filepath.Join(other, ".git"))
 	t.Setenv("GIT_WORK_TREE", other)
@@ -271,8 +307,8 @@ func newTestUpstream(t *testing.T) *testUpstream {
 		bare:    filepath.Join(root, "upstream.git"),
 		working: filepath.Join(root, "working"),
 	}
-	runTestGit(t, root, "init", "--quiet", "--bare", "--initial-branch=main", upstream.bare)
-	runTestGit(t, root, "init", "--quiet", "--initial-branch=main", upstream.working)
+	runTestGit(t, root, "init", "--quiet", "--template=", "--bare", "--initial-branch=main", upstream.bare)
+	runTestGit(t, root, "init", "--quiet", "--template=", "--initial-branch=main", upstream.working)
 	return upstream
 }
 

@@ -196,7 +196,7 @@ func applyGitCheckout(ctx context.Context, checkout *resource.GitCheckout) error
 		if pathExists(checkout.Path) {
 			return fmt.Errorf("%w: %s", errLocalPathNotGitRepo, checkout.Path)
 		}
-		if _, err := runGit(ctx, "", "clone", "--depth=1", "--single-branch", "--no-tags",
+		if _, err := runGit(ctx, "", "clone", "--depth=1", "--single-branch", "--no-tags", "--template=",
 			"--branch", checkout.Ref, "--", checkout.RepoURL, checkout.Path); err != nil {
 			return fmt.Errorf("clone Git checkout %s: %w", checkout.Name, err)
 		}
@@ -322,6 +322,8 @@ func gitEnvironment(dir string) []string {
 	env := make([]string, 0, len(os.Environ())+len(gitEnvironmentOverrides)+1)
 	for _, entry := range os.Environ() {
 		name, _, _ := strings.Cut(entry, "=")
+		// Windows treats environment variable names case-insensitively.
+		name = strings.ToUpper(name)
 		if !slices.Contains(gitRepositoryEnvironment, name) && !strings.HasPrefix(name, "GIT_CONFIG_") {
 			env = append(env, entry)
 		}
