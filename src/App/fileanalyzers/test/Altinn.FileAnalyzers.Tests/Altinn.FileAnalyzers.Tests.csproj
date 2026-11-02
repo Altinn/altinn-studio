@@ -12,11 +12,13 @@
   <ItemGroup>
     <None Remove="MimeType\example.jpg.pdf" />
     <None Remove="MimeType\example.pdf" />
+    <None Remove="MimeType\example.xls" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="MimeType\example.jpg.pdf" />
     <EmbeddedResource Include="MimeType\example.pdf" />
+    <EmbeddedResource Include="MimeType\example.xls" />
   </ItemGroup>
 
   <ItemGroup>

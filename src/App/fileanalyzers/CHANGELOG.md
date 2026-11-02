@@ -16,7 +16,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Fixed
 
-- The MIME type validator no longer rejects real `.xls`, `.ppt` and `.xml` files when the content types Studio sets for them, such as `application/vnd.ms-excel`, are allowed.
+- The MIME type validator no longer rejects files such as `.xls`, `.ppt` and `.xml` whose content matches their extension, when the content type Studio sets for the extension, such as `application/vnd.ms-excel`, is allowed.
 
 ## [9.0.0-preview.1] - 2026-09-09
 
