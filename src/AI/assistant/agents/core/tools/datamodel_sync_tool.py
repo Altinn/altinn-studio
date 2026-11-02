@@ -1,8 +1,7 @@
-"""`altinn_datamodel_sync` — make the data model files from a JSON Schema model.
+"""`altinn_datamodel_sync`: make the files of a data model from its JSON schema.
 
-Designer generates the files (`agents.services.designer`), so they are the
-files that "Generate model" in Studio writes.  This class reads the app
-files that the generation needs from the clone and writes the result back.
+Designer makes the files (`agents.services.designer`). This tool reads the app
+files that Designer uses from the clone, and writes the result to the clone.
 """
 
 from __future__ import annotations
@@ -36,8 +35,6 @@ class DatamodelSyncArgs(BaseModel):
 
 
 class DatamodelSyncTool(WriteTool[DatamodelSyncArgs]):
-    """Generate the C# class, XSD and data type of a JSON Schema model with Designer."""
-
     name = "altinn_datamodel_sync"
     description = (
         "Generate the C# class and XSD files of a JSON Schema data model "
@@ -97,7 +94,7 @@ def _read_generation_request(ctx: LoopContext, schema_path: str) -> DatamodelGen
 
 
 def _read_use_nullable_reference_types(ctx: LoopContext) -> bool | ToolResult:
-    """Designer treats an app without Studio settings as one without nullable reference types."""
+    """If the app has no Studio settings file, Designer uses no nullable reference types."""
     try:
         settings_file = resolve_repo_path(ctx.repo_path, STUDIO_SETTINGS_PATH)
     except PathError as exc:
@@ -128,12 +125,12 @@ def _read_json_file(ctx: LoopContext, rel_path: str) -> Any | ToolResult:
 def _write_generated_files(
     ctx: LoopContext, schema_path: str, model_name: str, generated: GeneratedDatamodel
 ) -> list[str] | ToolResult:
-    """Writes each file whose content changed, and marks it changed so that it is verified again before commit.
+    """Writes each file that has new content, and marks it as changed and not read.
 
-    A written file is also marked unread: the model's earlier read of the schema or the application metadata
-    no longer matches the file, and a write from that read would undo the generation.
+    The agent read the schema and the application metadata before the tool changed them. If the agent writes
+    a file from that earlier read, the write removes the changes of the tool.
 
-    Every path is checked before the first write, so a refused path leaves the model files as they were.
+    The tool examines all paths before it writes a file. If it does not accept a path, it writes no file.
     """
     schema_dir = Path(schema_path).parent
     files = {

@@ -205,9 +205,8 @@ public class SchemaModelService : ISchemaModelService
         ApplicationMetadata applicationMetadata = AltinnAppGitRepository.DeserializeApplicationMetadata(
             applicationMetadataJson
         );
-        // Like Studio when a person adds a data model, refuse a new data model whose class a data type already has.
-        // A data model is new when no data type has its name. The caller saves the files in its own clone, so Studio
-        // cannot make the check.
+        // A data model is new if no data type has its name. Studio cannot do this check, because the caller saves
+        // the files in its own clone.
         if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == modelName))
         {
             DataModelClassRef.ThrowIfAnotherDataTypeHasClass(
@@ -233,8 +232,9 @@ public class SchemaModelService : ISchemaModelService
     }
 
     /// <summary>
-    /// Generates the C# classes and the XSD of an app data model, and adds the data model's data type to
-    /// the application metadata or updates its class reference. This reads and writes no repository.
+    /// Makes the C# classes and the XSD of an app data model. It also adds the data type of the data model to
+    /// <paramref name="applicationMetadata"/>, or changes its class reference. <see cref="UpdateSchema"/> and
+    /// <see cref="GenerateDatamodel"/> both use this method, so that they make the same files.
     /// </summary>
     private (string CsharpClasses, XmlSchema Xsd) GenerateAppModelFiles(
         string schemaFileName,

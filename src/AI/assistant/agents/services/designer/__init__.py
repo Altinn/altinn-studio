@@ -1,4 +1,4 @@
-"""Designer API calls that the agent makes with the user's API key."""
+"""The agent uses these functions to call the Designer API with the user's API key."""
 
 from .datamodel_generation import (
     DatamodelGenerationError,

@@ -1,4 +1,4 @@
-"""What the altinn_datamodel_sync tool sends to Designer, and where it writes the generated files."""
+"""These tests examine what the altinn_datamodel_sync tool sends to Designer, and the files that it writes."""
 
 from __future__ import annotations
 
@@ -134,7 +134,7 @@ async def test_a_written_file_must_be_read_again_before_it_is_changed(repo: Path
     await _run(ctx)
     write_file = WriteFileTool()
 
-    # The content the model read before the generation added the data type.
+    # The agent read this content before the tool added the data type.
     result = await write_file.run(
         write_file.input_schema.model_validate({"path": APPLICATION_METADATA_PATH, "content": APPLICATION_METADATA}),
         ctx,

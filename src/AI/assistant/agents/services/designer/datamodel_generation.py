@@ -1,10 +1,9 @@
-"""Generate the files of a data model with Designer.
+"""Make the files of a data model with Designer.
 
-Designer generates them the way "Generate model" in Studio does, from the
-files in the request instead of from the developer's repository in Designer.
-So the C# class, the XSD and the application metadata are the files that
-Studio writes, and an app that builds in Studio also builds after the agent
-changes its data model.
+Designer uses the same method as "Generate model" in Studio, but it reads the
+app files from the request and not from a repository. This makes sure that the
+agent writes the same C# class, XSD and application metadata as Studio. If the
+app builds in Studio, it also builds after the agent changes its data model.
 """
 
 from __future__ import annotations
@@ -27,7 +26,7 @@ GENERATION_TIMEOUT_SECONDS = 60.0
 class DatamodelGenerationRequest:
     repo_owner: str
     app_name: str
-    # The schema file name without `.schema.json`, which is also the id of the data type.
+    # The name of the schema file without `.schema.json`. It is also the `id` of the data type.
     model_name: str
     schema: Any
     application_metadata: dict[str, Any]
@@ -44,7 +43,7 @@ class GeneratedDatamodel:
 
 
 class DatamodelGenerationError(Exception):
-    """Designer did not generate the files. The message tells the model why."""
+    """Designer did not make the files. The agent reads the message to find the cause."""
 
 
 async def generate_datamodel(
@@ -84,7 +83,7 @@ def _get_request_body(request: DatamodelGenerationRequest) -> dict[str, Any]:
 
 
 def _describe_failure(response: httpx.Response) -> str:
-    """Designer answers a schema it cannot convert with problem details, and compiler errors in `customErrorMessages`."""
+    """If Designer cannot make the files, it sends problem details. It puts compiler errors in `customErrorMessages`."""
     try:
         problem = response.json()
     except ValueError:

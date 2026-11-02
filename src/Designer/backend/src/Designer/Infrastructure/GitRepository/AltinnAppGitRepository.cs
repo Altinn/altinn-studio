@@ -142,18 +142,16 @@ public class AltinnAppGitRepository : AltinnGitRepository
     }
 
     /// <summary>
-    /// Reads application metadata the way it is read from the repository.
+    /// Reads application metadata from JSON text with the same options as <see cref="GetApplicationMetadata"/>.
     /// </summary>
-    /// <param name="applicationMetadataJson">The contents of an application metadata file.</param>
     public static ApplicationMetadata DeserializeApplicationMetadata(string applicationMetadataJson)
     {
         return JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadataJson, s_jsonOptions);
     }
 
     /// <summary>
-    /// Writes application metadata the way it is saved to the repository.
+    /// Gives the JSON text that <see cref="SaveApplicationMetadata"/> writes to the repository.
     /// </summary>
-    /// <param name="applicationMetadata">The application metadata to write.</param>
     public static string SerializeApplicationMetadata(ApplicationMetadata applicationMetadata)
     {
         return JsonSerializer.Serialize(applicationMetadata, s_jsonOptions);

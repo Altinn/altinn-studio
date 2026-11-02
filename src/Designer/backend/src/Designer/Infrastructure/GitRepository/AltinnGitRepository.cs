@@ -245,9 +245,8 @@ public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     }
 
     /// <summary>
-    /// Writes an XSD the way it is saved to the repository.
+    /// Gives the XSD text that <see cref="SaveXsd(XmlSchema, string)"/> writes to the repository.
     /// </summary>
-    /// <param name="xmlSchema">The XSD to write.</param>
     public static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
     {
         string xsd;

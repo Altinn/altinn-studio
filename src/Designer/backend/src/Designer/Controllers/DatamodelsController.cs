@@ -146,15 +146,16 @@ public class DatamodelsController : ControllerBase
     }
 
     /// <summary>
-    /// Generates the files that saving a data model writes, from app files in the request instead of
-    /// from the developer's repository. Nothing is saved. This lets a caller that edits the app in its
-    /// own clone, such as Studio Assistant, write the same files as Designer.
+    /// Makes the files that Designer saves for a data model, from the app files in the request. This endpoint
+    /// does not read or write a repository. A caller that changes the app in its own clone, such as Studio
+    /// Assistant, uses it to write the same files as Designer.
     /// </summary>
-    /// <param name="request">The data model's JSON schema and the app files that the generation reads.</param>
+    /// <param name="request">The JSON schema of the data model, and the app files that the endpoint reads.</param>
     [HttpPost]
     [AllowApiKey]
-    // The order of the controller's AutoValidateAntiforgeryToken, so that this filter is the antiforgery
-    // policy that applies and an API key caller needs no antiforgery token.
+    // The AutoValidateAntiforgeryToken filter of the controller does its check only if it is the last
+    // antiforgery policy. It has Order 1000, and an action filter with the same Order is after it. This filter
+    // has the same Order, so that an API key caller can send a request without an antiforgery token.
     [TypeFilter(typeof(ConditionalAntiforgeryFilter), Order = 1000)]
     [UseSystemTextJson]
     [ProducesResponseType(StatusCodes.Status200OK)]

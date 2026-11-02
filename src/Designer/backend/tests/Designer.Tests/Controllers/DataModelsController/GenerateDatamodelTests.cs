@@ -28,14 +28,14 @@ public class GenerateDatamodelTests
     private const string Developer = "testUser";
     private const string NewModelName = "model";
 
-    // The data type of this model has the class reference Altinn.App.Models.HvemErHvem_M, without a
-    // namespace of its own.
+    // The class reference of the data type of this model is Altinn.App.Models.HvemErHvem_M. The class is not
+    // in a namespace of its own.
     private const string ExistingModelName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
 
-    // A model from the repository, with types under definitions.
+    // The JSON schema of this model is in the test repository. It has its types in definitions.
     private const string ModelWithTypesName = "HvemErHvem_InternalTypes";
 
-    // The shape of the data model in the app template.
+    // This JSON schema is like the data model in the app template.
     private const string NewModelJsonSchema =
         "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"$id\":\"model.schema.json\",\"type\":\"object\",\"@xsdRootElement\":\"model\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\"]}";
 
@@ -129,7 +129,7 @@ public class GenerateDatamodelTests
     {
         await CopyRepositoryForTest(Org, Repo, Developer, TargetTestRepository);
 
-        // The root element of the existing model, so the new model would declare its class again.
+        // The new model gets the same C# class, because it has the root element of the existing model.
         using HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             GenerateUrl,
             CreateRequest("kunde", ExistingModelJsonSchema, false, false),

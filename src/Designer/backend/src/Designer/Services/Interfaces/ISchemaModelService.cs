@@ -56,16 +56,16 @@ public interface ISchemaModelService
     );
 
     /// <summary>
-    /// Generates the files that <see cref="UpdateSchema"/> writes for a data model in an app repository,
-    /// from app files the caller sends instead of from a repository. Nothing is saved. Like Studio when a person adds a
-    /// data model, this refuses a new data model whose C# class a data type already has.
+    /// Makes the files that <see cref="UpdateSchema"/> writes for a data model in an app repository. It reads the
+    /// app files from the caller, and it does not save a file. Studio does not let a person add a data model if a
+    /// data type already has its C# class. This method also does not accept such a new data model.
     /// </summary>
-    /// <param name="modelName">The name of the data model's JSON schema file without <c>.schema.json</c>, which is also the id of its data type.</param>
+    /// <param name="modelName">The name of the JSON schema file of the data model, without <c>.schema.json</c>. It is also the <c>id</c> of the data type.</param>
     /// <param name="jsonContent">The JSON schema of the data model.</param>
-    /// <param name="applicationMetadataJson">The contents of the app's application metadata file.</param>
-    /// <param name="useNullableReferenceTypes">The app's setting for nullable reference types in the generated C# classes.</param>
-    /// <param name="isV9OrNewer">Whether the app uses the v9 app backend or newer.</param>
-    /// <returns>The JSON schema, C# classes, XSD and application metadata as they would be saved.</returns>
+    /// <param name="applicationMetadataJson">The JSON text of the application metadata of the app.</param>
+    /// <param name="useNullableReferenceTypes">If true, the C# classes use nullable reference types.</param>
+    /// <param name="isV9OrNewer">If true, the app uses version 9 or a newer version of the app backend.</param>
+    /// <returns>The JSON schema, C# classes, XSD and application metadata, with the text that Designer saves.</returns>
     Task<GeneratedDatamodel> GenerateDatamodel(
         string modelName,
         string jsonContent,

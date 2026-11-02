@@ -1,4 +1,4 @@
-"""What the agent sends to Designer's data model generation, and how it reads the answer."""
+"""These tests examine the request that the agent sends to Designer, and how the agent reads the result."""
 
 from __future__ import annotations
 
