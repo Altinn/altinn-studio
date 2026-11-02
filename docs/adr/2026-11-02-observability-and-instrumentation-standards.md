@@ -13,8 +13,9 @@ Every service Team Studio owns and operates reports telemetry to one standard, w
    event. Logs are for conditions someone may need to act on, at WARN and above (A1.1).
 2. **Span events.** Our code adds no span events. A failure sets the span status, `error.type` and one ERROR log
    linked to the trace.
-3. **Trace boundaries.** A trace is one unit of work, or one flow we deliberately carry, such as an app deploy. Work
-   that outlives its request runs in its own trace and links back, with correlation keys on both sides (A2.1).
+3. **Trace boundaries.** A trace holds one unit of work, except for flows we choose to follow end to end as one
+   trace, such as an app deploy. Work that outlives its request runs in its own trace and links back, with
+   correlation keys on both sides (A2.1).
 4. **Names.** Semantic convention attributes and metrics are used as they are. Our own are `altinn.<concept>` for the
    shared vocabulary and `altinn.<service>.…` for one service, without a `studio` segment (A3.1). Span names never
    contain IDs.

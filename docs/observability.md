@@ -103,8 +103,8 @@ its value differs within the unit of work, such as one environment in a loop ove
 
 ### What a trace holds
 
-A trace is one unit of work, or one flow we deliberately carry across our systems, such as deploying an app through
-Designer, Azure DevOps, the gateway and Flux.
+A trace holds one unit of work. The exception is a flow we choose to follow end to end across our systems as one
+trace, such as deploying an app through Designer, Azure DevOps, the gateway and Flux.
 
 - Nest synchronous work within the unit of work where a waterfall helps, such as outbound calls, database calls and
   expensive phases.
