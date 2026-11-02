@@ -136,8 +136,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
   const isWrongTask = useIsWrongTask(taskId);
   const isValidTaskId = useIsValidTaskId()(taskId);
   const taskType = useGetTaskTypeById()(taskId);
-  const isProcessNextPending = useIsProcessNextPending();
-  const isRunningProcessNext = useIsRunningProcessNext(isProcessNextPending);
+  const { isProcessNextPending, isInitialProcessNextPending } = useProcessNextState();
   const workflow = useProcessWorkflow();
   const failedOnCurrentServiceTask = useIsWorkflowFailedOnCurrentServiceTask();
   const isPdfMode = usePdfModeActive();
@@ -161,7 +160,11 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
   // Mounting mid-mutation waits for the response, except on a service task's page: the URL moves
   // there while the call is pending, and no form on it is part of the call.
-  if (isRunningProcessNext === null || (isRunningProcessNext && !isServiceTaskPage) || isWrongTask === null) {
+  if (
+    isInitialProcessNextPending === null ||
+    (isInitialProcessNextPending && !isServiceTaskPage) ||
+    isWrongTask === null
+  ) {
     return <Loader reason='process-wrapper' />;
   }
 
@@ -347,8 +350,9 @@ function UnsupportedTaskType({ taskId }: { taskId: string | undefined }) {
   );
 }
 
-function useIsRunningProcessNext(isProcessNextPending: boolean) {
-  const [isMutating, setIsMutating] = useState<boolean | null>(null);
+function useProcessNextState() {
+  const isProcessNextPending = useIsProcessNextPending();
+  const [isInitialProcessNextPending, setIsInitialProcessNextPending] = useState<boolean | null>(null);
 
   // Only block a task mounted mid-mutation, and release it when that mutation settles. Navigation can mount the
   // destination before process/next finishes, so keeping the initial pending state would leave its loader forever.
@@ -360,10 +364,12 @@ function useIsRunningProcessNext(isProcessNextPending: boolean) {
   // exists to cover mounting mid-mutation; while mounted, blocking is driven by the server-side
   // workflow annotation instead.
   useEffect(() => {
-    setIsMutating((wasMutating) => (wasMutating === null ? isProcessNextPending : wasMutating && isProcessNextPending));
+    setIsInitialProcessNextPending((wasPending) =>
+      wasPending === null ? isProcessNextPending : wasPending && isProcessNextPending,
+    );
   }, [isProcessNextPending]);
 
-  return isMutating;
+  return { isProcessNextPending, isInitialProcessNextPending };
 }
 
 function useIsWrongTask(taskId: string | undefined) {
