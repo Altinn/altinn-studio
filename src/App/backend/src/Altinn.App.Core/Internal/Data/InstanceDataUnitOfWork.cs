@@ -1324,7 +1324,20 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 continue;
             }
 
-            request.UpdateDataElements.Add(CreateMetadataUpdate(dataElementIdentifier, stagedMetadata));
+            // Storage refuses two operations on one element, so a pending lock status goes with the metadata.
+            bool? lockedUpdate = null;
+            if (pendingLockStatuses.TryGetValue(dataElementIdentifier, out bool locked))
+            {
+                lockStatusDataElementIdentifiers.Add(dataElementIdentifier);
+                lockStatusDataTypeIds.Add(this.GetDataType(dataElementIdentifier).Id);
+                if (GetDataElement(dataElementIdentifier).Locked != locked)
+                {
+                    lockedUpdate = locked;
+                }
+            }
+
+            plannedDataElementIdentifiers.Add(dataElementIdentifier);
+            request.UpdateDataElements.Add(CreateMetadataUpdate(dataElementIdentifier, stagedMetadata, lockedUpdate));
             authenticationMethods.Add(GetAuthenticationMethod(dataElementIdentifier));
         }
 
@@ -1495,7 +1508,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     private static StorageInstanceMutationUpdateDataElement CreateMetadataUpdate(
         DataElementIdentifier dataElementIdentifier,
-        StagedDataElementMetadata stagedMetadata
+        StagedDataElementMetadata stagedMetadata,
+        bool? locked
     ) =>
         new()
         {
@@ -1505,6 +1519,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
             Metadata = stagedMetadata.Metadata,
             UserDefinedMetadata = stagedMetadata.UserDefinedMetadata,
             Tags = stagedMetadata.Tags,
+            Locked = locked,
         };
 
     private static void AddContentPart(

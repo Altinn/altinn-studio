@@ -279,6 +279,25 @@ public sealed partial class InstanceDataUnitOfWorkTests
     }
 
     [Fact]
+    public async Task UpdateDataElementMetadata_WithALockStatus_SendsOneUpdateItem()
+    {
+        await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
+        setup.DataMutator.LockDataElementsForDataType(setup.DataElement.DataType);
+
+        setup.DataMutator.UpdateDataElementMetadata(
+            setup.DataElement,
+            new DataElementMetadataUpdate { Tags = ["signed"] }
+        );
+        await setup.DataMutator.SaveChanges(setup.DataMutator.GetDataElementChanges(initializeAltinnRowId: false));
+
+        StorageInstanceMutationUpdateDataElement update = Assert.Single(GetSingleMutation(setup).UpdateDataElements);
+        Assert.Null(update.ContentPartName);
+        Assert.True(update.Locked);
+        Assert.Equal(["signed"], update.Tags);
+        Assert.True(setup.DataMutator.GetDataElement(setup.DataElement).Locked);
+    }
+
+    [Fact]
     public async Task UpdateDataElementMetadata_OnAnAddedElement_SendsTheValuesWithTheCreate()
     {
         await using var setup = await BinaryDataUnitOfWorkSetup.Create("initial"u8.ToArray());
