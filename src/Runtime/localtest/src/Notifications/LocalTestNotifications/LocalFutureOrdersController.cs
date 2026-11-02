@@ -196,10 +196,7 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             return ["SMS"];
         }
 
-        string? schema = (recipient["recipientPerson"] ?? recipient["recipientOrganization"])?[
-            "channelSchema"
-        ]?.ToString();
-        return schema switch
+        return ChannelSchema(recipient["recipientPerson"] ?? recipient["recipientOrganization"]) switch
         {
             "Sms" or "SmsPreferred" => ["SMS"],
             "EmailAndSms" => ["Email", "SMS"],
@@ -234,7 +231,7 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             id = shipment.ShipmentId,
             created,
             requestedSendTime = shipment.RequestedSendTime,
-            notificationChannel = owner?["channelSchema"]?.ToString() ?? shipment.Channels[0],
+            notificationChannel = ChannelSchema(owner) ?? shipment.Channels[0],
             sendersReference = shipment.SendersReference,
             resourceId = owner?["resourceId"]?.ToString(),
             recipients = new[]
@@ -249,6 +246,21 @@ public class LocalFutureOrdersController(IOptions<LocalPlatformSettings> setting
             templates,
         };
     }
+
+    private static readonly string[] _channelSchemas = ["Email", "Sms", "EmailPreferred", "SmsPreferred", "EmailAndSms"];
+
+    /// <summary>
+    /// A person's or organization's channel schema by name. The app libraries send it as a number, which
+    /// Notifications reads as the position in its <c>NotificationChannelExt</c>, so this does the same.
+    /// </summary>
+    private static string? ChannelSchema(JsonNode? owner) =>
+        owner?["channelSchema"] switch
+        {
+            JsonValue value when value.TryGetValue(out int number) && number >= 0 && number < _channelSchemas.Length =>
+                _channelSchemas[number],
+            JsonNode node => node.ToString(),
+            null => null,
+        };
 
     private static DateTimeOffset SendTime(JsonNode order) =>
         order["requestedSendTime"]?.GetValue<DateTimeOffset>() ?? DateTimeOffset.UtcNow;

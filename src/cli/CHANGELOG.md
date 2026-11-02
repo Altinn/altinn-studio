@@ -11,7 +11,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ### Added
 
-- Instantiation notifications work locally. Localtest accepts the order and reports it delivered, and `studioctl run` provides the app code that signs its send condition. Put `localtest:failed`, `localtest:reserved` or `localtest:pending` in the notification's text for another outcome. ([#21686](https://github.com/Altinn/altinn-studio/pull/21686))
+- Instantiation notifications work locally. Localtest lists them on the _Messages_ page and reports them delivered, and `studioctl run` provides the app code that signs its send condition. Put `localtest:failed`, `localtest:reserved` or `localtest:pending` in the notification's text for another outcome. ([#21686](https://github.com/Altinn/altinn-studio/pull/21686))
 
 ### Fixed
 

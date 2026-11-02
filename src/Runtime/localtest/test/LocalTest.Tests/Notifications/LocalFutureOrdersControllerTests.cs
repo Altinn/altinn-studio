@@ -45,7 +45,7 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
                   "recipient": {
                     "recipientPerson": {
                       "nationalIdentityNumber": "01899699552",
-                      "channelSchema": "{{channel}}",
+                      "channelSchema": {{(int.TryParse(channel, out _) ? channel : $"\"{channel}\"")}},
                       "emailSettings": { "subject": "{{subject}}", "body": "Body" },
                       "smsSettings": { "body": "Body" }
                     }
@@ -91,6 +91,8 @@ public sealed class LocalFutureOrdersControllerTests : IDisposable
     [InlineData("EmailAndSms", "localtest:failed", "Order_Completed", "Email_Failed_Bounced", "SMS_Failed_InvalidRecipient")]
     [InlineData("Email", "localtest:reserved", "Order_Completed", "Email_Failed_RecipientReserved")]
     [InlineData("Sms", "localtest:pending", "Order_Processing", "SMS_New")]
+    // The app libraries send the channel schema as its position in the enum: 4 is EmailAndSms.
+    [InlineData("4", "Hello", "Order_Completed", "Email_Delivered", "SMS_Delivered")]
     public async Task GetShipment_AfterTheSendTime_ReportsEachChannel(
         string channel,
         string subject,
