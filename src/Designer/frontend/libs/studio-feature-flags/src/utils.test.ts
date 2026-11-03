@@ -3,10 +3,14 @@ import { typedLocalStorage } from '@studio/pure-functions';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,
+  EXPERIMENTAL_FEATURES_MODE_KEY,
   FEATURE_FLAGS_KEY,
+  retrieveExperimentalFeaturesMode,
   retrieveFeatureFlags,
+  setExperimentalFeaturesModeInLocalStorage,
+  turnOffFeatureFlag,
 } from './utils';
-import { FeatureFlag } from './FeatureFlag';
+import { FeatureFlag, experimentalFeatureFlags } from './FeatureFlag';
 
 describe('studio-feature-flags utils', () => {
   const primaryFeatureToTest = FeatureFlag.ShouldOverrideAppLibCheck;
@@ -89,6 +93,56 @@ describe('studio-feature-flags utils', () => {
     it('Injects an empty array to the local storage item when no feature flags are set', () => {
       removeFeatureFlagFromLocalStorage(primaryFeatureToTest);
       expect(typedLocalStorage.getItem<FeatureFlag[]>(FEATURE_FLAGS_KEY)).toEqual([]);
+    });
+  });
+
+  describe('Experimental features mode', () => {
+    const [experimentalFlag, ...otherExperimentalFlags] = experimentalFeatureFlags;
+    const developerFlag = FeatureFlag.ShouldOverrideAppLibCheck;
+
+    beforeEach(() => typedLocalStorage.removeItem(EXPERIMENTAL_FEATURES_MODE_KEY));
+    afterEach(() => typedLocalStorage.removeItem(EXPERIMENTAL_FEATURES_MODE_KEY));
+
+    it('Returns the custom mode when no mode is stored', () => {
+      expect(retrieveExperimentalFeaturesMode()).toBe('custom');
+    });
+
+    it('Returns the custom mode when the stored mode is not valid', () => {
+      typedLocalStorage.setItem<string>(EXPERIMENTAL_FEATURES_MODE_KEY, 'invalid');
+      expect(retrieveExperimentalFeaturesMode()).toBe('custom');
+    });
+
+    it('Stores the given mode', () => {
+      setExperimentalFeaturesModeInLocalStorage('all');
+      expect(retrieveExperimentalFeaturesMode()).toBe('all');
+    });
+
+    it('Returns every experimental flag in the all mode, but no developer flag', () => {
+      setExperimentalFeaturesModeInLocalStorage('all');
+      expectArrayInAnyOrder(retrieveFeatureFlags(), [...experimentalFeatureFlags]);
+      expect(retrieveFeatureFlags()).not.toContain(developerFlag);
+    });
+
+    it('Turns a flag off by removing it from the storage in the custom mode', () => {
+      typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [experimentalFlag]);
+      turnOffFeatureFlag(experimentalFlag);
+      expect(retrieveFeatureFlags()).toEqual([]);
+    });
+
+    it('Changes to the custom mode with the other experimental flags on when an experimental flag is turned off in the all mode', () => {
+      typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [developerFlag]);
+      setExperimentalFeaturesModeInLocalStorage('all');
+      turnOffFeatureFlag(experimentalFlag);
+      expect(retrieveExperimentalFeaturesMode()).toBe('custom');
+      expectArrayInAnyOrder(retrieveFeatureFlags(), [developerFlag, ...otherExperimentalFlags]);
+    });
+
+    it('Keeps the all mode when a developer flag is turned off in the all mode', () => {
+      typedLocalStorage.setItem<FeatureFlag[]>(FEATURE_FLAGS_KEY, [developerFlag]);
+      setExperimentalFeaturesModeInLocalStorage('all');
+      turnOffFeatureFlag(developerFlag);
+      expect(retrieveExperimentalFeaturesMode()).toBe('all');
+      expect(retrieveFeatureFlags()).not.toContain(developerFlag);
     });
   });
 });
