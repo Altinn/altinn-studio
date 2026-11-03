@@ -148,6 +148,7 @@ func applyLayer(below imageFile, layer *tar.Reader, target string) (imageFile, e
 		case header.Typeflag != tar.TypeDir && strings.HasPrefix(target, name+"/"):
 			// Replacing an ancestor directory also removes its contents from lower layers.
 			deleted = true
+			file = imageFile{}
 		}
 	}
 	if file.present || deleted {

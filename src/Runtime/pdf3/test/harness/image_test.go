@@ -26,6 +26,11 @@ func TestApplyLayer(t *testing.T) {
 		{"directory", []tar.Header{{Name: target, Typeflag: tar.TypeDir}}, imageFile{present: true}},
 		{"ancestor replaced by file", []tar.Header{{Name: "etc/ssl", Size: 5}}, imageFile{}},
 		{"ancestor replaced by symlink", []tar.Header{{Name: "etc/ssl", Typeflag: tar.TypeSymlink}}, imageFile{}},
+		{
+			"ancestor replaced after target",
+			[]tar.Header{{Name: target, Size: 5}, {Name: "etc/ssl", Size: 5}},
+			imageFile{},
+		},
 		{"ancestor directory retained", []tar.Header{{Name: "etc/ssl/", Typeflag: tar.TypeDir}}, lower},
 		{"whiteout", []tar.Header{{Name: "etc/ssl/certs/.wh.ca-certificates.crt"}}, imageFile{}},
 		{"directory whiteout", []tar.Header{{Name: "etc/.wh.ssl"}}, imageFile{}},
