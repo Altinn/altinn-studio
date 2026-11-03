@@ -30,8 +30,6 @@ namespace Altinn.Studio.Designer.Hubs.Assistant;
 [Authorize]
 public class AssistantProxyHub : Hub<IAssistantClient>
 {
-    // The detail of the 404 that the assistant service gives for a session that it does not know
-    // (cancel_session in src/AI/assistant/api/routes/agent.py).
     private const string UnknownSessionDetail = "Session not found";
 
     private readonly IHttpContextAccessor _httpContextAccessor;
