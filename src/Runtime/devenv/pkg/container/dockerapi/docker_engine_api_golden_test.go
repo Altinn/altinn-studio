@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
@@ -32,6 +33,10 @@ func TestRequests_MatchGolden(t *testing.T) {
 	scenarios := map[string]func(context.Context, *Client) error{
 		"create-container": func(ctx context.Context, c *Client) error {
 			_, err := c.CreateContainer(ctx, goldenContainerConfig())
+			return err
+		},
+		"empty-command": func(ctx context.Context, c *Client) error {
+			_, err := c.CreateContainer(ctx, types.ContainerConfig{Image: "alpine", Command: []string{}})
 			return err
 		},
 		"exec": func(ctx context.Context, c *Client) error {
@@ -59,9 +64,9 @@ func goldenContainerConfig() types.ContainerConfig {
 	return types.ContainerConfig{
 		Name:    "devenv-ctr",
 		Image:   "registry:2",
-		Command: []string{"serve", "--verbose"},
+		Command: []string{"serve", "--verbose", ""},
 		Env:     []string{"A=1"},
-		Labels:  map[string]string{"altinn.studio/devenv": "true"},
+		Labels:  map[string]string{"altinn.studio/devenv": "true", "empty": ""},
 		User:    "1000:1000",
 		Ports: []types.PortMapping{
 			{HostIP: "127.0.0.1", HostPort: "5001", ContainerPort: "5000"},
@@ -122,6 +127,8 @@ func runImageCalls(ctx context.Context, c *Client) error {
 		"ghcr.io/altinn/studio:v1",
 		"localhost:5001/runtime/app:dev",
 		"localhost/app",
+		"Registry/app",
+		"ghcr.io/org/app@" + testDigest,
 		"alpine:3.20@" + testDigest,
 	} {
 		if err := c.ImagePull(ctx, ref); err != nil {
@@ -282,8 +289,8 @@ func queryValues(t *testing.T, query url.Values) map[string]any {
 	return values
 }
 
-// withoutZeroValues drops what the daemon reads as the zero value when absent: null, "", false, 0, and arrays
-// and objects of only those. The entries of ExposedPorts stay, since their keys are the data.
+// withoutZeroValues omits SDK defaults that the daemon also uses for absent struct fields.
+// Label and port-set entries, and array elements (including an empty command), are data and stay intact.
 func withoutZeroValues(value any, isSet bool) any {
 	switch v := value.(type) {
 	case map[string]any:
@@ -291,7 +298,11 @@ func withoutZeroValues(value any, isSet bool) any {
 			if isSet {
 				continue
 			}
-			if field = withoutZeroValues(field, key == "ExposedPorts"); field == nil {
+			// Moby always sends the unused terminal size; the thin client omits its default.
+			if key == "ConsoleSize" && reflect.DeepEqual(field, []any{float64(0), float64(0)}) {
+				field = nil
+			}
+			if field = withoutZeroValues(field, key == "ExposedPorts" || key == "Labels"); field == nil {
 				delete(v, key)
 			} else {
 				v[key] = field
@@ -301,24 +312,13 @@ func withoutZeroValues(value any, isSet bool) any {
 			return nil
 		}
 	case []any:
-		zero := true
-		for i := range v {
-			v[i] = withoutZeroValues(v[i], false)
-			zero = zero && v[i] == nil
+		for i, entry := range v {
+			if _, object := entry.(map[string]any); object {
+				v[i] = withoutZeroValues(entry, false)
+			}
 		}
-		if zero {
-			return nil
-		}
-	case string:
-		if v == "" {
-			return nil
-		}
-	case bool:
-		if !v {
-			return nil
-		}
-	case float64:
-		if v == 0 {
+	default:
+		if value != nil && reflect.ValueOf(value).IsZero() {
 			return nil
 		}
 	}

@@ -16,7 +16,7 @@ type createContainerRequest struct {
 	NetworkingConfig *networkingConfig   `json:"NetworkingConfig,omitempty"`
 	Image            string              `json:"Image"`
 	User             string              `json:"User,omitempty"`
-	Cmd              []string            `json:"Cmd,omitempty"`
+	Cmd              []string            `json:"Cmd"`
 	Env              []string            `json:"Env,omitempty"`
 	HostConfig       hostConfig          `json:"HostConfig"`
 }

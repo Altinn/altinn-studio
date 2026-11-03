@@ -1,0 +1,5 @@
+[
+{"method":"GET","path":"/images/alpine/json"},
+{"query":{"fromImage":["docker.io/library/alpine"],"tag":["latest"]},"method":"POST","path":"/images/create"},
+{"header":{"Content-Type":"application/json"},"body":{"Cmd":[],"HostConfig":{"CapAdd":["CAP_AUDIT_WRITE","CAP_MKNOD","CAP_NET_RAW"],"RestartPolicy":{"Name":"no"}},"Image":"alpine"},"method":"POST","path":"/containers/create"}
+]
