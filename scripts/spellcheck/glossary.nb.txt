@@ -48,7 +48,6 @@ avpublisere
 avpubliserer
 avpubliseres
 avpublisering
-avpublisert
 avvisningsdialog
 avvisningsdialogen
 avvisningsknapp
