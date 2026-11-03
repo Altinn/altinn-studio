@@ -233,16 +233,20 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
-    public void ResetToRemoteBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+    public void ResetToRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName,
+        string localPath
+    )
     {
         using var activity = StartActivity(authenticatedContext);
         activity?.SetTag(ServiceTelemetry.Attributes.Git.Branch, branchName);
         ExecuteWithTelemetry(
             activity,
-            (authenticatedContext, branchName),
+            (authenticatedContext, branchName, localPath),
             static (self, ctx) =>
             {
-                using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(ctx.authenticatedContext));
+                using var repo = new LibGit2Sharp.Repository(ctx.localPath);
                 Infrastructure.GitRepository.LibGit2Configuration.AssertSymbolicLinksDisabled(repo.Config);
                 // A clone made against another server would otherwise fetch from it and push its history here.
                 self.PointOriginAtRemote(repo, ctx.authenticatedContext);

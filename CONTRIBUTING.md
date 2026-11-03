@@ -38,7 +38,7 @@ Labels say which part of Studio an issue is about (`area/*`) and which squad own
 ### Changelogs
 
 The components with a `CHANGELOG.md`, such as [studioctl](src/cli/CHANGELOG.md) and the
-[app backend](src/App/backend/CHANGELOG.md), publish it as their release notes. A change their users will notice gets
+[app](src/App/CHANGELOG.md), publish it as their release notes. A change their users will notice gets
 an entry under `## [Unreleased]`, written for those users as the [changelog skill](agents/_skills/changelog/SKILL.md)
 describes. CI requires an entry for changes to studioctl. Label a pull request `skip-changelog` when users will not
 notice it.

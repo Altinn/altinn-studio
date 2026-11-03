@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
-import { StudioDropdown, StudioLinkButton } from '@studio/components';
+import { StudioDropdown } from '@studio/components';
 import {
   ArrowsCirclepathIcon,
   CloudSlashIcon,
@@ -44,11 +44,12 @@ export const DeployMoreOptionsMenu = ({
         triggerButtonClassName={classes.trigger}
         placement='bottom-end'
       >
+        {/* The items set their color, since the menu would otherwise take the color of the status alert it is in. */}
         <StudioDropdown.List>
           {canRestart && (
             <StudioDropdown.Item>
               <StudioDropdown.Button
-                data-color='neutral'
+                data-color='accent'
                 icon={<ArrowsCirclepathIcon />}
                 onClick={() => setIsRestartDialogOpen(true)}
                 disabled={runningApp.status === 'updating'}
@@ -58,16 +59,15 @@ export const DeployMoreOptionsMenu = ({
             </StudioDropdown.Item>
           )}
           <StudioDropdown.Item>
-            <StudioLinkButton
-              className={classes.linkButton}
-              href={linkToEnv}
-              icon={<ExternalLinkIcon />}
-              rel='noopener noreferrer'
-              variant='tertiary'
-              data-color='neutral'
-            >
-              {t('app_deployment.more_options_menu')}
-            </StudioLinkButton>
+            {/* A button-styled link, so a visited link keeps the color of the other items. */}
+            <StudioDropdown.Button asChild data-color='accent'>
+              <a href={linkToEnv} rel='noopener noreferrer'>
+                <span className={classes.linkContent}>
+                  <ExternalLinkIcon aria-hidden />
+                  {t('app_deployment.more_options_menu')}
+                </span>
+              </a>
+            </StudioDropdown.Button>
           </StudioDropdown.Item>
         </StudioDropdown.List>
         <StudioDropdown.List>
