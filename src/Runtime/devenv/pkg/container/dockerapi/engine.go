@@ -45,6 +45,7 @@ var (
 	errNoCertificates    = errors.New("failed to append certificates from PEM file")
 	errPermissionDenied  = errors.New("permission denied while trying to connect to the docker API")
 	errRedirect          = errors.New("unexpected redirect in response")
+	errEmptyID           = errors.New("invalid name or ID: value is empty")
 	//nolint:staticcheck // ST1005: moby's capitalized text.
 	errDaemonNotListening = errors.New("Cannot connect to the Docker daemon")
 )
@@ -255,6 +256,11 @@ func (e *engine) newRequest(
 	query url.Values,
 	body any,
 ) (*http.Request, error) {
+	// An empty name or ID leaves an empty path segment, and path.Join would remove it:
+	// GET /containers//json would list containers instead of inspecting one.
+	if strings.Contains(path, "//") || strings.HasSuffix(path, "/") {
+		return nil, errEmptyID
+	}
 	var reader io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)

@@ -156,6 +156,27 @@ func TestClient_NotFoundErrors(t *testing.T) {
 	}
 }
 
+func TestClient_EmptyIDFailsBeforeRequest(t *testing.T) {
+	t.Parallel()
+	c := newHTTPTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+		t.Errorf("unexpected request: %s %s", req.Method, req.URL)
+		w.WriteHeader(http.StatusNotFound)
+	})
+	ctx := t.Context()
+	_, inspectErr := c.ContainerInspect(ctx, "")
+	_, imageErr := c.ImageInspect(ctx, "")
+	for name, err := range map[string]error{
+		"ContainerInspect": inspectErr,
+		"ContainerRemove":  c.ContainerRemove(ctx, "", true),
+		"ImageInspect":     imageErr,
+		"NetworkRemove":    c.NetworkRemove(ctx, ""),
+	} {
+		if !errors.Is(err, errEmptyID) {
+			t.Errorf("%s(\"\") error = %v, want %v", name, err, errEmptyID)
+		}
+	}
+}
+
 func TestNetworkRemove_SDKErrorClassification(t *testing.T) {
 	t.Parallel()
 	for _, status := range []int{http.StatusConflict, http.StatusForbidden} {
