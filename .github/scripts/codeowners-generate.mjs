@@ -71,6 +71,7 @@ const GROUPS = [
     owner: '@altinn/team-altinn-studio-kjoring',
     roots: [
       'src/cli',
+      'src/core',
       'src/gitea',
       'src/ci',
       'src/gitea-proxy',
