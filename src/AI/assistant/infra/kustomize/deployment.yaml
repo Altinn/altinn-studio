@@ -18,6 +18,8 @@ spec:
         app: altinn-altinity-agents
     spec:
       serviceAccountName: altinn-altinity-agents-sa
+      # The assistant does not call the Kubernetes API. It asks the core operator, with the projected token below.
+      automountServiceAccountToken: false
       containers:
         - name: altinn-altinity-agents
           image: altinn-altinity-agents:latest
@@ -43,6 +45,10 @@ spec:
               value: "https://team-altinnstudio-ai.services.ai.azure.com/anthropic/"
             - name: GITEA_BASE_URL
               value: "http://altinn-repositories-public"
+            # The core operator runs the v9 upgrade in a sandbox Job. In an environment without sandboxes, such as
+            # staging, it offers no kinds, and the upgrade tool says that it cannot run.
+            - name: CORE_OPERATOR_URL
+              value: "http://core-operator.core-operator.svc.cluster.local:8080"
             - name: LANGFUSE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
@@ -67,3 +73,17 @@ spec:
                   key: LANGFUSE_ENVIRONMENT
             - name: LANGFUSE_RELEASE
               value: "altinity-agents-v1"
+          volumeMounts:
+            - name: core-operator-token
+              mountPath: /var/run/secrets/core-operator
+              readOnly: true
+      volumes:
+        # The token that the core operator accepts. It is not valid for the Kubernetes API. The kubelet renews it
+        # before it expires, so the service reads the file for each request.
+        - name: core-operator-token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: core-operator
+                  expirationSeconds: 3600
+                  path: token

@@ -1,4 +1,4 @@
-"""Path safety and read/change tracking shared by the file tools.
+"""Path safety and read/change/verify tracking shared by the file tools.
 
 Read-before-write is enforced: the model cannot edit or overwrite an
 existing file it hasn't read.  This forces a "stabilize state, then
@@ -53,6 +53,12 @@ def mark_changed(ctx: LoopContext, rel_path: str) -> None:
     verified = ctx.extras.get("verified_files")
     if verified is not None:
         verified.discard(rel_path)
+
+
+def mark_verified(ctx: LoopContext, rel_path: str) -> None:
+    """`commit_session_branch` commits a changed file only when it is verified after its last change."""
+    verified: set[str] = ctx.extras.setdefault("verified_files", set())
+    verified.add(rel_path)
 
 
 def is_read(ctx: LoopContext, rel_path: str) -> bool:
