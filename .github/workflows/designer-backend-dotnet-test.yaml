@@ -11,6 +11,8 @@ on:
       - 'src/Designer/development/fake-ansattporten/**'
       - 'src/App/template/**'
       - 'src/gitea/**'
+      # The tests of the core operator client read the example report of upgrade-v9.
+      - 'src/core/job-host/examples/**'
       - '.github/workflows/designer-backend-dotnet-test.yaml'
       - '!**/AGENTS.md'
       - '!**/README.md'

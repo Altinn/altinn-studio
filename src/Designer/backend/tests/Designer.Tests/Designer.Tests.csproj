@@ -117,4 +117,8 @@
   <ItemGroup>
     <Folder Include="_TestData\DataNorge\" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The report of a real upgrade, which the job host keeps as the example of what upgrade-v9 returns. -->
+    <None Include="..\..\..\..\core\job-host\examples\upgrade-v9-report.json" Link="TypedHttpClients\Operator\upgrade-v9-report.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
