@@ -32,7 +32,8 @@ var errFluxManifestsDownload = errors.New("failed to download manifests.tar.gz")
 
 // These files reproduce what `flux install` generates around a release's manifests with its default options
 // (flux2's pkg/manifestgen/install), for the controllers devenv installs. When fluxVersion changes, compare the
-// result with `flux install --export`.
+// result with `flux install --export`. Log level and source storage address already match the release defaults;
+// the watch flag is made explicit to match upstream's output. Labels include pod templates but not selectors.
 var fluxGeneratedFiles = map[string]string{
 	"namespace.yaml": `apiVersion: v1
 kind: Namespace
@@ -41,21 +42,6 @@ metadata:
   labels:
     pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/warn-version: latest
-`,
-	"labels.yaml": `apiVersion: builtin
-kind: LabelTransformer
-metadata:
-  name: labels
-labels:
-  app.kubernetes.io/instance: flux-system
-  app.kubernetes.io/version: "` + fluxVersion + `"
-  app.kubernetes.io/part-of: flux
-fieldSpecs:
-  - path: metadata/labels
-    create: true
-  - kind: Deployment
-    path: spec/template/metadata/labels
-    create: true
 `,
 	"node-selector.yaml": `apiVersion: apps/v1
 kind: Deployment
@@ -80,8 +66,12 @@ var fluxKustomizationTemplate = template.Must(template.New("kustomization.yaml")
 	`apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: flux-system
-transformers:
-  - labels.yaml
+labels:
+  - pairs:
+      app.kubernetes.io/instance: flux-system
+      app.kubernetes.io/version: "` + fluxVersion + `"
+      app.kubernetes.io/part-of: flux
+    includeTemplates: true
 resources:
   - namespace.yaml
   - policies.yaml
@@ -104,9 +94,6 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/args/0
         value: --watch-all-namespaces=true
-      - op: replace
-        path: /spec/template/spec/containers/0/args/1
-        value: --log-level=info
 {{- else }}
       - op: replace
         path: /spec/template/spec/containers/0/args/0
@@ -114,14 +101,6 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/args/1
         value: --watch-all-namespaces=true
-      - op: replace
-        path: /spec/template/spec/containers/0/args/2
-        value: --log-level=info
-{{- if eq . "source-controller" }}
-      - op: replace
-        path: /spec/template/spec/containers/0/args/6
-        value: --storage-adv-addr=source-controller.$(RUNTIME_NAMESPACE).svc.cluster.local.
-{{- end }}
 {{- end }}
 {{- end }}
 images:
