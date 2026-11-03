@@ -138,23 +138,6 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     void SetPresentationText(string key, string? value);
 
     /// <summary>
-    /// Sets the instance's substatus.
-    /// </summary>
-    /// <remarks>
-    /// Storage accepts a substatus only from the app owner. Process transitions save it as the app; Storage refuses the
-    /// whole save, with its other changes, when it is made with an end user's token.
-    /// </remarks>
-    void SetSubstatus(Substatus substatus);
-
-    /// <summary>
-    /// Confirms the instance as complete on behalf of the app owner.
-    /// </summary>
-    /// <remarks>
-    /// Only a process transition saves the confirmation; any other save of these changes throws.
-    /// </remarks>
-    void AddCompleteConfirmation();
-
-    /// <summary>
     /// Stop processing the request with current changes and return a BadRequest with the following issues
     /// This is intended to be an alternative to a <see cref="IFileAnalyzer"/> <see cref="IFileValidator"/>
     /// pair to ensure that new binary data is not saved if the data is not valid.

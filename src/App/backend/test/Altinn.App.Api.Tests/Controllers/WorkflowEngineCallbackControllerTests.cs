@@ -1173,7 +1173,6 @@ public class WorkflowEngineCallbackControllerTests
     [Theory]
     [InlineData("dataValue")]
     [InlineData("presentationText")]
-    [InlineData("substatus")]
     [InlineData("elementMetadata")]
     [InlineData("completeConfirmation")]
     public async Task ExecuteCommand_ServiceTaskDefersAfterStagingAnInstanceChange_ReturnsNonRetryableProblem(
@@ -1450,14 +1449,12 @@ public class WorkflowEngineCallbackControllerTests
                 case "presentationText":
                     mutator.SetPresentationText("status", "Sent");
                     break;
-                case "substatus":
-                    mutator.SetSubstatus(new Substatus { Label = "sent" });
-                    break;
                 case "elementMetadata":
                     mutator.UpdateDataElementMetadata(dataElement, new DataElementMetadataUpdate { Tags = ["sent"] });
                     break;
                 case "completeConfirmation":
-                    mutator.AddCompleteConfirmation();
+                    // Built-in service tasks such as eFormidling stage the confirmation.
+                    Assert.IsType<InstanceDataUnitOfWork>(mutator).AddCompleteConfirmation();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(stagedChange));

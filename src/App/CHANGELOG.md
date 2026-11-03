@@ -13,7 +13,7 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 ### Added
 
 - Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
-- Process hooks, service tasks and `IInstantiationProcessor` can set data values and presentation texts, change a data element's tags, metadata, refs and filename, and replace a form's data through `IInstanceDataMutator`; hooks and service tasks can also set the substatus and confirm the instance as complete. The changes are saved with the process transition or instantiation. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
+- Process hooks, service tasks and `IInstantiationProcessor` can set data values and presentation texts, change a data element's tags, metadata, refs and filename, and replace a form's data through `IInstanceDataMutator`. The changes are saved with the process transition or instantiation. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 - Build check `ALTINNAPP0501` (warning) reports calls to `IDataClient`, `IInstanceClient` and `IDataService` in process hooks, service tasks and `IInstantiationProcessor.DataCreation`, where Storage refuses direct writes while the process is transitioning. Use the `IInstanceDataMutator` from the context instead. ([#21485](https://github.com/Altinn/altinn-studio/pull/21485))
 
 ### Changed

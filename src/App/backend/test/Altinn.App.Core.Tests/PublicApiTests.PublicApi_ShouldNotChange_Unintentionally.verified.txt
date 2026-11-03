@@ -1541,14 +1541,12 @@ namespace Altinn.App.Core.Features
         void AbandonAllChanges(System.Collections.Generic.IEnumerable<Altinn.App.Core.Models.Validation.ValidationIssue> validationIssues);
         Altinn.App.Core.Models.BinaryDataChange AddBinaryDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, string contentType, string? filename, System.ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? metadata = null);
         Altinn.App.Core.Models.BinaryDataChange AddBinaryDataElement(string dataTypeId, string contentType, string? filename, System.ReadOnlyMemory<byte> bytes, string? generatedFromTask = null, System.Collections.Generic.List<Altinn.Platform.Storage.Interface.Models.KeyValueEntry>? metadata = null);
-        void AddCompleteConfirmation();
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(Altinn.Platform.Storage.Interface.Models.DataType dataType, object model);
         Altinn.App.Core.Models.FormDataChange AddFormDataElement(string dataTypeId, object model);
         void RemoveDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier);
         System.Threading.Tasks.Task ReplaceFormData(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, object model);
         void SetDataValue(string key, string? value);
         void SetPresentationText(string key, string? value);
-        void SetSubstatus(Altinn.Platform.Storage.Interface.Models.Substatus substatus);
         Altinn.App.Core.Models.BinaryDataChange UpdateBinaryDataElement(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, string contentType, System.ReadOnlyMemory<byte> bytes);
         void UpdateDataElementMetadata(Altinn.App.Core.Models.DataElementIdentifier dataElementIdentifier, Altinn.App.Core.Models.DataElementMetadataUpdate update);
     }
