@@ -28,12 +28,13 @@ pod spec of each workload mounts two folders from it, and `ProviderArguments` on
   `/var/lib/altinn/sandbox/homes` that is named after its pod UID (`subPathExpr: $(POD_UID)`) at
   `SANDBOX_PROVIDER_HOME`. No two pods use the same folder, even on the same node.
 - The image cache holds the prepared images that the VMs start from. The GitHub runner pods on a node share one cache,
-  `/var/lib/altinn/sandbox/cache`, mounted at `SANDBOX_CACHE_HOME`. The init container imports the prepared image into
-  it, with a throwaway Provider home in the pod's `/tmp`.
+  `/var/lib/altinn/sandbox/cache`, mounted at `SANDBOX_CACHE_HOME`. The job host pods share its `job-host` subfolder.
+  The init container imports the prepared image into it, with a throwaway Provider home in the pod's `/tmp`.
 
-`clear_home` empties the Provider home when a run ends, also after a failed run, so that nothing carries over to the
-next run.
+`run_then_clear_home` empties the Provider home with `clear_home` when a run ends, also after a failed run, so that
+nothing carries over to the next run.
 
-The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/README.md) uses this crate.
+The GitHub runner coordinator in [`src/ci/github-runner`](../github-runner/README.md) and the
+[job host](../../core/job-host/README.md) of the core operator use this crate.
 
 See the [`Makefile`](Makefile) for available development commands. `sandbox-host-build.yaml` runs them in CI.

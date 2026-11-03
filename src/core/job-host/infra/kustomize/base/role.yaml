@@ -1,0 +1,21 @@
+# For each run, the core operator starts one Job and watches its pod until the pod is Ready. After the run, the
+# operator deletes the Job.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: core-operator-runs
+  namespace: sandbox-runs
+rules:
+  # Read the pod spec of the runner Jobs.
+  - apiGroups: [""]
+    resources: [podtemplates]
+    resourceNames: [job-host]
+    verbs: [get]
+  # Start, monitor and remove a run. The policy in admission-policy.yaml limits what these Jobs can contain.
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [create, get, list, watch, delete]
+  # Find the pod of a Job, its phase and its IP address.
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch]

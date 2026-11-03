@@ -1,0 +1,15 @@
+ARG JOB_HOST_IMAGE
+FROM ${JOB_HOST_IMAGE} AS tools
+
+FROM ubuntu:24.04@sha256:68ee22004a9109b44973313b02ff7b1de250f1de0f5ecb628d73f579aaff33ac
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends libcap-ng0 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=tools \
+  /usr/local/bin/sandbox-image \
+  /usr/local/bin/sandbox-image
+COPY prepared-image /opt/altinn/prepared-image
+
+ENTRYPOINT ["/usr/local/bin/sandbox-image", "import"]
