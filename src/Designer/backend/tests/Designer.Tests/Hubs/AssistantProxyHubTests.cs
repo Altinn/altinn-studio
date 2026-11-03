@@ -360,20 +360,24 @@ public class AssistantProxyHubTests
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
         _agentHttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
+        _agentHttpHandler.ResponseContent = """{"detail": "Session not found"}""";
 
-        var response = (JsonElement)await hub.CancelWorkflow(threadId.ToString());
+        var response = JsonSerializer.SerializeToElement(await hub.CancelWorkflow(threadId.ToString()));
 
-        Assert.Equal("not_found", response.GetProperty("status").GetString());
+        Assert.Equal("unknown", response.GetProperty("status").GetString());
     }
 
-    [Fact]
-    public async Task CancelWorkflow_AgentsServiceFails_ThrowsHubException()
+    [Theory]
+    [InlineData(HttpStatusCode.NotFound, """{"detail": "Not Found"}""")]
+    [InlineData(HttpStatusCode.InternalServerError, """{"detail": "Session not found"}""")]
+    public async Task CancelWorkflow_AgentsServiceFails_ThrowsHubException(HttpStatusCode statusCode, string content)
     {
         var threadId = Guid.NewGuid();
         SetupThreadOwnership(threadId, TestOrg, TestApp);
         var hub = CreateHub();
         await hub.RegisterSession(TestOrg, TestApp, threadId.ToString());
-        _agentHttpHandler.ResponseStatusCode = HttpStatusCode.InternalServerError;
+        _agentHttpHandler.ResponseStatusCode = statusCode;
+        _agentHttpHandler.ResponseContent = content;
 
         await Assert.ThrowsAsync<HubException>(() => hub.CancelWorkflow(threadId.ToString()));
     }
@@ -414,6 +418,8 @@ public class AssistantProxyHubTests
 
         public HttpStatusCode ResponseStatusCode { get; set; } = HttpStatusCode.OK;
 
+        public string ResponseContent { get; set; } = """{"accepted": true}""";
+
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken
@@ -427,10 +433,7 @@ public class AssistantProxyHubTests
                 );
             }
 
-            return new HttpResponseMessage(ResponseStatusCode)
-            {
-                Content = new StringContent("""{"accepted": true}"""),
-            };
+            return new HttpResponseMessage(ResponseStatusCode) { Content = new StringContent(ResponseContent) };
         }
     }
 

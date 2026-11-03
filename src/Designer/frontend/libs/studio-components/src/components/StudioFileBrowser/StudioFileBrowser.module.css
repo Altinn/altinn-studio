@@ -77,7 +77,6 @@
   padding: var(--ds-size-2) var(--ds-size-3);
   color: var(--ds-color-neutral-text-default);
   font-size: var(--ds-body-sm-font-size);
-  font-weight: var(--ds-font-weight-medium);
   text-align: left;
   border-left: var(--ds-size-1) solid transparent;
   border-radius: 0;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createNewChatThread, orderThreadIdsByDistance } from './threadUtils';
+import { createNewChatThread, findNearestRemainingThreadId } from './threadUtils';
 
 if (!globalThis.crypto) {
   Object.defineProperty(globalThis, 'crypto', {
@@ -27,23 +27,27 @@ describe('threadUtils', () => {
     });
   });
 
-  describe('orderThreadIdsByDistance', () => {
+  describe('findNearestRemainingThreadId', () => {
     const threadIds = ['a', 'b', 'c', 'd'];
 
-    it('returns the threads after the removed thread, and then the threads before it, nearest first', () => {
-      expect(orderThreadIdsByDistance(threadIds, 'b')).toEqual(['c', 'd', 'a']);
+    it('returns the next thread when it remains', () => {
+      expect(findNearestRemainingThreadId(threadIds, ['a', 'c', 'd'], 'b')).toBe('c');
     });
 
-    it('returns the threads before the last thread, nearest first', () => {
-      expect(orderThreadIdsByDistance(threadIds, 'd')).toEqual(['c', 'b', 'a']);
+    it('skips the threads after the removed thread that are also removed', () => {
+      expect(findNearestRemainingThreadId(threadIds, ['a', 'd'], 'b')).toBe('d');
     });
 
-    it('returns no threads when the removed thread was the only one', () => {
-      expect(orderThreadIdsByDistance(['a'], 'a')).toEqual([]);
+    it('returns the nearest thread before the removed thread when no thread after it remains', () => {
+      expect(findNearestRemainingThreadId(threadIds, ['a', 'b'], 'd')).toBe('b');
     });
 
-    it('returns no threads when the list does not contain the thread', () => {
-      expect(orderThreadIdsByDistance(threadIds, 'x')).toEqual([]);
+    it('returns undefined when no thread remains', () => {
+      expect(findNearestRemainingThreadId(['a'], [], 'a')).toBeUndefined();
+    });
+
+    it('returns undefined when the previous list does not contain the thread', () => {
+      expect(findNearestRemainingThreadId(threadIds, threadIds, 'x')).toBeUndefined();
     });
   });
 });

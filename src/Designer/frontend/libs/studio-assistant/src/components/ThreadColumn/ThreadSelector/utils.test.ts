@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findFocusTargetForKey, isNavigationKey } from './utils';
+import { findFocusTargetForKey } from './utils';
 import type { FocusTarget } from './utils';
 
 const threadIds = ['a', 'b', 'c', 'd'];
@@ -20,38 +20,24 @@ describe('findFocusTargetForKey', () => {
     expect(findFocusTargetForKey(threadIds, current, key, true)).toEqual(expected);
   });
 
-  it('returns undefined at the ends of the list, so the focus does not wrap', () => {
-    expect(
-      findFocusTargetForKey(threadIds, { threadId: 'd', part: 'thread' }, 'ArrowDown', true),
-    ).toBeUndefined();
-    expect(
-      findFocusTargetForKey(threadIds, { threadId: 'a', part: 'thread' }, 'ArrowUp', true),
-    ).toBeUndefined();
+  it('keeps the current button at the ends of the list, so the focus does not wrap', () => {
+    const lastThread: FocusTarget = { threadId: 'd', part: 'thread' };
+    const firstThread: FocusTarget = { threadId: 'a', part: 'thread' };
+    expect(findFocusTargetForKey(threadIds, lastThread, 'ArrowDown', true)).toEqual(lastThread);
+    expect(findFocusTargetForKey(threadIds, firstThread, 'ArrowUp', true)).toEqual(firstThread);
   });
 
-  it('returns undefined for the right key on a delete button and the left key on a thread', () => {
-    expect(findFocusTargetForKey(threadIds, deleteB, 'ArrowRight', true)).toBeUndefined();
-    expect(findFocusTargetForKey(threadIds, threadB, 'ArrowLeft', true)).toBeUndefined();
+  it('keeps the current button for the right key on a delete button and the left key on a thread', () => {
+    expect(findFocusTargetForKey(threadIds, deleteB, 'ArrowRight', true)).toEqual(deleteB);
+    expect(findFocusTargetForKey(threadIds, threadB, 'ArrowLeft', true)).toEqual(threadB);
   });
 
-  it('returns undefined for the right key when the threads cannot be deleted', () => {
-    expect(findFocusTargetForKey(threadIds, threadB, 'ArrowRight', false)).toBeUndefined();
+  it('keeps the current button for the right key when the threads cannot be deleted', () => {
+    expect(findFocusTargetForKey(threadIds, threadB, 'ArrowRight', false)).toEqual(threadB);
   });
 
-  it('returns undefined for other keys', () => {
+  it('returns undefined for keys that do not navigate', () => {
     expect(findFocusTargetForKey(threadIds, threadB, 'Enter', true)).toBeUndefined();
-  });
-});
-
-describe('isNavigationKey', () => {
-  it('returns true for the arrow keys, Home and End', () => {
-    ['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft', 'Home', 'End'].forEach((key) =>
-      expect(isNavigationKey(key)).toBe(true),
-    );
-  });
-
-  it('returns false for other keys', () => {
-    expect(isNavigationKey('Tab')).toBe(false);
-    expect(isNavigationKey('Enter')).toBe(false);
+    expect(findFocusTargetForKey(threadIds, threadB, 'Tab', true)).toBeUndefined();
   });
 });

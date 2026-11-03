@@ -2,7 +2,7 @@ export type * from './types/AssistantConfig';
 export { MessageAuthor } from './types/MessageAuthor';
 export type { ChatThread, UserMessage, UserAttachment, Source, Message } from './types/ChatThread';
 export { Assistant } from './Assistant/Assistant';
-export { orderThreadIdsByDistance } from './utils/threadUtils';
+export { findNearestRemainingThreadId } from './utils/threadUtils';
 export type {
   AssistantTexts,
   AboutAssistantDialogTexts,

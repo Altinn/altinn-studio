@@ -551,6 +551,24 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
     [createMessage],
   );
 
+  // Sends the cancellation of a run that the tab already shows as stopped. Gives false when the run continues.
+  const sendCancel = useCallback(
+    async (threadId: string, statusBeforeCancel: WorkflowStatus | undefined): Promise<boolean> => {
+      try {
+        // The hub rejects commands for sessions not registered on this connection.
+        await registerSession(org, app, threadId);
+        await cancelWorkflow(threadId);
+        return true;
+      } catch (error) {
+        // The run is still going, so stop showing it as stopped.
+        markThreadStillRunning(threadId, statusBeforeCancel);
+        console.error('Cancel workflow request failed:', error);
+        return false;
+      }
+    },
+    [registerSession, org, app, cancelWorkflow, markThreadStillRunning],
+  );
+
   const cancelCurrentWorkflow = useCallback(async (): Promise<void> => {
     const threadId = selectedThreadId;
     if (!selectedThreadId) return;
@@ -574,27 +592,15 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       }
     }
 
-    try {
-      // The hub rejects commands for sessions not registered on this connection.
-      await registerSession(org, app, threadId);
-      await cancelWorkflow(threadId);
-    } catch (error) {
-      // The run is still going, so stop showing it as stopped.
-      markThreadStillRunning(threadId, statusBeforeCancel);
-      // The run continues, so the answer needs its prompt above it.
-      if (deletedMessage) await restoreCancelledMessage(threadId, deletedMessage);
-      console.error('Cancel workflow request failed:', error);
-    }
+    const isCancelled = await sendCancel(threadId, statusBeforeCancel);
+    // The run continues, so the answer needs its prompt above it.
+    if (!isCancelled && deletedMessage) await restoreCancelledMessage(threadId, deletedMessage);
   }, [
-    cancelWorkflow,
-    registerSession,
-    org,
-    app,
+    sendCancel,
     selectedThreadId,
     deleteMessage,
     chatMessages,
     setWorkflowStatus,
-    markThreadStillRunning,
     restoreCancelledMessage,
     workflowStatusByThread,
     markThreadTerminated,
@@ -608,15 +614,9 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       if (statusBeforeCancel?.isActive) {
         markThreadTerminated(threadId);
         setWorkflowStatus(threadId, { isActive: false });
-        try {
-          // The hub refuses commands for a session that this connection did not register.
-          await registerSession(org, app, threadId);
-          await cancelWorkflow(threadId);
-        } catch (error) {
-          // The run continues and can write to the thread. Thus, do not delete the thread.
+        // The run continues and can write to the thread. Thus, do not delete the thread.
+        if (!(await sendCancel(threadId, statusBeforeCancel))) {
           deletingThreadIds.delete(threadId);
-          markThreadStillRunning(threadId, statusBeforeCancel);
-          console.error('Cancel workflow request failed:', error);
           return;
         }
       }
@@ -631,11 +631,7 @@ export const useAssistantWorkflow = (threads: AssistantThreadState): UseAssistan
       workflowStatusByThread,
       markThreadTerminated,
       setWorkflowStatus,
-      registerSession,
-      org,
-      app,
-      cancelWorkflow,
-      markThreadStillRunning,
+      sendCancel,
       deleteThreadWithoutCancelling,
     ],
   );

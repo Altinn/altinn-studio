@@ -5,15 +5,10 @@ export type FocusTarget = {
   part: ThreadPart;
 };
 
-const navigationKeys = ['ArrowDown', 'ArrowUp', 'Home', 'End', 'ArrowRight', 'ArrowLeft'];
-
-export function isNavigationKey(key: string): boolean {
-  return navigationKeys.includes(key);
-}
-
 /**
- * Gives the button that a navigation key moves the focus to. The up and down keys keep the part of the row, and the
- * right and left keys move between the thread and its delete button.
+ * Gives the button that a navigation key moves the focus to. Gives the current button when the key cannot move the
+ * focus, and undefined when the key does not navigate. The up and down keys keep the part of the row, and the right
+ * and left keys move between the thread and its delete button.
  */
 export function findFocusTargetForKey(
   threadIds: string[],
@@ -22,8 +17,8 @@ export function findFocusTargetForKey(
   canDelete: boolean,
 ): FocusTarget | undefined {
   const position = threadIds.indexOf(current.threadId);
-  const inSamePart = (threadId: string | undefined): FocusTarget | undefined =>
-    threadId === undefined ? undefined : { threadId, part: current.part };
+  const inSamePart = (threadId: string | undefined): FocusTarget =>
+    threadId === undefined ? current : { threadId, part: current.part };
   switch (key) {
     case 'ArrowDown':
       return inSamePart(threadIds[position + 1]);
@@ -34,9 +29,9 @@ export function findFocusTargetForKey(
     case 'End':
       return inSamePart(threadIds.at(-1));
     case 'ArrowRight':
-      return canDelete && current.part === 'thread' ? { ...current, part: 'delete' } : undefined;
+      return canDelete ? { ...current, part: 'delete' } : current;
     case 'ArrowLeft':
-      return current.part === 'delete' ? { ...current, part: 'thread' } : undefined;
+      return { ...current, part: 'thread' };
     default:
       return undefined;
   }

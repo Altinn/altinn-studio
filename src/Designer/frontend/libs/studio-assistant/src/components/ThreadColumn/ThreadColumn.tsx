@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useCallback, useId, useRef } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioHeading } from '@studio/components';
 import classes from './ThreadColumn.module.css';
@@ -32,6 +32,7 @@ export function ThreadColumn({
 }: ThreadColumnProps): ReactElement {
   const headingId = useId();
   const newThreadButtonRef = useRef<HTMLButtonElement>(null);
+  const focusNewThreadButton = useCallback(() => newThreadButtonRef.current?.focus(), []);
 
   return (
     <div className={classes.threadColumn}>
@@ -57,7 +58,7 @@ export function ThreadColumn({
           headingId={headingId}
           onSelectThread={onSelectThread}
           onDeleteThread={onDeleteThread}
-          onLastThreadDeleted={() => newThreadButtonRef.current?.focus()}
+          onLastThreadDeleted={focusNewThreadButton}
         />
       </div>
       <div className={classes.aboutSection}>

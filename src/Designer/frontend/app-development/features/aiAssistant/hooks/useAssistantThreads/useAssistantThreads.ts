@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatThread, UserMessage, AssistantMessage, Message } from '@studio/assistant';
-import { MessageAuthor, orderThreadIdsByDistance } from '@studio/assistant';
+import { MessageAuthor, findNearestRemainingThreadId } from '@studio/assistant';
 import type { ChatMessage } from 'app-shared/types/api';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -58,13 +58,6 @@ export const useAssistantThreads = (): AssistantThreadState => {
     [createChatThread],
   );
 
-  const deleteThread = useCallback(
-    async (threadId: string): Promise<void> => {
-      await deleteChatThread(threadId);
-    },
-    [deleteChatThread],
-  );
-
   const createMessage = useCallback(
     (threadId: string, message: UserMessage | AssistantMessage): Promise<ChatMessage> => {
       const isUser = message.role === MessageAuthor.User;
@@ -107,7 +100,7 @@ export const useAssistantThreads = (): AssistantThreadState => {
     selectedThreadId,
     selectThread: setSelectedThreadId,
     createThread,
-    deleteThread,
+    deleteThread: deleteChatThread,
     deleteMessage,
     createMessage,
     refreshMessages,
@@ -120,14 +113,14 @@ function findOpenThreadAfterChange(
   currentThreads: ChatThread[] = [],
   openThreadId: string | null,
 ): string | null {
-  const isInList = (threads: ChatThread[], threadId: string): boolean =>
-    threads.some((thread) => thread.id === threadId);
-  // A new thread is open before the list contains it.
-  if (!openThreadId || !isInList(previousThreads, openThreadId)) return openThreadId;
-  if (isInList(currentThreads, openThreadId)) return openThreadId;
   const previousThreadIds = previousThreads.map((thread) => thread.id);
-  const nearestThreadId = orderThreadIdsByDistance(previousThreadIds, openThreadId).find(
-    (threadId) => isInList(currentThreads, threadId),
-  );
-  return nearestThreadId ?? null;
+  const currentThreadIds = currentThreads.map((thread) => thread.id);
+  // A new thread can be open before the list contains it. Thus, the open thread is removed only when the previous
+  // list contains it.
+  const isOpenThreadRemoved =
+    !!openThreadId &&
+    previousThreadIds.includes(openThreadId) &&
+    !currentThreadIds.includes(openThreadId);
+  if (!isOpenThreadRemoved) return openThreadId;
+  return findNearestRemainingThreadId(previousThreadIds, currentThreadIds, openThreadId) ?? null;
 }
