@@ -347,7 +347,8 @@ public class DeploymentServiceTest : IDisposable
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -1271,7 +1272,6 @@ public class DeploymentServiceTest : IDisposable
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
-            _runtimeGatewayClient.Object,
             _apiKeyService.Object,
             _notificationService.Object,
             _hostEnvironment.Object
