@@ -1,0 +1,10 @@
+# The configuration of the core operator. internal/config/config.go has the defaults, such as the engine's URL and
+# ServiceAccount. The overlays add the kinds that an environment runs in kinds.yaml.
+handlerGroups:
+  - runs
+# The services that may use the run API, by the user name of their projected ServiceAccount token.
+callers:
+  assistant:
+    serviceAccount: system:serviceaccount:default:altinn-altinity-agents-sa
+  designer:
+    serviceAccount: system:serviceaccount:default:altinn-designer

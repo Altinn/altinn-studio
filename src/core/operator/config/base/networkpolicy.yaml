@@ -1,0 +1,43 @@
+# The run API takes requests from the assistant and Designer, and the callback API from the engine. The token check in
+# the operator decides what each may do; this policy keeps everyone else from reaching the ports.
+#
+# A rule for the kubelet probes is not necessary, because Azure Network Policy Manager filters only forwarded traffic.
+# The kubelet connects from the node itself.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: core-operator
+  namespace: core-operator
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: core-operator
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: altinn-altinity-agents
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              run: altinn-designer
+      ports:
+        - protocol: TCP
+          port: 8080
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: operator-workflow-engine
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: operator-workflow-engine
+      ports:
+        - protocol: TCP
+          port: 8090
