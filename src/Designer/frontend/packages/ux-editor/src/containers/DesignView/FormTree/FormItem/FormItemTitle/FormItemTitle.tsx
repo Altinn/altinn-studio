@@ -14,6 +14,8 @@ import { useAppContext, useSelectedFormLayout } from '../../../../../hooks';
 import classNames from 'classnames';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
+import { useSearchParams } from 'react-router-dom';
+import { componentSearchParam } from '../../../../../AppContext';
 
 export interface FormItemTitleProps {
   children: ReactNode;
@@ -29,6 +31,7 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
   const layout = useSelectedFormLayout();
   const { formItemId: selectedItemId, handleDiscard } = useFormItemContext();
   const selectedItemIdRef = useRef(selectedItemId);
+  const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     selectedItemIdRef.current = selectedItemId;
@@ -43,12 +46,34 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
       const deletedItemIds = [formItem.id, ...getAllDescendants(layout, formItem.id)];
       deleteItem(formItem.id, {
         onSuccess: async () => {
+          // Before the await: setSearchParams builds on the params of this render, so a later call
+          // would undo a page change made during the preview refresh. Only a deleted selection
+          // leaves the URL: deleting another component keeps the selection, and its parameter.
+          if (deletedItemIds.includes(selectedItemIdRef.current)) {
+            setSearchParams(
+              (params) => {
+                params.delete(componentSearchParam);
+                params.sort();
+                return params;
+              },
+              { replace: true },
+            );
+          }
           await updateLayoutsForPreview(layoutSet, true);
           if (deletedItemIds.includes(selectedItemIdRef.current)) handleDiscard();
         },
       });
     }
-  }, [formItem, t, deleteItem, layout, updateLayoutsForPreview, layoutSet, handleDiscard]);
+  }, [
+    formItem,
+    t,
+    deleteItem,
+    layout,
+    updateLayoutsForPreview,
+    layoutSet,
+    handleDiscard,
+    setSearchParams,
+  ]);
 
   return (
     <div
