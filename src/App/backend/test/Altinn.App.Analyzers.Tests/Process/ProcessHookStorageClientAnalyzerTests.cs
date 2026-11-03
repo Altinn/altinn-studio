@@ -261,6 +261,29 @@ public class ProcessHookStorageClientAnalyzerTests
     }
 
     [Fact]
+    public async Task Reports_A_Client_Extension_Method_In_A_Hook_Member()
+    {
+        var diagnostics = await Analyze(
+            """
+            public sealed class Hook(IDataClient dataClient) : IOnTaskEndingHandler
+            {
+                public bool ShouldRunForTask(string taskId) => true;
+                public async Task<HandlerResult> Execute(OnTaskEndingContext context)
+                {
+                    Instance instance = context.InstanceDataMutator.Instance;
+                    await dataClient.GetFormData<object>(instance, instance.Data[0]);
+                    return HandlerResult.Success();
+                }
+            }
+            """
+        );
+
+        Diagnostic diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("ALTINNAPP0501", diagnostic.Id);
+        Assert.Contains("'IDataClient.GetFormData'", diagnostic.GetMessage(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Does_Not_Report_Calls_Outside_The_Hook_Members()
     {
         var diagnostics = await Analyze(
