@@ -8,14 +8,9 @@ const SUBFORM_PDF_CONFIG_TYPE = 'altinn:SubformPdfConfig';
 const FILENAME_TEXT_RESOURCE_KEY_TYPE = 'altinn:FilenameTextResourceKey';
 
 export type UseSubformPdfConfigResult = {
-  subformComponentId: string;
-  subformDataTypeId: string;
+  subformUiFolder: string;
   filenameTextResourceId: string;
-  setSubformComponentAndDataTypeIds: (
-    subformComponentId: string,
-    subformDataTypeId: string,
-  ) => void;
-  setSubformDataTypeId: (subformDataTypeId: string) => void;
+  setSubformUiFolder: (subformUiFolder: string) => void;
   setFilenameTextResourceId: (textResourceId: string) => void;
 };
 
@@ -28,8 +23,7 @@ export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
   const taskExtension: ModdleElement | undefined = TaskUtils.getTaskExtension(bpmnDetails?.element);
   const subformPdfConfig: ModdleElement | undefined = taskExtension?.subformPdfConfig;
 
-  const subformComponentId: string = subformPdfConfig?.subformComponentId ?? '';
-  const subformDataTypeId: string = subformPdfConfig?.subformDataTypeId ?? '';
+  const subformUiFolder: string = subformPdfConfig?.subformUiFolder ?? '';
   const filenameTextResourceId: string = subformPdfConfig?.filenameTextResourceKey?.value ?? '';
 
   const updateConfig = (properties: object): void => {
@@ -46,24 +40,9 @@ export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
     }
   };
 
-  const setSubformComponentAndDataTypeIds = (
-    newSubformComponentId: string,
-    newSubformDataTypeId: string,
-  ): void => {
-    const isUnchanged =
-      newSubformComponentId === subformComponentId && newSubformDataTypeId === subformDataTypeId;
-    if (isUnchanged) return;
-    updateConfig({
-      subformComponentId: newSubformComponentId || undefined,
-      subformDataTypeId: newSubformDataTypeId || undefined,
-    });
-  };
-
-  const setSubformDataTypeId = (newSubformDataTypeId: string): void => {
-    if (newSubformDataTypeId === subformDataTypeId) return;
-    updateConfig({
-      subformDataTypeId: newSubformDataTypeId || undefined,
-    });
+  const setSubformUiFolder = (newSubformUiFolder: string): void => {
+    if (newSubformUiFolder === subformUiFolder) return;
+    updateConfig({ subformUiFolder: newSubformUiFolder || undefined });
   };
 
   const setFilenameTextResourceId = (textResourceId: string): void => {
@@ -76,11 +55,9 @@ export const useSubformPdfConfig = (): UseSubformPdfConfigResult => {
   };
 
   return {
-    subformComponentId,
-    subformDataTypeId,
+    subformUiFolder,
     filenameTextResourceId,
-    setSubformComponentAndDataTypeIds,
-    setSubformDataTypeId,
+    setSubformUiFolder,
     setFilenameTextResourceId,
   };
 };

@@ -10,6 +10,10 @@
       "version": "10.0.750501",
       "commands": ["dotnet-dump"]
     },
+    "dotnet-ef": {
+      "version": "10.0.13",
+      "commands": ["dotnet-ef"]
+    },
     "dotnet-trace": {
       "version": "10.0.750501",
       "commands": ["dotnet-trace"]

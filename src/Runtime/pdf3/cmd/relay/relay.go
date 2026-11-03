@@ -23,6 +23,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"go.opentelemetry.io/otel/trace"
 
+	commontelemetry "altinn.studio/common/telemetry"
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/auth"
 	ihttp "altinn.studio/pdf3/internal/http"
@@ -332,7 +333,7 @@ func mediaType(resp *http.Response) string {
 func recordError(ctx context.Context, errorType string, err error) {
 	labeler, _ := otelhttp.LabelerFromContext(ctx)
 	labeler.Add(semconv.ErrorTypeKey.String(errorType))
-	telemetry.SetError(trace.SpanFromContext(ctx), errorType, err)
+	commontelemetry.SetError(trace.SpanFromContext(ctx), errorType, err)
 }
 
 // failure is why the relay failed to pass on the PDF service's response, and how that is reported.

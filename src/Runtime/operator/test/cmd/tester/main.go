@@ -334,13 +334,15 @@ func operatorImageResources(
 	projectRoot string,
 	runtime *kind.KindContainerRuntime,
 ) ([]resource.Resource, []resource.ResourceRef) {
+	// src/ is the build context, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(projectRoot, "../.."))
 	controllerImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		Tag:         "operator-controller:latest",
 	}
 	fakesImage := &resource.BuiltImage{
-		ContextPath: projectRoot,
+		ContextPath: srcRoot,
 		Dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		Tag:         "operator-fakes:latest",
 	}
@@ -366,17 +368,17 @@ func operatorImageResources(
 	}
 
 	return []resource.Resource{
-			controllerImage,
-			fakesImage,
-			localtestAppImage,
-			controllerPublished,
-			fakesPublished,
-			localtestAppPublished,
-		}, []resource.ResourceRef{
-			resource.Ref(controllerPublished),
-			resource.Ref(fakesPublished),
-			resource.Ref(localtestAppPublished),
-		}
+		controllerImage,
+		fakesImage,
+		localtestAppImage,
+		controllerPublished,
+		fakesPublished,
+		localtestAppPublished,
+	}, []resource.ResourceRef{
+		resource.Ref(controllerPublished),
+		resource.Ref(fakesPublished),
+		resource.Ref(localtestAppPublished),
+	}
 }
 
 func operatorArtifactResources(
@@ -421,13 +423,13 @@ func operatorArtifactResources(
 	}
 
 	return []resource.Resource{
-			operatorArtifact,
-			chartCheckout,
-			chartArtifact,
-		}, []resource.ResourceRef{
-			resource.Ref(operatorArtifact),
-			resource.Ref(chartArtifact),
-		}, preparedArtifact.Cleanup, nil
+		operatorArtifact,
+		chartCheckout,
+		chartArtifact,
+	}, []resource.ResourceRef{
+		resource.Ref(operatorArtifact),
+		resource.Ref(chartArtifact),
+	}, preparedArtifact.Cleanup, nil
 }
 
 func addOperatorDeploymentResources(

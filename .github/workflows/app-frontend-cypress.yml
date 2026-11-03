@@ -14,9 +14,12 @@ on:
       - 'src/Runtime/common/dotnet/**'
       - 'src/Runtime/localtest/**'
       - 'src/Runtime/pdf3/**'
+      - 'src/common/go/**'
       - 'src/App/frontend/src/**'
       - 'src/App/frontend/test/**'
       - 'src/App/frontend/package.json'
+      - 'src/App/frontend/cypress.config.js'
+      - 'src/App/frontend/scripts/cypress-*.js'
       - 'src/test/apps/**'
       - 'src/common/ts/layout-contract/**'
       - 'src/common/ts/form-component/src/**'
@@ -26,6 +29,7 @@ on:
       - 'src/common/ts/language/src/**'
       - 'src/common/ts/language/package.json'
       - '.github/actions/**'
+      - '.github/scripts/*cypress*'
       - '.yarn/patches/@percy-cli-exec-*.patch'
       - '.github/workflows/app-frontend-cypress.yml'
       - '!**/AGENTS.md'
@@ -48,6 +52,16 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref || github.run_id }}
   cancel-in-progress: true
+
+# A deployed app gets these platform links from the platform, and studioctl leaves them unset on localtest, where the
+# app frontend shows them as not configured. We set them here so the links get the styling a user sees. No test
+# follows them, so localtest's start page is enough.
+env:
+  PlatformFrontendSettings__AllFormsUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflateProfileUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__ArbeidsflatePartiesUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__AccessManagementUrl: http://local.altinn.cloud:8000/
+  PlatformFrontendSettings__RolesAndRightsHelpUrl: http://local.altinn.cloud:8000/
 
 jobs:
   build-frontend:
@@ -253,6 +267,10 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Reserve time for Cypress cleanup
+        shell: bash
+        run: echo "CYPRESS_JOB_DEADLINE_MS=$(( $(date +%s%3N) + 100 * 60 * 1000 ))" >> "$GITHUB_ENV"
+
       - name: Download app process outputs
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -320,9 +338,9 @@ jobs:
           )
 
           if [ "${ENABLE_PERCY:-false}" = "true" ]; then
-            npx percy exec --parallel -- npx cypress "${cypress_args[@]}"
+            npx percy exec --parallel -- node ../../../.github/scripts/run-cypress-with-diagnostics.mjs npx cypress "${cypress_args[@]}"
           else
-            npx cypress "${cypress_args[@]}"
+            node ../../../.github/scripts/run-cypress-with-diagnostics.mjs npx cypress "${cypress_args[@]}"
           fi
 
       - name: Stop localtest
@@ -336,12 +354,12 @@ jobs:
         if: ${{ always() && steps.cypress.outcome != 'success' }}
         timeout-minutes: 5
         with:
-          name: app-frontend-logs-${{ matrix.containers }}
+          name: app-frontend-logs-${{ matrix.containers }}-${{ github.run_attempt }}
           path: |
             src/App/frontend/frontend-server.log
             src/App/frontend/local-env-diagnostics.log
             src/App/frontend/localtest-container.log
-            src/App/frontend/test/logs/*
+            src/App/frontend/test/logs/**
             src/App/frontend/test/screenshots/**
             ${{ env.STUDIOCTL_HOME }}/logs/**
 

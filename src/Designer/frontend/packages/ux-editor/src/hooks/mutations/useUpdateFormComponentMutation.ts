@@ -31,7 +31,7 @@ export const useUpdateFormComponentMutation = (
 ) => {
   const layout = useFormLayout(layoutName);
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
-  const handleFileUploadUpdate = useHandleFileUploadComponentUpdate(org, app, layoutSetName);
+  const prepareFileUploadUpdate = usePrepareFileUploadComponentUpdate(org, app, layoutSetName);
   const handleImageUploadIdChange = useHandleImageUploadComponentIdChange(org, app, layoutSetName);
 
   return useMutation({
@@ -70,16 +70,15 @@ export const useUpdateFormComponentMutation = (
         components[id] = updatedComponent;
       }
 
+      // Prepare static metadata before saving so unsupported limits cannot leave a partial rename.
+      const updateFileUploadMetadata = isFileUploadComponent(updatedComponent)
+        ? prepareFileUploadUpdate({ updatedComponent, oldId: id, updatedLayout })
+        : undefined;
+
       return saveLayout({ internalLayout: updatedLayout, componentIdsChange })
         .then(async (data) => {
           // Todo: Consider handling this in the backend
-          if (isFileUploadComponent(updatedComponent)) {
-            await handleFileUploadUpdate({
-              updatedComponent,
-              oldId: id,
-              updatedLayout,
-            });
-          }
+          await updateFileUploadMetadata?.();
           if (isImageUploadComponent(updatedComponent) && currentId !== newId) {
             await handleImageUploadIdChange({ oldId: currentId, newId });
           }
@@ -102,23 +101,23 @@ const isImageUploadComponent = (
   return component.type === ComponentType.ImageUpload;
 };
 
-type UseHandleFileUploadComponentUpdateParams = {
+type PrepareFileUploadComponentUpdateParams = {
   updatedComponent: FormFileUploaderComponent;
   oldId: string;
   updatedLayout: IInternalLayout;
 };
 
-const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetName: string) => {
+const usePrepareFileUploadComponentUpdate = (org: string, app: string, layoutSetName: string) => {
   const moveAttachmentDataType = useMoveAttachmentDataType(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
 
-  return async ({
+  return ({
     updatedComponent,
     oldId,
     updatedLayout,
-  }: UseHandleFileUploadComponentUpdateParams): Promise<void> => {
+  }: PrepareFileUploadComponentUpdateParams): (() => Promise<void>) => {
     const oldDataType = findAttachmentDataType(appMetadata, oldId);
     const metadataParams = buildDataTypeForFileUpload(
       updatedComponent,
@@ -127,18 +126,20 @@ const useHandleFileUploadComponentUpdate = (org: string, app: string, layoutSetN
       oldDataType,
     );
 
-    if (oldId !== updatedComponent.id) {
-      await moveAttachmentDataType(oldId, {
-        ...oldDataType,
-        ...metadataParams,
-        id: updatedComponent.id,
-      });
-    } else {
-      await updateAppAttachmentMetadata.mutateAsync({
-        ...metadataParams,
-        id: oldId,
-      });
-    }
+    return async () => {
+      if (oldId !== updatedComponent.id) {
+        await moveAttachmentDataType(oldId, {
+          ...oldDataType,
+          ...metadataParams,
+          id: updatedComponent.id,
+        });
+      } else {
+        await updateAppAttachmentMetadata.mutateAsync({
+          ...metadataParams,
+          id: oldId,
+        });
+      }
+    };
   };
 };
 
@@ -193,7 +194,7 @@ const buildDataTypeForFileUpload = (
   const baseDataType: ApplicationAttachmentMetadata = {
     id: component.id,
     taskId,
-    ...getFileUploadMetadataProperties(component),
+    ...getFileUploadMetadataProperties(component, oldDataType),
   };
 
   const isInRepeatingGroup = isItemChildOfContainer(

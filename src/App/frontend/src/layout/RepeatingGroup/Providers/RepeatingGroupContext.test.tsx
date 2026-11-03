@@ -4,14 +4,21 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { getInstanceAtServiceTaskMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import {
   RepeatingGroupProvider,
   RepGroupContext,
+  useRepeatingGroupRowState,
   useRepeatingGroupSelector,
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ILayout } from 'src/layout/layout';
+
+const { deleteAttachments } = vi.hoisted(() => ({ deleteAttachments: vi.fn(async () => true) }));
+vi.mock('src/features/attachments/useAttachmentDeletionInRepGroups', () => ({
+  useAttachmentDeletionInRepGroups: () => deleteAttachments,
+}));
 
 const layout: ILayout = [
   {
@@ -32,13 +39,17 @@ const layout: ILayout = [
 function Navigation() {
   const openNext = RepGroupContext.useOpenNextForEditing();
   const open = RepGroupContext.useOpenForEditing();
+  const deleteRow = RepGroupContext.useDeleteRow();
   const editingId = useRepeatingGroupSelector((state) => state.editingId);
+  const { numVisibleRows } = useRepeatingGroupRowState();
   const [openedIndex, setOpenedIndex] = useState<number | undefined>();
   return (
     <>
       <output data-testid='editing'>{editingId ?? 'closed'}</output>
       <output data-testid='opened'>{openedIndex ?? 'none'}</output>
+      <output data-testid='rows'>{numVisibleRows}</output>
       <button onClick={() => open({ index: 1, uuid: 'locked-row' })}>Open locked row</button>
+      <button onClick={() => deleteRow({ index: 0, uuid: 'first-row' })}>Delete first row</button>
       <button
         onClick={async () => {
           const row = await openNext();
@@ -51,7 +62,7 @@ function Navigation() {
   );
 }
 
-async function render(rows: { altinnRowId: string; name: string }[]) {
+async function render(rows: { altinnRowId: string; name: string }[], { onServiceTaskPage = false } = {}) {
   await renderWithInstanceAndLayout({
     renderer: (
       <RepeatingGroupProvider baseComponentId='group'>
@@ -65,7 +76,12 @@ async function render(rows: { altinnRowId: string; name: string }[]) {
           obj.dataModels[defaultDataTypeMock].initialData = { rows };
         }),
     },
+    apis: onServiceTaskPage ? { instanceApi: { getInstance: getInstanceAtServiceTask } } : undefined,
   });
+}
+
+async function getInstanceAtServiceTask() {
+  return getInstanceAtServiceTaskMock();
 }
 
 it('skips hidden and non-editable rows and returns the opened row for focus', async () => {
@@ -88,4 +104,27 @@ it('leaves an empty group closed when navigating to the next row', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Open next' }));
   expect(screen.getByTestId('editing')).toHaveTextContent('closed');
   expect(screen.getByTestId('opened')).toHaveTextContent('none');
+});
+
+it('deletes a row and its attachments', async () => {
+  await render([
+    { altinnRowId: 'first-row', name: 'first' },
+    { altinnRowId: 'second-row', name: 'second' },
+  ]);
+  await userEvent.click(screen.getByRole('button', { name: 'Delete first row' }));
+  await waitFor(() => expect(screen.getByTestId('rows')).toHaveTextContent('1'));
+  expect(deleteAttachments).toHaveBeenCalledWith(0);
+});
+
+it("deletes neither a row nor its attachments on a service task's page", async () => {
+  await render(
+    [
+      { altinnRowId: 'first-row', name: 'first' },
+      { altinnRowId: 'second-row', name: 'second' },
+    ],
+    { onServiceTaskPage: true },
+  );
+  await userEvent.click(screen.getByRole('button', { name: 'Delete first row' }));
+  expect(deleteAttachments).not.toHaveBeenCalled();
+  expect(screen.getByTestId('rows')).toHaveTextContent('2');
 });

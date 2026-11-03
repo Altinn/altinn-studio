@@ -28,6 +28,32 @@ public class PutTests : DesignerEndpointsTestsBase<PutTests>, IClassFixture<WebA
     }
 
     [Theory]
+    [InlineData(".git/config", "\"replacement\"")]
+    [InlineData(".git/config", "{}")]
+    [InlineData(".git/model.schema.json", "{}")]
+    public async Task Put_GitMetadataPath_DoesNotWriteToGitDirectory(string modelPath, string payload)
+    {
+        await CopyRepositoryForTest("ttd", "hvem-er-hvem", "testUser", TargetTestRepository);
+        string gitDirectory = Path.Join(TestRepoPath, ".git");
+        Directory.CreateDirectory(gitDirectory);
+        string config = Path.Join(gitDirectory, "config");
+        await File.WriteAllTextAsync(config, "original configuration");
+        using var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"{VersionPrefix("ttd", TargetTestRepository)}/prefill?modelPath={modelPath}"
+        )
+        {
+            Content = new StringContent(payload, Encoding.UTF8, MediaTypeNames.Application.Json),
+        };
+
+        using var response = await HttpClient.SendAsync(request);
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal("original configuration", await File.ReadAllTextAsync(config));
+        Assert.False(File.Exists(Path.Join(gitDirectory, "model.prefill.json")));
+    }
+
+    [Theory]
     [InlineData("App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem", "testUser")]
     public async Task Put_ValidInput_ShouldReturnNoContent_AndCreatePrefillFile(
         string modelPath,

@@ -38,7 +38,6 @@ import {
   resourceAccessListPath,
   uiFoldersLayoutSetPath,
   uiFoldersLayoutSetsPath,
-  subformPdfComponentPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
@@ -55,6 +54,7 @@ import {
   dataTypePath,
   optionListPath,
   undeployAppFromEnvPath,
+  restartAppPath,
   orgCodeListPath,
   orgCodeListUploadPath,
   layoutPagesPath,
@@ -95,6 +95,7 @@ import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload
 import type { AddDataTypeToAppMetadataPayload } from 'app-shared/types/api/AddDataTypeToAppMetadataPayload';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ChatFeedbackPayload } from 'app-shared/types/api/ChatFeedbackPayload';
+import type { RunningApp } from 'app-shared/types/api/RunningApp';
 import type { ChatMessage, CreateChatMessagePayload } from 'app-shared/types/api/ChatMessage';
 import type { ChatThread, CreateChatThreadPayload } from 'app-shared/types/api/ChatThread';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
@@ -102,8 +103,6 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { SubformComponent } from 'app-shared/types/api/SubformComponent';
-import type { SubformPdfComponentPayload } from 'app-shared/types/api/SubformPdfComponentPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ValidationOnNavigationByLevel, ValidationOnNavigationLevel } from 'app-shared/types/global';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
@@ -155,8 +154,6 @@ export const deleteImage = (org: string, app: string, imageName: string) => del(
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put<LayoutSetModel[]>(uiFoldersLayoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
-export const saveSubformPdfComponent = (org: string, app: string, layoutSetId: string, payload: SubformPdfComponentPayload) =>
-  payload.componentId === null ? del<SubformComponent[]>(subformPdfComponentPath(org, app, layoutSetId), { params: { componentId: payload.previousComponentId } }) : post<SubformComponent[], SubformPdfComponentPayload>(subformPdfComponentPath(org, app, layoutSetId), payload);
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
@@ -164,6 +161,7 @@ export const copyApp = (org: string, app: string, newRepoName: string, newOrg: s
 export const createDataModel = (org: string, app: string, payload: CreateDataModelPayload) => post<JsonSchema, CreateDataModelPayload>(createDataModelPath(org, app), payload);
 export const createDeployment = (org: string, app: string, payload: CreateDeploymentPayload) => post<PipelineDeployment, CreateDeploymentPayload>(deploymentsPath(org, app), payload);
 export const undeployAppFromEnv = (org: string, app: string, environment: string) => post(undeployAppFromEnvPath(org, app), { environment });
+export const restartApp = (org: string, app: string, environment: string) => post<RunningApp>(restartAppPath(org, app), { environment });
 export const createRelease = (org: string, app: string, payload: CreateReleasePayload) => post<void, CreateReleasePayload>(releasesPath(org, app), payload);
 export const createRepoCommit = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPath(org, app), payload, { headers });
 export const deleteAppAttachmentMetadata = (org: string, app: string, id: string) =>

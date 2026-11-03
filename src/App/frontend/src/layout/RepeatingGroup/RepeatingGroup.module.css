@@ -129,6 +129,12 @@ table > tbody > tr.editingRow:hover {
   text-align: var(--cell-text-alignment);
 }
 
+/* Limit display values without truncating table headers or editable controls. */
+.cellContentFormatting {
+  -webkit-line-clamp: var(--cell-max-number-of-lines);
+  line-clamp: var(--cell-max-number-of-lines);
+}
+
 .contentFormatting input {
   text-align: var(--cell-text-alignment) !important;
 }

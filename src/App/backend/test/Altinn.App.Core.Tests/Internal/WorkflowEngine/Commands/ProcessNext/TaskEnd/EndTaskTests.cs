@@ -1,4 +1,6 @@
+#pragma warning disable CS0618 // The default pipeline runs the deprecated Start, End and Abandon until they are removed.
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands.ProcessNext.TaskEnd;
@@ -13,12 +15,12 @@ namespace Altinn.App.Core.Tests.Internal.WorkflowEngine.Commands.ProcessNext.Tas
 
 public class EndTaskTests
 {
-    private static ProcessEngineCommandContext CreateContext(Instance instance)
+    private static WorkflowEngineCommandContext CreateContext(Instance instance)
     {
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
 
-        return new ProcessEngineCommandContext
+        return new WorkflowEngineCommandContext
         {
             StateCarry = new(),
             AppId = new AppIdentifier("ttd", "test-app"),
@@ -33,6 +35,7 @@ public class EndTaskTests
                 WorkflowId = Guid.Empty,
                 StepId = Guid.NewGuid(),
                 ExecutionReferenceTime = new DateTimeOffset(2025, 3, 14, 9, 26, 53, TimeSpan.Zero),
+                Payload = CommandPayloadSerializer.Serialize(new ProcessTaskStagePayload(StageIndex: 0)),
             },
         };
     }
@@ -50,7 +53,7 @@ public class EndTaskTests
         };
     }
 
-    private static EndTask CreateCommand(IProcessTask processTask)
+    private static IWorkflowEngineCommand CreateCommand(IProcessTask processTask)
     {
         var services = new ServiceCollection();
         services.AddSingleton<AppImplementationFactory>();
@@ -60,50 +63,51 @@ public class EndTaskTests
         return new EndTask(resolver);
     }
 
-    [Fact]
-    public async Task Execute_ResolvesProcessTaskAndCallsEnd_ReturnsSuccess()
+    private sealed class RecordingTask(List<StageContext> seen) : IProcessTask
     {
-        // Arrange
-        var processTask = new Mock<IProcessTask>();
-        processTask.Setup(x => x.Type).Returns("data");
-        processTask.Setup(x => x.End(It.IsAny<ProcessTaskContext>())).Returns(Task.CompletedTask);
-        var command = CreateCommand(processTask.Object);
-        var context = CreateContext(CreateInstance());
+        public string Type => "data";
 
-        // Act
-        var result = await command.Execute(context);
+        public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) =>
+            pipeline
+                .Stage(context =>
+                {
+                    seen.Add(context);
+                    return Task.FromResult(StageResult.Completed());
+                })
+                .Build();
+    }
 
-        // Assert
-        Assert.IsType<SuccessfulProcessEngineCommandResult>(result);
-        processTask.Verify(
-            x =>
-                x.End(
-                    It.Is<ProcessTaskContext>(c =>
-                        c.InstanceDataMutator == context.InstanceDataMutator
-                        && c.CancellationToken.Equals(context.CancellationToken)
-                    )
-                ),
-            Times.Once
-        );
+    private sealed class ThrowingTask(Exception exception) : IProcessTask
+    {
+        public string Type => "data";
+
+        public ProcessTaskPipeline DefineEnd(PipelineBuilder pipeline) => pipeline.Stage(_ => throw exception).Build();
     }
 
     [Fact]
-    public async Task Execute_WhenEndThrows_ReturnsFailedResult()
+    public async Task Execute_RunsTheTasksStageWithTheStepsContext_ReturnsSuccess()
     {
-        // Arrange
-        var processTask = new Mock<IProcessTask>();
-        processTask.Setup(x => x.Type).Returns("data");
-        processTask
-            .Setup(x => x.End(It.IsAny<ProcessTaskContext>()))
-            .ThrowsAsync(new InvalidOperationException("End failed"));
-        var command = CreateCommand(processTask.Object);
+        var seen = new List<StageContext>();
+        var command = CreateCommand(new RecordingTask(seen));
         var context = CreateContext(CreateInstance());
 
-        // Act
         var result = await command.Execute(context);
 
-        // Assert
-        var failed = Assert.IsType<FailedProcessEngineCommandResult>(result);
+        Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        StageContext stage = Assert.Single(seen);
+        Assert.Same(context.InstanceDataMutator, stage.InstanceDataMutator);
+        Assert.Equal(context.CancellationToken, stage.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Execute_WhenTheStageThrows_ReturnsFailedResult()
+    {
+        var command = CreateCommand(new ThrowingTask(new InvalidOperationException("End failed")));
+        var context = CreateContext(CreateInstance());
+
+        var result = await command.Execute(context);
+
+        var failed = Assert.IsType<FailedWorkflowEngineCommandResult>(result);
         Assert.Equal("End failed", failed.ErrorMessage);
         Assert.Equal("InvalidOperationException", failed.ExceptionType);
     }

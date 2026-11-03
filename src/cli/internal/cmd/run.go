@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -626,8 +627,8 @@ func (c *RunCommand) resolveDotnetTargetPath(ctx context.Context, spec appsvc.Do
 
 func lastNonEmptyLine(output []byte) string {
 	lines := bytes.Split(output, []byte{'\n'})
-	for i := len(lines) - 1; i >= 0; i-- {
-		line := strings.TrimSpace(string(lines[i]))
+	for _, rawLine := range slices.Backward(lines) {
+		line := strings.TrimSpace(string(rawLine))
 		if line != "" {
 			return line
 		}
@@ -739,6 +740,7 @@ func nativeAppRunInfo(processID int) studioctlserver.AppRegistration {
 	}
 }
 
+//nolint:errcheck // The process is being stopped, so its exit error is expected and not reported.
 func stopDotnetProcess(process *os.Process, waitErr <-chan error) {
 	signalProcessBestEffort(process, os.Interrupt)
 	select {

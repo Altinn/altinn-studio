@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { GridRows, ITableColumnFormatting } from '@app/layout-contract/generated/common.generated';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
@@ -12,7 +13,7 @@ import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/Repe
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 
 type NodeId = 'input1' | 'input2' | 'input3' | 'repeating-group';
 
@@ -22,6 +23,10 @@ interface LayoutOptions {
   editButton?: boolean;
   withRowsBefore?: boolean;
   withRowsAfter?: boolean;
+  withCustomButton?: boolean;
+  rowsBefore?: GridRows;
+  rowsAfter?: GridRows;
+  tableColumns?: ITableColumnFormatting;
   tableHeaders?: string[];
 }
 
@@ -30,12 +35,23 @@ describe('RepeatingGroupTableSummary', () => {
     vi.restoreAllMocks();
   });
 
+  const customButton: CompExternal<'CustomButton'> = {
+    id: 'custom-button',
+    type: 'CustomButton',
+    actions: [{ type: 'ServerAction', id: 'someAction' }],
+    textResourceBindings: { title: 'Action' },
+  };
+
   const createLayout = ({
     hidden = [],
     readOnly = {},
     editButton,
     withRowsBefore,
     withRowsAfter,
+    withCustomButton,
+    rowsBefore,
+    rowsAfter,
+    tableColumns,
     tableHeaders = ['input3'],
   }: LayoutOptions = {}): ILayoutCollection => ({
     FormPage1: {
@@ -48,7 +64,8 @@ describe('RepeatingGroupTableSummary', () => {
               group: { dataType: defaultDataTypeMock, field: 'group' },
             },
             tableHeaders,
-            children: ['input1', 'input2', 'input3'],
+            tableColumns,
+            children: ['input1', 'input2', 'input3', ...(withCustomButton ? ['custom-button'] : [])],
             maxCount: 3,
             hidden: hidden.includes('repeating-group'),
             ...(withRowsBefore && {
@@ -72,6 +89,8 @@ describe('RepeatingGroupTableSummary', () => {
                 },
               ],
             }),
+            ...(rowsBefore && { rowsBefore }),
+            ...(rowsAfter && { rowsAfter }),
             ...(editButton !== undefined && {
               edit: {
                 editButton,
@@ -114,6 +133,7 @@ describe('RepeatingGroupTableSummary', () => {
             hidden: hidden.includes('input3'),
             ...(readOnly['input3'] !== undefined && { readOnly: readOnly['input3'] }),
           },
+          ...(withCustomButton ? [customButton] : []),
         ],
       },
     },
@@ -260,6 +280,105 @@ describe('RepeatingGroupTableSummary', () => {
   test('should render rowsBefore in summary table', async () => {
     await render({ layout: createLayout({ editButton: true, withRowsBefore: true }) });
     expect(screen.getByText('summary.before')).toBeInTheDocument();
+  });
+
+  test('omits a table column for a component without a Summary2 renderer', async () => {
+    await render({
+      layout: createLayout({ withCustomButton: true, tableHeaders: ['input1', 'custom-button', 'input2'] }),
+    });
+
+    const [headingRow, dataRow] = screen.getAllByRole('row');
+    expect(within(headingRow).getAllByRole('columnheader')).toHaveLength(3);
+    expect(within(dataRow).getAllByRole('cell')).toHaveLength(3);
+    expect(headingRow).toHaveTextContent('Input 1');
+    expect(headingRow).toHaveTextContent('Input 2');
+    expect(dataRow).toHaveTextContent('field1-row0');
+    expect(dataRow).toHaveTextContent('field2-row0');
+    expect(screen.queryByText('Action')).not.toBeInTheDocument();
+  });
+
+  test.each([
+    ['rowsBefore', { rowsBefore: [{ cells: [{ text: '' }, { text: 'Additional information' }, { text: '' }] }] }],
+    ['rowsAfter', { rowsAfter: [{ cells: [{ text: '' }, { text: 'Additional information' }, { text: '' }] }] }],
+  ])('keeps an action column when %s contains content in its position', async (where, extraRows) => {
+    await render({
+      layout: createLayout({
+        withCustomButton: true,
+        tableHeaders: ['input1', 'custom-button', 'input2'],
+        ...extraRows,
+      }),
+    });
+
+    const [firstRow, secondRow, thirdRow] = screen.getAllByRole('row');
+    const extraRow = where === 'rowsBefore' ? firstRow : thirdRow;
+    const headingRow = where === 'rowsBefore' ? secondRow : firstRow;
+    const dataRow = where === 'rowsBefore' ? thirdRow : secondRow;
+    expect(extraRow).toHaveTextContent('Additional information');
+    expect(within(headingRow).getAllByRole('columnheader')).toHaveLength(4);
+    expect(within(dataRow).getAllByRole('cell')).toHaveLength(4);
+    expect(headingRow).toHaveTextContent('Action');
+  });
+
+  test('keeps an action column covered by a content cell with colSpan', async () => {
+    await render({
+      layout: createLayout({
+        withCustomButton: true,
+        tableHeaders: ['input1', 'custom-button', 'input2'],
+        rowsAfter: [{ cells: [{ text: 'Spanning content', cellStyle: { colSpan: 2 } }, {}] }],
+      }),
+    });
+
+    const [headingRow, , extraRow] = screen.getAllByRole('row');
+    expect(within(headingRow).getAllByRole('columnheader')).toHaveLength(4);
+    expect(screen.getByText('Spanning content').closest('td')).toHaveAttribute('colspan', '2');
+    expect(within(extraRow).getAllByRole('cell')).toHaveLength(3);
+  });
+
+  test.each([false, true])('accounts for extra-row component visibility when hidden=%s', async (hidden) => {
+    const layout = createLayout({
+      withCustomButton: true,
+      tableHeaders: ['input1', 'custom-button', 'input2'],
+      rowsBefore: [{ cells: [null, { component: 'extra-text' }, null] }],
+    });
+    layout.FormPage1.data.layout.push({
+      id: 'extra-text',
+      type: 'Text',
+      value: 'Additional information',
+      hidden,
+    });
+    await render({ layout });
+
+    expect(screen.getAllByRole('columnheader')).toHaveLength(hidden ? 3 : 4);
+    if (hidden) {
+      expect(screen.queryByText('Action')).not.toBeInTheDocument();
+      expect(screen.queryByText('Additional information')).not.toBeInTheDocument();
+    } else {
+      expect(screen.getByText('Action')).toBeInTheDocument();
+      expect(screen.getByText('Additional information')).toBeInTheDocument();
+    }
+  });
+
+  test('removes hidden columns from extra rows and shortens overlapping colSpans', async () => {
+    await render({
+      layout: createLayout({
+        withCustomButton: true,
+        tableHeaders: ['input1', 'custom-button', 'input2'],
+        tableColumns: { 'custom-button': { hidden: true } },
+        rowsBefore: [{ cells: [{ text: 'Before' }, { text: 'Hidden content' }, { text: 'After' }] }],
+        rowsAfter: [{ cells: [{ text: 'Spanning content', cellStyle: { colSpan: 2 } }, { text: 'Trailing' }] }],
+      }),
+    });
+
+    const [beforeRow, headingRow, dataRow, afterRow] = screen.getAllByRole('row');
+    expect(beforeRow).toHaveTextContent('Before');
+    expect(beforeRow).toHaveTextContent('After');
+    expect(beforeRow).not.toHaveTextContent('Hidden content');
+    expect(within(beforeRow).getAllByRole('cell')).toHaveLength(3);
+    expect(within(headingRow).getAllByRole('columnheader')).toHaveLength(3);
+    expect(within(dataRow).getAllByRole('cell')).toHaveLength(3);
+    expect(screen.getByText('Spanning content').closest('td')).not.toHaveAttribute('colspan');
+    expect(afterRow).toHaveTextContent('Trailing');
+    expect(within(afterRow).getAllByRole('cell')).toHaveLength(3);
   });
 
   test('should handle nested child component inside group when editing', async () => {

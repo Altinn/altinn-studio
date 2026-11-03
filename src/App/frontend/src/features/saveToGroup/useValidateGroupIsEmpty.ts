@@ -16,6 +16,7 @@ export function validateGroupIsEmpty<T extends Extract<CompTypes, 'Checkboxes' |
   ctx: ComponentValidationContext<T>,
 ): ComponentValidation[] {
   const component = ctx.component as unknown as {
+    type: string;
     required?: unknown;
     textResourceBindings?: Record<string, unknown>;
   };
@@ -43,7 +44,11 @@ export function validateGroupIsEmpty<T extends Extract<CompTypes, 'Checkboxes' |
       hasErrors = groupRows.length === 0;
     }
   } else {
-    for (const reference of Object.values(dataModelBindings)) {
+    const type = component.type;
+    const keys =
+      type === 'Checkboxes' || type === 'MultipleSelect' ? ['simpleBinding'] : Object.keys(dataModelBindings);
+    for (const key of keys) {
+      const reference = dataModelBindings[key];
       if (reference) {
         const data = readDataFromState(ctx.formState, reference);
         const dataAsString =

@@ -3,6 +3,7 @@ using Altinn.Studio.Gateway.Api.Application;
 using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Azure;
 using Azure.Core;
 using Azure.Monitor.Query.Logs;
@@ -95,6 +96,7 @@ public sealed class ReportMetricsTests
                 }
             ),
             logsQueryClient,
+            new GatewayMetrics(TestMeterFactory.Shared),
             NullLogger<AzureMonitorClient>.Instance
         );
 

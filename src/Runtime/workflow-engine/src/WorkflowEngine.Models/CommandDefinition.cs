@@ -13,12 +13,13 @@ public sealed record CommandDefinition
 {
     /// <summary>
     /// Shared <see cref="JsonSerializerOptions"/> for command data and workflow context serialization.
-    /// Used by the engine (validation + execution) and by command descriptors for response parsing.
+    /// Used by the engine (validation + execution) and by commands for response parsing.
     /// </summary>
     public static readonly JsonSerializerOptions SerializerOptions = new() { PropertyNameCaseInsensitive = true };
 
     /// <summary>
-    /// The command type discriminator. Matched against registered command handlers.
+    /// The command type discriminator. Matched against the <see cref="ICommand.CommandType"/> of the
+    /// registered commands.
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }

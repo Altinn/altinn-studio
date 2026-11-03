@@ -30,8 +30,6 @@ public sealed partial class AltinnTestAppFixture : BaseFixture
 
     public IDisposable WithInvalidHttpContextAccessorUse() => WithAddedDocument(Content.InvalidHttpContextAccessorUse);
 
-    public IDisposable WithReplacedSealedDefine() => WithAddedDocument(Content.ReplacedSealedDefine);
-
     public IDisposable WithDiscardedEFormidlingBuilder() => WithAddedDocument(Content.DiscardedEFormidlingBuilder);
 
     public IDisposable WithMailboxHandleConsumption() => WithAddedDocument(Content.MailboxHandleConsumption);

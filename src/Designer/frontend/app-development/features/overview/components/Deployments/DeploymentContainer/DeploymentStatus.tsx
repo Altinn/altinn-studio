@@ -11,25 +11,30 @@ import {
 } from '@studio/components';
 import { DateUtils } from '@studio/pure-functions';
 import { publishPath } from 'app-shared/api/paths';
-import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
+import {
+  runningAppProblems,
+  wasRestartedAfterPublish,
+  type RunningApp,
+} from 'app-shared/types/api/RunningApp';
 import { ExternalLinkIcon } from '@studio/icons';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 
 export type DeploymentStatusProps = {
-  kubernetesDeployment?: KubernetesDeployment;
+  runningApp?: RunningApp;
   deploymentType: PipelineDeployment['deploymentType'];
   isDeploymentInProgress?: boolean;
-  lastPublishedDate?: string;
+  /** The environment could not tell what runs, such as when its cluster does not answer. */
+  isStatusUnknown?: boolean;
   envName: string;
   isProduction: boolean;
   urlToApp?: string;
 };
 
 export const DeploymentStatus = ({
-  kubernetesDeployment,
+  runningApp,
   deploymentType,
   isDeploymentInProgress,
-  lastPublishedDate,
+  isStatusUnknown,
   envName,
   isProduction,
   urlToApp,
@@ -84,8 +89,24 @@ export const DeploymentStatus = ({
     );
   }
 
+  if (isStatusUnknown) {
+    return (
+      <DeploymentStatusAlert
+        severity='warning'
+        content={
+          <StudioParagraph spacing>{t('app_deployment.status.unavailable')}</StudioParagraph>
+        }
+        footer={
+          <Trans i18nKey='overview.go_to_publish'>
+            <a href={publishPath(org, app)} />
+          </Trans>
+        }
+      />
+    );
+  }
+
   const isUndeploy = deploymentType === 'Decommission';
-  if (!kubernetesDeployment || isUndeploy) {
+  if (!runningApp || isUndeploy) {
     return (
       <DeploymentStatusAlert
         severity='info'
@@ -99,7 +120,40 @@ export const DeploymentStatus = ({
     );
   }
   const isDeploy = deploymentType === 'Deploy';
-  if (!kubernetesDeployment?.version && isDeploy) {
+  const goToPublish = (
+    <Trans i18nKey='overview.go_to_publish'>
+      <a href={publishPath(org, app)} />
+    </Trans>
+  );
+
+  if (runningApp.status === 'updating') {
+    const isRestart = wasRestartedAfterPublish(runningApp);
+    return (
+      <DeploymentStatusAlert
+        severity='info'
+        content={
+          <div className={classes.loadingSpinner}>
+            <StudioSpinner aria-hidden data-size='xs' />
+            {t(isRestart ? 'app_deployment.status.restarting' : 'app_deployment.status.inProgress')}
+          </div>
+        }
+        footer={goToPublish}
+      />
+    );
+  }
+
+  const problem = runningApp.status && runningAppProblems[runningApp.status];
+  if (problem) {
+    return (
+      <DeploymentStatusAlert
+        severity={problem.severity}
+        content={<StudioParagraph spacing>{t(problem.textKey)}</StudioParagraph>}
+        footer={goToPublish}
+      />
+    );
+  }
+
+  if (!runningApp?.version && isDeploy) {
     return (
       <DeploymentStatusAlert
         severity='warning'
@@ -123,7 +177,7 @@ export const DeploymentStatus = ({
           <Trans
             i18nKey={'app_deployment.status.succeeded'}
             values={{
-              version: kubernetesDeployment.version,
+              version: runningApp.version,
             }}
             components={{
               a: (
@@ -137,13 +191,22 @@ export const DeploymentStatus = ({
         </StudioParagraph>
       }
       footer={
-        lastPublishedDate && (
+        wasRestartedAfterPublish(runningApp) ? (
           <Trans
-            i18nKey={'app_deployment.last_published'}
+            i18nKey={'app_deployment.last_restarted'}
             values={{
-              lastPublishedDate: formatDateTime(lastPublishedDate),
+              lastRestartedDate: formatDateTime(runningApp.restartedAt),
             }}
           />
+        ) : (
+          runningApp.publishedAt && (
+            <Trans
+              i18nKey={'app_deployment.last_published'}
+              values={{
+                lastPublishedDate: formatDateTime(runningApp.publishedAt),
+              }}
+            />
+          )
         )
       }
     />

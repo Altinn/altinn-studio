@@ -170,11 +170,12 @@ func (p *Process) Close() error {
 			}
 		}
 
-		done := make(chan error, 1)
+		// The goroutine logs the exit error; done only signals that the browser exited.
+		done := make(chan struct{})
 		go func() {
 			err := p.Cmd.Wait()
-			done <- err
 			logger.Info("Browser exited", attr.Error, err)
+			close(done)
 		}()
 
 		select {

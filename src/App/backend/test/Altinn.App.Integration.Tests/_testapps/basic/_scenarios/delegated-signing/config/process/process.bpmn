@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="DelegatedSigning" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="DelegatedSigning" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1"><bpmn:outgoing>Flow_Start</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:task id="Task_1" name="Data">
+      <bpmn:extensionElements><altinn:taskExtension><altinn:taskType>data</altinn:taskType></altinn:taskExtension></bpmn:extensionElements>
+      <bpmn:incoming>Flow_Start</bpmn:incoming><bpmn:incoming>Flow_Reject</bpmn:incoming><bpmn:outgoing>Flow_Signing</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_Signing" name="Signing">
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>signing</altinn:taskType>
+          <altinn:actions><altinn:action>sign</altinn:action><altinn:action>reject</altinn:action></altinn:actions>
+          <altinn:signatureConfig>
+            <altinn:dataTypesToSign><altinn:dataType>model</altinn:dataType></altinn:dataTypesToSign>
+            <altinn:signatureDataType>signatures</altinn:signatureDataType>
+            <altinn:signeeStatesDataTypeId>signee-states</altinn:signeeStatesDataTypeId>
+            <altinn:signeeProviderId>integration-signees</altinn:signeeProviderId>
+            <altinn:correspondenceResource>app_ttd_correspondence</altinn:correspondenceResource>
+            <altinn:runDefaultValidator>true</altinn:runDefaultValidator>
+          </altinn:signatureConfig>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Signing</bpmn:incoming><bpmn:outgoing>Flow_AfterSigning</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_Reject">
+      <bpmn:incoming>Flow_AfterSigning</bpmn:incoming><bpmn:outgoing>Flow_Reject</bpmn:outgoing><bpmn:outgoing>Flow_End</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_1"><bpmn:incoming>Flow_End</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_Signing" sourceRef="Task_1" targetRef="Task_Signing" />
+    <bpmn:sequenceFlow id="Flow_AfterSigning" sourceRef="Task_Signing" targetRef="Gateway_Reject" />
+    <bpmn:sequenceFlow id="Flow_Reject" sourceRef="Gateway_Reject" targetRef="Task_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_End" sourceRef="Gateway_Reject" targetRef="EndEvent_1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+</bpmn:definitions>

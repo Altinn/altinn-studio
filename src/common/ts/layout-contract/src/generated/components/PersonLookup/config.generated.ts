@@ -33,9 +33,13 @@ export interface IDataModelBindingsForPersonLookup {
   firstName?: IDataModelReference;
 }
 
+export interface PersonLookupSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type PersonLookupSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'PersonLookup' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & PersonLookupSummaryOverrides)
+  | ({ componentType: 'PersonLookup' } & PersonLookupSummaryOverrides);
 
 export const componentConfig = {
   category: CompCategory.Form,
@@ -61,8 +65,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompPersonLookupExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: PersonLookupSummaryOverrides;
   summaryOverridesWithRef: PersonLookupSummaryOverridesWithRef;
 };
 
-// Source hash: 8b56bf444a677dab90cc85e80d07e4f61ecff77defc45be28d8af94442ad9622
+// Source hash: e95b074dccf154616a30ff76c303f4f05a41e35d834899dc0497b04f4bf26ff8

@@ -6,13 +6,13 @@ namespace Altinn.App.Core.Tests.Features.Process;
 
 public class ServiceTaskContextTests
 {
-    private static ServiceTaskContext CreateContext(DateTimeOffset? waitDeadline) =>
+    private static StageContext CreateContext(DateTimeOffset? waitDeadline) =>
         new()
         {
             InstanceDataMutator = Mock.Of<IInstanceDataMutator>(),
             WorkflowId = Guid.NewGuid(),
             StepId = Guid.NewGuid(),
-            Wait = new ServiceTaskWait { Deadline = waitDeadline },
+            Wait = new StageWait { Deadline = waitDeadline },
         };
 
     [Fact]

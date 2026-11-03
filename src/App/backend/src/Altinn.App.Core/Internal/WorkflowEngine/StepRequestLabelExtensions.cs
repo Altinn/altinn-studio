@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Internal.WorkflowEngine;
 /// <summary>
 /// Stamps the BPMN element label (<see cref="ProcessNextRequestFactory.ProcessNextElementLabel"/>) onto
 /// outgoing <see cref="StepRequest"/> wire requests. Kept apart from
-/// <see cref="StepRequestStepOptionsExtensions"/> because the two answer different questions about a step —
+/// <see cref="PlannedStep.ToStepRequest"/> because the two answer different questions about a step —
 /// how long it may run versus which element it runs for — and only the options pass needs the resolver.
 /// </summary>
 internal static class StepRequestLabelExtensions

@@ -57,6 +57,17 @@ const common = {
     ),
   ISummaryOverridesCommon: () =>
     new CG.obj(new CG.prop('hidden', new CG.bool().optional()), new CG.prop('emptyFieldText', new CG.str().optional())),
+  summaryShowNextButton: () =>
+    new CG.prop(
+      'showNextButton',
+      new CG.bool()
+        .optional()
+        .setTitle('Show next button after editing', 'Vis neste-knappen etter redigering')
+        .setDescription(
+          'Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.',
+          'Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.',
+        ),
+    ),
   ILayoutFile: () =>
     new CG.obj(
       new CG.prop('$schema', new CG.str().optional()),
@@ -251,8 +262,10 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for label', 'Datamodellbinding for ledetekst')
           .setDescription(
-            'Describes the location in the data model where the component should store its labels',
-            'Angir hvor i datamodellen komponenten skal lagre ledetekstene.',
+            'Location in the data model for the translated labels. Must point to a string for single-select components ' +
+              'or an array of strings for multi-select components. With a group binding, must point to a string inside each row.',
+            'Angir hvor i datamodellen de oversatte ledetekstene skal lagres. Må peke på en streng for enkeltvalg ' +
+              'eller en liste med strenger for flervalg. Med gruppebinding må den peke på en streng i hver rad.',
           )
           .optional(),
       ),
@@ -261,8 +274,8 @@ const common = {
         new CG.dataModelBinding()
           .setTitle('Data model binding for metadata', 'Datamodellbinding for metadata')
           .setDescription(
-            'Describes the location in the data model where the component should store its metadata',
-            'Angir hvor i datamodellen komponenten skal lagre metadata.',
+            'Location in the data model for options metadata. Must point to a string.',
+            'Angir hvor i datamodellen metadata for valg skal lagres. Må peke på en streng.',
           )
           .optional(),
       ),

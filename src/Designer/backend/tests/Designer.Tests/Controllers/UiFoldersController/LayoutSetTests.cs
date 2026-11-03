@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -73,6 +75,38 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
         LayoutSetConfigDto subform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "moreInfoSubform");
         Assert.Equal("subform", subform.Type);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-subform-pdf-v9", "testUser")]
+    public async Task GetLayoutSets_WhenSubformFolderIsUnmarked_ReturnsItAsSubformWhenASubformComponentOpensIt(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+        // The app treats a folder as a subform when a Subform component opens it, with or without the marker.
+        string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+        string settingsFile = Path.Join(repositoryDirectory, SettingsPath("notesSubform"));
+        JsonObject settings = JsonNode.Parse(await File.ReadAllTextAsync(settingsFile))!.AsObject();
+        settings.Remove("type");
+        await File.WriteAllTextAsync(settingsFile, settings.ToJsonString());
+        Directory.CreateDirectory(Path.Join(repositoryDirectory, "App", "ui", "unusedFolder"));
+        await File.WriteAllTextAsync(settingsFile.Replace("notesSubform", "unusedFolder"), settings.ToJsonString());
+
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, VersionPrefix(org, targetRepository));
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        List<LayoutSetConfigDto> layoutSets = JsonSerializer.Deserialize<List<LayoutSetConfigDto>>(
+            await response.Content.ReadAsStringAsync()
+        );
+        LayoutSetConfigDto notesSubform = Assert.Single(layoutSets, layoutSet => layoutSet.Id == "notesSubform");
+        Assert.Equal("subform", notesSubform.Type);
+        Assert.DoesNotContain(layoutSets, layoutSet => layoutSet.Id == "unusedFolder");
+        Assert.Null(Assert.Single(layoutSets, layoutSet => layoutSet.Id == "Task_1").Type);
     }
 
     [Theory]
@@ -143,7 +177,11 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
-    public async Task AddLayoutSet_WhenPdfTask_CreatesWaitingPageAndPdfLayout(string org, string app, string developer)
+    public async Task AddLayoutSet_WhenPdfTask_CreatesOnlyPdfLayoutWithEmptyOrder(
+        string org,
+        string app,
+        string developer
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -158,28 +196,79 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        Assert.True(
-            TestDataHelper.FileExistsInRepo(
-                org,
-                targetRepository,
-                developer,
-                LayoutPath(NewLayoutSetName, "ServiceTask")
-            )
+        string layoutsDirectory = Path.Join(
+            TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer),
+            "App",
+            "ui",
+            NewLayoutSetName,
+            "layouts"
         );
-        Assert.True(
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
+        string layoutFile = Assert.Single(Directory.GetFiles(layoutsDirectory));
+        Assert.Equal("PdfLayout.json", Path.GetFileName(layoutFile));
+
+        JsonNode pdfLayout = JsonNode.Parse(
+            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
         );
+        Assert.Empty(pdfLayout["data"]["layout"].AsArray());
 
         JsonNode settings = JsonNode.Parse(
             TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
         );
         Assert.Equal("PdfLayout", (string)settings["pages"]["pdfLayoutName"]);
-        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
+        Assert.Empty(settings["pages"]["order"].AsArray());
+        Assert.Equal("model", (string)settings["defaultDataType"]);
     }
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
-    public async Task AddLayoutSet_WhenSubformPdfTask_CreatesWaitingPageWithoutPdfLayout(
+    public async Task AddLayoutSet_WhenPdfTask_PagesListNoPageUntilOneIsAdded(string org, string app, string developer)
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        const string NewLayoutSetName = "pdfTask";
+        var payload = new LayoutSetPayload
+        {
+            TaskType = TaskType.Pdf,
+            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+        };
+        using HttpResponseMessage addResponse = await PostLayoutSet(org, targetRepository, payload);
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+
+        string pagesUrl = $"/designer/api/{org}/{targetRepository}/layouts/layoutSet/{NewLayoutSetName}/pages";
+        PagesDto pagesBefore = await GetPages(pagesUrl);
+        Assert.NotNull(pagesBefore.Pages);
+        Assert.Empty(pagesBefore.Pages);
+        Assert.Equal("PdfLayout", pagesBefore.PdfLayoutName);
+
+        using var createPageRequest = new HttpRequestMessage(HttpMethod.Post, pagesUrl)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(new PageDto { Id = "WaitingPage" }),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+        using HttpResponseMessage createPageResponse = await HttpClient.SendAsync(createPageRequest);
+        Assert.Equal(HttpStatusCode.Created, createPageResponse.StatusCode);
+
+        PagesDto pagesAfter = await GetPages(pagesUrl);
+        PageDto page = Assert.Single(pagesAfter.Pages);
+        Assert.Equal("WaitingPage", page.Id);
+        Assert.Equal("PdfLayout", pagesAfter.PdfLayoutName);
+    }
+
+    private async Task<PagesDto> GetPages(string pagesUrl)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, pagesUrl);
+        using HttpResponseMessage response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return JsonSerializer.Deserialize<PagesDto>(await response.Content.ReadAsStringAsync());
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
+    public async Task AddLayoutSet_WhenSubformPdfTask_ReturnsBadRequestAndCreatesNoUiFolder(
         string org,
         string app,
         string developer
@@ -189,34 +278,19 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
         const string NewLayoutSetName = "subformPdfTask";
-        var payload = new LayoutSetPayload
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, VersionPrefix(org, targetRepository))
         {
-            TaskType = TaskType.SubformPdf,
-            LayoutSetConfigDto = new LayoutSetConfigDto { Id = NewLayoutSetName, DataType = "model" },
+            Content = new StringContent(
+                """{"taskType":"subformPdf","LayoutSetConfig":{"id":"subformPdfTask","dataType":"model"}}""",
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
         };
 
-        using HttpResponseMessage response = await PostLayoutSet(org, targetRepository, payload);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
-        Assert.True(
-            TestDataHelper.FileExistsInRepo(
-                org,
-                targetRepository,
-                developer,
-                LayoutPath(NewLayoutSetName, "ServiceTask")
-            )
-        );
-
-        Assert.False(
-            TestDataHelper.FileExistsInRepo(org, targetRepository, developer, LayoutPath(NewLayoutSetName, "PdfLayout"))
-        );
-
-        JsonNode settings = JsonNode.Parse(
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName))
-        );
-        Assert.Null(settings["pages"]["pdfLayoutName"]);
-        Assert.Equal("ServiceTask", (string)settings["pages"]["order"].AsArray()[0]);
-        Assert.Equal("model", (string)settings["defaultDataType"]);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.False(TestDataHelper.FileExistsInRepo(org, targetRepository, developer, SettingsPath(NewLayoutSetName)));
     }
 
     [Theory]
@@ -331,6 +405,67 @@ public class LayoutSetTests(WebApplicationFactory<Program> factory)
             .AsArray()
             .Single(dataType => (string)dataType["id"] == "model");
         Assert.Equal("Task_1", (string)modelDataType["taskId"]);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-subform-pdf-v9", "testUser")]
+    public async Task UpdateLayoutSetName_WhenSubformPdfTaskNamesTheFolder_RenamesSubformUiFolderInProcess(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = $"{VersionPrefix(org, targetRepository)}/vehicleSubform";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize("vehicles"),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
+        };
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        XElement subformPdfConfig = GetSubformPdfConfig(org, targetRepository, developer, "SubformPdf");
+        Assert.Equal("vehicles", subformPdfConfig.Element(AltinnNamespace + "subformUiFolder")?.Value);
+    }
+
+    [Theory]
+    [InlineData("ttd", "app-with-subform-pdf-v9", "testUser")]
+    public async Task DeleteLayoutSet_WhenSubformPdfTaskNamesTheFolder_RemovesSubformUiFolderFromProcess(
+        string org,
+        string app,
+        string developer
+    )
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+        string url = $"{VersionPrefix(org, targetRepository)}/vehicleSubform";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        XElement subformPdfConfig = GetSubformPdfConfig(org, targetRepository, developer, "SubformPdf");
+        Assert.Null(subformPdfConfig.Element(AltinnNamespace + "subformUiFolder"));
+    }
+
+    private static readonly XNamespace AltinnNamespace = "http://altinn.no/process";
+
+    private static XElement GetSubformPdfConfig(string org, string repository, string developer, string taskId)
+    {
+        XDocument process = XDocument.Parse(
+            TestDataHelper.GetFileFromRepo(org, repository, developer, "App/config/process/process.bpmn")
+        );
+        return process
+            .Descendants()
+            .Single(element => (string)element.Attribute("id") == taskId)
+            .Descendants(AltinnNamespace + "subformPdfConfig")
+            .Single();
     }
 
     private async Task<HttpResponseMessage> PostLayoutSet(string org, string repository, LayoutSetPayload payload)

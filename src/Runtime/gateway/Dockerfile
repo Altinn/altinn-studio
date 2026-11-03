@@ -8,6 +8,8 @@ WORKDIR /build
 # Copy project files and package management
 COPY common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj common/dotnet/Altinn.Studio.Common/
 COPY common/dotnet/Altinn.Studio.Common/.editorconfig common/dotnet/Altinn.Studio.Common/
+COPY common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj common/dotnet/Altinn.Studio.Common.Telemetry/
+COPY common/dotnet/Altinn.Studio.Common.Telemetry/.editorconfig common/dotnet/Altinn.Studio.Common.Telemetry/
 COPY Runtime/gateway/Directory.Packages.props Runtime/gateway/
 COPY Runtime/gateway/src/Altinn.Studio.Gateway.Api/Altinn.Studio.Gateway.Api.csproj Runtime/gateway/src/Altinn.Studio.Gateway.Api/
 COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/Altinn.Studio.Gateway.Contracts.csproj Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/
@@ -17,12 +19,15 @@ RUN dotnet restore Runtime/gateway/src/Altinn.Studio.Gateway.Api/Altinn.Studio.G
 
 # Copy source code
 COPY common/dotnet/Altinn.Studio.Common/src/ common/dotnet/Altinn.Studio.Common/src/
+COPY common/dotnet/Altinn.Studio.Common.Telemetry/src/ common/dotnet/Altinn.Studio.Common.Telemetry/src/
 COPY Runtime/gateway/src/Altinn.Studio.Gateway.Api/ Runtime/gateway/src/Altinn.Studio.Gateway.Api/
 COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/ Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/
 
 # Build and publish native AOT
+# The image's build, the commit the deploy workflow builds from: the telemetry's service.version.
+ARG BUILD_VERSION=dev
 WORKDIR /build/Runtime/gateway/src/Altinn.Studio.Gateway.Api/
-RUN dotnet publish -c Release -o /app/publish /p:CSharpier_Bypass=true
+RUN dotnet publish -c Release -o /app/publish /p:CSharpier_Bypass=true /p:InformationalVersion=$BUILD_VERSION
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:2c2757fcb6e0dbf9030f6a47d950233e21008d0da838583587044418b4e80d46
 WORKDIR /app

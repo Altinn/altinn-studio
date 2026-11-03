@@ -1,9 +1,8 @@
 import { type GetInTouchProvider } from '../interfaces/GetInTouchProvider';
 
-type PhoneChannel = 'phone' | 'emergencyPhone';
+type PhoneChannel = 'emergencyPhone';
 
 const phoneChannelMap: Record<PhoneChannel, string> = {
-  phone: 'tel:75006299',
   emergencyPhone: 'tel:94490002',
 };
 

@@ -20,14 +20,20 @@ import { useFavoriteComponents } from './hooks/useFavoriteComponents';
 export type AddItemProps = {
   containerId: string;
   layout: IInternalLayout;
+  saveAtIndexPosition?: number;
 };
-export const AddItem = ({ containerId, layout }: AddItemProps): ReactElement => {
+export const AddItem = ({
+  containerId,
+  layout,
+  saveAtIndexPosition,
+}: AddItemProps): ReactElement => {
   const [showDefault, setShowDefault] = useState(false);
   const { t } = useTranslation(['translation', 'addComponentModal']);
   const { addItem } = useAddComponentHandlerSilent(layout);
 
   const handleAdd = (item: AddedItem) => {
-    addItem(item.componentType, containerId, layout.order[containerId].length, item.componentId);
+    const index = saveAtIndexPosition ?? layout.order[containerId].length;
+    addItem(item.componentType, containerId, index, item.componentId);
   };
 
   return (

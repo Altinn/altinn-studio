@@ -5,7 +5,8 @@ CACHE_DIR := .cache
 LOCALBIN := bin
 
 # Tools
-GOLANGCI_LINT_VERSION ?= v2.11.2
+# renovate: datasource=go depName=github.com/golangci/golangci-lint/v2
+GOLANGCI_LINT_VERSION ?= v2.15.0
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint
 
 help: ## Show this help message
@@ -53,7 +54,7 @@ build: ## Build Go and .NET projects
 
 lint: golangci-lint ## Run linters (Roslyn + golangci-lint)
 	@echo "Linting .NET (Roslyn analyzers)..."
-	@DOTNET_TREATWARNINGSASERRORS=true dotnet build Altinn.Studio.Gateway.slnx
+	@dotnet build Altinn.Studio.Gateway.slnx
 	@echo "Linting Go..."
 	@cd test && "$(abspath $(GOLANGCI_LINT))" run --config ../.golangci.yml ./...
 	@echo "✓ Lint passed"

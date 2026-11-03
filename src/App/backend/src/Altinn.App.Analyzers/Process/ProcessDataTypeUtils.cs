@@ -47,8 +47,6 @@ internal static class ProcessDataTypeUtils
         "dataType",
     ];
 
-    private static readonly string[] _subformDataTypeId = ["subformPdfConfig", "subformDataTypeId"];
-
     /// <summary>
     /// The elements under <c>altinn:taskExtension</c> that name a single data type each. The runtime deserializes
     /// them on every task, and the app's own task types may read them too, so they are checked whatever the task's
@@ -72,16 +70,6 @@ internal static class ProcessDataTypeUtils
         // AltinnPaymentConfiguration.Validate rejects blank ids itself.
         new(["paymentConfig", "paymentDataType"], SkipBlank: true),
         new(["paymentConfig", "paymentReceiptPdfDataType"], SkipBlank: true),
-        // SubformPdfServiceTask generates a PDF per data element of the type. On a subformPdf task its startup check
-        // (ValidateConfiguration) rejects a blank id and one that names no data type, so the app does not start.
-        // Another task type finds no data elements of an unknown type.
-        new(
-            _subformDataTypeId,
-            SkipBlank: true,
-            Skipped: "the task generates no PDFs for it and still succeeds",
-            FailsInTaskType: SubformPdfTaskType,
-            CheckedAtStartupIn: SubformPdfTaskType
-        ),
         // Every list counts, whatever its env: one that names no known environment applies when the app runs in
         // an environment the runtime does not recognize either. The startup check in EFormidlingServiceTask
         // fails on an empty id like any other unknown one.
@@ -179,17 +167,10 @@ internal static class ProcessDataTypeUtils
             case "pdf" when reachable:
                 CheckPdfDataType(context, task, taskId, taskType, "every time the task runs");
                 break;
-            // The task stores a PDF per data element of its subform data type, so without a data type the app
-            // declares it stores nothing. ALTINNAPP1013 reports an unknown id.
+            // The task stores a PDF per entry of the subform, whose data type is the defaultDataType of the subform's
+            // UI folder. ALTINNAPP1024 reports a folder without a declared one.
             case SubformPdfTaskType when reachable:
-                if (
-                    Follow(taskExtension, _subformDataTypeId).FirstOrDefault() is { } subformDataTypeId
-                    && context.DataTypes.Find(subformDataTypeId.Value) is not null
-                )
-                {
-                    CheckPdfDataType(context, task, taskId, taskType, "whenever an instance has a subform to print");
-                }
-
+                CheckPdfDataType(context, task, taskId, taskType, "whenever an instance has a subform to print");
                 break;
             case "signing":
                 CheckSigningDataTypes(context, taskId, taskExtension, reachable, signs);
@@ -538,7 +519,6 @@ internal static class ProcessDataTypeUtils
         TaskReference reference
     )
     {
-        var skipped = taskType is not null && taskType == reference.FailsInTaskType ? null : reference.Skipped;
         var skipBlank = reference.SkipBlank || (taskType is not null && taskType == reference.BlankIsMissingIn);
         foreach (var element in Follow(taskExtension, reference.Path))
         {
@@ -548,7 +528,7 @@ internal static class ProcessDataTypeUtils
                 continue;
             }
 
-            ReportUnknown(context, element, taskId, reference.Path, skipped);
+            ReportUnknown(context, element, taskId, reference.Path, reference.Skipped);
         }
     }
 
@@ -627,10 +607,6 @@ internal static class ProcessDataTypeUtils
     /// <param name="Skipped">
     /// What the app skips when the id is unknown, for a reference that fails nothing; null when an unknown id fails.
     /// </param>
-    /// <param name="FailsInTaskType">
-    /// The task type in which an unknown id fails after all, so it is reported as one that fails rather than as
-    /// <paramref name="Skipped"/>.
-    /// </param>
     /// <param name="CheckedAtStartupIn">
     /// The task type whose startup check fails on an unknown id, so it is reported in a task of that type that no
     /// instance reaches as well. Otherwise an unknown id fails only when an instance uses the task.
@@ -643,7 +619,6 @@ internal static class ProcessDataTypeUtils
         string[] Path,
         bool SkipBlank,
         string? Skipped = null,
-        string? FailsInTaskType = null,
         string? CheckedAtStartupIn = null,
         bool WhenSigning = false,
         string? BlankIsMissingIn = null

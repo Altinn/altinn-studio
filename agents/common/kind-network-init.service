@@ -1,0 +1,15 @@
+[Unit]
+Description=Create the IPv4-only Podman network kind clusters attach to
+# kind creates its `kind` network dual-stack, and connections to a published port on [::1] then
+# hang instead of being refused, so .NET clients that try localhost over IPv6 first time out
+# rather than falling back to IPv4. kind reuses an existing `kind` network, so this one, without
+# IPv6, makes [::1] refuse and the clients fall back.
+After=podman.socket
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'podman network exists kind || podman network create kind'
+
+[Install]
+WantedBy=multi-user.target

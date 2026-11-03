@@ -4,6 +4,15 @@ metadata:
   name: otel-router
 spec:
   config:
+    processors:
+      # A service owner's own cluster runs only its services, so they all work for it. insert,
+      # not upsert: a service that sets its own value keeps it. Studio's router has none, as its
+      # services set altinn.service_owner per unit of work.
+      resource/service_owner:
+        attributes:
+          - key: altinn.service_owner
+            value: ${SERVICEOWNER_ID}
+            action: insert
     exporters:
       load_balancing/traces:
         routing_key: traceID
@@ -93,13 +102,13 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: [resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
+          processors: [resource_detection/aks, k8s_attributes, resource/environment, resource/service_owner, transform/drop, batch]
           exporters: [load_balancing/traces]
         metrics:
           receivers: [otlp]
-          processors: [resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
+          processors: [filter/exporter_calls, resource_detection/aks, k8s_attributes, resource/environment, resource/service_owner, transform/drop, batch]
           exporters: [load_balancing/metrics]
         logs:
           receivers: [otlp]
-          processors: [filter/logs, resource_detection/aks, k8s_attributes, resource/environment, transform/drop, batch]
+          processors: [filter/logs, resource_detection/aks, k8s_attributes, resource/environment, resource/service_owner, transform/drop, batch]
           exporters: [load_balancing/logs]

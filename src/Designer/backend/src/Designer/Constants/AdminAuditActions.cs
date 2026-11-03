@@ -3,6 +3,9 @@ namespace Altinn.Studio.Designer.Constants;
 public static class AdminAuditActions
 {
     public const string DeleteInstance = "delete_instance";
+    public const string ResumeWorkflow = "resume_workflow";
+    public const string NudgeWorkflow = "nudge_workflow";
+    public const string FailWorkflow = "fail_workflow";
 }
 
 public static class AdminAuditStatuses

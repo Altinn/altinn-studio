@@ -32,6 +32,9 @@ function createLoaderArgs(): LoaderFunctionArgs {
 }
 
 describe('index clientLoader', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   it('redirects to instance selection when exactly one active instance exists', async () => {
     const party = getPartyMock();
     GlobalData.setSelectedParty(party);
@@ -53,5 +56,33 @@ describe('index clientLoader', () => {
 
     expect(instanceApi.create).not.toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith('/instance-selection');
+  });
+  it('does not create an instance when the service is closed', async () => {
+    GlobalData.setSelectedParty(getPartyMock());
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
+      onEntry: { show: 'new-instance' },
+      validTo: '2020-01-01T00:00:00Z',
+    });
+    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
+
+    const result = await clientLoader(createLoaderArgs());
+
+    expect(result).toEqual({ error: 'instantiation-closed', reason: { reason: 'closed' } });
+    expect(instanceApi.create).not.toHaveBeenCalled();
+  });
+
+  it('reports a closed service when the backend rejects creation with 410', async () => {
+    GlobalData.setSelectedParty(getPartyMock());
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
+      onEntry: { show: 'new-instance' },
+    });
+    vi.mocked(instanceApi.getActiveInstances).mockResolvedValue([]);
+    vi.mocked(instanceApi.create).mockRejectedValue(
+      Object.assign(new Error('Gone'), { isAxiosError: true, response: { status: 410 } }),
+    );
+
+    const result = await clientLoader(createLoaderArgs());
+
+    expect(result).toEqual({ error: 'instantiation-closed', reason: { reason: 'closed' } });
   });
 });

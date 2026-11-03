@@ -152,7 +152,7 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
     <span class="component-property-name" title="overrides">overrides</span>
     <span class="component-property-summary-meta">
       <span class="component-property-required">Valgfri</span>
-      <span class="component-property-type" title="(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]">Type: <span class="component-property-value">(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]</span></span>
+      <span class="component-property-type" title="(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]">Type: <span class="component-property-value">(object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object | object)[]</span></span>
     </span>
   </summary>
   <div class="component-property-group-content">
@@ -176,6 +176,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
@@ -206,6 +218,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -417,6 +441,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -447,6 +483,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentType">overrides[].componentType</span>
@@ -476,6 +524,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].displaytype">
         <summary class="component-property-summary">
@@ -518,6 +578,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].displaytype">
         <summary class="component-property-summary">
@@ -621,6 +693,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -650,6 +734,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -741,6 +837,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -771,12 +879,108 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentType">overrides[].componentType</span>
           <span class="component-property-summary-meta">
             <span class="component-property-required is-required">Påkrevd</span>
             <span class="component-property-type" title="&quot;Dropdown&quot;">Type: <span class="component-property-value">&quot;Dropdown&quot;</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].hidden">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].hidden">overrides[].hidden</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+          </span>
+        </div>
+      </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required is-required">Påkrevd</span>
+            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].hidden">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].hidden">overrides[].hidden</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </div>
+      </div>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].emptyfieldtext">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].emptyFieldText">overrides[].emptyFieldText</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="string">Type: <span class="component-property-value">string</span></span>
+          </span>
+        </div>
+      </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
+      <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
+        <div class="component-property-summary">
+          <span class="component-property-name" title="overrides[].componentType">overrides[].componentType</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required is-required">Påkrevd</span>
+            <span class="component-property-type" title="&quot;FileUpload&quot;">Type: <span class="component-property-value">&quot;FileUpload&quot;</span></span>
           </span>
         </div>
       </div>
@@ -1125,6 +1329,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1154,6 +1370,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1185,6 +1413,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1214,6 +1454,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1305,6 +1557,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1334,6 +1598,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1365,6 +1641,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1394,6 +1682,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1425,6 +1725,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1454,6 +1766,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -1485,6 +1809,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1515,6 +1851,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentType">overrides[].componentType</span>
@@ -1544,6 +1892,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].displaytype">
         <summary class="component-property-summary">
@@ -1586,6 +1946,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].displaytype">
         <summary class="component-property-summary">
@@ -1749,6 +2121,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -1778,6 +2162,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2049,6 +2445,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2078,6 +2486,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2109,6 +2529,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2139,6 +2571,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentType">overrides[].componentType</span>
@@ -2168,6 +2612,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].display">
         <summary class="component-property-summary">
@@ -2211,6 +2667,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].display">
         <summary class="component-property-summary">
@@ -2255,6 +2723,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].display">
         <summary class="component-property-summary">
           <span class="component-property-chevron" aria-hidden="true"></span>
@@ -2297,6 +2777,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].display">
         <summary class="component-property-summary">
@@ -2461,6 +2953,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2490,6 +2994,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">
@@ -2521,6 +3037,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
         </div>
       </div>
 
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
+
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componentid">
         <div class="component-property-summary">
           <span class="component-property-name" title="overrides[].componentId">overrides[].componentId</span>
@@ -2550,6 +3078,18 @@ Komponenten støtter også de [felles komponentegenskapene](../common-properties
           </span>
         </div>
       </div>
+
+      <details class="card adocs-expand adocs-expand-small component-property" id="overrides[].shownextbutton">
+        <summary class="component-property-summary">
+          <span class="component-property-chevron" aria-hidden="true"></span>
+          <span class="component-property-name" title="overrides[].showNextButton">overrides[].showNextButton</span>
+          <span class="component-property-summary-meta">
+            <span class="component-property-required">Valgfri</span>
+            <span class="component-property-type" title="boolean">Type: <span class="component-property-value">boolean</span></span>
+          </span>
+        </summary>
+        <div class="a-collapseContent-inside component-property-details"><div class="component-property-description">Vis neste-knappen sammen med Tilbake til oppsummering etter redigering fra Summary2. Standard er false.</div></div>
+      </details>
 
       <div class="card adocs-expand adocs-expand-small component-property component-property--static" id="overrides[].componenttype">
         <div class="component-property-summary">

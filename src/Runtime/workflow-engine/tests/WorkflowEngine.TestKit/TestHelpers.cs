@@ -45,7 +45,9 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     public WorkflowRequest CreateWorkflow(
         string wfRef,
         IEnumerable<StepRequest> steps,
-        IEnumerable<WorkflowRef>? dependsOn = null
+        IEnumerable<WorkflowRef>? dependsOn = null,
+        bool? isHead = null,
+        DateTimeOffset? startAt = null
     ) =>
         new()
         {
@@ -53,6 +55,8 @@ public sealed class TestHelpers(EngineAppFixture fixture)
             OperationId = $"op-{wfRef}",
             Steps = steps.ToArray(),
             DependsOn = dependsOn?.ToList(),
+            IsHead = isHead,
+            StartAt = startAt,
         };
 
     /// <summary>

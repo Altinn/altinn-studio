@@ -85,6 +85,7 @@ public class DeploymentServiceTest
                 s.NotifyInternalAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -95,6 +96,7 @@ public class DeploymentServiceTest
                 s.NotifyServiceOwnersAsync(
                     It.IsAny<string>(),
                     It.IsAny<AltinnEnvironment>(),
+                    It.IsAny<NotificationKind>(),
                     It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -739,15 +741,6 @@ public class DeploymentServiceTest
         // Setup GitOps configuration manager - app does not exist
         _gitOpsConfigurationManager
             .Setup(gm =>
-                gm.EnsureGitOpsConfigurationExistsAsync(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.IsAny<AltinnEnvironment>()
-                )
-            )
-            .Returns(Task.CompletedTask);
-
-        _gitOpsConfigurationManager
-            .Setup(gm =>
                 gm.AppExistsInGitOpsConfigurationAsync(
                     It.IsAny<AltinnOrgEditingContext>(),
                     It.IsAny<AltinnRepoName>(),
@@ -762,9 +755,7 @@ public class DeploymentServiceTest
             )
             .Returns(Task.CompletedTask);
 
-        _gitOpsConfigurationManager.Setup(gm =>
-            gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>())
-        );
+        GitOpsLock gitOpsLock = GitOpsCloneLockIsTracked();
 
         _releaseRepository
             .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -865,6 +856,9 @@ public class DeploymentServiceTest
                 ),
             Times.Once
         );
+
+        Assert.Equal(["ensure", "persist"], gitOpsLock.CallsWhileHeld);
+        Assert.True(gitOpsLock.Released);
 
         var azureDevOpsSettings = GetAzureDevOpsSettings();
         _azureDevOpsBuildClient.Verify(
@@ -1012,6 +1006,62 @@ public class DeploymentServiceTest
                 b.QueueAsync(
                     It.Is<QueueBuildParameters>(qbp => qbp.PushSyncRootGitopsImage == "false"),
                     azureDevOpsSettings.GitOpsManagerDefinitionId,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task SendToSlackAsync_WhenInstallFailed_ShouldNotifyAboutTheDeployment()
+    {
+        DeploymentService deploymentService = new(
+            GetAzureDevOpsSettings(),
+            _azureDevOpsBuildClient.Object,
+            _httpContextAccessor.Object,
+            _deploymentRepository.Object,
+            _deployEventRepository.Object,
+            _releaseRepository.Object,
+            _environementsService.Object,
+            _applicationInformationService.Object,
+            _mediatrMock.Object,
+            _generalSettings,
+            _fakeTimeProvider,
+            _gitOpsConfigurationManager.Object,
+            _apiKeyService.Object,
+            _notificationService.Object,
+            _hostEnvironment.Object
+        );
+        var environment = AltinnEnvironment.FromName("tt02");
+
+        await deploymentService.SendToSlackAsync(
+            "ttd",
+            environment,
+            "test-app",
+            DeployEventType.InstallFailed,
+            "123",
+            startedDate: null,
+            CancellationToken.None
+        );
+
+        _notificationService.Verify(
+            s =>
+                s.NotifyInternalAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        _notificationService.Verify(
+            s =>
+                s.NotifyServiceOwnersAsync(
+                    "ttd",
+                    environment,
+                    NotificationKind.Deployment,
+                    It.IsAny<NotificationPayload>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -1379,9 +1429,7 @@ public class DeploymentServiceTest
             )
             .Returns(Task.CompletedTask);
 
-        _gitOpsConfigurationManager.Setup(gm =>
-            gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>())
-        );
+        GitOpsLock gitOpsLock = GitOpsCloneLockIsTracked();
 
         _deploymentRepository
             .Setup(r => r.GetLastDeployed(org, app, env))
@@ -1486,6 +1534,9 @@ public class DeploymentServiceTest
                 ),
             Times.Once
         );
+
+        Assert.Equal(["ensure", "persist"], gitOpsLock.CallsWhileHeld);
+        Assert.True(gitOpsLock.Released);
     }
 
     [Theory]
@@ -1841,6 +1892,49 @@ public class DeploymentServiceTest
             _hostEnvironment.Object,
             gitOpsSettings
         );
+
+    private GitOpsLock GitOpsCloneLockIsTracked()
+    {
+        GitOpsLock gitOpsLock = new();
+        _gitOpsConfigurationManager
+            .Setup(gm => gm.LockLocalRepositoryAsync(It.IsAny<AltinnOrgEditingContext>()))
+            .ReturnsAsync(gitOpsLock);
+        _gitOpsConfigurationManager
+            .Setup(gm =>
+                gm.EnsureGitOpsConfigurationExistsAsync(
+                    It.IsAny<AltinnOrgEditingContext>(),
+                    It.IsAny<AltinnEnvironment>()
+                )
+            )
+            .Callback(() => gitOpsLock.RecordCall("ensure"))
+            .Returns(Task.CompletedTask);
+        _gitOpsConfigurationManager
+            .Setup(gm =>
+                gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>())
+            )
+            .Callback(() => gitOpsLock.RecordCall("persist"));
+        return gitOpsLock;
+    }
+
+    private sealed class GitOpsLock : IAsyncDisposable
+    {
+        public List<string> CallsWhileHeld { get; } = [];
+        public bool Released { get; private set; }
+
+        public void RecordCall(string name)
+        {
+            if (!Released)
+            {
+                CallsWhileHeld.Add(name);
+            }
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Released = true;
+            return ValueTask.CompletedTask;
+        }
+    }
 
     private static AzureDevOpsSettings GetAzureDevOpsSettings()
     {

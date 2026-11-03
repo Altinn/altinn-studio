@@ -10,9 +10,13 @@ import {
 } from '@app/layout-contract/generated/common.generated';
 import { CompCategory, ExprVal, ExprValToActualOrExpr } from '@app/layout-contract';
 
+export interface BrokerFileTransferSummaryOverrides extends ISummaryOverridesCommon {
+  showNextButton?: boolean;
+}
+
 export type BrokerFileTransferSummaryOverridesWithRef =
-  | ({ componentId: string } & ISummaryOverridesCommon)
-  | ({ componentType: 'BrokerFileTransfer' } & ISummaryOverridesCommon);
+  | ({ componentId: string } & BrokerFileTransferSummaryOverrides)
+  | ({ componentType: 'BrokerFileTransfer' } & BrokerFileTransferSummaryOverrides);
 
 export interface CompBrokerFileTransferExternal
   extends ComponentBase, FormComponentProps, LabeledComponentProps {
@@ -62,8 +66,8 @@ export type TypeConfig = {
   category: typeof componentConfig.category;
   availability: typeof componentConfig.availability;
   layout: CompBrokerFileTransferExternal;
-  summaryOverrides: ISummaryOverridesCommon;
+  summaryOverrides: BrokerFileTransferSummaryOverrides;
   summaryOverridesWithRef: BrokerFileTransferSummaryOverridesWithRef;
 };
 
-// Source hash: da664bccfc99bee6d9df42066fbc3a71d96aaa8a06b470b211386d4c8b6cd006
+// Source hash: c6c35c8fd1aa57424102ae1e85cfc100b5ac2cd378528bef129d67159af5483e

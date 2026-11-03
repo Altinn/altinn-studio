@@ -1,5 +1,6 @@
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Azure.Monitor.Query.Logs.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -102,6 +103,7 @@ public sealed class AzureMonitorFailedRequestsTests
                 }
             ),
             logsQueryClient,
+            new GatewayMetrics(TestMeterFactory.Shared),
             NullLogger<AzureMonitorClient>.Instance
         );
 

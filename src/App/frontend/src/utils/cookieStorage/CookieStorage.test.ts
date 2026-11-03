@@ -91,4 +91,26 @@ describe('CookieStorage', () => {
       expect(document.cookie).toContain('expiryKey');
     });
   });
+
+  describe('Secure attribute', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    // The hosts are the ones the old host rule got wrong in each direction
+    function cookieWrittenOn(protocol: string, host: string): string {
+      vi.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location, protocol, host });
+      const cookieSetter = vi.spyOn(document, 'cookie', 'set');
+      CookieStorage.setItem('secureKey', 'value');
+      return cookieSetter.mock.calls[0][0];
+    }
+
+    it('is set when the page is served over https', () => {
+      expect(cookieWrittenOn('https:', 'local.altinn.cloud').split('; ')).toContain('Secure');
+    });
+
+    it('is not set when the page is served over http', () => {
+      expect(cookieWrittenOn('http:', 'altinn.test:18000').split('; ')).not.toContain('Secure');
+    });
+  });
 });

@@ -14,4 +14,5 @@
         <Project Path="tests/WorkflowEngine.App.Tests/WorkflowEngine.App.Tests.csproj" />
     </Folder>
     <Project Path="../../common/dotnet/Altinn.Studio.Common/Altinn.Studio.Common.csproj" />
+    <Project Path="../../common/dotnet/Altinn.Studio.Common.Telemetry/Altinn.Studio.Common.Telemetry.csproj" />
 </Solution>

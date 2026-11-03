@@ -17,7 +17,7 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
     }
 
-    public async Task<ProcessEngineCommandResult> Execute(ProcessEngineCommandContext parameters)
+    public async Task<WorkflowEngineCommandResult> Execute(WorkflowEngineCommandContext parameters)
     {
         IInstanceDataMutator dataMutator = parameters.InstanceDataMutator;
         string taskId = dataMutator.Instance.Process?.CurrentTask?.ElementId ?? string.Empty;
@@ -27,7 +27,7 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
 
         if (applicableHooks.Count > 1)
         {
-            return FailedProcessEngineCommandResult.Permanent(
+            return FailedWorkflowEngineCommandResult.Permanent(
                 $"Multiple {nameof(IOnTaskStartingHandler)} hooks are registered for task '{taskId}'. Only one hook per task is allowed.",
                 nameof(InvalidOperationException)
             );
@@ -36,7 +36,7 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
         IOnTaskStartingHandler? hook = applicableHooks.FirstOrDefault();
         if (hook == null)
         {
-            return new SuccessfulProcessEngineCommandResult();
+            return new SuccessfulWorkflowEngineCommandResult();
         }
 
         var hookParameters = new OnTaskStartingContext
@@ -48,22 +48,22 @@ internal sealed class OnTaskStartingHook : IWorkflowEngineCommand
 
         try
         {
-            HookResult handlerResult = await hook.Execute(hookParameters);
+            HandlerResult handlerResult = await hook.Execute(hookParameters);
 
             return handlerResult switch
             {
-                SuccessfulHookResult => new SuccessfulProcessEngineCommandResult(),
-                FailedHookResult failed => failed.Kind == FailureKind.Permanent
-                    ? FailedProcessEngineCommandResult.Permanent(failed.ErrorMessage)
-                    : FailedProcessEngineCommandResult.Retryable(failed.ErrorMessage),
+                SuccessfulHandlerResult => new SuccessfulWorkflowEngineCommandResult(),
+                FailedHandlerResult failed => failed.Kind == FailureKind.Permanent
+                    ? FailedWorkflowEngineCommandResult.Permanent(failed.ErrorMessage)
+                    : FailedWorkflowEngineCommandResult.Retryable(failed.ErrorMessage),
                 _ => throw new InvalidOperationException(
-                    $"Unexpected {nameof(HookResult)} type: {handlerResult.GetType().Name}"
+                    $"Unexpected {nameof(HandlerResult)} type: {handlerResult.GetType().Name}"
                 ),
             };
         }
         catch (Exception ex)
         {
-            return FailedProcessEngineCommandResult.Retryable(ex);
+            return FailedWorkflowEngineCommandResult.Retryable(ex);
         }
     }
 }

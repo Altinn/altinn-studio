@@ -1,8 +1,8 @@
 name: Spell check
 
 # Repo-wide spell check: five checks over three languages, driven by
-# scripts/spellcheck/run.mjs and the registry next to it. See AGENTS.md
-# "Spelling and language" for the policy.
+# scripts/spellcheck/run.mjs and the registry next to it. See
+# scripts/spellcheck/README.md for the policy.
 #
 # Design invariant: no check may pass without proving it ran. Every check
 # step carries `if: always()` so a failure in one NEVER prevents the others

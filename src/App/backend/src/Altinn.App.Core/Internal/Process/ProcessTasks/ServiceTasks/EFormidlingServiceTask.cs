@@ -24,7 +24,7 @@ namespace Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
 /// send stage's completion, so the shipment is dispatched exactly once per pass through the task no
 /// matter how often the wait re-checks, and the concluding step polls until the outcome arrives.
 /// </remarks>
-internal sealed class EFormidlingServiceTask : IPipelineServiceTask
+internal sealed class EFormidlingServiceTask : IServiceTask
 {
     private readonly ILogger<EFormidlingServiceTask> _logger;
     private readonly IProcessReader _processReader;
@@ -95,13 +95,13 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// The pipeline's shape is fixed at enqueue time — a workflow enqueued against it dispatches by item
     /// index, so stages must not be inserted, reordered or removed while workflows are in flight.
     /// <para>
-    /// The wait budget sits on the conclusion, not the task, because only the poll waits and
-    /// task-level options reach every stage. It outlasts the shipment's own two-hour lifetime plus the
+    /// The wait budget sits on the conclusion, because only the poll waits. It outlasts the shipment's own
+    /// two-hour lifetime plus the
     /// integrasjonspunkt's 30-second expiry sweep and one poll interval, so a shipment that dies of old
     /// age fails with its verdict rather than ours.
     /// </para>
     /// </remarks>
-    public ServiceTaskPipeline Define(ServiceTaskPipelineBuilder pipeline) =>
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline) =>
         pipeline
             .Stage(SendShipment)
             .Finally(AwaitDelivery, new ProcessStepOptions { WaitBudget = TimeSpan.FromHours(2.5) });
@@ -111,7 +111,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// send happen once per pass through the task: the engine records it durably, so neither a
     /// failure further along the pipeline nor any number of delivery re-checks brings it back.
     /// </summary>
-    private async Task<ServiceTaskStageResult> SendShipment(ServiceTaskContext context)
+    private async Task<StageResult> SendShipment(StageContext context)
     {
         string taskId = context.InstanceDataMutator.Instance.Process.CurrentTask.ElementId;
         Instance instance = context.InstanceDataMutator.Instance;
@@ -123,7 +123,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
                 "EFormidling is disabled for task {TaskId}. No eFormidling shipment will be sent, but the service task will be completed.",
                 LogSanitizer.Sanitize(taskId)
             );
-            return ServiceTaskStageResult.Completed();
+            return StageResult.Completed();
         }
 
         IEFormidlingService eFormidlingService = RequireEFormidlingService();
@@ -150,7 +150,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         instance.DataValues?.TryGetValue(EformidlingConstants.ShipmentOwnerWorkflowIdDataValueKey, out shipmentOwner);
         if (shipmentOwner is not null && shipmentOwner != context.WorkflowId.ToString())
         {
-            return ServiceTaskStageResult.FailedPermanent(
+            return StageResult.FailedPermanent(
                 $"An eFormidling shipment for this instance was already sent by an earlier pass through the "
                     + $"process (workflow {shipmentOwner}). eFormidling message ids are bound to the instance id, "
                     + "so the shipment cannot be sent again automatically. Manual follow-up is required."
@@ -171,11 +171,11 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
         }
         catch (EformidlingDeliveryException e)
         {
-            return ServiceTaskStageResult.FailedPermanent(e.Message);
+            return StageResult.FailedPermanent(e.Message);
         }
         catch (PlatformHttpException e) when (IsRejection(e))
         {
-            return ServiceTaskStageResult.FailedPermanent(
+            return StageResult.FailedPermanent(
                 DescribeRejection(
                     e,
                     "Repeating the request would get the same answer, so the shipment was not retried. "
@@ -196,14 +196,14 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
             context.WorkflowId.ToString()
         );
 
-        return ServiceTaskStageResult.Completed();
+        return StageResult.Completed();
     }
 
     /// <summary>
     /// Waits for the integrasjonspunkt to confirm delivery, deferring between checks, and concludes
     /// the task once the shipment has arrived (or provably never will).
     /// </summary>
-    private async Task<ServiceTaskResult> AwaitDelivery(ServiceTaskContext context)
+    private async Task<ServiceTaskResult> AwaitDelivery(StageContext context)
     {
         Instance instance = context.InstanceDataMutator.Instance;
         string taskId = instance.Process.CurrentTask.ElementId;
@@ -393,7 +393,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// the failure status durable needs the save path to cover it, not a write outside the unit of
     /// work.
     /// </remarks>
-    private static void RecordShipmentStatus(ServiceTaskContext context, EFormidlingShipmentStatus status)
+    private static void RecordShipmentStatus(StageContext context, EFormidlingShipmentStatus status)
     {
         if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
         {
@@ -413,7 +413,7 @@ internal sealed class EFormidlingServiceTask : IPipelineServiceTask
     /// version-fenced save. Writing it straight to Storage instead bumps the instance version behind
     /// the unit of work's back and breaks that save's version fence.
     /// </summary>
-    private static void ConfirmComplete(ServiceTaskContext context)
+    private static void ConfirmComplete(StageContext context)
     {
         if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
         {

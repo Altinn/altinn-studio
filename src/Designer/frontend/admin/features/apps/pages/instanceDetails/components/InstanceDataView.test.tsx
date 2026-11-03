@@ -6,6 +6,7 @@ import axios from 'axios';
 import type { AxiosStatic } from 'axios';
 import type { QueryClient } from '@tanstack/react-query';
 import { InstanceDataView } from './InstanceDataView';
+import type { InstanceDataViewSection } from './InstanceDataView';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -13,6 +14,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { instanceDeletePath } from 'admin/features/apps/utils/apiPaths';
 import type { SimpleInstanceDetails } from 'admin/features/apps/types/SimpleInstanceDetails';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { WorkflowCollectionListResponse } from 'admin/features/apps/types/workflows/WorkflowCollection';
+import type { WorkflowStatus } from 'admin/features/apps/types/workflows/WorkflowStatus';
+import { workflowCounts } from 'admin/testing/workflowCounts';
 
 vi.mock('axios', async () => {
   const actual = await vi.importActual<{ default: AxiosStatic }>('axios');
@@ -45,6 +49,16 @@ describe('InstanceDataView', () => {
     renderInstanceDataView({ instance: null });
 
     expect(screen.getByRole('img', { name: textMock('general.loading') })).toBeInTheDocument();
+  });
+
+  it('renders the data elements as their own card, without the delete button', () => {
+    renderInstanceDataView({ section: 'dataElements' });
+
+    expect(screen.getByText(textMock('admin.instances.data_elements'))).toBeInTheDocument();
+    expect(screen.queryByText(textMock('admin.instances.info.title'))).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: textMock('general.delete') }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders an enabled delete button when the instance is not soft-deleted', () => {
@@ -100,6 +114,48 @@ describe('InstanceDataView', () => {
     expect(axios.delete).toHaveBeenCalledTimes(1);
   });
 
+  it("shows the instance's health on the workflow engine only when asked to", () => {
+    renderInstanceDataView({ showWorkflowHealth: true });
+    expect(screen.getByText(textMock('admin.workflows.health'))).toBeInTheDocument();
+  });
+
+  it("rests the instance's health on the engine's rollup, not on the workflows loaded so far", async () => {
+    // The newest page of workflows is all completed, and an older auxiliary workflow failed.
+    const rollup: WorkflowCollectionListResponse = {
+      data: [
+        {
+          key: instanceId,
+          namespace: `${org}/${app}`,
+          createdAt: '2026-10-01T10:00:00Z',
+          workflowCounts: workflowCounts({ total: 26, auxiliary: { failed: 1 } }),
+        },
+      ],
+      pageSize: 1,
+      totalCount: 1,
+      unmatchedKeys: [],
+    };
+    const newestWorkflows = { data: [completedWorkflow], pageSize: 25, totalCount: 26 };
+    (axios.get as Mock).mockImplementation((url: string) =>
+      Promise.resolve({
+        status: 200,
+        data: url.includes('/collections') ? rollup : newestWorkflows,
+      }),
+    );
+
+    renderInstanceDataView({ showWorkflowHealth: true });
+
+    expect(
+      await screen.findByText(textMock('admin.workflows.health.auxiliary_workflow_failed')),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves the workflow engine out of the info card, and unasked, by default', () => {
+    renderInstanceDataView();
+
+    expect(screen.queryByText(textMock('admin.workflows.health'))).not.toBeInTheDocument();
+    expect(axios.get).not.toHaveBeenCalled();
+  });
+
   it('does not delete the instance when the user cancels the confirmation', async () => {
     const user = userEvent.setup();
     vi.spyOn(window, 'confirm').mockReturnValue(false);
@@ -111,16 +167,32 @@ describe('InstanceDataView', () => {
   });
 });
 
+const completedWorkflow: WorkflowStatus = {
+  databaseId: 'newest',
+  collectionKey: instanceId,
+  operationId: 'Process next',
+  idempotencyKey: 'newest',
+  namespace: `${org}/${app}`,
+  createdAt: '2026-10-02T10:00:00Z',
+  overallStatus: 'Completed',
+  role: 'Primary',
+  steps: [],
+};
+
 const getDeleteButton = () => screen.getByRole('button', { name: textMock('general.delete') });
 
 type RenderInstanceDataViewOptions = {
   instance?: SimpleInstanceDetails | null;
   queryClient?: QueryClient;
+  section?: InstanceDataViewSection;
+  showWorkflowHealth?: boolean;
 };
 
 function renderInstanceDataView({
   instance = instanceMock,
   queryClient = createQueryClientMock(),
+  section = 'info',
+  showWorkflowHealth,
 }: RenderInstanceDataViewOptions = {}) {
   if (instance) {
     queryClient.setQueryData(
@@ -131,7 +203,14 @@ function renderInstanceDataView({
     queryClient.setQueryData([QueryKey.AppProcessMetadata, org, environment, app], []);
   }
   return renderWithProviders(
-    <InstanceDataView org={org} environment={environment} app={app} id={instanceId} />,
+    <InstanceDataView
+      org={org}
+      environment={environment}
+      app={app}
+      id={instanceId}
+      section={section}
+      showWorkflowHealth={showWorkflowHealth}
+    />,
     { queryClient },
   );
 }

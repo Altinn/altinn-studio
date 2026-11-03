@@ -1,16 +1,16 @@
 import { useEffect } from 'react';
 
-import { skipToken, useQuery } from '@tanstack/react-query';
-import type { QueryClient } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { skipToken, useQuery } from 'src/core/queries/reactQuery';
 import { type QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { maybeAuthenticationRedirect } from 'src/utils/maybeAuthenticationRedirect';
+import type { QueryClient } from 'src/core/queries/reactQuery';
 
 export function useFormDataQueryDef(url: string | undefined): QueryDefinition<unknown> {
   const { fetchFormData } = useAppQueries();
@@ -46,6 +46,9 @@ export function getFormDataQueryKey(url: string | undefined) {
 }
 
 export async function invalidateFormDataQueries(queryClient: QueryClient) {
+  // Inactive queries can still contain data cached by a previous form save. A new
+  // reader must not initialize from that snapshot after backend task processing.
+  queryClient.removeQueries({ queryKey: formDataQueryKeys.all, type: 'inactive' });
   await queryClient.invalidateQueries({ queryKey: formDataQueryKeys.all });
 }
 

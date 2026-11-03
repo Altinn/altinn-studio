@@ -32,6 +32,7 @@ public class GitRepository
         RepositoryDirectory = Path.GetFullPath(repositoryDirectory);
 
         Guard.AssertSubDirectoryWithinParentDirectory(RepositoriesRootDirectory, RepositoryDirectory);
+        RepositoryFileAccess.Validate(RepositoriesRootDirectory, RepositoryDirectory);
     }
 
     /// <summary>
@@ -57,10 +58,21 @@ public class GitRepository
 
         foreach (string searchPattern in searchPatterns)
         {
-            IEnumerable<string> foundFiles = Directory.EnumerateFiles(
+            // A pattern such as App/models/*.json starts the enumeration in a subdirectory, which the enumeration
+            // opens even if it is a link.
+            string searchDirectory = Path.GetDirectoryName(Path.Join(RepositoryDirectory, searchPattern));
+            if (SymbolicLinkHelper.PassesThroughLink(RepositoryDirectory, searchDirectory))
+            {
+                continue;
+            }
+
+            IEnumerable<string> foundFiles = RepositoryFileAccess.GetFiles(
                 RepositoryDirectory,
-                searchPattern,
-                new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive, RecurseSubdirectories = recursive }
+                searchDirectory,
+                Path.GetFileName(searchPattern),
+                recursive,
+                MatchCasing.CaseInsensitive,
+                FileAttributes.Hidden | FileAttributes.System
             );
             files.AddRange(foundFiles);
         }
@@ -84,14 +96,10 @@ public class GitRepository
 
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
 
-        SearchOption searchOption = searchInSubdirectories
-            ? SearchOption.AllDirectories
-            : SearchOption.TopDirectoryOnly;
-
         string searchPatternMatch = patternMatch ?? "*.*";
 
-        return Directory
-            .GetFiles(absoluteDirectory, searchPatternMatch, searchOption)
+        return RepositoryFileAccess
+            .GetFiles(RepositoryDirectory, absoluteDirectory, searchPatternMatch, searchInSubdirectories)
             .Where(filePath => !IsReplacementFile(filePath))
             .ToArray();
     }
@@ -123,8 +131,8 @@ public class GitRepository
 
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
 
-        string[] directories = Directory
-            .GetDirectories(absoluteDirectory)
+        string[] directories = RepositoryFileAccess
+            .GetDirectories(RepositoryDirectory, absoluteDirectory)
             .Select(dir => new DirectoryInfo(dir).Name)
             .ToArray();
 
@@ -139,6 +147,7 @@ public class GitRepository
     protected async Task<string> ReadTextByAbsolutePathAsync(string absoluteFilePath)
     {
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+        absoluteFilePath = RepositoryFileAccess.Validate(RepositoryDirectory, absoluteFilePath);
 
         // Commented out ref comment below in the ReadTextByRelativePathAsync method
         // return await ReadTextAsync(absoluteFilePath)
@@ -175,6 +184,7 @@ public class GitRepository
         catch (IOException)
         {
             Thread.Sleep(1000);
+            AssertNotThroughLink(absoluteFilePath);
             File.SetAttributes(absoluteFilePath, FileAttributes.Normal);
             return await File.ReadAllTextAsync(absoluteFilePath, Encoding.UTF8, cancellationToken);
         }
@@ -300,6 +310,7 @@ public class GitRepository
     {
         Guard.AssertNotNullOrEmpty(absoluteFilePath, nameof(absoluteFilePath));
         Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteFilePath);
+        absoluteFilePath = RepositoryFileAccess.Validate(RepositoryDirectory, absoluteFilePath);
 
         File.Delete(absoluteFilePath);
     }
@@ -413,10 +424,10 @@ public class GitRepository
     /// <param name="targetDirectory">Full path of the target directory</param>
     public void CopyRepository(string targetDirectory)
     {
-        Guard.AssertFilePathWithinParentDirectory(RepositoriesRootDirectory, targetDirectory);
+        targetDirectory = RepositoryFileAccess.Validate(RepositoriesRootDirectory, targetDirectory);
 
         Directory.CreateDirectory(targetDirectory);
-        CopyAll(RepositoryDirectory, targetDirectory);
+        CopyAll(RepositoryDirectory, targetDirectory, RepositoryDirectory, targetDirectory);
     }
 
     /// <summary>
@@ -433,21 +444,25 @@ public class GitRepository
         await WriteTextByRelativePathAsync(relativePath, text);
     }
 
-    private static void CopyAll(string sourceDirectory, string targetDirectory)
+    private static void CopyAll(string sourceRoot, string targetRoot, string sourceDirectory, string targetDirectory)
     {
-        DirectoryInfo source = new(sourceDirectory);
-        DirectoryInfo target = new(targetDirectory);
-
-        foreach (FileInfo file in source.GetFiles())
+        foreach (string file in RepositoryFileAccess.GetFiles(sourceRoot, sourceDirectory))
         {
-            File.SetAttributes(file.FullName, FileAttributes.Normal);
-            file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+            string destination = RepositoryFileAccess.Validate(
+                targetRoot,
+                Path.Combine(targetDirectory, Path.GetFileName(file))
+            );
+            File.Copy(file, destination, true);
         }
 
-        foreach (DirectoryInfo subDirectory in source.GetDirectories())
+        foreach (string subDirectory in RepositoryFileAccess.GetDirectories(sourceRoot, sourceDirectory))
         {
-            DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subDirectory.Name);
-            CopyAll(subDirectory.FullName, nextTargetSubDir.FullName);
+            string destination = RepositoryFileAccess.Validate(
+                targetRoot,
+                Path.Combine(targetDirectory, Path.GetFileName(subDirectory))
+            );
+            Directory.CreateDirectory(destination);
+            CopyAll(sourceRoot, targetRoot, subDirectory, destination);
         }
     }
 
@@ -479,7 +494,18 @@ public class GitRepository
             );
         }
 
+        AssertNotThroughLink(absoluteFilePath);
+
         return absoluteFilePath;
+    }
+
+    /// <summary>
+    /// Asserts that a path stays in the working tree, outside Git metadata and symbolic links.
+    /// </summary>
+    /// <param name="absolutePath">Absolute path within the repository directory.</param>
+    private void AssertNotThroughLink(string absolutePath)
+    {
+        RepositoryFileAccess.Validate(RepositoryDirectory, absolutePath);
     }
 
     private static void CreateDirectory(string absoluteFilePath)

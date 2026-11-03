@@ -23,6 +23,14 @@ describe('ImageUploadSummary2', () => {
     expect(screen.getByText('Du har ikke lastet opp noe bilde')).toBeInTheDocument();
   });
 
+  it('renders the required validation message', async () => {
+    await renderImageUploadSummary2({
+      required: true,
+      component: { showValidations: ['Required'] },
+    });
+    expect(screen.getByText('Du må laste opp et bilde')).toBeInTheDocument();
+  });
+
   it('renders image when attachment exists', async () => {
     const mockAttachment = getAttachmentsMock({ count: 1, fileSize: 500 })[0] as UploadedAttachment;
     vi.spyOn(useImageFile, 'useImageFile').mockReturnValue({

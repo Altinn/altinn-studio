@@ -53,6 +53,10 @@
   color: var(--ds-color-neutral-text-subtle);
 }
 
+.error {
+  border-bottom: var(--ds-color-danger-border-default) solid 2px;
+}
+
 .summaryHeader {
   display: flex;
   justify-content: space-between;

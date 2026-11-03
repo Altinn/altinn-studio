@@ -1,12 +1,13 @@
 import type { IInternalLayout } from '../../types/global';
 import { FormTree } from './FormTree';
-import { hasMultiPageGroup } from '../../utils/formLayoutUtils';
+import { getChildIds, getItem, hasMultiPageGroup } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
 import { FormLayoutWarning } from './FormLayoutWarning';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItem } from './AddItem';
 import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 import { StudioParagraph, StudioAlert } from '@studio/components';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 export interface FormLayoutProps {
   layout: IInternalLayout;
@@ -21,19 +22,22 @@ export const FormLayout = ({ layout, isInvalid, duplicateComponents }: FormLayou
     return <FormLayoutWarning layout={layout} />;
   }
 
-  const hasNoChildComponents: boolean = Object.entries(layout.components).length === 0;
-
   return (
     <>
       {hasMultiPageGroup(layout) && <MultiPageWarning />}
-      <FormTree duplicateComponents={duplicateComponents} layout={layout} />
       {/** The following check and component are added as part of a live user test behind a feature flag. Can be removed if we decide not to use after user test.*/}
-      {isAddComponentModalEnabled && hasNoChildComponents && (
-        <AddItem containerId={BASE_CONTAINER_ID} layout={layout} />
+      {isAddComponentModalEnabled && hasOnlyNavigationButtons(layout) && (
+        <AddItem containerId={BASE_CONTAINER_ID} layout={layout} saveAtIndexPosition={0} />
       )}
+      <FormTree duplicateComponents={duplicateComponents} layout={layout} />
     </>
   );
 };
+
+const hasOnlyNavigationButtons = (layout: IInternalLayout): boolean =>
+  getChildIds(layout, BASE_CONTAINER_ID).every(
+    (id) => getItem(layout, id)?.type === ComponentType.NavigationButtons,
+  );
 
 const MultiPageWarning = () => {
   const { t } = useTranslation();

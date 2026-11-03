@@ -3,10 +3,12 @@ using Altinn.Studio.Gateway.Api.Clients.AlertsClient;
 using Altinn.Studio.Gateway.Api.Clients.Designer;
 using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
+using Altinn.Studio.Gateway.Api.Clients.WorkflowEngine;
 using Altinn.Studio.Gateway.Api.Endpoints.Internal;
 using Altinn.Studio.Gateway.Api.Endpoints.Local;
 using Altinn.Studio.Gateway.Api.Endpoints.Public;
 using Altinn.Studio.Gateway.Api.Settings;
+using Altinn.Studio.Gateway.Api.Telemetry;
 using Azure.Core;
 using Azure.Identity;
 using Azure.Monitor.Query.Logs;
@@ -28,6 +30,7 @@ internal static class GatewayExtensions
         });
 
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<GatewayMetrics>();
         if (!builder.Environment.IsDevelopment())
         {
             builder.Configuration.AddJsonFile(
@@ -61,6 +64,7 @@ internal static class GatewayExtensions
         builder
             .Services.AddOptions<GatewayContext>()
             .Bind(builder.Configuration.GetSection("Gateway"))
+            .Validate(context => !string.IsNullOrWhiteSpace(context.ServiceOwner), "Gateway.ServiceOwner is required.")
             .ValidateOnStart();
 
         builder.Services.AddKeyedSingleton<IAlertsClient>(
@@ -85,6 +89,7 @@ internal static class GatewayExtensions
             MetricsClientSettings.MetricsClientProvider.AzureMonitor
         );
         builder.Services.AddDesignerClients(builder.Configuration);
+        builder.Services.AddWorkflowEngineClient(builder.Configuration);
         builder.Services.AddKubernetesServices();
 
         return builder;

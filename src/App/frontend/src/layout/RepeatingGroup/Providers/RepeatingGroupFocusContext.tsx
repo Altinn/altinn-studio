@@ -3,7 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { FormStore } from 'src/features/form/FormContext';
-import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
+import { isRepeatingParent } from 'src/features/form/layout/utils/repeating';
 import { useFocusComponentRequest } from 'src/layout/focusComponent';
 import {
   RepGroupContext,
@@ -239,11 +239,13 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     while (subject.type === 'node') {
       const parent = layoutLookups.componentToParent[subject.id];
       if (parent?.id === baseComponentId) {
-        targetChild = subject.id;
+        if (isRepeatingParent(config, subject.id)) {
+          targetChild = subject.id;
+        }
         break;
       }
       const parentComponent = layoutLookups.allComponents[parent.id];
-      if (parentComponent && isRepeatingComponentType(parentComponent.type)) {
+      if (isRepeatingParent(parentComponent, subject.id)) {
         // For every repeating component type we encounter in the hierarchy above this target, we should look backwards
         // in the indexed id for our actual row id.
         negativeRowIndex -= 1;
@@ -286,13 +288,11 @@ function useNavigateToRepeatingGroupPageAndFocusRow() {
     baseComponentId,
     changePageToRow,
     dataModelBindings.group,
-    config.edit?.mode,
+    config,
     layoutLookups.allComponents,
     layoutLookups.componentToParent,
     openForEditing,
-    config.pagination,
     rowsSelector,
     focusRequest,
-    config.tableColumns,
   ]);
 }

@@ -91,7 +91,7 @@ public class EFormidlingServiceTaskConfigurationTests
         services.AddSingleton(processReader.Object);
         services.AddSingleton(appMetadata.Object);
         services.AddSingleton(hostEnvironment.Object);
-        services.AddTransient<IPipelineServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
         services.AddSingleton<IProcessTask, DataTask>();
         services.Configure<EFormidlingClientSettings>(settings => settings.BaseUrl = baseUrl);
         switch (eFormidlingService)

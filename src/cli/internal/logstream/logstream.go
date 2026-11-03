@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"slices"
 	"time"
 )
 
@@ -250,8 +251,8 @@ func readTailSnapshot(paths []string, tail int) (tailSnapshot, error) {
 		remaining -= len(lines)
 	}
 
-	for i := len(chunks) - 1; i >= 0; i-- {
-		snapshot.lines = append(snapshot.lines, chunks[i]...)
+	for _, chunk := range slices.Backward(chunks) {
+		snapshot.lines = append(snapshot.lines, chunk...)
 	}
 	return snapshot, nil
 }

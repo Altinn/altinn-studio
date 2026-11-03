@@ -64,6 +64,8 @@ func TestOperatorImageResourcesUsesExplicitDockerfilePaths(t *testing.T) {
 		}
 	}
 
+	// The operator's images build from src/, for the shared Go module in src/common/go.
+	srcRoot := filepath.Clean(filepath.Join(projectRoot, "../.."))
 	tests := []struct {
 		tag         string
 		contextPath string
@@ -71,12 +73,12 @@ func TestOperatorImageResourcesUsesExplicitDockerfilePaths(t *testing.T) {
 	}{
 		{
 			tag:         "operator-controller:latest",
-			contextPath: projectRoot,
+			contextPath: srcRoot,
 			dockerfile:  filepath.Join(projectRoot, "Dockerfile"),
 		},
 		{
 			tag:         "operator-fakes:latest",
-			contextPath: projectRoot,
+			contextPath: srcRoot,
 			dockerfile:  filepath.Join(projectRoot, "Dockerfile.fakes"),
 		},
 		{

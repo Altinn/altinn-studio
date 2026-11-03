@@ -10,6 +10,8 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
 using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Internal.WorkflowEngine;
@@ -400,7 +402,8 @@ public class ProcessingStatusAcquirerTests
                 new ModelSerializationService(null!),
                 appMetadata.Object,
                 Mock.Of<IAppModel>(),
-                _signer
+                _signer,
+                Mock.Of<IProcessReader>(r => r.GetProcessTasks() == new List<ProcessTask>())
             );
             WorkflowEngineService
                 .Setup(service =>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBrowserRouter, Navigate, RouterContextProvider } from 'react-router';
+import type { RouteObject } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -23,6 +24,32 @@ import * as taskIndexRoute from 'src/routes/task/task-index.route';
 import { buildPartySelectionUrl, routes, TaskKeys } from 'src/routesBuilder';
 import type { ApiClients } from 'src/core/api-client/ApiClients';
 
+/**
+ * The instance route and the routes below it. Tests route through them with `InstanceRoutesRouter`.
+ */
+export const instanceRoutes: RouteObject = {
+  path: routes.instance,
+  ...convertRouteModule(instanceRoute),
+  children: [
+    { index: true, ...convertRouteModule(instanceIndexRoute) },
+    { path: TaskKeys.ProcessEnd, ...convertRouteModule(processEndRoute) },
+    {
+      path: routes.task,
+      ...convertRouteModule(taskRoute),
+      children: [
+        { index: true, ...convertRouteModule(taskIndexRoute) },
+        {
+          path: routes.page,
+          children: [
+            { index: true, ...convertRouteModule(pageRoute) },
+            { path: routes.componentCatchAll, ...convertRouteModule(componentRoute) },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 export function createRouter({ queryClient, apiClients }: { queryClient: QueryClient; apiClients: ApiClients }) {
   return createBrowserRouter(
     [
@@ -44,28 +71,7 @@ export function createRouter({ queryClient, apiClients }: { queryClient: QueryCl
               { index: true, ...convertRouteModule(statelessIndexRoute) },
             ],
           },
-          {
-            path: routes.instance,
-            ...convertRouteModule(instanceRoute),
-            children: [
-              { index: true, ...convertRouteModule(instanceIndexRoute) },
-              { path: TaskKeys.ProcessEnd, ...convertRouteModule(processEndRoute) },
-              {
-                path: routes.task,
-                ...convertRouteModule(taskRoute),
-                children: [
-                  { index: true, ...convertRouteModule(taskIndexRoute) },
-                  {
-                    path: routes.page,
-                    children: [
-                      { index: true, ...convertRouteModule(pageRoute) },
-                      { path: routes.componentCatchAll, ...convertRouteModule(componentRoute) },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
+          instanceRoutes,
         ],
       },
       {

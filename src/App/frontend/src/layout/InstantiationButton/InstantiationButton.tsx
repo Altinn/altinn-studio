@@ -4,8 +4,13 @@ import { useNavigate } from 'react-router';
 import { InstantiationButton as InstantiationButtonLayout } from '@app/form-component';
 import { CommonExpressions } from '@app/layout-contract/generated/expressions.generated';
 
-import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
+import {
+  ErrorListForClosedInstantiation,
+  ErrorListFromInstantiation,
+  ErrorReport,
+} from 'src/components/message/ErrorReport';
 import { parseInstanceId } from 'src/core/queries/instance';
+import { isInstantiationClosedError, useInstantiationClosedReason } from 'src/features/instantiate/instantiationClosed';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useResolvedQueryParameters } from 'src/features/options/evalQueryParameters';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
@@ -31,17 +36,27 @@ export const InstantiationButton = ({ addPageMargin, baseComponentId }: Instanti
   const party = useSelectedParty();
   const navigate = useNavigate();
   const componentId = useIndexedId(baseComponentId);
+  const metadataClosedReason = useInstantiationClosedReason();
+  const closedReason =
+    metadataClosedReason ??
+    (isInstantiationClosedError(instantiation.error) ? { reason: 'closed' as const } : undefined);
 
   return (
     <ErrorReport
-      show={instantiation.error !== undefined}
-      errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
+      show={closedReason !== undefined || instantiation.error !== undefined}
+      errors={
+        closedReason ? (
+          <ErrorListForClosedInstantiation reason={closedReason} />
+        ) : instantiation.error ? (
+          <ErrorListFromInstantiation error={instantiation.error} />
+        ) : undefined
+      }
     >
       <InstantiationButtonLayout
         componentId={componentId}
         title={title}
         addPageMargin={addPageMargin}
-        disabled={isAnyProcessing}
+        disabled={isAnyProcessing || closedReason !== undefined}
         isLoading={isLoading}
         onClick={() =>
           performProcess(async () => {

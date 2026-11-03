@@ -176,8 +176,7 @@ func removeIfEmpty(dir string) error {
 
 // withoutPath drops the file path from err, as output does not show paths of files studioctl manages.
 func withoutPath(err error) error {
-	var pathErr *fs.PathError
-	if errors.As(err, &pathErr) {
+	if pathErr, ok := errors.AsType[*fs.PathError](err); ok {
 		return pathErr.Err
 	}
 	return err

@@ -1,32 +1,28 @@
+using Altinn.App.Core.Internal.Process.ProcessTasks;
+
 namespace Altinn.App.Core.Features.Process;
 
 /// <summary>
-/// A service task that does one thing: a single unit of work executed (and on failure, retried)
-/// durably by the workflow engine when the process enters a BPMN service task. This is the shape
-/// almost every service task wants. A task with several consecutive units of work — dispatch then
-/// await, or a series of API calls — should implement <see cref="IPipelineServiceTask"/> instead
-/// and give each unit its own durable stage.
+/// A service task: the work the workflow engine runs durably when the process enters a BPMN service task,
+/// composed as a pipeline in <see cref="DefineExecute"/>. A task that does one thing is a pipeline of just the
+/// conclusion — <c>pipeline.Finally(Execute)</c>. A task with several consecutive units of work — dispatch
+/// then await, or a series of API calls — gives each unit its own durable stage ahead of the conclusion. The
+/// conclusion is a final step for work that finishes by itself or by polling, or a reply terminal for work
+/// answered by a message into a mailbox a stage opened.
 /// </summary>
 /// <remarks>
-/// <strong>IMPORTANT: Implementations MUST be idempotent — service tasks may be retried on failure.</strong>
+/// Each stage runs as its own workflow-engine step, and a completed stage never runs again.
+/// <strong>Implementations MUST be idempotent — every stage may be retried on failure.</strong>
+/// Authoring guidance: <c>docs/service-task-pipelines.md</c> in the app-lib repository.
 /// </remarks>
 [ImplementableByApps]
-public interface IServiceTask : IPipelineServiceTask
+public interface IServiceTask : IProcessTask
 {
     /// <summary>
-    /// Executes the service task. Return <see cref="ServiceTaskResult.Success"/> when complete,
-    /// <see cref="ServiceTaskResult.Defer"/> to run again later, or a failure result.
-    /// Unhandled exceptions are treated as retryable failures.
+    /// Defines the pipeline the task runs between its start and its end: zero or more <c>Stage</c> calls, ended
+    /// by exactly one terminal — <c>Finally</c>, or <c>ConcludeOnReplies</c> when a stage opened a mailbox. Each
+    /// call takes the step's options, such as its timeout and retry strategy. Called at enqueue, on every
+    /// callback, and at app startup, so it must be cheap, deterministic and side-effect free.
     /// </summary>
-    public Task<ServiceTaskResult> Execute(ServiceTaskContext context);
-
-    /// <summary>
-    /// A simple service task is a pipeline whose only step is the conclusion: <see cref="Execute"/>
-    /// is the pipeline's <c>Finally</c>. This forwarding is the contract — an implementing class
-    /// must never replace it (enforced at compile time and at app startup).
-    /// </summary>
-    [SealedImplementation(
-        $"Implement {nameof(IPipelineServiceTask)} directly instead — on an {nameof(IServiceTask)}, {nameof(Execute)} would never run"
-    )]
-    ServiceTaskPipeline IPipelineServiceTask.Define(ServiceTaskPipelineBuilder pipeline) => pipeline.Finally(Execute);
+    public ServiceTaskPipeline DefineExecute(PipelineBuilder pipeline);
 }

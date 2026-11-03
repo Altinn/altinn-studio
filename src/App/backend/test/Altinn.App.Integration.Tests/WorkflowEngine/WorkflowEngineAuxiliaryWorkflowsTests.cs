@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 using Json.Pointer;
@@ -11,7 +12,7 @@ using Xunit.Abstractions;
 namespace Altinn.App.Integration.Tests.WorkflowEngine;
 
 /// <summary>
-/// Verifies the process-next primary/auxiliary split: auxiliary post-commit commands (Altinn event
+/// Verifies the process-next primary/auxiliary split: auxiliary post-commit steps (Altinn event
 /// registrations) each run in their own single-step auxiliary workflow (<c>IsHead=false</c>) that
 /// never gates the ProcessNext response or the next transition, while primary post-commit
 /// commands (ExecuteServiceTask) stay in the primary workflow and are waited on. The scenario's

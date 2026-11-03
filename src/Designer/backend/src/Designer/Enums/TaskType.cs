@@ -11,5 +11,4 @@ public enum TaskType
     Signing,
     Payment,
     Pdf,
-    SubformPdf,
 }

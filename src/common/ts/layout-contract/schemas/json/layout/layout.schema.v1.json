@@ -984,13 +984,31 @@
         "secondary"
       ]
     },
+    "AddressSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "AddressSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "AddressSummaryOverridesWithRef": {
       "title": "AddressSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/AddressSummaryOverrides"
             },
             {
               "title": "Summary overrides for Address",
@@ -1010,6 +1028,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -1022,7 +1041,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/AddressSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Address",
@@ -1042,6 +1061,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -1181,6 +1201,9 @@
         },
         {
           "$ref": "#/definitions/DropdownSummaryOverridesWithRef"
+        },
+        {
+          "$ref": "#/definitions/FileUploadSummaryOverridesWithRef"
         },
         {
           "$ref": "#/definitions/GridSummaryOverridesWithRef"
@@ -1439,13 +1462,31 @@
         }
       ]
     },
+    "BrokerFileTransferSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "BrokerFileTransferSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "BrokerFileTransferSummaryOverridesWithRef": {
       "title": "BrokerFileTransferSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/BrokerFileTransferSummaryOverrides"
             },
             {
               "title": "Summary overrides for BrokerFileTransfer",
@@ -1465,6 +1506,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -1477,7 +1519,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/BrokerFileTransferSummaryOverrides"
             },
             {
               "title": "Summary overrides for all BrokerFileTransfer",
@@ -1497,6 +1539,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -1618,6 +1661,11 @@
           "title": "CheckboxesSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "displayType": {
               "title": "Display type",
               "description": "How data should be displayed for this checkboxes component in the summary",
@@ -1656,6 +1704,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentId": true
               },
@@ -1689,6 +1738,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentType": true
               },
@@ -8290,13 +8340,31 @@
       ],
       "additionalProperties": false
     },
+    "DatepickerSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "DatepickerSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "DatepickerSummaryOverridesWithRef": {
       "title": "DatepickerSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DatepickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for Datepicker",
@@ -8316,6 +8384,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8328,7 +8397,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DatepickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Datepicker",
@@ -8348,6 +8417,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -8497,13 +8567,31 @@
         }
       ]
     },
+    "DropdownSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "DropdownSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "DropdownSummaryOverridesWithRef": {
       "title": "DropdownSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DropdownSummaryOverrides"
             },
             {
               "title": "Summary overrides for Dropdown",
@@ -8523,6 +8611,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -8535,7 +8624,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/DropdownSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Dropdown",
@@ -8555,6 +8644,96 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
+                "componentType": true
+              },
+              "required": [
+                "componentType"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      ]
+    },
+    "FileUploadSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "FileUploadSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
+    "FileUploadSummaryOverridesWithRef": {
+      "title": "FileUploadSummaryOverridesWithRef",
+      "anyOf": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FileUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for FileUpload",
+              "description": "Properties for how to display the summary of this FileUpload component",
+              "type": "object",
+              "properties": {
+                "componentId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "componentId"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
+                "componentId": true
+              },
+              "required": [
+                "componentId"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/definitions/FileUploadSummaryOverrides"
+            },
+            {
+              "title": "Summary overrides for all FileUpload",
+              "description": "Properties for how to display the summary of all FileUpload components",
+              "type": "object",
+              "properties": {
+                "componentType": {
+                  "const": "FileUpload"
+                }
+              },
+              "required": [
+                "componentType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "hidden": true,
+                "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10223,13 +10402,31 @@
         }
       ]
     },
+    "ImageUploadSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "ImageUploadSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "ImageUploadSummaryOverridesWithRef": {
       "title": "ImageUploadSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/ImageUploadSummaryOverrides"
             },
             {
               "title": "Summary overrides for ImageUpload",
@@ -10249,6 +10446,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10261,7 +10459,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/ImageUploadSummaryOverrides"
             },
             {
               "title": "Summary overrides for all ImageUpload",
@@ -10281,6 +10479,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10292,13 +10491,31 @@
         }
       ]
     },
+    "InputSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "InputSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "InputSummaryOverridesWithRef": {
       "title": "InputSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/InputSummaryOverrides"
             },
             {
               "title": "Summary overrides for Input",
@@ -10318,6 +10535,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10330,7 +10548,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/InputSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Input",
@@ -10350,6 +10568,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10851,13 +11070,31 @@
         "table"
       ]
     },
+    "LikertItemSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "LikertItemSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "LikertItemSummaryOverridesWithRef": {
       "title": "LikertItemSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/LikertItemSummaryOverrides"
             },
             {
               "title": "Summary overrides for LikertItem",
@@ -10877,6 +11114,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10889,7 +11127,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/LikertItemSummaryOverrides"
             },
             {
               "title": "Summary overrides for all LikertItem",
@@ -10909,6 +11147,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10920,13 +11159,31 @@
         }
       ]
     },
+    "LikertSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "LikertSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "LikertSummaryOverridesWithRef": {
       "title": "LikertSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/LikertSummaryOverrides"
             },
             {
               "title": "Summary overrides for Likert",
@@ -10946,6 +11203,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -10958,7 +11216,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/LikertSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Likert",
@@ -10978,6 +11236,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -10998,13 +11257,31 @@
         "link"
       ]
     },
+    "ListSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "ListSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "ListSummaryOverridesWithRef": {
       "title": "ListSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/ListSummaryOverrides"
             },
             {
               "title": "Summary overrides for List",
@@ -11024,6 +11301,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11036,7 +11314,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/ListSummaryOverrides"
             },
             {
               "title": "Summary overrides for all List",
@@ -11056,6 +11334,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11096,13 +11375,31 @@
         }
       ]
     },
+    "MapSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "MapSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "MapSummaryOverridesWithRef": {
       "title": "MapSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/MapSummaryOverrides"
             },
             {
               "title": "Summary overrides for Map",
@@ -11122,6 +11419,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11134,7 +11432,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/MapSummaryOverrides"
             },
             {
               "title": "Summary overrides for all Map",
@@ -11154,6 +11452,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -11286,6 +11585,11 @@
           "title": "MultipleSelectSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "displayType": {
               "title": "Display type",
               "description": "How data should be displayed for the this multiple select component in the summary",
@@ -11324,6 +11628,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentId": true
               },
@@ -11357,6 +11662,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "displayType": true,
                 "componentType": true
               },
@@ -11615,13 +11921,31 @@
         }
       ]
     },
+    "OrganizationLookupSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "OrganizationLookupSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "OrganizationLookupSummaryOverridesWithRef": {
       "title": "OrganizationLookupSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/OrganizationLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for OrganizationLookup",
@@ -11641,6 +11965,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -11653,7 +11978,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/OrganizationLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for all OrganizationLookup",
@@ -11673,6 +11998,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12025,13 +12351,31 @@
         }
       ]
     },
+    "PersonLookupSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "PersonLookupSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "PersonLookupSummaryOverridesWithRef": {
       "title": "PersonLookupSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/PersonLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for PersonLookup",
@@ -12051,6 +12395,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12063,7 +12408,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/PersonLookupSummaryOverrides"
             },
             {
               "title": "Summary overrides for all PersonLookup",
@@ -12083,6 +12428,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12114,13 +12460,31 @@
       ],
       "additionalProperties": false
     },
+    "RadioButtonsSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "RadioButtonsSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "RadioButtonsSummaryOverridesWithRef": {
       "title": "RadioButtonsSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/RadioButtonsSummaryOverrides"
             },
             {
               "title": "Summary overrides for RadioButtons",
@@ -12140,6 +12504,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12152,7 +12517,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/RadioButtonsSummaryOverrides"
             },
             {
               "title": "Summary overrides for all RadioButtons",
@@ -12172,6 +12537,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12192,6 +12558,11 @@
           "title": "RepeatingGroupSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "display": {
               "title": "Display type",
               "description": "Show the summary as a table or as full summary components",
@@ -12231,6 +12602,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentId": true
               },
@@ -12264,6 +12636,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentType": true
               },
@@ -12319,6 +12692,11 @@
           "title": "SubformSummaryOverrides",
           "type": "object",
           "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            },
             "display": {
               "title": "Display type",
               "description": "Show the summary as a table or as full summary components",
@@ -12358,6 +12736,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentId": true
               },
@@ -12391,6 +12770,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "display": true,
                 "componentType": true
               },
@@ -12623,13 +13003,31 @@
         }
       ]
     },
+    "TextAreaSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "TextAreaSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "TextAreaSummaryOverridesWithRef": {
       "title": "TextAreaSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TextAreaSummaryOverrides"
             },
             {
               "title": "Summary overrides for TextArea",
@@ -12649,6 +13047,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12661,7 +13060,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TextAreaSummaryOverrides"
             },
             {
               "title": "Summary overrides for all TextArea",
@@ -12681,6 +13080,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [
@@ -12761,13 +13161,31 @@
         }
       ]
     },
+    "TimePickerSummaryOverrides": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ISummaryOverridesCommon"
+        },
+        {
+          "title": "TimePickerSummaryOverrides",
+          "type": "object",
+          "properties": {
+            "showNextButton": {
+              "title": "Show next button after editing",
+              "description": "Show the next-page button alongside Back to summary after editing this component from Summary2. Defaults to false.",
+              "type": "boolean"
+            }
+          }
+        }
+      ]
+    },
     "TimePickerSummaryOverridesWithRef": {
       "title": "TimePickerSummaryOverridesWithRef",
       "anyOf": [
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TimePickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for TimePicker",
@@ -12787,6 +13205,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentId": true
               },
               "required": [
@@ -12799,7 +13218,7 @@
         {
           "allOf": [
             {
-              "$ref": "#/definitions/ISummaryOverridesCommon"
+              "$ref": "#/definitions/TimePickerSummaryOverrides"
             },
             {
               "title": "Summary overrides for all TimePicker",
@@ -12819,6 +13238,7 @@
               "properties": {
                 "hidden": true,
                 "emptyFieldText": true,
+                "showNextButton": true,
                 "componentType": true
               },
               "required": [

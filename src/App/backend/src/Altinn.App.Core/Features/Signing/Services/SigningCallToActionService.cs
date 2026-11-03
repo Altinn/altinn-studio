@@ -47,6 +47,7 @@ internal sealed class SigningCallToActionService(
         Party signingParty,
         Party serviceOwnerParty,
         List<AltinnEnvironmentConfig>? correspondenceResources,
+        Guid idempotentKey,
         CancellationToken cancellationToken
     )
     {
@@ -113,6 +114,7 @@ internal sealed class SigningCallToActionService(
                 .WithRecipient(recipient)
                 .WithContent(correspondenceContent)
                 .WithNotificationIfConfigured(SigningNotificationHelper.CreateNotification(contentWrapper))
+                .WithIdempotentKey(idempotentKey)
                 .Build(),
             CorrespondenceAuthenticationMethod.Default()
         );

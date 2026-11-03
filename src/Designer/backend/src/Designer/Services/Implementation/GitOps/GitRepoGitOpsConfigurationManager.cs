@@ -8,6 +8,7 @@ using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Abstractions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -25,6 +26,7 @@ public class GitRepoGitOpsConfigurationManager(
     [FromKeyedServices("bot-auth")] IGiteaClient giteaClient,
     IGitOpsManifestsRenderer gitOpsManifestsRenderer,
     ISourceControl sourceControl,
+    ILockService lockService,
     IAltinnGitRepositoryFactory gitRepositoryFactory,
     TimeProvider timeProvider,
     GitOpsSettings gitOpsSettings,
@@ -32,12 +34,27 @@ public class GitRepoGitOpsConfigurationManager(
     ILogger<GitRepoGitOpsConfigurationManager> logger
 ) : IGitOpsConfigurationManager
 {
+    // Git's default gc.autoPackLimit.
+    private const int MaxPackFilesToReuse = 50;
+
+    private static readonly TimeSpan s_lockWaitTimeout = TimeSpan.FromSeconds(30);
+
     private string GitOpsRepoName(string org) => string.Format(gitOpsSettings.GitOpsRepoNameFormat, org);
 
     public async Task<bool> GitOpsConfigurationExistsAsync(AltinnOrgEditingContext context)
     {
         var repo = await giteaClient.GetRepository(gitOpsSettings.GitOpsOrg, GitOpsRepoName(context.Org));
         return repo is not null;
+    }
+
+    public async Task<IAsyncDisposable> LockLocalRepositoryAsync(AltinnOrgEditingContext context)
+    {
+        AltinnRepoEditingContext gitOpsRepoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+            gitOpsSettings.GitOpsOrg,
+            GitOpsRepoName(context.Org),
+            context.Developer
+        );
+        return await lockService.AcquireRepoUserWideLockAsync(gitOpsRepoContext, s_lockWaitTimeout);
     }
 
     public async Task EnsureGitOpsConfigurationExistsAsync(
@@ -53,10 +70,12 @@ public class GitRepoGitOpsConfigurationManager(
                 gitOpsSettings.BotPersonalAccessToken,
                 mustUseTokenAuth: true
             );
-        DeleteLocalRepositoryIfExists(context);
-        await EnsureRemoteRepositoryExists(context);
-
-        sourceControl.CloneRemoteRepository(gitOpsAuthenticatedContext);
+        if (!TryResetLocalRepositoryToRemote(context, gitOpsAuthenticatedContext))
+        {
+            DeleteLocalRepositoryIfExists(context);
+            await EnsureRemoteRepositoryExists(context);
+            sourceControl.CloneRemoteRepository(gitOpsAuthenticatedContext);
+        }
 
         await EnsureBaseManifests(context);
         await EnsureEnvironmentManifests(context, environment);
@@ -115,6 +134,55 @@ public class GitRepoGitOpsConfigurationManager(
             );
             await WriteManifestsToFiles(context, envManifests);
         }
+    }
+
+    /// <summary>
+    /// Reuses the local clone from an earlier deploy, since cloning the repository, which grows with every deploy,
+    /// takes far longer than fetching it. Deploys to an org run one at a time, so no other request uses the clone.
+    /// </summary>
+    /// <returns>False when there is no local clone, or it cannot be brought up to date and must be cloned again.</returns>
+    private bool TryResetLocalRepositoryToRemote(
+        AltinnOrgEditingContext context,
+        AltinnAuthenticatedRepoEditingContext gitOpsAuthenticatedContext
+    )
+    {
+        string repoPath = serviceRepositorySettings.GetServicePath(
+            gitOpsSettings.GitOpsOrg,
+            GitOpsRepoName(context.Org),
+            context.Developer
+        );
+        if (!Directory.Exists(repoPath) || HasTooManyPackFiles(repoPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            sourceControl.ResetToRemoteBranch(gitOpsAuthenticatedContext, General.DefaultBranch);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Whatever the clone's problem, such as a lock file, a deleted branch or a local configuration that
+            // fails a check, a fresh clone does not have it. A failure that is not the clone's fails the clone too.
+            logger.LogWarning(
+                ex,
+                "Could not update the local GitOps repository, so it is cloned again: {Path}",
+                repoPath
+            );
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// libgit2 never repacks, so every fetch into a reused clone adds a pack file, and looking up an object reads each
+    /// of them. Past git's own limit for repacking, cloning again is the cheaper way back to one pack.
+    /// </summary>
+    private static bool HasTooManyPackFiles(string repoPath)
+    {
+        string packDirectory = Path.Join(repoPath, ".git", "objects", "pack");
+        return Directory.Exists(packDirectory)
+            && Directory.EnumerateFiles(packDirectory, "*.pack").Count() > MaxPackFilesToReuse;
     }
 
     private void DeleteLocalRepositoryIfExists(AltinnOrgEditingContext context)

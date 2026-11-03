@@ -10,6 +10,12 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, layoutSet as layoutSetId, org } from '@studio/testing/testids';
+import { ComponentType } from '../../../types/ComponentType';
+import { useAddComponentHandlerSilent } from './hooks/useAddComponentHandlerSilent';
+
+vi.mock('./hooks/useAddComponentHandlerSilent', () => ({
+  useAddComponentHandlerSilent: vi.fn(() => ({ addItem: vi.fn() })),
+}));
 
 describe('AddItem', () => {
   it('should render AddItem', () => {
@@ -38,6 +44,36 @@ describe('AddItem', () => {
     expect(
       screen.queryByRole('button', { name: textMock('ux_editor.add_item.show_all') }),
     ).not.toBeInTheDocument();
+  });
+
+  it('adds the component at the end of the container by default', async () => {
+    const user = userEvent.setup();
+    const addItem = mockAddItem();
+    const layout = createLayoutWithComponents();
+    renderAddItem({ layout }, seedFormLayouts(layout));
+    await user.click(getAddComponentButton());
+    await user.click(getInputComponentButton());
+    expect(addItem).toHaveBeenCalledWith(
+      ComponentType.Input,
+      BASE_CONTAINER_ID,
+      2,
+      expect.any(String),
+    );
+  });
+
+  it('adds the component at the given position', async () => {
+    const user = userEvent.setup();
+    const addItem = mockAddItem();
+    const layout = createLayoutWithComponents();
+    renderAddItem({ layout, saveAtIndexPosition: 0 }, seedFormLayouts(layout));
+    await user.click(getAddComponentButton());
+    await user.click(getInputComponentButton());
+    expect(addItem).toHaveBeenCalledWith(
+      ComponentType.Input,
+      BASE_CONTAINER_ID,
+      0,
+      expect.any(String),
+    );
   });
 
   it('shows the show all button when more components are available than the quick-add list', async () => {
@@ -81,6 +117,30 @@ const createDefaultLayout = (): IInternalLayout => ({
   customRootProperties: {},
 });
 
+const seedFormLayouts = (layout: IInternalLayout): QueryClient => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetId], { page: layout });
+  return queryClient;
+};
+
+const createLayoutWithComponents = (): IInternalLayout => ({
+  ...createDefaultLayout(),
+  order: { [BASE_CONTAINER_ID]: ['paragraph', 'navigationButtons'] },
+  components: {
+    paragraph: { id: 'paragraph', type: ComponentType.Paragraph },
+    navigationButtons: {
+      id: 'navigationButtons',
+      type: ComponentType.NavigationButtons,
+    },
+  },
+});
+
+const mockAddItem = (): ReturnType<typeof vi.fn> => {
+  const addItem = vi.fn();
+  vi.mocked(useAddComponentHandlerSilent).mockReturnValue({ addItem });
+  return addItem;
+};
+
 const createDefaultAddItemProps = (): AddItemProps => ({
   containerId: BASE_CONTAINER_ID,
   layout: createDefaultLayout(),
@@ -114,4 +174,8 @@ function getComponentsHeader(): HTMLHeadingElement {
     level: 4,
     name: textMock('ux_editor.add_item.components_header'),
   });
+}
+
+function getInputComponentButton(): HTMLButtonElement {
+  return screen.getByRole('button', { name: textMock('ux_editor.component_title.Input') });
 }
