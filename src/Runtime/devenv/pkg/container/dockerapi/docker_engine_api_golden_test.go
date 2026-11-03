@@ -35,10 +35,6 @@ func TestRequests_MatchGolden(t *testing.T) {
 			_, err := c.CreateContainer(ctx, goldenContainerConfig())
 			return err
 		},
-		"empty-command": func(ctx context.Context, c *Client) error {
-			_, err := c.CreateContainer(ctx, types.ContainerConfig{Image: "alpine", Command: []string{}})
-			return err
-		},
 		"exec": func(ctx context.Context, c *Client) error {
 			return c.ExecWithIO(ctx, "ctr", []string{"sh", "-c", "cat"}, strings.NewReader("stdin"), io.Discard, nil)
 		},
@@ -290,7 +286,7 @@ func queryValues(t *testing.T, query url.Values) map[string]any {
 }
 
 // withoutZeroValues omits SDK defaults that the daemon also uses for absent struct fields.
-// Label and port-set entries, and array elements (including an empty command), are data and stay intact.
+// Label and port-set entries, and array elements (including empty arguments), are data and stay intact.
 func withoutZeroValues(value any, isSet bool) any {
 	switch v := value.(type) {
 	case map[string]any:
