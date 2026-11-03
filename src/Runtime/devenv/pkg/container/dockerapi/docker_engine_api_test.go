@@ -19,7 +19,7 @@ var errNetworkActiveEndpoints = errors.New(
 func TestBuildMounts(t *testing.T) {
 	t.Parallel()
 
-	got := buildMounts([]types.VolumeMount{
+	got, _ := buildMounts([]types.VolumeMount{
 		{
 			HostPath:      "/Users/someuser/Library/Application Support/altinn-studio/data/testdata",
 			ContainerPath: "/testdata",

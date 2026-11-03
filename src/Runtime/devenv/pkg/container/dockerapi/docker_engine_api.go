@@ -302,10 +302,11 @@ func buildCreateRequest(cfg types.ContainerConfig, platform types.ContainerPlatf
 		capAdd = types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
 	}
 
+	mounts, binds := buildMounts(cfg.Volumes)
 	request.HostConfig = hostConfig{
 		PortBindings:  portBindings,
-		Binds:         buildVolumeBinds(cfg.Volumes),
-		Mounts:        buildMounts(cfg.Volumes),
+		Binds:         binds,
+		Mounts:        mounts,
 		ExtraHosts:    cfg.ExtraHosts,
 		RestartPolicy: buildRestartPolicy(cfg.RestartPolicy),
 		NetworkMode:   primaryNetwork,
@@ -374,45 +375,30 @@ func buildRestartPolicy(policy string) restartPolicy {
 	}
 }
 
-func buildMounts(volumes []types.VolumeMount) []mount {
-	mounts := make([]mount, 0, len(volumes))
+func buildMounts(volumes []types.VolumeMount) ([]mount, []string) {
+	var mounts []mount
+	var binds []string
 	for _, v := range volumes {
 		if v.Type == types.VolumeMountTypeBind && v.SELinuxRelabel != types.SELinuxRelabelNone {
+			options := string(v.SELinuxRelabel)
+			if v.ReadOnly {
+				options = "ro," + options
+			}
+			binds = append(binds, v.HostPath+":"+v.ContainerPath+":"+options)
 			continue
 		}
+		mountType := "bind"
+		if v.Type == types.VolumeMountTypeVolume {
+			mountType = "volume"
+		}
 		mounts = append(mounts, mount{
-			Type:     dockerMountType(v.Type),
+			Type:     mountType,
 			Source:   v.HostPath,
 			Target:   v.ContainerPath,
 			ReadOnly: v.ReadOnly,
 		})
 	}
-	return mounts
-}
-
-func buildVolumeBinds(volumes []types.VolumeMount) []string {
-	var binds []string
-	for _, v := range volumes {
-		if v.Type != types.VolumeMountTypeBind || v.SELinuxRelabel == types.SELinuxRelabelNone {
-			continue
-		}
-		options := make([]string, 0, 2)
-		if v.ReadOnly {
-			options = append(options, "ro")
-		}
-		options = append(options, string(v.SELinuxRelabel))
-
-		bind := v.HostPath + ":" + v.ContainerPath + ":" + strings.Join(options, ",")
-		binds = append(binds, bind)
-	}
-	return binds
-}
-
-func dockerMountType(mountType types.VolumeMountType) string {
-	if mountType == types.VolumeMountTypeVolume {
-		return "volume"
-	}
-	return "bind"
+	return mounts, binds
 }
 
 func detectPlatform(ctx context.Context, api *engine, hostHint string) (types.ContainerPlatform, error) {
