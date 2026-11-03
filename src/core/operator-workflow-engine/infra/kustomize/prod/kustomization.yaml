@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patches:
+  - target:
+      kind: Deployment
+      name: operator-workflow-engine
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: operator-workflow-engine
+      spec:
+        template:
+          spec:
+            containers:
+              - name: operator-workflow-engine
+                env:
+                  - name: ASPNETCORE_ENVIRONMENT
+                    value: "prod"
