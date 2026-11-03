@@ -2,6 +2,10 @@ import React from 'react';
 
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 
+import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { FormProvider } from 'src/features/form/FormProvider';
 import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
@@ -68,6 +72,38 @@ describe('CustomWebComponent', () => {
     await waitFor(() => {
       expect(Reflect.get(element, 'formData')).toEqual({ simpleBinding: 'Updated by widget' });
     });
+  });
+
+  it('tells the element which data element each data type in the form has', async () => {
+    await render({ component: { tagName: 'test-component' } });
+    const element = screen.getByTestId('test-component');
+    expect(Reflect.get(element, 'dataElementIds')).toEqual({ [defaultDataTypeMock]: defaultMockDataElementId });
+  });
+
+  it('tells an element in a subform entry the data element of that entry', async () => {
+    await renderGenericComponentTest({
+      type: 'Custom',
+      renderer: (props) => (
+        <FormProvider
+          readOnly={true}
+          uiFolderOverride='subform-layout'
+          dataElementIdOverride='subform-entry-2'
+        >
+          <CustomWebComponent {...props} />
+        </FormProvider>
+      ),
+      component: { id: 'test-component', tagName: 'test-component' },
+      queries: {
+        fetchFormBootstrapForInstance: async ({ uiFolder, dataElementId }) =>
+          getFormBootstrapMock((obj) => {
+            if (uiFolder === 'subform-layout') {
+              obj.dataModels = { 'subform-data': getDataModelBootstrapMock({ dataElementId: dataElementId ?? null }) };
+            }
+          }),
+      },
+    });
+    const element = await screen.findByTestId('test-component');
+    expect(Reflect.get(element, 'dataElementIds')).toEqual({ 'subform-data': 'subform-entry-2' });
   });
 
   it('should render nothing if the tag name is missing', async () => {

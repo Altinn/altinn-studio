@@ -4,6 +4,7 @@ import ReactDOMServer from 'react-dom/server';
 import { Expressions } from '@app/layout-contract/generated/expressions.generated';
 import dot from 'dot-object';
 
+import { FormStore } from 'src/features/form/FormContext';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -89,6 +90,8 @@ export function CustomWebComponent({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wcRef = React.useRef<any>(null);
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
+  // The data element of each data type in this form. In a subform entry, that is the entry's own data element.
+  const dataElementIds = FormStore.bootstrap.useDataElementIds();
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
@@ -119,9 +122,10 @@ export function CustomWebComponent({
     if (current) {
       current.texts = getTextsForComponent(texts, langTools);
       current.dataModelBindings = dataModelBindings;
+      current.dataElementIds = dataElementIds;
       current.language = legacyLanguage;
     }
-  }, [wcRef, texts, dataModelBindings, langTools, legacyLanguage]);
+  }, [wcRef, texts, dataModelBindings, dataElementIds, langTools, legacyLanguage]);
 
   React.useLayoutEffect(() => {
     const { current } = wcRef;
