@@ -298,6 +298,7 @@ func (e *engine) roundTrip(
 
 // connectError words a failed connection as moby's client does.
 func connectError(host string, err error) error {
+	var dnsErr *net.DNSError
 	var netErr net.Error
 	switch {
 	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
@@ -307,6 +308,8 @@ func connectError(host string, err error) error {
 	case errors.Is(err, os.ErrNotExist):
 		return fmt.Errorf("failed to connect to the docker API at %s; "+
 			"check if the path is correct and if the daemon is running: %w", host, errors.Unwrap(err))
+	case errors.As(err, &dnsErr):
+		return fmt.Errorf("failed to connect to the docker API at %s: %w", host, dnsErr)
 	case errors.As(err, &netErr) && (netErr.Timeout() || strings.Contains(err.Error(), "connection refused")):
 		return fmt.Errorf("%w at %s. Is the docker daemon running?", errDaemonNotListening, host)
 	}

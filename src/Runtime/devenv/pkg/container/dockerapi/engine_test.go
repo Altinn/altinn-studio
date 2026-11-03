@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -351,6 +352,19 @@ func TestNewWithHost_ConnectionErrors(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), tt.want) {
 			t.Errorf("NewWithHost(%s) error = %v, want %q", tt.host, err, tt.want)
 		}
+	}
+}
+
+// An unresolvable DOCKER_HOST is checked without a resolver, so the result does not depend on the network.
+func TestConnectError_UnresolvedHost(t *testing.T) {
+	t.Parallel()
+	lookup := &net.DNSError{Err: "no such host", Name: "docker.invalid", IsNotFound: true}
+	err := connectError("tcp://docker.invalid:2375", &url.Error{
+		Op: "Head", URL: "http://docker.invalid:2375/_ping", Err: &net.OpError{Op: "dial", Net: "tcp", Err: lookup},
+	})
+	want := "failed to connect to the docker API at tcp://docker.invalid:2375: lookup docker.invalid: no such host"
+	if errorText(err) != want {
+		t.Fatalf("connectError() = %v, want %q", err, want)
 	}
 }
 
