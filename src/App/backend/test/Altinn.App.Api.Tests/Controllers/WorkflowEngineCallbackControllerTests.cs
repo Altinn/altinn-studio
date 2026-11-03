@@ -736,6 +736,71 @@ public class WorkflowEngineCallbackControllerTests
     }
 
     [Fact]
+    public async Task ExecuteCommand_ServiceTaskConcludingWithConfirmComplete_ConfirmsInTheSaveThatConcludesIt()
+    {
+        var serviceTask = new SuccessfulServiceTask("approve", confirmComplete: true);
+        await using ControllerSetup setup = CreateSetup(
+            services =>
+            {
+                services.Services.AddSingleton<IServiceTask>(serviceTask);
+                services.Services.AddSingleton<IWorkflowEngineCommand>(serviceProvider => new ExecuteServiceTask(
+                    serviceProvider.GetRequiredService<AppImplementationFactory>(),
+                    new MailboxDeliveryEnvelope(serviceProvider.GetRequiredService<WorkflowStateSigner>())
+                ));
+                services.Services.AddSingleton(Mock.Of<IProcessEngine>());
+            },
+            (_, instance) =>
+            {
+                instance.Process!.Status = ProcessStatus.Processing;
+                instance.Process.CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "ServiceTask_1",
+                    AltinnTaskType = SuccessfulServiceTask.ServiceTaskType,
+                };
+            }
+        );
+        string payload = CommandPayloadSerializer.Serialize(
+            new ExecuteServiceTaskPayload(SuccessfulServiceTask.ServiceTaskType, ItemIndex: 0)
+        )!;
+
+        IActionResult result = await setup.Execute(ExecuteServiceTask.Key, Guid.NewGuid(), payload, "chain");
+
+        Assert.IsType<OkObjectResult>(result);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
+        Assert.True(mutation.AddCompleteConfirmation);
+        Assert.Single(mutation.CreateDataElements);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+    }
+
+    [Fact]
+    public async Task ExecuteCommand_ConfirmCompleteOnProcessEnd_CommitsTheConfirmationAndKeepsProcessing()
+    {
+        var ended = new DateTime(2026, 11, 3, 8, 30, 0, DateTimeKind.Utc);
+        await using ControllerSetup setup = CreateSetup(
+            new ConfirmCompleteOnProcessEnd(),
+            (_, instance) =>
+                instance.Process = new ProcessState
+                {
+                    Status = ProcessStatus.Processing,
+                    Ended = ended,
+                    EndEvent = "EndEvent_1",
+                }
+        );
+
+        IActionResult result = await setup.Execute(ConfirmCompleteOnProcessEnd.Key, Guid.NewGuid());
+
+        var response = Assert.IsType<AppCallbackResponse>(Assert.IsType<OkObjectResult>(result).Value);
+        StorageClientInterceptor.RequestResponse request = Assert.Single(GetMutationRequests(setup.Services));
+        StorageInstanceMutationRequest mutation = DeserializeMutationRequest(request.RequestBody!);
+        Assert.True(mutation.AddCompleteConfirmation);
+        Assert.Equal(ProcessStatus.Processing, mutation.ExpectedProcessStatus);
+        Assert.Null(mutation.ProcessState);
+        Assert.Null(mutation.DeleteInstance);
+        Assert.Equal(ProcessStatus.Processing, setup.DeserializeState(response.State!).Instance.Process?.Status);
+    }
+
+    [Fact]
     public async Task ExecuteCommand_WhenWorkflowOwnedSaveGetsStoragePreconditionFailed_ReturnsNonRetryableProblem()
     {
         await using ControllerSetup setup = CreateSetup(new AddBinaryDataCommand());
@@ -1362,7 +1427,7 @@ public class WorkflowEngineCallbackControllerTests
         }
     }
 
-    private sealed class SuccessfulServiceTask(string action) : IServiceTask
+    private sealed class SuccessfulServiceTask(string action, bool confirmComplete = false) : IServiceTask
     {
         public const string ServiceTaskType = "SuccessfulTaskForCallbackTest";
 
@@ -1378,7 +1443,7 @@ public class WorkflowEngineCallbackControllerTests
                 "service-task-output.json",
                 "{}"u8.ToArray()
             );
-            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action));
+            return Task.FromResult<ServiceTaskResult>(ServiceTaskResult.Success(action, confirmComplete));
         }
     }
 

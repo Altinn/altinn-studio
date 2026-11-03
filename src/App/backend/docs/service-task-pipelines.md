@@ -106,6 +106,10 @@ process — that is reserved for the pipeline's conclusion, and for a mailbox-op
 the task and advances the process, using the optional action to select the next transition. Work that
 is still waiting for an outcome uses `Defer` or a mailbox reply handler.
 
+A task that delivers the instance to the service owner returns `Success(confirmComplete: true)` once the
+delivery has succeeded. The app then confirms the instance as complete in the save that concludes the task,
+so a failed or deferred attempt confirms nothing.
+
 ## Waiting: Defer and wait budgets
 
 `Defer(delay, reason?)` means "ran without error, the outcome has not arrived yet": the engine parks the

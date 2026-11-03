@@ -4,6 +4,7 @@ using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Storage;
@@ -1942,7 +1943,8 @@ public class WorkflowEngineServiceTests
             new AppIdentifier(Org, App),
             Options.Create(new AppSettings()),
             callbackTokenGenerator.Object,
-            new ProcessStepOptionsResolver([], appImplementationFactory)
+            new ProcessStepOptionsResolver([], appImplementationFactory),
+            Mock.Of<IAppMetadata>(metadata => metadata.ApplicationMetadata == new ApplicationMetadata(Namespace))
         );
     }
 

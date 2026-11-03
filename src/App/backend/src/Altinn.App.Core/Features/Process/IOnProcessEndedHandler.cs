@@ -6,14 +6,21 @@ namespace Altinn.App.Core.Features.Process;
 /// <remarks>
 /// <para><strong>IMPORTANT: Implementations MUST be idempotent - this hook may be retried on failure.</strong></para>
 /// <para>
-/// Runs after the ended process state is saved to Storage, and before the configured process-end cleanup
-/// (<c>autoDeleteOnProcessEnd</c>) and the release of the instance. A failure here cannot stop the process from
+/// Runs after the ended process state is saved to Storage, and before the configured process-end steps
+/// (<c>autoDeleteOnProcessEnd</c>, <c>autoConfirmCompleteOnProcessEnd</c>) and the release of the instance. A failure here cannot stop the process from
 /// ending; it leaves the ended instance processing until resumed. It runs however the process reached its end event,
 /// so it is the place for logic that belongs to the end of the process. Only logic that must be able to stop the
 /// process from ending belongs in the <see cref="IOnTaskEndingHandler"/> of the task that leads to the end event;
 /// when a rejection ends the process, that task's <see cref="IOnTaskAbandoningHandler"/> runs instead.
 /// </para>
 /// <para>An app registers at most one implementation; with more, it does not start.</para>
+/// <para>
+/// A hook cannot confirm the instance as complete for the service owner. Delivering the instance to the service
+/// owner belongs in a service task, whose result confirms it with <see cref="ServiceTaskResult.Success"/>
+/// (<c>confirmComplete: true</c>) in the save that concludes the task. The engine records each completed stage, so
+/// a failure after the delivery does not deliver again. An app that only needs the confirmation when the process
+/// ends sets <c>autoConfirmCompleteOnProcessEnd</c> in <c>applicationmetadata.json</c>.
+/// </para>
 /// </remarks>
 [ImplementableByApps]
 public interface IOnProcessEndedHandler : IProcessStepConfigurable

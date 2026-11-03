@@ -97,4 +97,15 @@ public class ApplicationMetadata : Application
     /// </summary>
     [JsonProperty(PropertyName = "externalApiIds")]
     public string[]? ExternalApiIds { get; set; }
+
+    /// <summary>
+    /// Whether the app confirms the instance as complete for the service owner when the process reaches its end
+    /// event. The confirmation is saved after the process-ended hook and the deletion of the data types that set
+    /// <c>autoDeleteOnProcessEnd</c>, and before the instance is released or, with the application's own
+    /// <c>autoDeleteOnProcessEnd</c>, hard-deleted. An app that delivers the instance to the service owner itself
+    /// confirms from the service task that delivers it, with <c>ServiceTaskResult.Success(confirmComplete: true)</c>,
+    /// rather than with this setting. The app owner's policy must grant the <c>complete</c> action.
+    /// </summary>
+    [JsonProperty(PropertyName = "autoConfirmCompleteOnProcessEnd")]
+    public bool AutoConfirmCompleteOnProcessEnd { get; set; }
 }

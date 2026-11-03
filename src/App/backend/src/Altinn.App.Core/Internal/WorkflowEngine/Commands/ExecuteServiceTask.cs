@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.AppCommand;
 using Altinn.App.Core.Internal.WorkflowEngine.Models.Engine;
@@ -124,7 +125,12 @@ internal sealed class ExecuteServiceTask(
                     itemIndex
                 ),
 
-                PipelineConclusion.Final final => await ExecuteConclusion(final, serviceTask, serviceTaskContext),
+                PipelineConclusion.Final final => await ExecuteConclusion(
+                    context,
+                    final,
+                    serviceTask,
+                    serviceTaskContext
+                ),
 
                 { } item => throw new UnreachableException($"Unknown pipeline item type: {item.GetType().Name}"),
             };
@@ -286,7 +292,8 @@ internal sealed class ExecuteServiceTask(
         );
 
         WorkflowEngineCommandResult Decide(ServiceTaskExchangeResult verdict) =>
-            MailboxRelay.Decide(
+            StageConclusion(context, verdict)
+            ?? MailboxRelay.Decide(
                 verdict,
                 serviceTaskType,
                 context.Payload.StepId,
@@ -335,10 +342,44 @@ internal sealed class ExecuteServiceTask(
 
     /// <summary>The step that concludes the pipeline — the last step of its final segment.</summary>
     private static async Task<WorkflowEngineCommandResult> ExecuteConclusion(
+        WorkflowEngineCommandContext context,
         PipelineConclusion.Final final,
         IServiceTask serviceTask,
         StageContext serviceTaskContext
-    ) => MapServiceTaskResult(await final.Work(serviceTaskContext), serviceTask);
+    )
+    {
+        ServiceTaskResult result = await final.Work(serviceTaskContext);
+        return StageConclusion(context, result) ?? MapServiceTaskResult(result, serviceTask);
+    }
+
+    /// <summary>
+    /// Stages what a successful conclusion saves besides the conclusion itself: the service owner's complete
+    /// confirmation, when <see cref="SuccessfulServiceTaskResult.ConfirmComplete"/> asks for it. Called with every
+    /// verdict that can conclude the task, before it is mapped: the callback saves only a successful command
+    /// result, so a verdict the mapping still turns into a failure confirms nothing.
+    /// </summary>
+    /// <returns>Null, or a permanent failure when the mutator is not the unit of work the callback saves.</returns>
+    private static FailedWorkflowEngineCommandResult? StageConclusion(
+        WorkflowEngineCommandContext context,
+        ServiceTaskExchangeResult verdict
+    )
+    {
+        if (verdict is not SuccessfulServiceTaskResult { ConfirmComplete: true })
+        {
+            return null;
+        }
+
+        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
+        {
+            return FailedWorkflowEngineCommandResult.Permanent(
+                "Confirming completion from a service task result requires callback state restored into an InstanceDataUnitOfWork.",
+                nameof(InvalidOperationException)
+            );
+        }
+
+        unitOfWork.AddCompleteConfirmation();
+        return null;
+    }
 
     private static FailedWorkflowEngineCommandResult PipelineItemNotFound(string serviceTaskType, int itemIndex) =>
         FailedWorkflowEngineCommandResult.Permanent(
@@ -484,12 +525,13 @@ internal sealed class ExecuteServiceTask(
                 failed.ErrorMessage,
                 failed.Kind == FailureKind.Permanent
             ),
-            ConcludedServiceTaskOpeningStageResult concluded => MailboxRelay.DecideOpeningStageConclusion(
-                concluded.Result,
-                task.Type,
-                context.Payload.StepId,
-                context.StateCarry
-            ),
+            ConcludedServiceTaskOpeningStageResult concluded => StageConclusion(context, concluded.Result)
+                ?? MailboxRelay.DecideOpeningStageConclusion(
+                    concluded.Result,
+                    task.Type,
+                    context.Payload.StepId,
+                    context.StateCarry
+                ),
             // Reachable from app code (see MailboxRelay.Decide's last arm); permanent so it converges.
             _ => UnknownResultType(
                 task,

@@ -141,6 +141,11 @@ internal sealed class WorkflowStepSet
             .AddPrimaryPostCommitStep(OnProcessEndedHook.Key)
             .AddPrimaryPostCommitStep(DeleteDataOnProcessEnd.Key);
 
+        if (context.ConfirmComplete)
+        {
+            group.AddPrimaryPostCommitStep(ConfirmCompleteOnProcessEnd.Key);
+        }
+
         if (context.RegisterEvents)
         {
             group.AddAuxiliaryStep(CompletedAltinnEvent.Key);

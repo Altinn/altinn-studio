@@ -241,19 +241,16 @@ internal sealed class EFormidlingServiceTask : IServiceTask
             case EFormidlingDeliveryState.Delivered:
                 RecordShipmentStatus(context, status);
 
-                // The service owner has what it needed from this instance. Staged on the unit of work
-                // so it commits with this callback's version-fenced save, ahead of the conclusion: the
-                // conclusion may end the process, and an ended process can take the instance with it.
-                // Storage keeps this idempotent per stakeholder, so a retried conclusion cannot
-                // confirm twice.
-                ConfirmComplete(context);
-
                 _logger.LogInformation(
                     "eFormidling shipment for task {TaskId} confirmed delivered with status '{Status}'.",
                     LogSanitizer.Sanitize(taskId),
                     LogSanitizer.Sanitize(status.Status)
                 );
-                return ServiceTaskResult.Success();
+
+                // The service owner has what it needed from this instance. The confirmation commits with
+                // this callback's save, ahead of the process transition the conclusion starts: that may
+                // end the process, and an ended process can take the instance with it.
+                return ServiceTaskResult.Success(confirmComplete: true);
 
             case EFormidlingDeliveryState.Failed:
                 RecordShipmentStatus(context, status);
@@ -406,23 +403,6 @@ internal sealed class EFormidlingServiceTask : IServiceTask
             EformidlingConstants.ShipmentStatusDataValueKey,
             status.Status ?? status.State.ToString()
         );
-    }
-
-    /// <summary>
-    /// Stages the service owner's complete confirmation, which commits with this callback's
-    /// version-fenced save. Writing it straight to Storage instead bumps the instance version behind
-    /// the unit of work's back and breaks that save's version fence.
-    /// </summary>
-    private static void ConfirmComplete(StageContext context)
-    {
-        if (context.InstanceDataMutator is not InstanceDataUnitOfWork unitOfWork)
-        {
-            throw new ProcessException(
-                "The eFormidling service task requires callback state restored into an InstanceDataUnitOfWork to confirm completion."
-            );
-        }
-
-        unitOfWork.AddCompleteConfirmation();
     }
 
     private IEFormidlingService RequireEFormidlingService() =>

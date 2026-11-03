@@ -107,6 +107,43 @@ public class ServiceOwnerPolicyUtilsTests
     }
 
     [Fact]
+    public void AutoConfirmCompleteOnProcessEnd_Needs_Complete()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(autoConfirmCompleteOnProcessEnd: true)
+        );
+
+        Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
+        Assert.Contains("autoConfirmCompleteOnProcessEnd", Assert.Single(diagnostics).GetMessage());
+    }
+
+    [Fact]
+    public void An_End_Event_Scoped_Complete_Grant_Covers_AutoConfirmCompleteOnProcessEnd()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.StandardOrgRules),
+            ProcessFixtures.Process(new ProcessTask("Task_1", "data")),
+            metadata: Metadata(autoConfirmCompleteOnProcessEnd: true)
+        );
+
+        Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public void AutoConfirmCompleteOnProcessEnd_With_A_Shipping_Task_Reports_The_Missing_Grant_Once()
+    {
+        var diagnostics = Collect(
+            PolicyFixtures.Policy(PolicyFixtures.OrgRule(["read", "write"])),
+            ProcessFixtures.Process(new ProcessTask("Task_2", "eFormidling")),
+            metadata: Metadata(autoConfirmCompleteOnProcessEnd: true)
+        );
+
+        Assert.Equal(["complete"], Actions(diagnostics, MissingGrant));
+    }
+
+    [Fact]
     public void Deny_Rules_Make_The_Whole_Analysis_Inconclusive()
     {
         var diagnostics = Collect(
@@ -386,12 +423,17 @@ public class ServiceOwnerPolicyUtilsTests
             .ToArray();
     }
 
-    private static string Metadata(string id = "ttd/app", bool autoDeleteOnProcessEnd = false) =>
+    private static string Metadata(
+        string id = "ttd/app",
+        bool autoDeleteOnProcessEnd = false,
+        bool autoConfirmCompleteOnProcessEnd = false
+    ) =>
         $$"""
             {
               "id": "{{id}}",
               "org": "{{id.Split('/')[0]}}",
               "autoDeleteOnProcessEnd": {{(autoDeleteOnProcessEnd ? "true" : "false")}},
+              "autoConfirmCompleteOnProcessEnd": {{(autoConfirmCompleteOnProcessEnd ? "true" : "false")}},
               "dataTypes": []
             }
             """;

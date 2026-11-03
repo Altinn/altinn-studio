@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Process;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.WorkflowEngine;
 using Altinn.App.Core.Internal.WorkflowEngine.Commands;
 using Altinn.App.Core.Internal.WorkflowEngine.Models;
@@ -122,7 +123,8 @@ public class ExecuteServiceTaskMailboxTests
 
     private static WorkflowEngineCommandContext CreateContext(
         WorkflowCallbackStateCarry? carry = null,
-        AppCallbackMailbox? mailbox = null
+        AppCallbackMailbox? mailbox = null,
+        bool withUnitOfWork = false
     )
     {
         var instance = new Instance
@@ -132,6 +134,7 @@ public class ExecuteServiceTaskMailboxTests
             AppId = "ttd/test-app",
             InstanceOwner = new InstanceOwner { PartyId = "1337" },
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+            Data = [],
         };
         var mutatorMock = new Mock<IInstanceDataMutator>();
         mutatorMock.Setup(x => x.Instance).Returns(instance);
@@ -140,7 +143,7 @@ public class ExecuteServiceTaskMailboxTests
         {
             AppId = new AppIdentifier("ttd", "test-app"),
             InstanceId = new InstanceIdentifier(1337, _instanceGuid),
-            InstanceDataMutator = mutatorMock.Object,
+            InstanceDataMutator = withUnitOfWork ? TestInstanceDataUnitOfWork.Create(instance) : mutatorMock.Object,
             CancellationToken = CancellationToken.None,
             StateCarry = carry ?? new WorkflowCallbackStateCarry(),
             Payload = new AppCallbackPayload
@@ -544,6 +547,25 @@ public class ExecuteServiceTaskMailboxTests
         Assert.Equal(_carriedMailboxId, Assert.Single(conclude.MailboxIds));
         // Dropped before the capture: the published blob carries no exchange the conclusion closed.
         Assert.Null(carry.FindMailbox(SendStageIndex));
+    }
+
+    [Fact]
+    public async Task OpeningStageConclusion_WithConfirmComplete_StagesTheConfirmationWithTheConclusion()
+    {
+        var task = new SendOnlyTask
+        {
+            OnSend = (_, _) =>
+                Task.FromResult(
+                    ServiceTaskOpeningStageResult.Conclude(ServiceTaskResult.Success(confirmComplete: true))
+                ),
+        };
+        WorkflowEngineCommandContext context = CreateContext(MintedCarry(), withUnitOfWork: true);
+
+        WorkflowEngineCommandResult result = await CreateCommand(task).Execute(context, Payload(SendStageIndex));
+
+        SuccessfulWorkflowEngineCommandResult success = Assert.IsType<SuccessfulWorkflowEngineCommandResult>(result);
+        Assert.NotNull(success.ProcessNextContinuation);
+        Assert.True(((InstanceDataUnitOfWork)context.InstanceDataMutator).StagedCompleteConfirmation);
     }
 
     [Fact]

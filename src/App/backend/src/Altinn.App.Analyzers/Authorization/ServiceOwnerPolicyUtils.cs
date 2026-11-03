@@ -37,13 +37,16 @@ internal static class ServiceOwnerPolicyUtils
         List<Diagnostic> diagnostics
     )
     {
-        var (metadataOrg, metadataApp, autoDeleteOnProcessEnd) = ReadMetadata(metadataFile, token);
+        var (metadataOrg, metadataApp, autoDeleteOnProcessEnd, autoConfirmCompleteOnProcessEnd) = ReadMetadata(
+            metadataFile,
+            token
+        );
 
         // Without a process there is no way to tell whether a task marks the instance complete, but
         // the baseline still applies - every app reads and writes instance data.
         var processContent = processFile?.GetText(token)?.ToString();
         var process = processContent is null ? null : ProcessInfo.TryParse(processContent);
-        var requirements = BuildRequirements(process, autoDeleteOnProcessEnd);
+        var requirements = BuildRequirements(process, autoDeleteOnProcessEnd, autoConfirmCompleteOnProcessEnd);
 
         if (policyFile is null)
         {
@@ -144,7 +147,11 @@ internal static class ServiceOwnerPolicyUtils
     /// The actions the app owner must hold, in a stable order: the unconditional baseline first,
     /// then the ones the process and the app metadata add.
     /// </summary>
-    private static List<Requirement> BuildRequirements(ProcessInfo? process, bool autoDeleteOnProcessEnd)
+    private static List<Requirement> BuildRequirements(
+        ProcessInfo? process,
+        bool autoDeleteOnProcessEnd,
+        bool autoConfirmCompleteOnProcessEnd
+    )
     {
         var requirements = new List<Requirement>
         {
@@ -152,12 +159,22 @@ internal static class ServiceOwnerPolicyUtils
             new(ServiceOwnerActions.Write, "writes instance data"),
         };
 
+        // One requirement for both reasons, so a missing grant is reported once.
         if (process?.TaskTypes.Any(ServiceOwnerActions.MarksInstanceComplete) == true)
         {
             requirements.Add(
                 new Requirement(
                     ServiceOwnerActions.Complete,
                     "can mark the instance complete after shipping it to eFormidling or fiks arkiv"
+                )
+            );
+        }
+        else if (autoConfirmCompleteOnProcessEnd)
+        {
+            requirements.Add(
+                new Requirement(
+                    ServiceOwnerActions.Complete,
+                    "marks the instance complete at process end (autoConfirmCompleteOnProcessEnd)"
                 )
             );
         }
@@ -180,15 +197,17 @@ internal static class ServiceOwnerPolicyUtils
 
     private static string Format(IReadOnlyList<string> actions) => string.Join(", ", actions);
 
-    private static (string? Org, string? App, bool AutoDeleteOnProcessEnd) ReadMetadata(
-        AdditionalText? metadataFile,
-        CancellationToken token
-    )
+    private static (
+        string? Org,
+        string? App,
+        bool AutoDeleteOnProcessEnd,
+        bool AutoConfirmCompleteOnProcessEnd
+    ) ReadMetadata(AdditionalText? metadataFile, CancellationToken token)
     {
         var content = metadataFile?.GetText(token)?.ToString();
         if (content is null)
         {
-            return (null, null, false);
+            return (null, null, false, false);
         }
 
         try
@@ -197,7 +216,7 @@ internal static class ServiceOwnerPolicyUtils
             if (metadata.Type != JsonType.Object)
             {
                 // Structural errors are reported by the FormDataWrapperAnalyzer (ALTINNAPP0002).
-                return (null, null, false);
+                return (null, null, false, false);
             }
 
             var orgProperty = metadata.GetProperty("org");
@@ -217,16 +236,18 @@ internal static class ServiceOwnerPolicyUtils
             }
 
             var autoDelete = metadata.GetProperty("autoDeleteOnProcessEnd");
+            var autoConfirmComplete = metadata.GetProperty("autoConfirmCompleteOnProcessEnd");
             return (
                 string.IsNullOrWhiteSpace(org) ? null : org,
                 string.IsNullOrWhiteSpace(app) ? null : app,
-                autoDelete?.Type == JsonType.Boolean && autoDelete.GetBool()
+                autoDelete?.Type == JsonType.Boolean && autoDelete.GetBool(),
+                autoConfirmComplete?.Type == JsonType.Boolean && autoConfirmComplete.GetBool()
             );
         }
         catch (NanoJsonException)
         {
             // Malformed JSON is reported by the FormDataWrapperAnalyzer (ALTINNAPP0002).
-            return (null, null, false);
+            return (null, null, false, false);
         }
     }
 
