@@ -24,11 +24,15 @@ const (
 	fluxVersion                  = "v2.8.8"
 	fluxManifestsURL             = "https://github.com/fluxcd/flux2/releases/download/" + fluxVersion + "/manifests.tar.gz"
 	fluxManifestsDownloadTimeout = time.Minute
+	fluxManifestsMaxSize         = 10 << 20 // The v2.8.8 archive expands to less than 500 KiB.
 	fluxNotificationController   = "notification-controller"
 	fluxEventsAddr               = "http://notification-controller.$(RUNTIME_NAMESPACE).svc.cluster.local./"
 )
 
-var errFluxManifestsDownload = errors.New("failed to download manifests.tar.gz")
+var (
+	errFluxManifestsDownload = errors.New("failed to download manifests.tar.gz")
+	errFluxManifestArchive   = errors.New("invalid Flux manifest archive")
+)
 
 // These files reproduce what `flux install` generates around a release's manifests with its default options
 // (flux2's pkg/manifestgen/install), for the controllers devenv installs. When fluxVersion changes, compare the
@@ -131,28 +135,34 @@ func downloadFluxManifests(ctx context.Context) (map[string][]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w from %s: %w", errFluxManifestsDownload, fluxManifestsURL, err)
 	}
-	archive, err := io.ReadAll(resp.Body)
-	if err = errors.Join(err, resp.Body.Close()); err != nil {
-		return nil, fmt.Errorf("%w from %s: %w", errFluxManifestsDownload, fluxManifestsURL, err)
-	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w from %s, status: %s", errFluxManifestsDownload, fluxManifestsURL, resp.Status)
+		return nil, errors.Join(
+			fmt.Errorf("%w from %s, status: %s", errFluxManifestsDownload, fluxManifestsURL, resp.Status),
+			resp.Body.Close(),
+		)
 	}
 
-	files, err := readTarGz(archive)
-	if err != nil {
-		return nil, fmt.Errorf("extract %s: %w", fluxManifestsURL, err)
+	files, err := readTarGz(resp.Body)
+	if err = errors.Join(err, resp.Body.Close()); err != nil {
+		return nil, fmt.Errorf("%w from %s: %w", errFluxManifestsDownload, fluxManifestsURL, err)
 	}
 	return files, nil
 }
 
-func readTarGz(archive []byte) (map[string][]byte, error) {
-	gzipReader, err := gzip.NewReader(bytes.NewReader(archive))
+func readTarGz(archive io.Reader) (map[string][]byte, error) {
+	gzipReader, err := gzip.NewReader(io.LimitReader(archive, fluxManifestsMaxSize))
 	if err != nil {
 		return nil, fmt.Errorf("open gzip: %w", err)
 	}
+	content, err := io.ReadAll(io.LimitReader(gzipReader, fluxManifestsMaxSize+1))
+	if err = errors.Join(err, gzipReader.Close()); err != nil {
+		return nil, fmt.Errorf("decompress manifests: %w", err)
+	}
+	if len(content) > fluxManifestsMaxSize {
+		return nil, fmt.Errorf("%w: exceeds %d bytes", errFluxManifestArchive, fluxManifestsMaxSize)
+	}
 	files := map[string][]byte{}
-	tarReader := tar.NewReader(gzipReader)
+	tarReader := tar.NewReader(bytes.NewReader(content))
 	for {
 		header, err := tarReader.Next()
 		if errors.Is(err, io.EOF) {
@@ -161,14 +171,19 @@ func readTarGz(archive []byte) (map[string][]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read tar: %w", err)
 		}
-		if header.Typeflag != tar.TypeReg {
-			continue
+		if header.Typeflag != tar.TypeReg || path.Base(header.Name) != header.Name || header.Name == "." ||
+			header.Name == ".." ||
+			strings.Contains(header.Name, `\`) {
+			return nil, fmt.Errorf("%w: unsupported entry %q", errFluxManifestArchive, header.Name)
+		}
+		if _, exists := files[header.Name]; exists {
+			return nil, fmt.Errorf("%w: duplicate file %q", errFluxManifestArchive, header.Name)
 		}
 		content, err := io.ReadAll(tarReader)
 		if err != nil {
 			return nil, fmt.Errorf("read %s: %w", header.Name, err)
 		}
-		files[path.Base(header.Name)] = content
+		files[header.Name] = content
 	}
 }
 
@@ -179,7 +194,11 @@ func buildFluxManifest(files map[string][]byte, components []string) (string, er
 			return "", fmt.Errorf("write %s: %w", name, err)
 		}
 	}
-	if err := fs.WriteFile("roles/rbac.yaml", files["rbac.yaml"]); err != nil {
+	rbac, ok := files["rbac.yaml"]
+	if !ok {
+		return "", fmt.Errorf("%w: missing rbac.yaml", errFluxManifestArchive)
+	}
+	if err := fs.WriteFile("roles/rbac.yaml", rbac); err != nil {
 		return "", fmt.Errorf("write roles/rbac.yaml: %w", err)
 	}
 	for name, content := range fluxGeneratedFiles {

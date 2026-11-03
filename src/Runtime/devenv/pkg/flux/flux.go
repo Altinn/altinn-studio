@@ -168,6 +168,9 @@ func waitForInstallGenerateRetry(ctx context.Context) error {
 }
 
 func isRetryableInstallGenerateError(err error) bool {
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, io.ErrUnexpectedEOF) {
+		return true
+	}
 	message := strings.ToLower(err.Error())
 	retryableFragments := []string{
 		"status: 429",

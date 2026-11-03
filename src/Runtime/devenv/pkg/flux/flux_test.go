@@ -3,6 +3,8 @@ package flux
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"testing"
 	"time"
@@ -129,23 +131,27 @@ func TestPatchDeploymentsAddsCABundleToNotificationController(t *testing.T) {
 }
 
 func TestGenerateInstallManifestRetriesTransientDownloadFailure(t *testing.T) {
-	restore := replaceInstallGenerate(t, func(attempt int) (string, error) {
-		if attempt == 1 {
-			return "", errTransientFluxManifestDownload
-		}
-		return "ok", nil
-	})
-	defer restore()
+	for _, downloadError := range []error{errTransientFluxManifestDownload, context.DeadlineExceeded, io.ErrUnexpectedEOF} {
+		t.Run(downloadError.Error(), func(t *testing.T) {
+			restore := replaceInstallGenerate(t, func(attempt int) (string, error) {
+				if attempt == 1 {
+					return "", fmt.Errorf("download: %w", downloadError)
+				}
+				return "ok", nil
+			})
+			defer restore()
 
-	restoreDelay := replaceInstallGenerateRetryDelay(t, time.Nanosecond)
-	defer restoreDelay()
+			restoreDelay := replaceInstallGenerateRetryDelay(t, time.Nanosecond)
+			defer restoreDelay()
 
-	manifest, err := generateInstallManifest(context.Background(), nil)
-	if err != nil {
-		t.Fatalf("generateInstallManifest() error = %v", err)
-	}
-	if manifest != "ok" {
-		t.Fatalf("manifest = %q, want ok", manifest)
+			manifest, err := generateInstallManifest(context.Background(), nil)
+			if err != nil {
+				t.Fatalf("generateInstallManifest() error = %v", err)
+			}
+			if manifest != "ok" {
+				t.Fatalf("manifest = %q, want ok", manifest)
+			}
+		})
 	}
 }
 
