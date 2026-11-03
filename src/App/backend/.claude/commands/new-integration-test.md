@@ -10,15 +10,15 @@ Practices and rules when using the harness:
 
 - No mocking
 - Follow existing conventions when implementing new tests (see example `Full` test in @test/Altinn.App.Integration.Tests/Basic/BasicAppTests.cs)
-    - E.g. prefer snapshots with VerifyTests as opposed to assertions
+  - E.g. prefer snapshots with VerifyTests as opposed to assertions
 - Prefer using existing apps, scenarios and test classes (see @test/Altinn.App.Integration.Tests/_testapps)
-    - Feel free to extend existing methods as well, fixture setup and disposal is expensive
+  - Feel free to extend existing methods as well, fixture setup and disposal is expensive
 - Follow existing conventions when creating new operations (see @test/Altinn.App.Integration.Tests/_fixture/Operations/AppFixture.Instances.cs as an example)
-    - E.g. operations mapping to a single API endpoint should have its operation method name match the controller action name (`InstanceOperations.PostSimplified` matches `InstancesController.PostSimplified`)
-    - Use strongly typed models from @src/Altinn.App.Api when building inputs to endpoints in operations
+  - E.g. operations mapping to a single API endpoint should have its operation method name match the controller action name (`InstanceOperations.PostSimplified` matches `InstancesController.PostSimplified`)
+  - Use strongly typed models from @src/Altinn.App.Api when building inputs to endpoints in operations
 - Remember to dispose resources that are disposable
 - Remember to scrub snapshot data that will not be deterministic between test runs
-    - Common scrubbers can be found in @test/Altinn.App.Integration.Tests/_fixture/Scrubbers.cs
+  - Common scrubbers can be found in @test/Altinn.App.Integration.Tests/_fixture/Scrubbers.cs
 
 To implement a new test, follow these instructions:
 

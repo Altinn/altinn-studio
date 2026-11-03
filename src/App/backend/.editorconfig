@@ -184,6 +184,9 @@ dotnet_diagnostic.S1118.severity = none
 indent_size = 2
 end_of_line = lf
 
+[*.md]
+indent_size = 2
+
 # Verify settings
 # https://github.com/VerifyTests/Verify?tab=readme-ov-file#editorconfig-settings
 [*.{received,verified}.{json,txt,xml}]
