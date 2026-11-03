@@ -220,6 +220,23 @@ func TestImagePullWithProgress_StreamErrorClosesResponse(t *testing.T) {
 	}
 }
 
+func TestCreateContainer_InvalidPortMappingFailsBeforeRequests(t *testing.T) {
+	t.Parallel()
+	c := newHTTPTestClient(t, func(w http.ResponseWriter, req *http.Request) {
+		t.Errorf("unexpected request: %s %s", req.Method, req.URL)
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	_, err := c.CreateContainer(t.Context(), types.ContainerConfig{
+		Name:  "invalid-port",
+		Image: "alpine:latest",
+		Ports: []types.PortMapping{{HostIP: "localhost", HostPort: "8080", ContainerPort: "80"}},
+	})
+	if !errors.Is(err, errInvalidPortMapping) {
+		t.Fatalf("CreateContainer() error = %v, want errInvalidPortMapping", err)
+	}
+}
+
 func newHTTPTestClient(t *testing.T, handler http.HandlerFunc) *Client {
 	t.Helper()
 	server := httptest.NewServer(handler)

@@ -268,12 +268,12 @@ func runtimeCLI(platform types.ContainerPlatform) (string, error) {
 
 // CreateContainer creates and optionally starts a container.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
-	if err := c.ensureImageExists(ctx, cfg.Image); err != nil {
+	containerCfg, hostCfg, networkingConfig, err := buildDockerConfigs(cfg, c.toolchain.Platform)
+	if err != nil {
 		return "", err
 	}
 
-	containerCfg, hostCfg, networkingConfig, err := buildDockerConfigs(cfg, c.toolchain.Platform)
-	if err != nil {
+	if err = c.ensureImageExists(ctx, cfg.Image); err != nil {
 		return "", err
 	}
 
