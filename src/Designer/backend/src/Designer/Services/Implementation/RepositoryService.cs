@@ -653,8 +653,12 @@ public class RepositoryService : IRepository
                         _serializerOptions,
                         cancellationToken
                     );
-                    result.Identifier ??= Path.GetFileNameWithoutExtension(resourceFile.Name)
-                        .Replace("_resource", string.Empty);
+
+                    if (string.IsNullOrWhiteSpace(result.Identifier))
+                    {
+                        result.Identifier = Path.GetFileNameWithoutExtension(resourceFile.Name)
+                            .Replace("_resource", string.Empty);
+                    }
 
                     sw.Stop();
                     // Structured log: file path, file name and elapsed ms
@@ -683,8 +687,11 @@ public class RepositoryService : IRepository
                         {
                             { "nb", $"Kunne ikke lese ressursfil {resourceFile.Name}" },
                         },
-                        Identifier = Path.GetFileNameWithoutExtension(resourceFile.Name)
-                            .Replace("_resource", string.Empty),
+                        Identifier = Regex.Replace(
+                            Path.GetFileNameWithoutExtension(resourceFile.Name),
+                            "_resource$",
+                            string.Empty
+                        ),
                     };
                 }
             }
