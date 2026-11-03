@@ -194,14 +194,11 @@ public class ApplicationInformationService : IApplicationInformationService
             (org, app, reference),
             key => _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(key.Org, key.App, key.Reference)
         );
+
     /// <inheritdoc />
     public async Task<AppStatus?> GetAppStatusAsync(string org, string app, string commitId)
     {
-        string appMetadataJson = await _applicationMetadataService.GetApplicationMetadataJsonFromSpecificReference(
-            org,
-            app,
-            commitId
-        );
+        string appMetadataJson = await GetApplicationMetadataJson(org, app, commitId);
         return ApplicationMetadataJsonHelper.GetStatus(appMetadataJson);
     }
 
