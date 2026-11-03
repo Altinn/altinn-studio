@@ -214,7 +214,7 @@ describe('CreateRelease', () => {
     expect(mockCreateRelease).not.toHaveBeenCalled();
     expect(inputVersionNumber).toHaveValue('v1');
   });
-  
+
   it('selects under development when the app has no status', async () => {
     renderCreateRelease();
 
