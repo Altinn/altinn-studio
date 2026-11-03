@@ -1,29 +1,20 @@
 package dockerapi
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"io"
-	"net/netip"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
-
-	"github.com/moby/moby/api/types/jsonstream"
-	dockermount "github.com/moby/moby/api/types/mount"
-	"github.com/moby/moby/api/types/network"
-	systemtypes "github.com/moby/moby/api/types/system"
-	"github.com/moby/moby/client"
 )
 
 var errNetworkActiveEndpoints = errors.New(
 	`error response from daemon: error while removing network: network altinntestlocal_network has active endpoints`,
 )
-var errServerVersionUnavailable = errors.New("server version unavailable")
 
 func TestBuildMounts(t *testing.T) {
 	t.Parallel()
@@ -46,21 +37,21 @@ func TestBuildMounts(t *testing.T) {
 		},
 	})
 
-	want := []dockermount.Mount{
+	want := []mount{
 		{
-			Type:     dockermount.TypeBind,
+			Type:     "bind",
 			Source:   "/Users/someuser/Library/Application Support/altinn-studio/data/testdata",
 			Target:   "/testdata",
 			ReadOnly: false,
 		},
 		{
-			Type:     dockermount.TypeBind,
+			Type:     "bind",
 			Source:   "/tmp/config.yaml",
 			Target:   "/etc/config.yaml",
 			ReadOnly: true,
 		},
 		{
-			Type:     dockermount.TypeVolume,
+			Type:     "volume",
 			Source:   "localtest-workflow-engine-db-data",
 			Target:   "/var/lib/postgresql",
 			ReadOnly: false,
@@ -101,20 +92,21 @@ func TestBuildDockerConfigs_PodmanUserNamespaceAndRelabelBind(t *testing.T) {
 		},
 	}
 
-	_, hostCfg, _, err := buildDockerConfigs(cfg, types.PlatformPodman)
+	request, err := buildCreateRequest(cfg, types.PlatformPodman)
+	hostCfg := request.HostConfig
 	if err != nil {
-		t.Fatalf("buildDockerConfigs() error = %v", err)
+		t.Fatalf("buildCreateRequest() error = %v", err)
 	}
 
-	if got := string(hostCfg.UsernsMode); got != "keep-id" {
+	if got := hostCfg.UsernsMode; got != "keep-id" {
 		t.Fatalf("hostCfg.UsernsMode = %q, want keep-id", got)
 	}
 	wantBinds := []string{"/tmp/config.sql:/docker-entrypoint-initdb.d/01-tuning.sql:ro,z"}
 	if !slices.Equal(hostCfg.Binds, wantBinds) {
 		t.Fatalf("hostCfg.Binds = %#v, want %#v", hostCfg.Binds, wantBinds)
 	}
-	wantMounts := []dockermount.Mount{{
-		Type:   dockermount.TypeVolume,
+	wantMounts := []mount{{
+		Type:   "volume",
 		Source: "postgres-data",
 		Target: "/var/lib/postgresql",
 	}}
@@ -135,22 +127,22 @@ func TestBuildPortMappings(t *testing.T) {
 		t.Fatalf("buildPortMappings() error = %v", err)
 	}
 
-	tcpPort := network.MustParsePort("5005/tcp")
-	udpPort := network.MustParsePort("53/udp")
+	tcpPort := "5005/tcp"
+	udpPort := "53/udp"
 	if _, ok := exposedPorts[tcpPort]; !ok {
 		t.Fatalf("exposedPorts = %v, want %v", exposedPorts, tcpPort)
 	}
 	if _, ok := exposedPorts[udpPort]; !ok {
 		t.Fatalf("exposedPorts = %v, want %v", exposedPorts, udpPort)
 	}
-	wantTCP := []network.PortBinding{
-		{HostIP: netip.MustParseAddr("127.0.0.1"), HostPort: "5005"},
-		{HostIP: netip.MustParseAddr("::1"), HostPort: "5005"},
+	wantTCP := []portBinding{
+		{HostIP: "127.0.0.1", HostPort: "5005"},
+		{HostIP: "::1", HostPort: "5005"},
 	}
 	if !slices.Equal(portBindings[tcpPort], wantTCP) {
 		t.Fatalf("portBindings[%v] = %#v, want %#v", tcpPort, portBindings[tcpPort], wantTCP)
 	}
-	wantUDP := []network.PortBinding{{HostPort: "5353"}}
+	wantUDP := []portBinding{{HostPort: "5353"}}
 	if !slices.Equal(portBindings[udpPort], wantUDP) {
 		t.Fatalf("portBindings[%v] = %#v, want %#v", udpPort, portBindings[udpPort], wantUDP)
 	}
@@ -178,8 +170,8 @@ func TestBuildPortMappings(t *testing.T) {
 func TestPublishedPortsFromPortMap_UnsetHostIPIsEmpty(t *testing.T) {
 	t.Parallel()
 
-	got := publishedPortsFromPortMap(network.PortMap{
-		network.MustParsePort("5005/tcp"): {{HostPort: "5005"}},
+	got := publishedPortsFromPortMap(map[string][]portBinding{
+		"5005/tcp": {{HostPort: "5005"}},
 	})
 
 	want := []types.PublishedPort{{HostIP: "", HostPort: "5005", ContainerPort: "5005", Protocol: "tcp"}}
@@ -201,20 +193,20 @@ func TestPlatformFromVersion(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		version client.ServerVersionResult
+		version versionResponse
 		want    types.ContainerPlatform
 	}{
 		{
 			name: "podman platform wins",
-			version: client.ServerVersionResult{
-				Platform: client.PlatformInfo{Name: "Podman Engine"},
+			version: versionResponse{
+				Platform: versionPlatform{Name: "Podman Engine"},
 			},
 			want: types.PlatformPodman,
 		},
 		{
 			name: "docker component name",
-			version: client.ServerVersionResult{
-				Components: []systemtypes.ComponentVersion{
+			version: versionResponse{
+				Components: []versionComponent{
 					{Name: "Docker Engine - Community", Version: "28.0.0"},
 				},
 			},
@@ -240,7 +232,7 @@ func TestPlatformFromVersion(t *testing.T) {
 func TestPlatformFromInfo(t *testing.T) {
 	t.Parallel()
 
-	info := systemtypes.Info{
+	info := infoResponse{
 		OperatingSystem: "Podman Machine",
 		ServerVersion:   "5.4.0",
 	}
@@ -287,19 +279,19 @@ func TestInfoHasSELinux(t *testing.T) {
 
 	tests := []struct {
 		name string
-		info systemtypes.Info
+		info infoResponse
 		want bool
 	}{
 		{
 			name: "selinux enabled",
-			info: systemtypes.Info{
+			info: infoResponse{
 				SecurityOptions: []string{"name=seccomp,profile=default", "name=selinux"},
 			},
 			want: true,
 		},
 		{
 			name: "selinux absent",
-			info: systemtypes.Info{
+			info: infoResponse{
 				SecurityOptions: []string{"name=seccomp,profile=default", "name=rootless"},
 			},
 			want: false,
@@ -313,52 +305,6 @@ func TestInfoHasSELinux(t *testing.T) {
 				t.Fatalf("infoHasSELinux() = %v, want %v", got, tt.want)
 			}
 		})
-	}
-}
-
-func TestWithVersionMetadata(t *testing.T) {
-	t.Parallel()
-
-	toolchain := withVersionMetadata(
-		t.Context(),
-		fakeVersionClient{
-			clientVersion: "1.51",
-			serverVersion: client.ServerVersionResult{
-				Version: "28.2.2",
-			},
-		},
-		types.ContainerToolchain{
-			Platform:   types.PlatformDocker,
-			AccessMode: types.AccessDockerEngineAPI,
-			Source:     types.SourceDefault,
-		},
-	)
-
-	if toolchain.ClientVersion != "1.51" {
-		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
-	}
-	if toolchain.ServerVersion != "28.2.2" {
-		t.Fatalf("withVersionMetadata() ServerVersion = %q, want 28.2.2", toolchain.ServerVersion)
-	}
-}
-
-func TestWithVersionMetadataIgnoresServerVersionError(t *testing.T) {
-	t.Parallel()
-
-	toolchain := withVersionMetadata(
-		t.Context(),
-		fakeVersionClient{
-			clientVersion: "1.51",
-			err:           errServerVersionUnavailable,
-		},
-		types.ContainerToolchain{},
-	)
-
-	if toolchain.ClientVersion != "1.51" {
-		t.Fatalf("withVersionMetadata() ClientVersion = %q, want 1.51", toolchain.ClientVersion)
-	}
-	if toolchain.ServerVersion != "" {
-		t.Fatalf("withVersionMetadata() ServerVersion = %q, want empty", toolchain.ServerVersion)
 	}
 }
 
@@ -611,10 +557,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 
 	aggregator := newPullProgressAggregator()
 
-	first := aggregator.Update(jsonstream.Message{
+	first := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonstream.Progress{
+		Progress: &pullProgress{
 			Current: 25,
 			Total:   100,
 		},
@@ -623,10 +569,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 		t.Fatalf("first progress = %+v, want current=25 total=100 determinate", first)
 	}
 
-	second := aggregator.Update(jsonstream.Message{
+	second := aggregator.Update(pullMessage{
 		ID:     "layer-b",
 		Status: "Downloading",
-		Progress: &jsonstream.Progress{
+		Progress: &pullProgress{
 			Current: 10,
 			Total:   50,
 		},
@@ -635,10 +581,10 @@ func TestPullProgressAggregator_AggregatesLayers(t *testing.T) {
 		t.Fatalf("second progress = %+v, want current=35 total=150 determinate", second)
 	}
 
-	third := aggregator.Update(jsonstream.Message{
+	third := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Extracting",
-		Progress: &jsonstream.Progress{
+		Progress: &pullProgress{
 			Current: 100,
 			Total:   100,
 		},
@@ -652,16 +598,16 @@ func TestPullProgressAggregator_IgnoresProgresslessUpdates(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newPullProgressAggregator()
-	aggregator.Update(jsonstream.Message{
+	aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonstream.Progress{
+		Progress: &pullProgress{
 			Current: 25,
 			Total:   100,
 		},
 	})
 
-	progress := aggregator.Update(jsonstream.Message{
+	progress := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Verifying Checksum",
 	})
@@ -678,19 +624,19 @@ func TestPullProgressAggregator_ResetsLayerProgressWhenPhaseChanges(t *testing.T
 
 	aggregator := newPullProgressAggregator()
 
-	aggregator.Update(jsonstream.Message{
+	aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Downloading",
-		Progress: &jsonstream.Progress{
+		Progress: &pullProgress{
 			Current: 100,
 			Total:   100,
 		},
 	})
 
-	progress := aggregator.Update(jsonstream.Message{
+	progress := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Extracting",
-		Progress: &jsonstream.Progress{
+		Progress: &pullProgress{
 			Current: 10,
 			Total:   100,
 		},
@@ -708,7 +654,7 @@ func TestPullProgressAggregator_IndeterminateWithoutLayerTotals(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newPullProgressAggregator()
-	progress := aggregator.Update(jsonstream.Message{
+	progress := aggregator.Update(pullMessage{
 		ID:     "layer-a",
 		Status: "Waiting",
 	})
@@ -753,21 +699,4 @@ func TestUpdateTrackedProgress_ReplacesProgressWhenPhaseChanges(t *testing.T) {
 	if got.phase != "Extracting" || got.current != 10 || got.total != 100 {
 		t.Fatalf("tracked progress = %+v, want phase=Extracting current=10 total=100", got)
 	}
-}
-
-type fakeVersionClient struct {
-	err           error
-	clientVersion string
-	serverVersion client.ServerVersionResult
-}
-
-func (c fakeVersionClient) ClientVersion() string {
-	return c.clientVersion
-}
-
-func (c fakeVersionClient) ServerVersion(
-	context.Context,
-	client.ServerVersionOptions,
-) (client.ServerVersionResult, error) {
-	return c.serverVersion, c.err
 }

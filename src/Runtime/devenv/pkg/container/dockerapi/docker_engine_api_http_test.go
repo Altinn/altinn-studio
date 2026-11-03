@@ -11,9 +11,6 @@ import (
 	"time"
 
 	"altinn.studio/devenv/pkg/container/types"
-
-	cerrdefs "github.com/containerd/errdefs"
-	"github.com/moby/moby/client"
 )
 
 func TestNew_APIVersionNegotiation(t *testing.T) {
@@ -30,7 +27,7 @@ func TestNew_APIVersionNegotiation(t *testing.T) {
 	}{
 		{name: "environment host", daemonAPI: "1.41", wantAPI: "1.41"},
 		{name: "minimum API", daemonAPI: "1.40", wantAPI: "1.40"},
-		{name: "newer daemon", daemonAPI: "99.99", wantAPI: client.MaxAPIVersion},
+		{name: "newer daemon", daemonAPI: "99.99", wantAPI: maxAPIVersion},
 		{name: "environment API pin", daemonAPI: "1.41", envAPI: "1.40", wantAPI: "1.40"},
 		{name: "old daemon", daemonAPI: "1.39", wantError: "minimum supported API version"},
 		{name: "malformed environment API", daemonAPI: "1.41", envAPI: "1.41.0", wantError: "invalid API version"},
@@ -176,7 +173,7 @@ func TestNetworkRemove_SDKErrorClassification(t *testing.T) {
 				if !errors.Is(err, types.ErrNetworkInUse) {
 					t.Fatalf("NetworkRemove() error = %v, want ErrNetworkInUse", err)
 				}
-			} else if !cerrdefs.IsPermissionDenied(err) {
+			} else if !hasStatus(err, http.StatusForbidden) {
 				t.Fatalf("NetworkRemove() error = %v, want wrapped permission error", err)
 			}
 		})
@@ -241,14 +238,12 @@ func newHTTPTestClient(t *testing.T, handler http.HandlerFunc) *Client {
 	t.Helper()
 	server := httptest.NewServer(handler)
 	t.Cleanup(server.Close)
-	cli, err := client.New(
-		client.WithHost("tcp://"+strings.TrimPrefix(server.URL, "http://")),
-		client.WithAPIVersion("1.41"),
-	)
+	api, err := newEngine("tcp://"+strings.TrimPrefix(server.URL, "http://"), nil)
 	if err != nil {
-		t.Fatalf("client.New() error = %v", err)
+		t.Fatalf("newEngine() error = %v", err)
 	}
-	c := &Client{cli: cli}
+	api.version = "1.41"
+	c := &Client{api: api}
 	t.Cleanup(func() { closeBestEffort(c) })
 	return c
 }
