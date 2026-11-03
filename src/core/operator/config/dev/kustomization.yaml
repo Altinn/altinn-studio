@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+# The kinds this environment runs, beside the base configuration.
+configMapGenerator:
+  - name: core-operator-config
+    namespace: core-operator
+    behavior: merge
+    files:
+      - kinds.yaml

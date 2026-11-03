@@ -19,7 +19,8 @@ Altinn Studio spans Core, Runtime and Platform:
 
 - **Core** is the control plane, which reaches out to Runtime and Platform. Service owners build, configure and
   deploy their apps in [Designer](src/Designer), with help from the [Studio Assistant](src/AI), and the apps'
-  repositories are in [Gitea](src/gitea).
+  repositories are in [Gitea](src/gitea). The [core operator](src/core/operator) does the cluster work in Core,
+  such as running app code in a sandbox, for the services that ask it.
 - **Runtime** is a service owner's own runtime, where its [apps](src/App) run. It is mostly data plane, such as the
   apps and the [workflow engine](src/Runtime/workflow-engine-app), with the control plane services that belong to one
   service owner, such as the [gateway](src/Runtime/gateway) and the [operator](src/Runtime/operator).
