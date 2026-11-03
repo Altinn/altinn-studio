@@ -335,7 +335,8 @@ public class DeploymentServiceTest
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()
+                    It.IsAny<string>(),
+                    It.IsAny<AppStatus>()
                 )
             )
             .ReturnsAsync(new ResourceRegistryPublishResult(true));
@@ -1251,7 +1252,6 @@ public class DeploymentServiceTest
             _generalSettings,
             _fakeTimeProvider,
             _gitOpsConfigurationManager.Object,
-            _runtimeGatewayClient.Object,
             _apiKeyService.Object,
             _notificationService.Object,
             _hostEnvironment.Object
