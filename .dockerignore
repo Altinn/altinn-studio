@@ -27,6 +27,7 @@
 !src/Designer/frontend
 !src/Designer/frontend/**
 !src/ci/github-runner/coordinator/**
+!src/ci/sandbox-host/**
 !src/cli/.editorconfig
 !src/cli/Directory.Build.props
 !src/cli/Directory.Packages.props
@@ -41,6 +42,7 @@
 !src/common/ts
 !src/common/ts/**
 !src/common/ts/layout-contract/schemas/json/layout
+!src/core/job-host/**
 !yarn.lock
 **/.DS_Store
 **/.cache
@@ -58,3 +60,4 @@
 **/.pytest_cache
 **/dist
 !src/ci/github-runner/coordinator/src/bin/**
+!src/ci/sandbox-host/src/bin/**
