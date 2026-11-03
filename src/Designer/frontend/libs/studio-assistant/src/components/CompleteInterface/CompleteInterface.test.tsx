@@ -57,8 +57,8 @@ describe('CompleteInterface', () => {
 
   it('should render chat threads', () => {
     renderCompleteInterface({ chatThreads: mockChatThreads });
-    const thread1 = screen.getByRole('tab', { name: threadTitle1 });
-    const thread2 = screen.getByRole('tab', { name: threadTitle2 });
+    const thread1 = screen.getByRole('button', { name: threadTitle1 });
+    const thread2 = screen.getByRole('button', { name: threadTitle2 });
 
     expect(thread1).toBeInTheDocument();
     expect(thread2).toBeInTheDocument();
@@ -76,8 +76,8 @@ describe('CompleteInterface', () => {
     const mockOnSelectThread = vi.fn();
     renderCompleteInterface({ chatThreads: mockChatThreads, onSelectThread: mockOnSelectThread });
 
-    const thread2Tab = screen.getByRole('tab', { name: threadTitle2 });
-    await user.click(thread2Tab);
+    const thread2Button = screen.getByRole('button', { name: threadTitle2 });
+    await user.click(thread2Button);
 
     expect(mockOnSelectThread).toHaveBeenCalledWith('2');
   });

@@ -1,6 +1,7 @@
 # Changelog
 
-All notable changes to Altinn app backend packages will be documented in this file.
+All notable changes to the Altinn app backend packages and the app frontend will be documented in this file.
+Folders in `src/App` with their own `CHANGELOG.md` are released separately.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,11 +10,16 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 ## [Unreleased]
 
+### Added
+
+- Process hooks get `StepId` and `WorkflowId` in their context, like service task stages. `StepId` stays the same when the hook is retried, so a hook can use it as an idempotency key for calls to other systems. ([#21715](https://github.com/Altinn/altinn-studio/pull/21715))
+
 ### Changed
 
 - A process transition saves the task it moves to before that task starts, so task-start hooks and stages run while Storage holds the new task. If the start fails, the instance stays in the new task, still processing, and resuming continues the start. A transition planned by an earlier version fails when it reaches its `MutateProcessState` step. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - `process/next` and `process/resume` answer `202 Accepted` when a start stage of the task being entered defers, as they do for a deferring service task, instead of holding the request until the stage completes. ([#21622](https://github.com/Altinn/altinn-studio/pull/21622))
 - An app no longer starts when it registers an `IServiceTask` whose `Type` is that of a built-in service task, such as `pdf` or `eFormidling`. Built-in service tasks cannot be replaced, and which of the two ran depended on registration order. Give your task its own type. ([#20919](https://github.com/Altinn/altinn-studio/issues/20919))
+- Apps use the font Inter instead of Altinn-DIN, like Designsystemet, also in PDFs. Inter is wider, so check that labels and values in narrow columns still fit. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 
 ## [9.0.0-preview.9] - 2026-10-28
 
@@ -24,19 +30,19 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - PDF preview in the app developer tools can now show a PDF or subform PDF service task before the instance reaches it, including individual subforms. `GET .../pdf/preview` accepts optional `taskId` and `language`; subform PDF service tasks require `dataElementId`. ([Altinn/app-lib-dotnet#1659](https://github.com/Altinn/app-lib-dotnet/issues/1659))
 - `GET .../pdf/preview` now appears in the app's OpenAPI documentation for integrations that use the API directly. ([#20421](https://github.com/Altinn/altinn-studio/pull/20421))
 - Build checks compare the data types `process.bpmn` uses with `applicationmetadata.json` ([#21024](https://github.com/Altinn/altinn-studio/pull/21024)):
-    - `ALTINNAPP1013`–`ALTINNAPP1015` (errors): missing, such as `ref-data-as-pdf`, or unable to hold what the task stores
-    - `ALTINNAPP1016`–`ALTINNAPP1019` (warnings): signing and payment data types that are not app-owned, a `taskId` that names no task, and unknown ids the app skips
+  - `ALTINNAPP1013`–`ALTINNAPP1015` (errors): missing, such as `ref-data-as-pdf`, or unable to hold what the task stores
+  - `ALTINNAPP1016`–`ALTINNAPP1019` (warnings): signing and payment data types that are not app-owned, a `taskId` that names no task, and unknown ids the app skips
 - Build checks report task configuration in `process.bpmn` that the app rejects or ignores ([#21025](https://github.com/Altinn/altinn-studio/pull/21025)):
-    - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
-    - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
+  - `ALTINNAPP1020` (error): a required setting that is missing, empty or invalid, such as an eFormidling setting missing for production
+  - `ALTINNAPP1021`–`ALTINNAPP1022` (warnings): misspelled elements and `env` attributes the app cannot use
 - Build checks for `subformPdf` tasks: `ALTINNAPP1024` (error) reports a `subformUiFolder` that is a task's UI folder, or not a UI folder with a `defaultDataType` the app declares, and `ALTINNAPP0602` (error) reports the old `subformComponentId` and `subformDataTypeId`. ([#17467](https://github.com/Altinn/altinn-studio/issues/17467))
 - Build checks `ALTINNAPP1004`–`ALTINNAPP1012` and `ALTINNAPP1023` report sequence flows in `process.bpmn` that an instance cannot follow, such as a flow to a missing element, a task with two outgoing flows or a condition on a gateway's default. Gateway loops and an unlisted gateway default are warnings; the rest are errors. ([#21023](https://github.com/Altinn/altinn-studio/pull/21023), [#21105](https://github.com/Altinn/altinn-studio/pull/21105))
 - Validators can set `ComponentId` and `RowIndexes` on a `ValidationIssue` to show it beside one component in a specific repeating group row, even when the issue has no `Field`. Required-field issues now use it, so they no longer appear on every component bound to the same field.
 - Build check `ALTINNAPP0902` (error) reports `applicationmetadata.json` that sets both `autoDeleteOnProcessEnd` and `preventInstanceDeletionForDays`. Ending the process archives the instance, so it cannot be deleted then and also kept. Remove one of the two settings. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - `IOnProcessEndedHandler` runs your code after the ended process is saved, before data marked `autoDeleteOnProcessEnd` is deleted and the instance is released. Like the other process hooks, it can read and change instance data. ([#21014](https://github.com/Altinn/altinn-studio/issues/21014))
 - Build checks for PDF service tasks in `process.bpmn` ([#21361](https://github.com/Altinn/altinn-studio/issues/21361)):
-    - `ALTINNAPP1026` (error): `pdfLayoutName` names a layout the task's UI folder does not have. The app also does not start, where the task timed out
-    - `ALTINNAPP1002` (warning) now also reports an `autoPdfTaskIds` entry that is blank or the task itself, which add nothing to the PDF
+  - `ALTINNAPP1026` (error): `pdfLayoutName` names a layout the task's UI folder does not have. The app also does not start, where the task timed out
+  - `ALTINNAPP1002` (warning) now also reports an `autoPdfTaskIds` entry that is blank or the task itself, which add nothing to the PDF
 - `copyInstanceSettings` in `applicationmetadata.json` can copy the due date, data values and presentation texts of the source instance with `includeDueBefore`, `includedDataValues` and `includedPresentationTexts`. A copy also gets the data value `copy.sourceInstanceId`. ([#20862](https://github.com/Altinn/altinn-studio/issues/20862), [Altinn/app-lib-dotnet#1882](https://github.com/Altinn/app-lib-dotnet/pull/1882))
 - Custom process tasks can split the work they do when a task starts, ends or is abandoned into stages with `IProcessTask.DefineStart`, `DefineEnd` and `DefineAbandon`, composed and run exactly like the stages of a service task: each stage is saved and retried on its own, and can defer or fail permanently. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
@@ -70,23 +76,23 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - Breaking: for clients calling the API directly, `description` on built-in validation issues is now translated text instead of the issue code or an English message. Use `code` to tell issues apart. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the form shows a validation issue's `Description` as text and no longer looks it up as a text key. To show a text from your app's text resources, set `CustomTextKey` instead; `studioctl app upgrade v9` moves the text keys it finds. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - Breaking: the data API returns its errors as JSON, and the `JsonObjectInDataResponse` feature flag is removed. `studioctl app upgrade v9` removes the flag from the app. ([#21166](https://github.com/Altinn/altinn-studio/pull/21166))
-    - the obsolete `POST .../data?dataType=` returns a list of validation issues
-    - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
+  - the obsolete `POST .../data?dataType=` returns a list of validation issues
+  - `PUT` on an attachment, and a data type in the URL that does not match the data element, return problem details
 - `PUT .../process/next` and `POST .../process/resume` answer `202 Accepted` instead of `200` as soon as a service task defers or waits for a message, with the same body. The task runs on: poll `GET .../process` until it is done, since calling `process/next` again meanwhile answers `409 Conflict`. Instantiation still answers `201`. ([#21361](https://github.com/Altinn/altinn-studio/issues/21361))
 - `PUT .../process/next` with concurrent changes to the instance: ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
-    - answers `409 Conflict` and does nothing if the instance changed after the call read it (`processNextState: "instanceChanged"`) or another call chose differently on the same version (`"concurrentTransition"`); try again
-    - waits for an earlier call that has not started yet, or that made the same choice on the same version
+  - answers `409 Conflict` and does nothing if the instance changed after the call read it (`processNextState: "instanceChanged"`) or another call chose differently on the same version (`"concurrentTransition"`); try again
+  - waits for an earlier call that has not started yet, or that made the same choice on the same version
 - Breaking: a direct `IDataClient` call in an `IProcessExclusiveGateway` now acts as the user calling `PUT .../process/next`, not as the app. Read data through the `IInstanceDataAccessor` that `Filter` gets instead, which reads as the app.
 - Breaking: `PUT .../process/next` now records the `Process.GenerateChangeEvent` and `Process.End` spans in its own trace, not the workflow callback's, even if the transition is not carried out. Update dashboards, alerts and queries that use them or count `Process.End` as ended processes. ([#21043](https://github.com/Altinn/altinn-studio/pull/21043))
 - Breaking: an exclusive gateway in `process.bpmn` takes its `default` flow only when no other flow is valid. The app does not start: ([#21105](https://github.com/Altinn/altinn-studio/pull/21105))
-    - if the default has a condition, which the app never evaluates; remove it
-    - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
+  - if the default has a condition, which the app never evaluates; remove it
+  - if another flow has none, unless it is the only flow or your `IProcessExclusiveGateway` chooses the flow; add one, or make it the default
 - Long text in Paragraph, Alert and Panel components and in field descriptions now wraps at about 70 characters per line, so it is easier to read on wide screens. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 - Forms are about 100px wider on screens 1200px and wider, so fields have more room and labels wrap less. A form also no longer gets narrower as the window is widened past 1200px. ([#19944](https://github.com/Altinn/altinn-studio/issues/19944))
 - Breaking: process handler and service task result types are renamed. Change the type names in your code; factories such as `HandlerResult.Success()` work as before: ([#21554](https://github.com/Altinn/altinn-studio/pull/21554))
-    - `HookResult` is `HandlerResult`, with `SuccessfulHandlerResult` and `FailedHandlerResult`
-    - `IOnTaskAbandonHandler` is `IOnTaskAbandoningHandler`, with `OnTaskAbandoningContext`
-    - `ServiceTaskSuccessResult`, `ServiceTaskFailedResult` and `ServiceTaskDeferredResult` are `SuccessfulServiceTaskResult`, `FailedServiceTaskResult` and `DeferredServiceTaskResult`
+  - `HookResult` is `HandlerResult`, with `SuccessfulHandlerResult` and `FailedHandlerResult`
+  - `IOnTaskAbandonHandler` is `IOnTaskAbandoningHandler`, with `OnTaskAbandoningContext`
+  - `ServiceTaskSuccessResult`, `ServiceTaskFailedResult` and `ServiceTaskDeferredResult` are `SuccessfulServiceTaskResult`, `FailedServiceTaskResult` and `DeferredServiceTaskResult`
 - Breaking: the types a pipeline stage uses are named for stages, since process task lifecycle stages use them too: `ServiceTaskContext` is `StageContext`, `ServiceTaskStageResult` is `StageResult`, `ServiceTaskStageExchangeResult` is `StageExchangeResult`, `ServiceTaskStageAwaitNextReplyResult` is `StageAwaitNextReplyResult`, and `ServiceTaskAttempt` and `ServiceTaskWait` are `StageAttempt` and `StageWait`. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 - Breaking: `ServiceTaskPipelineBuilder` is `PipelineBuilder`, the one builder every pipeline is composed with. A service task's `Define` still ends it with `Finally` or `ConcludeOnReplies`; a task's `DefineStart`, `DefineEnd` and `DefineAbandon` end it with `Build()`, which refuses a pipeline that opened a mailbox. ([#21538](https://github.com/Altinn/altinn-studio/pull/21538))
 
@@ -97,8 +103,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 - An app that exports telemetry directly to Application Insights sends every trace and all logs instead of a sample of 5 traces per second. ([Altinn/app-lib-dotnet#1889](https://github.com/Altinn/app-lib-dotnet/pull/1889))
 - Submitting no longer fails when a hidden Map component has drawn geometries and `RemoveHiddenData` is enabled. ([Altinn/app-lib-dotnet#1862](https://github.com/Altinn/app-lib-dotnet/issues/1862))
 - Copying an instance with `copyInstanceSettings.includeAttachments`:
-    - keeps the tags on its attachments ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
-    - shows the attachments of a `FileUpload` in a repeating group in the copy ([Altinn/app-lib-dotnet#1894](https://github.com/Altinn/app-lib-dotnet/pull/1894))
+  - keeps the tags on its attachments ([Altinn/app-lib-dotnet#1888](https://github.com/Altinn/app-lib-dotnet/pull/1888))
+  - shows the attachments of a `FileUpload` in a repeating group in the copy ([Altinn/app-lib-dotnet#1894](https://github.com/Altinn/app-lib-dotnet/pull/1894))
 - The OpenAPI document no longer lists a `dataGuid` path parameter on endpoints that create data. ([Altinn/app-lib-dotnet#1871](https://github.com/Altinn/app-lib-dotnet/pull/1871))
 - Validation messages with texts from the app backend, such as XSD errors, now show as text in the form instead of a raw key like `backend.xsd_validation`. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
 - File validation errors during upload are now in the user's language. ([#16705](https://github.com/Altinn/altinn-studio/issues/16705))
@@ -152,8 +158,8 @@ Section ordering: Added, Changed, Fixed, Removed, Security, Deprecated.
 
 - Signing and payment configuration is now checked at startup. Delegated signing requires exactly one matching signee provider and, in staging and production, a correspondence resource for the current environment. Unreadable process configuration also prevents startup, so these errors can be fixed before users reach the affected tasks.
 - An app no longer starts when a task in `config/process/process.bpmn`:
-    - has a blank `<altinn:taskType>`, or a type that no built-in or registered task matches exactly, including case ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
-    - uses the wrong BPMN element: a service task, such as `pdf` or your own `IServiceTask`, must be a `<bpmn:serviceTask>`, and every other task a `<bpmn:task>` ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
+  - has a blank `<altinn:taskType>`, or a type that no built-in or registered task matches exactly, including case ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
+  - uses the wrong BPMN element: a service task, such as `pdf` or your own `IServiceTask`, must be a `<bpmn:serviceTask>`, and every other task a `<bpmn:task>` ([#20352](https://github.com/Altinn/altinn-studio/issues/20352))
 - A service task's type is matched exactly, including case, everywhere in the process engine, and when several service tasks that implement the same interface (`IServiceTask` or `IPipelineServiceTask`) declare the same type, the one registered last runs. ([#20832](https://github.com/Altinn/altinn-studio/pull/20832))
 - `DataType.EnablePdfCreation` in application metadata is now nullable and marked obsolete. The flag has had no effect since PDF generation moved to the PDF service task (build check `ALTINNAPP0600`), so remove code that reads or sets it. ([#19667](https://github.com/Altinn/altinn-studio/issues/19667))
 - The app's resource files under `config/`, `models/`, `options/` and `ui/` are now read into memory once when the app starts. If `config/applicationmetadata.json` is missing, or any of these JSON files does not parse, the app refuses to start and lists every file with a problem, where it previously failed the first request that needed the file. In the `Development` environment the app checks the files every second and picks up edits without a restart; an edit that leaves a file broken is logged and the previous version stays in use until the file is fixed. File and folder names are matched case-sensitively on every operating system, so an app that only started on Windows or macOS because a name differed in case, such as `ui/settings.json`, now fails there too, as it always did in the Linux container.

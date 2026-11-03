@@ -10,6 +10,7 @@ import { DeploymentStatusList } from './DeploymentStatusList';
 import { DeploymentLogList } from './DeploymentLogList';
 import { StudioSpinner, StudioError } from '@studio/components';
 import type { Environment } from 'app-shared/types/Environment';
+import { environmentsOf } from 'app-shared/types/api/DeploymentsResponse';
 
 type DeploymentContainerProps = Pick<HTMLAttributes<HTMLDivElement>, 'className'>;
 
@@ -49,7 +50,7 @@ export const DeploymentContainer = ({ className }: DeploymentContainerProps) => 
       <section className={className}>
         <DeploymentStatusList
           orgEnvironmentList={orgEnvironmentList}
-          runningAppList={appDeployment.runningAppList ?? []}
+          environmentList={environmentsOf(appDeployment)}
           pipelineDeploymentList={appDeployment.pipelineDeploymentList}
         />
       </section>

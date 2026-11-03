@@ -30,11 +30,9 @@ class BaseConfig:
 
     AZURE_API_KEY = os.getenv("AZURE_API_KEY")
     AZURE_ANTHROPIC_API_KEY = os.getenv("AZURE_ANTHROPIC_API_KEY") or os.getenv("AZURE_API_KEY")
-    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://altinn-studio-assistant.openai.azure.com/")
-    # Anthropic is only on the older resource; the EU data zone one has OpenAI alone.
+    AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "https://team-altinnstudio-ai.openai.azure.com/")
     AZURE_ANTHROPIC_ENDPOINT = os.getenv(
-        "AZURE_ANTHROPIC_ENDPOINT",
-        "https://rndlabaidemoss0618689180.services.ai.azure.com/anthropic/",
+        "AZURE_ANTHROPIC_ENDPOINT", "https://team-altinnstudio-ai.services.ai.azure.com/anthropic/"
     )
     AZURE_API_VERSION = os.getenv("AZURE_API_VERSION", "2025-03-01-preview")
     AZURE_DEPLOYMENT_NAME = os.getenv("AZURE_DEPLOYMENT_NAME", "gpt-5.4-mini")
