@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
@@ -380,7 +381,8 @@ func responseErrorMessage(resp *http.Response) string {
 		return fmt.Sprintf("request returned %s for API route and version %s, "+
 			"check if the server supports the requested API version", resp.Status, resp.Request.URL)
 	}
-	if resp.Header.Get("Content-Type") != "application/json" {
+	mediaType, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
 		return "Error response from daemon: " + strings.TrimSpace(string(data))
 	}
 	var body struct {

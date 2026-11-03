@@ -372,6 +372,7 @@ func TestEngine_ResponseErrors(t *testing.T) {
 	t.Parallel()
 	for _, tt := range []struct{ name, contentType, body, want string }{
 		{"JSON message", "application/json", `{"message":" denied "}`, "Error response from daemon: denied"},
+		{"JSON with charset", "application/json; charset=utf-8", `{"message":"denied"}`, "Error response from daemon: denied"},
 		{"empty JSON message", "application/json", `{}`, "Error response from daemon: API returned a 403 (Forbidden) but provided no error-message"},
 		{"malformed JSON", "application/json", `{`, "error reading JSON: unexpected end of JSON input"},
 		{"plain text", "text/plain", " denied ", "Error response from daemon: denied"},
